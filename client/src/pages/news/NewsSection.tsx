@@ -37,7 +37,7 @@ export default function NewsSection() {
           <Button 
             variant="default" 
             onClick={handleRefresh}
-            className="bg-primary-600 hover:bg-primary-700"
+            className="bg-primary-500 hover:bg-primary-600"
           >
             <RefreshCw className="h-4 w-4 mr-2" /> Refresh News
           </Button>

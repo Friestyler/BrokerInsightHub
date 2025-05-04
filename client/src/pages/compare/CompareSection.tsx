@@ -122,7 +122,7 @@ Certified Insurance Advisor
           <Button variant="outline" className="mr-3">
             <Save className="h-4 w-4 mr-2" /> Save Draft
           </Button>
-          <Button variant="default" className="bg-primary-600 hover:bg-primary-700">
+          <Button variant="default" className="bg-primary-500 hover:bg-primary-600">
             <Send className="h-4 w-4 mr-2" /> Send Email
           </Button>
         </div>
@@ -181,7 +181,7 @@ Certified Insurance Advisor
                   <DialogFooter className="mt-6">
                     <Button 
                       variant="default" 
-                      className="w-full bg-primary-600 hover:bg-primary-700"
+                      className="w-full bg-primary-500 hover:bg-primary-600"
                     >
                       Use for Comparison
                     </Button>
@@ -289,7 +289,7 @@ Certified Insurance Advisor
 
           <div className="mt-6">
             <Button 
-              className="w-full bg-primary-600 hover:bg-primary-700" 
+              className="w-full bg-primary-500 hover:bg-primary-600" 
               onClick={handleRunComparison}
             >
               Run Comparison
@@ -388,7 +388,7 @@ Certified Insurance Advisor
             </Button>
             <Button 
               variant="default" 
-              className="flex-1 bg-primary-600 hover:bg-primary-700"
+              className="flex-1 bg-primary-500 hover:bg-primary-600"
             >
               Preview Email
             </Button>
