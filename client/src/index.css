@@ -1,0 +1,112 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  /* Primary Colors (Blue) */
+  --primary-100: 230 234 252;  /* #e6eafc */
+  --primary-200: 204 213 249;  /* #ccd5f9 */
+  --primary-300: 179 192 247;  /* #b3c0f7 */
+  --primary-400: 153 171 244;  /* #99abf4 */
+  --primary-500: 102 130 239;  /* #6682ef */
+  --primary-600: 77 104 234;   /* #4d68ea */
+  --primary-700: 51 77 230;    /* #334de6 */
+  --primary-800: 26 51 227;    /* #1a33e3 */
+  --primary-900: 0 25 224;     /* #0019e0 */
+  
+  /* Neutral Colors (Gray) */
+  --neutral-100: 245 245 247;  /* #f5f5f7 */
+  --neutral-200: 230 231 235;  /* #e6e7eb */
+  --neutral-300: 215 217 223;  /* #d7d9df */
+  --neutral-400: 200 203 211;  /* #c8cbd3 */
+  --neutral-500: 170 175 192;  /* #aaafc0 */
+  --neutral-600: 139 145 167;  /* #8b91a7 */
+  --neutral-700: 109 115 142;  /* #6d738e */
+  --neutral-800: 78 85 117;    /* #4e5575 */
+  --neutral-900: 48 55 92;     /* #30375c */
+  
+  /* Base tokens */
+  --background: var(--neutral-100);
+  --foreground: var(--neutral-900);
+  
+  --muted: var(--neutral-200);
+  --muted-foreground: var(--neutral-600);
+  
+  --popover: 0 0% 100%;
+  --popover-foreground: var(--neutral-900);
+  
+  --card: 0 0% 100%;
+  --card-foreground: var(--neutral-900);
+  
+  --border: var(--neutral-200);
+  --input: var(--neutral-300);
+  
+  --primary: var(--primary-600);
+  --primary-foreground: 0 0% 100%;
+  
+  --secondary: var(--neutral-200);
+  --secondary-foreground: var(--neutral-800);
+  
+  --accent: var(--primary-100);
+  --accent-foreground: var(--primary-900);
+  
+  --destructive: 0 84.2% 60.2%;
+  --destructive-foreground: 60 9.1% 97.8%;
+  
+  --ring: var(--primary-500);
+  
+  --radius: 0.5rem;
+}
+
+.dark {
+  --background: var(--neutral-900);
+  --foreground: var(--neutral-100);
+  
+  --muted: var(--neutral-800);
+  --muted-foreground: var(--neutral-400);
+  
+  --popover: var(--neutral-800);
+  --popover-foreground: var(--neutral-100);
+  
+  --card: var(--neutral-800);
+  --card-foreground: var(--neutral-100);
+  
+  --border: var(--neutral-700);
+  --input: var(--neutral-700);
+  
+  --primary: var(--primary-600);
+  --primary-foreground: 210 40% 98%;
+  
+  --secondary: var(--neutral-800);
+  --secondary-foreground: 210 40% 98%;
+  
+  --accent: var(--neutral-800);
+  --accent-foreground: 210 40% 98%;
+  
+  --destructive: 0 62.8% 30.6%;
+  --destructive-foreground: 0 85.7% 97.3%;
+  
+  --ring: var(--primary-500);
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+  }
+}
+
+.card-hover {
+  @apply transition-all duration-200;
+}
+
+.card-hover:hover {
+  @apply -translate-y-0.5 shadow-md;
+}
+
+.tab-active {
+  @apply bg-white border-b-2 border-primary text-primary;
+}
