@@ -13,8 +13,8 @@ export default function Sidebar() {
         <h3 className="text-xs uppercase text-neutral-500 font-medium">Main Navigation</h3>
       </div>
       <div className="flex flex-col space-y-1">
-        <Link href="/">
-          <a className={`flex items-center py-2 px-4 rounded-md mx-2 ${isActive("/") ? "bg-primary-100 text-primary-600" : "text-neutral-600 hover:bg-primary-100 hover:text-primary-600"}`}>
+        <Link href="/dashboard">
+          <a className={`flex items-center py-2 px-4 rounded-md mx-2 ${isActive("/dashboard") ? "bg-primary-100 text-primary-600" : "text-neutral-600 hover:bg-primary-100 hover:text-primary-600"}`}>
             <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-center" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
               <polyline points="9 22 9 12 15 12 15 22" />
@@ -23,12 +23,12 @@ export default function Sidebar() {
           </a>
         </Link>
         <Link href="/">
-          <a className={`flex items-center py-2 px-4 rounded-md mx-2 bg-primary-100 text-primary-600`}>
+          <a className={`flex items-center py-2 px-4 rounded-md mx-2 ${isActive("/") ? "bg-primary-100 text-primary-600" : "text-neutral-600 hover:bg-primary-100 hover:text-primary-600"}`}>
             <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-center" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M16 12h-6.5a2.5 2.5 0 0 0 0 5H16" />
               <path d="M14 7H7.5a2.5 2.5 0 0 0 0 5H14" />
             </svg>
-            <span className="ml-2 hidden md:inline-block">Broker Tools</span>
+            <span className="ml-2 hidden md:inline-block">Broker AI Tools</span>
           </a>
         </Link>
         <a href="#" className="flex items-center py-2 px-4 text-neutral-600 hover:bg-primary-100 hover:text-primary-600 rounded-md mx-2">

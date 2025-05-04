@@ -16,6 +16,7 @@ function Router() {
     <Layout>
       <Switch>
         <Route path="/" component={Dashboard} />
+        <Route path="/dashboard" component={Dashboard} />
         <Route path="/news" component={InsuranceNews} />
         <Route path="/compare" component={CompareFiles} />
         <Route path="/predict" component={PredictOpportunities} />
