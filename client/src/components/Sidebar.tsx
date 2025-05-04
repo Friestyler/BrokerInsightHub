@@ -48,11 +48,7 @@ export default function Sidebar() {
           <polyline points="15 18 9 12 15 6" />
         </svg>
       </button>
-      {!collapsed && (
-        <div className="px-4 mb-6 hidden md:block">
-          <h3 className="text-xs uppercase text-neutral-500 font-medium">Main Navigation</h3>
-        </div>
-      )}
+      {/* Main Navigation heading section removed */}
       <div className="flex flex-col space-y-1">
         <Link href="/">
           <a className={`flex items-center py-2 px-4 rounded-md mx-2 ${isActive("/") ? "bg-primary-100 text-primary-600" : "text-neutral-600 hover:bg-primary-100 hover:text-primary-600"}`}>
