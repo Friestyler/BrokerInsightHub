@@ -9,11 +9,25 @@ import ToolHeader from "@/components/ToolHeader";
 import { type NewsArticle } from "@shared/schema";
 import { format } from "date-fns";
 
+// Smart categories for news filtering
+const CATEGORIES = [
+  { id: "all", label: "All News", icon: "📰" },
+  { id: "policy", label: "Policy Updates", icon: "📋" },
+  { id: "regulatory", label: "Regulatory Changes", icon: "⚖️" },
+  { id: "market", label: "Market Trends", icon: "📈" },
+  { id: "events", label: "Industry Events", icon: "🗓️" },
+  { id: "technology", label: "Tech & Innovation", icon: "💻" },
+  { id: "broker", label: "Broker News", icon: "🤝" },
+  { id: "climate", label: "Climate Risk", icon: "🌍" },
+  { id: "cyber", label: "Cyber Insurance", icon: "🛡️" },
+];
+
 export default function InsuranceNews() {
   const [filter, setFilter] = useState("all");
   const [isSearchPanelOpen, setIsSearchPanelOpen] = useState(false);
   const [currentSearch, setCurrentSearch] = useState("");
   const [showSearchResults, setShowSearchResults] = useState(false);
+  const [showCategoryFilter, setShowCategoryFilter] = useState(false);
 
   const { data: newsArticles, isLoading, refetch } = useQuery<NewsArticle[]>({
     queryKey: ['/api/news'],
@@ -102,7 +116,10 @@ export default function InsuranceNews() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center text-xs text-neutral-500 mb-1">
                 <span className="mr-2">{format(new Date(article.publishedDate), 'MMM dd, yyyy')}</span>
-                <span className="px-2 py-1 rounded-full bg-primary-50 text-primary-600 text-xs">{article.category}</span>
+                <span className="px-2 py-1 rounded-full bg-primary-50 text-primary-600 text-xs flex items-center">
+                  {CATEGORIES.find(cat => cat.id === article.category.toLowerCase())?.icon || '📰'} 
+                  <span className="ml-1">{article.category}</span>
+                </span>
               </div>
               <h3 className="font-semibold text-neutral-800 mb-1 line-clamp-1">{article.title}</h3>
               <p className="text-sm text-neutral-600 line-clamp-2">{article.summary}</p>
@@ -122,9 +139,23 @@ export default function InsuranceNews() {
     );
   };
 
+  const handleToggleCategoryFilter = () => {
+    setShowCategoryFilter(!showCategoryFilter);
+  };
+
+  const handleCategorySelect = (categoryId: string) => {
+    setFilter(categoryId);
+    setShowCategoryFilter(false);
+  };
+  
   const headerActions = (
     <>
-      <Button variant="outline" size="sm" className="text-neutral-700">
+      <Button 
+        variant={showCategoryFilter ? "default" : "outline"} 
+        size="sm" 
+        className={showCategoryFilter ? "text-white" : "text-neutral-700"}
+        onClick={handleToggleCategoryFilter}
+      >
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
           <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z" />
         </svg>
@@ -156,6 +187,58 @@ export default function InsuranceNews() {
             title="Latest Insurance News in Belgium" 
             actions={headerActions}
           />
+          
+          {/* Category Filters */}
+          {showCategoryFilter && (
+            <div className="mt-4 mb-6">
+              <Card className="p-4 bg-white border border-neutral-200">
+                <div className="flex justify-between items-center mb-3">
+                  <h3 className="text-sm font-medium text-neutral-600">Filter by Category</h3>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowCategoryFilter(false)}
+                    className="text-neutral-500 h-7 w-7 p-0 rounded-full"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M18 6 6 18" />
+                      <path d="m6 6 12 12" />
+                    </svg>
+                    <span className="sr-only">Close</span>
+                  </Button>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+                  {CATEGORIES.map(category => (
+                    <Badge
+                      key={category.id}
+                      variant={filter === category.id ? "default" : "outline"}
+                      className={`py-3 px-4 flex items-center gap-2 text-sm font-normal justify-start cursor-pointer ${
+                        filter === category.id 
+                          ? "bg-primary-600 hover:bg-primary-700 text-white" 
+                          : "hover:bg-neutral-100"
+                      }`}
+                      onClick={() => handleCategorySelect(category.id)}
+                    >
+                      <span className="text-lg">{category.icon}</span>
+                      {category.label}
+                    </Badge>
+                  ))}
+                </div>
+                {filter !== "all" && (
+                  <div className="mt-3 flex justify-end">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-neutral-600"
+                      onClick={() => setFilter("all")}
+                    >
+                      Clear Filter
+                    </Button>
+                  </div>
+                )}
+              </Card>
+            </div>
+          )}
           
           {/* Smart Search Results */}
           {showSearchResults && (
