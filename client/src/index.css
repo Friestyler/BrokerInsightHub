@@ -1,0 +1,93 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --background: 220 33% 98%;
+  --foreground: 222 14% 15%;
+  --muted: 220 10% 96%;
+  --muted-foreground: 222 5% 45%;
+  --popover: 0 0% 100%;
+  --popover-foreground: 222 14% 15%;
+  --card: 0 0% 100%;
+  --card-foreground: 222 14% 15%;
+  --border: 220 10% 90%;
+  --input: 220 10% 90%;
+  --primary: 220 79% 46%;
+  --primary-foreground: 210 100% 98%;
+  --secondary: 220 10% 96%;
+  --secondary-foreground: 222 10% 10%;
+  --accent: 220 10% 96%;
+  --accent-foreground: 222 10% 10%;
+  --destructive: 0 84% 60%;
+  --destructive-foreground: 210 10% 98%;
+  --ring: 220 79% 46%;
+  --radius: 0.5rem;
+
+  /* Custom Qollabi color palette */
+  --primary-100: 220 100% 95%;
+  --primary-200: 220 100% 88%;
+  --primary-300: 220 100% 80%;
+  --primary-400: 220 90% 70%;
+  --primary-500: 220 79% 46%;
+  --primary-600: 220 79% 40%;
+  --primary-700: 220 79% 34%;
+  --primary-800: 220 79% 28%;
+  --primary-900: 220 79% 22%;
+
+  --neutral-100: 220 10% 96%;
+  --neutral-200: 220 10% 92%;
+  --neutral-300: 220 10% 86%;
+  --neutral-400: 220 10% 76%;
+  --neutral-500: 220 10% 60%;
+  --neutral-600: 220 10% 48%;
+  --neutral-700: 220 10% 36%;
+  --neutral-800: 220 10% 24%;
+  --neutral-900: 220 10% 12%;
+}
+
+.dark {
+  --background: 222 14% 10%;
+  --foreground: 210 10% 98%;
+  --muted: 222 14% 15%;
+  --muted-foreground: 215 5% 65%;
+  --popover: 222 14% 10%;
+  --popover-foreground: 210 10% 98%;
+  --card: 222 14% 10%;
+  --card-foreground: 210 10% 98%;
+  --border: 222 14% 15%;
+  --input: 222 14% 15%;
+  --primary: 220 79% 46%;
+  --primary-foreground: 210 10% 98%;
+  --secondary: 222 14% 15%;
+  --secondary-foreground: 210 10% 98%;
+  --accent: 222 14% 15%;
+  --accent-foreground: 210 10% 98%;
+  --destructive: 0 63% 31%;
+  --destructive-foreground: 210 10% 98%;
+  --ring: 220 79% 46%;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  
+  body {
+    @apply font-sans antialiased bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .navigation-tile {
+    @apply bg-white rounded-xl shadow-md overflow-hidden cursor-pointer border border-neutral-200 hover:border-primary-300 transition-all duration-200 hover:shadow-lg hover:-translate-y-1;
+  }
+  
+  .tab-content {
+    @apply hidden;
+  }
+  
+  .tab-content.active {
+    @apply block;
+  }
+}
