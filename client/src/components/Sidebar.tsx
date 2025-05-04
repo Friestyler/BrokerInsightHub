@@ -54,26 +54,16 @@ export default function Sidebar() {
         </div>
       )}
       <div className="flex flex-col space-y-1">
-        <Link href="/dashboard">
-          <a className={`flex items-center py-2 px-4 rounded-md mx-2 ${isActive("/dashboard") ? "bg-primary-100 text-primary-600" : "text-neutral-600 hover:bg-primary-100 hover:text-primary-600"}`}>
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-center" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-              <polyline points="9 22 9 12 15 12 15 22" />
-            </svg>
-            <span className={`ml-2 ${collapsed ? "hidden" : "hidden md:inline-block"}`}>Dashboard</span>
-          </a>
-        </Link>
         <Link href="/">
           <a className={`flex items-center py-2 px-4 rounded-md mx-2 ${isActive("/") ? "bg-primary-100 text-primary-600" : "text-neutral-600 hover:bg-primary-100 hover:text-primary-600"}`}>
             <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-center" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 3H5a2 2 0 0 0-2 2v4m6-6h10a2 2 0 0 1 2 2v4M9 19h10a2 2 0 0 0 2-2v-4m-12 6H5a2 2 0 0 1-2-2v-4" />
-              <circle cx="12" cy="12" r="1" />
-              <path d="M12 9v0" />
-              <path d="M12 15v0" />
-              <path d="M9 12h0" />
-              <path d="M15 12h0" />
+              <path d="M12 3a6 6 0 0 0-6 8.5 6 6 0 0 0 10.5 4.5 6 6 0 0 0-4.5-13" />
+              <path d="m19 8-2 2" />
+              <path d="m5 16 2-2" />
+              <path d="m19 16-2-2" />
+              <path d="m5 8 2 2" />
             </svg>
-            <span className={`ml-2 ${collapsed ? "hidden" : "hidden md:inline-block"}`}>Broker AI Tools</span>
+            <span className={`ml-2 ${collapsed ? "hidden" : "hidden md:inline-block"}`}>Broker Copilot</span>
           </a>
         </Link>
         <a href="#" className="flex items-center py-2 px-4 text-neutral-600 hover:bg-primary-100 hover:text-primary-600 rounded-md mx-2">
