@@ -1,5 +1,6 @@
 import { ReactNode } from "react";
 import Sidebar from "./Sidebar";
+import qollabiLogo from "@assets/qollabi-logo.png";
 
 interface LayoutProps {
   children: ReactNode;
@@ -12,7 +13,7 @@ export default function Layout({ children }: LayoutProps) {
       <nav className="bg-white border-b border-neutral-200 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center">
           <div className="w-8 h-8 flex items-center justify-center">
-            <img src="/src/assets/qollabi-logo.png" alt="Qollabi Logo" className="h-7 w-7" />
+            <img src={qollabiLogo} alt="Qollabi Logo" className="h-7 w-7" />
           </div>
           <span className="ml-3 text-lg font-semibold text-neutral-800">Qollabi</span>
         </div>
