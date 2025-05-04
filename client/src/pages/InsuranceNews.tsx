@@ -139,28 +139,8 @@ export default function InsuranceNews() {
     );
   };
 
-  const handleToggleCategoryFilter = () => {
-    setShowCategoryFilter(!showCategoryFilter);
-  };
-
-  const handleCategorySelect = (categoryId: string) => {
-    setFilter(categoryId);
-    setShowCategoryFilter(false);
-  };
-  
   const headerActions = (
     <>
-      <Button 
-        variant={showCategoryFilter ? "default" : "outline"} 
-        size="sm" 
-        className={showCategoryFilter ? "text-white" : "text-neutral-700"}
-        onClick={handleToggleCategoryFilter}
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-          <path d="M22 3H2l8 9.46V19l4 2v-8.54L22 3z" />
-        </svg>
-        Filter
-      </Button>
       <Button variant="outline" size="sm" className="text-primary-700" onClick={handleOpenSearchPanel}>
         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
           <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
@@ -188,57 +168,27 @@ export default function InsuranceNews() {
             actions={headerActions}
           />
           
-          {/* Category Filters */}
-          {showCategoryFilter && (
-            <div className="mt-4 mb-6">
-              <Card className="p-4 bg-white border border-neutral-200">
-                <div className="flex justify-between items-center mb-3">
-                  <h3 className="text-sm font-medium text-neutral-600">Filter by Category</h3>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setShowCategoryFilter(false)}
-                    className="text-neutral-500 h-7 w-7 p-0 rounded-full"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M18 6 6 18" />
-                      <path d="m6 6 12 12" />
-                    </svg>
-                    <span className="sr-only">Close</span>
-                  </Button>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
-                  {CATEGORIES.map(category => (
-                    <Badge
-                      key={category.id}
-                      variant={filter === category.id ? "default" : "outline"}
-                      className={`py-3 px-4 flex items-center gap-2 text-sm font-normal justify-start cursor-pointer ${
-                        filter === category.id 
-                          ? "bg-primary-600 hover:bg-primary-700 text-white" 
-                          : "hover:bg-neutral-100"
-                      }`}
-                      onClick={() => handleCategorySelect(category.id)}
-                    >
-                      <span className="text-lg">{category.icon}</span>
-                      {category.label}
-                    </Badge>
-                  ))}
-                </div>
-                {filter !== "all" && (
-                  <div className="mt-3 flex justify-end">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="text-neutral-600"
-                      onClick={() => setFilter("all")}
-                    >
-                      Clear Filter
-                    </Button>
-                  </div>
-                )}
-              </Card>
+          {/* Category Tabs */}
+          <div className="mt-6 mb-4 overflow-x-auto pb-2">
+            <div className="flex space-x-2 min-w-max">
+              {CATEGORIES.slice(0, 8).map(category => (
+                <Button
+                  key={category.id}
+                  variant={filter === category.id ? "default" : "outline"} 
+                  size="sm"
+                  className={`flex items-center gap-1.5 whitespace-nowrap ${
+                    filter === category.id 
+                      ? "bg-primary-600 hover:bg-primary-700 text-white" 
+                      : "hover:bg-neutral-50"
+                  }`}
+                  onClick={() => setFilter(category.id)}
+                >
+                  <span className="text-base">{category.icon}</span>
+                  {category.label}
+                </Button>
+              ))}
             </div>
-          )}
+          </div>
           
           {/* Smart Search Results */}
           {showSearchResults && (
