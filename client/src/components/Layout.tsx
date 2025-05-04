@@ -11,13 +11,8 @@ export default function Layout({ children }: LayoutProps) {
       {/* Top navigation bar */}
       <nav className="bg-white border-b border-neutral-200 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center">
-          <div className="w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center text-white">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M10.7 11.5H6.2a2.2 2.2 0 0 1-2.2-2.2V6.8a2 2 0 0 1 2-2h4.2" />
-              <path d="M16.5 14.5h-5.8a2.2 2.2 0 0 0-2.2 2.2v2.4a2 2 0 0 0 2 2h6" />
-              <path d="m17.5 11.5 2 2 4-4" />
-              <path d="m17.5 5.5-2-2-4 4" />
-            </svg>
+          <div className="w-8 h-8 flex items-center justify-center">
+            <img src="/src/assets/qollabi-logo.png" alt="Qollabi Logo" className="h-7 w-7" />
           </div>
           <span className="ml-3 text-lg font-semibold text-neutral-800">Qollabi</span>
         </div>
