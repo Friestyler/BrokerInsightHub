@@ -13,8 +13,10 @@ export default function Layout({ children }: LayoutProps) {
         <div className="flex items-center">
           <div className="w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center text-white">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M20.42 4.58a5.4 5.4 0 0 0-7.65 0l-.77.78-.77-.78a5.4 5.4 0 0 0-7.65 0C1.46 6.7 1.33 10.28 4 13l8 8 8-8c2.67-2.72 2.54-6.3.42-8.42z"></path>
-              <path d="M12 5.36 8.87 8.5a2.13 2.13 0 0 0 0 3h0a2.13 2.13 0 0 0 3 0l2.26-2.21a3 3 0 0 1 4.22 0h0a3 3 0 0 1 0 4.25l-2.22 2.22"></path>
+              <path d="M10.7 11.5H6.2a2.2 2.2 0 0 1-2.2-2.2V6.8a2 2 0 0 1 2-2h4.2" />
+              <path d="M16.5 14.5h-5.8a2.2 2.2 0 0 0-2.2 2.2v2.4a2 2 0 0 0 2 2h6" />
+              <path d="m17.5 11.5 2 2 4-4" />
+              <path d="m17.5 5.5-2-2-4 4" />
             </svg>
           </div>
           <span className="ml-3 text-lg font-semibold text-neutral-800">Qollabi</span>
