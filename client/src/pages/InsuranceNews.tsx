@@ -26,6 +26,7 @@ export default function InsuranceNews() {
   const [filter, setFilter] = useState("all");
   const [isSearchPanelOpen, setIsSearchPanelOpen] = useState(false);
   const [currentSearch, setCurrentSearch] = useState("");
+  const [searchText, setSearchText] = useState("");
   const [showSearchResults, setShowSearchResults] = useState(false);
   const [showCategoryFilter, setShowCategoryFilter] = useState(false);
 
@@ -116,9 +117,8 @@ export default function InsuranceNews() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center text-xs text-neutral-500 mb-1">
                 <span className="mr-2">{format(new Date(article.publishedDate), 'MMM dd, yyyy')}</span>
-                <span className="px-2 py-1 rounded-full bg-primary-50 text-primary-600 text-xs flex items-center">
-                  {CATEGORIES.find(cat => cat.id === article.category.toLowerCase())?.icon || '📰'} 
-                  <span className="ml-1">{article.category}</span>
+                <span className="px-2 py-1 rounded-full bg-primary-50 text-primary-600 text-xs">
+                  {article.category}
                 </span>
               </div>
               <h3 className="font-semibold text-neutral-800 mb-1 line-clamp-1">{article.title}</h3>
@@ -168,22 +168,48 @@ export default function InsuranceNews() {
             actions={headerActions}
           />
           
+          {/* Search Bar */}
+          <div className="mt-6 mb-4">
+            <div className="relative">
+              <Input
+                type="text"
+                placeholder="Search news articles..."
+                className="pr-10"
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+              />
+              <Button
+                className="absolute right-0 top-0 h-full px-3 text-neutral-500 hover:text-neutral-700"
+                variant="ghost"
+                onClick={() => {
+                  if (searchText.trim()) {
+                    handleSearch(searchText);
+                  }
+                }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8" />
+                  <path d="m21 21-4.3-4.3" />
+                </svg>
+              </Button>
+            </div>
+          </div>
+          
           {/* Category Tabs */}
-          <div className="mt-6 mb-4 overflow-x-auto pb-2">
+          <div className="mb-6 overflow-x-auto pb-2">
             <div className="flex space-x-2 min-w-max">
               {CATEGORIES.slice(0, 8).map(category => (
                 <Button
                   key={category.id}
                   variant={filter === category.id ? "default" : "outline"} 
                   size="sm"
-                  className={`flex items-center gap-1.5 whitespace-nowrap ${
+                  className={`whitespace-nowrap ${
                     filter === category.id 
                       ? "bg-primary-600 hover:bg-primary-700 text-white" 
                       : "hover:bg-neutral-50"
                   }`}
                   onClick={() => setFilter(category.id)}
                 >
-                  <span className="text-base">{category.icon}</span>
                   {category.label}
                 </Button>
               ))}
