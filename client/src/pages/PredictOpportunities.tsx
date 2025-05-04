@@ -211,6 +211,33 @@ export default function PredictOpportunities() {
             actions={headerActions}
           />
           
+          <div className="mb-6 bg-primary-50 border border-primary-200 rounded-lg p-4 flex flex-col md:flex-row items-center justify-between">
+            <div className="mb-4 md:mb-0 md:mr-6">
+              <h3 className="text-lg font-semibold text-neutral-800 mb-1">Upload your portfolio data</h3>
+              <p className="text-neutral-600 text-sm">Upload your client portfolio data to get AI-powered cross and upsell predictions</p>
+            </div>
+            <div className="flex flex-wrap gap-3">
+              <Button size="lg" className="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                  <polyline points="7 10 12 15 17 10" />
+                  <line x1="12" y1="15" x2="12" y2="3" />
+                </svg>
+                Upload CSV File
+              </Button>
+              <Button size="lg" variant="outline" className="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                  <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                  <polyline points="14 2 14 8 20 8" />
+                  <path d="M8 12h8" />
+                  <path d="M8 16h8" />
+                  <path d="M8 20h8" />
+                </svg>
+                Upload Excel File
+              </Button>
+            </div>
+          </div>
+          
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
             {renderStatCards()}
           </div>
