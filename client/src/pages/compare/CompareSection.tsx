@@ -3,7 +3,9 @@ import {
   CloudUpload, 
   Save, 
   Send, 
-  Wand2 
+  Wand2,
+  FileSpreadsheet,
+  FileUp
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -18,6 +20,15 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 export default function CompareSection() {
   const [originalFile, setOriginalFile] = useState<File | null>(null);
@@ -123,8 +134,62 @@ Certified Insurance Advisor
           <h3 className="text-base font-medium text-neutral-900 mb-4">Document Comparison</h3>
           
           <div className="mb-4">
-            <Label className="block text-sm font-medium text-neutral-700 mb-1">Upload Documents</Label>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="flex justify-between items-center">
+              <Label className="block text-sm font-medium text-neutral-700 mb-1">Upload Documents</Label>
+              <Dialog>
+                <DialogTrigger asChild>
+                  <Button variant="outline" size="sm" className="text-primary-600 border-primary-600 hover:bg-primary-50">
+                    <FileSpreadsheet className="h-4 w-4 mr-1" /> CSV/Excel
+                  </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-[425px]">
+                  <DialogHeader>
+                    <DialogTitle>Upload Spreadsheet Data</DialogTitle>
+                    <DialogDescription>
+                      Upload a CSV or Excel file containing policy data to compare differences.
+                    </DialogDescription>
+                  </DialogHeader>
+                  
+                  <div className="mt-4 space-y-4">
+                    <div 
+                      className="border-2 border-dashed border-neutral-300 rounded-lg p-8 text-center hover:border-primary-500 cursor-pointer transition-all"
+                      onClick={() => document.getElementById('file-upload-csv')?.click()}
+                    >
+                      <input 
+                        id="file-upload-csv" 
+                        type="file" 
+                        className="hidden" 
+                        accept=".csv,.xlsx,.xls"
+                        onChange={(e) => {
+                          const file = e.target.files?.[0];
+                          if (file) setOriginalFile(file);
+                        }}
+                      />
+                      <FileSpreadsheet className="h-10 w-10 mx-auto text-neutral-500 mb-3" />
+                      <p className="text-sm font-medium text-neutral-700">
+                        {originalFile && originalFile.name.endsWith('.csv') || 
+                         originalFile && originalFile.name.endsWith('.xlsx') || 
+                         originalFile && originalFile.name.endsWith('.xls') 
+                           ? originalFile.name : "Click to select a file"}
+                      </p>
+                      <p className="text-xs text-neutral-500 mt-1">
+                        Supports CSV, XLS, and XLSX files
+                      </p>
+                    </div>
+                  </div>
+                  
+                  <DialogFooter className="mt-6">
+                    <Button 
+                      variant="default" 
+                      className="w-full bg-primary-600 hover:bg-primary-700"
+                    >
+                      Use for Comparison
+                    </Button>
+                  </DialogFooter>
+                </DialogContent>
+              </Dialog>
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-2">
               <div 
                 className="border-2 border-dashed border-neutral-300 rounded-lg p-4 text-center hover:border-primary-500 cursor-pointer"
                 onClick={() => document.getElementById('upload-original')?.click()}

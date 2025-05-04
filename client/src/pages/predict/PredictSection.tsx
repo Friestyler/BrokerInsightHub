@@ -1,6 +1,13 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { FileOutput, ChevronLeft, ChevronRight } from "lucide-react";
+import { 
+  FileOutput, 
+  ChevronLeft, 
+  ChevronRight, 
+  Upload, 
+  FileSpreadsheet,
+  FileUp
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -12,6 +19,15 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
+import { 
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 export default function PredictSection() {
   const [clientPortfolio, setClientPortfolio] = useState("all");
@@ -66,11 +82,109 @@ export default function PredictSection() {
     }
   ];
 
+  // State for file upload
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const [uploadMessage, setUploadMessage] = useState("");
+  
+  // Handle file selection
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (file.name.endsWith('.csv') || file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) {
+        setSelectedFile(file);
+        setUploadMessage("");
+      } else {
+        setSelectedFile(null);
+        setUploadMessage("Please select a CSV or Excel file");
+      }
+    }
+  };
+  
+  // Handle file upload
+  const handleFileUpload = () => {
+    if (!selectedFile) {
+      setUploadMessage("Please select a file first");
+      return;
+    }
+    
+    setIsUploading(true);
+    
+    // Simulate upload process
+    setTimeout(() => {
+      setIsUploading(false);
+      setUploadMessage("File uploaded successfully! The data will be processed shortly.");
+      // In a real app, we would send the file to the server here
+    }, 1500);
+  };
+
   return (
     <Card className="bg-white rounded-xl shadow-sm p-6 mb-6">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-xl font-semibold text-neutral-900">Predict Cross and Upsell Opportunities</h2>
-        <div className="flex items-center">
+        <div className="flex items-center space-x-3">
+          <Dialog>
+            <DialogTrigger asChild>
+              <Button variant="outline" className="border-primary-600 text-primary-600 hover:bg-primary-50">
+                <FileUp className="h-4 w-4 mr-2" /> Upload Data
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="sm:max-w-[425px]">
+              <DialogHeader>
+                <DialogTitle>Upload Client Data</DialogTitle>
+                <DialogDescription>
+                  Upload a CSV or Excel file containing client data to analyze cross-sell and upsell opportunities.
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="mt-4 space-y-4">
+                <div 
+                  className="border-2 border-dashed border-neutral-300 rounded-lg p-8 text-center hover:border-primary-500 cursor-pointer transition-all"
+                  onClick={() => document.getElementById('file-upload')?.click()}
+                >
+                  <input 
+                    id="file-upload" 
+                    type="file" 
+                    className="hidden" 
+                    accept=".csv,.xlsx,.xls"
+                    onChange={handleFileChange}
+                  />
+                  <FileSpreadsheet className="h-10 w-10 mx-auto text-neutral-500 mb-3" />
+                  <p className="text-sm font-medium text-neutral-700">
+                    {selectedFile ? selectedFile.name : "Click to select a file"}
+                  </p>
+                  <p className="text-xs text-neutral-500 mt-1">
+                    Supports CSV, XLS, and XLSX files
+                  </p>
+                </div>
+                
+                {uploadMessage && (
+                  <p className={`text-sm ${uploadMessage.includes("success") ? "text-green-600" : "text-red-600"}`}>
+                    {uploadMessage}
+                  </p>
+                )}
+              </div>
+              
+              <DialogFooter className="mt-6">
+                <Button 
+                  variant="default" 
+                  className="w-full bg-primary-600 hover:bg-primary-700" 
+                  onClick={handleFileUpload}
+                  disabled={!selectedFile || isUploading}
+                >
+                  {isUploading ? (
+                    <>
+                      <div className="w-4 h-4 border-2 border-t-transparent border-white rounded-full animate-spin mr-2"></div>
+                      Uploading...
+                    </>
+                  ) : (
+                    <>Upload File</>
+                  )}
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+          
           <Button variant="default" className="bg-primary-600 hover:bg-primary-700">
             <FileOutput className="h-4 w-4 mr-2" /> Export Report
           </Button>
