@@ -61,6 +61,7 @@ export const documents = pgTable("documents", {
   fileType: text("file_type").notNull(),
   fileSize: integer("file_size").notNull(),
   content: text("content").notNull(),
+  filePath: text("file_path"),  // Path to the file on disk (for PDFs)
   uploadDate: timestamp("upload_date").defaultNow().notNull(),
   tags: text("tags").array(),
 });
@@ -122,6 +123,7 @@ export const insertDocumentSchema = createInsertSchema(documents).pick({
   fileType: true,
   fileSize: true,
   content: true,
+  filePath: true,
   tags: true,
 });
 

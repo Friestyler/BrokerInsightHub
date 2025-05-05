@@ -6,7 +6,7 @@ import path from 'path';
 import fs from 'fs';
 import { promises as fsPromises } from 'fs';
 import { v4 as uuidv4 } from 'uuid';
-import { comparePdfDocuments } from './services/pdfComparison';
+import { comparePdfDocuments, extractTextFromPdf } from './services/pdfComparison';
 
 // Setup multer storage for file uploads
 const storage_config = multer.diskStorage({
@@ -169,31 +169,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ message: 'One or both documents not found' });
       }
       
-      // In a real implementation, we would do actual file comparison here
-      // For now, we'll create a simulated comparison result
+      // Check if files paths are available
+      if (!document1.filePath || !document2.filePath) {
+        // Fall back to dummy data if the file paths aren't available
+        console.warn('File paths not available, using content-based comparison');
+        
+        // Compare the content stored in the database instead
+        const oldContent = document1.content || '';
+        const newContent = document2.content || '';
+        
+        // Do a simple text-based comparison
+        const addedWords = newContent.split(/\s+/).filter(word => !oldContent.includes(word)).length;
+        const removedWords = oldContent.split(/\s+/).filter(word => !newContent.includes(word)).length;
+        
+        const comparisonResult = {
+          differencesSummary: `Found ${addedWords + removedWords} differences between ${document1.filename} and ${document2.filename}`,
+          differences: {
+            addedClauses: addedWords,
+            removedClauses: removedWords,
+            modifiedClauses: Math.round(Math.abs(oldContent.length - newContent.length) / 20),
+            details: [
+              { type: 'addition', section: 'Document', description: `${addedWords} new terms found` },
+              { type: 'removal', section: 'Document', description: `${removedWords} terms removed` },
+              { type: 'modification', section: 'Document', description: 'Content has been modified' }
+            ]
+          }
+        };
+        
+        const comparison = await storage.createFileComparison({
+          userId,
+          document1Id,
+          document2Id,
+          differencesSummary: comparisonResult.differencesSummary,
+          differences: comparisonResult.differences
+        });
+        
+        return res.json({ 
+          success: true, 
+          comparison: {
+            id: comparison.id,
+            date: comparison.comparisonDate.toISOString(),
+            document1: {
+              id: document1.id,
+              name: document1.filename
+            },
+            document2: {
+              id: document2.id,
+              name: document2.filename
+            },
+            ...comparisonResult
+          }
+        });
+      }
       
-      const comparisonResult = {
-        differencesSummary: `Found key differences between ${document1.filename} and ${document2.filename}`,
-        differences: {
-          addedClauses: 3,
-          removedClauses: 1,
-          modifiedClauses: 5,
-          details: [
-            { type: 'addition', section: 'Coverage Limits', description: 'Increased coverage limit from €1M to €2M' },
-            { type: 'removal', section: 'Exclusions', description: 'Removed exclusion for cyber incidents' },
-            { type: 'modification', section: 'Deductibles', description: 'Changed deductible from 10% to 5%' }
-          ]
-        }
-      };
+      // Get the file paths
+      const filePath1 = document1.filePath;
+      const filePath2 = document2.filePath;
       
+      // Perform the actual PDF comparison
+      console.log(`Comparing PDFs: ${filePath1} and ${filePath2}`);
+      const comparisonDetails = await comparePdfDocuments(filePath1, filePath2);
+      
+      // Create a summary of the differences
+      const differencesSummary = `Found ${comparisonDetails.addedClauses + comparisonDetails.removedClauses + comparisonDetails.modifiedClauses} differences between ${document1.filename} and ${document2.filename}`;
+      
+      // Store the comparison result
       const comparison = await storage.createFileComparison({
         userId,
         document1Id,
         document2Id,
-        differencesSummary: comparisonResult.differencesSummary,
-        differences: comparisonResult.differences
+        differencesSummary,
+        differences: comparisonDetails
       });
       
+      // Return the comparison result to the client
       res.json({ 
         success: true, 
         comparison: {
@@ -207,7 +256,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
             id: document2.id,
             name: document2.filename
           },
-          ...comparisonResult
+          differencesSummary,
+          differences: comparisonDetails
         }
       });
     } catch (error) {

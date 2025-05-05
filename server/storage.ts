@@ -243,7 +243,8 @@ export class MemStorage implements IStorage {
       ...document, 
       id,
       uploadDate: new Date(),
-      tags: document.tags || null
+      tags: document.tags || null,
+      filePath: document.filePath || null
     };
     this.documents.set(id, documentData);
     return documentData;
