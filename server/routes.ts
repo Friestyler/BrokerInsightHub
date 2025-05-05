@@ -421,26 +421,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Email Sending Endpoint
   app.post('/api/email/send', async (req, res) => {
     try {
-      const { recipient, subject, content, comparisonId } = req.body;
+      const { recipient, subject, content, comparisonId, comparisonMode } = req.body;
       
       if (!recipient || !subject || !content) {
         return res.status(400).json({ message: 'Missing required fields' });
       }
       
-      // If comparisonId is provided, we might attach the comparison results
+      // Log the comparison mode and ID if provided
       if (comparisonId) {
-        console.log('Reference to comparison ID:', comparisonId);
+        console.log(`Reference to comparison ID: ${comparisonId}, Mode: ${comparisonMode || 'not specified'}`);
       }
       
       // Import at function scope to avoid module dependency cycles
       const { sendEmail, convertTextToHtml } = await import('./services/email');
+      
+      // Adjust the email content and subject based on comparison mode if needed
+      let emailSubject = subject;
+      if (comparisonMode === 'template') {
+        // Add prefix for template emails if not already present
+        if (!emailSubject.toLowerCase().includes('template')) {
+          emailSubject = 'Template Completion Review: ' + emailSubject;
+        }
+      }
       
       // Send email using SendGrid
       const htmlContent = convertTextToHtml(content);
       const emailSent = await sendEmail({
         to: recipient,
         from: 'support@replit.app', // Using a generic Replit address to avoid DNS issues
-        subject: subject,
+        subject: emailSubject,
         text: content,
         html: htmlContent
       });

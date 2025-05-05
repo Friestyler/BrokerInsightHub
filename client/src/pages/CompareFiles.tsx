@@ -247,7 +247,8 @@ Best regards,
   };
   
   const generateEmailContent = (comparison: ComparisonResult, type: 'comparison' | 'recommendations'): string => {
-    if (comparisonMode === 'template') {
+    // Use the comparison mode from the comparison result
+    if (comparison.comparisonMode === 'template') {
       // Generate template checking email
       const missingItems = comparison.differences.details.filter(detail => detail.type === 'removed').length;
       
@@ -667,22 +668,25 @@ Best regards,
                 )}
 
                 <div className="flex justify-end">
-                  <Button 
-                    type="button" 
-                    variant="secondary" 
-                    className="mr-2"
-                    onClick={() => {
-                      if (comparisonResult) {
-                        // Switch template type
-                        const newType = emailType === 'comparison' ? 'recommendations' : 'comparison';
-                        setEmailType(newType);
-                        setValue('content', generateEmailContent(comparisonResult, newType));
-                      }
-                    }}
-                    disabled={!comparisonResult}
-                  >
-                    Switch Template
-                  </Button>
+                  {/* Only show template switch button for policy comparison, not for template checking */}
+                  {(comparisonResult?.comparisonMode === 'policy' || (!comparisonResult && comparisonMode === 'policy')) && (
+                    <Button 
+                      type="button" 
+                      variant="secondary" 
+                      className="mr-2"
+                      onClick={() => {
+                        if (comparisonResult) {
+                          // Switch template type
+                          const newType = emailType === 'comparison' ? 'recommendations' : 'comparison';
+                          setEmailType(newType);
+                          setValue('content', generateEmailContent(comparisonResult, newType));
+                        }
+                      }}
+                      disabled={!comparisonResult}
+                    >
+                      Switch Template
+                    </Button>
+                  )}
                   <Button 
                     type="submit" 
                     disabled={sendEmailMutation.isPending}
