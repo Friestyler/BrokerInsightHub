@@ -42,6 +42,21 @@ function splitIntoSections(text: string): string[] {
     sections = text.split(/\n/);
   }
   
+  // If we still have few sections, try to split into sentences
+  if (sections.length < 10) {
+    const allSections: string[] = [];
+    sections.forEach(section => {
+      // Split by period followed by space or newline
+      const sentences = section.split(/\.\s+|\.\n+/);
+      sentences.forEach(sentence => {
+        if (sentence.trim().length > 0) {
+          allSections.push(sentence.trim() + '.');
+        }
+      });
+    });
+    sections = allSections;
+  }
+  
   // Filter out empty sections and trim whitespace
   return sections
     .map(section => section.trim())
@@ -100,7 +115,7 @@ function levenshteinDistance(str1: string, str2: string): number {
 function identifyModifiedSections(
   oldSections: string[],
   newSections: string[],
-  similarityThreshold = 0.75
+  similarityThreshold = 0.65 // Lower threshold to detect more subtle differences
 ): { modifiedPairs: [string, string][]; onlyInOld: string[]; onlyInNew: string[] } {
   const modifiedPairs: [string, string][] = [];
   const usedOldIndices = new Set<number>();
@@ -206,7 +221,7 @@ export async function comparePdfDocuments(
 /**
  * Trim text for display (reduce to a readable length)
  */
-function trimForDisplay(text: string, maxLength = 100): string {
+function trimForDisplay(text: string, maxLength = 200): string {
   if (text.length <= maxLength) return text;
   return text.substring(0, maxLength) + '...';
 }

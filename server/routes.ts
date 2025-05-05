@@ -230,8 +230,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       console.log(`Comparing PDFs: ${filePath1} and ${filePath2}`);
       const comparisonDetails = await comparePdfDocuments(filePath1, filePath2);
       
-      // Create a summary of the differences
-      const differencesSummary = `Found ${comparisonDetails.addedClauses + comparisonDetails.removedClauses + comparisonDetails.modifiedClauses} differences between ${document1.filename} and ${document2.filename}`;
+      // Create a detailed summary of the differences
+      let differencesSummary = '';
+      
+      if (comparisonDetails.addedClauses > 0 || comparisonDetails.removedClauses > 0 || comparisonDetails.modifiedClauses > 0) {
+        differencesSummary = `Analysis found ${comparisonDetails.addedClauses + comparisonDetails.removedClauses + comparisonDetails.modifiedClauses} differences between ${document1.filename} and ${document2.filename}:\n\n`;
+        
+        if (comparisonDetails.addedClauses > 0) {
+          differencesSummary += `• Added Content: ${comparisonDetails.addedClauses} section(s) appear in the second document that are not in the first. These additions may grant new rights, impose new obligations, or provide additional coverage.\n\n`;
+        }
+        
+        if (comparisonDetails.removedClauses > 0) {
+          differencesSummary += `• Removed Content: ${comparisonDetails.removedClauses} section(s) from the first document were removed. These removals may eliminate previously established rights, obligations, or coverage areas.\n\n`;
+        }
+        
+        if (comparisonDetails.modifiedClauses > 0) {
+          differencesSummary += `• Modified Content: ${comparisonDetails.modifiedClauses} section(s) have been altered. These modifications may change the meaning, scope, or effect of the document.\n\n`;
+        }
+        
+        differencesSummary += `IMPORTANT: The changes identified may affect legal rights, financial obligations, or insurance coverage. Please review all differences carefully before making decisions.`;
+      } else {
+        differencesSummary = `The documents appear to be substantially similar. No significant textual differences were detected between ${document1.filename} and ${document2.filename}.`;
+      }
       
       // Store the comparison result
       const comparison = await storage.createFileComparison({
