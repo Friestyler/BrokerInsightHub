@@ -167,25 +167,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'Missing required fields' });
       }
       
-      // In a real implementation, this would send an email using a service like SendGrid
-      // If comparisonId is provided, we could attach the comparison results
-      
-      // Let's log the email details for now
-      console.log('Email details:', { recipient, subject, contentLength: content.length });
-      
+      // If comparisonId is provided, we might attach the comparison results
       if (comparisonId) {
-        console.log('Attaching comparison results for comparison ID:', comparisonId);
+        console.log('Reference to comparison ID:', comparisonId);
       }
       
-      res.json({ 
-        success: true, 
-        message: 'Email sent successfully',
-        details: {
-          recipient,
-          subject,
-          sentAt: new Date().toISOString()
-        }
+      // Import at function scope to avoid module dependency cycles
+      const { sendEmail, convertTextToHtml } = await import('./services/email');
+      
+      // Send email using SendGrid
+      const htmlContent = convertTextToHtml(content);
+      const emailSent = await sendEmail({
+        to: recipient,
+        from: 'broker@qollabi.com', // This should be a verified sender in your SendGrid account
+        subject: subject,
+        text: content,
+        html: htmlContent
       });
+      
+      if (emailSent) {
+        res.json({ 
+          success: true, 
+          message: 'Email sent successfully',
+          details: {
+            recipient,
+            subject,
+            sentAt: new Date().toISOString()
+          }
+        });
+      } else {
+        throw new Error('Failed to send email - internal service error');
+      }
     } catch (error) {
       console.error('Error sending email:', error);
       res.status(500).json({ message: 'Failed to send email' });
