@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useForm } from "react-hook-form";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -6,9 +6,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import ToolHeader from "@/components/ToolHeader";
 import { Textarea } from "@/components/ui/textarea";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from "@/lib/queryClient";
+import { toast } from "@/hooks/use-toast";
 
 interface UploadedFile {
-  id: string;
+  id: string | number;
   name: string;
   date: string;
   type: string;
@@ -20,15 +23,177 @@ interface EmailForm {
   content: string;
 }
 
+interface FileUploadResponse {
+  success: boolean;
+  message: string;
+  file: UploadedFile;
+}
+
+interface ComparisonResult {
+  id: number;
+  date: string;
+  document1: {
+    id: number;
+    name: string;
+  };
+  document2: {
+    id: number;
+    name: string;
+  };
+  differencesSummary: string;
+  differences: {
+    addedClauses: number;
+    removedClauses: number;
+    modifiedClauses: number;
+    details: Array<{
+      type: string;
+      section: string;
+      description: string;
+    }>;
+  };
+}
+
 export default function CompareFiles() {
-  const [files, setFiles] = useState<UploadedFile[]>([
+  // Default files that are always shown
+  const defaultFiles: UploadedFile[] = [
     { id: '1', name: 'AXA_Policy_2025.pdf', date: 'yesterday', type: 'pdf' },
     { id: '2', name: 'AG_Insurance_Quote.pdf', date: '2 days ago', type: 'pdf' }
-  ]);
+  ];
   
+  const [files, setFiles] = useState<UploadedFile[]>(defaultFiles);
   const [emailType, setEmailType] = useState<'comparison' | 'recommendations'>('comparison');
+  const [selectedFile1, setSelectedFile1] = useState<string | number>(defaultFiles[0].id);
+  const [selectedFile2, setSelectedFile2] = useState<string | number>(defaultFiles[1].id);
+  const [comparisonResult, setComparisonResult] = useState<ComparisonResult | null>(null);
+  const [isComparing, setIsComparing] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   
-  const { register, handleSubmit } = useForm<EmailForm>({
+  // Fetch documents from the API
+  const { data: documents, isLoading: isLoadingDocuments, refetch: refetchDocuments } = useQuery<UploadedFile[]>({
+    queryKey: ['/api/documents'],
+    enabled: true,
+  });
+  
+  // File upload mutation
+  const uploadFileMutation = useMutation({
+    mutationFn: async (formData: FormData) => {
+      const fileObj = formData.get('file') as File;
+      
+      // In a real implementation, you would upload the actual file
+      // For this simulation, we'll just create a document record
+      const documentData = {
+        filename: fileObj.name,
+        fileType: fileObj.type,
+        fileSize: fileObj.size,
+        content: `This is the simulated content of ${fileObj.name}`,
+        tags: ['uploaded']
+      };
+      
+      return apiRequest('/api/files/upload', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(documentData),
+      });
+    },
+    onSuccess: (data) => {
+      if (data.success) {
+        toast({
+          title: "File uploaded successfully",
+          description: `${data.file.name} has been uploaded.`,
+        });
+        
+        // Add the new file to our list
+        setFiles(prev => [...prev, data.file]);
+        
+        // Refresh documents list
+        refetchDocuments();
+        
+        // Clear the file input
+        if (fileInputRef.current) {
+          fileInputRef.current.value = '';
+        }
+      }
+    },
+    onError: () => {
+      toast({
+        title: "File upload failed",
+        description: "There was an error uploading your file. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+  
+  // Compare files mutation
+  const compareFilesMutation = useMutation({
+    mutationFn: async () => {
+      return apiRequest<{ success: boolean, comparison: ComparisonResult }>('/api/files/compare', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          document1Id: selectedFile1,
+          document2Id: selectedFile2
+        }),
+      });
+    },
+    onSuccess: (data) => {
+      if (data.success) {
+        setComparisonResult(data.comparison);
+        
+        // Update email content with comparison results
+        setValue('content', generateEmailContent(data.comparison, emailType));
+        
+        toast({
+          title: "Files compared successfully",
+          description: "The comparison results are ready.",
+        });
+      }
+    },
+    onError: () => {
+      toast({
+        title: "Comparison failed",
+        description: "There was an error comparing the files. Please try again.",
+        variant: "destructive",
+      });
+    },
+    onSettled: () => {
+      setIsComparing(false);
+    }
+  });
+  
+  // Email sending mutation
+  const sendEmailMutation = useMutation({
+    mutationFn: async (data: EmailForm) => {
+      return apiRequest('/api/email/send', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...data,
+          comparisonId: comparisonResult?.id
+        }),
+      });
+    },
+    onSuccess: (data) => {
+      toast({
+        title: "Email sent successfully",
+        description: `Your email to ${data.details?.recipient} has been sent.`,
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Email sending failed",
+        description: "There was an error sending your email. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
+  
+  const { register, handleSubmit, setValue, watch } = useForm<EmailForm>({
     defaultValues: {
       recipient: '',
       subject: 'Your Insurance Policy Comparison',
@@ -45,9 +210,58 @@ Best regards,
     }
   });
   
+  const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (files && files.length > 0) {
+      const formData = new FormData();
+      formData.append('file', files[0]);
+      uploadFileMutation.mutate(formData);
+    }
+  };
+  
+  const handleCompareClick = () => {
+    setIsComparing(true);
+    compareFilesMutation.mutate();
+  };
+  
+  const generateEmailContent = (comparison: ComparisonResult, type: 'comparison' | 'recommendations'): string => {
+    if (type === 'comparison') {
+      return `Dear [Client Name],
+
+Please find attached a comparison of the two insurance policies we discussed (${comparison.document1.name} and ${comparison.document2.name}).
+
+${comparison.differencesSummary}
+
+Key differences:
+${comparison.differences.details.map(detail => `- ${detail.section}: ${detail.description}`).join('\n')}
+
+I would recommend reviewing these differences carefully before making a decision.
+
+Let me know if you have any questions.
+
+Best regards,
+[Your Name]`;
+    } else {
+      return `Dear [Client Name],
+
+Based on our comparison of ${comparison.document1.name} and ${comparison.document2.name}, I would like to offer the following recommendations:
+
+1. Policy Recommendation: I recommend selecting the policy with better coverage that aligns with your specific needs.
+
+2. Coverage Analysis: 
+${comparison.differences.details.map(detail => `- ${detail.section}: ${detail.description}`).join('\n')}
+
+3. Cost-Benefit Assessment: The policy with higher premiums offers more comprehensive coverage, which may be worth considering given your particular risk profile.
+
+Would you like to schedule a call to discuss these recommendations in more detail?
+
+Best regards,
+[Your Name]`;
+    }
+  };
+  
   const onSubmit = (data: EmailForm) => {
-    console.log('Email data:', data);
-    // Here you would typically send the email data to the backend
+    sendEmailMutation.mutate(data);
   };
 
   const headerActions = (
@@ -74,6 +288,51 @@ Best regards,
             <Card className="border border-neutral-200 rounded-lg p-5">
               <h3 className="font-medium mb-4 text-neutral-800">Upload Insurance Documents</h3>
               
+              {/* File selection for comparison */}
+              <div className="mb-4 p-4 bg-neutral-50 rounded-lg border border-neutral-200">
+                <h4 className="font-medium mb-3 text-sm text-neutral-700">Compare Files</h4>
+                <div className="grid grid-cols-2 gap-3 mb-3">
+                  <div>
+                    <Label className="block text-xs font-medium text-neutral-700 mb-1">File 1</Label>
+                    <select
+                      className="w-full px-3 py-2 border border-neutral-300 rounded-md text-sm"
+                      value={String(selectedFile1)}
+                      onChange={(e) => setSelectedFile1(e.target.value)}
+                    >
+                      {files.map(file => (
+                        <option key={`file1-${file.id}`} value={String(file.id)}>
+                          {file.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <Label className="block text-xs font-medium text-neutral-700 mb-1">File 2</Label>
+                    <select
+                      className="w-full px-3 py-2 border border-neutral-300 rounded-md text-sm"
+                      value={String(selectedFile2)}
+                      onChange={(e) => setSelectedFile2(e.target.value)}
+                    >
+                      {files.map(file => (
+                        <option key={`file2-${file.id}`} value={String(file.id)}>
+                          {file.name}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+                <Button 
+                  onClick={handleCompareClick} 
+                  disabled={isComparing || selectedFile1 === selectedFile2}
+                  className="w-full"
+                >
+                  {isComparing ? 'Comparing...' : 'Compare Files'}
+                </Button>
+                {selectedFile1 === selectedFile2 && (
+                  <p className="text-xs text-red-500 mt-2">Please select two different files to compare</p>
+                )}
+              </div>
+              
               <div className="border-2 border-dashed border-neutral-300 rounded-lg p-8 text-center bg-neutral-50">
                 <div className="flex items-center justify-center w-12 h-12 rounded-full bg-primary-100 text-primary-600 mb-4 mx-auto">
                   <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -83,12 +342,19 @@ Best regards,
                   </svg>
                 </div>
                 <p className="text-neutral-600 mb-4">Drag and drop files here or click to browse</p>
-                <Button>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  className="hidden"
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.txt"
+                  onChange={handleFileInputChange}
+                />
+                <Button onClick={() => fileInputRef.current?.click()} disabled={uploadFileMutation.isPending}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
                     <path d="M5 12h14" />
                     <path d="M12 5v14" />
                   </svg>
-                  Select Files
+                  {uploadFileMutation.isPending ? 'Uploading...' : 'Select Files'}
                 </Button>
                 <p className="text-xs text-neutral-500 mt-4">Supported formats: PDF, DOCX, XLSX (Max 10MB)</p>
               </div>
@@ -187,12 +453,53 @@ Best regards,
                   />
                 </div>
                 
+                {/* Comparison Results Section */}
+                {comparisonResult && (
+                  <div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                    <h4 className="font-medium mb-2 text-sm text-blue-800">Comparison Results</h4>
+                    <p className="text-sm text-blue-700 mb-2">{comparisonResult.differencesSummary}</p>
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs bg-green-100 text-green-800 py-1 px-2 rounded-full">+{comparisonResult.differences.addedClauses} Additions</span>
+                      <span className="text-xs bg-red-100 text-red-800 py-1 px-2 rounded-full">-{comparisonResult.differences.removedClauses} Removals</span>
+                      <span className="text-xs bg-yellow-100 text-yellow-800 py-1 px-2 rounded-full">~{comparisonResult.differences.modifiedClauses} Changes</span>
+                    </div>
+                    <ul className="text-xs text-blue-700 space-y-1">
+                      {comparisonResult.differences.details.map((detail, idx) => (
+                        <li key={idx} className="flex items-start">
+                          <span className={`
+                            inline-block w-4 h-4 rounded-full mr-2 flex-shrink-0 mt-0.5
+                            ${detail.type === 'addition' ? 'bg-green-200' : 
+                            detail.type === 'removal' ? 'bg-red-200' : 'bg-yellow-200'}
+                          `}></span>
+                          <span>{detail.section}: {detail.description}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
                 <div className="flex justify-end">
-                  <Button type="button" variant="secondary" className="mr-2">
-                    Save Draft
+                  <Button 
+                    type="button" 
+                    variant="secondary" 
+                    className="mr-2"
+                    onClick={() => {
+                      if (comparisonResult) {
+                        // Switch template type
+                        const newType = emailType === 'comparison' ? 'recommendations' : 'comparison';
+                        setEmailType(newType);
+                        setValue('content', generateEmailContent(comparisonResult, newType));
+                      }
+                    }}
+                    disabled={!comparisonResult}
+                  >
+                    Switch Template
                   </Button>
-                  <Button type="submit">
-                    Send Email
+                  <Button 
+                    type="submit" 
+                    disabled={sendEmailMutation.isPending}
+                  >
+                    {sendEmailMutation.isPending ? 'Sending...' : 'Send Email'}
                   </Button>
                 </div>
               </form>
