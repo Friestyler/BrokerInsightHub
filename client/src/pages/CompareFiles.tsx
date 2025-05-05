@@ -86,19 +86,18 @@ export default function CompareFiles() {
   // File upload mutation
   const uploadFileMutation = useMutation<FileUploadResponse, Error, FormData>({
     mutationFn: async (formData: FormData) => {
-      const fileObj = formData.get('file') as File;
+      // Use fetch directly to properly handle multipart/form-data
+      const response = await fetch('/api/files/upload', {
+        method: 'POST',
+        body: formData,
+      });
       
-      // In a real implementation, you would upload the actual file
-      // For this simulation, we'll just create a document record
-      const documentData = {
-        filename: fileObj.name,
-        fileType: fileObj.type,
-        fileSize: fileObj.size,
-        content: `This is the simulated content of ${fileObj.name}`,
-        tags: ['uploaded']
-      };
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to upload file');
+      }
       
-      return apiRequest('POST', '/api/files/upload', documentData);
+      return response.json();
     },
     onSuccess: (data) => {
       if (data.success) {
