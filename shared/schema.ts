@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, json } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -53,6 +53,29 @@ export const opportunities = pgTable("opportunities", {
   estimatedValue: integer("estimated_value").notNull(),
 });
 
+// Document model for file comparison
+export const documents = pgTable("documents", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  filename: text("filename").notNull(),
+  fileType: text("file_type").notNull(),
+  fileSize: integer("file_size").notNull(),
+  content: text("content").notNull(),
+  uploadDate: timestamp("upload_date").defaultNow().notNull(),
+  tags: text("tags").array(),
+});
+
+// File comparison history
+export const fileComparisons = pgTable("file_comparisons", {
+  id: serial("id").primaryKey(),
+  userId: integer("user_id").notNull(),
+  document1Id: integer("document1_id").notNull(),
+  document2Id: integer("document2_id").notNull(),
+  comparisonDate: timestamp("comparison_date").defaultNow().notNull(),
+  differencesSummary: text("differences_summary").notNull(),
+  differences: json("differences").notNull(),
+});
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
@@ -93,6 +116,23 @@ export const insertOpportunitySchema = createInsertSchema(opportunities).pick({
   estimatedValue: true,
 });
 
+export const insertDocumentSchema = createInsertSchema(documents).pick({
+  userId: true,
+  filename: true,
+  fileType: true,
+  fileSize: true,
+  content: true,
+  tags: true,
+});
+
+export const insertFileComparisonSchema = createInsertSchema(fileComparisons).pick({
+  userId: true,
+  document1Id: true,
+  document2Id: true,
+  differencesSummary: true,
+  differences: true,
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -111,3 +151,9 @@ export type ClientProduct = typeof clientProducts.$inferSelect;
 
 export type InsertOpportunity = z.infer<typeof insertOpportunitySchema>;
 export type Opportunity = typeof opportunities.$inferSelect;
+
+export type InsertDocument = z.infer<typeof insertDocumentSchema>;
+export type Document = typeof documents.$inferSelect;
+
+export type InsertFileComparison = z.infer<typeof insertFileComparisonSchema>;
+export type FileComparison = typeof fileComparisons.$inferSelect;

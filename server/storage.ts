@@ -4,8 +4,12 @@ import {
   clients, type Client, type InsertClient,
   insuranceProducts, type InsuranceProduct, type InsertInsuranceProduct,
   clientProducts, type ClientProduct, type InsertClientProduct,
-  opportunities, type Opportunity, type InsertOpportunity
+  opportunities, type Opportunity, type InsertOpportunity,
+  documents, type Document, type InsertDocument,
+  fileComparisons, type FileComparison, type InsertFileComparison
 } from "@shared/schema";
+import { db } from './db';
+import { eq, and } from 'drizzle-orm';
 
 export interface ClientWithDetails extends Client {
   currentProducts: InsuranceProduct[];
@@ -43,6 +47,16 @@ export interface IStorage {
   getAllOpportunities(): Promise<ClientWithDetails[]>;
   getOpportunitiesForClient(clientId: number): Promise<Opportunity[]>;
   createOpportunity(opportunity: InsertOpportunity): Promise<Opportunity>;
+  
+  // Document operations
+  getAllDocuments(userId: number): Promise<Document[]>;
+  getDocument(id: number): Promise<Document | undefined>;
+  createDocument(document: InsertDocument): Promise<Document>;
+  
+  // File comparison operations
+  getFileComparisons(userId: number): Promise<FileComparison[]>;
+  getFileComparison(id: number): Promise<FileComparison | undefined>;
+  createFileComparison(comparison: InsertFileComparison): Promise<FileComparison>;
 }
 
 export class MemStorage implements IStorage {
@@ -284,4 +298,166 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+export class DatabaseStorage implements IStorage {
+  // User operations
+  async getUser(id: number): Promise<User | undefined> {
+    const result = await db.select().from(users).where(eq(users.id, id));
+    return result[0];
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const result = await db.select().from(users).where(eq(users.username, username));
+    return result[0];
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const result = await db.insert(users).values(insertUser).returning();
+    return result[0];
+  }
+  
+  // News operations
+  async getAllNewsArticles(): Promise<NewsArticle[]> {
+    return db.select().from(newsArticles).orderBy(newsArticles.publishedDate);
+  }
+  
+  async getNewsArticle(id: number): Promise<NewsArticle | undefined> {
+    const result = await db.select().from(newsArticles).where(eq(newsArticles.id, id));
+    return result[0];
+  }
+  
+  async createNewsArticle(article: InsertNewsArticle): Promise<NewsArticle> {
+    const result = await db.insert(newsArticles).values(article).returning();
+    return result[0];
+  }
+  
+  // Client operations
+  async getAllClients(): Promise<Client[]> {
+    return db.select().from(clients);
+  }
+  
+  async getClient(id: number): Promise<Client | undefined> {
+    const result = await db.select().from(clients).where(eq(clients.id, id));
+    return result[0];
+  }
+  
+  async createClient(client: InsertClient): Promise<Client> {
+    const result = await db.insert(clients).values(client).returning();
+    return result[0];
+  }
+  
+  // Insurance product operations
+  async getAllInsuranceProducts(): Promise<InsuranceProduct[]> {
+    return db.select().from(insuranceProducts);
+  }
+  
+  async getInsuranceProduct(id: number): Promise<InsuranceProduct | undefined> {
+    const result = await db.select().from(insuranceProducts).where(eq(insuranceProducts.id, id));
+    return result[0];
+  }
+  
+  async createInsuranceProduct(product: InsertInsuranceProduct): Promise<InsuranceProduct> {
+    const result = await db.insert(insuranceProducts).values(product).returning();
+    return result[0];
+  }
+  
+  // Client product operations
+  async getClientProducts(clientId: number): Promise<InsuranceProduct[]> {
+    const clientProductsResult = await db
+      .select()
+      .from(clientProducts)
+      .where(eq(clientProducts.clientId, clientId));
+    
+    const products: InsuranceProduct[] = [];
+    for (const cp of clientProductsResult) {
+      const product = await this.getInsuranceProduct(cp.productId);
+      if (product) {
+        products.push(product);
+      }
+    }
+    
+    return products;
+  }
+  
+  async addClientProduct(data: InsertClientProduct): Promise<ClientProduct> {
+    const result = await db.insert(clientProducts).values(data).returning();
+    return result[0];
+  }
+  
+  // Opportunity operations
+  async getAllOpportunities(): Promise<ClientWithDetails[]> {
+    const allOpportunities = await db.select().from(opportunities);
+    const clientOpportunities: ClientWithDetails[] = [];
+    
+    for (const opportunity of allOpportunities) {
+      const client = await this.getClient(opportunity.clientId);
+      const product = await this.getInsuranceProduct(opportunity.productId);
+      
+      if (client && product) {
+        const currentProducts = await this.getClientProducts(client.id);
+        
+        clientOpportunities.push({
+          ...client,
+          currentProducts,
+          opportunity: product,
+          probability: opportunity.probability,
+          estimatedValue: opportunity.estimatedValue
+        });
+      }
+    }
+    
+    return clientOpportunities;
+  }
+  
+  async getOpportunitiesForClient(clientId: number): Promise<Opportunity[]> {
+    return db
+      .select()
+      .from(opportunities)
+      .where(eq(opportunities.clientId, clientId));
+  }
+  
+  async createOpportunity(opportunity: InsertOpportunity): Promise<Opportunity> {
+    const result = await db.insert(opportunities).values(opportunity).returning();
+    return result[0];
+  }
+  
+  // Document operations
+  async getAllDocuments(userId: number): Promise<Document[]> {
+    return db
+      .select()
+      .from(documents)
+      .where(eq(documents.userId, userId))
+      .orderBy(documents.uploadDate);
+  }
+  
+  async getDocument(id: number): Promise<Document | undefined> {
+    const result = await db.select().from(documents).where(eq(documents.id, id));
+    return result[0];
+  }
+  
+  async createDocument(document: InsertDocument): Promise<Document> {
+    const result = await db.insert(documents).values(document).returning();
+    return result[0];
+  }
+  
+  // File comparison operations
+  async getFileComparisons(userId: number): Promise<FileComparison[]> {
+    return db
+      .select()
+      .from(fileComparisons)
+      .where(eq(fileComparisons.userId, userId))
+      .orderBy(fileComparisons.comparisonDate);
+  }
+  
+  async getFileComparison(id: number): Promise<FileComparison | undefined> {
+    const result = await db.select().from(fileComparisons).where(eq(fileComparisons.id, id));
+    return result[0];
+  }
+  
+  async createFileComparison(comparison: InsertFileComparison): Promise<FileComparison> {
+    const result = await db.insert(fileComparisons).values(comparison).returning();
+    return result[0];
+  }
+}
+
+// Use the database storage implementation
+export const storage = new DatabaseStorage();
