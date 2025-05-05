@@ -238,13 +238,15 @@ export class MemStorage implements IStorage {
   
   async createDocument(document: InsertDocument): Promise<Document> {
     const id = this.currentDocumentId++;
-    const newDocument: Document = { 
+    // Ensure tags is always at least null if undefined
+    const documentData = { 
       ...document, 
       id,
-      uploadDate: new Date()
+      uploadDate: new Date(),
+      tags: document.tags || null
     };
-    this.documents.set(id, newDocument);
-    return newDocument;
+    this.documents.set(id, documentData);
+    return documentData;
   }
   
   // File comparison operations
@@ -306,7 +308,7 @@ export class MemStorage implements IStorage {
         summary: articleSummaries[i],
         category: articleCategories[i],
         imageUrl: articleImages[i],
-        publishedDate: new Date(2025, 4, 4 - i).toISOString()
+        publishedDate: new Date(2025, 4, 4 - i)
       });
     }
     

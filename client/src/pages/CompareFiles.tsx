@@ -128,7 +128,7 @@ export default function CompareFiles() {
   // Compare files mutation
   const compareFilesMutation = useMutation({
     mutationFn: async () => {
-      return apiRequest<{ success: boolean, comparison: ComparisonResult }>('/api/files/compare', {
+      return apiRequest('/api/files/compare', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
