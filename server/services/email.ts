@@ -1,15 +1,10 @@
-import { MailService } from '@sendgrid/mail';
-import type { MailDataRequired } from '@sendgrid/mail';
+import sgMail from '@sendgrid/mail';
 
+// Check and set the API key if available
 if (!process.env.SENDGRID_API_KEY) {
-  console.warn("Warning: SENDGRID_API_KEY environment variable is not set. Email functionality will be limited.");
-}
-
-const mailService = new MailService();
-
-// Initialize API key if available
-if (process.env.SENDGRID_API_KEY) {
-  mailService.setApiKey(process.env.SENDGRID_API_KEY);
+  console.warn("Warning: SENDGRID_API_KEY environment variable is not set. Email functionality will be limited to simulation mode.");
+} else {
+  sgMail.setApiKey(process.env.SENDGRID_API_KEY);
 }
 
 export interface EmailParams {
@@ -20,38 +15,57 @@ export interface EmailParams {
   html?: string;
 }
 
+/**
+ * Sends an email using SendGrid
+ * If SENDGRID_API_KEY is not set, simulates sending the email and logs details
+ */
 export async function sendEmail(params: EmailParams): Promise<boolean> {
   try {
+    // Make sure we have at least text or HTML content
+    if (!params.text && !params.html) {
+      console.error('Email must have either text or HTML content');
+      return false;
+    }
+    
     // Only attempt to send if we have an API key
     if (!process.env.SENDGRID_API_KEY) {
-      console.log('Email would be sent (simulation):', params);
+      console.log('Email would be sent (simulation mode - no API key):', {
+        to: params.to,
+        from: params.from,
+        subject: params.subject,
+        contentLength: params.text?.length || params.html?.length || 0
+      });
       return true;
     }
     
-    // Construct the email data with proper typing
-    const emailData: {
-      to: string;
-      from: string;
-      subject: string;
-      text?: string;
-      html?: string;
-    } = {
-      to: params.to,
-      from: params.from,
-      subject: params.subject,
-    };
+    // Prepare the message, ensuring we meet SendGrid's requirements
+    // SendGrid requires at least one content object
+    const content: Array<{type: string, value: string}> = [];
     
-    // Add text/html conditionally to avoid undefined values
     if (params.text) {
-      emailData.text = params.text;
+      content.push({
+        type: 'text/plain',
+        value: params.text
+      });
     }
     
     if (params.html) {
-      emailData.html = params.html;
+      content.push({
+        type: 'text/html',
+        value: params.html
+      });
     }
     
-    // Send the actual email
-    await mailService.send(emailData);
+    // Create the message with SendGrid's required format
+    const msg: sgMail.MailDataRequired = {
+      to: params.to,
+      from: params.from,
+      subject: params.subject,
+      content: content
+    };
+    
+    // Send the email
+    await sgMail.send(msg);
     
     console.log(`Email sent successfully to ${params.to}`);
     return true;
@@ -61,6 +75,9 @@ export async function sendEmail(params: EmailParams): Promise<boolean> {
   }
 }
 
+/**
+ * Converts plain text to HTML with basic formatting
+ */
 export function convertTextToHtml(text: string): string {
   // Basic conversion of plain text to HTML
   return text
