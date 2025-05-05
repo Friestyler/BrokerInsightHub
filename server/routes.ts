@@ -1,6 +1,45 @@
-import type { Express } from "express";
+import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
+import { promises as fsPromises } from 'fs';
+import { v4 as uuidv4 } from 'uuid';
+import { comparePdfDocuments } from './services/pdfComparison';
+
+// Setup multer storage for file uploads
+const storage_config = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(process.cwd(), 'uploads/pdfs');
+    // Ensure the directory exists
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    // Generate a unique filename to prevent collisions
+    const uniqueName = `${uuidv4()}-${file.originalname}`;
+    cb(null, uniqueName);
+  }
+});
+
+// Create the multer upload middleware
+const upload = multer({
+  storage: storage_config,
+  limits: {
+    fileSize: 10 * 1024 * 1024, // Limit file size to 10MB
+  },
+  fileFilter: (req, file, cb) => {
+    // Only accept PDF files
+    if (file.mimetype === 'application/pdf') {
+      cb(null, true);
+    } else {
+      cb(new Error('Only PDF files are allowed'));
+    }
+  }
+});
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // News Articles Endpoints
@@ -57,25 +96,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // File Upload Endpoint
-  app.post('/api/files/upload', async (req, res) => {
+  app.post('/api/files/upload', upload.single('file'), async (req, res) => {
     try {
-      // In a real implementation, this would process the actual file upload
-      // For now, we'll simulate this by storing metadata in our database
-      
-      // Default to user 1 for now
-      const userId = 1; 
-      const { filename, fileType, fileSize, content, tags = [] } = req.body;
-      
-      if (!filename || !fileType || !content) {
-        return res.status(400).json({ message: 'Missing required fields' });
+      if (!req.file) {
+        return res.status(400).json({ message: 'No file uploaded' });
       }
       
+      // Default to user 1 for now
+      const userId = 1;
+      const uploadedFile = req.file;
+      
+      // Extract file information from the uploaded file
+      const filePath = uploadedFile.path;
+      const fileSize = uploadedFile.size;
+      const filename = req.body.filename || uploadedFile.originalname;
+      const fileType = uploadedFile.mimetype;
+      
+      // Extract some content from the PDF for storage
+      let content = '';
+      try {
+        // Only extract first 1000 chars to avoid overloading the database
+        const pdfText = await extractTextFromPdf(filePath);
+        content = pdfText.substring(0, 1000);
+      } catch (err) {
+        console.warn('Could not extract PDF text:', err);
+        content = 'PDF content could not be extracted';
+      }
+      
+      // Get tags if provided
+      const tags = req.body.tags ? JSON.parse(req.body.tags) : [];
+      
+      // Store document information in the database
       const document = await storage.createDocument({
         userId,
         filename,
         fileType,
-        fileSize: fileSize || 1024, // Default size if not provided
-        content,
+        fileSize,
+        filePath,  // Store the path to the file on disk
+        content,   // First 1000 chars of PDF content
         tags
       });
       
@@ -179,7 +237,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const htmlContent = convertTextToHtml(content);
       const emailSent = await sendEmail({
         to: recipient,
-        from: 'broker@qollabi.com', // This should be a verified sender in your SendGrid account
+        from: 'support@replit.app', // Using a generic Replit address to avoid DNS issues
         subject: subject,
         text: content,
         html: htmlContent
