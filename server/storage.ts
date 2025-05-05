@@ -66,6 +66,8 @@ export class MemStorage implements IStorage {
   private insuranceProducts: Map<number, InsuranceProduct>;
   private clientProducts: Map<number, ClientProduct>;
   private opportunities: Map<number, Opportunity>;
+  private documents: Map<number, Document>;
+  private fileComparisons: Map<number, FileComparison>;
   
   currentUserId: number;
   currentNewsArticleId: number;
@@ -73,6 +75,8 @@ export class MemStorage implements IStorage {
   currentInsuranceProductId: number;
   currentClientProductId: number;
   currentOpportunityId: number;
+  currentDocumentId: number;
+  currentFileComparisonId: number;
 
   constructor() {
     this.users = new Map();
@@ -81,6 +85,8 @@ export class MemStorage implements IStorage {
     this.insuranceProducts = new Map();
     this.clientProducts = new Map();
     this.opportunities = new Map();
+    this.documents = new Map();
+    this.fileComparisons = new Map();
     
     this.currentUserId = 1;
     this.currentNewsArticleId = 1;
@@ -88,6 +94,8 @@ export class MemStorage implements IStorage {
     this.currentInsuranceProductId = 1;
     this.currentClientProductId = 1;
     this.currentOpportunityId = 1;
+    this.currentDocumentId = 1;
+    this.currentFileComparisonId = 1;
     
     // Initialize with sample data
     this.initializeSampleData();
@@ -216,6 +224,48 @@ export class MemStorage implements IStorage {
     const newOpportunity: Opportunity = { ...opportunity, id };
     this.opportunities.set(id, newOpportunity);
     return newOpportunity;
+  }
+  
+  // Document operations
+  async getAllDocuments(userId: number): Promise<Document[]> {
+    return Array.from(this.documents.values())
+      .filter(doc => doc.userId === userId);
+  }
+  
+  async getDocument(id: number): Promise<Document | undefined> {
+    return this.documents.get(id);
+  }
+  
+  async createDocument(document: InsertDocument): Promise<Document> {
+    const id = this.currentDocumentId++;
+    const newDocument: Document = { 
+      ...document, 
+      id,
+      uploadDate: new Date()
+    };
+    this.documents.set(id, newDocument);
+    return newDocument;
+  }
+  
+  // File comparison operations
+  async getFileComparisons(userId: number): Promise<FileComparison[]> {
+    return Array.from(this.fileComparisons.values())
+      .filter(comp => comp.userId === userId);
+  }
+  
+  async getFileComparison(id: number): Promise<FileComparison | undefined> {
+    return this.fileComparisons.get(id);
+  }
+  
+  async createFileComparison(comparison: InsertFileComparison): Promise<FileComparison> {
+    const id = this.currentFileComparisonId++;
+    const newComparison: FileComparison = { 
+      ...comparison, 
+      id,
+      comparisonDate: new Date()
+    };
+    this.fileComparisons.set(id, newComparison);
+    return newComparison;
   }
   
   // Initialize sample data
