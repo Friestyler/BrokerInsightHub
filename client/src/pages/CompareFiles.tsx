@@ -196,7 +196,8 @@ export default function CompareFiles() {
     mutationFn: async (data: EmailForm) => {
       return apiRequest('POST', '/api/email/send', {
         ...data,
-        comparisonId: comparisonResult?.id
+        comparisonId: comparisonResult?.id,
+        comparisonMode: comparisonResult?.comparisonMode || comparisonMode  // Pass the comparison mode to the server
       });
     },
     onSuccess: (data) => {
@@ -570,41 +571,48 @@ Best regards,
             </Card>
             
             <Card className="border border-neutral-200 rounded-lg p-5">
-              <h3 className="font-medium mb-4 text-neutral-800">Generate Client Email</h3>
+              <h3 className="font-medium mb-4 text-neutral-800">
+                {(comparisonResult?.comparisonMode === 'template' || (!comparisonResult && comparisonMode === 'template')) 
+                  ? 'Generate Template Feedback Email' 
+                  : 'Generate Policy Comparison Email'}
+              </h3>
               
               <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-                <div>
-                  <Label className="block text-sm font-medium text-neutral-700 mb-1">Email Type</Label>
-                  <div className="grid grid-cols-2 gap-3">
-                    <Button 
-                      type="button"
-                      variant={emailType === 'comparison' ? 'secondary' : 'outline'} 
-                      className={emailType === 'comparison' ? 'bg-primary-100 text-primary-700 border-primary-200 hover:bg-primary-200' : ''}
-                      onClick={() => setEmailType('comparison')}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                        <polyline points="14 2 14 8 20 8" />
-                        <path d="M16 13H8" />
-                        <path d="M16 17H8" />
-                        <path d="M10 9H8" />
-                      </svg>
-                      Policy Comparison
-                    </Button>
-                    <Button 
-                      type="button"
-                      variant={emailType === 'recommendations' ? 'secondary' : 'outline'}
-                      className={emailType === 'recommendations' ? 'bg-primary-100 text-primary-700 border-primary-200 hover:bg-primary-200' : ''}
-                      onClick={() => setEmailType('recommendations')}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
-                        <polyline points="22 4 12 14.01 9 11.01" />
-                      </svg>
-                      Recommendations
-                    </Button>
+                {/* Only show email type options for policy comparisons */}
+                {(comparisonResult?.comparisonMode === 'policy' || (!comparisonResult && comparisonMode === 'policy')) && (
+                  <div>
+                    <Label className="block text-sm font-medium text-neutral-700 mb-1">Email Type</Label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <Button 
+                        type="button"
+                        variant={emailType === 'comparison' ? 'secondary' : 'outline'} 
+                        className={emailType === 'comparison' ? 'bg-primary-100 text-primary-700 border-primary-200 hover:bg-primary-200' : ''}
+                        onClick={() => setEmailType('comparison')}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                          <polyline points="14 2 14 8 20 8" />
+                          <path d="M16 13H8" />
+                          <path d="M16 17H8" />
+                          <path d="M10 9H8" />
+                        </svg>
+                        Policy Comparison
+                      </Button>
+                      <Button 
+                        type="button"
+                        variant={emailType === 'recommendations' ? 'secondary' : 'outline'}
+                        className={emailType === 'recommendations' ? 'bg-primary-100 text-primary-700 border-primary-200 hover:bg-primary-200' : ''}
+                        onClick={() => setEmailType('recommendations')}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" />
+                          <polyline points="22 4 12 14.01 9 11.01" />
+                        </svg>
+                        Recommendations
+                      </Button>
+                    </div>
                   </div>
-                </div>
+                )}
                 
                 <div>
                   <Label htmlFor="recipient" className="block text-sm font-medium text-neutral-700 mb-1">Recipient</Label>
