@@ -49,6 +49,15 @@ interface ComparisonResult {
     id: number;
     name: string;
   };
+  document3?: {
+    id: number;
+    name: string;
+  };
+  document4?: {
+    id: number;
+    name: string;
+  };
+  comparisonMode?: 'policy' | 'template';
   differencesSummary: string;
   differences: {
     addedClauses: number;
@@ -73,8 +82,12 @@ export default function CompareFiles() {
   const [emailType, setEmailType] = useState<'comparison' | 'recommendations'>('comparison');
   const [selectedFile1, setSelectedFile1] = useState<string | number>(defaultFiles[0].id);
   const [selectedFile2, setSelectedFile2] = useState<string | number>(defaultFiles[1].id);
+  const [selectedFile3, setSelectedFile3] = useState<string | number>('');
+  const [selectedFile4, setSelectedFile4] = useState<string | number>('');
   const [comparisonResult, setComparisonResult] = useState<ComparisonResult | null>(null);
   const [isComparing, setIsComparing] = useState(false);
+  const [comparisonMode, setComparisonMode] = useState<'policy' | 'template'>('policy');
+  const [useMultiComparison, setUseMultiComparison] = useState<boolean>(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
   
   // Fetch documents from the API
@@ -136,10 +149,22 @@ export default function CompareFiles() {
   // Compare files mutation
   const compareFilesMutation = useMutation<ComparisonResponse, Error, void>({
     mutationFn: async () => {
-      return apiRequest('POST', '/api/files/compare', {
-          document1Id: selectedFile1,
-          document2Id: selectedFile2
-      });
+      let payload: any = {
+        document1Id: selectedFile1,
+        document2Id: selectedFile2,
+        comparisonMode
+      };
+      
+      // Add additional files for multi-policy comparison if they're selected
+      if (useMultiComparison && selectedFile3) {
+        payload.document3Id = selectedFile3;
+      }
+      
+      if (useMultiComparison && selectedFile4) {
+        payload.document4Id = selectedFile4;
+      }
+      
+      return apiRequest('POST', '/api/files/compare', payload);
     },
     onSuccess: (data) => {
       if (data.success) {
@@ -221,10 +246,33 @@ Best regards,
   };
   
   const generateEmailContent = (comparison: ComparisonResult, type: 'comparison' | 'recommendations'): string => {
-    if (type === 'comparison') {
+    if (comparisonMode === 'template') {
+      // Generate template checking email
+      const missingItems = comparison.differences.details.filter(detail => detail.type === 'removed').length;
+      
       return `Dear [Client Name],
 
-Please find attached a comparison of the two insurance policies we discussed (${comparison.document1.name} and ${comparison.document2.name}).
+I've reviewed the document you submitted (${comparison.document2.name}) against our template (${comparison.document1.name}).
+
+${comparison.differencesSummary}
+
+${missingItems > 0 ? `There are ${missingItems} missing or incomplete fields in your document that need to be addressed:
+${comparison.differences.details
+  .filter(detail => detail.type === 'removed')
+  .map(detail => `- ${detail.description}`)
+  .join('\n')}
+
+Please complete these missing sections and resubmit the document at your earliest convenience.` : 'All required fields have been completed. Thank you for providing a thorough document.'}
+
+If you have any questions about completing this document, please don't hesitate to contact me.
+
+Best regards,
+[Your Name]`;
+    } else if (type === 'comparison') {
+      // Standard policy comparison email
+      return `Dear [Client Name],
+
+Please find attached a comparison of the insurance policies we discussed (${comparison.document1.name} and ${comparison.document2.name}${comparison.document3?.name ? ', ' + comparison.document3.name : ''}${comparison.document4?.name ? ', ' + comparison.document4.name : ''}).
 
 ${comparison.differencesSummary}
 
@@ -238,9 +286,10 @@ Let me know if you have any questions.
 Best regards,
 [Your Name]`;
     } else {
+      // Recommendations email
       return `Dear [Client Name],
 
-Based on our comparison of ${comparison.document1.name} and ${comparison.document2.name}, I would like to offer the following recommendations:
+Based on our comparison of ${comparison.document1.name} and ${comparison.document2.name}${comparison.document3?.name ? ' and ' + comparison.document3.name : ''}${comparison.document4?.name ? ' and ' + comparison.document4.name : ''}, I would like to offer the following recommendations:
 
 1. Policy Recommendation: I recommend selecting the policy with better coverage that aligns with your specific needs.
 
@@ -284,48 +333,183 @@ Best regards,
             <Card className="border border-neutral-200 rounded-lg p-5">
               <h3 className="font-medium mb-4 text-neutral-800">Upload Insurance Documents</h3>
               
-              {/* File selection for comparison */}
+              {/* Comparison mode selection */}
               <div className="mb-4 p-4 bg-neutral-50 rounded-lg border border-neutral-200">
-                <h4 className="font-medium mb-3 text-sm text-neutral-700">Compare Files</h4>
-                <div className="grid grid-cols-2 gap-3 mb-3">
-                  <div>
-                    <Label className="block text-xs font-medium text-neutral-700 mb-1">File 1</Label>
-                    <select
-                      className="w-full px-3 py-2 border border-neutral-300 rounded-md text-sm"
-                      value={String(selectedFile1)}
-                      onChange={(e) => setSelectedFile1(e.target.value)}
-                    >
-                      {files.map(file => (
-                        <option key={`file1-${file.id}`} value={String(file.id)}>
-                          {file.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div>
-                    <Label className="block text-xs font-medium text-neutral-700 mb-1">File 2</Label>
-                    <select
-                      className="w-full px-3 py-2 border border-neutral-300 rounded-md text-sm"
-                      value={String(selectedFile2)}
-                      onChange={(e) => setSelectedFile2(e.target.value)}
-                    >
-                      {files.map(file => (
-                        <option key={`file2-${file.id}`} value={String(file.id)}>
-                          {file.name}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                <h4 className="font-medium mb-3 text-sm text-neutral-700">Comparison Mode</h4>
+                <div className="grid grid-cols-2 gap-3">
+                  <Button
+                    type="button"
+                    variant={comparisonMode === 'policy' ? 'secondary' : 'outline'}
+                    className={comparisonMode === 'policy' ? 'bg-primary-100 text-primary-700 border-primary-200 hover:bg-primary-200' : ''}
+                    onClick={() => setComparisonMode('policy')}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                      <polyline points="14 2 14 8 20 8" />
+                      <path d="M16 13H8" />
+                      <path d="M16 17H8" />
+                      <path d="M10 9H8" />
+                    </svg>
+                    Policy Comparison
+                  </Button>
+                  <Button
+                    type="button"
+                    variant={comparisonMode === 'template' ? 'secondary' : 'outline'}
+                    className={comparisonMode === 'template' ? 'bg-primary-100 text-primary-700 border-primary-200 hover:bg-primary-200' : ''}
+                    onClick={() => setComparisonMode('template')}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                      <line x1="9" y1="3" x2="9" y2="21" />
+                      <line x1="9" y1="9" x2="21" y2="9" />
+                      <line x1="9" y1="15" x2="21" y2="15" />
+                    </svg>
+                    Template Checker
+                  </Button>
                 </div>
-                <Button 
-                  onClick={handleCompareClick} 
-                  disabled={isComparing || selectedFile1 === selectedFile2}
-                  className="w-full"
-                >
-                  {isComparing ? 'Comparing...' : 'Compare Files'}
-                </Button>
-                {selectedFile1 === selectedFile2 && (
-                  <p className="text-xs text-red-500 mt-2">Please select two different files to compare</p>
+                
+                {comparisonMode === 'policy' && (
+                  <div className="mt-4">
+                    <div className="flex items-center mb-2">
+                      <input
+                        type="checkbox"
+                        id="multi-comparison"
+                        checked={useMultiComparison}
+                        onChange={(e) => setUseMultiComparison(e.target.checked)}
+                        className="mr-2"
+                      />
+                      <Label htmlFor="multi-comparison" className="text-xs font-medium text-neutral-700">
+                        Compare multiple policies (up to 4)
+                      </Label>
+                    </div>
+                    
+                    <div className="grid grid-cols-2 gap-3 mb-3">
+                      <div>
+                        <Label className="block text-xs font-medium text-neutral-700 mb-1">Policy 1</Label>
+                        <select
+                          className="w-full px-3 py-2 border border-neutral-300 rounded-md text-sm"
+                          value={String(selectedFile1)}
+                          onChange={(e) => setSelectedFile1(e.target.value)}
+                        >
+                          {files.map(file => (
+                            <option key={`file1-${file.id}`} value={String(file.id)}>
+                              {file.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <Label className="block text-xs font-medium text-neutral-700 mb-1">Policy 2</Label>
+                        <select
+                          className="w-full px-3 py-2 border border-neutral-300 rounded-md text-sm"
+                          value={String(selectedFile2)}
+                          onChange={(e) => setSelectedFile2(e.target.value)}
+                        >
+                          {files.map(file => (
+                            <option key={`file2-${file.id}`} value={String(file.id)}>
+                              {file.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    </div>
+                    
+                    {useMultiComparison && (
+                      <div className="grid grid-cols-2 gap-3 mb-3">
+                        <div>
+                          <Label className="block text-xs font-medium text-neutral-700 mb-1">Policy 3 (Optional)</Label>
+                          <select
+                            className="w-full px-3 py-2 border border-neutral-300 rounded-md text-sm"
+                            value={String(selectedFile3)}
+                            onChange={(e) => setSelectedFile3(e.target.value)}
+                          >
+                            <option value="">-- Select a file --</option>
+                            {files.map(file => (
+                              <option key={`file3-${file.id}`} value={String(file.id)}>
+                                {file.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        <div>
+                          <Label className="block text-xs font-medium text-neutral-700 mb-1">Policy 4 (Optional)</Label>
+                          <select
+                            className="w-full px-3 py-2 border border-neutral-300 rounded-md text-sm"
+                            value={String(selectedFile4)}
+                            onChange={(e) => setSelectedFile4(e.target.value)}
+                          >
+                            <option value="">-- Select a file --</option>
+                            {files.map(file => (
+                              <option key={`file4-${file.id}`} value={String(file.id)}>
+                                {file.name}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                      </div>
+                    )}
+                    
+                    <Button 
+                      onClick={handleCompareClick} 
+                      disabled={isComparing || selectedFile1 === selectedFile2 || (selectedFile1 === selectedFile3 && selectedFile3 !== '') || (selectedFile1 === selectedFile4 && selectedFile4 !== '') || (selectedFile2 === selectedFile3 && selectedFile3 !== '') || (selectedFile2 === selectedFile4 && selectedFile4 !== '') || (selectedFile3 === selectedFile4 && selectedFile3 !== '' && selectedFile4 !== '')}
+                      className="w-full mt-2"
+                    >
+                      {isComparing ? 'Comparing Policies...' : 'Compare Policies'}
+                    </Button>
+                    
+                    {(selectedFile1 === selectedFile2 || (selectedFile1 === selectedFile3 && selectedFile3 !== '') || (selectedFile1 === selectedFile4 && selectedFile4 !== '') || (selectedFile2 === selectedFile3 && selectedFile3 !== '') || (selectedFile2 === selectedFile4 && selectedFile4 !== '') || (selectedFile3 === selectedFile4 && selectedFile3 !== '' && selectedFile4 !== '')) && (
+                      <p className="text-xs text-red-500 mt-2">Please select different files for each policy</p>
+                    )}
+                  </div>
+                )}
+                
+                {comparisonMode === 'template' && (
+                  <div className="mt-4">
+                    <div className="grid grid-cols-2 gap-3 mb-3">
+                      <div>
+                        <Label className="block text-xs font-medium text-neutral-700 mb-1">Template Document</Label>
+                        <select
+                          className="w-full px-3 py-2 border border-neutral-300 rounded-md text-sm"
+                          value={String(selectedFile1)}
+                          onChange={(e) => setSelectedFile1(e.target.value)}
+                        >
+                          {files.map(file => (
+                            <option key={`template-${file.id}`} value={String(file.id)}>
+                              {file.name}
+                            </option>
+                          ))}
+                        </select>
+                        <p className="text-xs text-neutral-500 mt-1">The original template with fields to be filled</p>
+                      </div>
+                      <div>
+                        <Label className="block text-xs font-medium text-neutral-700 mb-1">Client Document</Label>
+                        <select
+                          className="w-full px-3 py-2 border border-neutral-300 rounded-md text-sm"
+                          value={String(selectedFile2)}
+                          onChange={(e) => setSelectedFile2(e.target.value)}
+                        >
+                          {files.map(file => (
+                            <option key={`client-${file.id}`} value={String(file.id)}>
+                              {file.name}
+                            </option>
+                          ))}
+                        </select>
+                        <p className="text-xs text-neutral-500 mt-1">The document received from the client</p>
+                      </div>
+                    </div>
+                    
+                    <Button 
+                      onClick={handleCompareClick} 
+                      disabled={isComparing || selectedFile1 === selectedFile2}
+                      className="w-full mt-2"
+                    >
+                      {isComparing ? 'Checking Template...' : 'Check Template Completion'}
+                    </Button>
+                    
+                    {selectedFile1 === selectedFile2 && (
+                      <p className="text-xs text-red-500 mt-2">Template and client document must be different</p>
+                    )}
+                  </div>
                 )}
               </div>
               

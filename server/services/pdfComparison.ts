@@ -155,67 +155,321 @@ function identifyModifiedSections(
 }
 
 /**
- * Compare two PDF documents and return the differences
+ * Compare options for PDF comparison
+ */
+export interface ComparisonOptions {
+  mode?: 'policy' | 'template';
+  additionalFiles?: string[];
+}
+
+/**
+ * Compare PDF documents and return the differences
  */
 export async function comparePdfDocuments(
-  oldDocPath: string,
-  newDocPath: string
+  doc1Path: string,
+  doc2Path: string,
+  options: ComparisonOptions = {}
 ): Promise<ComparisonResult> {
   try {
-    // Extract text from both documents
-    const oldText = await extractTextFromPdf(oldDocPath);
-    const newText = await extractTextFromPdf(newDocPath);
+    const { mode = 'policy', additionalFiles = [] } = options;
     
-    // Split into sections
-    const oldSections = splitIntoSections(oldText);
-    const newSections = splitIntoSections(newText);
+    // Extract text from the main documents
+    const doc1Text = await extractTextFromPdf(doc1Path);
+    const doc2Text = await extractTextFromPdf(doc2Path);
     
-    // Identify differences
-    const { modifiedPairs, onlyInOld, onlyInNew } = identifyModifiedSections(oldSections, newSections);
+    // Also extract text from additional documents if provided
+    const additionalTexts = await Promise.all(
+      additionalFiles.map(filePath => extractTextFromPdf(filePath))
+    );
     
-    // Build the comparison result
-    const differences: DocumentDifference[] = [];
+    // If we're in template checking mode
+    if (mode === 'template') {
+      return compareTemplateCompletion(doc1Text, doc2Text);
+    }
     
-    // Add removed sections
-    onlyInOld.forEach((section, index) => {
-      const sectionName = `Section ${index + 1}`;
-      differences.push({
-        type: 'removed',
-        section: sectionName,
-        description: trimForDisplay(section)
-      });
-    });
+    // If we have additional files, it's a multi-policy comparison
+    if (additionalTexts.length > 0) {
+      return compareMultiplePolicies(doc1Text, doc2Text, additionalTexts);
+    }
     
-    // Add added sections
-    onlyInNew.forEach((section, index) => {
-      const sectionName = `Section ${index + 1}`;
-      differences.push({
-        type: 'added',
-        section: sectionName,
-        description: trimForDisplay(section)
-      });
-    });
-    
-    // Add modified sections
-    modifiedPairs.forEach(([oldSection, newSection], index) => {
-      const sectionName = `Section ${index + 1}`;
-      differences.push({
-        type: 'modified',
-        section: sectionName,
-        description: `Changed from "${trimForDisplay(oldSection)}" to "${trimForDisplay(newSection)}"`
-      });
-    });
-    
-    return {
-      addedClauses: onlyInNew.length,
-      removedClauses: onlyInOld.length,
-      modifiedClauses: modifiedPairs.length,
-      details: differences
-    };
+    // Standard policy comparison (two documents)
+    return compareTwoPolicies(doc1Text, doc2Text);
   } catch (error) {
     console.error(`Error comparing PDF documents: ${error}`);
     throw new Error(`Failed to compare PDF documents: ${error.message}`);
   }
+}
+
+/**
+ * Compare two policy documents
+ */
+function compareTwoPolicies(policy1Text: string, policy2Text: string): ComparisonResult {
+  // Split into sections
+  const policy1Sections = splitIntoSections(policy1Text);
+  const policy2Sections = splitIntoSections(policy2Text);
+  
+  // Identify differences
+  const { modifiedPairs, onlyInOld, onlyInNew } = identifyModifiedSections(policy1Sections, policy2Sections);
+  
+  // Build the comparison result
+  const differences: DocumentDifference[] = [];
+  
+  // Add removed sections
+  onlyInOld.forEach((section, index) => {
+    const sectionName = `Policy 1: Section ${index + 1}`;
+    differences.push({
+      type: 'removed',
+      section: sectionName,
+      description: trimForDisplay(section)
+    });
+  });
+  
+  // Add added sections
+  onlyInNew.forEach((section, index) => {
+    const sectionName = `Policy 2: Section ${index + 1}`;
+    differences.push({
+      type: 'added',
+      section: sectionName,
+      description: trimForDisplay(section)
+    });
+  });
+  
+  // Add modified sections
+  modifiedPairs.forEach(([oldSection, newSection], index) => {
+    const sectionName = `Modified Section ${index + 1}`;
+    differences.push({
+      type: 'modified',
+      section: sectionName,
+      description: `Changed from "${trimForDisplay(oldSection)}" to "${trimForDisplay(newSection)}"`
+    });
+  });
+  
+  return {
+    addedClauses: onlyInNew.length,
+    removedClauses: onlyInOld.length,
+    modifiedClauses: modifiedPairs.length,
+    details: differences
+  };
+}
+
+/**
+ * Compare template completion (template vs. client document)
+ * Focuses on identifying fields that should be filled but are missing
+ */
+function compareTemplateCompletion(templateText: string, clientDocText: string): ComparisonResult {
+  // Split into sections
+  const templateSections = splitIntoSections(templateText);
+  const clientSections = splitIntoSections(clientDocText);
+  
+  // Identify potential template fields (e.g., "[Field]", "______", etc.)
+  const templateFields = templateSections.filter(section => {
+    // Look for typical placeholder patterns
+    return (
+      section.includes('[') && section.includes(']') ||
+      section.includes('____') ||
+      section.includes('...') ||
+      section.includes('(') && section.includes(')') && section.includes('fill') ||
+      section.includes('please enter') ||
+      section.includes('please provide')
+    );
+  });
+  
+  // Check if these fields are properly filled in the client document
+  const missingFields: string[] = [];
+  const properlyFilled: string[] = [];
+  const incompleteFields: [string, string][] = [];
+  
+  templateFields.forEach(field => {
+    let fieldFilled = false;
+    
+    // Try to find a corresponding section in client doc
+    for (const clientSection of clientSections) {
+      const similarity = calculateSimilarity(field, clientSection);
+      
+      // If very similar but not identical, it might be partially filled
+      if (similarity >= 0.6 && similarity < 0.95) {
+        incompleteFields.push([field, clientSection]);
+        fieldFilled = true;
+        break;
+      }
+      
+      // If quite different (similarity < 0.6), it might be properly filled
+      // but we need to check if it contains the structural elements of the template
+      if (similarity < 0.6) {
+        // Extract the structural parts of the field (e.g., "Name: [____]" -> "Name:")
+        const fieldStructure = field.replace(/\[.*?\]|_+|\.\.\./g, '').trim();
+        
+        if (clientSection.includes(fieldStructure) && 
+            !clientSection.includes('[') && 
+            !clientSection.includes('____') && 
+            !clientSection.includes('...')) {
+          properlyFilled.push(field);
+          fieldFilled = true;
+          break;
+        }
+      }
+    }
+    
+    if (!fieldFilled) {
+      missingFields.push(field);
+    }
+  });
+  
+  // Build the comparison result
+  const differences: DocumentDifference[] = [];
+  
+  // Add missing fields
+  missingFields.forEach((field, index) => {
+    differences.push({
+      type: 'removed',
+      section: `Missing Field ${index + 1}`,
+      description: trimForDisplay(field)
+    });
+  });
+  
+  // Add incomplete fields
+  incompleteFields.forEach(([template, client], index) => {
+    differences.push({
+      type: 'modified',
+      section: `Incomplete Field ${index + 1}`,
+      description: `Field "${trimForDisplay(template)}" is partially filled with "${trimForDisplay(client)}"`
+    });
+  });
+  
+  // Add properly filled fields - these are actually "additions" from template to client doc
+  properlyFilled.forEach((field, index) => {
+    differences.push({
+      type: 'added',
+      section: `Completed Field ${index + 1}`,
+      description: `Successfully completed: ${trimForDisplay(field)}`
+    });
+  });
+  
+  return {
+    addedClauses: properlyFilled.length,
+    removedClauses: missingFields.length,
+    modifiedClauses: incompleteFields.length,
+    details: differences
+  };
+}
+
+/**
+ * Compare multiple policy documents
+ * Identifies common clauses and unique elements across all policies
+ */
+function compareMultiplePolicies(policy1Text: string, policy2Text: string, additionalTexts: string[]): ComparisonResult {
+  // Combine all texts into a single array
+  const allPolicyTexts = [policy1Text, policy2Text, ...additionalTexts];
+  const allPolicySections = allPolicyTexts.map(text => splitIntoSections(text));
+  
+  // Track unique and common sections
+  const uniqueSections: { [policyIndex: number]: string[] } = {};
+  const commonSections: string[] = [];
+  
+  // Initialize uniqueSections object
+  allPolicyTexts.forEach((_, index) => {
+    uniqueSections[index] = [];
+  });
+  
+  // Compare first policy against all others to find its unique sections
+  allPolicySections[0].forEach(section => {
+    let isUnique = true;
+    
+    // Check if this section appears in any other policy
+    for (let i = 1; i < allPolicySections.length; i++) {
+      const otherPolicySections = allPolicySections[i];
+      
+      for (const otherSection of otherPolicySections) {
+        const similarity = calculateSimilarity(section, otherSection);
+        
+        if (similarity >= 0.75) {
+          isUnique = false;
+          
+          // If very similar, consider it a common section
+          if (similarity >= 0.9) {
+            // Only add it once to common sections
+            if (!commonSections.some(common => calculateSimilarity(common, section) >= 0.9)) {
+              commonSections.push(section);
+            }
+          }
+          break;
+        }
+      }
+      
+      if (!isUnique) break;
+    }
+    
+    if (isUnique) {
+      uniqueSections[0].push(section);
+    }
+  });
+  
+  // Repeat for all other policies
+  for (let policyIndex = 1; policyIndex < allPolicySections.length; policyIndex++) {
+    const policySections = allPolicySections[policyIndex];
+    
+    policySections.forEach(section => {
+      let isUnique = true;
+      
+      // Check if this section appears in any other policy
+      for (let i = 0; i < allPolicySections.length; i++) {
+        if (i === policyIndex) continue; // Skip comparing to self
+        
+        const otherPolicySections = allPolicySections[i];
+        
+        for (const otherSection of otherPolicySections) {
+          const similarity = calculateSimilarity(section, otherSection);
+          
+          if (similarity >= 0.75) {
+            isUnique = false;
+            break;
+          }
+        }
+        
+        if (!isUnique) break;
+      }
+      
+      if (isUnique) {
+        uniqueSections[policyIndex].push(section);
+      }
+    });
+  }
+  
+  // Build the comparison result
+  const differences: DocumentDifference[] = [];
+  
+  // Add common sections as "modified" (since they're in multiple documents)
+  commonSections.forEach((section, index) => {
+    differences.push({
+      type: 'modified',
+      section: `Common Clause ${index + 1}`,
+      description: `Found in all policies: ${trimForDisplay(section)}`
+    });
+  });
+  
+  // Add unique sections from each policy
+  Object.entries(uniqueSections).forEach(([policyIndex, sections]) => {
+    const policyNumber = Number(policyIndex) + 1;
+    
+    sections.forEach((section, index) => {
+      differences.push({
+        type: policyNumber === 1 ? 'removed' : 'added',  // Policy 1 unique = removed, others = added
+        section: `Policy ${policyNumber} Unique Clause ${index + 1}`,
+        description: trimForDisplay(section)
+      });
+    });
+  });
+  
+  // Count statistics
+  const totalUnique = Object.values(uniqueSections)
+    .reduce((sum, sections) => sum + sections.length, 0);
+  
+  return {
+    addedClauses: totalUnique - (uniqueSections[0]?.length || 0),  // Unique in other policies
+    removedClauses: uniqueSections[0]?.length || 0,  // Unique in first policy
+    modifiedClauses: commonSections.length,  // Common across policies
+    details: differences
+  };
 }
 
 /**

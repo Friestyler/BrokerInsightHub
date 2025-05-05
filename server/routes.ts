@@ -156,38 +156,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // File comparison endpoint
   app.post('/api/files/compare', async (req, res) => {
     try {
-      const { document1Id, document2Id, userId = 1 } = req.body;
+      const { document1Id, document2Id, document3Id, document4Id, comparisonMode = 'policy', userId = 1 } = req.body;
       
       if (!document1Id || !document2Id) {
-        return res.status(400).json({ message: 'Missing document IDs' });
+        return res.status(400).json({ message: 'At least two document IDs are required' });
       }
       
-      const document1 = await storage.getDocument(document1Id);
-      const document2 = await storage.getDocument(document2Id);
+      // Get the main documents
+      const document1 = await storage.getDocument(Number(document1Id));
+      const document2 = await storage.getDocument(Number(document2Id));
       
       if (!document1 || !document2) {
-        return res.status(404).json({ message: 'One or both documents not found' });
+        return res.status(404).json({ message: 'One or both main documents not found' });
+      }
+      
+      // Get optional additional documents for multi-policy comparison
+      let document3 = null;
+      let document4 = null;
+      
+      if (document3Id) {
+        document3 = await storage.getDocument(Number(document3Id));
+        if (!document3) {
+          return res.status(404).json({ message: 'Document 3 not found' });
+        }
+      }
+      
+      if (document4Id) {
+        document4 = await storage.getDocument(Number(document4Id));
+        if (!document4) {
+          return res.status(404).json({ message: 'Document 4 not found' });
+        }
       }
       
       // Check if files paths are available
-      if (!document1.filePath || !document2.filePath) {
+      if (!document1.filePath || !document2.filePath || 
+          (document3 && !document3.filePath) || 
+          (document4 && !document4.filePath)) {
         // Fall back to dummy data if the file paths aren't available
         console.warn('File paths not available, using content-based comparison');
         
         // Compare the content stored in the database instead
-        const oldContent = document1.content || '';
-        const newContent = document2.content || '';
+        const doc1Content = document1.content || '';
+        const doc2Content = document2.content || '';
         
         // Do a simple text-based comparison
-        const addedWords = newContent.split(/\s+/).filter(word => !oldContent.includes(word)).length;
-        const removedWords = oldContent.split(/\s+/).filter(word => !newContent.includes(word)).length;
+        const addedWords = doc2Content.split(/\s+/).filter(word => !doc1Content.includes(word)).length;
+        const removedWords = doc1Content.split(/\s+/).filter(word => !doc2Content.includes(word)).length;
         
         const comparisonResult = {
           differencesSummary: `Found ${addedWords + removedWords} differences between ${document1.filename} and ${document2.filename}`,
           differences: {
             addedClauses: addedWords,
             removedClauses: removedWords,
-            modifiedClauses: Math.round(Math.abs(oldContent.length - newContent.length) / 20),
+            modifiedClauses: Math.round(Math.abs(doc1Content.length - doc2Content.length) / 20),
             details: [
               { type: 'addition', section: 'Document', description: `${addedWords} new terms found` },
               { type: 'removal', section: 'Document', description: `${removedWords} terms removed` },
@@ -198,13 +219,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         const comparison = await storage.createFileComparison({
           userId,
-          document1Id,
-          document2Id,
+          document1Id: document1.id,
+          document2Id: document2.id,
           differencesSummary: comparisonResult.differencesSummary,
           differences: comparisonResult.differences
         });
         
-        return res.json({ 
+        const response = { 
           success: true, 
           comparison: {
             id: comparison.id,
@@ -217,53 +238,145 @@ export async function registerRoutes(app: Express): Promise<Server> {
               id: document2.id,
               name: document2.filename
             },
+            comparisonMode,
             ...comparisonResult
           }
-        });
+        };
+        
+        // Add additional documents if available
+        if (document3) {
+          response.comparison.document3 = {
+            id: document3.id,
+            name: document3.filename
+          };
+        }
+        
+        if (document4) {
+          response.comparison.document4 = {
+            id: document4.id,
+            name: document4.filename
+          };
+        }
+        
+        return res.json(response);
       }
       
-      // Get the file paths
+      // Get the file paths for all documents
       const filePath1 = document1.filePath;
       const filePath2 = document2.filePath;
       
-      // Perform the actual PDF comparison
-      console.log(`Comparing PDFs: ${filePath1} and ${filePath2}`);
-      const comparisonDetails = await comparePdfDocuments(filePath1, filePath2);
+      // Prepare additional file paths if they exist
+      const additionalFiles: string[] = [];
       
-      // Create a detailed summary of the differences
+      if (document3 && document3.filePath) {
+        additionalFiles.push(document3.filePath);
+      }
+      
+      if (document4 && document4.filePath) {
+        additionalFiles.push(document4.filePath);
+      }
+      
+      // Import PDF comparison service at the function scope to avoid module dependency cycles
+      const { comparePdfDocuments } = await import('./services/pdfComparison');
+      
+      // Perform the actual PDF comparison
+      console.log(`Comparing PDFs in ${comparisonMode} mode: ${filePath1} and ${filePath2}${additionalFiles.length > 0 ? ' with additional files' : ''}`);
+      const comparisonDetails = await comparePdfDocuments(filePath1, filePath2, {
+        mode: comparisonMode as 'policy' | 'template',
+        additionalFiles
+      });
+      
+      // Create a detailed summary of the differences based on the comparison mode
       let differencesSummary = '';
       
-      if (comparisonDetails.addedClauses > 0 || comparisonDetails.removedClauses > 0 || comparisonDetails.modifiedClauses > 0) {
-        differencesSummary = `Analysis found ${comparisonDetails.addedClauses + comparisonDetails.removedClauses + comparisonDetails.modifiedClauses} differences between ${document1.filename} and ${document2.filename}:\n\n`;
-        
-        if (comparisonDetails.addedClauses > 0) {
-          differencesSummary += `• Added Content: ${comparisonDetails.addedClauses} section(s) appear in the second document that are not in the first. These additions may grant new rights, impose new obligations, or provide additional coverage.\n\n`;
-        }
-        
+      if (comparisonMode === 'template') {
+        // Template completion summary
         if (comparisonDetails.removedClauses > 0) {
-          differencesSummary += `• Removed Content: ${comparisonDetails.removedClauses} section(s) from the first document were removed. These removals may eliminate previously established rights, obligations, or coverage areas.\n\n`;
+          differencesSummary = `Completion check found ${comparisonDetails.removedClauses} missing fields in the document ${document2.filename} compared to template ${document1.filename}.\n\n`;
+          differencesSummary += `• Missing Fields: ${comparisonDetails.removedClauses} field(s) from the template have not been filled in the client document.\n\n`;
+          
+          if (comparisonDetails.modifiedClauses > 0) {
+            differencesSummary += `• Partially Filled: ${comparisonDetails.modifiedClauses} field(s) appear to be partially completed but may need more information.\n\n`;
+          }
+          
+          if (comparisonDetails.addedClauses > 0) {
+            differencesSummary += `• Completed Fields: ${comparisonDetails.addedClauses} field(s) have been filled in successfully.\n\n`;
+          }
+          
+          differencesSummary += `IMPORTANT: Please ensure all template fields are properly completed before proceeding.`;
+        } else {
+          differencesSummary = `All required fields appear to be filled in document ${document2.filename}.\n\n`;
+          
+          if (comparisonDetails.addedClauses > 0) {
+            differencesSummary += `• Successfully completed ${comparisonDetails.addedClauses} field(s).\n\n`;
+          }
+          
+          if (comparisonDetails.modifiedClauses > 0) {
+            differencesSummary += `• ${comparisonDetails.modifiedClauses} field(s) were filled but may need review for accuracy.\n\n`;
+          }
         }
-        
-        if (comparisonDetails.modifiedClauses > 0) {
-          differencesSummary += `• Modified Content: ${comparisonDetails.modifiedClauses} section(s) have been altered. These modifications may change the meaning, scope, or effect of the document.\n\n`;
-        }
-        
-        differencesSummary += `IMPORTANT: The changes identified may affect legal rights, financial obligations, or insurance coverage. Please review all differences carefully before making decisions.`;
       } else {
-        differencesSummary = `The documents appear to be substantially similar. No significant textual differences were detected between ${document1.filename} and ${document2.filename}.`;
+        // Policy comparison summary
+        const docCount = 2 + additionalFiles.length;
+        const docNames = [document1.filename, document2.filename];
+        
+        if (document3) docNames.push(document3.filename);
+        if (document4) docNames.push(document4.filename);
+        
+        const docNamesList = docNames.join(', ');
+        
+        if (comparisonDetails.addedClauses > 0 || comparisonDetails.removedClauses > 0 || comparisonDetails.modifiedClauses > 0) {
+          if (docCount > 2) {
+            differencesSummary = `Analysis found differences across ${docCount} policies (${docNamesList}):\n\n`;
+          } else {
+            differencesSummary = `Analysis found ${comparisonDetails.addedClauses + comparisonDetails.removedClauses + comparisonDetails.modifiedClauses} differences between ${document1.filename} and ${document2.filename}:\n\n`;
+          }
+          
+          if (comparisonDetails.addedClauses > 0) {
+            if (docCount > 2) {
+              differencesSummary += `• Unique Content: ${comparisonDetails.addedClauses} clause(s) appear in only some policies but not others.\n\n`;
+            } else {
+              differencesSummary += `• Added Content: ${comparisonDetails.addedClauses} section(s) appear in the second document that are not in the first. These additions may grant new rights, impose new obligations, or provide additional coverage.\n\n`;
+            }
+          }
+          
+          if (comparisonDetails.removedClauses > 0) {
+            if (docCount > 2) {
+              differencesSummary += `• Missing Content: ${comparisonDetails.removedClauses} clause(s) that appear in the first policy are absent in some or all other policies.\n\n`;
+            } else {
+              differencesSummary += `• Removed Content: ${comparisonDetails.removedClauses} section(s) from the first document were removed. These removals may eliminate previously established rights, obligations, or coverage areas.\n\n`;
+            }
+          }
+          
+          if (comparisonDetails.modifiedClauses > 0) {
+            if (docCount > 2) {
+              differencesSummary += `• Common Content: ${comparisonDetails.modifiedClauses} clause(s) appear to be common across multiple policies, with similar language and coverage provisions.\n\n`;
+            } else {
+              differencesSummary += `• Modified Content: ${comparisonDetails.modifiedClauses} section(s) have been altered. These modifications may change the meaning, scope, or effect of the document.\n\n`;
+            }
+          }
+          
+          differencesSummary += `IMPORTANT: The differences identified may affect legal rights, financial obligations, or insurance coverage. Please review all differences carefully before making decisions.`;
+        } else {
+          if (docCount > 2) {
+            differencesSummary = `The ${docCount} policies (${docNamesList}) appear to be substantially similar with no significant unique clauses detected.`;
+          } else {
+            differencesSummary = `The documents appear to be substantially similar. No significant textual differences were detected between ${document1.filename} and ${document2.filename}.`;
+          }
+        }
       }
       
       // Store the comparison result
       const comparison = await storage.createFileComparison({
         userId,
-        document1Id,
-        document2Id,
+        document1Id: document1.id,
+        document2Id: document2.id,
         differencesSummary,
         differences: comparisonDetails
       });
       
-      // Return the comparison result to the client
-      res.json({ 
+      // Prepare the response object
+      const response = { 
         success: true, 
         comparison: {
           id: comparison.id,
@@ -276,10 +389,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
             id: document2.id,
             name: document2.filename
           },
+          comparisonMode,
           differencesSummary,
           differences: comparisonDetails
         }
-      });
+      };
+      
+      // Add additional documents if available
+      if (document3) {
+        response.comparison.document3 = {
+          id: document3.id,
+          name: document3.filename
+        };
+      }
+      
+      if (document4) {
+        response.comparison.document4 = {
+          id: document4.id,
+          name: document4.filename
+        };
+      }
+      
+      // Return the comparison result to the client
+      res.json(response);
     } catch (error) {
       console.error('Error comparing files:', error);
       res.status(500).json({ message: 'Failed to compare files' });
