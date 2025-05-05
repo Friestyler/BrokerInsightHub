@@ -29,6 +29,15 @@ interface FileUploadResponse {
   file: UploadedFile;
 }
 
+interface EmailResponse {
+  success: boolean;
+  message: string;
+  details?: {
+    recipient: string;
+    subject: string;
+  };
+}
+
 interface ComparisonResult {
   id: number;
   date: string;
@@ -75,7 +84,7 @@ export default function CompareFiles() {
   });
   
   // File upload mutation
-  const uploadFileMutation = useMutation({
+  const uploadFileMutation = useMutation<FileUploadResponse, Error, FormData>({
     mutationFn: async (formData: FormData) => {
       const fileObj = formData.get('file') as File;
       
@@ -89,13 +98,7 @@ export default function CompareFiles() {
         tags: ['uploaded']
       };
       
-      return apiRequest('/api/files/upload', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(documentData),
-      });
+      return apiRequest('POST', '/api/files/upload', documentData);
     },
     onSuccess: (data) => {
       if (data.success) {
@@ -125,18 +128,18 @@ export default function CompareFiles() {
     }
   });
   
+  interface ComparisonResponse {
+    success: boolean;
+    message: string;
+    comparison: ComparisonResult;
+  }
+  
   // Compare files mutation
-  const compareFilesMutation = useMutation({
+  const compareFilesMutation = useMutation<ComparisonResponse, Error, void>({
     mutationFn: async () => {
-      return apiRequest('/api/files/compare', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
+      return apiRequest('POST', '/api/files/compare', {
           document1Id: selectedFile1,
           document2Id: selectedFile2
-        }),
       });
     },
     onSuccess: (data) => {
@@ -165,17 +168,11 @@ export default function CompareFiles() {
   });
   
   // Email sending mutation
-  const sendEmailMutation = useMutation({
+  const sendEmailMutation = useMutation<EmailResponse, Error, EmailForm>({
     mutationFn: async (data: EmailForm) => {
-      return apiRequest('/api/email/send', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...data,
-          comparisonId: comparisonResult?.id
-        }),
+      return apiRequest('POST', '/api/email/send', {
+        ...data,
+        comparisonId: comparisonResult?.id
       });
     },
     onSuccess: (data) => {
