@@ -1,6 +1,7 @@
 import { readFile } from 'fs/promises';
 import path from 'path';
-import * as pdfParse from 'pdf-parse';
+// pdf-parse is a default export
+import pdfParse from 'pdf-parse';
 
 export interface DocumentDifference {
   type: 'added' | 'removed' | 'modified';
@@ -23,7 +24,7 @@ export async function extractTextFromPdf(filePath: string): Promise<string> {
     const dataBuffer = await readFile(filePath);
     const pdfData = await pdfParse(dataBuffer);
     return pdfData.text;
-  } catch (error) {
+  } catch (error: any) {
     console.error(`Error extracting text from PDF: ${error}`);
     throw new Error(`Failed to extract text from PDF: ${error.message}`);
   }
