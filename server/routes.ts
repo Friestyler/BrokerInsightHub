@@ -71,6 +71,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Failed to fetch clients' });
     }
   });
+  
+  app.get('/api/customers', async (req, res) => {
+    try {
+      const customers = await storage.getAllCustomers();
+      res.json(customers);
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to fetch customers' });
+    }
+  });
+  
+  app.get('/api/customers/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const customer = await storage.getCustomer(id);
+      
+      if (!customer) {
+        return res.status(404).json({ message: 'Customer not found' });
+      }
+      
+      // Get team members and partners
+      const [teamMembers, partners] = await Promise.all([
+        storage.getCustomerTeamMembers(id),
+        storage.getCustomerPartners(id)
+      ]);
+      
+      // For each team member, get the user details
+      const teamMemberDetails = await Promise.all(
+        teamMembers.map(async (member) => {
+          const user = await storage.getUser(member.userId);
+          return {
+            id: member.id,
+            user: user ? {
+              id: user.id,
+              fullName: user.fullName,
+              avatarInitials: user.avatarInitials
+            } : null
+          };
+        })
+      );
+      
+      // For each partner, get the client details
+      const partnerDetails = await Promise.all(
+        partners.map(async (partner) => {
+          const client = await storage.getClient(partner.partnerId);
+          return {
+            id: partner.id,
+            partner: client ? {
+              id: client.id,
+              name: client.name,
+              type: client.type,
+              initials: client.initials
+            } : null
+          };
+        })
+      );
+      
+      // Get owner details
+      const owner = customer.ownerId ? await storage.getUser(customer.ownerId) : null;
+      
+      // Combine all data
+      const customerDetails = {
+        ...customer,
+        owner: owner ? {
+          id: owner.id,
+          fullName: owner.fullName,
+          avatarInitials: owner.avatarInitials
+        } : null,
+        teamMembers: teamMemberDetails,
+        partners: partnerDetails
+      };
+      
+      res.json(customerDetails);
+    } catch (error) {
+      console.error('Error fetching customer details:', error);
+      res.status(500).json({ message: 'Failed to fetch customer details' });
+    }
+  });
 
   // Insurance Products Endpoints
   app.get('/api/products', async (req, res) => {

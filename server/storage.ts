@@ -6,7 +6,10 @@ import {
   clientProducts, type ClientProduct, type InsertClientProduct,
   opportunities, type Opportunity, type InsertOpportunity,
   documents, type Document, type InsertDocument,
-  fileComparisons, type FileComparison, type InsertFileComparison
+  fileComparisons, type FileComparison, type InsertFileComparison,
+  customers, type Customer, type InsertCustomer,
+  customerTeamMembers, type CustomerTeamMember, type InsertCustomerTeamMember,
+  customerPartners, type CustomerPartner, type InsertCustomerPartner
 } from "@shared/schema";
 import { db } from './db';
 import { eq, and } from 'drizzle-orm';
@@ -57,6 +60,19 @@ export interface IStorage {
   getFileComparisons(userId: number): Promise<FileComparison[]>;
   getFileComparison(id: number): Promise<FileComparison | undefined>;
   createFileComparison(comparison: InsertFileComparison): Promise<FileComparison>;
+  
+  // Customer operations
+  getAllCustomers(): Promise<Customer[]>;
+  getCustomer(id: number): Promise<Customer | undefined>;
+  createCustomer(customer: InsertCustomer): Promise<Customer>;
+  
+  // Customer team members operations
+  getCustomerTeamMembers(customerId: number): Promise<CustomerTeamMember[]>;
+  addCustomerTeamMember(data: InsertCustomerTeamMember): Promise<CustomerTeamMember>;
+  
+  // Customer partners operations
+  getCustomerPartners(customerId: number): Promise<CustomerPartner[]>;
+  addCustomerPartner(data: InsertCustomerPartner): Promise<CustomerPartner>;
 }
 
 export class MemStorage implements IStorage {
@@ -68,6 +84,9 @@ export class MemStorage implements IStorage {
   private opportunities: Map<number, Opportunity>;
   private documents: Map<number, Document>;
   private fileComparisons: Map<number, FileComparison>;
+  private customers: Map<number, Customer>;
+  private customerTeamMembers: Map<number, CustomerTeamMember>;
+  private customerPartners: Map<number, CustomerPartner>;
   
   currentUserId: number;
   currentNewsArticleId: number;
@@ -77,6 +96,9 @@ export class MemStorage implements IStorage {
   currentOpportunityId: number;
   currentDocumentId: number;
   currentFileComparisonId: number;
+  currentCustomerId: number;
+  currentCustomerTeamMemberId: number;
+  currentCustomerPartnerId: number;
 
   constructor() {
     this.users = new Map();
@@ -87,6 +109,9 @@ export class MemStorage implements IStorage {
     this.opportunities = new Map();
     this.documents = new Map();
     this.fileComparisons = new Map();
+    this.customers = new Map();
+    this.customerTeamMembers = new Map();
+    this.customerPartners = new Map();
     
     this.currentUserId = 1;
     this.currentNewsArticleId = 1;
@@ -96,6 +121,9 @@ export class MemStorage implements IStorage {
     this.currentOpportunityId = 1;
     this.currentDocumentId = 1;
     this.currentFileComparisonId = 1;
+    this.currentCustomerId = 1;
+    this.currentCustomerTeamMemberId = 1;
+    this.currentCustomerPartnerId = 1;
     
     // Initialize with sample data
     this.initializeSampleData();
@@ -271,6 +299,53 @@ export class MemStorage implements IStorage {
     return newComparison;
   }
   
+  // Customer operations
+  async getAllCustomers(): Promise<Customer[]> {
+    return Array.from(this.customers.values());
+  }
+  
+  async getCustomer(id: number): Promise<Customer | undefined> {
+    return this.customers.get(id);
+  }
+  
+  async createCustomer(customer: InsertCustomer): Promise<Customer> {
+    const id = this.currentCustomerId++;
+    const newCustomer: Customer = { 
+      ...customer, 
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.customers.set(id, newCustomer);
+    return newCustomer;
+  }
+  
+  // Customer team member operations
+  async getCustomerTeamMembers(customerId: number): Promise<CustomerTeamMember[]> {
+    return Array.from(this.customerTeamMembers.values())
+      .filter(member => member.customerId === customerId);
+  }
+  
+  async addCustomerTeamMember(data: InsertCustomerTeamMember): Promise<CustomerTeamMember> {
+    const id = this.currentCustomerTeamMemberId++;
+    const teamMember: CustomerTeamMember = { ...data, id };
+    this.customerTeamMembers.set(id, teamMember);
+    return teamMember;
+  }
+  
+  // Customer partner operations
+  async getCustomerPartners(customerId: number): Promise<CustomerPartner[]> {
+    return Array.from(this.customerPartners.values())
+      .filter(partner => partner.customerId === customerId);
+  }
+  
+  async addCustomerPartner(data: InsertCustomerPartner): Promise<CustomerPartner> {
+    const id = this.currentCustomerPartnerId++;
+    const partner: CustomerPartner = { ...data, id };
+    this.customerPartners.set(id, partner);
+    return partner;
+  }
+  
   // Initialize sample data
   private async initializeSampleData() {
     // Create sample user
@@ -348,6 +423,46 @@ export class MemStorage implements IStorage {
     await this.createOpportunity({ clientId: 1, productId: 3, probability: 85, estimatedValue: 2450 }); // Van Damme - Cyber Insurance
     await this.createOpportunity({ clientId: 2, productId: 6, probability: 65, estimatedValue: 890 });  // Laura - Life Insurance
     await this.createOpportunity({ clientId: 3, productId: 7, probability: 90, estimatedValue: 3200 }); // Green Tech - Business Interruption
+    
+    // Create sample customers
+    const customerNames = [
+      'Acme Corporation', 
+      'Globex Industries', 
+      'Stark Enterprises', 
+      'Wayne Industries', 
+      'Umbrella Corporation'
+    ];
+    
+    const customerDescriptions = [
+      'Leading manufacturer of cartoon props and gadgets',
+      'Global leader in innovative technologies',
+      'Cutting-edge tech and defense systems',
+      'Multinational conglomerate with diverse portfolio',
+      'Pharmaceutical company focused on medical innovations'
+    ];
+    
+    for (let i = 0; i < customerNames.length; i++) {
+      // Create customer with user 1 as owner
+      const customer = await this.createCustomer({
+        name: customerNames[i],
+        description: customerDescriptions[i],
+        ownerId: 1
+      });
+      
+      // Add the owner as a team member
+      await this.addCustomerTeamMember({
+        customerId: customer.id,
+        userId: 1
+      });
+      
+      // Add partners (clients) to some customers
+      if (i % 2 === 0) {
+        await this.addCustomerPartner({
+          customerId: customer.id,
+          partnerId: (i % 3) + 1 // Link to one of our clients
+        });
+      }
+    }
   }
 }
 
@@ -508,6 +623,51 @@ export class DatabaseStorage implements IStorage {
   
   async createFileComparison(comparison: InsertFileComparison): Promise<FileComparison> {
     const result = await db.insert(fileComparisons).values(comparison).returning();
+    return result[0];
+  }
+  
+  // Customer operations
+  async getAllCustomers(): Promise<Customer[]> {
+    return db.select().from(customers);
+  }
+  
+  async getCustomer(id: number): Promise<Customer | undefined> {
+    const result = await db.select().from(customers).where(eq(customers.id, id));
+    return result[0];
+  }
+  
+  async createCustomer(customer: InsertCustomer): Promise<Customer> {
+    const result = await db.insert(customers).values({
+      ...customer,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }).returning();
+    return result[0];
+  }
+  
+  // Customer team members operations
+  async getCustomerTeamMembers(customerId: number): Promise<CustomerTeamMember[]> {
+    return db
+      .select()
+      .from(customerTeamMembers)
+      .where(eq(customerTeamMembers.customerId, customerId));
+  }
+  
+  async addCustomerTeamMember(data: InsertCustomerTeamMember): Promise<CustomerTeamMember> {
+    const result = await db.insert(customerTeamMembers).values(data).returning();
+    return result[0];
+  }
+  
+  // Customer partners operations
+  async getCustomerPartners(customerId: number): Promise<CustomerPartner[]> {
+    return db
+      .select()
+      .from(customerPartners)
+      .where(eq(customerPartners.customerId, customerId));
+  }
+  
+  async addCustomerPartner(data: InsertCustomerPartner): Promise<CustomerPartner> {
+    const result = await db.insert(customerPartners).values(data).returning();
     return result[0];
   }
 }
