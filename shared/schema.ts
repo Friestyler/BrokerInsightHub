@@ -1,4 +1,5 @@
 import { pgTable, text, serial, integer, boolean, timestamp, json } from "drizzle-orm/pg-core";
+import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -77,6 +78,41 @@ export const fileComparisons = pgTable("file_comparisons", {
   differences: json("differences").notNull(),
 });
 
+// Customers entity
+export const customers = pgTable("customers", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  ownerId: integer("owner_id").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Customer-User relationship (Team members)
+export const customerTeamMembers = pgTable("customer_team_members", {
+  id: serial("id").primaryKey(),
+  customerId: integer("customer_id").notNull().references(() => customers.id),
+  userId: integer("user_id").notNull().references(() => users.id),
+});
+
+// Customer-Partner relationship
+export const customerPartners = pgTable("customer_partners", {
+  id: serial("id").primaryKey(),
+  customerId: integer("customer_id").notNull().references(() => customers.id),
+  partnerId: integer("partner_id").notNull().references(() => clients.id),
+});
+
+// Define relationships
+export const customersRelations = relations(customers, ({ one, many }) => ({
+  owner: one(users, {
+    fields: [customers.ownerId],
+    references: [users.id],
+    relationName: "customerOwner",
+  }),
+  teamMembers: many(customerTeamMembers),
+  partners: many(customerPartners),
+}));
+
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
@@ -135,6 +171,22 @@ export const insertFileComparisonSchema = createInsertSchema(fileComparisons).pi
   differences: true,
 });
 
+export const insertCustomerSchema = createInsertSchema(customers).pick({
+  name: true,
+  description: true,
+  ownerId: true,
+});
+
+export const insertCustomerTeamMemberSchema = createInsertSchema(customerTeamMembers).pick({
+  customerId: true,
+  userId: true,
+});
+
+export const insertCustomerPartnerSchema = createInsertSchema(customerPartners).pick({
+  customerId: true,
+  partnerId: true,
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -159,3 +211,12 @@ export type Document = typeof documents.$inferSelect;
 
 export type InsertFileComparison = z.infer<typeof insertFileComparisonSchema>;
 export type FileComparison = typeof fileComparisons.$inferSelect;
+
+export type InsertCustomer = z.infer<typeof insertCustomerSchema>;
+export type Customer = typeof customers.$inferSelect;
+
+export type InsertCustomerTeamMember = z.infer<typeof insertCustomerTeamMemberSchema>;
+export type CustomerTeamMember = typeof customerTeamMembers.$inferSelect;
+
+export type InsertCustomerPartner = z.infer<typeof insertCustomerPartnerSchema>;
+export type CustomerPartner = typeof customerPartners.$inferSelect;
