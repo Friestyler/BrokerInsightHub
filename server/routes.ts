@@ -81,6 +81,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  app.post('/api/customers', async (req, res) => {
+    try {
+      // Validate the request body
+      const { name, description, ownerId } = req.body;
+      
+      if (!name || !description) {
+        return res.status(400).json({ message: 'Name and description are required' });
+      }
+      
+      const customer = await storage.createCustomer({
+        name,
+        description,
+        ownerId: ownerId || null
+      });
+      
+      res.status(200).json(customer);
+    } catch (error) {
+      console.error('Error creating customer:', error);
+      res.status(500).json({ message: 'Failed to create customer' });
+    }
+  });
+  
   app.get('/api/customers/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);

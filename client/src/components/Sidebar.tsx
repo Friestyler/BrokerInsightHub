@@ -93,7 +93,7 @@ export default function Sidebar() {
               <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
               <path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3" />
             </svg>
-            <span className={`ml-2 ${collapsed ? "hidden" : "hidden md:inline-block"}`}>Data</span>
+            <span className={`ml-2 ${collapsed ? "hidden" : "hidden md:inline-block"}`}>Lists</span>
             {!collapsed && (
               <svg 
                 xmlns="http://www.w3.org/2000/svg" 

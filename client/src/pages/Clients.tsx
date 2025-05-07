@@ -47,20 +47,18 @@ export default function Clients() {
   const [searchTerm, setSearchTerm] = useState("");
   const [filter, setFilter] = useState("all");
   
-  const { data: customers, isLoading } = useQuery({
+  const { data: customers = [], isLoading } = useQuery<Customer[]>({
     queryKey: ['/api/customers'],
     refetchOnWindowFocus: false
   });
   
   const filteredCustomers = useCallback(() => {
-    if (!customers) return [];
-    
     return customers
-      .filter((customer: Customer) => 
+      .filter((customer) => 
         customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
         customer.description.toLowerCase().includes(searchTerm.toLowerCase())
       )
-      .sort((a: Customer, b: Customer) => a.name.localeCompare(b.name));
+      .sort((a, b) => a.name.localeCompare(b.name));
   }, [customers, searchTerm, filter]);
   
   return (
@@ -184,7 +182,7 @@ export default function Clients() {
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {filteredCustomers().map((customer: Customer) => (
+                {filteredCustomers().map((customer) => (
                   <Card key={customer.id} className="overflow-hidden">
                     <CardHeader className="pb-2">
                       <div className="flex justify-between items-start">
@@ -260,7 +258,7 @@ export default function Clients() {
                       </TableRow>
                     ))
                   ) : filteredCustomers().length > 0 ? (
-                    filteredCustomers().map((customer: Customer) => (
+                    filteredCustomers().map((customer) => (
                       <TableRow key={customer.id}>
                         <TableCell className="font-medium">
                           <div className="flex items-center">
