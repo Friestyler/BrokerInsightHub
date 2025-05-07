@@ -9,6 +9,7 @@ import Dashboard from "@/pages/Dashboard";
 import InsuranceNews from "@/pages/InsuranceNews";
 import CompareFiles from "@/pages/CompareFiles";
 import PredictOpportunities from "@/pages/PredictOpportunities";
+import CrossSellCampaigns from "@/pages/CrossSellCampaigns";
 import Clients from "@/pages/Clients";
 import ClientDetail from "@/pages/ClientDetail";
 import NotFound from "@/pages/not-found";
@@ -21,6 +22,7 @@ function Router() {
         <Route path="/news" component={InsuranceNews} />
         <Route path="/compare" component={CompareFiles} />
         <Route path="/predict" component={PredictOpportunities} />
+        <Route path="/campaigns" component={CrossSellCampaigns} />
         <Route path="/clients" component={Clients} />
         <Route path="/clients/:id" component={ClientDetail} />
         <Route component={NotFound} />
