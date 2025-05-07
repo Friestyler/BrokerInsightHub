@@ -63,7 +63,7 @@ export default function NavigationTiles() {
           </div>
         </div>
         <CardContent className="p-5">
-          <h3 className="text-lg font-semibold text-center text-neutral-800 mb-2">Predict Cross & Upsell Opportunities</h3>
+          <h3 className="text-lg font-semibold text-center text-neutral-800 mb-2">Cross & Upsell Campaigns</h3>
           <p className="text-neutral-600 text-sm text-center">Use AI to identify potential upsell and cross-sell opportunities</p>
         </CardContent>
       </div>
