@@ -115,7 +115,7 @@ export default function Sidebar() {
           {/* Dropdown menu */}
           {dataMenuOpen && !collapsed && (
             <div className="absolute left-0 mt-1 w-full md:w-48 bg-white rounded-md shadow-lg py-1 z-10 border border-neutral-200">
-              <a href="#/clients" className="block px-4 py-2 text-sm text-neutral-700 hover:bg-primary-50 hover:text-primary-600">
+              <Link href="/clients" className="block px-4 py-2 text-sm text-neutral-700 hover:bg-primary-50 hover:text-primary-600">
                 <div className="flex items-center">
                   <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
@@ -125,7 +125,7 @@ export default function Sidebar() {
                   </svg>
                   Clients
                 </div>
-              </a>
+              </Link>
               <a href="#/opportunities" className="block px-4 py-2 text-sm text-neutral-700 hover:bg-primary-50 hover:text-primary-600">
                 <div className="flex items-center">
                   <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
