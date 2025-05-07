@@ -50,7 +50,7 @@ export default function NavigationTiles() {
       
       <div 
         className="navigation-tile" 
-        onClick={() => setLocation("/predict")}
+        onClick={() => setLocation("/campaigns")}
       >
         <div className="h-40 bg-primary-100 flex items-center justify-center">
           <div className="flex items-center justify-center w-24 h-24 rounded-full bg-primary-200 text-primary-600">
