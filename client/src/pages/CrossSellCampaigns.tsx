@@ -152,7 +152,7 @@ export default function CrossSellCampaigns() {
     setCustomerFields(fields => 
       fields.map(field => 
         field.name === fieldName 
-          ? { ...field, mapped: true, sourceField: columnName } 
+          ? { ...field, mapped: columnName !== 'none', sourceField: columnName } 
           : field
       )
     );
@@ -160,7 +160,7 @@ export default function CrossSellCampaigns() {
     setCustomFields(fields => 
       fields.map(field => 
         field.name === fieldName 
-          ? { ...field, mapped: true, sourceField: columnName } 
+          ? { ...field, mapped: columnName !== 'none', sourceField: columnName } 
           : field
       )
     );
@@ -522,7 +522,7 @@ export default function CrossSellCampaigns() {
                               <SelectValue placeholder="Select a column" />
                             </SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="">- Not mapped -</SelectItem>
+                              <SelectItem value="none">- Not mapped -</SelectItem>
                               {fileColumns.map((column) => (
                                 <SelectItem key={column.name} value={column.name}>
                                   {column.name}
@@ -596,7 +596,7 @@ export default function CrossSellCampaigns() {
                                 <SelectValue placeholder="Map to column" />
                               </SelectTrigger>
                               <SelectContent>
-                                <SelectItem value="">- Not mapped -</SelectItem>
+                                <SelectItem value="none">- Not mapped -</SelectItem>
                                 {fileColumns.map((column) => (
                                   <SelectItem key={column.name} value={column.name}>
                                     {column.name}
