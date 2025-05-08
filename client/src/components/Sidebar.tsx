@@ -4,9 +4,13 @@ import EnvironmentSelector from "./EnvironmentSelector";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import qollabiLogo from "@assets/logo_qollabi_O_dark.png";
 
-export default function Sidebar() {
+interface SidebarProps {
+  collapsed?: boolean;
+  setCollapsed?: (collapsed: boolean) => void;
+}
+
+export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProps) {
   const [location] = useLocation();
-  const [collapsed, setCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
   const [dataMenuOpen, setDataMenuOpen] = useState(false);
   const dataMenuRef = useRef<HTMLDivElement>(null);
@@ -33,7 +37,7 @@ export default function Sidebar() {
   useEffect(() => {
     const handleResize = () => {
       setIsMobile(window.innerWidth < 768);
-      if (window.innerWidth < 768) {
+      if (window.innerWidth < 768 && typeof setCollapsed === 'function') {
         setCollapsed(true);
       }
     };
@@ -41,10 +45,12 @@ export default function Sidebar() {
     handleResize();
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  }, [setCollapsed]);
 
   const toggleCollapsed = () => {
-    setCollapsed(!collapsed);
+    if (typeof setCollapsed === 'function') {
+      setCollapsed(!collapsed);
+    }
   };
 
   return (
