@@ -50,7 +50,7 @@ export default function Sidebar() {
     <div className={`${collapsed ? "w-16" : "w-16 md:w-64"} bg-gray-50 flex flex-col h-screen transition-all duration-300 relative`}>
       <button 
         onClick={toggleCollapsed} 
-        className="absolute -right-3 top-10 bg-white rounded-full p-1 shadow-sm hidden md:flex items-center justify-center z-10"
+        className="absolute -right-3 top-16 bg-white rounded-full p-1 shadow-sm hidden md:flex items-center justify-center z-10"
       >
         <svg 
           xmlns="http://www.w3.org/2000/svg" 
@@ -68,13 +68,24 @@ export default function Sidebar() {
         </svg>
       </button>
       
-      {/* Environment Selector */}
-      <div className="py-3 px-3">
+      {/* Logo at the top left */}
+      <div className="pt-4 px-4 pb-2 flex justify-center md:justify-start">
+        <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
+          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5567E5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10"/>
+            <path d="M7 12h10"/>
+            <path d="M12 7v10"/>
+          </svg>
+        </div>
+      </div>
+      
+      {/* Environment Selector - moved down */}
+      <div className="py-3 px-3 mt-2">
         <EnvironmentSelector collapsed={collapsed} />
       </div>
       
-      {/* Navigation Links */}
-      <div className="flex flex-col mt-4">
+      {/* Navigation Links - more spacing */}
+      <div className="flex flex-col mt-8">
         <Link 
           href="/"
           className={`flex items-center py-2.5 px-4 ${isActive("/") ? "text-indigo-600 font-medium" : "text-gray-700 hover:text-indigo-600"}`}
