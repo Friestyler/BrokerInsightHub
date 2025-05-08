@@ -87,15 +87,12 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
       </div>
       
       {/* Environment Selector - moved down */}
-      <div className="py-3 px-3 mt-1 mb-3">
+      <div className="py-3 px-3 mt-1 mb-1">
         <EnvironmentSelector collapsed={collapsed} />
       </div>
       
-      {/* Separator line */}
-      <div className="border-b border-gray-200 w-full mb-3"></div>
-      
       {/* Navigation Links - closer to environment selector */}
-      <div className="flex flex-col mt-1">
+      <div className="flex flex-col">
         <Link 
           href="/"
           className={`flex items-center py-2.5 px-4 ${isActive("/") ? "text-indigo-600 font-medium" : "text-gray-700 hover:text-indigo-600"}`}
