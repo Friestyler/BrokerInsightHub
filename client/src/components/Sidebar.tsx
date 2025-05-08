@@ -54,10 +54,10 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
   };
 
   return (
-    <div className={`${collapsed ? "w-16" : "w-16 md:w-64"} bg-gray-50 flex flex-col h-screen transition-all duration-300 relative`}>
+    <div className={`${collapsed ? "w-16" : "w-16 md:w-64"} bg-gray-50 flex flex-col h-full overflow-hidden transition-all duration-300 relative`}>
       
       {/* Logo at the top left */}
-      <div className="pt-4 px-4 pb-1 flex justify-center md:justify-start">
+      <div className="pt-4 px-4 pb-1 flex justify-center md:justify-start flex-shrink-0">
         <div className="w-12 h-12 flex items-center justify-center">
           <img 
             src={qollabiLogo} 
@@ -68,12 +68,12 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
       </div>
       
       {/* Environment Selector - moved down */}
-      <div className="py-3 px-3 mt-1 mb-1">
+      <div className="py-3 px-3 mt-1 mb-1 flex-shrink-0">
         <EnvironmentSelector collapsed={collapsed} />
       </div>
       
       {/* Navigation Links - closer to environment selector */}
-      <div className="flex flex-col">
+      <div className="flex flex-col flex-shrink-0 overflow-y-auto">
         <Link 
           href="/"
           className={`flex items-center py-2.5 px-4 rounded-md ${isActive("/") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
@@ -170,7 +170,7 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
           <span className={`ml-3 text-sm ${collapsed ? "hidden" : "hidden md:inline-block"}`}>More</span>
         </a>
       </div>
-      <div className="mt-auto mb-4">
+      <div className="mt-auto mb-4 flex-shrink-0">
         <a href="#" className={`flex items-center py-2.5 px-4 rounded-md text-gray-700 hover:bg-indigo-50 hover:text-indigo-600`}>
           <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-center" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />

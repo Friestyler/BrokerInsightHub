@@ -39,14 +39,16 @@ export default function Layout({ children }: LayoutProps) {
   };
   
   return (
-    <div className="min-h-screen flex">
-      {/* Sidebar first in the layout */}
-      <Sidebar collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />
+    <div className="h-screen flex overflow-hidden">
+      {/* Sidebar first in the layout - fixed, not scrollable */}
+      <div className="h-screen flex-shrink-0">
+        <Sidebar collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />
+      </div>
       
       {/* Main content column with top bar */}
-      <div className="flex-1 flex flex-col bg-white">
-        {/* Top bar */}
-        <div className="h-14 border-b border-gray-100 flex items-center justify-between px-4">
+      <div className="flex-1 flex flex-col bg-white overflow-hidden">
+        {/* Top bar - fixed, not scrollable */}
+        <div className="h-14 border-b border-gray-100 flex items-center justify-between px-4 flex-shrink-0">
           <div className="flex items-center">
             <button 
               className="mr-3 text-gray-600 hover:text-indigo-600 p-1.5 rounded-md hover:bg-indigo-50 focus:outline-none"
@@ -93,8 +95,8 @@ export default function Layout({ children }: LayoutProps) {
           </div>
         </div>
         
-        {/* Main content area */}
-        <div className="flex-1 overflow-auto">
+        {/* Main content area - scrollable */}
+        <div className="flex-1 overflow-y-auto">
           {children}
         </div>
       </div>
