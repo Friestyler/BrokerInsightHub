@@ -2,6 +2,7 @@ import { useLocation, Link } from "wouter";
 import { useState, useEffect, useRef } from "react";
 import EnvironmentSelector from "./EnvironmentSelector";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
+import qollabiLogo from "@assets/logo_qollabi_O_dark.png";
 
 export default function Sidebar() {
   const [location] = useLocation();
@@ -70,22 +71,22 @@ export default function Sidebar() {
       
       {/* Logo at the top left */}
       <div className="pt-4 px-4 pb-2 flex justify-center md:justify-start">
-        <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center">
-          <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#5567E5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10"/>
-            <path d="M7 12h10"/>
-            <path d="M12 7v10"/>
-          </svg>
+        <div className="w-10 h-10 flex items-center justify-center">
+          <img 
+            src={qollabiLogo} 
+            alt="Qollabi Logo" 
+            className="w-10 h-10"
+          />
         </div>
       </div>
       
       {/* Environment Selector - moved down */}
-      <div className="py-3 px-3 mt-2">
+      <div className="py-3 px-3 mt-1">
         <EnvironmentSelector collapsed={collapsed} />
       </div>
       
-      {/* Navigation Links - more spacing */}
-      <div className="flex flex-col mt-8">
+      {/* Navigation Links - closer to environment selector */}
+      <div className="flex flex-col mt-3">
         <Link 
           href="/"
           className={`flex items-center py-2.5 px-4 ${isActive("/") ? "text-indigo-600 font-medium" : "text-gray-700 hover:text-indigo-600"}`}
