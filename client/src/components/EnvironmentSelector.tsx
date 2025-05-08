@@ -42,7 +42,7 @@ export default function EnvironmentSelector({ collapsed = false }: EnvironmentSe
     <div className="w-full mx-auto">
       <div className="relative">
         <Select value={environment.id} onValueChange={setEnvironment}>
-          <SelectTrigger className="w-full flex items-center justify-between py-3 px-4 rounded-md bg-gray-50 border border-gray-200 focus:outline-none hover:bg-indigo-50">
+          <SelectTrigger className="w-full flex items-center justify-between py-3 px-4 rounded-md bg-gray-50 border border-gray-200 focus:outline-none hover:bg-indigo-50 hover:text-indigo-600 focus:text-indigo-600 focus:bg-indigo-50">
             <div className="flex items-center">
               <div className="flex items-center justify-center w-7 h-7 mr-3 text-xs">
                 {environment.logo ? (
@@ -57,13 +57,13 @@ export default function EnvironmentSelector({ collapsed = false }: EnvironmentSe
                   </div>
                 )}
               </div>
-              <span className="text-sm font-medium text-gray-900">{environment.name}</span>
+              <span className="text-sm font-medium text-gray-900 group-hover:text-indigo-600">{environment.name}</span>
             </div>
             <ChevronDown className="h-4 w-4 text-gray-500" />
           </SelectTrigger>
-          <SelectContent className="border border-gray-200 shadow-md">
+          <SelectContent className="border border-gray-200 shadow-md p-1 bg-white">
             {environments.map(env => (
-              <SelectItem key={env.id} value={env.id} className="py-1.5 focus:bg-indigo-50 data-[highlighted]:bg-indigo-50">
+              <SelectItem key={env.id} value={env.id} className="py-2 px-2 focus:bg-indigo-50 focus:text-indigo-600 data-[highlighted]:bg-indigo-50 data-[highlighted]:text-indigo-600 hover:bg-indigo-50 hover:text-indigo-600 rounded-md mx-1 my-0.5">
                 <div className="flex items-center">
                   <div className="flex items-center justify-center w-7 h-7 mr-2 text-xs">
                     {env.logo ? (
