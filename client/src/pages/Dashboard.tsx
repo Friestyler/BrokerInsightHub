@@ -5,25 +5,8 @@ import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 
-// Dashboard for My Qollabi environment
+// Dashboard for My Qollabi environment - SHOWS news section
 function MyQollabiDashboard() {
-  return (
-    <div className="p-6">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-8">
-          <p className="text-neutral-600 mt-1">Access intelligent tools to enhance your brokerage efficiency</p>
-        </div>
-        
-        <NavigationTiles />
-        
-        {/* Latest Insurance News section removed for My Qollabi environment */}
-      </div>
-    </div>
-  );
-}
-
-// Dashboard for ACME environment
-function ACMEDashboard() {
   const { data: newsArticles, isLoading, refetch } = useQuery({
     queryKey: ['/api/news'],
     queryFn: async () => {
@@ -38,7 +21,7 @@ function ACMEDashboard() {
   const handleRefresh = () => {
     refetch();
   };
-
+  
   return (
     <div className="p-6">
       <div className="max-w-7xl mx-auto">
@@ -48,7 +31,7 @@ function ACMEDashboard() {
         
         <NavigationTiles />
         
-        {/* ACME environment still shows the news section */}
+        {/* My Qollabi environment shows the news section */}
         <div className="mt-12">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-xl font-semibold text-neutral-800">Latest Insurance News</h2>
@@ -135,6 +118,23 @@ function ACMEDashboard() {
             </div>
           )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+// Dashboard for ACME environment - NO news section
+function ACMEDashboard() {
+  return (
+    <div className="p-6">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-8">
+          <p className="text-neutral-600 mt-1">Access intelligent tools to enhance your brokerage efficiency</p>
+        </div>
+        
+        <NavigationTiles />
+        
+        {/* Latest Insurance News section removed for ACME environment */}
       </div>
     </div>
   );
