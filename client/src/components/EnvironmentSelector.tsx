@@ -7,8 +7,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-// Import the ACME logo asset
+// Import logos
 import acmeLogo from "../assets/acme-logo.svg";
+import qollabiLogo from "../assets/qollabi-placeholder.svg";
 
 export interface Environment {
   id: string;
@@ -23,6 +24,7 @@ interface EnvironmentSelectorProps {
 export default function EnvironmentSelector({ collapsed = false }: EnvironmentSelectorProps) {
   const [environments] = useState<Environment[]>([
     { id: "acme", name: "ACME CO", logo: acmeLogo },
+    { id: "myqollabi", name: "My Qollabi", logo: qollabiLogo },
     { id: "globex", name: "Globex Corp" },
     { id: "oceanic", name: "Oceanic Airlines" },
   ]);
