@@ -20,7 +20,7 @@ export default function EnvironmentSelector({ collapsed = false }: EnvironmentSe
   if (collapsed) {
     return (
       <div className="flex justify-center">
-        <div className="flex items-center justify-center w-10 h-10 text-xs">
+        <div className="flex items-center justify-center w-10 h-10 text-xs rounded-md hover:bg-indigo-50 cursor-pointer">
           {environment.logo ? (
             <img 
               src={environment.logo} 
@@ -28,7 +28,7 @@ export default function EnvironmentSelector({ collapsed = false }: EnvironmentSe
               className="w-7 h-7"
             />
           ) : (
-            <div className="w-7 h-7 rounded-sm flex items-center justify-center text-gray-700 bg-gray-50 border border-gray-200 uppercase">
+            <div className="w-7 h-7 rounded-sm flex items-center justify-center text-gray-700 bg-gray-50 border border-gray-200 uppercase hover:bg-indigo-50">
               {environment.name.substring(0, 2)}
             </div>
           )}
@@ -42,7 +42,7 @@ export default function EnvironmentSelector({ collapsed = false }: EnvironmentSe
     <div className="w-full mx-auto">
       <div className="relative">
         <Select value={environment.id} onValueChange={setEnvironment}>
-          <SelectTrigger className="w-full flex items-center justify-between py-3 px-4 rounded-md bg-gray-50 border border-gray-200 focus:outline-none">
+          <SelectTrigger className="w-full flex items-center justify-between py-3 px-4 rounded-md bg-gray-50 border border-gray-200 focus:outline-none hover:bg-indigo-50">
             <div className="flex items-center">
               <div className="flex items-center justify-center w-7 h-7 mr-3 text-xs">
                 {environment.logo ? (
@@ -63,7 +63,7 @@ export default function EnvironmentSelector({ collapsed = false }: EnvironmentSe
           </SelectTrigger>
           <SelectContent className="border border-gray-200 shadow-md">
             {environments.map(env => (
-              <SelectItem key={env.id} value={env.id} className="focus:bg-gray-100 py-1.5">
+              <SelectItem key={env.id} value={env.id} className="py-1.5 focus:bg-indigo-50 data-[highlighted]:bg-indigo-50">
                 <div className="flex items-center">
                   <div className="flex items-center justify-center w-7 h-7 mr-2 text-xs">
                     {env.logo ? (
