@@ -1,5 +1,6 @@
 import { useLocation, Link } from "wouter";
 import { useState, useEffect, useRef } from "react";
+import EnvironmentSelector from "./EnvironmentSelector";
 
 export default function Sidebar() {
   const [location] = useLocation();
@@ -64,7 +65,26 @@ export default function Sidebar() {
           <polyline points="15 18 9 12 15 6" />
         </svg>
       </button>
-      {/* Main Navigation heading section removed */}
+      
+      {/* Environment Selector */}
+      <div className="mb-6 px-3">
+        {!collapsed && (
+          <div className="mb-4 flex justify-center">
+            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
+              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#5567E5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
+                <circle cx="12" cy="12" r="10"></circle>
+                <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
+                <line x1="9" y1="9" x2="9.01" y2="9"></line>
+                <line x1="15" y1="9" x2="15.01" y2="9"></line>
+              </svg>
+            </div>
+          </div>
+        )}
+        
+        {!collapsed && <EnvironmentSelector />}
+      </div>
+      
+      {/* Navigation Links */}
       <div className="flex flex-col space-y-1">
         <Link 
           href="/"
@@ -77,12 +97,12 @@ export default function Sidebar() {
             <path d="M3 5h4" />
             <path d="M17 19h4" />
           </svg>
-          <span className={`ml-2 ${collapsed ? "hidden" : "hidden md:inline-block"}`}>Broker Copilot</span>
+          <span className={`ml-2 ${collapsed ? "hidden" : "hidden md:inline-block"}`}>Partner copilot</span>
         </Link>
         <div ref={dataMenuRef} className="relative">
           <a 
             href="#" 
-            className="flex items-center py-2 px-4 text-neutral-600 hover:bg-primary-100 hover:text-primary-600 rounded-md mx-2"
+            className={`flex items-center py-2 px-4 rounded-md mx-2 ${dataMenuOpen ? "bg-primary-50" : "text-neutral-600 hover:bg-primary-100 hover:text-primary-600"}`}
             onClick={(e) => {
               e.preventDefault();
               setDataMenuOpen(!dataMenuOpen);
@@ -93,7 +113,7 @@ export default function Sidebar() {
               <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
               <path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3" />
             </svg>
-            <span className={`ml-2 ${collapsed ? "hidden" : "hidden md:inline-block"}`}>Lists</span>
+            <span className={`ml-2 ${collapsed ? "hidden" : "hidden md:inline-block"}`}>Data</span>
             {!collapsed && (
               <svg 
                 xmlns="http://www.w3.org/2000/svg" 
@@ -112,38 +132,33 @@ export default function Sidebar() {
             )}
           </a>
           
-          {/* Dropdown menu */}
+          {/* Expanded Dropdown menu (no longer absolute positioned) */}
           {dataMenuOpen && !collapsed && (
-            <div className="absolute left-0 mt-1 w-full md:w-48 bg-white rounded-md shadow-lg py-1 z-10 border border-neutral-200">
-              <Link href="/clients" className="block px-4 py-2 text-sm text-neutral-700 hover:bg-primary-50 hover:text-primary-600">
-                <div className="flex items-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                    <circle cx="9" cy="7" r="4" />
-                    <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                  </svg>
-                  Clients
-                </div>
+            <div className="pl-12 mt-1 space-y-1">
+              <Link 
+                href="/opportunities" 
+                className={`block py-2 text-md ${location === "/opportunities" ? "text-indigo-600 bg-indigo-50" : "text-neutral-700 hover:bg-primary-50 hover:text-primary-600"} rounded-md px-3 transition-colors`}
+              >
+                Opportunities
               </Link>
-              <a href="#/opportunities" className="block px-4 py-2 text-sm text-neutral-700 hover:bg-primary-50 hover:text-primary-600">
-                <div className="flex items-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-                  </svg>
-                  Opportunities
-                </div>
-              </a>
-              <a href="#/partners" className="block px-4 py-2 text-sm text-neutral-700 hover:bg-primary-50 hover:text-primary-600">
-                <div className="flex items-center">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M14 19a6 6 0 0 0-12 0" />
-                    <circle cx="8" cy="9" r="4" />
-                    <path d="M22 19a6 6 0 0 0-6-6 4 4 0 1 0 0-8" />
-                  </svg>
-                  Partners
-                </div>
-              </a>
+              <Link 
+                href="/partners" 
+                className={`block py-2 text-md ${location === "/partners" ? "text-indigo-600 bg-indigo-50" : "text-neutral-700 hover:bg-primary-50 hover:text-primary-600"} rounded-md px-3 transition-colors`}
+              >
+                Partners
+              </Link>
+              <Link 
+                href="/projects" 
+                className={`block py-2 text-md ${location === "/projects" ? "text-indigo-600 bg-indigo-50" : "text-neutral-700 hover:bg-primary-50 hover:text-primary-600"} rounded-md px-3 transition-colors`}
+              >
+                Projects
+              </Link>
+              <Link 
+                href="/customers" 
+                className={`block py-2 text-md ${location === "/customers" ? "text-indigo-600 bg-indigo-50" : "text-neutral-700 hover:bg-primary-50 hover:text-primary-600"} rounded-md px-3 transition-colors`}
+              >
+                Customers
+              </Link>
             </div>
           )}
         </div>
