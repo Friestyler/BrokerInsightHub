@@ -44,122 +44,124 @@ export default function Sidebar() {
   };
 
   return (
-    <div className={`${collapsed ? "w-16" : "w-16 md:w-56"} bg-white border-r border-neutral-200 flex flex-col py-0 transition-all duration-300 relative h-full`}>
-      {/* Logo placeholder - shown only on expanded view */}
-      {!collapsed && (
-        <div className="h-14 flex items-center px-4 border-b border-neutral-200 mb-2">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M12 12C14.7614 12 17 9.76142 17 7C17 4.23858 14.7614 2 12 2C9.23858 2 7 4.23858 7 7C7 9.76142 9.23858 12 12 12Z" fill="#5567E5" />
-            <path d="M12 22C14.7614 22 17 19.7614 17 17C17 14.2386 14.7614 12 12 12C9.23858 12 7 14.2386 7 17C7 19.7614 9.23858 22 12 22Z" fill="#5567E5" />
-          </svg>
-        </div>
-      )}
-      
-      <div className="flex flex-col space-y-1 pt-2">
-        {/* Partner copilot */}
+    <div className={`${collapsed ? "w-16" : "w-16 md:w-64"} bg-white border-r border-neutral-200 flex flex-col py-4 transition-all duration-300 relative`}>
+      <button 
+        onClick={toggleCollapsed} 
+        className="absolute -right-3 top-10 bg-white border border-neutral-200 rounded-full p-1 shadow-sm hidden md:flex items-center justify-center"
+      >
+        <svg 
+          xmlns="http://www.w3.org/2000/svg" 
+          width="16" 
+          height="16" 
+          viewBox="0 0 24 24" 
+          fill="none" 
+          stroke="currentColor" 
+          strokeWidth="2" 
+          strokeLinecap="round" 
+          strokeLinejoin="round" 
+          className={`text-neutral-400 transform ${collapsed ? "" : "rotate-180"}`}
+        >
+          <polyline points="15 18 9 12 15 6" />
+        </svg>
+      </button>
+      {/* Main Navigation heading section removed */}
+      <div className="flex flex-col space-y-1">
         <Link 
           href="/"
-          className={`flex items-center h-8 px-4 mx-2 text-sm font-medium ${isActive("/") ? "text-[#5567E5]" : "text-neutral-600 hover:text-[#5567E5]"}`}
+          className={`flex items-center py-2 px-4 rounded-md mx-2 ${isActive("/") ? "bg-primary-100 text-primary-600" : "text-neutral-600 hover:bg-primary-100 hover:text-primary-600"}`}
         >
-          <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M20.04 22c1.65 0 3-1.35 3-3v-2c0-2.87-2.2-5.22-5-5.47"></path>
-            <circle cx="12" cy="5" r="3"></circle>
-            <path d="M15 12a4 4 0 0 0-4 4v4h8.5c1.94 0 3.5-1.56 3.5-3.5S20.44 13 18.5 13c-.75 0-1.46.24-2.03.67"></path>
-            <path d="M4 22c-1.65 0-3-1.35-3-3v-2c0-2.87 2.2-5.22 5-5.47"></path>
-            <path d="M9 12a4 4 0 0 1 4 4v4H4.5c-1.94 0-3.5-1.56-3.5-3.5S2.56 13 4.5 13c.75 0 1.46.24 2.03.67"></path>
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-center" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+            <path d="M5 3v4" />
+            <path d="M19 17v4" />
+            <path d="M3 5h4" />
+            <path d="M17 19h4" />
           </svg>
-          <span className={`ml-2 ${collapsed ? "hidden" : "hidden md:inline-block"}`}>Partner copilot</span>
+          <span className={`ml-2 ${collapsed ? "hidden" : "hidden md:inline-block"}`}>Broker Copilot</span>
         </Link>
-        
-        {/* Data section */}
-        <div className="px-4 py-2">
-          <p className={`text-xs font-medium text-neutral-400 uppercase ${collapsed ? "hidden" : "hidden md:block"}`}>Data</p>
-        </div>
-        
-        {/* Data */}
         <div ref={dataMenuRef} className="relative">
-          <Link 
-            href="/clients"
-            className={`flex items-center h-8 px-4 mx-2 text-sm font-medium ${location === "/clients" ? "text-[#5567E5]" : "text-neutral-600 hover:text-[#5567E5]"}`}
+          <a 
+            href="#" 
+            className="flex items-center py-2 px-4 text-neutral-600 hover:bg-primary-100 hover:text-primary-600 rounded-md mx-2"
+            onClick={(e) => {
+              e.preventDefault();
+              setDataMenuOpen(!dataMenuOpen);
+            }}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect width="20" height="14" x="2" y="5" rx="2"></rect>
-              <line x1="2" x2="22" y1="10" y2="10"></line>
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-center" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <ellipse cx="12" cy="5" rx="9" ry="3" />
+              <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+              <path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3" />
             </svg>
-            <span className={`ml-2 ${collapsed ? "hidden" : "hidden md:inline-block"}`}>Opportunities</span>
-          </Link>
+            <span className={`ml-2 ${collapsed ? "hidden" : "hidden md:inline-block"}`}>Lists</span>
+            {!collapsed && (
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="16" 
+                height="16" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+                className={`ml-auto transition-transform ${dataMenuOpen ? 'rotate-180' : ''} ${collapsed ? "hidden" : "hidden md:inline-block"}`}
+              >
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            )}
+          </a>
+          
+          {/* Dropdown menu */}
+          {dataMenuOpen && !collapsed && (
+            <div className="absolute left-0 mt-1 w-full md:w-48 bg-white rounded-md shadow-lg py-1 z-10 border border-neutral-200">
+              <Link href="/clients" className="block px-4 py-2 text-sm text-neutral-700 hover:bg-primary-50 hover:text-primary-600">
+                <div className="flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                    <circle cx="9" cy="7" r="4" />
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                  </svg>
+                  Clients
+                </div>
+              </Link>
+              <a href="#/opportunities" className="block px-4 py-2 text-sm text-neutral-700 hover:bg-primary-50 hover:text-primary-600">
+                <div className="flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                  </svg>
+                  Opportunities
+                </div>
+              </a>
+              <a href="#/partners" className="block px-4 py-2 text-sm text-neutral-700 hover:bg-primary-50 hover:text-primary-600">
+                <div className="flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M14 19a6 6 0 0 0-12 0" />
+                    <circle cx="8" cy="9" r="4" />
+                    <path d="M22 19a6 6 0 0 0-6-6 4 4 0 1 0 0-8" />
+                  </svg>
+                  Partners
+                </div>
+              </a>
+            </div>
+          )}
         </div>
-        
-        {/* Partners */}
-        <Link 
-          href="/partners" 
-          className={`flex items-center h-8 px-4 mx-2 text-sm font-medium ${location === "/partners" ? "text-[#5567E5]" : "text-neutral-600 hover:text-[#5567E5]"}`}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-            <circle cx="9" cy="7" r="4"></circle>
-            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+        <Link href="/campaigns" className="flex items-center py-2 px-4 text-neutral-600 hover:bg-primary-100 hover:text-primary-600 rounded-md mx-2">
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-center" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M22 2 11 13" />
+            <path d="M22 2 15 22 11 13 2 9 22 2z" />
           </svg>
-          <span className={`ml-2 ${collapsed ? "hidden" : "hidden md:inline-block"}`}>Partners</span>
+          <span className={`ml-2 ${collapsed ? "hidden" : "hidden md:inline-block"}`}>Campaigns</span>
         </Link>
-        
-        {/* Projects */}
-        <Link 
-          href="/projects" 
-          className={`flex items-center h-8 px-4 mx-2 text-sm font-medium ${location === "/projects" ? "text-[#5567E5]" : "text-neutral-600 hover:text-[#5567E5]"}`}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M15.5 2H8.6c-.4 0-.8.2-1.1.5-.3.3-.5.7-.5 1.1v12.8c0 .4.2.8.5 1.1.3.3.7.5 1.1.5h9.8c.4 0 .8-.2 1.1-.5.3-.3.5-.7.5-1.1V6.5L15.5 2z"></path>
-            <path d="M3 7.6v12.8c0 .4.2.8.5 1.1.3.3.7.5 1.1.5h9.8"></path>
-            <path d="M15 2v5h5"></path>
+        <a href="#" className="flex items-center py-2 px-4 text-neutral-600 hover:bg-primary-100 hover:text-primary-600 rounded-md mx-2">
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-6 h-6 text-center" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="1" />
+            <circle cx="19" cy="12" r="1" />
+            <circle cx="5" cy="12" r="1" />
           </svg>
-          <span className={`ml-2 ${collapsed ? "hidden" : "hidden md:inline-block"}`}>Projects</span>
-        </Link>
-        
-        {/* Customers */}
-        <Link 
-          href="/customers" 
-          className={`flex items-center h-8 px-4 mx-2 text-sm font-medium ${location === "/customers" ? "text-[#5567E5]" : "text-neutral-600 hover:text-[#5567E5]"}`}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
-            <circle cx="12" cy="7" r="4"></circle>
-          </svg>
-          <span className={`ml-2 ${collapsed ? "hidden" : "hidden md:inline-block"}`}>Customers</span>
-        </Link>
-        
-        {/* Updates section */}
-        <div className="px-4 py-2 mt-2">
-          <p className={`text-xs font-medium text-neutral-400 uppercase ${collapsed ? "hidden" : "hidden md:block"}`}>Updates</p>
-        </div>
-        
-        {/* Smart updates */}
-        <Link 
-          href="/campaigns" 
-          className={`flex items-center h-8 px-4 mx-2 text-sm font-medium ${location === "/campaigns" ? "text-[#5567E5]" : "text-neutral-600 hover:text-[#5567E5]"}`}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="m3 3 3 9-3 9 19-9-19-9Z" />
-            <path d="M13 13h8" />
-          </svg>
-          <span className={`ml-2 ${collapsed ? "hidden" : "hidden md:inline-block"}`}>Smart updates</span>
-        </Link>
-        
-        {/* More button */}
-        <div className="mt-auto pt-4">
-          <Link 
-            href="/more"
-            className={`flex items-center h-8 px-4 mx-2 text-sm font-medium ${location === "/more" ? "text-[#5567E5]" : "text-neutral-600 hover:text-[#5567E5]"}`}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <circle cx="12" cy="12" r="1" />
-              <circle cx="19" cy="12" r="1" />
-              <circle cx="5" cy="12" r="1" />
-            </svg>
-            <span className={`ml-2 ${collapsed ? "hidden" : "hidden md:inline-block"}`}>More</span>
-          </Link>
-        </div>
+          <span className={`ml-2 ${collapsed ? "hidden" : "hidden md:inline-block"}`}>More</span>
+        </a>
       </div>
     </div>
   );
