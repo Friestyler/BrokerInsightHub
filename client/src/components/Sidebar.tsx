@@ -1,6 +1,7 @@
 import { useLocation, Link } from "wouter";
 import { useState, useEffect, useRef } from "react";
 import EnvironmentSelector from "./EnvironmentSelector";
+import { useEnvironment } from "@/contexts/EnvironmentContext";
 
 export default function Sidebar() {
   const [location] = useLocation();
@@ -8,6 +9,7 @@ export default function Sidebar() {
   const [isMobile, setIsMobile] = useState(false);
   const [dataMenuOpen, setDataMenuOpen] = useState(false);
   const dataMenuRef = useRef<HTMLDivElement>(null);
+  const { environment } = useEnvironment();
 
   const isActive = (path: string) => {
     return location === path || (path === "/" && ["/news", "/compare", "/predict"].includes(location));
@@ -84,7 +86,9 @@ export default function Sidebar() {
             <path d="M3 5h4" />
             <path d="M17 19h4" />
           </svg>
-          <span className={`ml-2 ${collapsed ? "hidden" : "hidden md:inline-block"}`}>Partner copilot</span>
+          <span className={`ml-2 ${collapsed ? "hidden" : "hidden md:inline-block"}`}>
+            {environment.id === 'myqollabi' ? 'Broker Copilot' : 'Partner Copilot'}
+          </span>
         </Link>
         <div ref={dataMenuRef} className="relative">
           <a 
@@ -100,7 +104,9 @@ export default function Sidebar() {
               <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
               <path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3" />
             </svg>
-            <span className={`ml-2 ${collapsed ? "hidden" : "hidden md:inline-block"}`}>Data</span>
+            <span className={`ml-2 ${collapsed ? "hidden" : "hidden md:inline-block"}`}>
+              {environment.id === 'myqollabi' ? 'Lists' : 'Data'}
+            </span>
             {!collapsed && (
               <svg 
                 xmlns="http://www.w3.org/2000/svg" 
