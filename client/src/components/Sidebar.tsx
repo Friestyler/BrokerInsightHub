@@ -55,25 +55,6 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
 
   return (
     <div className={`${collapsed ? "w-16" : "w-16 md:w-64"} bg-gray-50 flex flex-col h-screen transition-all duration-300 relative`}>
-      <button 
-        onClick={toggleCollapsed} 
-        className="absolute -right-3 top-16 bg-white rounded-full p-1 shadow-sm hidden md:flex items-center justify-center z-10"
-      >
-        <svg 
-          xmlns="http://www.w3.org/2000/svg" 
-          width="16" 
-          height="16" 
-          viewBox="0 0 24 24" 
-          fill="none" 
-          stroke="currentColor" 
-          strokeWidth="2" 
-          strokeLinecap="round" 
-          strokeLinejoin="round" 
-          className={`text-neutral-400 transform ${collapsed ? "" : "rotate-180"}`}
-        >
-          <polyline points="15 18 9 12 15 6" />
-        </svg>
-      </button>
       
       {/* Logo at the top left */}
       <div className="pt-4 px-4 pb-1 flex justify-center md:justify-start">
