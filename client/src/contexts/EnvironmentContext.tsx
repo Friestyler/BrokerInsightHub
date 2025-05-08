@@ -94,6 +94,6 @@ export const useEnvironment = () => {
 // Declare global variable for environment
 declare global {
   interface Window {
-    __APP_ENV__: string;
+    __APP_ENV__?: string;
   }
 }
