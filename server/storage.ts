@@ -480,10 +480,11 @@ export class DatabaseStorage implements IStorage {
   
   // Get the current request object (if available)
   private getCurrentRequest() {
-    const asyncLocalStorage = require('async_hooks').AsyncLocalStorage;
-    const requestStorage = global.requestStorage || new asyncLocalStorage();
-    global.requestStorage = requestStorage;
-    return requestStorage.getStore();
+    // Use the global requestStorage
+    if (global.requestStorage) {
+      return global.requestStorage.getStore();
+    }
+    return null;
   }
   
   // User operations
@@ -628,7 +629,7 @@ export class DatabaseStorage implements IStorage {
   
   // File comparison operations
   async getFileComparisons(userId: number): Promise<FileComparison[]> {
-    return db
+    return this.getDb()
       .select()
       .from(fileComparisons)
       .where(eq(fileComparisons.userId, userId))
@@ -636,27 +637,27 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getFileComparison(id: number): Promise<FileComparison | undefined> {
-    const result = await db.select().from(fileComparisons).where(eq(fileComparisons.id, id));
+    const result = await this.getDb().select().from(fileComparisons).where(eq(fileComparisons.id, id));
     return result[0];
   }
   
   async createFileComparison(comparison: InsertFileComparison): Promise<FileComparison> {
-    const result = await db.insert(fileComparisons).values(comparison).returning();
+    const result = await this.getDb().insert(fileComparisons).values(comparison).returning();
     return result[0];
   }
   
   // Customer operations
   async getAllCustomers(): Promise<Customer[]> {
-    return db.select().from(customers);
+    return this.getDb().select().from(customers);
   }
   
   async getCustomer(id: number): Promise<Customer | undefined> {
-    const result = await db.select().from(customers).where(eq(customers.id, id));
+    const result = await this.getDb().select().from(customers).where(eq(customers.id, id));
     return result[0];
   }
   
   async createCustomer(customer: InsertCustomer): Promise<Customer> {
-    const result = await db.insert(customers).values({
+    const result = await this.getDb().insert(customers).values({
       ...customer,
       createdAt: new Date(),
       updatedAt: new Date()
@@ -666,27 +667,27 @@ export class DatabaseStorage implements IStorage {
   
   // Customer team members operations
   async getCustomerTeamMembers(customerId: number): Promise<CustomerTeamMember[]> {
-    return db
+    return this.getDb()
       .select()
       .from(customerTeamMembers)
       .where(eq(customerTeamMembers.customerId, customerId));
   }
   
   async addCustomerTeamMember(data: InsertCustomerTeamMember): Promise<CustomerTeamMember> {
-    const result = await db.insert(customerTeamMembers).values(data).returning();
+    const result = await this.getDb().insert(customerTeamMembers).values(data).returning();
     return result[0];
   }
   
   // Customer partners operations
   async getCustomerPartners(customerId: number): Promise<CustomerPartner[]> {
-    return db
+    return this.getDb()
       .select()
       .from(customerPartners)
       .where(eq(customerPartners.customerId, customerId));
   }
   
   async addCustomerPartner(data: InsertCustomerPartner): Promise<CustomerPartner> {
-    const result = await db.insert(customerPartners).values(data).returning();
+    const result = await this.getDb().insert(customerPartners).values(data).returning();
     return result[0];
   }
 }
