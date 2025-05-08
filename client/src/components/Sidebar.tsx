@@ -76,7 +76,7 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
       <div className="flex flex-col">
         <Link 
           href="/"
-          className={`flex items-center py-2.5 px-4 ${isActive("/") ? "text-indigo-600 font-medium" : "text-gray-700 hover:text-indigo-600"}`}
+          className={`flex items-center py-2.5 px-4 rounded-md ${isActive("/") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-center" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
@@ -92,7 +92,7 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
         <div ref={dataMenuRef}>
           <a 
             href="#" 
-            className={`flex items-center py-2.5 px-4 ${dataMenuOpen ? "text-indigo-600 font-medium" : "text-gray-700 hover:text-indigo-600"}`}
+            className={`flex items-center py-2.5 px-4 rounded-md ${dataMenuOpen ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
             onClick={(e) => {
               e.preventDefault();
               setDataMenuOpen(!dataMenuOpen);
@@ -129,39 +129,39 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
             <div className="mt-0.5">
               <Link 
                 href="/opportunities" 
-                className={`flex py-2 text-sm pl-12 ${location === "/opportunities" ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:text-indigo-600"}`}
+                className={`flex py-2 text-sm pl-12 ${location === "/opportunities" ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
               >
                 Opportunities
               </Link>
               <Link 
                 href="/partners" 
-                className={`flex py-2 text-sm pl-12 ${location === "/partners" ? "text-indigo-600 font-medium" : "text-gray-700 hover:text-indigo-600"}`}
+                className={`flex py-2 text-sm pl-12 ${location === "/partners" ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
               >
                 Partners
               </Link>
               <Link 
                 href="/projects" 
-                className={`flex py-2 text-sm pl-12 ${location === "/projects" ? "text-indigo-600 font-medium" : "text-gray-700 hover:text-indigo-600"}`}
+                className={`flex py-2 text-sm pl-12 ${location === "/projects" ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
               >
                 Projects
               </Link>
               <Link 
                 href="/customers" 
-                className={`flex py-2 text-sm pl-12 ${location === "/customers" ? "text-indigo-600 font-medium" : "text-gray-700 hover:text-indigo-600"}`}
+                className={`flex py-2 text-sm pl-12 ${location === "/customers" ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
               >
                 Customers
               </Link>
             </div>
           )}
         </div>
-        <Link href="/campaigns" className={`flex items-center py-2.5 px-4 ${location === "/campaigns" ? "text-indigo-600 font-medium" : "text-gray-700 hover:text-indigo-600"}`}>
+        <Link href="/campaigns" className={`flex items-center py-2.5 px-4 rounded-md ${location === "/campaigns" ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}>
           <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-center" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M22 2 11 13" />
             <path d="M22 2 15 22 11 13 2 9 22 2z" />
           </svg>
           <span className={`ml-3 text-sm ${collapsed ? "hidden" : "hidden md:inline-block"}`}>Campaigns</span>
         </Link>
-        <a href="#" className={`flex items-center py-2.5 px-4 text-gray-700 hover:text-indigo-600`}>
+        <a href="#" className={`flex items-center py-2.5 px-4 rounded-md text-gray-700 hover:bg-indigo-50 hover:text-indigo-600`}>
           <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-center" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="1" />
             <circle cx="19" cy="12" r="1" />
@@ -171,7 +171,7 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
         </a>
       </div>
       <div className="mt-auto mb-4">
-        <a href="#" className={`flex items-center py-2.5 px-4 text-gray-700 hover:text-indigo-600`}>
+        <a href="#" className={`flex items-center py-2.5 px-4 rounded-md text-gray-700 hover:bg-indigo-50 hover:text-indigo-600`}>
           <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-center" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
             <circle cx="12" cy="12" r="3" />
