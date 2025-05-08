@@ -16,7 +16,11 @@ export interface Environment {
   logo?: string;
 }
 
-export default function EnvironmentSelector() {
+interface EnvironmentSelectorProps {
+  collapsed?: boolean;
+}
+
+export default function EnvironmentSelector({ collapsed = false }: EnvironmentSelectorProps) {
   const [environments] = useState<Environment[]>([
     { id: "acme", name: "ACME CO", logo: acmeLogo },
     { id: "globex", name: "Globex Corp" },
@@ -33,6 +37,26 @@ export default function EnvironmentSelector() {
     return environments.find(env => env.id === selectedEnv) || environments[0];
   };
   
+  // If sidebar is collapsed, just show the logo/icon
+  if (collapsed) {
+    return (
+      <div className="flex justify-center">
+        <div className="flex items-center justify-center w-10 h-10 rounded-md bg-gray-100 text-xs font-semibold">
+          {getSelectedEnvironment().logo ? (
+            <img 
+              src={getSelectedEnvironment().logo} 
+              alt={getSelectedEnvironment().name} 
+              className="w-6 h-6"
+            />
+          ) : (
+            getSelectedEnvironment().name.substring(0, 2)
+          )}
+        </div>
+      </div>
+    );
+  }
+  
+  // Full environment selector for expanded sidebar
   return (
     <div className="w-full mx-auto">
       <div className="relative">

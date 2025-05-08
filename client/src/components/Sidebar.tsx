@@ -68,7 +68,7 @@ export default function Sidebar() {
       
       {/* Environment Selector */}
       <div className="mb-6 px-3">
-        {!collapsed && <EnvironmentSelector />}
+        <EnvironmentSelector collapsed={collapsed} />
       </div>
       
       {/* Navigation Links */}
