@@ -76,23 +76,26 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
       </button>
       
       {/* Logo at the top left */}
-      <div className="pt-4 px-4 pb-2 flex justify-center md:justify-start">
-        <div className="w-10 h-10 flex items-center justify-center">
+      <div className="pt-4 px-4 pb-1 flex justify-center md:justify-start">
+        <div className="w-12 h-12 flex items-center justify-center">
           <img 
             src={qollabiLogo} 
             alt="Qollabi Logo" 
-            className="w-10 h-10"
+            className={`${collapsed ? "w-10 h-10" : "w-12 h-12"}`}
           />
         </div>
       </div>
       
       {/* Environment Selector - moved down */}
-      <div className="py-3 px-3 mt-1">
+      <div className="py-3 px-3 mt-1 mb-3">
         <EnvironmentSelector collapsed={collapsed} />
       </div>
       
+      {/* Separator line */}
+      <div className="border-b border-gray-200 w-full mb-3"></div>
+      
       {/* Navigation Links - closer to environment selector */}
-      <div className="flex flex-col mt-3">
+      <div className="flex flex-col mt-1">
         <Link 
           href="/"
           className={`flex items-center py-2.5 px-4 ${isActive("/") ? "text-indigo-600 font-medium" : "text-gray-700 hover:text-indigo-600"}`}
