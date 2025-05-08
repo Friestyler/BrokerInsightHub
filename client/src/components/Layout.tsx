@@ -13,9 +13,9 @@ export default function Layout({ children }: LayoutProps) {
       <nav className="bg-white border-b border-neutral-200 px-4 py-3 flex items-center justify-between">
         <div className="flex items-center">
           <div className="w-8 h-8 flex items-center justify-center">
-            <img src={qollabiLogo} alt="Qollabi Logo" className="h-7 w-7" />
+            <img src={qollabiLogo} alt="Logo" className="h-7 w-7" />
           </div>
-          <span className="ml-3 text-lg font-semibold text-neutral-800">Qollabi</span>
+          {/* Removed name as requested */}
         </div>
         <div className="flex items-center space-x-4">
           <button className="text-neutral-500 hover:text-neutral-700">
