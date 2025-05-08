@@ -68,19 +68,6 @@ export default function Sidebar() {
       
       {/* Environment Selector */}
       <div className="mb-6 px-3">
-        {!collapsed && (
-          <div className="mb-4 flex justify-center">
-            <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#5567E5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-6 h-6">
-                <circle cx="12" cy="12" r="10"></circle>
-                <path d="M8 14s1.5 2 4 2 4-2 4-2"></path>
-                <line x1="9" y1="9" x2="9.01" y2="9"></line>
-                <line x1="15" y1="9" x2="15.01" y2="9"></line>
-              </svg>
-            </div>
-          </div>
-        )}
-        
         {!collapsed && <EnvironmentSelector />}
       </div>
       
