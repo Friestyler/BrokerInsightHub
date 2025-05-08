@@ -2,10 +2,14 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import { initializeSchemas } from "./initDatabase";
+import { environmentMiddleware } from "./middleware/environmentMiddleware";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
+
+// Add environment middleware for all API routes
+app.use('/api', environmentMiddleware);
 
 app.use((req, res, next) => {
   const start = Date.now();

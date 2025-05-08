@@ -11,7 +11,7 @@ import {
   customerTeamMembers, type CustomerTeamMember, type InsertCustomerTeamMember,
   customerPartners, type CustomerPartner, type InsertCustomerPartner
 } from "@shared/schema";
-import { db } from './db';
+import { db, getEnvironmentDb } from './db';
 import { eq, and } from 'drizzle-orm';
 
 export interface ClientWithDetails extends Client {
@@ -467,70 +467,89 @@ export class MemStorage implements IStorage {
 }
 
 export class DatabaseStorage implements IStorage {
+  // Get the database connection for the current request
+  private getDb() {
+    // Get environment from the current request if available
+    const req = this.getCurrentRequest();
+    if (req && (req as any).environmentId) {
+      return getEnvironmentDb((req as any).environmentId);
+    }
+    // Fallback to default database
+    return db;
+  }
+  
+  // Get the current request object (if available)
+  private getCurrentRequest() {
+    const asyncLocalStorage = require('async_hooks').AsyncLocalStorage;
+    const requestStorage = global.requestStorage || new asyncLocalStorage();
+    global.requestStorage = requestStorage;
+    return requestStorage.getStore();
+  }
+  
   // User operations
   async getUser(id: number): Promise<User | undefined> {
-    const result = await db.select().from(users).where(eq(users.id, id));
+    const result = await this.getDb().select().from(users).where(eq(users.id, id));
     return result[0];
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const result = await db.select().from(users).where(eq(users.username, username));
+    const result = await this.getDb().select().from(users).where(eq(users.username, username));
     return result[0];
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const result = await db.insert(users).values(insertUser).returning();
+    const result = await this.getDb().insert(users).values(insertUser).returning();
     return result[0];
   }
   
   // News operations
   async getAllNewsArticles(): Promise<NewsArticle[]> {
-    return db.select().from(newsArticles).orderBy(newsArticles.publishedDate);
+    return this.getDb().select().from(newsArticles).orderBy(newsArticles.publishedDate);
   }
   
   async getNewsArticle(id: number): Promise<NewsArticle | undefined> {
-    const result = await db.select().from(newsArticles).where(eq(newsArticles.id, id));
+    const result = await this.getDb().select().from(newsArticles).where(eq(newsArticles.id, id));
     return result[0];
   }
   
   async createNewsArticle(article: InsertNewsArticle): Promise<NewsArticle> {
-    const result = await db.insert(newsArticles).values(article).returning();
+    const result = await this.getDb().insert(newsArticles).values(article).returning();
     return result[0];
   }
   
   // Client operations
   async getAllClients(): Promise<Client[]> {
-    return db.select().from(clients);
+    return this.getDb().select().from(clients);
   }
   
   async getClient(id: number): Promise<Client | undefined> {
-    const result = await db.select().from(clients).where(eq(clients.id, id));
+    const result = await this.getDb().select().from(clients).where(eq(clients.id, id));
     return result[0];
   }
   
   async createClient(client: InsertClient): Promise<Client> {
-    const result = await db.insert(clients).values(client).returning();
+    const result = await this.getDb().insert(clients).values(client).returning();
     return result[0];
   }
   
   // Insurance product operations
   async getAllInsuranceProducts(): Promise<InsuranceProduct[]> {
-    return db.select().from(insuranceProducts);
+    return this.getDb().select().from(insuranceProducts);
   }
   
   async getInsuranceProduct(id: number): Promise<InsuranceProduct | undefined> {
-    const result = await db.select().from(insuranceProducts).where(eq(insuranceProducts.id, id));
+    const result = await this.getDb().select().from(insuranceProducts).where(eq(insuranceProducts.id, id));
     return result[0];
   }
   
   async createInsuranceProduct(product: InsertInsuranceProduct): Promise<InsuranceProduct> {
-    const result = await db.insert(insuranceProducts).values(product).returning();
+    const result = await this.getDb().insert(insuranceProducts).values(product).returning();
     return result[0];
   }
   
   // Client product operations
   async getClientProducts(clientId: number): Promise<InsuranceProduct[]> {
-    const clientProductsResult = await db
+    const clientProductsResult = await this.getDb()
       .select()
       .from(clientProducts)
       .where(eq(clientProducts.clientId, clientId));
@@ -547,13 +566,13 @@ export class DatabaseStorage implements IStorage {
   }
   
   async addClientProduct(data: InsertClientProduct): Promise<ClientProduct> {
-    const result = await db.insert(clientProducts).values(data).returning();
+    const result = await this.getDb().insert(clientProducts).values(data).returning();
     return result[0];
   }
   
   // Opportunity operations
   async getAllOpportunities(): Promise<ClientWithDetails[]> {
-    const allOpportunities = await db.select().from(opportunities);
+    const allOpportunities = await this.getDb().select().from(opportunities);
     const clientOpportunities: ClientWithDetails[] = [];
     
     for (const opportunity of allOpportunities) {
@@ -577,20 +596,20 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getOpportunitiesForClient(clientId: number): Promise<Opportunity[]> {
-    return db
+    return this.getDb()
       .select()
       .from(opportunities)
       .where(eq(opportunities.clientId, clientId));
   }
   
   async createOpportunity(opportunity: InsertOpportunity): Promise<Opportunity> {
-    const result = await db.insert(opportunities).values(opportunity).returning();
+    const result = await this.getDb().insert(opportunities).values(opportunity).returning();
     return result[0];
   }
   
   // Document operations
   async getAllDocuments(userId: number): Promise<Document[]> {
-    return db
+    return this.getDb()
       .select()
       .from(documents)
       .where(eq(documents.userId, userId))
@@ -598,12 +617,12 @@ export class DatabaseStorage implements IStorage {
   }
   
   async getDocument(id: number): Promise<Document | undefined> {
-    const result = await db.select().from(documents).where(eq(documents.id, id));
+    const result = await this.getDb().select().from(documents).where(eq(documents.id, id));
     return result[0];
   }
   
   async createDocument(document: InsertDocument): Promise<Document> {
-    const result = await db.insert(documents).values(document).returning();
+    const result = await this.getDb().insert(documents).values(document).returning();
     return result[0];
   }
   
