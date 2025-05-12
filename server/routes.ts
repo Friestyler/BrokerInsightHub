@@ -573,6 +573,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Register entity management routes
+  app.use('/api', entityRoutes);
+
   const httpServer = createServer(app);
   return httpServer;
 }
