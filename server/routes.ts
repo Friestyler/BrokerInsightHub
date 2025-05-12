@@ -7,6 +7,8 @@ import fs from 'fs';
 import { promises as fsPromises } from 'fs';
 import { v4 as uuidv4 } from 'uuid';
 import { comparePdfDocuments, extractTextFromPdf } from './services/pdfComparison';
+import entityRoutes from './routes/entityRoutes';
+import { environmentMiddleware } from './middleware/environmentMiddleware';
 
 // Setup multer storage for file uploads
 const storage_config = multer.diskStorage({
@@ -571,6 +573,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Failed to send email' });
     }
   });
+
+  // Apply environment middleware globally
+  app.use(environmentMiddleware);
+  
+  // Register entity-related routes
+  app.use('/api', entityRoutes);
 
   const httpServer = createServer(app);
   return httpServer;
