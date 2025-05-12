@@ -14,6 +14,7 @@ import CrossSellCampaigns from "@/pages/CrossSellCampaigns";
 import Clients from "@/pages/Clients";
 import ClientDetail from "@/pages/ClientDetail";
 import NotFound from "@/pages/not-found";
+import EnvironmentRouteGuard from "@/components/EnvironmentRouteGuard";
 
 function Router() {
   return (
@@ -23,7 +24,15 @@ function Router() {
         <Route path="/news" component={InsuranceNews} />
         <Route path="/compare" component={CompareFiles} />
         <Route path="/predict" component={PredictOpportunities} />
-        <Route path="/campaigns" component={CrossSellCampaigns} />
+        {/* Prevent access to Campaigns page in ACME environment */}
+        <Route path="/campaigns">
+          {() => (
+            <EnvironmentRouteGuard
+              component={CrossSellCampaigns} 
+              excludedEnvironments={["acme"]} 
+            />
+          )}
+        </Route>
         <Route path="/clients" component={Clients} />
         <Route path="/clients/:id" component={ClientDetail} />
         <Route component={NotFound} />

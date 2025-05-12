@@ -1,11 +1,13 @@
 import { useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
+import { useEnvironment } from "@/contexts/EnvironmentContext";
 
 export default function NavigationTiles() {
   const [, setLocation] = useLocation();
+  const { environment } = useEnvironment();
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
+    <div className={`grid grid-cols-1 md:grid-cols-2 ${environment.id === 'acme' ? 'lg:grid-cols-2' : 'lg:grid-cols-3'} gap-6 mb-10`}>
       <div 
         className="navigation-tile" 
         onClick={() => setLocation("/news")}
@@ -48,25 +50,28 @@ export default function NavigationTiles() {
         </CardContent>
       </div>
       
-      <div 
-        className="navigation-tile" 
-        onClick={() => setLocation("/campaigns")}
-      >
-        <div className="h-40 bg-primary-100 flex items-center justify-center">
-          <div className="flex items-center justify-center w-24 h-24 rounded-full bg-primary-200 text-primary-600">
-            <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M3 3v18h18" />
-              <path d="m19 9-5 5-4-4-3 3" />
-              <circle cx="9" cy="9" r="2" />
-              <circle cx="19" cy="5" r="2" />
-            </svg>
+      {/* Cross & Upsell Campaigns tile - only shown for My Qollabi environment */}
+      {environment.id !== 'acme' && (
+        <div 
+          className="navigation-tile" 
+          onClick={() => setLocation("/campaigns")}
+        >
+          <div className="h-40 bg-primary-100 flex items-center justify-center">
+            <div className="flex items-center justify-center w-24 h-24 rounded-full bg-primary-200 text-primary-600">
+              <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 3v18h18" />
+                <path d="m19 9-5 5-4-4-3 3" />
+                <circle cx="9" cy="9" r="2" />
+                <circle cx="19" cy="5" r="2" />
+              </svg>
+            </div>
           </div>
+          <CardContent className="p-5">
+            <h3 className="text-lg font-semibold text-center text-neutral-800 mb-2">Cross & Upsell Campaigns</h3>
+            <p className="text-neutral-600 text-sm text-center">Use AI to identify potential upsell and cross-sell opportunities</p>
+          </CardContent>
         </div>
-        <CardContent className="p-5">
-          <h3 className="text-lg font-semibold text-center text-neutral-800 mb-2">Cross & Upsell Campaigns</h3>
-          <p className="text-neutral-600 text-sm text-center">Use AI to identify potential upsell and cross-sell opportunities</p>
-        </CardContent>
-      </div>
+      )}
     </div>
   );
 }
