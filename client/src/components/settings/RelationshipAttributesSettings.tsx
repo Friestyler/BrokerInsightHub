@@ -119,7 +119,7 @@ export default function RelationshipAttributesSettings() {
   // Fetch entity definitions (entity types)
   const { data: entityDefinitions, isLoading: loadingDefinitions } = useQuery({
     queryKey: ['/api/entity-definitions', environment.id],
-    queryFn: async () => {
+    queryFn: async ({ queryKey }) => {
       const response = await apiRequest(`/api/entity-definitions?environment=${environment.id}`);
       return response as EntityDefinition[];
     }
@@ -128,7 +128,7 @@ export default function RelationshipAttributesSettings() {
   // Fetch all relationship attributes for this environment
   const { data: relationships, isLoading: loadingRelationships } = useQuery({
     queryKey: ['/api/relationship-attributes', environment.id],
-    queryFn: async () => {
+    queryFn: async ({ queryKey }) => {
       const response = await apiRequest(`/api/relationship-attributes?environment=${environment.id}`);
       return response as RelationshipAttribute[];
     }
@@ -160,7 +160,7 @@ export default function RelationshipAttributesSettings() {
       return await apiRequest('/api/relationship-attributes', {
         method: 'POST',
         body: JSON.stringify(dataWithEnv)
-      });
+      } as RequestInit);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/relationship-attributes', environment.id] });
@@ -185,7 +185,7 @@ export default function RelationshipAttributesSettings() {
     mutationFn: async (relationshipId: number) => {
       return await apiRequest(`/api/relationship-attributes/${relationshipId}`, {
         method: 'DELETE'
-      });
+      } as RequestInit);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/relationship-attributes', environment.id] });

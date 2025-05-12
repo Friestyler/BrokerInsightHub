@@ -115,7 +115,7 @@ export default function EntityAttributesSettings() {
   // Fetch entity definitions (entity types)
   const { data: entityDefinitions, isLoading: loadingDefinitions } = useQuery({
     queryKey: ['/api/entity-definitions', environment.id],
-    queryFn: async () => {
+    queryFn: async ({ queryKey }) => {
       const response = await apiRequest(`/api/entity-definitions?environment=${environment.id}`);
       return response as EntityDefinition[];
     }
@@ -124,7 +124,7 @@ export default function EntityAttributesSettings() {
   // Fetch attributes for the selected entity type
   const { data: attributes, isLoading: loadingAttributes } = useQuery({
     queryKey: ['/api/entity-attributes', selectedEntityType],
-    queryFn: async () => {
+    queryFn: async ({ queryKey }) => {
       if (!selectedEntityType) return [];
       const response = await apiRequest(`/api/entity-attributes?entityDefinitionId=${selectedEntityType}`);
       return response as EntityAttribute[];
@@ -158,7 +158,7 @@ export default function EntityAttributesSettings() {
   const createAttributeMutation = useMutation({
     mutationFn: async (formData: AttributeFormValues) => {
       // Process options if provided and type is appropriate
-      let processedData = { ...formData };
+      let processedData: any = { ...formData };
       if (
         formData.options && 
         (formData.type === 'single_select' || formData.type === 'multi_select')
@@ -181,7 +181,7 @@ export default function EntityAttributesSettings() {
       return await apiRequest('/api/entity-attributes', {
         method: 'POST',
         body: JSON.stringify(dataWithEnv)
-      });
+      } as RequestInit);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/entity-attributes', selectedEntityType] });
@@ -206,7 +206,7 @@ export default function EntityAttributesSettings() {
     mutationFn: async (attributeId: number) => {
       return await apiRequest(`/api/entity-attributes/${attributeId}`, {
         method: 'DELETE'
-      });
+      } as RequestInit);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/entity-attributes', selectedEntityType] });
