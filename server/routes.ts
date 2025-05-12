@@ -6,6 +6,7 @@ import path from 'path';
 import fs from 'fs';
 import { promises as fsPromises } from 'fs';
 import { v4 as uuidv4 } from 'uuid';
+import entityRoutes from './routes/index';
 import { comparePdfDocuments, extractTextFromPdf } from './services/pdfComparison';
 
 // Setup multer storage for file uploads
