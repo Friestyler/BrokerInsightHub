@@ -49,6 +49,7 @@ const getInitialEnvironment = (): Environment => {
 // Create context
 interface EnvironmentContextType {
   environment: Environment;
+  currentEnvironment: Environment; // Alias for environment for clearer naming
   setEnvironment: (envId: string) => void;
   environments: Environment[];
 }
@@ -76,7 +77,12 @@ export const EnvironmentProvider: React.FC<{ children: React.ReactNode }> = ({ c
   }, [environment]);
   
   return (
-    <EnvironmentContext.Provider value={{ environment, setEnvironment, environments: ENVIRONMENTS }}>
+    <EnvironmentContext.Provider value={{ 
+      environment, 
+      currentEnvironment: environment, // Add alias for clearer naming
+      setEnvironment, 
+      environments: ENVIRONMENTS 
+    }}>
       {children}
     </EnvironmentContext.Provider>
   );
