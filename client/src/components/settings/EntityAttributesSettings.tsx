@@ -1,28 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '../../lib/queryClient';
+import { useEnvironment } from '../../contexts/EnvironmentContext';
+
 import {
   Card,
   CardContent,
   CardDescription,
+  CardFooter,
   CardHeader,
   CardTitle,
 } from '@/components/ui/card';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import {
   Dialog,
   DialogContent,
@@ -33,33 +21,51 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog';
 import {
-  Form,
-  FormControl,
-  FormDescription,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import {
+  Table,
+  TableBody,
+  TableCaption,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/table';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Switch } from '@/components/ui/switch';
 import { Checkbox } from '@/components/ui/checkbox';
-import { Textarea } from '@/components/ui/textarea';
+import { toast } from '@/hooks/use-toast';
+import { Loader2, Plus, Trash } from 'lucide-react';
+
+import { 
+  Form, 
+  FormControl, 
+  FormDescription, 
+  FormField, 
+  FormItem, 
+  FormLabel, 
+  FormMessage 
+} from '@/components/ui/form';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { useToast } from '@/hooks/use-toast';
-import { useEnvironment } from '@/contexts/EnvironmentContext';
 
-// Define types for entity definitions and attributes
+// Define types for your data
 interface EntityDefinition {
   id: number;
   name: string;
   displayName: string;
-  description?: string;
   tableName: string;
+  description: string | null;
   environment: string;
-  createdAt: string;
-  updatedAt: string;
 }
 
 interface EntityAttribute {
@@ -67,44 +73,68 @@ interface EntityAttribute {
   entityDefinitionId: number;
   name: string;
   displayName: string;
-  description?: string;
+  description: string | null;
   type: string;
   isRequired: boolean;
   isSystemAttribute: boolean;
-  defaultValue?: string;
-  options?: any;
+  defaultValue: string | null;
+  options: string[] | null;
   orderIndex: number;
   environment: string;
-  createdAt: string;
-  updatedAt: string;
 }
 
-// Validation schema for new attribute
-const attributeSchema = z.object({
-  name: z.string().min(1, "Name is required").regex(/^[a-z0-9_]+$/, "Name must contain only lowercase letters, numbers, and underscores"),
-  displayName: z.string().min(1, "Display name is required"),
-  description: z.string().optional(),
+// Create form schema with zod
+const attributeFormSchema = z.object({
+  name: z.string()
+    .min(2, "Name must be at least 2 characters")
+    .max(50, "Name must be less than 50 characters")
+    .regex(/^[a-z][a-z0-9_]*$/, "Name must start with a lowercase letter and can only contain lowercase letters, numbers, and underscores"),
+  displayName: z.string()
+    .min(2, "Display name must be at least 2 characters")
+    .max(50, "Display name must be less than 50 characters"),
+  description: z.string().nullable().optional(),
   type: z.enum([
-    'text', 'long_text', 'number', 'date', 'datetime',
-    'boolean', 'single_select', 'multi_select', 'user_single',
-    'user_multi', 'currency', 'percent', 'relationship'
+    'text', 'long_text', 'number', 'date', 'datetime', 'boolean', 
+    'single_select', 'multi_select', 'user_single', 'user_multi', 
+    'currency', 'percent', 'relationship'
   ]),
   isRequired: z.boolean().default(false),
-  defaultValue: z.string().optional(),
-  options: z.string().optional()
+  defaultValue: z.string().nullable().optional(),
+  options: z.string().optional().nullable(),
+  entityDefinitionId: z.number(),
 });
 
-export default function EntityAttributesSettings() {
-  const { toast } = useToast();
-  const { environment } = useEnvironment();
-  const [selectedEntity, setSelectedEntity] = useState<number | null>(null);
-  const [entityDefinitions, setEntityDefinitions] = useState<EntityDefinition[]>([]);
-  const [entityAttributes, setEntityAttributes] = useState<EntityAttribute[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [isAddAttributeOpen, setIsAddAttributeOpen] = useState(false);
+type AttributeFormValues = z.infer<typeof attributeFormSchema>;
 
-  const form = useForm<z.infer<typeof attributeSchema>>({
-    resolver: zodResolver(attributeSchema),
+export default function EntityAttributesSettings() {
+  const { environment } = useEnvironment();
+  const [selectedEntityType, setSelectedEntityType] = useState<number | null>(null);
+  const [isCreating, setIsCreating] = useState(false);
+  const queryClient = useQueryClient();
+
+  // Fetch entity definitions (entity types)
+  const { data: entityDefinitions, isLoading: loadingDefinitions } = useQuery({
+    queryKey: ['/api/entity-definitions', environment.id],
+    queryFn: async () => {
+      const response = await apiRequest(`/api/entity-definitions?environment=${environment.id}`);
+      return response as EntityDefinition[];
+    }
+  });
+
+  // Fetch attributes for the selected entity type
+  const { data: attributes, isLoading: loadingAttributes } = useQuery({
+    queryKey: ['/api/entity-attributes', selectedEntityType],
+    queryFn: async () => {
+      if (!selectedEntityType) return [];
+      const response = await apiRequest(`/api/entity-attributes?entityDefinitionId=${selectedEntityType}`);
+      return response as EntityAttribute[];
+    },
+    enabled: !!selectedEntityType,
+  });
+
+  // Form setup
+  const form = useForm<AttributeFormValues>({
+    resolver: zodResolver(attributeFormSchema),
     defaultValues: {
       name: '',
       displayName: '',
@@ -112,482 +142,404 @@ export default function EntityAttributesSettings() {
       type: 'text',
       isRequired: false,
       defaultValue: '',
-      options: ''
+      options: '',
+      entityDefinitionId: selectedEntityType || 0,
     }
   });
 
-  // Fetch entity definitions for current environment
+  // Update the entityDefinitionId when selectedEntityType changes
   useEffect(() => {
-    const fetchEntityDefinitions = async () => {
-      try {
-        setLoading(true);
-        const response = await fetch(`/api/entity-definitions?environment=${environment.id}`);
-        if (response.ok) {
-          const data = await response.json();
-          setEntityDefinitions(data);
-        } else {
-          console.error('Failed to fetch entity definitions');
-          toast({
-            title: 'Error',
-            description: 'Failed to load entity definitions',
-            variant: 'destructive',
-          });
-        }
-      } catch (error) {
-        console.error('Error fetching entity definitions:', error);
-        toast({
-          title: 'Error',
-          description: 'An error occurred while loading entity definitions',
-          variant: 'destructive',
-        });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (environment) {
-      fetchEntityDefinitions();
+    if (selectedEntityType) {
+      form.setValue('entityDefinitionId', selectedEntityType);
     }
-  }, [environment, toast]);
+  }, [selectedEntityType, form]);
 
-  // Fetch entity attributes when an entity is selected
-  useEffect(() => {
-    const fetchEntityAttributes = async () => {
-      if (!selectedEntity) return;
-
-      try {
-        setLoading(true);
-        const response = await fetch(`/api/entity-attributes/${selectedEntity}`);
-        if (response.ok) {
-          const data = await response.json();
-          setEntityAttributes(data);
-        } else {
-          console.error('Failed to fetch entity attributes');
-          toast({
-            title: 'Error',
-            description: 'Failed to load entity attributes',
-            variant: 'destructive',
-          });
-        }
-      } catch (error) {
-        console.error('Error fetching entity attributes:', error);
-        toast({
-          title: 'Error',
-          description: 'An error occurred while loading entity attributes',
-          variant: 'destructive',
-        });
-      } finally {
-        setLoading(false);
+  // Create attribute mutation
+  const createAttributeMutation = useMutation({
+    mutationFn: async (formData: AttributeFormValues) => {
+      // Process options if provided and type is appropriate
+      let processedData = { ...formData };
+      if (
+        formData.options && 
+        (formData.type === 'single_select' || formData.type === 'multi_select')
+      ) {
+        processedData.options = formData.options
+          .split(',')
+          .map(o => o.trim())
+          .filter(o => o.length > 0);
+      } else {
+        processedData.options = null;
       }
-    };
 
-    fetchEntityAttributes();
-  }, [selectedEntity, toast]);
+      // Add environment
+      const dataWithEnv = {
+        ...processedData,
+        environment: environment.id,
+        orderIndex: attributes ? attributes.length + 1 : 1
+      };
 
-  // Handle form submission for new attribute
-  const onSubmit = async (data: z.infer<typeof attributeSchema>) => {
-    if (!selectedEntity) {
+      return await apiRequest('/api/entity-attributes', {
+        method: 'POST',
+        body: JSON.stringify(dataWithEnv)
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/entity-attributes', selectedEntityType] });
       toast({
-        title: 'Error',
-        description: 'Please select an entity before adding an attribute',
-        variant: 'destructive',
+        title: 'Attribute created',
+        description: 'The entity attribute was created successfully.'
+      });
+      setIsCreating(false);
+      form.reset();
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error creating attribute',
+        description: error instanceof Error ? error.message : 'An unknown error occurred',
+        variant: 'destructive'
+      });
+    }
+  });
+
+  // Delete attribute mutation
+  const deleteAttributeMutation = useMutation({
+    mutationFn: async (attributeId: number) => {
+      return await apiRequest(`/api/entity-attributes/${attributeId}`, {
+        method: 'DELETE'
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/entity-attributes', selectedEntityType] });
+      toast({
+        title: 'Attribute deleted',
+        description: 'The entity attribute was deleted successfully.'
+      });
+    },
+    onError: (error) => {
+      toast({
+        title: 'Error deleting attribute',
+        description: error instanceof Error ? error.message : 'An unknown error occurred',
+        variant: 'destructive'
+      });
+    }
+  });
+
+  // Submit handler
+  const onSubmit = (data: AttributeFormValues) => {
+    createAttributeMutation.mutate(data);
+  };
+
+  const handleDeleteAttribute = (attributeId: number, isSystemAttribute: boolean) => {
+    if (isSystemAttribute) {
+      toast({
+        title: 'Cannot delete system attribute',
+        description: 'System attributes cannot be deleted as they are required for the system to function properly.',
+        variant: 'destructive'
       });
       return;
     }
-
-    try {
-      setLoading(true);
-      // Prepare options if provided
-      let parsedOptions = undefined;
-      if (data.options && (data.type === 'single_select' || data.type === 'multi_select')) {
-        try {
-          // Parse options as a comma-separated list
-          parsedOptions = data.options.split(',').map(option => option.trim())
-            .filter(option => option.length > 0);
-        } catch (e) {
-          toast({
-            title: 'Error',
-            description: 'Options format is invalid. Use comma-separated values.',
-            variant: 'destructive',
-          });
-          return;
-        }
-      }
-
-      const response = await fetch('/api/entity-attributes', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...data,
-          entityDefinitionId: selectedEntity,
-          environment: environment.id,
-          options: parsedOptions
-        }),
-      });
-
-      if (response.ok) {
-        const newAttribute = await response.json();
-        setEntityAttributes(prev => [...prev, newAttribute]);
-        setIsAddAttributeOpen(false);
-        form.reset();
-        toast({
-          title: 'Success',
-          description: 'Attribute added successfully',
-        });
-      } else {
-        const errorData = await response.json();
-        toast({
-          title: 'Error',
-          description: errorData.error || 'Failed to add attribute',
-          variant: 'destructive',
-        });
-      }
-    } catch (error) {
-      console.error('Error adding attribute:', error);
-      toast({
-        title: 'Error',
-        description: 'An error occurred while adding the attribute',
-        variant: 'destructive',
-      });
-    } finally {
-      setLoading(false);
+    
+    if (confirm('Are you sure you want to delete this attribute? This action cannot be undone.')) {
+      deleteAttributeMutation.mutate(attributeId);
     }
   };
 
-  // Handle attribute deletion
-  const handleDeleteAttribute = async (id: number) => {
-    if (window.confirm('Are you sure you want to delete this attribute?')) {
-      try {
-        setLoading(true);
-        const response = await fetch(`/api/entity-attributes/${id}`, {
-          method: 'DELETE',
-          headers: {
-            'Content-Type': 'application/json',
-          }
-        });
-
-        if (response.ok) {
-          setEntityAttributes(prev => prev.filter(attr => attr.id !== id));
-          toast({
-            title: 'Success',
-            description: 'Attribute deleted successfully',
-          });
-        } else {
-          const errorData = await response.json();
-          toast({
-            title: 'Error',
-            description: errorData.error || 'Failed to delete attribute',
-            variant: 'destructive',
-          });
-        }
-      } catch (error) {
-        console.error('Error deleting attribute:', error);
-        toast({
-          title: 'Error',
-          description: 'An error occurred while deleting the attribute',
-          variant: 'destructive',
-        });
-      } finally {
-        setLoading(false);
-      }
-    }
-  };
-
-  // Get a human-readable type name
-  const getTypeName = (type: string) => {
-    const typeMap: Record<string, string> = {
-      'text': 'Text',
-      'long_text': 'Long Text',
-      'number': 'Number',
-      'date': 'Date',
-      'datetime': 'Date & Time',
-      'boolean': 'Yes/No',
-      'single_select': 'Single Select',
-      'multi_select': 'Multi Select',
-      'user_single': 'User',
-      'user_multi': 'Multiple Users',
-      'currency': 'Currency',
-      'percent': 'Percentage',
-      'relationship': 'Relationship'
-    };
-    return typeMap[type] || type;
-  };
+  if (loadingDefinitions) {
+    return (
+      <div className="flex items-center justify-center p-6">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
   return (
     <Card className="w-full">
       <CardHeader>
         <CardTitle>Entity Attributes</CardTitle>
         <CardDescription>
-          Configure attributes for your entity types
+          Define and manage attributes for each entity type in the {environment.name} environment
         </CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          <div className="flex items-center space-x-4">
-            <div className="flex-1">
-              <Select
-                value={selectedEntity?.toString() || ''}
-                onValueChange={(value) => setSelectedEntity(Number(value))}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select Entity Type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {entityDefinitions.map((entity) => (
-                    <SelectItem key={entity.id} value={entity.id.toString()}>
-                      {entity.displayName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <Dialog
-              open={isAddAttributeOpen}
-              onOpenChange={setIsAddAttributeOpen}
+        <div className="flex flex-col gap-6">
+          <div className="space-y-4">
+            <Label htmlFor="entityType">Select Entity Type</Label>
+            <Select 
+              onValueChange={(value) => setSelectedEntityType(parseInt(value))}
+              value={selectedEntityType?.toString() || ''}
             >
-              <DialogTrigger asChild>
-                <Button disabled={!selectedEntity}>Add Attribute</Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Add New Attribute</DialogTitle>
-                  <DialogDescription>
-                    Create a new attribute for the selected entity type.
-                  </DialogDescription>
-                </DialogHeader>
-                <Form {...form}>
-                  <form
-                    onSubmit={form.handleSubmit(onSubmit)}
-                    className="space-y-4"
-                  >
-                    <FormField
-                      control={form.control}
-                      name="name"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Name</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="e.g. customer_name"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            System identifier (lowercase, underscores only)
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="displayName"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Display Name</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="e.g. Customer Name"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            Name shown in the user interface
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="description"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Description</FormLabel>
-                          <FormControl>
-                            <Textarea
-                              placeholder="Description of this attribute"
-                              className="h-20"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="type"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Type</FormLabel>
-                          <Select
-                            value={field.value}
-                            onValueChange={field.onChange}
-                          >
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Select type" />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              <SelectItem value="text">Text</SelectItem>
-                              <SelectItem value="long_text">Long Text</SelectItem>
-                              <SelectItem value="number">Number</SelectItem>
-                              <SelectItem value="date">Date</SelectItem>
-                              <SelectItem value="datetime">Date & Time</SelectItem>
-                              <SelectItem value="boolean">Yes/No</SelectItem>
-                              <SelectItem value="single_select">Single Select</SelectItem>
-                              <SelectItem value="multi_select">Multi Select</SelectItem>
-                              <SelectItem value="user_single">User</SelectItem>
-                              <SelectItem value="user_multi">Multiple Users</SelectItem>
-                              <SelectItem value="currency">Currency</SelectItem>
-                              <SelectItem value="percent">Percentage</SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <FormDescription>
-                            Data type for this attribute
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    {(form.watch('type') === 'single_select' || form.watch('type') === 'multi_select') && (
-                      <FormField
-                        control={form.control}
-                        name="options"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel>Options</FormLabel>
-                            <FormControl>
-                              <Textarea
-                                placeholder="Option 1, Option 2, Option 3"
-                                className="h-20"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormDescription>
-                              Comma-separated list of options
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    )}
-                    <FormField
-                      control={form.control}
-                      name="defaultValue"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>Default Value</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Default value"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                    <FormField
-                      control={form.control}
-                      name="isRequired"
-                      render={({ field }) => (
-                        <FormItem className="flex flex-row items-start space-x-3 space-y-0">
-                          <FormControl>
-                            <Checkbox
-                              checked={field.value}
-                              onCheckedChange={field.onChange}
-                            />
-                          </FormControl>
-                          <div className="space-y-1 leading-none">
-                            <FormLabel>Required</FormLabel>
-                            <FormDescription>
-                              Is this field required?
-                            </FormDescription>
-                          </div>
-                        </FormItem>
-                      )}
-                    />
-                    <DialogFooter>
-                      <Button
-                        type="submit"
-                        disabled={loading}
-                      >
-                        {loading ? 'Saving...' : 'Save Attribute'}
-                      </Button>
-                    </DialogFooter>
-                  </form>
-                </Form>
-              </DialogContent>
-            </Dialog>
+              <SelectTrigger id="entityType" className="w-[280px]">
+                <SelectValue placeholder="Select entity type" />
+              </SelectTrigger>
+              <SelectContent>
+                {entityDefinitions?.map((entity) => (
+                  <SelectItem key={entity.id} value={entity.id.toString()}>
+                    {entity.displayName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          {selectedEntity && (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Display Name</TableHead>
-                  <TableHead>System Name</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Required</TableHead>
-                  <TableHead>System</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {entityAttributes.length === 0 ? (
-                  <TableRow>
-                    <TableCell colSpan={6} className="h-24 text-center">
-                      {loading ? 'Loading...' : 'No attributes found. Click "Add Attribute" to create one.'}
-                    </TableCell>
-                  </TableRow>
-                ) : (
-                  entityAttributes.map((attribute) => (
-                    <TableRow key={attribute.id}>
-                      <TableCell className="font-medium">{attribute.displayName}</TableCell>
-                      <TableCell>{attribute.name}</TableCell>
-                      <TableCell>{getTypeName(attribute.type)}</TableCell>
-                      <TableCell>
-                        {attribute.isRequired ? (
-                          <span className="inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                            Yes
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center rounded-full bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
-                            No
-                          </span>
+          {selectedEntityType && (
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="text-lg font-medium">Attributes</h3>
+                <Dialog open={isCreating} onOpenChange={setIsCreating}>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Attribute
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent className="sm:max-w-[550px]">
+                    <DialogHeader>
+                      <DialogTitle>Add New Attribute</DialogTitle>
+                      <DialogDescription>
+                        Create a new attribute for this entity type. Fill in the details below.
+                      </DialogDescription>
+                    </DialogHeader>
+                    
+                    <Form {...form}>
+                      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+                        <FormField
+                          control={form.control}
+                          name="name"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Attribute Name</FormLabel>
+                              <FormControl>
+                                <Input placeholder="customer_id" {...field} />
+                              </FormControl>
+                              <FormDescription>
+                                Internal name used in the database (lowercase with underscores)
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="displayName"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Display Name</FormLabel>
+                              <FormControl>
+                                <Input placeholder="Customer ID" {...field} />
+                              </FormControl>
+                              <FormDescription>
+                                User-friendly name displayed in the UI
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="description"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Description</FormLabel>
+                              <FormControl>
+                                <Textarea 
+                                  placeholder="Description of this attribute" 
+                                  {...field} 
+                                  value={field.value || ''}
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="type"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Type</FormLabel>
+                              <Select 
+                                onValueChange={field.onChange} 
+                                defaultValue={field.value}
+                              >
+                                <FormControl>
+                                  <SelectTrigger>
+                                    <SelectValue placeholder="Select attribute type" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent>
+                                  <SelectItem value="text">Text</SelectItem>
+                                  <SelectItem value="long_text">Long Text</SelectItem>
+                                  <SelectItem value="number">Number</SelectItem>
+                                  <SelectItem value="date">Date</SelectItem>
+                                  <SelectItem value="datetime">Date & Time</SelectItem>
+                                  <SelectItem value="boolean">Boolean</SelectItem>
+                                  <SelectItem value="single_select">Single Select</SelectItem>
+                                  <SelectItem value="multi_select">Multi Select</SelectItem>
+                                  <SelectItem value="user_single">User (Single)</SelectItem>
+                                  <SelectItem value="user_multi">User (Multiple)</SelectItem>
+                                  <SelectItem value="currency">Currency</SelectItem>
+                                  <SelectItem value="percent">Percentage</SelectItem>
+                                  <SelectItem value="relationship">Relationship</SelectItem>
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        {(form.watch('type') === 'single_select' || form.watch('type') === 'multi_select') && (
+                          <FormField
+                            control={form.control}
+                            name="options"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormLabel>Options</FormLabel>
+                                <FormControl>
+                                  <Textarea 
+                                    placeholder="Option 1, Option 2, Option 3" 
+                                    {...field} 
+                                    value={field.value || ''}
+                                  />
+                                </FormControl>
+                                <FormDescription>
+                                  Comma-separated list of options
+                                </FormDescription>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
                         )}
-                      </TableCell>
-                      <TableCell>
-                        {attribute.isSystemAttribute ? (
-                          <span className="inline-flex items-center rounded-full bg-blue-50 px-2 py-1 text-xs font-medium text-blue-700 ring-1 ring-inset ring-blue-600/20">
-                            System
-                          </span>
-                        ) : (
-                          <span className="inline-flex items-center rounded-full bg-gray-50 px-2 py-1 text-xs font-medium text-gray-600 ring-1 ring-inset ring-gray-500/10">
-                            Custom
-                          </span>
-                        )}
-                      </TableCell>
-                      <TableCell className="text-right">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => handleDeleteAttribute(attribute.id)}
-                          disabled={attribute.isSystemAttribute || loading}
-                        >
-                          {attribute.isSystemAttribute ? 'System' : 'Delete'}
-                        </Button>
-                      </TableCell>
+                        
+                        <FormField
+                          control={form.control}
+                          name="isRequired"
+                          render={({ field }) => (
+                            <FormItem className="flex flex-row items-center justify-between rounded-lg border p-3 shadow-sm">
+                              <div className="space-y-0.5">
+                                <FormLabel>Required</FormLabel>
+                                <FormDescription>
+                                  Is this attribute required when creating the entity?
+                                </FormDescription>
+                              </div>
+                              <FormControl>
+                                <Switch
+                                  checked={field.value}
+                                  onCheckedChange={field.onChange}
+                                />
+                              </FormControl>
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <FormField
+                          control={form.control}
+                          name="defaultValue"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormLabel>Default Value</FormLabel>
+                              <FormControl>
+                                <Input 
+                                  placeholder="Default value" 
+                                  {...field} 
+                                  value={field.value || ''}
+                                />
+                              </FormControl>
+                              <FormDescription>
+                                Default value if none is provided
+                              </FormDescription>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                        
+                        <DialogFooter>
+                          <Button 
+                            type="button" 
+                            variant="outline" 
+                            onClick={() => setIsCreating(false)}
+                          >
+                            Cancel
+                          </Button>
+                          <Button 
+                            type="submit"
+                            disabled={createAttributeMutation.isPending}
+                          >
+                            {createAttributeMutation.isPending && (
+                              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            )}
+                            Create Attribute
+                          </Button>
+                        </DialogFooter>
+                      </form>
+                    </Form>
+                  </DialogContent>
+                </Dialog>
+              </div>
+              
+              {loadingAttributes ? (
+                <div className="flex items-center justify-center p-6">
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                </div>
+              ) : attributes && attributes.length > 0 ? (
+                <Table>
+                  <TableCaption>List of attributes for this entity type</TableCaption>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Display Name</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Required</TableHead>
+                      <TableHead>System</TableHead>
+                      <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
-                  ))
-                )}
-              </TableBody>
-            </Table>
+                  </TableHeader>
+                  <TableBody>
+                    {attributes.map((attribute) => (
+                      <TableRow key={attribute.id}>
+                        <TableCell className="font-medium">{attribute.name}</TableCell>
+                        <TableCell>{attribute.displayName}</TableCell>
+                        <TableCell>
+                          <span className="capitalize">
+                            {attribute.type.replace('_', ' ')}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          {attribute.isRequired ? (
+                            <span className="text-green-600">Yes</span>
+                          ) : (
+                            <span className="text-gray-400">No</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {attribute.isSystemAttribute ? (
+                            <span className="text-blue-600">Yes</span>
+                          ) : (
+                            <span className="text-gray-400">No</span>
+                          )}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            onClick={() => handleDeleteAttribute(attribute.id, attribute.isSystemAttribute)}
+                            disabled={deleteAttributeMutation.isPending}
+                          >
+                            <Trash className="h-4 w-4" />
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              ) : (
+                <div className="text-center py-6 text-gray-500">
+                  No attributes found for this entity type. Add some attributes to get started.
+                </div>
+              )}
+            </div>
           )}
         </div>
       </CardContent>
