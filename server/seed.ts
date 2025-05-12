@@ -1,9 +1,17 @@
 import { storage } from './storage';
+import { initializeSchemas } from './initDatabase';
+import { seedEntitySystem } from './seedEntitySystem';
 
 async function seedDatabase() {
   console.log('Starting database seeding...');
   
   try {
+    // Initialize database schemas
+    await initializeSchemas();
+    
+    // Seed entity definitions, attributes, and relationships
+    await seedEntitySystem();
+    
     // Create sample user
     const user = await storage.createUser({
       username: 'johnsmith',
@@ -46,67 +54,149 @@ async function seedDatabase() {
       console.log(`Created news article: ${article.title}`);
     }
     
-    // Create sample clients
-    const clientNames = ['Van Damme BVBA', 'Laura Martens', 'Green Tech SA'];
-    const clientTypes = ['Commercial Client', 'Individual Client', 'Commercial Client'];
-    const clientInitials = ['VD', 'LM', 'GT'];
+    // Create sample customers
+    const customerNames = ['Van Damme BVBA', 'Maertens Finance', 'Green Tech SA'];
+    const customerDescriptions = [
+      'Leading construction company in Flanders', 
+      'Financial services firm based in Brussels', 
+      'Renewable energy solutions provider'
+    ];
     
-    const createdClients = [];
+    const createdCustomers = [];
     for (let i = 0; i < 3; i++) {
-      const client = await storage.createClient({
-        name: clientNames[i],
-        type: clientTypes[i],
-        initials: clientInitials[i]
+      const customer = await storage.createCustomer({
+        name: customerNames[i],
+        description: customerDescriptions[i],
+        ownerId: user.id,
+        createdById: user.id,
+        lastModifiedById: user.id
       });
-      createdClients.push(client);
-      console.log(`Created client: ${client.name}`);
+      createdCustomers.push(customer);
+      console.log(`Created customer: ${customer.name}`);
+      
+      // Add the user as a team member for each customer
+      await storage.addCustomerTeamMember({
+        customerId: customer.id,
+        userId: user.id
+      });
     }
     
-    // Create sample insurance products
-    const productNames = ['Property', 'Liability', 'Cyber Insurance', 'Auto', 'Home', 'Life Insurance', 'Business Interruption'];
-    const productCategories = ['Commercial', 'Commercial', 'Commercial', 'Personal', 'Personal', 'Personal', 'Commercial'];
+    // Create sample partners
+    const partnerNames = ['Allianz Belgium', 'AXA Insurance', 'AG Insurance'];
+    const partnerDescriptions = [
+      'Leading insurance provider in Belgium', 
+      'Global insurance company with strong Belgian presence', 
+      'Belgian insurance company specializing in life and non-life products'
+    ];
     
-    const createdProducts = [];
-    for (let i = 0; i < productNames.length; i++) {
-      const product = await storage.createInsuranceProduct({
-        name: productNames[i],
-        category: productCategories[i]
+    const createdPartners = [];
+    for (let i = 0; i < 3; i++) {
+      const partner = await storage.createPartner({
+        name: partnerNames[i],
+        description: partnerDescriptions[i],
+        ownerId: user.id,
+        createdById: user.id,
+        lastModifiedById: user.id
       });
-      createdProducts.push(product);
-      console.log(`Created insurance product: ${product.name}`);
+      createdPartners.push(partner);
+      console.log(`Created partner: ${partner.name}`);
+      
+      // Add the user as a team member for each partner
+      await storage.addPartnerTeamMember({
+        partnerId: partner.id,
+        userId: user.id
+      });
     }
     
-    // Create sample client products
-    await storage.addClientProduct({ clientId: createdClients[0].id, productId: createdProducts[0].id }); // Van Damme has Property
-    await storage.addClientProduct({ clientId: createdClients[0].id, productId: createdProducts[1].id }); // Van Damme has Liability
-    await storage.addClientProduct({ clientId: createdClients[1].id, productId: createdProducts[3].id }); // Laura has Auto
-    await storage.addClientProduct({ clientId: createdClients[1].id, productId: createdProducts[4].id }); // Laura has Home
-    await storage.addClientProduct({ clientId: createdClients[2].id, productId: createdProducts[0].id }); // Green Tech has Property
-    console.log('Created client products associations');
+    // Create customer-partner relationships
+    await storage.addCustomerPartner({ 
+      customerId: createdCustomers[0].id, 
+      partnerId: createdPartners[0].id 
+    });
+    await storage.addCustomerPartner({ 
+      customerId: createdCustomers[0].id, 
+      partnerId: createdPartners[1].id 
+    });
+    await storage.addCustomerPartner({ 
+      customerId: createdCustomers[1].id, 
+      partnerId: createdPartners[2].id 
+    });
+    console.log('Created customer-partner relationships');
     
     // Create sample opportunities
-    await storage.createOpportunity({ 
-      clientId: createdClients[0].id, 
-      productId: createdProducts[2].id, 
-      probability: 85, 
-      estimatedValue: 2450 
-    }); // Van Damme - Cyber Insurance
+    const opportunityNames = [
+      'Van Damme Cyber Security Policy', 
+      'Maertens Professional Liability', 
+      'Green Tech Property Insurance'
+    ];
+    const opportunityDescriptions = [
+      'Cyber security insurance for construction company',
+      'Professional liability coverage for financial services',
+      'Comprehensive property insurance for office buildings'
+    ];
+    const stages = ['Closed-Won', 'Proposal', 'Discovery'];
+    const amounts = ['12500.00', '8750.00', '22000.00'];
+    const probabilities = [100, 75, 50];
     
-    await storage.createOpportunity({ 
-      clientId: createdClients[1].id, 
-      productId: createdProducts[5].id, 
-      probability: 65, 
-      estimatedValue: 890 
-    }); // Laura - Life Insurance
+    const createdOpportunities = [];
+    for (let i = 0; i < 3; i++) {
+      const opportunity = await storage.createOpportunity({
+        name: opportunityNames[i],
+        description: opportunityDescriptions[i],
+        ownerId: user.id,
+        amount: amounts[i],
+        stage: stages[i],
+        probability: probabilities[i],
+        createdById: user.id,
+        lastModifiedById: user.id
+      });
+      createdOpportunities.push(opportunity);
+      console.log(`Created opportunity: ${opportunity.name}`);
+      
+      // Add the user as a team member for each opportunity
+      await storage.addOpportunityTeamMember({
+        opportunityId: opportunity.id,
+        userId: user.id
+      });
+      
+      // Connect opportunity to a customer
+      await storage.addOpportunityCustomer({
+        opportunityId: opportunity.id,
+        customerId: createdCustomers[i].id
+      });
+      
+      // Connect opportunity to a partner
+      await storage.addOpportunityPartner({
+        opportunityId: opportunity.id,
+        partnerId: createdPartners[i].id
+      });
+    }
     
-    await storage.createOpportunity({ 
-      clientId: createdClients[2].id, 
-      productId: createdProducts[6].id, 
-      probability: 90, 
-      estimatedValue: 3200 
-    }); // Green Tech - Business Interruption
+    // Create sample contacts
+    const contactNames = ['John Doe', 'Jane Smith', 'Bob Johnson'];
+    const contactEmails = ['john.doe@vandamme.be', 'jane.smith@maertens.be', 'bob.j@greentech.be'];
+    const contactPhones = ['+32 470 123 456', '+32 471 987 654', '+32 472 456 789'];
     
-    console.log('Created opportunities');
+    for (let i = 0; i < 3; i++) {
+      const contact = await storage.createContact({
+        name: contactNames[i],
+        description: `Contact at ${customerNames[i]}`,
+        email: contactEmails[i],
+        phone: contactPhones[i],
+        ownerId: user.id,
+        createdById: user.id,
+        lastModifiedById: user.id
+      });
+      console.log(`Created contact: ${contact.name}`);
+      
+      // Connect contact to a customer
+      await storage.addContactCustomer({
+        contactId: contact.id,
+        customerId: createdCustomers[i].id
+      });
+    }
+    
+    console.log('Created sample entities with relationships');
     
     console.log('Database seeding completed successfully!');
   } catch (error) {
