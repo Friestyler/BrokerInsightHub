@@ -1,13 +1,29 @@
 import { useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
+import { useToast } from "@/hooks/use-toast";
 
 export default function NavigationTiles() {
   const [, setLocation] = useLocation();
   const { environment } = useEnvironment();
+  const { toast } = useToast();
+
+  const handleCampaignClick = () => {
+    if (environment.id === 'acme') {
+      // Show info message for ACME environment
+      toast({
+        title: "Feature not available",
+        description: "Cross & Upsell Campaigns are not available in this environment.",
+        variant: "default",
+      });
+    } else {
+      // Navigate to campaigns in other environments
+      setLocation("/campaigns");
+    }
+  };
 
   return (
-    <div className={`grid grid-cols-1 md:grid-cols-2 ${environment.id === 'acme' ? 'lg:grid-cols-2' : 'lg:grid-cols-3'} gap-6 mb-10`}>
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
       <div 
         className="navigation-tile" 
         onClick={() => setLocation("/news")}
@@ -50,28 +66,31 @@ export default function NavigationTiles() {
         </CardContent>
       </div>
       
-      {/* Cross & Upsell Campaigns tile - only shown for My Qollabi environment */}
-      {environment.id !== 'acme' && (
-        <div 
-          className="navigation-tile" 
-          onClick={() => setLocation("/campaigns")}
-        >
-          <div className="h-40 bg-primary-100 flex items-center justify-center">
-            <div className="flex items-center justify-center w-24 h-24 rounded-full bg-primary-200 text-primary-600">
-              <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 3v18h18" />
-                <path d="m19 9-5 5-4-4-3 3" />
-                <circle cx="9" cy="9" r="2" />
-                <circle cx="19" cy="5" r="2" />
-              </svg>
-            </div>
+      {/* Cross & Upsell Campaigns tile - shown for all environments but with different behavior */}
+      <div 
+        className={`navigation-tile ${environment.id === 'acme' ? 'cursor-default' : ''}`}
+        onClick={handleCampaignClick}
+      >
+        <div className={`h-40 flex items-center justify-center ${environment.id === 'acme' ? 'bg-gray-100' : 'bg-primary-100'}`}>
+          <div className={`flex items-center justify-center w-24 h-24 rounded-full ${environment.id === 'acme' ? 'bg-gray-200 text-gray-500' : 'bg-primary-200 text-primary-600'}`}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M3 3v18h18" />
+              <path d="m19 9-5 5-4-4-3 3" />
+              <circle cx="9" cy="9" r="2" />
+              <circle cx="19" cy="5" r="2" />
+            </svg>
           </div>
-          <CardContent className="p-5">
-            <h3 className="text-lg font-semibold text-center text-neutral-800 mb-2">Cross & Upsell Campaigns</h3>
-            <p className="text-neutral-600 text-sm text-center">Use AI to identify potential upsell and cross-sell opportunities</p>
-          </CardContent>
         </div>
-      )}
+        <CardContent className="p-5">
+          <h3 className={`text-lg font-semibold text-center ${environment.id === 'acme' ? 'text-gray-500' : 'text-neutral-800'} mb-2 flex items-center justify-center`}>
+            Cross & Upsell Campaigns
+            {environment.id === 'acme' && <span className="ml-2 text-xs font-normal bg-gray-200 text-gray-600 px-2 py-0.5 rounded-full">Coming Soon</span>}
+          </h3>
+          <p className={`${environment.id === 'acme' ? 'text-gray-400' : 'text-neutral-600'} text-sm text-center`}>
+            Use AI to identify potential upsell and cross-sell opportunities
+          </p>
+        </CardContent>
+      </div>
     </div>
   );
 }

@@ -154,8 +154,19 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
             </div>
           )}
         </div>
-        {/* Show Campaigns link only for non-ACME environments */}
-        {environment.id !== 'acme' && (
+        {/* Show Campaigns link for all environments - active for non-ACME, disabled for ACME */}
+        {environment.id === 'acme' ? (
+          <div className="flex items-center py-2.5 px-4 rounded-md text-gray-400">
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-center" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 2 11 13" />
+              <path d="M22 2 15 22 11 13 2 9 22 2z" />
+            </svg>
+            <span className={`ml-3 text-sm ${collapsed ? "hidden" : "hidden md:inline-block"}`}>
+              Campaigns
+              <span className="ml-2 text-xs font-normal bg-gray-200 text-gray-600 px-1.5 py-0.5 rounded-full">Soon</span>
+            </span>
+          </div>
+        ) : (
           <Link href="/campaigns" className={`flex items-center py-2.5 px-4 rounded-md ${location === "/campaigns" ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}>
             <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-center" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M22 2 11 13" />
