@@ -6,7 +6,6 @@ import path from 'path';
 import fs from 'fs';
 import { promises as fsPromises } from 'fs';
 import { v4 as uuidv4 } from 'uuid';
-import entityRoutes from './routes/index';
 import { comparePdfDocuments, extractTextFromPdf } from './services/pdfComparison';
 
 // Setup multer storage for file uploads
@@ -572,9 +571,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: 'Failed to send email' });
     }
   });
-
-  // Register entity management routes
-  app.use('/api', entityRoutes);
 
   const httpServer = createServer(app);
   return httpServer;

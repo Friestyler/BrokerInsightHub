@@ -1,47 +1,24 @@
 import { 
-  // Users and media
   users, type User, type InsertUser,
   newsArticles, type NewsArticle, type InsertNewsArticle,
+  clients, type Client, type InsertClient,
+  insuranceProducts, type InsuranceProduct, type InsertInsuranceProduct,
+  clientProducts, type ClientProduct, type InsertClientProduct,
+  opportunities, type Opportunity, type InsertOpportunity,
   documents, type Document, type InsertDocument,
   fileComparisons, type FileComparison, type InsertFileComparison,
-  
-  // Core entities
   customers, type Customer, type InsertCustomer,
-  partners, type Partner, type InsertPartner,
-  opportunities, type Opportunity, type InsertOpportunity,
-  projects, type Project, type InsertProject,
-  contacts, type Contact, type InsertContact,
-  
-  // Team members
   customerTeamMembers, type CustomerTeamMember, type InsertCustomerTeamMember,
-  partnerTeamMembers, type PartnerTeamMember, type InsertPartnerTeamMember,
-  opportunityTeamMembers, type OpportunityTeamMember, type InsertOpportunityTeamMember,
-  projectTeamMembers, type ProjectTeamMember, type InsertProjectTeamMember,
-  
-  // Relationships
-  customerPartners, type CustomerPartner, type InsertCustomerPartner,
-  opportunityCustomers, type OpportunityCustomer, type InsertOpportunityCustomer,
-  opportunityPartners, type OpportunityPartner, type InsertOpportunityPartner,
-  projectCustomers, type ProjectCustomer, type InsertProjectCustomer,
-  projectPartners, type ProjectPartner, type InsertProjectPartner,
-  contactCustomers, type ContactCustomer, type InsertContactCustomer,
-  
-  // Attribute system
-  entityDefinitions, type EntityDefinition, type InsertEntityDefinition,
-  entityAttributes, type EntityAttribute, type InsertEntityAttribute,
-  relationshipAttributes, type RelationshipAttribute, type InsertRelationshipAttribute,
-  entityAttributeValues, type EntityAttributeValue, type InsertEntityAttributeValue
+  customerPartners, type CustomerPartner, type InsertCustomerPartner
 } from "@shared/schema";
 import { db, getEnvironmentDb } from './db';
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, and } from 'drizzle-orm';
 
-// Interface for entities with related opportunities
-export interface CustomerWithOpportunities extends Customer {
-  opportunities: Opportunity[];
-}
-
-export interface PartnerWithOpportunities extends Partner {
-  opportunities: Opportunity[];
+export interface ClientWithDetails extends Client {
+  currentProducts: InsuranceProduct[];
+  opportunity: InsuranceProduct;
+  probability: number;
+  estimatedValue: number;
 }
 
 export interface IStorage {
@@ -54,6 +31,25 @@ export interface IStorage {
   getAllNewsArticles(): Promise<NewsArticle[]>;
   getNewsArticle(id: number): Promise<NewsArticle | undefined>;
   createNewsArticle(article: InsertNewsArticle): Promise<NewsArticle>;
+  
+  // Client operations
+  getAllClients(): Promise<Client[]>;
+  getClient(id: number): Promise<Client | undefined>;
+  createClient(client: InsertClient): Promise<Client>;
+  
+  // Insurance product operations
+  getAllInsuranceProducts(): Promise<InsuranceProduct[]>;
+  getInsuranceProduct(id: number): Promise<InsuranceProduct | undefined>;
+  createInsuranceProduct(product: InsertInsuranceProduct): Promise<InsuranceProduct>;
+  
+  // Client product operations
+  getClientProducts(clientId: number): Promise<InsuranceProduct[]>;
+  addClientProduct(data: InsertClientProduct): Promise<ClientProduct>;
+  
+  // Opportunity operations
+  getAllOpportunities(): Promise<ClientWithDetails[]>;
+  getOpportunitiesForClient(clientId: number): Promise<Opportunity[]>;
+  createOpportunity(opportunity: InsertOpportunity): Promise<Opportunity>;
   
   // Document operations
   getAllDocuments(userId: number): Promise<Document[]>;
@@ -70,430 +66,631 @@ export interface IStorage {
   getCustomer(id: number): Promise<Customer | undefined>;
   createCustomer(customer: InsertCustomer): Promise<Customer>;
   
-  // Partner operations
-  getAllPartners(): Promise<Partner[]>;
-  getPartner(id: number): Promise<Partner | undefined>;
-  createPartner(partner: InsertPartner): Promise<Partner>;
-  
-  // Opportunity operations
-  getAllOpportunities(): Promise<Opportunity[]>;
-  getOpportunity(id: number): Promise<Opportunity | undefined>;
-  createOpportunity(opportunity: InsertOpportunity): Promise<Opportunity>;
-  
-  // Project operations
-  getAllProjects(): Promise<Project[]>;
-  getProject(id: number): Promise<Project | undefined>;
-  createProject(project: InsertProject): Promise<Project>;
-  
-  // Contact operations
-  getAllContacts(): Promise<Contact[]>;
-  getContact(id: number): Promise<Contact | undefined>;
-  createContact(contact: InsertContact): Promise<Contact>;
-  
-  // Team member operations
+  // Customer team members operations
   getCustomerTeamMembers(customerId: number): Promise<CustomerTeamMember[]>;
   addCustomerTeamMember(data: InsertCustomerTeamMember): Promise<CustomerTeamMember>;
-  getPartnerTeamMembers(partnerId: number): Promise<PartnerTeamMember[]>;
-  addPartnerTeamMember(data: InsertPartnerTeamMember): Promise<PartnerTeamMember>;
-  getOpportunityTeamMembers(opportunityId: number): Promise<OpportunityTeamMember[]>;
-  addOpportunityTeamMember(data: InsertOpportunityTeamMember): Promise<OpportunityTeamMember>;
-  getProjectTeamMembers(projectId: number): Promise<ProjectTeamMember[]>;
-  addProjectTeamMember(data: InsertProjectTeamMember): Promise<ProjectTeamMember>;
   
-  // Relationship operations
+  // Customer partners operations
   getCustomerPartners(customerId: number): Promise<CustomerPartner[]>;
   addCustomerPartner(data: InsertCustomerPartner): Promise<CustomerPartner>;
-  getOpportunityCustomers(opportunityId: number): Promise<OpportunityCustomer[]>;
-  addOpportunityCustomer(data: InsertOpportunityCustomer): Promise<OpportunityCustomer>;
-  getOpportunityPartners(opportunityId: number): Promise<OpportunityPartner[]>;
-  addOpportunityPartner(data: InsertOpportunityPartner): Promise<OpportunityPartner>;
-  getProjectCustomers(projectId: number): Promise<ProjectCustomer[]>;
-  addProjectCustomer(data: InsertProjectCustomer): Promise<ProjectCustomer>;
-  getProjectPartners(projectId: number): Promise<ProjectPartner[]>;
-  addProjectPartner(data: InsertProjectPartner): Promise<ProjectPartner>;
-  getContactCustomers(contactId: number): Promise<ContactCustomer[]>;
-  addContactCustomer(data: InsertContactCustomer): Promise<ContactCustomer>;
-  
-  // Entity definitions and attributes
-  getEntityDefinitions(environment: string): Promise<EntityDefinition[]>;
-  getEntityDefinition(id: number): Promise<EntityDefinition | undefined>;
-  createEntityDefinition(definition: InsertEntityDefinition): Promise<EntityDefinition>;
-  
-  getEntityAttributes(entityDefinitionId: number): Promise<EntityAttribute[]>;
-  getEntityAttribute(id: number): Promise<EntityAttribute | undefined>;
-  createEntityAttribute(attribute: InsertEntityAttribute): Promise<EntityAttribute>;
-  
-  getRelationshipAttributes(environment: string): Promise<RelationshipAttribute[]>;
-  getRelationshipAttribute(id: number): Promise<RelationshipAttribute | undefined>;
-  createRelationshipAttribute(relationship: InsertRelationshipAttribute): Promise<RelationshipAttribute>;
-  
-  // Entity attribute values
-  getEntityAttributeValues(entityId: number, entityType: string): Promise<EntityAttributeValue[]>;
-  getEntityAttributeValue(attributeId: number, entityId: number): Promise<EntityAttributeValue | undefined>;
-  createEntityAttributeValue(value: InsertEntityAttributeValue): Promise<EntityAttributeValue>;
-  updateEntityAttributeValue(id: number, value: string): Promise<EntityAttributeValue | undefined>;
 }
 
-export class DatabaseStorage implements IStorage {
+export class MemStorage implements IStorage {
+  private users: Map<number, User>;
+  private newsArticles: Map<number, NewsArticle>;
+  private clients: Map<number, Client>;
+  private insuranceProducts: Map<number, InsuranceProduct>;
+  private clientProducts: Map<number, ClientProduct>;
+  private opportunities: Map<number, Opportunity>;
+  private documents: Map<number, Document>;
+  private fileComparisons: Map<number, FileComparison>;
+  private customers: Map<number, Customer>;
+  private customerTeamMembers: Map<number, CustomerTeamMember>;
+  private customerPartners: Map<number, CustomerPartner>;
+  
+  currentUserId: number;
+  currentNewsArticleId: number;
+  currentClientId: number;
+  currentInsuranceProductId: number;
+  currentClientProductId: number;
+  currentOpportunityId: number;
+  currentDocumentId: number;
+  currentFileComparisonId: number;
+  currentCustomerId: number;
+  currentCustomerTeamMemberId: number;
+  currentCustomerPartnerId: number;
+
+  constructor() {
+    this.users = new Map();
+    this.newsArticles = new Map();
+    this.clients = new Map();
+    this.insuranceProducts = new Map();
+    this.clientProducts = new Map();
+    this.opportunities = new Map();
+    this.documents = new Map();
+    this.fileComparisons = new Map();
+    this.customers = new Map();
+    this.customerTeamMembers = new Map();
+    this.customerPartners = new Map();
+    
+    this.currentUserId = 1;
+    this.currentNewsArticleId = 1;
+    this.currentClientId = 1;
+    this.currentInsuranceProductId = 1;
+    this.currentClientProductId = 1;
+    this.currentOpportunityId = 1;
+    this.currentDocumentId = 1;
+    this.currentFileComparisonId = 1;
+    this.currentCustomerId = 1;
+    this.currentCustomerTeamMemberId = 1;
+    this.currentCustomerPartnerId = 1;
+    
+    // Initialize with sample data
+    this.initializeSampleData();
+  }
+
   // User operations
   async getUser(id: number): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user;
+    return this.users.get(id);
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
-    return user;
+    return Array.from(this.users.values()).find(
+      (user) => user.username === username,
+    );
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db.insert(users).values(insertUser).returning();
+    const id = this.currentUserId++;
+    const user: User = { ...insertUser, id };
+    this.users.set(id, user);
     return user;
   }
   
   // News operations
   async getAllNewsArticles(): Promise<NewsArticle[]> {
-    return await db.select().from(newsArticles).orderBy(desc(newsArticles.publishedDate));
+    return Array.from(this.newsArticles.values());
   }
   
   async getNewsArticle(id: number): Promise<NewsArticle | undefined> {
-    const [article] = await db.select().from(newsArticles).where(eq(newsArticles.id, id));
-    return article;
+    return this.newsArticles.get(id);
   }
   
   async createNewsArticle(article: InsertNewsArticle): Promise<NewsArticle> {
-    const [newsArticle] = await db.insert(newsArticles).values(article).returning();
+    const id = this.currentNewsArticleId++;
+    const newsArticle: NewsArticle = { ...article, id };
+    this.newsArticles.set(id, newsArticle);
     return newsArticle;
+  }
+  
+  // Client operations
+  async getAllClients(): Promise<Client[]> {
+    return Array.from(this.clients.values());
+  }
+  
+  async getClient(id: number): Promise<Client | undefined> {
+    return this.clients.get(id);
+  }
+  
+  async createClient(client: InsertClient): Promise<Client> {
+    const id = this.currentClientId++;
+    const newClient: Client = { ...client, id };
+    this.clients.set(id, newClient);
+    return newClient;
+  }
+  
+  // Insurance product operations
+  async getAllInsuranceProducts(): Promise<InsuranceProduct[]> {
+    return Array.from(this.insuranceProducts.values());
+  }
+  
+  async getInsuranceProduct(id: number): Promise<InsuranceProduct | undefined> {
+    return this.insuranceProducts.get(id);
+  }
+  
+  async createInsuranceProduct(product: InsertInsuranceProduct): Promise<InsuranceProduct> {
+    const id = this.currentInsuranceProductId++;
+    const newProduct: InsuranceProduct = { ...product, id };
+    this.insuranceProducts.set(id, newProduct);
+    return newProduct;
+  }
+  
+  // Client product operations
+  async getClientProducts(clientId: number): Promise<InsuranceProduct[]> {
+    const clientProductEntries = Array.from(this.clientProducts.values())
+      .filter(cp => cp.clientId === clientId);
+    
+    const products: InsuranceProduct[] = [];
+    for (const entry of clientProductEntries) {
+      const product = await this.getInsuranceProduct(entry.productId);
+      if (product) {
+        products.push(product);
+      }
+    }
+    
+    return products;
+  }
+  
+  async addClientProduct(data: InsertClientProduct): Promise<ClientProduct> {
+    const id = this.currentClientProductId++;
+    const clientProduct: ClientProduct = { ...data, id };
+    this.clientProducts.set(id, clientProduct);
+    return clientProduct;
+  }
+  
+  // Opportunity operations
+  async getAllOpportunities(): Promise<ClientWithDetails[]> {
+    const clientOpportunities: ClientWithDetails[] = [];
+    
+    for (const opportunity of this.opportunities.values()) {
+      const client = await this.getClient(opportunity.clientId);
+      const product = await this.getInsuranceProduct(opportunity.productId);
+      
+      if (client && product) {
+        const currentProducts = await this.getClientProducts(client.id);
+        
+        clientOpportunities.push({
+          ...client,
+          currentProducts,
+          opportunity: product,
+          probability: opportunity.probability,
+          estimatedValue: opportunity.estimatedValue
+        });
+      }
+    }
+    
+    return clientOpportunities;
+  }
+  
+  async getOpportunitiesForClient(clientId: number): Promise<Opportunity[]> {
+    return Array.from(this.opportunities.values())
+      .filter(o => o.clientId === clientId);
+  }
+  
+  async createOpportunity(opportunity: InsertOpportunity): Promise<Opportunity> {
+    const id = this.currentOpportunityId++;
+    const newOpportunity: Opportunity = { ...opportunity, id };
+    this.opportunities.set(id, newOpportunity);
+    return newOpportunity;
   }
   
   // Document operations
   async getAllDocuments(userId: number): Promise<Document[]> {
-    return await db.select().from(documents).where(eq(documents.userId, userId));
+    return Array.from(this.documents.values())
+      .filter(doc => doc.userId === userId);
   }
   
   async getDocument(id: number): Promise<Document | undefined> {
-    const [document] = await db.select().from(documents).where(eq(documents.id, id));
-    return document;
+    return this.documents.get(id);
   }
   
   async createDocument(document: InsertDocument): Promise<Document> {
-    const [newDocument] = await db.insert(documents).values(document).returning();
-    return newDocument;
+    const id = this.currentDocumentId++;
+    // Ensure tags is always at least null if undefined
+    const documentData = { 
+      ...document, 
+      id,
+      uploadDate: new Date(),
+      tags: document.tags || null,
+      filePath: document.filePath || null
+    };
+    this.documents.set(id, documentData);
+    return documentData;
   }
   
   // File comparison operations
   async getFileComparisons(userId: number): Promise<FileComparison[]> {
-    return await db.select().from(fileComparisons).where(eq(fileComparisons.userId, userId));
+    return Array.from(this.fileComparisons.values())
+      .filter(comp => comp.userId === userId);
   }
   
   async getFileComparison(id: number): Promise<FileComparison | undefined> {
-    const [comparison] = await db.select().from(fileComparisons).where(eq(fileComparisons.id, id));
-    return comparison;
+    return this.fileComparisons.get(id);
   }
   
   async createFileComparison(comparison: InsertFileComparison): Promise<FileComparison> {
-    const [newComparison] = await db.insert(fileComparisons).values(comparison).returning();
+    const id = this.currentFileComparisonId++;
+    const newComparison: FileComparison = { 
+      ...comparison, 
+      id,
+      comparisonDate: new Date()
+    };
+    this.fileComparisons.set(id, newComparison);
     return newComparison;
   }
   
   // Customer operations
   async getAllCustomers(): Promise<Customer[]> {
-    return await db.select().from(customers);
+    return Array.from(this.customers.values());
   }
   
   async getCustomer(id: number): Promise<Customer | undefined> {
-    const [customer] = await db.select().from(customers).where(eq(customers.id, id));
-    return customer;
+    return this.customers.get(id);
   }
   
   async createCustomer(customer: InsertCustomer): Promise<Customer> {
-    const now = new Date();
-    const [newCustomer] = await db.insert(customers).values({
-      ...customer,
-      createdAt: now,
-      updatedAt: now
-    }).returning();
+    const id = this.currentCustomerId++;
+    const newCustomer: Customer = { 
+      ...customer, 
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
+    this.customers.set(id, newCustomer);
     return newCustomer;
   }
   
-  // Partner operations
-  async getAllPartners(): Promise<Partner[]> {
-    return await db.select().from(partners);
-  }
-  
-  async getPartner(id: number): Promise<Partner | undefined> {
-    const [partner] = await db.select().from(partners).where(eq(partners.id, id));
-    return partner;
-  }
-  
-  async createPartner(partner: InsertPartner): Promise<Partner> {
-    const now = new Date();
-    const [newPartner] = await db.insert(partners).values({
-      ...partner,
-      createdAt: now,
-      updatedAt: now
-    }).returning();
-    return newPartner;
-  }
-  
-  // Opportunity operations
-  async getAllOpportunities(): Promise<Opportunity[]> {
-    return await db.select().from(opportunities);
-  }
-  
-  async getOpportunity(id: number): Promise<Opportunity | undefined> {
-    const [opportunity] = await db.select().from(opportunities).where(eq(opportunities.id, id));
-    return opportunity;
-  }
-  
-  async createOpportunity(opportunity: InsertOpportunity): Promise<Opportunity> {
-    const now = new Date();
-    const [newOpportunity] = await db.insert(opportunities).values({
-      ...opportunity,
-      createdAt: now,
-      updatedAt: now
-    }).returning();
-    return newOpportunity;
-  }
-  
-  // Project operations
-  async getAllProjects(): Promise<Project[]> {
-    return await db.select().from(projects);
-  }
-  
-  async getProject(id: number): Promise<Project | undefined> {
-    const [project] = await db.select().from(projects).where(eq(projects.id, id));
-    return project;
-  }
-  
-  async createProject(project: InsertProject): Promise<Project> {
-    const now = new Date();
-    const [newProject] = await db.insert(projects).values({
-      ...project,
-      createdAt: now,
-      updatedAt: now
-    }).returning();
-    return newProject;
-  }
-  
-  // Contact operations
-  async getAllContacts(): Promise<Contact[]> {
-    return await db.select().from(contacts);
-  }
-  
-  async getContact(id: number): Promise<Contact | undefined> {
-    const [contact] = await db.select().from(contacts).where(eq(contacts.id, id));
-    return contact;
-  }
-  
-  async createContact(contact: InsertContact): Promise<Contact> {
-    const now = new Date();
-    const [newContact] = await db.insert(contacts).values({
-      ...contact,
-      createdAt: now,
-      updatedAt: now
-    }).returning();
-    return newContact;
-  }
-  
-  // Team member operations
+  // Customer team member operations
   async getCustomerTeamMembers(customerId: number): Promise<CustomerTeamMember[]> {
-    return await db.select().from(customerTeamMembers).where(eq(customerTeamMembers.customerId, customerId));
+    return Array.from(this.customerTeamMembers.values())
+      .filter(member => member.customerId === customerId);
   }
   
   async addCustomerTeamMember(data: InsertCustomerTeamMember): Promise<CustomerTeamMember> {
-    const [teamMember] = await db.insert(customerTeamMembers).values(data).returning();
+    const id = this.currentCustomerTeamMemberId++;
+    const teamMember: CustomerTeamMember = { ...data, id };
+    this.customerTeamMembers.set(id, teamMember);
     return teamMember;
   }
   
-  async getPartnerTeamMembers(partnerId: number): Promise<PartnerTeamMember[]> {
-    return await db.select().from(partnerTeamMembers).where(eq(partnerTeamMembers.partnerId, partnerId));
-  }
-  
-  async addPartnerTeamMember(data: InsertPartnerTeamMember): Promise<PartnerTeamMember> {
-    const [teamMember] = await db.insert(partnerTeamMembers).values(data).returning();
-    return teamMember;
-  }
-  
-  async getOpportunityTeamMembers(opportunityId: number): Promise<OpportunityTeamMember[]> {
-    return await db.select().from(opportunityTeamMembers).where(eq(opportunityTeamMembers.opportunityId, opportunityId));
-  }
-  
-  async addOpportunityTeamMember(data: InsertOpportunityTeamMember): Promise<OpportunityTeamMember> {
-    const [teamMember] = await db.insert(opportunityTeamMembers).values(data).returning();
-    return teamMember;
-  }
-  
-  async getProjectTeamMembers(projectId: number): Promise<ProjectTeamMember[]> {
-    return await db.select().from(projectTeamMembers).where(eq(projectTeamMembers.projectId, projectId));
-  }
-  
-  async addProjectTeamMember(data: InsertProjectTeamMember): Promise<ProjectTeamMember> {
-    const [teamMember] = await db.insert(projectTeamMembers).values(data).returning();
-    return teamMember;
-  }
-  
-  // Relationship operations
+  // Customer partner operations
   async getCustomerPartners(customerId: number): Promise<CustomerPartner[]> {
-    return await db.select().from(customerPartners).where(eq(customerPartners.customerId, customerId));
+    return Array.from(this.customerPartners.values())
+      .filter(partner => partner.customerId === customerId);
   }
   
   async addCustomerPartner(data: InsertCustomerPartner): Promise<CustomerPartner> {
-    const [relationship] = await db.insert(customerPartners).values(data).returning();
-    return relationship;
+    const id = this.currentCustomerPartnerId++;
+    const partner: CustomerPartner = { ...data, id };
+    this.customerPartners.set(id, partner);
+    return partner;
   }
   
-  async getOpportunityCustomers(opportunityId: number): Promise<OpportunityCustomer[]> {
-    return await db.select().from(opportunityCustomers).where(eq(opportunityCustomers.opportunityId, opportunityId));
-  }
-  
-  async addOpportunityCustomer(data: InsertOpportunityCustomer): Promise<OpportunityCustomer> {
-    const [relationship] = await db.insert(opportunityCustomers).values(data).returning();
-    return relationship;
-  }
-  
-  async getOpportunityPartners(opportunityId: number): Promise<OpportunityPartner[]> {
-    return await db.select().from(opportunityPartners).where(eq(opportunityPartners.opportunityId, opportunityId));
-  }
-  
-  async addOpportunityPartner(data: InsertOpportunityPartner): Promise<OpportunityPartner> {
-    const [relationship] = await db.insert(opportunityPartners).values(data).returning();
-    return relationship;
-  }
-  
-  async getProjectCustomers(projectId: number): Promise<ProjectCustomer[]> {
-    return await db.select().from(projectCustomers).where(eq(projectCustomers.projectId, projectId));
-  }
-  
-  async addProjectCustomer(data: InsertProjectCustomer): Promise<ProjectCustomer> {
-    const [relationship] = await db.insert(projectCustomers).values(data).returning();
-    return relationship;
-  }
-  
-  async getProjectPartners(projectId: number): Promise<ProjectPartner[]> {
-    return await db.select().from(projectPartners).where(eq(projectPartners.projectId, projectId));
-  }
-  
-  async addProjectPartner(data: InsertProjectPartner): Promise<ProjectPartner> {
-    const [relationship] = await db.insert(projectPartners).values(data).returning();
-    return relationship;
-  }
-  
-  async getContactCustomers(contactId: number): Promise<ContactCustomer[]> {
-    return await db.select().from(contactCustomers).where(eq(contactCustomers.contactId, contactId));
-  }
-  
-  async addContactCustomer(data: InsertContactCustomer): Promise<ContactCustomer> {
-    const [relationship] = await db.insert(contactCustomers).values(data).returning();
-    return relationship;
-  }
-  
-  // Entity definitions and attributes
-  async getEntityDefinitions(environment: string): Promise<EntityDefinition[]> {
-    return await db.select().from(entityDefinitions).where(eq(entityDefinitions.environment, environment));
-  }
-  
-  async getEntityDefinition(id: number): Promise<EntityDefinition | undefined> {
-    const [definition] = await db.select().from(entityDefinitions).where(eq(entityDefinitions.id, id));
-    return definition;
-  }
-  
-  async createEntityDefinition(definition: InsertEntityDefinition): Promise<EntityDefinition> {
-    const now = new Date();
-    const [newDefinition] = await db.insert(entityDefinitions).values({
-      ...definition,
-      createdAt: now,
-      updatedAt: now
-    }).returning();
-    return newDefinition;
-  }
-  
-  async getEntityAttributes(entityDefinitionId: number): Promise<EntityAttribute[]> {
-    return await db.select()
-      .from(entityAttributes)
-      .where(eq(entityAttributes.entityDefinitionId, entityDefinitionId))
-      .orderBy(entityAttributes.orderIndex);
-  }
-  
-  async getEntityAttribute(id: number): Promise<EntityAttribute | undefined> {
-    const [attribute] = await db.select().from(entityAttributes).where(eq(entityAttributes.id, id));
-    return attribute;
-  }
-  
-  async createEntityAttribute(attribute: InsertEntityAttribute): Promise<EntityAttribute> {
-    const now = new Date();
-    const [newAttribute] = await db.insert(entityAttributes).values({
-      ...attribute,
-      createdAt: now,
-      updatedAt: now
-    }).returning();
-    return newAttribute;
-  }
-  
-  async getRelationshipAttributes(environment: string): Promise<RelationshipAttribute[]> {
-    return await db.select().from(relationshipAttributes).where(eq(relationshipAttributes.environment, environment));
-  }
-  
-  async getRelationshipAttribute(id: number): Promise<RelationshipAttribute | undefined> {
-    const [relationship] = await db.select().from(relationshipAttributes).where(eq(relationshipAttributes.id, id));
-    return relationship;
-  }
-  
-  async createRelationshipAttribute(relationship: InsertRelationshipAttribute): Promise<RelationshipAttribute> {
-    const now = new Date();
-    const [newRelationship] = await db.insert(relationshipAttributes).values({
-      ...relationship,
-      createdAt: now,
-      updatedAt: now
-    }).returning();
-    return newRelationship;
-  }
-  
-  // Entity attribute values
-  async getEntityAttributeValues(entityId: number, entityType: string): Promise<EntityAttributeValue[]> {
-    return await db.select()
-      .from(entityAttributeValues)
-      .where(
-        and(
-          eq(entityAttributeValues.entityId, entityId),
-          eq(entityAttributeValues.entityType, entityType)
-        )
-      );
-  }
-  
-  async getEntityAttributeValue(attributeId: number, entityId: number): Promise<EntityAttributeValue | undefined> {
-    const [value] = await db.select()
-      .from(entityAttributeValues)
-      .where(
-        and(
-          eq(entityAttributeValues.attributeId, attributeId),
-          eq(entityAttributeValues.entityId, entityId)
-        )
-      );
-    return value;
-  }
-  
-  async createEntityAttributeValue(value: InsertEntityAttributeValue): Promise<EntityAttributeValue> {
-    const now = new Date();
-    const [newValue] = await db.insert(entityAttributeValues).values({
-      ...value,
-      createdAt: now,
-      updatedAt: now
-    }).returning();
-    return newValue;
-  }
-  
-  async updateEntityAttributeValue(id: number, value: string): Promise<EntityAttributeValue | undefined> {
-    const now = new Date();
-    const [updatedValue] = await db.update(entityAttributeValues)
-      .set({ 
-        value: value,
-        updatedAt: now
-      })
-      .where(eq(entityAttributeValues.id, id))
-      .returning();
-    return updatedValue;
+  // Initialize sample data
+  private async initializeSampleData() {
+    // Create sample user
+    await this.createUser({
+      username: 'johnsmith',
+      password: 'password123',
+      fullName: 'John Smith',
+      avatarInitials: 'JS'
+    });
+    
+    // Create sample news articles
+    const articleCategories = ['Regulation', 'Industry', 'Commercial', 'Technology'];
+    const articleTitles = [
+      'New Insurance Regulations Coming Into Effect',
+      'Major Belgian Insurers Announce Merger',
+      'Commercial Insurance Premiums Show 15% Rise',
+      'Digital Transformation In The Belgian Insurance Sector'
+    ];
+    const articleSummaries = [
+      'The Belgian Financial Services and Markets Authority (FSMA) has announced new regulations affecting brokers, set to take effect in Q3 2025.',
+      'Two of Belgium\'s largest insurance providers have announced plans to merge, creating a new market leader with implications for brokers.',
+      'A new market study indicates commercial insurance premiums have increased by 15% in the first quarter, particularly affecting SME businesses.',
+      'A new report highlights the acceleration of digital transformation among Belgian insurers, with implications for broker distribution channels.'
+    ];
+    const articleImages = [
+      'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
+      'https://images.unsplash.com/photo-1507679799987-c73779587ccf?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
+      'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80',
+      'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?ixlib=rb-4.0.3&auto=format&fit=crop&w=500&q=80'
+    ];
+    
+    for (let i = 0; i < 4; i++) {
+      await this.createNewsArticle({
+        title: articleTitles[i],
+        content: `This is the full content of the article about ${articleTitles[i].toLowerCase()}.`,
+        summary: articleSummaries[i],
+        category: articleCategories[i],
+        imageUrl: articleImages[i],
+        publishedDate: new Date(2025, 4, 4 - i)
+      });
+    }
+    
+    // Create sample clients
+    const clientNames = ['Van Damme BVBA', 'Laura Martens', 'Green Tech SA'];
+    const clientTypes = ['Commercial Client', 'Individual Client', 'Commercial Client'];
+    const clientInitials = ['VD', 'LM', 'GT'];
+    
+    for (let i = 0; i < 3; i++) {
+      await this.createClient({
+        name: clientNames[i],
+        type: clientTypes[i],
+        initials: clientInitials[i]
+      });
+    }
+    
+    // Create sample insurance products
+    const productNames = ['Property', 'Liability', 'Cyber Insurance', 'Auto', 'Home', 'Life Insurance', 'Business Interruption'];
+    const productCategories = ['Commercial', 'Commercial', 'Commercial', 'Personal', 'Personal', 'Personal', 'Commercial'];
+    
+    for (let i = 0; i < productNames.length; i++) {
+      await this.createInsuranceProduct({
+        name: productNames[i],
+        category: productCategories[i]
+      });
+    }
+    
+    // Create sample client products
+    await this.addClientProduct({ clientId: 1, productId: 1 }); // Van Damme has Property
+    await this.addClientProduct({ clientId: 1, productId: 2 }); // Van Damme has Liability
+    await this.addClientProduct({ clientId: 2, productId: 4 }); // Laura has Auto
+    await this.addClientProduct({ clientId: 2, productId: 5 }); // Laura has Home
+    await this.addClientProduct({ clientId: 3, productId: 1 }); // Green Tech has Property
+    
+    // Create sample opportunities
+    await this.createOpportunity({ clientId: 1, productId: 3, probability: 85, estimatedValue: 2450 }); // Van Damme - Cyber Insurance
+    await this.createOpportunity({ clientId: 2, productId: 6, probability: 65, estimatedValue: 890 });  // Laura - Life Insurance
+    await this.createOpportunity({ clientId: 3, productId: 7, probability: 90, estimatedValue: 3200 }); // Green Tech - Business Interruption
+    
+    // Create sample customers
+    const customerNames = [
+      'Acme Corporation', 
+      'Globex Industries', 
+      'Stark Enterprises', 
+      'Wayne Industries', 
+      'Umbrella Corporation'
+    ];
+    
+    const customerDescriptions = [
+      'Leading manufacturer of cartoon props and gadgets',
+      'Global leader in innovative technologies',
+      'Cutting-edge tech and defense systems',
+      'Multinational conglomerate with diverse portfolio',
+      'Pharmaceutical company focused on medical innovations'
+    ];
+    
+    for (let i = 0; i < customerNames.length; i++) {
+      // Create customer with user 1 as owner
+      const customer = await this.createCustomer({
+        name: customerNames[i],
+        description: customerDescriptions[i],
+        ownerId: 1
+      });
+      
+      // Add the owner as a team member
+      await this.addCustomerTeamMember({
+        customerId: customer.id,
+        userId: 1
+      });
+      
+      // Add partners (clients) to some customers
+      if (i % 2 === 0) {
+        await this.addCustomerPartner({
+          customerId: customer.id,
+          partnerId: (i % 3) + 1 // Link to one of our clients
+        });
+      }
+    }
   }
 }
 
+export class DatabaseStorage implements IStorage {
+  // Get the database connection for the current request
+  private getDb() {
+    // Get environment from the current request if available
+    const req = this.getCurrentRequest();
+    if (req && (req as any).environmentId) {
+      return getEnvironmentDb((req as any).environmentId);
+    }
+    // Fallback to default database
+    return db;
+  }
+  
+  // Get the current request object (if available)
+  private getCurrentRequest() {
+    // Use the global requestStorage
+    if (global.requestStorage) {
+      return global.requestStorage.getStore();
+    }
+    return null;
+  }
+  
+  // User operations
+  async getUser(id: number): Promise<User | undefined> {
+    const result = await this.getDb().select().from(users).where(eq(users.id, id));
+    return result[0];
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const result = await this.getDb().select().from(users).where(eq(users.username, username));
+    return result[0];
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const result = await this.getDb().insert(users).values(insertUser).returning();
+    return result[0];
+  }
+  
+  // News operations
+  async getAllNewsArticles(): Promise<NewsArticle[]> {
+    return this.getDb().select().from(newsArticles).orderBy(newsArticles.publishedDate);
+  }
+  
+  async getNewsArticle(id: number): Promise<NewsArticle | undefined> {
+    const result = await this.getDb().select().from(newsArticles).where(eq(newsArticles.id, id));
+    return result[0];
+  }
+  
+  async createNewsArticle(article: InsertNewsArticle): Promise<NewsArticle> {
+    const result = await this.getDb().insert(newsArticles).values(article).returning();
+    return result[0];
+  }
+  
+  // Client operations
+  async getAllClients(): Promise<Client[]> {
+    return this.getDb().select().from(clients);
+  }
+  
+  async getClient(id: number): Promise<Client | undefined> {
+    const result = await this.getDb().select().from(clients).where(eq(clients.id, id));
+    return result[0];
+  }
+  
+  async createClient(client: InsertClient): Promise<Client> {
+    const result = await this.getDb().insert(clients).values(client).returning();
+    return result[0];
+  }
+  
+  // Insurance product operations
+  async getAllInsuranceProducts(): Promise<InsuranceProduct[]> {
+    return this.getDb().select().from(insuranceProducts);
+  }
+  
+  async getInsuranceProduct(id: number): Promise<InsuranceProduct | undefined> {
+    const result = await this.getDb().select().from(insuranceProducts).where(eq(insuranceProducts.id, id));
+    return result[0];
+  }
+  
+  async createInsuranceProduct(product: InsertInsuranceProduct): Promise<InsuranceProduct> {
+    const result = await this.getDb().insert(insuranceProducts).values(product).returning();
+    return result[0];
+  }
+  
+  // Client product operations
+  async getClientProducts(clientId: number): Promise<InsuranceProduct[]> {
+    const clientProductsResult = await this.getDb()
+      .select()
+      .from(clientProducts)
+      .where(eq(clientProducts.clientId, clientId));
+    
+    const products: InsuranceProduct[] = [];
+    for (const cp of clientProductsResult) {
+      const product = await this.getInsuranceProduct(cp.productId);
+      if (product) {
+        products.push(product);
+      }
+    }
+    
+    return products;
+  }
+  
+  async addClientProduct(data: InsertClientProduct): Promise<ClientProduct> {
+    const result = await this.getDb().insert(clientProducts).values(data).returning();
+    return result[0];
+  }
+  
+  // Opportunity operations
+  async getAllOpportunities(): Promise<ClientWithDetails[]> {
+    const allOpportunities = await this.getDb().select().from(opportunities);
+    const clientOpportunities: ClientWithDetails[] = [];
+    
+    for (const opportunity of allOpportunities) {
+      const client = await this.getClient(opportunity.clientId);
+      const product = await this.getInsuranceProduct(opportunity.productId);
+      
+      if (client && product) {
+        const currentProducts = await this.getClientProducts(client.id);
+        
+        clientOpportunities.push({
+          ...client,
+          currentProducts,
+          opportunity: product,
+          probability: opportunity.probability,
+          estimatedValue: opportunity.estimatedValue
+        });
+      }
+    }
+    
+    return clientOpportunities;
+  }
+  
+  async getOpportunitiesForClient(clientId: number): Promise<Opportunity[]> {
+    return this.getDb()
+      .select()
+      .from(opportunities)
+      .where(eq(opportunities.clientId, clientId));
+  }
+  
+  async createOpportunity(opportunity: InsertOpportunity): Promise<Opportunity> {
+    const result = await this.getDb().insert(opportunities).values(opportunity).returning();
+    return result[0];
+  }
+  
+  // Document operations
+  async getAllDocuments(userId: number): Promise<Document[]> {
+    return this.getDb()
+      .select()
+      .from(documents)
+      .where(eq(documents.userId, userId))
+      .orderBy(documents.uploadDate);
+  }
+  
+  async getDocument(id: number): Promise<Document | undefined> {
+    const result = await this.getDb().select().from(documents).where(eq(documents.id, id));
+    return result[0];
+  }
+  
+  async createDocument(document: InsertDocument): Promise<Document> {
+    const result = await this.getDb().insert(documents).values(document).returning();
+    return result[0];
+  }
+  
+  // File comparison operations
+  async getFileComparisons(userId: number): Promise<FileComparison[]> {
+    return this.getDb()
+      .select()
+      .from(fileComparisons)
+      .where(eq(fileComparisons.userId, userId))
+      .orderBy(fileComparisons.comparisonDate);
+  }
+  
+  async getFileComparison(id: number): Promise<FileComparison | undefined> {
+    const result = await this.getDb().select().from(fileComparisons).where(eq(fileComparisons.id, id));
+    return result[0];
+  }
+  
+  async createFileComparison(comparison: InsertFileComparison): Promise<FileComparison> {
+    const result = await this.getDb().insert(fileComparisons).values(comparison).returning();
+    return result[0];
+  }
+  
+  // Customer operations
+  async getAllCustomers(): Promise<Customer[]> {
+    return this.getDb().select().from(customers);
+  }
+  
+  async getCustomer(id: number): Promise<Customer | undefined> {
+    const result = await this.getDb().select().from(customers).where(eq(customers.id, id));
+    return result[0];
+  }
+  
+  async createCustomer(customer: InsertCustomer): Promise<Customer> {
+    const result = await this.getDb().insert(customers).values({
+      ...customer,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }).returning();
+    return result[0];
+  }
+  
+  // Customer team members operations
+  async getCustomerTeamMembers(customerId: number): Promise<CustomerTeamMember[]> {
+    return this.getDb()
+      .select()
+      .from(customerTeamMembers)
+      .where(eq(customerTeamMembers.customerId, customerId));
+  }
+  
+  async addCustomerTeamMember(data: InsertCustomerTeamMember): Promise<CustomerTeamMember> {
+    const result = await this.getDb().insert(customerTeamMembers).values(data).returning();
+    return result[0];
+  }
+  
+  // Customer partners operations
+  async getCustomerPartners(customerId: number): Promise<CustomerPartner[]> {
+    return this.getDb()
+      .select()
+      .from(customerPartners)
+      .where(eq(customerPartners.customerId, customerId));
+  }
+  
+  async addCustomerPartner(data: InsertCustomerPartner): Promise<CustomerPartner> {
+    const result = await this.getDb().insert(customerPartners).values(data).returning();
+    return result[0];
+  }
+}
+
+// Use the database storage implementation
 export const storage = new DatabaseStorage();
