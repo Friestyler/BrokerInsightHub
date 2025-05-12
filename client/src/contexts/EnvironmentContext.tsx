@@ -5,7 +5,6 @@ import qollabiLogo from "../assets/qollabi-placeholder.svg";
 export interface Environment {
   id: string;
   name: string;
-  displayName?: string; // Display name (defaults to name if not specified)
   logo?: string;
   apiBaseUrl: string; // Base URL for API calls for this environment
   databaseId: string; // Identifier for the database to use
@@ -16,32 +15,28 @@ export const ENVIRONMENTS: Environment[] = [
   { 
     id: "myqollabi", 
     name: "My Qollabi", 
-    displayName: "My Qollabi Environment",
     logo: qollabiLogo,
     apiBaseUrl: "/api",
-    databaseId: "qollabi"
+    databaseId: "qollabi_db"
   },
   { 
     id: "acme", 
     name: "ACME CO", 
-    displayName: "ACME CO Environment",
     logo: acmeLogo,
     apiBaseUrl: "/api/acme",
-    databaseId: "acme"
+    databaseId: "acme_db"
   },
   { 
     id: "globex", 
     name: "Globex Corp",
-    displayName: "Globex Corporation",
     apiBaseUrl: "/api/globex",
-    databaseId: "globex"
+    databaseId: "globex_db"
   },
   { 
     id: "oceanic", 
     name: "Oceanic Airlines",
-    displayName: "Oceanic Airlines",
     apiBaseUrl: "/api/oceanic",
-    databaseId: "oceanic"
+    databaseId: "oceanic_db"
   }
 ];
 

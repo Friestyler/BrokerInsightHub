@@ -13,7 +13,6 @@ import PredictOpportunities from "@/pages/PredictOpportunities";
 import CrossSellCampaigns from "@/pages/CrossSellCampaigns";
 import Clients from "@/pages/Clients";
 import ClientDetail from "@/pages/ClientDetail";
-import Settings from "./pages/Settings";
 import NotFound from "@/pages/not-found";
 import EnvironmentRouteGuard from "@/components/EnvironmentRouteGuard";
 
@@ -36,7 +35,6 @@ function Router() {
         </Route>
         <Route path="/clients" component={Clients} />
         <Route path="/clients/:id" component={ClientDetail} />
-        <Route path="/settings" component={Settings} />
         <Route component={NotFound} />
       </Switch>
     </Layout>
