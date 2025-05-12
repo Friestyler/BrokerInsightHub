@@ -123,7 +123,6 @@ export const createRelationshipAttribute = async (req: Request, res: Response) =
     }
     
     // Start a database transaction
-    const now = new Date();
     let sourceAttributeId, targetAttributeId;
     
     // Create source attribute first (or find if exists)
@@ -157,9 +156,7 @@ export const createRelationshipAttribute = async (req: Request, res: Response) =
         isRequired: false,
         isSystemAttribute: false,
         orderIndex: sourceOrderIndex,
-        environment: data.environment,
-        createdAt: now,
-        updatedAt: now
+        environment: data.environment
       }).returning();
       
       sourceAttributeId = newSourceAttr.id;
@@ -198,9 +195,7 @@ export const createRelationshipAttribute = async (req: Request, res: Response) =
         isRequired: false,
         isSystemAttribute: false,
         orderIndex: targetOrderIndex,
-        environment: data.environment,
-        createdAt: now,
-        updatedAt: now
+        environment: data.environment
       }).returning();
       
       targetAttributeId = newTargetAttr.id;
@@ -233,9 +228,7 @@ export const createRelationshipAttribute = async (req: Request, res: Response) =
       sourceAttributeId: sourceAttributeId,
       targetAttributeId: targetAttributeId,
       relationshipType: data.relationshipType,
-      environment: data.environment,
-      createdAt: now,
-      updatedAt: now
+      environment: data.environment
     }).returning();
     
     res.status(201).json(relationship);

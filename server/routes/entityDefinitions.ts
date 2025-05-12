@@ -73,11 +73,9 @@ export const createEntityDefinition = async (req: Request, res: Response) => {
       });
     }
     
-    const now = new Date();
     const [created] = await db.insert(entityDefinitions).values({
       ...data,
-      createdAt: now,
-      updatedAt: now
+      // createdAt and updatedAt will be set by default values
     }).returning();
     
     res.status(201).json(created);

@@ -120,11 +120,9 @@ export const createEntityAttribute = async (req: Request, res: Response) => {
       data.orderIndex = nextOrderIndex;
     }
     
-    const now = new Date();
     const [created] = await db.insert(entityAttributes).values({
       ...data,
-      createdAt: now,
-      updatedAt: now
+      // createdAt and updatedAt will be set by default values
     }).returning();
     
     res.status(201).json(created);

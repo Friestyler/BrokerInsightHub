@@ -1,285 +1,297 @@
 import { db } from './db';
-import { 
-  entityDefinitions, 
-  entityAttributes, 
-  relationshipAttributes 
-} from '@shared/schema';
+import { entityDefinitions, entityAttributes, relationshipAttributes } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 
 /**
  * Creates standard entity definitions for all environments
  */
 export async function seedEntityDefinitions() {
-  console.log('Seeding entity definitions...');
-
-  // List of environments
-  const environments = ['qollabi', 'acme', 'globex', 'oceanic'];
+  const environments = ['myqollabi', 'acme', 'globex', 'oceanic'];
   
-  // Standard entity definitions to create
+  // Standard entity types across all environments
   const standardEntities = [
     {
-      name: 'customers',
-      displayName: 'Customers',
-      description: 'Organizations that purchase your products or services',
-      tableName: 'customers'
+      name: 'customer',
+      displayName: 'Customer',
+      description: 'A client organization that purchases products or services',
+      tableName: 'customers',
     },
     {
-      name: 'partners',
-      displayName: 'Partners',
-      description: 'Organizations that collaborate with your business',
-      tableName: 'partners'
+      name: 'partner',
+      displayName: 'Partner',
+      description: 'A business partner organization that provides complementary services',
+      tableName: 'partners',
     },
     {
-      name: 'opportunities',
-      displayName: 'Opportunities',
-      description: 'Potential sales or deals',
-      tableName: 'opportunities'
+      name: 'opportunity',
+      displayName: 'Opportunity',
+      description: 'A potential sale or deal being pursued',
+      tableName: 'opportunities',
     },
     {
-      name: 'projects',
-      displayName: 'Projects',
-      description: 'Specific initiatives or engagements',
-      tableName: 'projects'
+      name: 'project',
+      displayName: 'Project',
+      description: 'An implementation or delivery initiative',
+      tableName: 'projects',
     },
     {
-      name: 'contacts',
-      displayName: 'Contacts',
-      description: 'Individual people associated with customers or partners',
-      tableName: 'contacts'
+      name: 'contact',
+      displayName: 'Contact',
+      description: 'An individual affiliated with a customer or partner',
+      tableName: 'contacts',
     }
   ];
-
-  // Create entity definitions for each environment
+  
+  console.log('Seeding entity definitions for environments:', environments);
+  
+  // For each environment, create the standard entities
   for (const environment of environments) {
-    console.log(`Seeding entity definitions for ${environment} environment...`);
-    
     for (const entity of standardEntities) {
       // Check if entity definition already exists
-      const existing = await db.select()
+      const existing = await db.select({ id: entityDefinitions.id })
         .from(entityDefinitions)
         .where(
-          eq(entityDefinitions.name, entity.name) && 
+          eq(entityDefinitions.name, entity.name) &&
           eq(entityDefinitions.environment, environment)
         );
       
       if (existing.length === 0) {
-        // Create the entity definition
         await db.insert(entityDefinitions).values({
           ...entity,
-          environment: environment,
-          createdAt: new Date(),
-          updatedAt: new Date()
+          environment,
         });
-        console.log(`Created entity definition: ${entity.displayName} for ${environment}`);
+        console.log(`Created entity definition ${entity.name} for ${environment}`);
       } else {
-        console.log(`Entity definition ${entity.displayName} already exists for ${environment}`);
+        console.log(`Entity definition ${entity.name} already exists for ${environment}`);
       }
     }
   }
+  
+  console.log('Entity definitions created successfully');
 }
 
 /**
  * Creates standard attributes for entity definitions
  */
 export async function seedStandardAttributes() {
-  console.log('Seeding standard attributes...');
-
-  // List of environments
-  const environments = ['qollabi', 'acme', 'globex', 'oceanic'];
+  const environments = ['myqollabi', 'acme', 'globex', 'oceanic'];
+  
+  console.log('Seeding standard attributes for all environments');
   
   for (const environment of environments) {
-    console.log(`Seeding standard attributes for ${environment} environment...`);
-    
     // Get all entity definitions for this environment
-    const definitions = await db.select()
+    const entitiesResult = await db.select()
       .from(entityDefinitions)
       .where(eq(entityDefinitions.environment, environment));
     
-    for (const definition of definitions) {
-      // Get standard attributes for this entity type
-      const standardAttributes = getStandardAttributesForEntity(definition.name);
+    for (const entity of entitiesResult) {
+      const standardAttributes = getStandardAttributesForEntity(entity.name);
       
-      // Create standard attributes
-      for (let index = 0; index < standardAttributes.length; index++) {
-        const attr = standardAttributes[index];
+      // Add standard attributes for this entity
+      for (let i = 0; i < standardAttributes.length; i++) {
+        const attribute = standardAttributes[i];
+        
         // Check if attribute already exists
-        const existing = await db.select()
+        const existing = await db.select({ id: entityAttributes.id })
           .from(entityAttributes)
           .where(
-            eq(entityAttributes.entityDefinitionId, definition.id) && 
-            eq(entityAttributes.name, attr.name) &&
-            eq(entityAttributes.environment, environment)
+            eq(entityAttributes.entityDefinitionId, entity.id) &&
+            eq(entityAttributes.name, attribute.name)
           );
         
         if (existing.length === 0) {
-          // Create the attribute
           await db.insert(entityAttributes).values({
-            entityDefinitionId: definition.id,
-            name: attr.name,
-            displayName: attr.displayName,
-            description: attr.description,
-            type: attr.type as any, // Type cast to solve LSP issue
-            isRequired: attr.isRequired,
-            isSystemAttribute: attr.isSystemAttribute,
-            defaultValue: attr.defaultValue,
-            options: attr.options,
-            orderIndex: index + 1,
-            environment: environment,
-            createdAt: new Date(),
-            updatedAt: new Date()
+            entityDefinitionId: entity.id,
+            name: attribute.name,
+            displayName: attribute.displayName,
+            description: attribute.description,
+            type: attribute.type,
+            isRequired: attribute.isRequired ?? false,
+            isSystemAttribute: true, // Mark as system attribute
+            defaultValue: attribute.defaultValue,
+            options: attribute.options,
+            orderIndex: i + 1,
+            environment,
           });
-          console.log(`Created attribute: ${attr.displayName} for ${definition.displayName} in ${environment}`);
+          console.log(`Created standard attribute ${attribute.name} for ${entity.name} in ${environment}`);
         } else {
-          console.log(`Attribute ${attr.displayName} already exists for ${definition.displayName} in ${environment}`);
+          console.log(`Standard attribute ${attribute.name} already exists for ${entity.name} in ${environment}`);
         }
       }
     }
   }
+  
+  console.log('Standard attributes created successfully');
 }
 
 /**
  * Creates standard relationship attributes between entities
  */
 export async function seedRelationshipAttributes() {
-  console.log('Seeding relationship attributes...');
-
-  // List of environments
-  const environments = ['qollabi', 'acme', 'globex', 'oceanic'];
+  const environments = ['myqollabi', 'acme', 'globex', 'oceanic'];
   
-  // Standard relationships to create
+  // Standard relationships between entities
   const standardRelationships = [
     {
-      sourceEntity: 'customers',
-      targetEntity: 'partners',
-      sourceAttribute: 'partners',
-      targetAttribute: 'customers',
-      relationshipType: 'many_to_many' as const
+      sourceEntityName: 'customer',
+      targetEntityName: 'partner',
+      sourceAttributeName: 'partners',
+      targetAttributeName: 'customers',
+      relationshipType: 'many_to_many' as const,
     },
     {
-      sourceEntity: 'opportunities',
-      targetEntity: 'customers',
-      sourceAttribute: 'customers',
-      targetAttribute: 'opportunities',
-      relationshipType: 'many_to_one' as const
+      sourceEntityName: 'opportunity',
+      targetEntityName: 'customer',
+      sourceAttributeName: 'customers',
+      targetAttributeName: 'opportunities',
+      relationshipType: 'many_to_many' as const,
     },
     {
-      sourceEntity: 'opportunities',
-      targetEntity: 'partners',
-      sourceAttribute: 'partners',
-      targetAttribute: 'opportunities',
-      relationshipType: 'many_to_many' as const
-    }
+      sourceEntityName: 'opportunity',
+      targetEntityName: 'partner',
+      sourceAttributeName: 'partners',
+      targetAttributeName: 'opportunities',
+      relationshipType: 'many_to_many' as const,
+    },
+    {
+      sourceEntityName: 'project',
+      targetEntityName: 'customer',
+      sourceAttributeName: 'customers',
+      targetAttributeName: 'projects',
+      relationshipType: 'many_to_many' as const,
+    },
+    {
+      sourceEntityName: 'project',
+      targetEntityName: 'partner',
+      sourceAttributeName: 'partners',
+      targetAttributeName: 'projects',
+      relationshipType: 'many_to_many' as const,
+    },
+    {
+      sourceEntityName: 'contact',
+      targetEntityName: 'customer',
+      sourceAttributeName: 'customers',
+      targetAttributeName: 'contacts',
+      relationshipType: 'many_to_many' as const,
+    },
   ];
-
+  
+  console.log('Seeding relationship attributes for all environments');
+  
   for (const environment of environments) {
-    console.log(`Seeding relationship attributes for ${environment} environment...`);
-    
+    // For each standard relationship
     for (const relationship of standardRelationships) {
-      // Get entity definitions
+      // Get the entity definitions
       const sourceEntity = await db.select()
         .from(entityDefinitions)
         .where(
-          eq(entityDefinitions.name, relationship.sourceEntity) && 
+          eq(entityDefinitions.name, relationship.sourceEntityName) &&
           eq(entityDefinitions.environment, environment)
         );
       
       const targetEntity = await db.select()
         .from(entityDefinitions)
         .where(
-          eq(entityDefinitions.name, relationship.targetEntity) && 
+          eq(entityDefinitions.name, relationship.targetEntityName) &&
           eq(entityDefinitions.environment, environment)
         );
       
       if (sourceEntity.length === 0 || targetEntity.length === 0) {
-        console.log(`Skipping relationship: ${relationship.sourceEntity} -> ${relationship.targetEntity} (entity not found)`);
+        console.log(`Cannot create relationship: entities not found for ${relationship.sourceEntityName} or ${relationship.targetEntityName} in ${environment}`);
         continue;
       }
       
-      // Check if source attribute exists and create if needed
+      const sourceEntityId = sourceEntity[0].id;
+      const targetEntityId = targetEntity[0].id;
+      
+      // Check if source attribute exists
       let sourceAttribute = await db.select()
         .from(entityAttributes)
         .where(
-          eq(entityAttributes.entityDefinitionId, sourceEntity[0].id) && 
-          eq(entityAttributes.name, relationship.sourceAttribute) &&
-          eq(entityAttributes.environment, environment)
+          eq(entityAttributes.entityDefinitionId, sourceEntityId) &&
+          eq(entityAttributes.name, relationship.sourceAttributeName)
         );
       
+      // Create source attribute if it doesn't exist
+      let sourceAttributeId: number;
       if (sourceAttribute.length === 0) {
-        const result = await db.insert(entityAttributes).values({
-          entityDefinitionId: sourceEntity[0].id,
-          name: relationship.sourceAttribute,
-          displayName: capitalize(relationship.sourceAttribute),
-          description: `Related ${relationship.targetEntity}`,
+        const [newSourceAttr] = await db.insert(entityAttributes).values({
+          entityDefinitionId: sourceEntityId,
+          name: relationship.sourceAttributeName,
+          displayName: capitalize(relationship.targetAttributeName),
+          description: `Related ${targetEntity[0].displayName}`,
           type: 'relationship',
           isRequired: false,
-          isSystemAttribute: false,
-          orderIndex: 100, // Put relationships at the end
-          environment: environment,
-          createdAt: new Date(),
-          updatedAt: new Date()
+          isSystemAttribute: true,
+          orderIndex: 100, // Place at the end
+          environment,
         }).returning();
         
-        sourceAttribute = result;
-        console.log(`Created source attribute: ${relationship.sourceAttribute} for ${relationship.sourceEntity} in ${environment}`);
+        sourceAttributeId = newSourceAttr.id;
+        console.log(`Created source attribute ${relationship.sourceAttributeName} for ${relationship.sourceEntityName} in ${environment}`);
+      } else {
+        sourceAttributeId = sourceAttribute[0].id;
+        console.log(`Source attribute ${relationship.sourceAttributeName} already exists for ${relationship.sourceEntityName} in ${environment}`);
       }
       
-      // Check if target attribute exists and create if needed
+      // Check if target attribute exists
       let targetAttribute = await db.select()
         .from(entityAttributes)
         .where(
-          eq(entityAttributes.entityDefinitionId, targetEntity[0].id) && 
-          eq(entityAttributes.name, relationship.targetAttribute) &&
-          eq(entityAttributes.environment, environment)
+          eq(entityAttributes.entityDefinitionId, targetEntityId) &&
+          eq(entityAttributes.name, relationship.targetAttributeName)
         );
       
+      // Create target attribute if it doesn't exist
+      let targetAttributeId: number;
       if (targetAttribute.length === 0) {
-        const result = await db.insert(entityAttributes).values({
-          entityDefinitionId: targetEntity[0].id,
-          name: relationship.targetAttribute,
-          displayName: capitalize(relationship.targetAttribute),
-          description: `Related ${relationship.sourceEntity}`,
+        const [newTargetAttr] = await db.insert(entityAttributes).values({
+          entityDefinitionId: targetEntityId,
+          name: relationship.targetAttributeName,
+          displayName: capitalize(relationship.sourceAttributeName),
+          description: `Related ${sourceEntity[0].displayName}`,
           type: 'relationship',
           isRequired: false,
-          isSystemAttribute: false,
-          orderIndex: 100, // Put relationships at the end
-          environment: environment,
-          createdAt: new Date(),
-          updatedAt: new Date()
+          isSystemAttribute: true,
+          orderIndex: 100, // Place at the end
+          environment,
         }).returning();
         
-        targetAttribute = result;
-        console.log(`Created target attribute: ${relationship.targetAttribute} for ${relationship.targetEntity} in ${environment}`);
+        targetAttributeId = newTargetAttr.id;
+        console.log(`Created target attribute ${relationship.targetAttributeName} for ${relationship.targetEntityName} in ${environment}`);
+      } else {
+        targetAttributeId = targetAttribute[0].id;
+        console.log(`Target attribute ${relationship.targetAttributeName} already exists for ${relationship.targetEntityName} in ${environment}`);
       }
       
       // Check if relationship already exists
       const existingRelationship = await db.select()
         .from(relationshipAttributes)
         .where(
-          eq(relationshipAttributes.sourceEntityId, sourceEntity[0].id) && 
-          eq(relationshipAttributes.targetEntityId, targetEntity[0].id) &&
-          eq(relationshipAttributes.sourceAttributeId, sourceAttribute[0].id) &&
-          eq(relationshipAttributes.targetAttributeId, targetAttribute[0].id) &&
+          eq(relationshipAttributes.sourceEntityId, sourceEntityId) &&
+          eq(relationshipAttributes.targetEntityId, targetEntityId) &&
+          eq(relationshipAttributes.sourceAttributeId, sourceAttributeId) &&
+          eq(relationshipAttributes.targetAttributeId, targetAttributeId) &&
           eq(relationshipAttributes.environment, environment)
         );
       
       if (existingRelationship.length === 0) {
-        // Create the relationship
         await db.insert(relationshipAttributes).values({
-          sourceEntityId: sourceEntity[0].id,
-          targetEntityId: targetEntity[0].id,
-          sourceAttributeId: sourceAttribute[0].id,
-          targetAttributeId: targetAttribute[0].id,
+          sourceEntityId,
+          targetEntityId,
+          sourceAttributeId,
+          targetAttributeId,
           relationshipType: relationship.relationshipType,
-          environment: environment,
-          createdAt: new Date(),
-          updatedAt: new Date()
+          environment,
         });
-        console.log(`Created relationship: ${relationship.sourceEntity}.${relationship.sourceAttribute} <-> ${relationship.targetEntity}.${relationship.targetAttribute} in ${environment}`);
+        console.log(`Created relationship between ${relationship.sourceEntityName} and ${relationship.targetEntityName} in ${environment}`);
       } else {
-        console.log(`Relationship already exists: ${relationship.sourceEntity}.${relationship.sourceAttribute} <-> ${relationship.targetEntity}.${relationship.targetAttribute} in ${environment}`);
+        console.log(`Relationship between ${relationship.sourceEntityName} and ${relationship.targetEntityName} already exists in ${environment}`);
       }
     }
   }
+  
+  console.log('Relationship attributes created successfully');
 }
 
 /**
@@ -290,109 +302,205 @@ function getStandardAttributesForEntity(entityType: string): Array<{
   displayName: string;
   description: string;
   type: string;
-  isRequired: boolean;
-  isSystemAttribute: boolean;
+  isRequired?: boolean;
   defaultValue?: string;
   options?: any;
 }> {
-  // Common attributes for all entities
+  // Common attributes for all entity types
   const commonAttributes = [
     {
       name: 'name',
       displayName: 'Name',
-      description: 'The official name',
+      description: 'The name of the entity',
       type: 'text',
       isRequired: true,
-      isSystemAttribute: true
     },
     {
       name: 'description',
       displayName: 'Description',
-      description: 'A brief description',
+      description: 'A detailed description',
       type: 'long_text',
-      isRequired: false,
-      isSystemAttribute: true
     },
     {
       name: 'owner',
       displayName: 'Owner',
-      description: 'The primary user responsible for managing this entity',
+      description: 'The user who owns this entity',
       type: 'user_single',
-      isRequired: false,
-      isSystemAttribute: true
     },
     {
-      name: 'team',
-      displayName: 'Team',
-      description: 'Users associated with this entity',
-      type: 'user_multi',
-      isRequired: true,
-      isSystemAttribute: true
-    }
+      name: 'status',
+      displayName: 'Status',
+      description: 'Current status',
+      type: 'single_select',
+      options: ['Active', 'Inactive', 'Archived'],
+      defaultValue: 'Active',
+    },
+    {
+      name: 'created_date',
+      displayName: 'Created Date',
+      description: 'When this entity was created',
+      type: 'datetime',
+    },
+    {
+      name: 'last_modified_date',
+      displayName: 'Last Modified Date',
+      description: 'When this entity was last modified',
+      type: 'datetime',
+    },
   ];
   
   // Entity-specific attributes
-  switch(entityType) {
-    case 'opportunities':
+  switch (entityType) {
+    case 'customer':
+      return [
+        ...commonAttributes,
+        {
+          name: 'industry',
+          displayName: 'Industry',
+          description: 'The industry this customer belongs to',
+          type: 'single_select',
+          options: ['Insurance', 'Banking', 'Healthcare', 'Manufacturing', 'Retail', 'Technology', 'Other'],
+        },
+        {
+          name: 'annual_revenue',
+          displayName: 'Annual Revenue',
+          description: 'Estimated annual revenue',
+          type: 'currency',
+        },
+        {
+          name: 'employees',
+          displayName: 'Number of Employees',
+          description: 'Approximate number of employees',
+          type: 'number',
+        },
+        {
+          name: 'website',
+          displayName: 'Website',
+          description: 'Company website URL',
+          type: 'text',
+        },
+      ];
+    
+    case 'partner':
+      return [
+        ...commonAttributes,
+        {
+          name: 'partner_type',
+          displayName: 'Partner Type',
+          description: 'Type of partnership',
+          type: 'single_select',
+          options: ['Reseller', 'Service Provider', 'Technology Partner', 'Alliance', 'Other'],
+        },
+        {
+          name: 'territory',
+          displayName: 'Territory',
+          description: 'Geographical coverage area',
+          type: 'text',
+        },
+        {
+          name: 'partnership_level',
+          displayName: 'Partnership Level',
+          description: 'Level of partnership',
+          type: 'single_select',
+          options: ['Platinum', 'Gold', 'Silver', 'Bronze'],
+        },
+      ];
+    
+    case 'opportunity':
       return [
         ...commonAttributes,
         {
           name: 'amount',
-          displayName: 'Amount',
-          description: 'The estimated total sale amount',
+          displayName: 'Opportunity Amount',
+          description: 'Potential value of the opportunity',
           type: 'currency',
-          isRequired: false,
-          isSystemAttribute: true
         },
         {
           name: 'stage',
           displayName: 'Stage',
-          description: 'Current stage in the sales process',
+          description: 'Current sales stage',
           type: 'single_select',
-          isRequired: false,
-          isSystemAttribute: true,
-          options: JSON.stringify({
-            options: [
-              { value: 'closed-won', label: 'Closed-Won' },
-              { value: 'closed-lost', label: 'Closed-Lost' }
-            ]
-          })
+          options: ['Prospecting', 'Qualification', 'Needs Analysis', 'Value Proposition', 'Negotiation', 'Closed Won', 'Closed Lost'],
+          defaultValue: 'Prospecting',
         },
         {
           name: 'probability',
           displayName: 'Probability',
-          description: 'The likelihood that opportunity will close',
+          description: 'Likelihood of closing (%)',
           type: 'percent',
-          isRequired: false,
-          isSystemAttribute: true
-        }
+        },
+        {
+          name: 'close_date',
+          displayName: 'Expected Close Date',
+          description: 'When the opportunity is expected to close',
+          type: 'date',
+        },
       ];
-    case 'contacts':
+    
+    case 'project':
+      return [
+        ...commonAttributes,
+        {
+          name: 'start_date',
+          displayName: 'Start Date',
+          description: 'Project start date',
+          type: 'date',
+        },
+        {
+          name: 'end_date',
+          displayName: 'End Date',
+          description: 'Project end date',
+          type: 'date',
+        },
+        {
+          name: 'budget',
+          displayName: 'Budget',
+          description: 'Project budget',
+          type: 'currency',
+        },
+        {
+          name: 'project_type',
+          displayName: 'Project Type',
+          description: 'Type of project',
+          type: 'single_select',
+          options: ['Implementation', 'Integration', 'Consulting', 'Support', 'Other'],
+        },
+      ];
+    
+    case 'contact':
       return [
         ...commonAttributes,
         {
           name: 'email',
           displayName: 'Email',
-          description: 'Contact email address',
+          description: 'Email address',
           type: 'text',
-          isRequired: false,
-          isSystemAttribute: true
         },
         {
           name: 'phone',
           displayName: 'Phone',
-          description: 'Contact phone number',
+          description: 'Phone number',
           type: 'text',
-          isRequired: false,
-          isSystemAttribute: true
-        }
+        },
+        {
+          name: 'title',
+          displayName: 'Job Title',
+          description: 'Professional title',
+          type: 'text',
+        },
+        {
+          name: 'department',
+          displayName: 'Department',
+          description: 'Department or function',
+          type: 'text',
+        },
       ];
+    
     default:
       return commonAttributes;
   }
 }
 
-// Helper function to capitalize first letter
 function capitalize(s: string): string {
   return s.charAt(0).toUpperCase() + s.slice(1);
 }
@@ -402,20 +510,13 @@ function capitalize(s: string): string {
  */
 export async function seedEntitySystem() {
   try {
-    console.log('Seeding entity system...');
-    
-    // Create entity definitions first
     await seedEntityDefinitions();
-    
-    // Then create standard attributes
     await seedStandardAttributes();
-    
-    // Finally create relationships
     await seedRelationshipAttributes();
-    
-    console.log('Entity system seeding completed successfully');
+    console.log('Entity system seeded successfully');
+    return true;
   } catch (error) {
     console.error('Error seeding entity system:', error);
-    throw error;
+    return false;
   }
 }
