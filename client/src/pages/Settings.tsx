@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "../components/ui/table";
 import { 
   LayoutDashboard, 
   Database, 
@@ -8,7 +9,8 @@ import {
   Settings as SettingsIcon, 
   Server,
   Network,
-  MessagesSquare
+  MessagesSquare,
+  ArrowRight
 } from "lucide-react";
 import { useEnvironment } from '../contexts/EnvironmentContext';
 import UserAvatar from '../components/UserAvatar';
@@ -117,11 +119,123 @@ export default function Settings() {
           )}
 
           {activeTab === 'entity-definitions' && (
-            <EntityAttributesSettings />
+            <div className="relative">
+              <div className="absolute w-full h-full flex items-center justify-center">
+                <div>
+                  <div className="w-full max-w-xl px-8 pb-8 pt-6 bg-white rounded-lg shadow flex flex-col items-center">
+                    <div className="text-center space-y-2 mb-4">
+                      <h3 className="text-lg font-semibold">Entity Configuration Coming Soon</h3>
+                      <p className="text-sm text-gray-500">
+                        The Entity Attribute configuration UI is in development and will be available soon.
+                      </p>
+                    </div>
+                    <div className="w-full border-t my-4"></div>
+                    <p className="text-xs text-gray-400 mt-2">
+                      Entity system architecture is ready, UI implementation in progress.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="opacity-25 pointer-events-none">
+                <div className="mb-8">
+                  <h2 className="text-lg font-medium mb-2">Entity Types</h2>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <Card className="overflow-hidden">
+                      <div className="h-2 bg-indigo-500 w-full"></div>
+                      <CardContent className="pt-6">
+                        <h3 className="font-medium flex items-center gap-1">
+                          <Database className="w-4 h-4" />
+                          Customers
+                        </h3>
+                        <p className="text-xs text-gray-500 mt-1">7 attributes defined</p>
+                      </CardContent>
+                    </Card>
+                    <Card className="overflow-hidden">
+                      <div className="h-2 bg-indigo-500 w-full"></div>
+                      <CardContent className="pt-6">
+                        <h3 className="font-medium flex items-center gap-1">
+                          <Database className="w-4 h-4" />
+                          Partners
+                        </h3>
+                        <p className="text-xs text-gray-500 mt-1">8 attributes defined</p>
+                      </CardContent>
+                    </Card>
+                    <Card className="overflow-hidden">
+                      <div className="h-2 bg-indigo-500 w-full"></div>
+                      <CardContent className="pt-6">
+                        <h3 className="font-medium flex items-center gap-1">
+                          <Database className="w-4 h-4" />
+                          Opportunities
+                        </h3>
+                        <p className="text-xs text-gray-500 mt-1">9 attributes defined</p>
+                      </CardContent>
+                    </Card>
+                  </div>
+                </div>
+              </div>
+            </div>
           )}
 
           {activeTab === 'relationship-attributes' && (
-            <RelationshipAttributesSettings />
+            <div className="relative">
+              <div className="absolute w-full h-full flex items-center justify-center">
+                <div>
+                  <div className="w-full max-w-xl px-8 pb-8 pt-6 bg-white rounded-lg shadow flex flex-col items-center">
+                    <div className="text-center space-y-2 mb-4">
+                      <h3 className="text-lg font-semibold">Relationship Configuration Coming Soon</h3>
+                      <p className="text-sm text-gray-500">
+                        The Relationship Attribute configuration UI is in development and will be available soon.
+                      </p>
+                    </div>
+                    <div className="w-full border-t my-4"></div>
+                    <p className="text-xs text-gray-400 mt-2">
+                      Relationship system architecture is ready, UI implementation in progress.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              <div className="opacity-25 pointer-events-none">
+                <div className="mb-8">
+                  <h2 className="text-lg font-medium mb-2">Relationship Types</h2>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Source Entity</TableHead>
+                        <TableHead>Relationship</TableHead>
+                        <TableHead>Target Entity</TableHead>
+                        <TableHead>Type</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      <TableRow>
+                        <TableCell className="font-medium">
+                          Customer
+                          <div className="text-xs text-gray-500">
+                            via Partners
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center justify-center">
+                            <ArrowRight className="h-4 w-4 text-gray-400" />
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          Partner
+                          <div className="text-xs text-gray-500">
+                            via Customers
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className="rounded bg-indigo-50 px-2 py-1 text-xs text-indigo-600">
+                            many-to-many
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            </div>
           )}
 
           {activeTab === 'users' && (

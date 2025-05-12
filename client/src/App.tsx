@@ -13,7 +13,7 @@ import PredictOpportunities from "@/pages/PredictOpportunities";
 import CrossSellCampaigns from "@/pages/CrossSellCampaigns";
 import Clients from "@/pages/Clients";
 import ClientDetail from "@/pages/ClientDetail";
-import Settings from "@/pages/Settings";
+import Settings from "./pages/Settings";
 import NotFound from "@/pages/not-found";
 import EnvironmentRouteGuard from "@/components/EnvironmentRouteGuard";
 

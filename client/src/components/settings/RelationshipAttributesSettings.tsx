@@ -1,485 +1,410 @@
 import React, { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
-import { useEnvironment } from '@/contexts/EnvironmentContext';
-import { Loader2, Plus, Settings, ArrowRightLeft } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table';
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Switch } from '@/components/ui/switch';
-import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useQuery } from "@tanstack/react-query";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../../components/ui/card";
+import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "../../components/ui/table";
+import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "../../components/ui/select";
+import { Button } from "../../components/ui/button";
+import { Input } from "../../components/ui/input";
+import { Label } from "../../components/ui/label";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "../../components/ui/tabs";
+import { Checkbox } from "../../components/ui/checkbox";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "../../components/ui/dialog";
+import { RadioGroup, RadioGroupItem } from "../../components/ui/radio-group";
+import { useToast } from "../../components/ui/use-toast";
+import { useEnvironment } from '../../contexts/EnvironmentContext';
+import { Network, Plus, ArrowRight } from 'lucide-react';
 
-// Entity types we display in the UI
-const ENTITY_TYPES = [
-  { id: 'customers', displayName: 'Customers' },
-  { id: 'partners', displayName: 'Partners' },
-  { id: 'opportunities', displayName: 'Opportunities' },
-  { id: 'projects', displayName: 'Projects' },
-  { id: 'contacts', displayName: 'Contacts' },
-];
+// Types for entity definitions and relationship attributes
+interface EntityDefinition {
+  id: number;
+  name: string;
+  displayName: string;
+  description: string;
+  environment: string;
+}
 
-// Relationship types
-const RELATIONSHIP_TYPES = [
-  { id: 'one_to_many', displayName: 'One-to-Many', description: 'One record of the first entity can be linked to many records of the second entity' },
-  { id: 'many_to_one', displayName: 'Many-to-One', description: 'Many records of the first entity can be linked to one record of the second entity' },
-  { id: 'many_to_many', displayName: 'Many-to-Many', description: 'Many records of the first entity can be linked to many records of the second entity' },
-];
+interface RelationshipAttribute {
+  id: number;
+  sourceEntityId: number;
+  targetEntityId: number;
+  sourceAttributeId: number;
+  targetAttributeId: number;
+  relationshipType: string;
+  environment: string;
+  
+  // Enriched fields from related entities/attributes
+  sourceEntityName?: string;
+  sourceEntityDisplayName?: string;
+  targetEntityName?: string;
+  targetEntityDisplayName?: string;
+  sourceAttributeName?: string;
+  sourceAttributeDisplayName?: string;
+  targetAttributeName?: string;
+  targetAttributeDisplayName?: string;
+}
 
 export default function RelationshipAttributesSettings() {
   const { environment } = useEnvironment();
-  const [isAddRelationshipDialogOpen, setIsAddRelationshipDialogOpen] = useState(false);
-  const [isEditRelationshipDialogOpen, setIsEditRelationshipDialogOpen] = useState(false);
-  const [selectedRelationship, setSelectedRelationship] = useState<any>(null);
-
-  // New relationship form state
-  const [newRelationship, setNewRelationship] = useState({
-    sourceEntity: 'customers',
-    targetEntity: 'partners',
-    sourceAttributeName: '',
-    targetAttributeName: '',
-    relationshipType: 'many_to_many',
-    isRequired: false,
+  const { toast } = useToast();
+  
+  // State for relationship form dialog
+  const [showRelationshipForm, setShowRelationshipForm] = useState(false);
+  const [relationshipFormData, setRelationshipFormData] = useState({
+    sourceEntity: "",
+    targetEntity: "",
+    sourceAttributeName: "",
+    sourceAttributeDisplayName: "",
+    targetAttributeName: "",
+    targetAttributeDisplayName: "",
+    relationshipType: "many-to-one",
+    isRequired: false
   });
-
+  
+  // Fetch entity definitions for the current environment
+  const { data: entityDefinitions } = useQuery({
+    queryKey: ['/api/entity-definitions', environment.id],
+    queryFn: async () => {
+      const res = await fetch(`/api/entity-definitions?environment=${environment.id}`);
+      if (!res.ok) throw new Error('Failed to fetch entity definitions');
+      return res.json() as Promise<EntityDefinition[]>;
+    }
+  });
+  
   // Fetch relationship attributes
-  const { data: relationshipAttributes, isLoading } = useQuery({
-    queryKey: ['/api/relationship-attributes', environment?.id],
-    enabled: !!environment,
+  const { data: relationshipAttributes, isLoading: isLoadingRelationships, refetch: refetchRelationships } = useQuery({
+    queryKey: ['/api/relationship-attributes', environment.id],
+    queryFn: async () => {
+      const res = await fetch(`/api/relationship-attributes?environment=${environment.id}`);
+      if (!res.ok) throw new Error('Failed to fetch relationship attributes');
+      return res.json() as Promise<RelationshipAttribute[]>;
+    }
   });
-
-  if (isLoading) {
-    return (
-      <div className="flex h-64 items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
-
-  // Mock data for development - replace with actual API data later
-  const mockRelationships = [
-    {
-      id: 1,
-      sourceEntity: 'customers',
-      sourceEntityDisplayName: 'Customers',
-      targetEntity: 'partners',
-      targetEntityDisplayName: 'Partners',
-      sourceAttributeName: 'partners',
-      sourceAttributeDisplayName: 'Partners',
-      targetAttributeName: 'customers',
-      targetAttributeDisplayName: 'Customers',
-      relationshipType: 'many_to_many',
-      isRequired: false,
-      isSystem: true,
-    },
-    {
-      id: 2,
-      sourceEntity: 'opportunities',
-      sourceEntityDisplayName: 'Opportunities',
-      targetEntity: 'customers',
-      targetEntityDisplayName: 'Customers',
-      sourceAttributeName: 'customers',
-      sourceAttributeDisplayName: 'Customers',
-      targetAttributeName: 'opportunities',
-      targetAttributeDisplayName: 'Opportunities',
-      relationshipType: 'many_to_one',
-      isRequired: false,
-      isSystem: true,
-    },
-    {
-      id: 3,
-      sourceEntity: 'opportunities',
-      sourceEntityDisplayName: 'Opportunities',
-      targetEntity: 'partners',
-      targetEntityDisplayName: 'Partners',
-      sourceAttributeName: 'partners',
-      sourceAttributeDisplayName: 'Partners',
-      targetAttributeName: 'opportunities',
-      targetAttributeDisplayName: 'Opportunities',
-      relationshipType: 'many_to_many',
-      isRequired: false,
-      isSystem: true,
-    },
-  ];
-
-  // Handle add relationship form submission
-  const handleAddRelationship = () => {
-    // TODO: Submit to API
-    console.log('Adding relationship:', newRelationship);
-    setIsAddRelationshipDialogOpen(false);
-    // Reset form
-    setNewRelationship({
-      sourceEntity: 'customers',
-      targetEntity: 'partners',
-      sourceAttributeName: '',
-      targetAttributeName: '',
-      relationshipType: 'many_to_many',
-      isRequired: false,
-    });
+  
+  // Get entity display name by name
+  const getEntityDisplayName = (entityName: string): string => {
+    if (!entityDefinitions) return entityName;
+    const entity = entityDefinitions.find(e => e.name === entityName);
+    return entity?.displayName || entityName;
   };
-
-  // Handle opening the edit dialog for a relationship
-  const handleEditRelationship = (relationship: any) => {
-    setSelectedRelationship(relationship);
-    setIsEditRelationshipDialogOpen(true);
-  };
-
-  // Handle saving edited relationship
-  const handleSaveRelationship = () => {
-    // TODO: Submit to API
-    console.log('Saving relationship:', selectedRelationship);
-    setIsEditRelationshipDialogOpen(false);
-  };
-
-  const getRelationshipTypeLabel = (type: string) => {
-    switch (type) {
-      case 'one_to_many': return 'One-to-Many';
-      case 'many_to_one': return 'Many-to-One';
-      case 'many_to_many': return 'Many-to-Many';
-      default: return type;
+  
+  // Handle relationship form submission
+  const handleSubmitRelationship = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    try {
+      const response = await fetch(`/api/relationship-attributes?environment=${environment.id}`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(relationshipFormData),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to create relationship');
+      }
+      
+      // Reset form and refresh relationships
+      setRelationshipFormData({
+        sourceEntity: "",
+        targetEntity: "",
+        sourceAttributeName: "",
+        sourceAttributeDisplayName: "",
+        targetAttributeName: "",
+        targetAttributeDisplayName: "",
+        relationshipType: "many-to-one",
+        isRequired: false
+      });
+      setShowRelationshipForm(false);
+      
+      // Refetch relationships
+      refetchRelationships();
+      
+      toast({
+        title: "Relationship created",
+        description: `Created relationship between ${getEntityDisplayName(relationshipFormData.sourceEntity)} and ${getEntityDisplayName(relationshipFormData.targetEntity)}`,
+      });
+    } catch (error) {
+      console.error('Error creating relationship:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create relationship. Please try again.",
+        variant: "destructive",
+      });
     }
   };
-
+  
+  // Relationship type descriptions
+  const relationshipTypeDescriptions: Record<string, string> = {
+    'one-to-one': 'Each source entity can relate to at most one target entity, and vice versa.',
+    'one-to-many': 'Each source entity can relate to multiple target entities, but each target entity relates to at most one source entity.',
+    'many-to-one': 'Multiple source entities can relate to a single target entity, but each source entity relates to at most one target entity.',
+    'many-to-many': 'Multiple source entities can relate to multiple target entities.'
+  };
+  
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-medium">Relationship Configurations</h3>
-        <Button onClick={() => setIsAddRelationshipDialogOpen(true)}>
-          <Plus className="w-4 h-4 mr-2" />
-          Add Relationship
-        </Button>
-      </div>
-
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="text-sm font-medium">Understanding Relationships</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            {RELATIONSHIP_TYPES.map((type) => (
-              <div 
-                key={type.id} 
-                className="border rounded-lg p-4 bg-white"
-              >
-                <div className="font-medium mb-2 flex items-center">
-                  <ArrowRightLeft className="w-4 h-4 mr-2" />
-                  {type.displayName}
-                </div>
-                <p className="text-sm text-gray-600">{type.description}</p>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[150px]">Source Entity</TableHead>
-            <TableHead className="w-[150px]">Target Entity</TableHead>
-            <TableHead className="w-[150px]">Source Attribute</TableHead>
-            <TableHead className="w-[150px]">Target Attribute</TableHead>
-            <TableHead className="w-[150px]">Relationship Type</TableHead>
-            <TableHead className="w-[80px]">System</TableHead>
-            <TableHead className="w-[80px] text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {mockRelationships.map((relationship) => (
-            <TableRow key={relationship.id}>
-              <TableCell>{relationship.sourceEntityDisplayName}</TableCell>
-              <TableCell>{relationship.targetEntityDisplayName}</TableCell>
-              <TableCell>{relationship.sourceAttributeDisplayName}</TableCell>
-              <TableCell>{relationship.targetAttributeDisplayName}</TableCell>
-              <TableCell>
-                <Badge variant="outline">
-                  {getRelationshipTypeLabel(relationship.relationshipType)}
-                </Badge>
-              </TableCell>
-              <TableCell>
-                {relationship.isSystem ? (
-                  <Badge variant="secondary">System</Badge>
-                ) : (
-                  <Badge variant="outline">Custom</Badge>
-                )}
-              </TableCell>
-              <TableCell className="text-right">
-                <Button 
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleEditRelationship(relationship)}
-                  disabled={relationship.isSystem}
-                >
-                  <Settings className="h-4 w-4" />
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-
-      {/* Add Relationship Dialog */}
-      <Dialog open={isAddRelationshipDialogOpen} onOpenChange={setIsAddRelationshipDialogOpen}>
-        <DialogContent className="sm:max-w-[550px]">
-          <DialogHeader>
-            <DialogTitle>Add Relationship</DialogTitle>
-            <DialogDescription>
-              Create a new relationship between entity types
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="sourceEntity" className="text-right">
-                Source Entity
-              </Label>
-              <Select 
-                value={newRelationship.sourceEntity}
-                onValueChange={(value) => setNewRelationship({ ...newRelationship, sourceEntity: value })}
-              >
-                <SelectTrigger id="sourceEntity" className="col-span-3">
-                  <SelectValue placeholder="Select source entity" />
-                </SelectTrigger>
-                <SelectContent>
-                  {ENTITY_TYPES.map((entity) => (
-                    <SelectItem key={entity.id} value={entity.id}>
-                      {entity.displayName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="targetEntity" className="text-right">
-                Target Entity
-              </Label>
-              <Select 
-                value={newRelationship.targetEntity}
-                onValueChange={(value) => setNewRelationship({ ...newRelationship, targetEntity: value })}
-              >
-                <SelectTrigger id="targetEntity" className="col-span-3">
-                  <SelectValue placeholder="Select target entity" />
-                </SelectTrigger>
-                <SelectContent>
-                  {ENTITY_TYPES.filter(e => e.id !== newRelationship.sourceEntity).map((entity) => (
-                    <SelectItem key={entity.id} value={entity.id}>
-                      {entity.displayName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="sourceAttributeName" className="text-right">
-                Source Attribute Name
-              </Label>
-              <Input
-                id="sourceAttributeName"
-                className="col-span-3"
-                placeholder={`${ENTITY_TYPES.find(e => e.id === newRelationship.targetEntity)?.displayName}`}
-                value={newRelationship.sourceAttributeName}
-                onChange={(e) => setNewRelationship({ ...newRelationship, sourceAttributeName: e.target.value })}
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="targetAttributeName" className="text-right">
-                Target Attribute Name
-              </Label>
-              <Input
-                id="targetAttributeName"
-                className="col-span-3"
-                placeholder={`${ENTITY_TYPES.find(e => e.id === newRelationship.sourceEntity)?.displayName}`}
-                value={newRelationship.targetAttributeName}
-                onChange={(e) => setNewRelationship({ ...newRelationship, targetAttributeName: e.target.value })}
-              />
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="relationshipType" className="text-right">
-                Relationship Type
-              </Label>
-              <Select 
-                value={newRelationship.relationshipType}
-                onValueChange={(value) => setNewRelationship({ 
-                  ...newRelationship, 
-                  relationshipType: value as 'one_to_many' | 'many_to_one' | 'many_to_many'
-                })}
-              >
-                <SelectTrigger id="relationshipType" className="col-span-3">
-                  <SelectValue placeholder="Select relationship type" />
-                </SelectTrigger>
-                <SelectContent>
-                  {RELATIONSHIP_TYPES.map((type) => (
-                    <SelectItem key={type.id} value={type.id}>
-                      {type.displayName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="isRequired" className="text-right">
-                Required
-              </Label>
-              <div className="flex items-center space-x-2">
-                <Switch
-                  id="isRequired"
-                  checked={newRelationship.isRequired}
-                  onCheckedChange={(checked) => setNewRelationship({ ...newRelationship, isRequired: checked })}
-                />
-                <Label htmlFor="isRequired">
-                  {newRelationship.isRequired ? 'Required' : 'Optional'}
-                </Label>
-              </div>
-            </div>
-          </div>
-          <DialogFooter>
-            <Button type="submit" onClick={handleAddRelationship}>
-              Add Relationship
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Network className="h-5 w-5" />
+          Relationship Attributes
+        </CardTitle>
+        <CardDescription>
+          Configure relationships between entities in the {environment.displayName} environment
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          <div className="flex justify-between items-center">
+            <h3 className="text-lg font-medium">Current Relationships</h3>
+            <Button 
+              variant="outline" 
+              className="gap-1"
+              onClick={() => setShowRelationshipForm(true)}
+            >
+              <Plus className="h-4 w-4" /> 
+              Create Relationship
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Edit Relationship Dialog */}
-      <Dialog open={isEditRelationshipDialogOpen} onOpenChange={setIsEditRelationshipDialogOpen}>
-        <DialogContent className="sm:max-w-[550px]">
+          </div>
+          
+          {/* Relationships table */}
+          {isLoadingRelationships ? (
+            <div className="py-8 text-center text-gray-500">Loading relationships...</div>
+          ) : (relationshipAttributes?.length || 0) === 0 ? (
+            <div className="py-8 text-center text-gray-500">
+              No relationships defined yet. Click "Create Relationship" to create the first one.
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Source Entity</TableHead>
+                  <TableHead>Relationship</TableHead>
+                  <TableHead>Target Entity</TableHead>
+                  <TableHead>Type</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {relationshipAttributes?.map((rel) => (
+                  <TableRow key={rel.id}>
+                    <TableCell className="font-medium">
+                      {rel.sourceEntityDisplayName || rel.sourceEntityName}
+                      <div className="text-xs text-gray-500">
+                        via {rel.sourceAttributeDisplayName || rel.sourceAttributeName}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center justify-center">
+                        <ArrowRight className="h-4 w-4 text-gray-400" />
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {rel.targetEntityDisplayName || rel.targetEntityName}
+                      <div className="text-xs text-gray-500">
+                        via {rel.targetAttributeDisplayName || rel.targetAttributeName}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="rounded bg-indigo-50 px-2 py-1 text-xs text-indigo-600">
+                        {rel.relationshipType}
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </div>
+      </CardContent>
+      
+      {/* Relationship form dialog */}
+      <Dialog open={showRelationshipForm} onOpenChange={setShowRelationshipForm}>
+        <DialogContent className="max-w-xl">
           <DialogHeader>
-            <DialogTitle>Edit Relationship</DialogTitle>
+            <DialogTitle>Create New Relationship</DialogTitle>
             <DialogDescription>
-              Update the relationship settings
+              Define a relationship between two entity types.
             </DialogDescription>
           </DialogHeader>
-          {selectedRelationship && (
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-sourceEntity" className="text-right">
-                  Source Entity
-                </Label>
-                <Input
-                  id="edit-sourceEntity"
-                  className="col-span-3"
-                  value={selectedRelationship.sourceEntityDisplayName}
-                  disabled
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-targetEntity" className="text-right">
-                  Target Entity
-                </Label>
-                <Input
-                  id="edit-targetEntity"
-                  className="col-span-3"
-                  value={selectedRelationship.targetEntityDisplayName}
-                  disabled
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-sourceAttributeDisplayName" className="text-right">
-                  Source Display Name
-                </Label>
-                <Input
-                  id="edit-sourceAttributeDisplayName"
-                  className="col-span-3"
-                  value={selectedRelationship.sourceAttributeDisplayName}
-                  onChange={(e) => setSelectedRelationship({ 
-                    ...selectedRelationship, 
-                    sourceAttributeDisplayName: e.target.value 
-                  })}
-                  disabled={selectedRelationship.isSystem}
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-targetAttributeDisplayName" className="text-right">
-                  Target Display Name
-                </Label>
-                <Input
-                  id="edit-targetAttributeDisplayName"
-                  className="col-span-3"
-                  value={selectedRelationship.targetAttributeDisplayName}
-                  onChange={(e) => setSelectedRelationship({ 
-                    ...selectedRelationship, 
-                    targetAttributeDisplayName: e.target.value 
-                  })}
-                  disabled={selectedRelationship.isSystem}
-                />
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-relationshipType" className="text-right">
-                  Relationship Type
-                </Label>
+          
+          <form onSubmit={handleSubmitRelationship} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="source-entity">Source Entity</Label>
                 <Select 
-                  value={selectedRelationship.relationshipType}
-                  onValueChange={(value) => setSelectedRelationship({ 
-                    ...selectedRelationship, 
-                    relationshipType: value
-                  })}
-                  disabled={selectedRelationship.isSystem}
+                  value={relationshipFormData.sourceEntity} 
+                  onValueChange={(value) => setRelationshipFormData({...relationshipFormData, sourceEntity: value})}
+                  required
                 >
-                  <SelectTrigger id="edit-relationshipType" className="col-span-3">
-                    <SelectValue placeholder="Select relationship type" />
+                  <SelectTrigger id="source-entity">
+                    <SelectValue placeholder="Select source entity" />
                   </SelectTrigger>
                   <SelectContent>
-                    {RELATIONSHIP_TYPES.map((type) => (
-                      <SelectItem key={type.id} value={type.id}>
-                        {type.displayName}
-                      </SelectItem>
+                    {entityDefinitions?.map((def) => (
+                      <SelectItem key={`src-${def.id}`} value={def.name}>{def.displayName}</SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
               </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="edit-isRequired" className="text-right">
-                  Required
-                </Label>
-                <div className="flex items-center space-x-2">
-                  <Switch
-                    id="edit-isRequired"
-                    checked={selectedRelationship.isRequired}
-                    onCheckedChange={(checked) => setSelectedRelationship({ 
-                      ...selectedRelationship, 
-                      isRequired: checked 
-                    })}
-                    disabled={selectedRelationship.isSystem}
-                  />
-                  <Label htmlFor="edit-isRequired">
-                    {selectedRelationship.isRequired ? 'Required' : 'Optional'}
-                  </Label>
-                </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="target-entity">Target Entity</Label>
+                <Select 
+                  value={relationshipFormData.targetEntity} 
+                  onValueChange={(value) => setRelationshipFormData({...relationshipFormData, targetEntity: value})}
+                  required
+                >
+                  <SelectTrigger id="target-entity">
+                    <SelectValue placeholder="Select target entity" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {entityDefinitions?.map((def) => (
+                      <SelectItem key={`tgt-${def.id}`} value={def.name}>{def.displayName}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
-          )}
-          <DialogFooter>
-            <Button 
-              type="submit" 
-              onClick={handleSaveRelationship} 
-              disabled={selectedRelationship?.isSystem}
-            >
-              Save Changes
-            </Button>
-          </DialogFooter>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="source-attr-name">Source Attribute Name (Optional)</Label>
+                <Input 
+                  id="source-attr-name" 
+                  value={relationshipFormData.sourceAttributeName}
+                  onChange={(e) => setRelationshipFormData({...relationshipFormData, sourceAttributeName: e.target.value})}
+                  placeholder="Leave blank for default"
+                />
+                <p className="text-xs text-gray-500">
+                  Default will be the target entity name
+                </p>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="source-attr-display">Source Display Name (Optional)</Label>
+                <Input 
+                  id="source-attr-display" 
+                  value={relationshipFormData.sourceAttributeDisplayName}
+                  onChange={(e) => setRelationshipFormData({...relationshipFormData, sourceAttributeDisplayName: e.target.value})}
+                  placeholder="Leave blank for default"
+                />
+                <p className="text-xs text-gray-500">
+                  Default will be the target entity display name
+                </p>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="target-attr-name">Target Attribute Name (Optional)</Label>
+                <Input 
+                  id="target-attr-name" 
+                  value={relationshipFormData.targetAttributeName}
+                  onChange={(e) => setRelationshipFormData({...relationshipFormData, targetAttributeName: e.target.value})}
+                  placeholder="Leave blank for default"
+                />
+                <p className="text-xs text-gray-500">
+                  Default will be the source entity name
+                </p>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="target-attr-display">Target Display Name (Optional)</Label>
+                <Input 
+                  id="target-attr-display" 
+                  value={relationshipFormData.targetAttributeDisplayName}
+                  onChange={(e) => setRelationshipFormData({...relationshipFormData, targetAttributeDisplayName: e.target.value})}
+                  placeholder="Leave blank for default"
+                />
+                <p className="text-xs text-gray-500">
+                  Default will be the source entity display name
+                </p>
+              </div>
+            </div>
+            
+            <div className="space-y-2 pt-2">
+              <Label>Relationship Type</Label>
+              <RadioGroup 
+                value={relationshipFormData.relationshipType}
+                onValueChange={(value) => setRelationshipFormData({...relationshipFormData, relationshipType: value})}
+                className="grid grid-cols-2 gap-4 pt-2"
+              >
+                <div className="flex items-start space-x-2">
+                  <RadioGroupItem value="one-to-one" id="rel-one-to-one" />
+                  <div className="grid gap-1">
+                    <Label htmlFor="rel-one-to-one" className="font-medium">One-to-One</Label>
+                    <p className="text-xs text-gray-500">
+                      {relationshipTypeDescriptions['one-to-one']}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start space-x-2">
+                  <RadioGroupItem value="one-to-many" id="rel-one-to-many" />
+                  <div className="grid gap-1">
+                    <Label htmlFor="rel-one-to-many" className="font-medium">One-to-Many</Label>
+                    <p className="text-xs text-gray-500">
+                      {relationshipTypeDescriptions['one-to-many']}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start space-x-2">
+                  <RadioGroupItem value="many-to-one" id="rel-many-to-one" />
+                  <div className="grid gap-1">
+                    <Label htmlFor="rel-many-to-one" className="font-medium">Many-to-One</Label>
+                    <p className="text-xs text-gray-500">
+                      {relationshipTypeDescriptions['many-to-one']}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start space-x-2">
+                  <RadioGroupItem value="many-to-many" id="rel-many-to-many" />
+                  <div className="grid gap-1">
+                    <Label htmlFor="rel-many-to-many" className="font-medium">Many-to-Many</Label>
+                    <p className="text-xs text-gray-500">
+                      {relationshipTypeDescriptions['many-to-many']}
+                    </p>
+                  </div>
+                </div>
+              </RadioGroup>
+            </div>
+            
+            <div className="pt-2">
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="rel-required"
+                  checked={relationshipFormData.isRequired}
+                  onCheckedChange={(checked) => 
+                    setRelationshipFormData({
+                      ...relationshipFormData, 
+                      isRequired: checked === true
+                    })
+                  }
+                />
+                <Label htmlFor="rel-required">Make relationship required for source entity</Label>
+              </div>
+            </div>
+            
+            <div className="flex justify-end space-x-2 pt-4">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => setShowRelationshipForm(false)}
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit"
+                disabled={!relationshipFormData.sourceEntity || !relationshipFormData.targetEntity}
+              >
+                Create Relationship
+              </Button>
+            </div>
+          </form>
         </DialogContent>
       </Dialog>
-    </div>
+    </Card>
   );
 }
