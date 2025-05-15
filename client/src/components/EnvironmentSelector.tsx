@@ -59,7 +59,6 @@ export default function EnvironmentSelector({ collapsed = false }: EnvironmentSe
               </div>
               <span className="text-sm font-medium text-gray-900 group-hover:text-indigo-600">{environment.name}</span>
             </div>
-            <ChevronDown className="h-4 w-4 text-gray-500" />
           </SelectTrigger>
           <SelectContent className="border border-gray-200 shadow-md p-1 bg-white">
             {environments.map(env => (
