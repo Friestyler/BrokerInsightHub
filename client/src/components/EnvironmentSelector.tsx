@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { ChevronDown } from "lucide-react";
 import {
   Select,
@@ -15,13 +15,17 @@ interface EnvironmentSelectorProps {
 
 export default function EnvironmentSelector({ collapsed = false }: EnvironmentSelectorProps) {
   const { environment, setEnvironment, environments } = useEnvironment();
+  const [isDropdownOpen, setIsDropdownOpen] = React.useState(false);
   
-  // If sidebar is collapsed, show a dropdown that appears on hover
+  // If sidebar is collapsed, create a dropdown menu that can be clicked
   if (collapsed) {
     return (
-      <div className="relative group flex justify-center">
+      <div className="relative flex justify-center">
         {/* The icon trigger */}
-        <div className="flex items-center justify-center w-10 h-10 text-xs rounded-md hover:bg-indigo-50 cursor-pointer">
+        <div 
+          className="flex items-center justify-center w-10 h-10 text-xs rounded-md hover:bg-indigo-50 cursor-pointer"
+          onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+        >
           {environment.logo ? (
             <div className="w-7 h-7 flex items-center justify-center">
               <img 
@@ -37,27 +41,32 @@ export default function EnvironmentSelector({ collapsed = false }: EnvironmentSe
           )}
         </div>
         
-        {/* Dropdown that appears on hover */}
-        <div className="absolute left-16 top-0 invisible group-hover:visible bg-white border border-gray-200 rounded-md shadow-md py-1 z-50 w-48">
-          {environments.map(env => (
-            <div 
-              key={env.id} 
-              className={`flex items-center p-2 cursor-pointer ${env.id === environment.id ? 'bg-indigo-50 text-indigo-600' : 'hover:bg-indigo-50 hover:text-indigo-600'}`}
-              onClick={() => setEnvironment(env.id)}
-            >
-              <div className="flex items-center justify-center w-7 h-7 mr-2 text-xs">
-                {env.logo ? (
-                  <img src={env.logo} alt={env.name} className="w-6 h-6 object-contain" />
-                ) : (
-                  <div className="w-6 h-6 rounded-sm flex items-center justify-center text-gray-700 uppercase">
-                    {env.name.substring(0, 2)}
-                  </div>
-                )}
+        {/* Dropdown that appears on click */}
+        {isDropdownOpen && (
+          <div className="absolute left-16 top-0 bg-white border border-gray-200 rounded-md shadow-md py-1 z-50 w-48">
+            {environments.map(env => (
+              <div 
+                key={env.id} 
+                className={`flex items-center p-2 cursor-pointer ${env.id === environment.id ? 'bg-indigo-50 text-indigo-600' : 'hover:bg-indigo-50 hover:text-indigo-600'}`}
+                onClick={() => {
+                  setEnvironment(env.id);
+                  setIsDropdownOpen(false);
+                }}
+              >
+                <div className="flex items-center justify-center w-7 h-7 mr-2 text-xs">
+                  {env.logo ? (
+                    <img src={env.logo} alt={env.name} className="w-6 h-6 object-contain" />
+                  ) : (
+                    <div className="w-6 h-6 rounded-sm flex items-center justify-center text-gray-700 uppercase">
+                      {env.name.substring(0, 2)}
+                    </div>
+                  )}
+                </div>
+                <span className="font-medium text-sm">{env.name}</span>
               </div>
-              <span className="font-medium text-sm">{env.name}</span>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     );
   }
