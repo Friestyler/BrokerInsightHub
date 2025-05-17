@@ -22,7 +22,6 @@ import EnvironmentRouteGuard from "@/components/EnvironmentRouteGuard";
 // Temporary placeholder components for other list pages
 const ProjectsPage = () => <div className="p-6"><h1 className="text-2xl font-bold">Projects List (Coming Soon)</h1></div>;
 const ContactsPage = () => <div className="p-6"><h1 className="text-2xl font-bold">Contacts List (Coming Soon)</h1></div>;
-const ProductsPage = () => <div className="p-6"><h1 className="text-2xl font-bold">Products List (Coming Soon)</h1></div>;
 
 function Router() {
   return (
@@ -39,7 +38,6 @@ function Router() {
         <Route path="/lists/opportunities" component={OpportunitiesPage} />
         <Route path="/lists/projects" component={ProjectsPage} />
         <Route path="/lists/contacts" component={ContactsPage} />
-        <Route path="/lists/products" component={ProductsPage} />
         
         {/* Prevent access to Campaigns page in ACME environment */}
         <Route path="/campaigns">

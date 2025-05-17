@@ -1,9 +1,11 @@
 import { 
   users, type User, type InsertUser,
   newsArticles, type NewsArticle, type InsertNewsArticle,
+  // Using the legacy clients/products tables during transition
   clients, type Client, type InsertClient,
   insuranceProducts, type InsuranceProduct, type InsertInsuranceProduct,
   clientProducts, type ClientProduct, type InsertClientProduct,
+  // Original tables still in use
   opportunities, type Opportunity, type InsertOpportunity,
   documents, type Document, type InsertDocument,
   fileComparisons, type FileComparison, type InsertFileComparison,
@@ -693,4 +695,4 @@ export class DatabaseStorage implements IStorage {
 }
 
 // Use the database storage implementation
-export const storage = new DatabaseStorage();
+export const storage = new MemStorage();
