@@ -13,8 +13,16 @@ import PredictOpportunities from "@/pages/PredictOpportunities";
 import CrossSellCampaigns from "@/pages/CrossSellCampaigns";
 import Clients from "@/pages/Clients";
 import ClientDetail from "@/pages/ClientDetail";
+import PartnersPage from "@/pages/lists/PartnersPage";
+import CustomersPage from "@/pages/lists/CustomersPage";
 import NotFound from "@/pages/not-found";
 import EnvironmentRouteGuard from "@/components/EnvironmentRouteGuard";
+
+// Temporary placeholder components for other list pages
+const OpportunitiesPage = () => <div className="p-6"><h1 className="text-2xl font-bold">Opportunities List (Coming Soon)</h1></div>;
+const ProjectsPage = () => <div className="p-6"><h1 className="text-2xl font-bold">Projects List (Coming Soon)</h1></div>;
+const ContactsPage = () => <div className="p-6"><h1 className="text-2xl font-bold">Contacts List (Coming Soon)</h1></div>;
+const ProductsPage = () => <div className="p-6"><h1 className="text-2xl font-bold">Products List (Coming Soon)</h1></div>;
 
 function Router() {
   return (
@@ -24,6 +32,15 @@ function Router() {
         <Route path="/news" component={InsuranceNews} />
         <Route path="/compare" component={CompareFiles} />
         <Route path="/predict" component={PredictOpportunities} />
+        
+        {/* Lists section routes */}
+        <Route path="/lists/partners" component={PartnersPage} />
+        <Route path="/lists/customers" component={CustomersPage} />
+        <Route path="/lists/opportunities" component={OpportunitiesPage} />
+        <Route path="/lists/projects" component={ProjectsPage} />
+        <Route path="/lists/contacts" component={ContactsPage} />
+        <Route path="/lists/products" component={ProductsPage} />
+        
         {/* Prevent access to Campaigns page in ACME environment */}
         <Route path="/campaigns">
           {() => (
@@ -33,8 +50,11 @@ function Router() {
             />
           )}
         </Route>
+        
+        {/* Legacy routes - will be migrated to new structure */}
         <Route path="/clients" component={Clients} />
         <Route path="/clients/:id" component={ClientDetail} />
+        
         <Route component={NotFound} />
       </Switch>
     </Layout>
