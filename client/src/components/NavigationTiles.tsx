@@ -22,6 +22,12 @@ export default function NavigationTiles() {
     }
   };
 
+  // If the environment is My Qollabi, don't show any tiles as we're rebuilding from scratch
+  if (environment.id === 'myqollabi') {
+    return null;
+  }
+
+  // For all other environments, show the original tiles
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-10">
       <div 
@@ -66,7 +72,7 @@ export default function NavigationTiles() {
         </CardContent>
       </div>
       
-      {/* Cross & Upsell Campaigns tile - shown for all environments but with different behavior */}
+      {/* Cross & Upsell Campaigns tile - shown for all environments except ACME with different behavior */}
       <div 
         className={`navigation-tile ${environment.id === 'acme' ? 'cursor-default' : ''}`}
         onClick={handleCampaignClick}
