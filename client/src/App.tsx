@@ -15,11 +15,11 @@ import Clients from "@/pages/Clients";
 import ClientDetail from "@/pages/ClientDetail";
 import PartnersPage from "@/pages/lists/PartnersPage";
 import CustomersPage from "@/pages/lists/CustomersPage";
+import OpportunitiesPage from "@/pages/lists/OpportunitiesPage";
 import NotFound from "@/pages/not-found";
 import EnvironmentRouteGuard from "@/components/EnvironmentRouteGuard";
 
 // Temporary placeholder components for other list pages
-const OpportunitiesPage = () => <div className="p-6"><h1 className="text-2xl font-bold">Opportunities List (Coming Soon)</h1></div>;
 const ProjectsPage = () => <div className="p-6"><h1 className="text-2xl font-bold">Projects List (Coming Soon)</h1></div>;
 const ContactsPage = () => <div className="p-6"><h1 className="text-2xl font-bold">Contacts List (Coming Soon)</h1></div>;
 const ProductsPage = () => <div className="p-6"><h1 className="text-2xl font-bold">Products List (Coming Soon)</h1></div>;

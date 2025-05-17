@@ -215,36 +215,6 @@ export default function PartnersPage() {
       sortOptions={sortOptions}
       viewOptions={viewOptions}
     >
-      <div className="flex justify-end mb-4">
-        <div className="inline-flex rounded-md shadow-sm">
-          <Button 
-            variant={viewType === 'table' ? 'default' : 'outline'} 
-            size="sm"
-            className={viewType === 'table' ? 'bg-indigo-600 hover:bg-indigo-700' : ''}
-            onClick={() => setViewType('table')}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-              <path d="M3 3h18v18H3zM3 9h18M9 21V9"/>
-            </svg>
-            Table
-          </Button>
-          <Button 
-            variant={viewType === 'cards' ? 'default' : 'outline'} 
-            size="sm"
-            className={`ml-0.5 ${viewType === 'cards' ? 'bg-indigo-600 hover:bg-indigo-700' : ''}`}
-            onClick={() => setViewType('cards')}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-              <rect width="7" height="7" x="3" y="3" rx="1" />
-              <rect width="7" height="7" x="14" y="3" rx="1" />
-              <rect width="7" height="7" x="14" y="14" rx="1" />
-              <rect width="7" height="7" x="3" y="14" rx="1" />
-            </svg>
-            Cards
-          </Button>
-        </div>
-      </div>
-      
       {viewType === 'table' ? <PartnersTable /> : <PartnersCardView />}
     </ListLayout>
   );
