@@ -5,8 +5,43 @@ import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 
-// Dashboard for My Qollabi environment - SHOWS news section
+// New clean Dashboard for My Qollabi environment
 function MyQollabiDashboard() {
+  return (
+    <div className="p-5 bg-white">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-6">
+          <h1 className="text-2xl font-bold text-gray-900">Partner Copilot</h1>
+          <p className="text-gray-600 mt-1">Welcome to your collaboration hub. Manage your partners, customers, and opportunities.</p>
+        </div>
+        
+        <NavigationTiles />
+        
+        {/* More sections to be added in future development */}
+      </div>
+    </div>
+  );
+}
+
+// Dashboard for ACME environment - NO news section
+function ACMEDashboard() {
+  return (
+    <div className="p-5 bg-white">
+      <div className="max-w-7xl mx-auto">
+        <div className="mb-6">
+          <p className="text-gray-600 mt-1 text-sm">Access intelligent tools to enhance your brokerage efficiency</p>
+        </div>
+        
+        <NavigationTiles />
+        
+        {/* Latest Insurance News section removed for ACME environment */}
+      </div>
+    </div>
+  );
+}
+
+// Archive of the original My Qollabi dashboard - moved to Globex Corp
+function GlobexDashboard() {
   const { data: newsArticles, isLoading, refetch } = useQuery({
     queryKey: ['/api/news'],
     queryFn: async () => {
@@ -31,7 +66,7 @@ function MyQollabiDashboard() {
         
         <NavigationTiles />
         
-        {/* My Qollabi environment shows the news section */}
+        {/* News section */}
         <div className="mt-12">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-lg font-semibold text-gray-800">Latest Insurance News</h2>
@@ -123,23 +158,6 @@ function MyQollabiDashboard() {
   );
 }
 
-// Dashboard for ACME environment - NO news section
-function ACMEDashboard() {
-  return (
-    <div className="p-5 bg-white">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-6">
-          <p className="text-gray-600 mt-1 text-sm">Access intelligent tools to enhance your brokerage efficiency</p>
-        </div>
-        
-        <NavigationTiles />
-        
-        {/* Latest Insurance News section removed for ACME environment */}
-      </div>
-    </div>
-  );
-}
-
 // Main Dashboard component that selects the appropriate dashboard based on environment
 export default function Dashboard() {
   const { environment } = useEnvironment();
@@ -147,6 +165,8 @@ export default function Dashboard() {
   // Render the appropriate dashboard based on environment
   if (environment.id === 'acme') {
     return <ACMEDashboard />;
+  } else if (environment.id === 'globex') {
+    return <GlobexDashboard />;
   }
   
   // Default to My Qollabi dashboard
