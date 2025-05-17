@@ -22,11 +22,13 @@ export default function EnvironmentSelector({ collapsed = false }: EnvironmentSe
       <div className="flex justify-center">
         <div className="flex items-center justify-center w-10 h-10 text-xs rounded-md hover:bg-indigo-50 cursor-pointer">
           {environment.logo ? (
-            <img 
-              src={environment.logo} 
-              alt={environment.name} 
-              className="w-7 h-7"
-            />
+            <div className="w-7 h-7 flex items-center justify-center">
+              <img 
+                src={environment.logo} 
+                alt={environment.name} 
+                className="max-w-full max-h-full object-contain"
+              />
+            </div>
           ) : (
             <div className="w-7 h-7 rounded-sm flex items-center justify-center text-gray-700 bg-gray-50 border border-gray-200 uppercase hover:bg-indigo-50">
               {environment.name.substring(0, 2)}

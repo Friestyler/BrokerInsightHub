@@ -58,11 +58,11 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
       
       {/* Logo at the top left */}
       <div className="pt-4 px-4 pb-1 flex justify-center md:justify-start flex-shrink-0">
-        <div className="w-12 h-12 flex items-center justify-center">
+        <div className={`${collapsed ? "w-10 h-10" : "w-12 h-12"} flex items-center justify-center`}>
           <img 
             src={qollabiLogo} 
             alt="Qollabi Logo" 
-            className={`${collapsed ? "w-10 h-10" : "w-12 h-12"}`}
+            className="max-w-full max-h-full object-contain"
           />
         </div>
       </div>
