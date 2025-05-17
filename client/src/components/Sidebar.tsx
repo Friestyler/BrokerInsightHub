@@ -89,13 +89,15 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
             {environment.id === 'myqollabi' ? 'Broker Copilot' : 'Partner Copilot'}
           </span>
         </Link>
-        <div ref={dataMenuRef}>
+        <div ref={dataMenuRef} className={`relative ${collapsed ? "group" : ""}`}>
           <a 
             href="#" 
             className={`flex items-center py-2.5 px-4 rounded-md ${dataMenuOpen ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
             onClick={(e) => {
               e.preventDefault();
-              setDataMenuOpen(!dataMenuOpen);
+              if (!collapsed) {
+                setDataMenuOpen(!dataMenuOpen);
+              }
             }}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-center" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -124,12 +126,12 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
             )}
           </a>
           
-          {/* Dropdown menu - shown differently based on collapsed state */}
-          {dataMenuOpen && (
-            <div className={`mt-0.5 ${collapsed ? "absolute left-16 top-[70px] bg-white border border-gray-200 rounded-md shadow-md py-1 z-50 w-48" : ""}`}>
+          {/* Dropdown menu for expanded sidebar */}
+          {dataMenuOpen && !collapsed && (
+            <div className="mt-0.5">
               <Link 
                 href="/lists/partners" 
-                className={`flex py-2 text-sm ${collapsed ? "px-4" : "pl-12"} ${location.startsWith("/lists/partners") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
+                className={`flex py-2 text-sm pl-12 ${location.startsWith("/lists/partners") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
@@ -141,7 +143,7 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
               </Link>
               <Link 
                 href="/lists/customers" 
-                className={`flex py-2 text-sm ${collapsed ? "px-4" : "pl-12"} ${location.startsWith("/lists/customers") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
+                className={`flex py-2 text-sm pl-12 ${location.startsWith("/lists/customers") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -151,7 +153,7 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
               </Link>
               <Link 
                 href="/lists/opportunities" 
-                className={`flex py-2 text-sm ${collapsed ? "px-4" : "pl-12"} ${location.startsWith("/lists/opportunities") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
+                className={`flex py-2 text-sm pl-12 ${location.startsWith("/lists/opportunities") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
@@ -160,7 +162,7 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
               </Link>
               <Link 
                 href="/lists/projects" 
-                className={`flex py-2 text-sm ${collapsed ? "px-4" : "pl-12"} ${location.startsWith("/lists/projects") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
+                className={`flex py-2 text-sm pl-12 ${location.startsWith("/lists/projects") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
@@ -170,7 +172,64 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
               </Link>
               <Link 
                 href="/lists/contacts" 
-                className={`flex py-2 text-sm ${collapsed ? "px-4" : "pl-12"} ${location.startsWith("/lists/contacts") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
+                className={`flex py-2 text-sm pl-12 ${location.startsWith("/lists/contacts") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                  <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                </svg>
+                Contacts
+              </Link>
+            </div>
+          )}
+          
+          {/* Hover dropdown menu for collapsed sidebar */}
+          {collapsed && (
+            <div className="absolute left-16 top-0 invisible group-hover:visible bg-white border border-gray-200 rounded-md shadow-md py-1 z-50 w-48">
+              <Link 
+                href="/lists/partners" 
+                className={`flex py-2 text-sm px-4 ${location.startsWith("/lists/partners") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="9" cy="7" r="4"></circle>
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                </svg>
+                Partners
+              </Link>
+              <Link 
+                href="/lists/customers" 
+                className={`flex py-2 text-sm px-4 ${location.startsWith("/lists/customers") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                  <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                Customers
+              </Link>
+              <Link 
+                href="/lists/opportunities" 
+                className={`flex py-2 text-sm px-4 ${location.startsWith("/lists/opportunities") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
+                </svg>
+                Opportunities
+              </Link>
+              <Link 
+                href="/lists/projects" 
+                className={`flex py-2 text-sm px-4 ${location.startsWith("/lists/projects") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                </svg>
+                Projects
+              </Link>
+              <Link 
+                href="/lists/contacts" 
+                className={`flex py-2 text-sm px-4 ${location.startsWith("/lists/contacts") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
