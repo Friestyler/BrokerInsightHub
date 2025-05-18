@@ -1057,10 +1057,7 @@ export default function MetricsPage() {
                       <Button variant="outline" size="sm">
                         Apply
                       </Button>
-                      <Link href={`/templates/groups/${group.id}`} onClick={(e) => {
-                        e.preventDefault();
-                        window.location.href = `/templates/groups/${group.id}`;
-                      }}>
+                      <Link href={`/templates/groups/${group.id}`}>
                         <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700">
                           Edit Group
                         </Button>
