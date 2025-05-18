@@ -1,7 +1,7 @@
 import { useState, useRef, DragEvent } from 'react';
-import { useParams, Link } from 'wouter';
+import { useParams } from 'wouter';
 import { format } from 'date-fns';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
@@ -17,8 +17,7 @@ import {
 } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useEnvironment } from "@/contexts/EnvironmentContext";
-import { Bookmark, Filter, Search, Share } from "lucide-react";
+
 
 // Mock data for a partner
 const mockPartnerData = {
@@ -270,7 +269,6 @@ function ProgressBar({ progress, type = "default" }: { progress: number, type?: 
 
 export default function PartnerDetail() {
   const { id } = useParams();
-  const { environmentName } = useEnvironment();
   
   // State for partner description editing
   const [isEditingDescription, setIsEditingDescription] = useState(false);
@@ -278,7 +276,6 @@ export default function PartnerDetail() {
   
   // Tabs state
   const [activeTab, setActiveTab] = useState("okr");
-  const [activeView, setActiveView] = useState("default");
   const [tabOrder, setTabOrder] = useState<string[]>(["okr", "opportunities", "customers"]);
   const [tabNames, setTabNames] = useState<Record<string, string>>({
     okr: "OKR plans",
@@ -288,15 +285,9 @@ export default function PartnerDetail() {
   const [isEditingTabName, setIsEditingTabName] = useState("");
   const [editedTabName, setEditedTabName] = useState("");
   const [selectedItems, setSelectedItems] = useState<number[]>([]);
-  const [showSaveListModal, setShowSaveListModal] = useState(false);
-  const [saveListName, setSaveListName] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
-  const [activeFilters, setActiveFilters] = useState<{
-    status?: string;
-    industry?: string;
-    size?: string;
-  }>({});
+  
   const dragTab = useRef<string | null>(null);
   const dragOverTab = useRef<string | null>(null);
   
@@ -384,7 +375,7 @@ export default function PartnerDetail() {
   
   // Handle saving a list
   const handleSaveList = () => {
-    setShowSaveListModal(true);
+    console.log("Saving list with items:", selectedItems);
   };
   
   const handleAddToCampaign = () => {
@@ -399,8 +390,6 @@ export default function PartnerDetail() {
   
   return (
     <div className="container mx-auto px-4 py-6">
-
-
       {/* Partner header */}
       <div className="mb-8">
         <div className="flex justify-between items-start">
