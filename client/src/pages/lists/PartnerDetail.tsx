@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef, DragEvent } from 'react';
 import { useParams, Link } from 'wouter';
 import { format } from 'date-fns';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
@@ -7,7 +7,18 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle
+} from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
+import { Bookmark } from "lucide-react";
 
 // Mock data for a partner
 const mockPartnerData = {
@@ -277,6 +288,21 @@ export default function PartnerDetail() {
   const [description, setDescription] = useState(mockPartnerData.description);
   const [activeTab, setActiveTab] = useState("okr");
   const [activeView, setActiveView] = useState("default");
+  const [tabOrder, setTabOrder] = useState<string[]>(["okr", "opportunities", "customers"]);
+  const [tabNames, setTabNames] = useState<Record<string, string>>({
+    okr: "OKR plans",
+    opportunities: "Opportunities",
+    customers: "Customers"
+  });
+  const [isEditingTabName, setIsEditingTabName] = useState("");
+  const [editedTabName, setEditedTabName] = useState("");
+  const [selectedItems, setSelectedItems] = useState<number[]>([]);
+  const [showSaveListModal, setShowSaveListModal] = useState(false);
+  const [saveListName, setSaveListName] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterOpen, setFilterOpen] = useState(false);
+  const dragTab = useRef<string | null>(null);
+  const dragOverTab = useRef<string | null>(null);
   
   // Get partner data (using mock data for now)
   const partner = mockPartnerData;
@@ -289,6 +315,78 @@ export default function PartnerDetail() {
   const handleDescriptionSave = () => {
     // Here would be an API call to save the description
     setIsEditingDescription(false);
+  };
+  
+  // Handle tab drag and drop
+  const handleDragStart = (event: DragEvent<HTMLDivElement>, tab: string) => {
+    dragTab.current = tab;
+    event.dataTransfer.effectAllowed = 'move';
+  };
+  
+  const handleDragOver = (event: DragEvent<HTMLDivElement>, tab: string) => {
+    event.preventDefault();
+    if (dragTab.current !== tab) {
+      dragOverTab.current = tab;
+    }
+  };
+  
+  const handleDrop = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    if (dragTab.current && dragOverTab.current) {
+      const newTabOrder = [...tabOrder];
+      const dragIndex = newTabOrder.indexOf(dragTab.current);
+      const dropIndex = newTabOrder.indexOf(dragOverTab.current);
+      
+      if (dragIndex !== -1 && dropIndex !== -1) {
+        // Remove the dragged tab
+        newTabOrder.splice(dragIndex, 1);
+        // Insert it at the new position
+        newTabOrder.splice(dropIndex, 0, dragTab.current);
+        setTabOrder(newTabOrder);
+      }
+      
+      // Reset references
+      dragTab.current = null;
+      dragOverTab.current = null;
+    }
+  };
+  
+  // Handle tab name editing
+  const startEditingTabName = (tab: string) => {
+    setIsEditingTabName(tab);
+    setEditedTabName(tabNames[tab] || "");
+  };
+  
+  const saveTabName = () => {
+    if (isEditingTabName && editedTabName.trim()) {
+      setTabNames({
+        ...tabNames,
+        [isEditingTabName]: editedTabName.trim()
+      });
+      setIsEditingTabName("");
+    }
+  };
+  
+  // Handle item selection
+  const toggleItemSelection = (id: number) => {
+    setSelectedItems(prev => 
+      prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
+    );
+  };
+  
+  const toggleSelectAll = (items: any[]) => {
+    if (selectedItems.length === items.length) {
+      setSelectedItems([]);
+    } else {
+      setSelectedItems(items.map(item => item.id));
+    }
+  };
+  
+  // Handle save list
+  const handleSaveList = () => {
+    // Save logic would go here
+    setShowSaveListModal(false);
+    setSaveListName("");
   };
   
   return (
@@ -364,54 +462,219 @@ export default function PartnerDetail() {
             onValueChange={setActiveTab}
             className="w-full"
           >
-            <TabsList className="grid w-96 grid-cols-3">
-              <TabsTrigger value="okr">OKR plans</TabsTrigger>
-              <TabsTrigger value="opportunities">Opportunities</TabsTrigger>
-              <TabsTrigger value="customers">Customers</TabsTrigger>
-            </TabsList>
+            <div className="flex items-center border-b space-x-1 overflow-x-auto">
+              {tabOrder.map((tab) => (
+                <div 
+                  key={tab}
+                  draggable
+                  onDragStart={(e) => handleDragStart(e, tab)}
+                  onDragOver={(e) => handleDragOver(e, tab)}
+                  onDrop={handleDrop}
+                  className="relative"
+                >
+                  <div 
+                    className={`px-4 py-2 cursor-pointer flex items-center ${
+                      activeTab === tab 
+                        ? 'bg-indigo-100 text-indigo-700 rounded-t-md border-b-2 border-indigo-600' 
+                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                    }`}
+                    onClick={() => setActiveTab(tab)}
+                  >
+                    {isEditingTabName === tab ? (
+                      <Input
+                        value={editedTabName}
+                        onChange={(e) => setEditedTabName(e.target.value)}
+                        onBlur={saveTabName}
+                        onKeyDown={(e) => e.key === 'Enter' && saveTabName()}
+                        className="w-40 h-8 text-sm"
+                        autoFocus
+                      />
+                    ) : (
+                      <div 
+                        onDoubleClick={() => startEditingTabName(tab)}
+                        className="cursor-text"
+                      >
+                        {tabNames[tab] || tab}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
             
             <div className="flex justify-between mt-4">
               <div className="flex gap-3 items-center">
-                {/* View selector placeholder */}
-                <div className="flex items-center space-x-2">
-                  <Button variant="outline" size="sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                      <path d="M21 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h6"></path>
-                      <path d="M16 8.4V3h5.4"></path>
-                      <path d="M21 3l-7.4 7.4"></path>
+                {/* View selector and filters */}
+                <div className="flex items-center space-x-3">
+                  <div className="flex items-center space-x-2">
+                    <Button variant="outline" size="sm" className="flex items-center">
+                      <Bookmark className="h-4 w-4 mr-1" />
+                      <span>Saved Lists</span>
+                    </Button>
+                    
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setFilterOpen(!filterOpen)}
+                      className={filterOpen ? "bg-gray-100" : ""}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                      </svg>
+                      Filters
+                    </Button>
+                    
+                    {searchTerm && (
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        onClick={() => setSearchTerm("")}
+                        className="text-gray-500 hover:text-gray-700"
+                      >
+                        Clear filters
+                      </Button>
+                    )}
+                  </div>
+                  
+                  <div className="relative w-64">
+                    <Input
+                      className="pl-8"
+                      placeholder="Search..."
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                      />
                     </svg>
-                    Add view
-                  </Button>
+                  </div>
                 </div>
               </div>
               
-              <div className="flex items-center gap-2">
-                <div className="text-sm text-gray-500 mr-2">Team</div>
-                <div className="flex -space-x-2">
-                  {partner.team.map((member, idx) => (
-                    <Avatar key={idx} className="h-8 w-8 border-2 border-white">
-                      <AvatarFallback className="bg-indigo-100 text-indigo-600">
-                        {member.initials}
-                      </AvatarFallback>
-                    </Avatar>
-                  ))}
-                  <div className="h-8 w-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center border-2 border-white text-xs">
-                    +2
+              {/* Selection actions */}
+              {selectedItems.length > 0 && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-700 font-medium">
+                    {selectedItems.length} item{selectedItems.length > 1 ? 's' : ''} selected
+                  </span>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setShowSaveListModal(true)}
+                  >
+                    <Bookmark className="h-4 w-4 mr-1" />
+                    Save {selectedItems.length > 1 ? 'items' : 'item'} to list
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                      <circle cx="18" cy="5" r="3"></circle>
+                      <circle cx="6" cy="12" r="3"></circle>
+                      <circle cx="18" cy="19" r="3"></circle>
+                      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                    </svg>
+                    Share
+                  </Button>
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                      <polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline>
+                      <path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path>
+                    </svg>
+                    Add to Campaign
+                  </Button>
+                </div>
+              )}
+              
+              {/* Team display when nothing selected */}
+              {selectedItems.length === 0 && (
+                <div className="flex items-center gap-2">
+                  <div className="text-sm text-gray-500 mr-2">Team</div>
+                  <div className="flex -space-x-2">
+                    {partner.team.map((member, idx) => (
+                      <Avatar key={idx} className="h-8 w-8 border-2 border-white">
+                        <AvatarFallback className="bg-indigo-100 text-indigo-600">
+                          {member.initials}
+                        </AvatarFallback>
+                      </Avatar>
+                    ))}
+                    <div className="h-8 w-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center border-2 border-white text-xs">
+                      +2
+                    </div>
+                  </div>
+                  
+                  <Button className="bg-indigo-600 hover:bg-indigo-700">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                      <circle cx="18" cy="5" r="3"></circle>
+                      <circle cx="6" cy="12" r="3"></circle>
+                      <circle cx="18" cy="19" r="3"></circle>
+                      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                    </svg>
+                    Share
+                  </Button>
+                </div>
+              )}
+            </div>
+            
+            {/* Save List Modal */}
+            <Dialog open={showSaveListModal} onOpenChange={setShowSaveListModal}>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Save to List</DialogTitle>
+                  <DialogDescription>
+                    Create a new list or add to an existing list.
+                  </DialogDescription>
+                </DialogHeader>
+                <div className="py-4">
+                  <Input
+                    placeholder="List name"
+                    value={saveListName}
+                    onChange={(e) => setSaveListName(e.target.value)}
+                    className="mb-4"
+                  />
+                  <div className="text-sm font-medium mb-2">Or add to existing list:</div>
+                  <div className="space-y-2 max-h-40 overflow-y-auto">
+                    {["My active customers", "High value customers", "Q2 targets"].map((list, idx) => (
+                      <div key={idx} className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded cursor-pointer">
+                        <Bookmark className="h-4 w-4" />
+                        <span>{list}</span>
+                      </div>
+                    ))}
                   </div>
                 </div>
-                
-                <Button className="bg-indigo-600 hover:bg-indigo-700">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                    <circle cx="18" cy="5" r="3"></circle>
-                    <circle cx="6" cy="12" r="3"></circle>
-                    <circle cx="18" cy="19" r="3"></circle>
-                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                  </svg>
-                  Share
-                </Button>
-              </div>
-            </div>
+                <DialogFooter className="sm:justify-end">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowSaveListModal(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button 
+                    type="submit"
+                    onClick={handleSaveList}
+                    disabled={!saveListName && true}
+                  >
+                    Save
+                  </Button>
+                </DialogFooter>
+              </DialogContent>
+            </Dialog>
 
             <TabsContent value="okr" className="mt-4">
               {/* OKR content */}
