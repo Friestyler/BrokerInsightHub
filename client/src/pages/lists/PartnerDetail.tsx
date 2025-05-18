@@ -429,25 +429,25 @@ export default function PartnerDetail() {
                         </svg>
                       </div>
                       <div className="flex items-center w-3/4">
-                        <div className="w-16 text-center">
+                        <div className="w-16 text-right">
                           <span className="text-sm font-medium text-gray-600">Realized</span>
                         </div>
-                        <div className="w-16 text-center">
+                        <div className="w-16 text-right">
                           <span className="text-sm font-medium text-gray-600">Target</span>
                         </div>
                         <div className="w-24 text-center">
                           <span className="text-sm font-medium text-gray-600">Progress</span>
                         </div>
-                        <div className="w-10 text-center">
+                        <div className="w-10 flex justify-center">
                           <span className="text-sm font-medium text-gray-600">TL</span>
                         </div>
-                        <div className="w-28 text-center">
+                        <div className="w-28 flex justify-center">
                           <span className="text-sm font-medium text-gray-600">Due date</span>
                         </div>
-                        <div className="w-16 text-center">
+                        <div className="w-16 flex justify-center">
                           <span className="text-sm font-medium text-gray-600">Resp.</span>
                         </div>
-                        <div className="w-32 text-center">
+                        <div className="w-32 flex justify-end">
                           <span className="text-sm font-medium text-gray-600">Comments</span>
                         </div>
                       </div>

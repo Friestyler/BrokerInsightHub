@@ -15,6 +15,13 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
   const [dataMenuOpen, setDataMenuOpen] = useState(false);
   const dataMenuRef = useRef<HTMLDivElement>(null);
   const { environment } = useEnvironment();
+  
+  // Auto-open the Lists menu when on a Lists page
+  useEffect(() => {
+    if (location.startsWith('/lists')) {
+      setDataMenuOpen(true);
+    }
+  }, [location]);
 
   const isActive = (path: string) => {
     return location === path || (path === "/" && ["/news", "/compare", "/predict"].includes(location));

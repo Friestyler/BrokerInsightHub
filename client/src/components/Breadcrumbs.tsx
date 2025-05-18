@@ -19,83 +19,45 @@ export default function Breadcrumbs() {
     let currentPath = '';
     const items: BreadcrumbItem[] = [];
 
-    // Special handling for lists pages and detail pages
-    if (paths[0] === 'lists') {
-      // Only show the entity type (Partners, Customers, etc.) for list pages
-      if (paths.length > 1) {
-        const entityType = paths[1].charAt(0).toUpperCase() + paths[1].slice(1);
-        
-        if (paths.length === 2) {
-          // Just show the entity type for list pages
-          items.push({
-            label: entityType,
-            path: `/lists/${paths[1]}`,
-            isCurrent: true
-          });
-        } else if (paths.length > 2) {
-          // For detail pages, show both the list and the specific entity
-          items.push({
-            label: entityType,
-            path: `/lists/${paths[1]}`,
-            isCurrent: false
-          });
-          
-          // Entity detail page
-          const entityId = paths[2];
-          
-          // Map entity types to more readable names
-          const entityMap: Record<string, string> = {
-            'partners': 'Partner',
-            'customers': 'Customer',
-            'opportunities': 'Opportunity',
-            'projects': 'Project',
-            'contacts': 'Contact'
-          };
-          
-          // For partner detail page with ID 1
-          if (paths[1] === 'partners' && entityId === '1') {
-            items.push({
-              label: 'ABC Insurance',
-              path: `/lists/${paths[1]}/${entityId}`,
-              isCurrent: true
-            });
-          } 
-          // For other entities, use a generic name with ID
-          else {
-            const entityName = entityMap[paths[1]] || paths[1].slice(0, -1).charAt(0).toUpperCase() + paths[1].slice(0, -1).slice(1);
-            items.push({
-              label: `${entityName} ${entityId}`,
-              path: `/lists/${paths[1]}/${entityId}`,
-              isCurrent: true
-            });
-          }
-        }
-      }
-    } 
-    // For other pages, use the standard approach
-    else {
-      // Add Home breadcrumb if not on home page
-      if (paths.length > 0) {
-        items.push({
-          label: 'Home',
-          path: '/',
-          isCurrent: false
-        });
-      }
-
-      // Build the rest of the breadcrumb items
-      paths.forEach((part, index) => {
-        currentPath += `/${part}`;
-        
-        // Format the label from the path part
-        let label = part.charAt(0).toUpperCase() + part.slice(1);
-        
-        items.push({
-          label,
-          path: currentPath,
-          isCurrent: index === paths.length - 1
-        });
+    // Only show breadcrumbs for detail pages, not for main sections
+    if (paths[0] === 'lists' && paths.length > 2) {
+      const entityType = paths[1].charAt(0).toUpperCase() + paths[1].slice(1);
+      
+      // First breadcrumb is the entity type (Partners, Customers, etc.)
+      items.push({
+        label: entityType,
+        path: `/lists/${paths[1]}`,
+        isCurrent: false
       });
+      
+      // Entity detail page
+      const entityId = paths[2];
+      
+      // For partner detail page with ID 1
+      if (paths[1] === 'partners' && entityId === '1') {
+        items.push({
+          label: 'ABC Insurance',
+          path: `/lists/${paths[1]}/${entityId}`,
+          isCurrent: true
+        });
+      } 
+      // For other entities, use a generic name with ID
+      else {
+        const entityMap: Record<string, string> = {
+          'partners': 'Partner',
+          'customers': 'Customer',
+          'opportunities': 'Opportunity',
+          'projects': 'Project',
+          'contacts': 'Contact'
+        };
+        
+        const entityName = entityMap[paths[1]] || paths[1].slice(0, -1).charAt(0).toUpperCase() + paths[1].slice(0, -1).slice(1);
+        items.push({
+          label: `${entityName} ${entityId}`,
+          path: `/lists/${paths[1]}/${entityId}`,
+          isCurrent: true
+        });
+      }
     }
 
     return items;
