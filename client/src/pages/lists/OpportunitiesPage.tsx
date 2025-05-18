@@ -144,79 +144,294 @@ function formatCurrency(value: number) {
   }).format(value);
 }
 
+// Calculate opportunity statistics
+function calculateOpportunityStats(opportunities: typeof mockOpportunities) {
+  const openOpportunities = opportunities.filter(o => o.status === 'open' || o.status === 'in_progress');
+  const wonOpportunities = opportunities.filter(o => o.status === 'won');
+  
+  // Total values
+  const newBusinessValue = openOpportunities
+    .filter(o => o.tags.includes('new-business'))
+    .reduce((sum, o) => sum + o.estimatedValue * (o.probability / 100), 0);
+  
+  const currentPageValue = openOpportunities
+    .reduce((sum, o) => sum + o.estimatedValue, 0);
+  
+  const renewalsValue = wonOpportunities
+    .filter(o => o.tags.includes('renewal'))
+    .reduce((sum, o) => sum + o.estimatedValue, 0);
+  
+  const upsellCount = openOpportunities.length;
+  
+  return {
+    newBusinessValue,
+    currentPageValue,
+    renewalsValue,
+    upsellCount
+  };
+}
+
 // Table view for opportunities
 function OpportunitiesTable() {
+  const [filterText, setFilterText] = useState('');
+  const [selectedStage, setSelectedStage] = useState('');
+  const [selectedOwner, setSelectedOwner] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  
+  // Calculate stats
+  const stats = calculateOpportunityStats(mockOpportunities);
+  
   return (
-    <div className="bg-white rounded-md border shadow-sm overflow-hidden">
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead className="w-[300px]">Opportunity</TableHead>
-            <TableHead>Customer</TableHead>
-            <TableHead>Partner</TableHead>
-            <TableHead>Status</TableHead>
-            <TableHead>Value</TableHead>
-            <TableHead>Probability</TableHead>
-            <TableHead className="text-right">Actions</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {mockOpportunities.map((opportunity) => (
-            <TableRow key={opportunity.id}>
-              <TableCell className="font-medium">
-                <div>
-                  <div className="font-medium text-gray-900">{opportunity.title}</div>
-                  <div className="text-sm text-gray-500 truncate max-w-[280px]">{opportunity.description}</div>
-                </div>
-              </TableCell>
-              <TableCell>
-                <Link 
-                  href={`/lists/customers/${opportunity.customerId}`}
-                  className="text-indigo-600 hover:text-indigo-800 hover:underline"
-                >
-                  {opportunity.customerName}
-                </Link>
-              </TableCell>
-              <TableCell>
-                <Link 
-                  href={`/lists/partners/${opportunity.partnerId}`}
-                  className="text-indigo-600 hover:text-indigo-800 hover:underline"
-                >
-                  {opportunity.partnerName}
-                </Link>
-              </TableCell>
-              <TableCell>
-                {getStatusBadge(opportunity.status)}
-              </TableCell>
-              <TableCell>
-                {formatCurrency(opportunity.estimatedValue)}
-              </TableCell>
-              <TableCell>
+    <div className="space-y-4">
+      {/* Header with title and dropdown */}
+      <div className="flex justify-between items-center">
+        <div className="flex items-center space-x-2">
+          <h2 className="text-xl font-semibold">Open Opportunities</h2>
+          <button className="p-1">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+        </div>
+      </div>
+      
+      {/* Search and filters */}
+      <div className="flex flex-wrap items-center gap-3">
+        <div className="relative w-60">
+          <input
+            type="text"
+            placeholder="Search by name, customer..."
+            value={filterText}
+            onChange={(e) => setFilterText(e.target.value)}
+            className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
+          />
+          <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </button>
+        </div>
+        
+        <div className="relative">
+          <button 
+            className="flex items-center space-x-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
+            onClick={() => setSelectedStage(selectedStage ? '' : 'open')}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+            </svg>
+            <span>Stage</span>
+          </button>
+        </div>
+        
+        <div className="relative">
+          <button 
+            className="flex items-center space-x-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
+            onClick={() => setSelectedOwner(selectedOwner ? '' : 'me')}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <span>Owner</span>
+          </button>
+        </div>
+        
+        <button 
+          className="flex items-center space-x-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
+          onClick={() => setShowFilters(!showFilters)}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500">
+            <line x1="4" y1="21" x2="4" y2="14"></line>
+            <line x1="4" y1="10" x2="4" y2="3"></line>
+            <line x1="12" y1="21" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12" y2="3"></line>
+            <line x1="20" y1="21" x2="20" y2="16"></line>
+            <line x1="20" y1="12" x2="20" y2="3"></line>
+            <line x1="1" y1="14" x2="7" y2="14"></line>
+            <line x1="9" y1="8" x2="15" y2="8"></line>
+            <line x1="17" y1="16" x2="23" y2="16"></line>
+          </svg>
+          <span>More filters</span>
+        </button>
+        
+        <div className="ml-auto flex space-x-2">
+          <Button variant="outline" size="sm" className="flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+              <polyline points="7 10 12 15 17 10"></polyline>
+              <line x1="12" y1="15" x2="12" y2="3"></line>
+            </svg>
+            Import/Export
+          </Button>
+          
+          <Button size="sm" className="flex items-center bg-indigo-600 hover:bg-indigo-700">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Add opportunity
+          </Button>
+        </div>
+      </div>
+      
+      {/* Statistics overview */}
+      <div className="grid grid-cols-4 gap-4">
+        <div className="bg-white p-4 rounded-md border border-gray-200">
+          <div className="text-xl font-semibold">€154,569,000</div>
+          <div className="text-sm text-gray-500">Total Value New Business in Partner Ecosystem</div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-md border border-gray-200">
+          <div className="text-xl font-semibold">€{(stats.currentPageValue).toLocaleString()}</div>
+          <div className="text-sm text-gray-500">Total Value Opportunities on this page</div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-md border border-gray-200">
+          <div className="text-xl font-semibold">{stats.upsellCount}</div>
+          <div className="text-sm text-gray-500"># Upsell Opportunities</div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-md border border-gray-200">
+          <div className="text-xl font-semibold">€546,250,345</div>
+          <div className="text-sm text-gray-500">Total Value Renewals</div>
+        </div>
+      </div>
+      
+      {/* Table */}
+      <div className="bg-white rounded-md border shadow-sm overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow className="bg-gray-50 border-b border-gray-200">
+              <TableHead className="w-[250px]">
                 <div className="flex items-center">
-                  <div className="w-16 bg-gray-200 rounded-full h-2.5 mr-2">
-                    <div 
-                      className={`h-2.5 rounded-full ${
-                        opportunity.probability >= 70 ? 'bg-green-500' : 
-                        opportunity.probability >= 40 ? 'bg-yellow-500' : 
-                        'bg-red-500'
-                      }`} 
-                      style={{ width: `${opportunity.probability}%` }}
-                    ></div>
-                  </div>
-                  <span>{opportunity.probability}%</span>
+                  Name
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                    <path d="M8 9l4-4 4 4"></path>
+                    <path d="M16 15l-4 4-4-4"></path>
+                  </svg>
                 </div>
-              </TableCell>
-              <TableCell className="text-right">
-                <Button variant="ghost" size="sm" asChild>
-                  <Link href={`/lists/opportunities/${opportunity.id}`}>
-                    View
-                  </Link>
-                </Button>
-              </TableCell>
+              </TableHead>
+              <TableHead>
+                <div className="flex items-center">
+                  Customer
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                    <path d="M8 9l4-4 4 4"></path>
+                    <path d="M16 15l-4 4-4-4"></path>
+                  </svg>
+                </div>
+              </TableHead>
+              <TableHead>
+                <div className="flex items-center">
+                  Partner
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                    <path d="M8 9l4-4 4 4"></path>
+                    <path d="M16 15l-4 4-4-4"></path>
+                  </svg>
+                </div>
+              </TableHead>
+              <TableHead>
+                <div className="flex items-center">
+                  Amount
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                    <path d="M8 9l4-4 4 4"></path>
+                    <path d="M16 15l-4 4-4-4"></path>
+                  </svg>
+                </div>
+              </TableHead>
+              <TableHead>
+                <div className="flex items-center">
+                  Prob.
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                    <path d="M8 9l4-4 4 4"></path>
+                    <path d="M16 15l-4 4-4-4"></path>
+                  </svg>
+                </div>
+              </TableHead>
+              <TableHead>
+                <div className="flex items-center">
+                  Stage
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                    <path d="M8 9l4-4 4 4"></path>
+                    <path d="M16 15l-4 4-4-4"></path>
+                  </svg>
+                </div>
+              </TableHead>
+              <TableHead>
+                <div className="flex items-center">
+                  Closing date
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                    <path d="M8 9l4-4 4 4"></path>
+                    <path d="M16 15l-4 4-4-4"></path>
+                  </svg>
+                </div>
+              </TableHead>
+              <TableHead>
+                <div className="flex items-center">
+                  Plans
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                    <path d="M8 9l4-4 4 4"></path>
+                    <path d="M16 15l-4 4-4-4"></path>
+                  </svg>
+                </div>
+              </TableHead>
+              <TableHead>
+                <div className="flex items-center">
+                  Owner
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                    <path d="M8 9l4-4 4 4"></path>
+                    <path d="M16 15l-4 4-4-4"></path>
+                  </svg>
+                </div>
+              </TableHead>
             </TableRow>
-          ))}
-        </TableBody>
-      </Table>
+          </TableHeader>
+          <TableBody>
+            {mockOpportunities.map((opportunity) => (
+              <TableRow key={opportunity.id} className="border-gray-100 hover:bg-gray-50">
+                <TableCell className="font-medium border-b border-gray-100">
+                  <div className="font-medium text-gray-900">{opportunity.title}</div>
+                </TableCell>
+                <TableCell className="border-b border-gray-100">
+                  <Link 
+                    href={`/lists/customers/${opportunity.customerId}`}
+                    className="text-indigo-600 hover:text-indigo-800 hover:underline"
+                  >
+                    {opportunity.customerName}
+                  </Link>
+                </TableCell>
+                <TableCell className="border-b border-gray-100">
+                  <Link 
+                    href={`/lists/partners/${opportunity.partnerId}`}
+                    className="text-indigo-600 hover:text-indigo-800 hover:underline"
+                  >
+                    {opportunity.partnerName}
+                  </Link>
+                </TableCell>
+                <TableCell className="border-b border-gray-100">
+                  {formatCurrency(opportunity.estimatedValue)}
+                </TableCell>
+                <TableCell className="border-b border-gray-100">
+                  {opportunity.probability}%
+                </TableCell>
+                <TableCell className="border-b border-gray-100">
+                  {getStatusBadge(opportunity.status)}
+                </TableCell>
+                <TableCell className="border-b border-gray-100">
+                  {format(opportunity.updatedAt, 'MMM d, yyyy')}
+                </TableCell>
+                <TableCell className="border-b border-gray-100">
+                  {opportunity.productMissing}
+                </TableCell>
+                <TableCell className="border-b border-gray-100">
+                  {opportunity.owner}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }
@@ -310,58 +525,10 @@ export default function OpportunitiesPage() {
   const { environment } = useEnvironment();
   const [viewType, setViewType] = useState<'table' | 'cards'>('table');
   
-  const filterOptions = [
-    { label: 'All Statuses', value: 'all' },
-    { label: 'Open', value: 'open' },
-    { label: 'In Progress', value: 'in_progress' },
-    { label: 'Won', value: 'won' },
-    { label: 'Lost', value: 'lost' },
-    { label: 'High Probability (70%+)', value: 'high_probability' },
-    { label: 'High Value ($10k+)', value: 'high_value' },
-  ];
-  
-  const sortOptions = [
-    { label: 'Recently Updated', value: 'recent' },
-    { label: 'Highest Value', value: 'value_desc' },
-    { label: 'Highest Probability', value: 'probability_desc' },
-    { label: 'Oldest First', value: 'created_asc' },
-  ];
-  
-  const viewOptions = [
-    { 
-      label: 'Table View', 
-      value: 'table',
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M3 3h18v18H3zM3 9h18M9 21V9"/>
-        </svg>
-      )
-    },
-    { 
-      label: 'Card View', 
-      value: 'cards',
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <rect width="7" height="7" x="3" y="3" rx="1" />
-          <rect width="7" height="7" x="14" y="3" rx="1" />
-          <rect width="7" height="7" x="14" y="14" rx="1" />
-          <rect width="7" height="7" x="3" y="14" rx="1" />
-        </svg>
-      )
-    },
-  ];
-  
+  // We're using our custom table view now instead of the ListLayout's built-in view options
   return (
-    <ListLayout
-      title="Opportunities"
-      description="Manage cross-sell and upsell opportunities for your customers"
-      entityName="Opportunity"
-      createPath="/lists/opportunities/new"
-      filterOptions={filterOptions}
-      sortOptions={sortOptions}
-      viewOptions={viewOptions}
-    >
-      {viewType === 'table' ? <OpportunitiesTable /> : <OpportunitiesCardView />}
-    </ListLayout>
+    <div className="container mx-auto px-4 py-6">
+      <OpportunitiesTable />
+    </div>
   );
 }
