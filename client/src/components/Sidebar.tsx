@@ -131,7 +131,12 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
             )}
           </a>
           
-          {/* Dropdown menu - appears for both collapsed and expanded */}
+          {/* Always show a tiny indicator on the sidebar if a list section is active */}
+          {collapsed && !dataMenuOpen && location.startsWith('/lists') && (
+            <div className="absolute top-[93px] right-0 w-1 h-7 bg-indigo-500 rounded-l-md"></div>
+          )}
+          
+          {/* Dropdown menu - always visible even when collapsed */}
           {dataMenuOpen && (
             <div className={`${collapsed ? "absolute left-16 top-0 bg-white border border-gray-200 rounded-md shadow-md py-1 z-50 w-48" : "mt-0.5"}`}>
               <Link 
