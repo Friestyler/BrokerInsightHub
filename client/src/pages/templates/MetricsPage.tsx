@@ -1292,9 +1292,9 @@ export default function MetricsPage() {
             
             <div className="flex space-x-2 items-center">
               <Select 
-                value={selectedTags.length === 1 ? selectedTags[0] : "all"}
+                value={selectedTags.length === 1 ? selectedTags[0] : "all_tags"}
                 onValueChange={(value) => {
-                  if (value && value !== "all") {
+                  if (value && value !== "all_tags") {
                     setSelectedTags([value]);
                   } else {
                     setSelectedTags([]);
@@ -1305,7 +1305,7 @@ export default function MetricsPage() {
                   <SelectValue placeholder="Filter by tag" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">All Tags</SelectItem>
+                  <SelectItem value="all_tags">All Tags</SelectItem>
                   {allTagNames.map(tag => (
                     <SelectItem key={tag} value={tag}>
                       <div className="flex items-center">
@@ -1354,9 +1354,9 @@ export default function MetricsPage() {
               
               {activeTab === "groups" && (
                 <Select 
-                  value={selectedGroups.length === 1 ? selectedGroups[0].toString() : "all"}
+                  value={selectedGroups.length === 1 ? selectedGroups[0].toString() : "all_groups"}
                   onValueChange={(value) => {
-                    if (value && value !== "all") {
+                    if (value && value !== "all_groups") {
                       setSelectedGroups([parseInt(value)]);
                     } else {
                       setSelectedGroups([]);
@@ -1367,7 +1367,7 @@ export default function MetricsPage() {
                     <SelectValue placeholder="Filter by group" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Groups</SelectItem>
+                    <SelectItem value="all_groups">All Groups</SelectItem>
                     {metricGroups.map(group => (
                       <SelectItem key={group.id} value={group.id.toString()}>
                         {group.name}
