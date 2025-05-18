@@ -447,61 +447,7 @@ export default function PartnerDetail() {
 
       {/* Main content area with search and tabs */}
       <div>
-        <div className="flex justify-between items-center mb-4">
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm" className="flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-              </svg>
-              <span>Saved Lists</span>
-            </Button>
-            
-            <Button variant="outline" size="sm" className="flex items-center gap-2">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-              </svg>
-              <span>Filters</span>
-            </Button>
-            
-            <div className="relative">
-              <Input
-                placeholder="Search..."
-                className="w-[200px] pl-8"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <svg className="h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-              </div>
-            </div>
-          </div>
-          
-          <div className="flex items-center gap-2">
-            <div className="flex items-center">
-              <div className="flex -space-x-2">
-                <Avatar className="h-7 w-7 border-2 border-white">
-                  <AvatarFallback className="bg-indigo-100 text-indigo-600 text-xs">JD</AvatarFallback>
-                </Avatar>
-                <Avatar className="h-7 w-7 border-2 border-white">
-                  <AvatarFallback className="bg-blue-100 text-blue-600 text-xs">AC</AvatarFallback>
-                </Avatar>
-              </div>
-              <div className="h-7 w-7 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs font-medium ml-1">+2</div>
-            </div>
-            
-            <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
-                <polyline points="16 6 12 2 8 6"></polyline>
-                <line x1="12" y1="2" x2="12" y2="15"></line>
-              </svg>
-              Share
-            </Button>
-          </div>
-        </div>
+
         
         <Tabs 
           value={activeTab} 
