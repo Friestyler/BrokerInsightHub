@@ -229,13 +229,13 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
             <span className={`ml-3 text-sm ${collapsed ? "hidden" : "hidden md:inline-block"}`}>Templates</span>
           </a>
           
-          <Link href="/templates/okr" className={`flex py-2 text-sm pl-12 ${location.startsWith("/templates/okr") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}>
+          <Link href="/templates/metrics" className={`flex py-2 text-sm pl-12 ${location.startsWith("/templates/metrics") || location.startsWith("/templates/groups") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}>
             <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
               <path d="M12 8v4l3 3"></path>
               <circle cx="12" cy="12" r="7"></circle>
             </svg>
-            OKR Templates
+            OKR Metrics
           </Link>
         </div>
       </div>
