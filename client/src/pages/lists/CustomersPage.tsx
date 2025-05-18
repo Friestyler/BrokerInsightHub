@@ -218,98 +218,7 @@ const mockOpportunities = [
     probability: 60,
     value: 150000,
     dueDate: "2025-06-01"
-  },
-  {
-    id: 4,
-    customerId: 3,
-    customerName: "Stark Enterprises",
-    partnerId: 2,
-    partnerName: "XYZ Consulting Group",
-    title: "Fleet Insurance",
-    type: "Renewal",
-    status: "Negotiation",
-    probability: 90,
-    value: 320000,
-    dueDate: "2025-05-30"
-  },
-  {
-    id: 5,
-    customerId: 3,
-    customerName: "Stark Enterprises",
-    partnerId: 2,
-    partnerName: "XYZ Consulting Group",
-    title: "Liability Coverage Expansion",
-    type: "Expansion",
-    status: "In Progress",
-    probability: 75,
-    value: 180000,
-    dueDate: "2025-07-15"
-  },
-  {
-    id: 6,
-    customerId: 3,
-    customerName: "Stark Enterprises",
-    partnerId: 2,
-    partnerName: "XYZ Consulting Group",
-    title: "Workers Compensation",
-    type: "Renewal",
-    status: "Qualification",
-    probability: 50,
-    value: 95000,
-    dueDate: "2025-08-01"
-  },
-  {
-    id: 7,
-    customerId: 5,
-    customerName: "Oceanic Airlines",
-    partnerId: 4,
-    partnerName: "Premier Insurance Agency",
-    title: "Aviation Insurance",
-    type: "New Business",
-    status: "Proposal",
-    probability: 65,
-    value: 500000,
-    dueDate: "2025-06-20"
-  },
-  {
-    id: 8,
-    customerId: 7,
-    customerName: "LexCorp",
-    partnerId: 3,
-    partnerName: "Global Risk Partners",
-    title: "Research Lab Coverage",
-    type: "New Business",
-    status: "In Progress",
-    probability: 70,
-    value: 250000,
-    dueDate: "2025-07-10"
-  },
-  {
-    id: 9,
-    customerId: 7,
-    customerName: "LexCorp",
-    partnerId: 3,
-    partnerName: "Global Risk Partners",
-    title: "Executive Protection",
-    type: "New Business",
-    status: "Qualification",
-    probability: 30,
-    value: 80000,
-    dueDate: "2025-08-15"
-  },
-  {
-    id: 10,
-    customerId: 8,
-    customerName: "Cyberdyne Systems",
-    partnerId: 1,
-    partnerName: "ABC Insurance Brokers",
-    title: "Product Liability",
-    type: "New Business",
-    status: "Proposal",
-    probability: 60,
-    value: 175000,
-    dueDate: "2025-06-25"
-  },
+  }
 ];
 
 // Calculate customer statistics
@@ -372,7 +281,7 @@ function TemplateBadges({ industry, size }: { industry: string, size: string }) 
 }
 
 // Define interface for saved lists
-interface SavedView {
+interface SavedList {
   id: string;
   name: string;
   description?: string;
@@ -389,7 +298,7 @@ interface SavedView {
   createdAt: Date;
 }
 
-// Table view for customers
+// Main customer list component
 function CustomersTable({ partnerId }: { partnerId?: number }) {
   const [filterText, setFilterText] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
@@ -399,8 +308,8 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
   
-  // State for saved views
-  const [savedViews, setSavedViews] = useState<SavedView[]>([
+  // State for saved lists
+  const [savedLists, setSavedLists] = useState<SavedList[]>([
     {
       id: '1',
       name: 'Active Manufacturing Clients',
@@ -436,10 +345,10 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
       createdAt: new Date('2025-05-11')
     }
   ]);
-  const [activeView, setActiveView] = useState<SavedView | null>(null);
-  const [showSaveViewModal, setShowSaveViewModal] = useState(false);
-  const [showShareViewModal, setShowShareViewModal] = useState(false);
-  const [showViewsDropdown, setShowViewsDropdown] = useState(false);
+  const [activeList, setActiveList] = useState<SavedList | null>(null);
+  const [showSaveListModal, setShowSaveListModal] = useState(false);
+  const [showShareListModal, setShowShareListModal] = useState(false);
+  const [showListsDropdown, setShowListsDropdown] = useState(false);
   
   // Apply filtering based on the partnerId if provided
   const filteredCustomers = partnerId
@@ -483,242 +392,266 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
   
   return (
     <div className="space-y-4">
-      {/* Unified toolbar with search, filters and saved lists */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4 shadow-sm">
-        <div className="flex flex-wrap items-center justify-between gap-3">
-          {/* Left side with saved lists and search */}
-          <div className="flex items-center gap-3 flex-grow">
+      {/* Unified toolbar */}
+      <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+        <div className="flex flex-col gap-3">
+          {/* Top row with search, lists, and actions */}
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Search field */}
+            <div className="relative max-w-md flex-grow">
+              <input
+                type="text"
+                placeholder="Search by name, industry..."
+                value={filterText}
+                onChange={(e) => setFilterText(e.target.value)}
+                className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
+              />
+              <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+              </button>
+            </div>
+            
+            {/* Saved Lists dropdown */}
             <div className="relative">
               <button 
-                className={`flex items-center space-x-2 px-3 py-2 border ${activeView ? "bg-indigo-50 border-indigo-300 text-indigo-700" : "border-gray-300"} rounded-md text-sm font-medium`}
-                onClick={() => setShowViewsDropdown(!showViewsDropdown)}
+                className={`flex items-center space-x-2 px-3 py-2 border rounded-md text-sm font-medium ${activeList ? 'bg-indigo-50 border-indigo-300 text-indigo-700' : 'border-gray-300'}`}
+                onClick={() => setShowListsDropdown(!showListsDropdown)}
               >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
-              <path d="M2 7V1h20v6"></path>
-              <path d="M11 9h10v6H11z"></path>
-              <path d="M2 9h6v6H2z"></path>
-              <path d="M2 23v-6h20v6"></path>
-            </svg>
-            <span>{activeView ? activeView.name : 'Saved Lists'}</span>
-            <svg 
-              xmlns="http://www.w3.org/2000/svg" 
-              width="14" 
-              height="14" 
-              viewBox="0 0 24 24" 
-              fill="none" 
-              stroke="currentColor" 
-              strokeWidth="2" 
-              strokeLinecap="round" 
-              strokeLinejoin="round" 
-              className={`transition-transform ${showViewsDropdown ? 'rotate-180' : ''}`}
-            >
-              <polyline points="6 9 12 15 18 9" />
-            </svg>
-          </button>
-          
-          {/* Saved Lists dropdown menu */}
-          {showViewsDropdown && (
-            <div className="absolute z-40 mt-1 w-80 bg-white rounded-md shadow-lg border border-gray-200 overflow-hidden">
-              <div className="p-2 border-b">
-                <div className="text-sm font-medium mb-1">Saved Lists</div>
-                <div className="relative">
-                  <input
-                    type="text"
-                    placeholder="Search saved lists..."
-                    className="w-full pl-3 pr-10 py-1.5 text-xs border border-gray-300 rounded-md"
-                  />
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                  </svg>
-                </div>
-              </div>
-              
-              <div className="max-h-60 overflow-y-auto">
-                {savedViews.map(view => (
-                  <button
-                    key={view.id}
-                    className={`w-full text-left py-2 px-3 hover:bg-gray-50 flex items-center justify-between ${activeView?.id === view.id ? 'bg-indigo-50' : ''}`}
-                    onClick={() => {
-                      setActiveView(view);
-                      if (view.filters.searchText) setFilterText(view.filters.searchText);
-                      if (view.filters.status) setSelectedStatus(view.filters.status);
-                      if (view.filters.industry) setSelectedIndustry(view.filters.industry);
-                      if (view.filters.size) setSelectedSize(view.filters.size);
-                      setShowViewsDropdown(false);
-                    }}
-                  >
-                    <div>
-                      <div className="font-medium text-sm">{view.name}</div>
-                      <div className="text-xs text-gray-500 mt-0.5">
-                        {Object.entries(view.filters)
-                          .filter(([_, value]) => value)
-                          .map(([key]) => key)
-                          .join(', ')}
-                      </div>
-                    </div>
-                    {view.isShared && (
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-500">
-                        <circle cx="18" cy="5" r="3"></circle>
-                        <circle cx="6" cy="12" r="3"></circle>
-                        <circle cx="18" cy="19" r="3"></circle>
-                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                      </svg>
-                    )}
-                  </button>
-                ))}
-              </div>
-              
-              <div className="p-2 border-t">
-                <button
-                  className="w-full text-left py-1.5 px-3 text-indigo-600 hover:bg-indigo-50 rounded-md text-sm flex items-center"
-                  onClick={() => {
-                    setActiveView(null);
-                    setFilterText('');
-                    setSelectedStatus('');
-                    setSelectedIndustry('');
-                    setSelectedSize('');
-                    setShowSaveViewModal(true);
-                    setShowViewsDropdown(false);
-                  }}
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={activeList ? 'text-indigo-600' : 'text-gray-500'}>
+                  <path d="M2 7V1h20v6"></path>
+                  <path d="M11 9h10v6H11z"></path>
+                  <path d="M2 9h6v6H2z"></path>
+                  <path d="M2 23v-6h20v6"></path>
+                </svg>
+                <span className="max-w-[160px] truncate">{activeList ? activeList.name : 'Saved Lists'}</span>
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  width="14" 
+                  height="14" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  className={`transition-transform ${showListsDropdown ? 'rotate-180' : ''}`}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                    <line x1="12" y1="5" x2="12" y2="19"></line>
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                  </svg>
-                  Create New List
-                </button>
-              </div>
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </button>
+              
+              {/* Saved Lists dropdown menu */}
+              {showListsDropdown && (
+                <div className="absolute z-40 mt-1 w-80 bg-white rounded-md shadow-lg border border-gray-200 overflow-hidden">
+                  <div className="p-2 border-b">
+                    <div className="text-sm font-medium mb-1">Saved Lists</div>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        placeholder="Search saved lists..."
+                        className="w-full pl-3 pr-10 py-1.5 text-xs border border-gray-300 rounded-md"
+                      />
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                      </svg>
+                    </div>
+                  </div>
+                  
+                  <div className="max-h-60 overflow-y-auto">
+                    {savedLists.map(list => (
+                      <button
+                        key={list.id}
+                        className={`w-full text-left py-2 px-3 hover:bg-gray-50 flex items-center justify-between ${activeList?.id === list.id ? 'bg-indigo-50' : ''}`}
+                        onClick={() => {
+                          setActiveList(list);
+                          if (list.filters.searchText) setFilterText(list.filters.searchText);
+                          if (list.filters.status) setSelectedStatus(list.filters.status);
+                          if (list.filters.industry) setSelectedIndustry(list.filters.industry);
+                          if (list.filters.size) setSelectedSize(list.filters.size);
+                          setShowListsDropdown(false);
+                        }}
+                      >
+                        <div>
+                          <div className="font-medium text-sm">{list.name}</div>
+                          <div className="text-xs text-gray-500 mt-0.5">
+                            {Object.entries(list.filters)
+                              .filter(([_, value]) => value)
+                              .map(([key]) => key)
+                              .join(', ')}
+                          </div>
+                        </div>
+                        {list.isShared && (
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-500">
+                            <circle cx="18" cy="5" r="3"></circle>
+                            <circle cx="6" cy="12" r="3"></circle>
+                            <circle cx="18" cy="19" r="3"></circle>
+                            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                          </svg>
+                        )}
+                      </button>
+                    ))}
+                  </div>
+                  
+                  <div className="p-2 border-t">
+                    <button
+                      className="w-full text-left py-1.5 px-3 text-indigo-600 hover:bg-indigo-50 rounded-md text-sm flex items-center"
+                      onClick={() => {
+                        setActiveList(null);
+                        setFilterText('');
+                        setSelectedStatus('');
+                        setSelectedIndustry('');
+                        setSelectedSize('');
+                        setShowSaveListModal(true);
+                        setShowListsDropdown(false);
+                      }}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                      </svg>
+                      Create New List
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
-          )}
-        </div>
-        
-        {activeView && (
-          <div className="flex items-center space-x-2">
-            <Button 
-              variant="ghost" 
-              size="sm" 
-              className="text-indigo-600"
-              onClick={() => setShowShareViewModal(true)}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                <circle cx="18" cy="5" r="3"></circle>
-                <circle cx="6" cy="12" r="3"></circle>
-                <circle cx="18" cy="19" r="3"></circle>
-                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-              </svg>
-              Share
-            </Button>
             
-            <Button 
-              variant="ghost" 
-              size="sm"
-              className="text-gray-600"
-              onClick={() => setActiveView(null)}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                <path d="M18 6 6 18"></path>
-                <path d="m6 6 12 12"></path>
-              </svg>
-              Clear View
-            </Button>
+            {/* List actions - Share/Clear when a list is active */}
+            {activeList && (
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-indigo-600"
+                  onClick={() => setShowShareListModal(true)}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                    <circle cx="18" cy="5" r="3"></circle>
+                    <circle cx="6" cy="12" r="3"></circle>
+                    <circle cx="18" cy="19" r="3"></circle>
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                  </svg>
+                  Share
+                </Button>
+                
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="text-gray-600"
+                  onClick={() => setActiveList(null)}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                    <path d="M18 6 6 18"></path>
+                    <path d="m6 6 12 12"></path>
+                  </svg>
+                  Clear
+                </Button>
+              </div>
+            )}
+            
+            {/* Right-side action buttons */}
+            <div className="flex items-center gap-2 ml-auto">
+              {/* Save button - only shown when filters are applied */}
+              {(filterText || selectedStatus || selectedIndustry || selectedSize) && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="text-indigo-600"
+                  onClick={() => setShowSaveListModal(true)}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                    <polyline points="7 3 7 8 15 8"></polyline>
+                  </svg>
+                  {activeList ? 'Update' : 'Save'}
+                </Button>
+              )}
+              
+              <Button variant="outline" size="sm" className="hidden md:flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                Export
+              </Button>
+              
+              <Button size="sm" className="flex items-center bg-indigo-600 hover:bg-indigo-700">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                New
+              </Button>
+            </div>
           </div>
-        )}
-      </div>
-      
-      {/* Search and filters */}
-      <div className="flex flex-wrap items-center gap-3">
-        <div className="relative w-60">
-          <input
-            type="text"
-            placeholder="Search by name, industry..."
-            value={filterText}
-            onChange={(e) => setFilterText(e.target.value)}
-            className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
-          />
-          <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-              <circle cx="11" cy="11" r="8"></circle>
-              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
-          </button>
-        </div>
-        
-        <div className="relative">
-          <button 
-            className={`flex items-center space-x-1 px-3 py-2 border rounded-md text-sm ${selectedStatus ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
-            onClick={() => setSelectedStatus(selectedStatus ? '' : 'active')}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={selectedStatus ? 'text-indigo-500' : 'text-gray-500'}>
-              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-            </svg>
-            <span>Status{selectedStatus ? ': Active' : ''}</span>
-            {selectedStatus && (
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                <path d="M18 6 6 18"></path>
-                <path d="m6 6 12 12"></path>
-              </svg>
-            )}
-          </button>
-        </div>
-        
-        <div className="relative">
-          <button 
-            className={`flex items-center space-x-1 px-3 py-2 border rounded-md text-sm ${selectedIndustry ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
-            onClick={() => setSelectedIndustry(selectedIndustry ? '' : 'Manufacturing')}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={selectedIndustry ? 'text-indigo-500' : 'text-gray-500'}>
-              <circle cx="12" cy="12" r="10"></circle>
-              <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
-            </svg>
-            <span>Industry{selectedIndustry ? `: ${selectedIndustry}` : ''}</span>
-            {selectedIndustry && (
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                <path d="M18 6 6 18"></path>
-                <path d="m6 6 12 12"></path>
-              </svg>
-            )}
-          </button>
-        </div>
-        
-        <div className="flex items-center ml-auto">
-          {/* Save List button - only shown when filters are applied or when editing existing list */}
-          {(filterText || selectedStatus || selectedIndustry || selectedSize || activeView) && (
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="mr-2 text-indigo-600"
-              onClick={() => setShowSaveViewModal(true)}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                <polyline points="7 3 7 8 15 8"></polyline>
-              </svg>
-              {activeView ? 'Update List' : 'Save List'}
-            </Button>
-          )}
           
-          <Button variant="outline" size="sm" className="flex items-center">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-              <polyline points="7 10 12 15 17 10"></polyline>
-              <line x1="12" y1="15" x2="12" y2="3"></line>
-            </svg>
-            Import/Export
-          </Button>
-          
-          <Button size="sm" className="flex items-center bg-indigo-600 hover:bg-indigo-700 ml-2">
-            <span className="mr-1 text-lg">+</span>
-            New Customer
-          </Button>
+          {/* Bottom row with filters */}
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex gap-2 flex-wrap">
+              <button 
+                className={`flex items-center space-x-1 px-3 py-2 border rounded-md text-sm ${selectedStatus ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+                onClick={() => setSelectedStatus(selectedStatus ? '' : 'active')}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={selectedStatus ? 'text-indigo-500' : 'text-gray-500'}>
+                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                </svg>
+                <span>Status{selectedStatus ? ': Active' : ''}</span>
+                {selectedStatus && (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                    <path d="M18 6 6 18"></path>
+                    <path d="m6 6 12 12"></path>
+                  </svg>
+                )}
+              </button>
+              
+              <button 
+                className={`flex items-center space-x-1 px-3 py-2 border rounded-md text-sm ${selectedIndustry ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+                onClick={() => setSelectedIndustry(selectedIndustry ? '' : 'Manufacturing')}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={selectedIndustry ? 'text-indigo-500' : 'text-gray-500'}>
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+                </svg>
+                <span>Industry{selectedIndustry ? `: ${selectedIndustry}` : ''}</span>
+                {selectedIndustry && (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                    <path d="M18 6 6 18"></path>
+                    <path d="m6 6 12 12"></path>
+                  </svg>
+                )}
+              </button>
+              
+              <button 
+                className={`flex items-center space-x-1 px-3 py-2 border rounded-md text-sm ${selectedSize ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+                onClick={() => setSelectedSize(selectedSize ? '' : 'enterprise')}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={selectedSize ? 'text-indigo-500' : 'text-gray-500'}>
+                  <path d="M12 22V8"></path>
+                  <path d="M5 12H2a10 10 0 0 0 20 0h-3"></path>
+                </svg>
+                <span>Size{selectedSize ? `: ${selectedSize}` : ''}</span>
+                {selectedSize && (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                    <path d="M18 6 6 18"></path>
+                    <path d="m6 6 12 12"></path>
+                  </svg>
+                )}
+              </button>
+            </div>
+          </div>
         </div>
       </div>
       
       {/* Statistics overview */}
-      <div className="grid grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white p-4 rounded-md border border-gray-200">
           <div className="text-xl font-semibold">{stats.totalCustomers}</div>
           <div className="text-sm text-gray-500">Total Customers</div>
@@ -740,11 +673,11 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
         </div>
       </div>
       
-      {/* Save View Modal */}
-      <Dialog open={showSaveViewModal} onOpenChange={setShowSaveViewModal}>
+      {/* Save List Modal */}
+      <Dialog open={showSaveListModal} onOpenChange={setShowSaveListModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{activeView ? 'Update Saved List' : 'Save Current List'}</DialogTitle>
+            <DialogTitle>{activeList ? 'Update Saved List' : 'Save Current List'}</DialogTitle>
             <DialogDescription>
               Save your current filter settings as a list that you can easily access later.
             </DialogDescription>
@@ -752,35 +685,35 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
           
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="viewName">View Name</Label>
+              <Label htmlFor="listName">List Name</Label>
               <Input 
-                id="viewName" 
-                placeholder="Enter a name for this view"
-                defaultValue={activeView?.name || ''}
+                id="listName" 
+                placeholder="Enter a name for this list"
+                defaultValue={activeList?.name || ''}
               />
             </div>
             
             <div className="grid gap-2">
-              <Label htmlFor="viewDescription">Description (Optional)</Label>
+              <Label htmlFor="listDescription">Description (Optional)</Label>
               <Textarea 
-                id="viewDescription" 
-                placeholder="Add a short description to help others understand this view"
+                id="listDescription" 
+                placeholder="Add a short description to help others understand this list"
                 rows={3}
-                defaultValue={activeView?.description || ''}
+                defaultValue={activeList?.description || ''}
               />
             </div>
             
             <div className="flex items-center space-x-2">
-              <Checkbox id="shareView" defaultChecked={activeView?.isShared || false} />
-              <Label htmlFor="shareView" className="text-sm font-normal">
-                Share this view with collaborators
+              <Checkbox id="shareList" defaultChecked={activeList?.isShared || false} />
+              <Label htmlFor="shareList" className="text-sm font-normal">
+                Share this list with collaborators
               </Label>
             </div>
           </div>
           
           <DialogFooter className="sm:justify-between">
             <div className="text-xs text-gray-500">
-              {activeView ? 'Last updated on ' + new Date(activeView.createdAt).toLocaleDateString() : 'Applied filters will be saved with this view'}
+              {activeList ? 'Last updated on ' + new Date(activeList.createdAt).toLocaleDateString() : 'Applied filters will be saved with this list'}
             </div>
             <div className="flex space-x-2">
               <DialogClose asChild>
@@ -788,62 +721,64 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
               </DialogClose>
               <Button
                 onClick={() => {
-                  // Handle save/update view
-                  if (!activeView) {
-                    // Create new view
-                    const viewName = (document.getElementById('viewName') as HTMLInputElement).value;
-                    const viewDescription = (document.getElementById('viewDescription') as HTMLTextAreaElement).value;
-                    const isShared = (document.getElementById('shareView') as HTMLInputElement).checked;
+                  // Handle save/update list
+                  if (!activeList) {
+                    // Create new list
+                    const listName = (document.getElementById('listName') as HTMLInputElement).value;
+                    const listDescription = (document.getElementById('listDescription') as HTMLTextAreaElement).value;
+                    const isShared = (document.getElementById('shareList') as HTMLInputElement).checked;
                     
-                    const newView: SavedView = {
+                    const newList: SavedList = {
                       id: String(Date.now()),
-                      name: viewName,
-                      description: viewDescription || undefined,
+                      name: listName,
+                      description: listDescription || undefined,
                       filters: {
                         searchText: filterText || undefined,
                         status: selectedStatus || undefined,
                         industry: selectedIndustry || undefined,
-                        size: selectedSize || undefined
+                        size: selectedSize || undefined,
+                        partnerId: partnerId ? String(partnerId) : undefined
                       },
                       isShared,
                       createdBy: 'John Smith',
                       createdAt: new Date()
                     };
                     
-                    setSavedViews([...savedViews, newView]);
-                    setActiveView(newView);
+                    setSavedLists([...savedLists, newList]);
+                    setActiveList(newList);
                   } else {
-                    // Update existing view
-                    const viewName = (document.getElementById('viewName') as HTMLInputElement).value;
-                    const viewDescription = (document.getElementById('viewDescription') as HTMLTextAreaElement).value;
-                    const isShared = (document.getElementById('shareView') as HTMLInputElement).checked;
+                    // Update existing list
+                    const listName = (document.getElementById('listName') as HTMLInputElement).value;
+                    const listDescription = (document.getElementById('listDescription') as HTMLTextAreaElement).value;
+                    const isShared = (document.getElementById('shareList') as HTMLInputElement).checked;
                     
-                    const updatedViews = savedViews.map(view => {
-                      if (view.id === activeView.id) {
+                    const updatedLists = savedLists.map(list => {
+                      if (list.id === activeList.id) {
                         return {
-                          ...view,
-                          name: viewName,
-                          description: viewDescription || undefined,
+                          ...list,
+                          name: listName,
+                          description: listDescription || undefined,
                           filters: {
                             searchText: filterText || undefined,
                             status: selectedStatus || undefined,
                             industry: selectedIndustry || undefined,
-                            size: selectedSize || undefined
+                            size: selectedSize || undefined,
+                            partnerId: partnerId ? String(partnerId) : undefined
                           },
                           isShared
                         };
                       }
-                      return view;
+                      return list;
                     });
                     
-                    setSavedViews(updatedViews);
-                    setActiveView(updatedViews.find(v => v.id === activeView.id) || null);
+                    setSavedLists(updatedLists);
+                    setActiveList(updatedLists.find(v => v.id === activeList.id) || null);
                   }
                   
-                  setShowSaveViewModal(false);
+                  setShowSaveListModal(false);
                 }}
               >
-                {activeView ? 'Update View' : 'Save View'}
+                {activeList ? 'Update List' : 'Save List'}
               </Button>
             </div>
           </DialogFooter>
@@ -851,10 +786,10 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
       </Dialog>
       
       {/* Share List Modal with Extended Options */}
-      <Dialog open={showShareViewModal} onOpenChange={setShowShareViewModal}>
+      <Dialog open={showShareListModal} onOpenChange={setShowShareListModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Share List: {activeView?.name}</DialogTitle>
+            <DialogTitle>Share List: {activeList?.name}</DialogTitle>
             <DialogDescription>
               Share this list with partners, teams, or individuals.
             </DialogDescription>
@@ -962,7 +897,7 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
               <div className="flex">
                 <Input 
                   id="shareLink" 
-                  value={`https://qollabi.com/share/list/${activeView?.id}`}
+                  value={`https://qollabi.com/share/list/${activeList?.id}`}
                   readOnly
                   className="text-xs"
                 />
@@ -971,7 +906,7 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
                   size="sm" 
                   className="ml-2"
                   onClick={() => {
-                    navigator.clipboard.writeText(`https://qollabi.com/share/list/${activeView?.id}`);
+                    navigator.clipboard.writeText(`https://qollabi.com/share/list/${activeList?.id}`);
                   }}
                 >
                   Copy
@@ -997,24 +932,24 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
               // Just for demonstration, we'll use hardcoded emails
               const recipientEmails = ['sjohnson@abc-insurance.com', 'mchen@abc-insurance.com'];
               
-              // Update the active view's sharing settings
-              if (activeView) {
-                const updatedViews = savedViews.map(view => {
-                  if (view.id === activeView.id) {
+              // Update the active list's sharing settings
+              if (activeList) {
+                const updatedLists = savedLists.map(list => {
+                  if (list.id === activeList.id) {
                     return {
-                      ...view,
+                      ...list,
                       isShared: true,
                       sharedWith: recipientEmails
                     };
                   }
-                  return view;
+                  return list;
                 });
                 
-                setSavedViews(updatedViews);
-                setActiveView(updatedViews.find(v => v.id === activeView.id) || null);
+                setSavedLists(updatedLists);
+                setActiveList(updatedLists.find(v => v.id === activeList.id) || null);
               }
               
-              setShowShareViewModal(false);
+              setShowShareListModal(false);
             }}>
               Share List
             </Button>
@@ -1023,7 +958,7 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
       </Dialog>
       
       {/* Table section without a border */}
-      <div className="bg-white overflow-x-auto">
+      <div className="bg-white overflow-x-auto rounded-lg border border-gray-200">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -1331,7 +1266,7 @@ function CustomersCardView({ partnerId }: { partnerId?: number }) {
         ))}
         
         {displayedCustomers.length === 0 && (
-          <div className="col-span-3 flex flex-col items-center justify-center py-12 px-4 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+          <div className="col-span-full flex flex-col items-center justify-center py-12 px-4 bg-gray-50 rounded-lg border border-dashed border-gray-300">
             <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 mb-4">
               <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
               <circle cx="12" cy="7" r="4"></circle>
@@ -1367,8 +1302,8 @@ export default function CustomersPage() {
   
   // Get URL search parameters - extract partnerId if present
   // Format example: /lists/customers?partnerId=1
-  const [path, searchParam] = useLocation();
-  const searchParams = new URLSearchParams(searchParam || "");
+  const [location, params] = useLocation();
+  const searchParams = new URLSearchParams(params || "");
   const partnerId = searchParams.get('partnerId') ? Number(searchParams.get('partnerId')) : undefined;
   
   // Get the partner name if partnerId is provided
