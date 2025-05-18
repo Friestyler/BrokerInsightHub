@@ -619,76 +619,98 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
           </div>
           
           {/* Bottom row with search and filters */}
-          <div className="flex flex-wrap items-center gap-3">
-            {/* Search field - moved to second row */}
-            <div className="relative w-60">
-              <input
-                type="text"
-                placeholder="Search by name, industry..."
-                value={filterText}
-                onChange={(e) => setFilterText(e.target.value)}
-                className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
-              />
-              <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
-              </button>
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-3 flex-grow">
+              {/* Search field - moved to second row */}
+              <div className="relative w-60">
+                <input
+                  type="text"
+                  placeholder="Search by name, industry..."
+                  value={filterText}
+                  onChange={(e) => setFilterText(e.target.value)}
+                  className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
+                />
+                <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                  </svg>
+                </button>
+              </div>
+              
+              {/* Filters - placed alongside search */}
+              <div className="flex gap-2 flex-wrap">
+                <button 
+                  className={`flex items-center space-x-1 px-3 py-2 border rounded-md text-sm ${selectedStatus ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+                  onClick={() => setSelectedStatus(selectedStatus ? '' : 'active')}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={selectedStatus ? 'text-indigo-500' : 'text-gray-500'}>
+                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                  </svg>
+                  <span>Status{selectedStatus ? ': Active' : ''}</span>
+                  {selectedStatus && (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                      <path d="M18 6 6 18"></path>
+                      <path d="m6 6 12 12"></path>
+                    </svg>
+                  )}
+                </button>
+                
+                <button 
+                  className={`flex items-center space-x-1 px-3 py-2 border rounded-md text-sm ${selectedIndustry ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+                  onClick={() => setSelectedIndustry(selectedIndustry ? '' : 'Manufacturing')}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={selectedIndustry ? 'text-indigo-500' : 'text-gray-500'}>
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+                  </svg>
+                  <span>Industry{selectedIndustry ? `: ${selectedIndustry}` : ''}</span>
+                  {selectedIndustry && (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                      <path d="M18 6 6 18"></path>
+                      <path d="m6 6 12 12"></path>
+                    </svg>
+                  )}
+                </button>
+                
+                <button 
+                  className={`flex items-center space-x-1 px-3 py-2 border rounded-md text-sm ${selectedSize ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+                  onClick={() => setSelectedSize(selectedSize ? '' : 'enterprise')}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={selectedSize ? 'text-indigo-500' : 'text-gray-500'}>
+                    <path d="M12 22V8"></path>
+                    <path d="M5 12H2a10 10 0 0 0 20 0h-3"></path>
+                  </svg>
+                  <span>Size{selectedSize ? `: ${selectedSize}` : ''}</span>
+                  {selectedSize && (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                      <path d="M18 6 6 18"></path>
+                      <path d="m6 6 12 12"></path>
+                    </svg>
+                  )}
+                </button>
+              </div>
             </div>
             
-            {/* Filters - placed alongside search */}
-            <div className="flex gap-2 flex-wrap">
+            {/* Clear filters button - only shown when at least one filter is applied */}
+            {(filterText || selectedStatus || selectedIndustry || selectedSize) && (
               <button 
-                className={`flex items-center space-x-1 px-3 py-2 border rounded-md text-sm ${selectedStatus ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
-                onClick={() => setSelectedStatus(selectedStatus ? '' : 'active')}
+                onClick={() => {
+                  setFilterText('');
+                  setSelectedStatus('');
+                  setSelectedIndustry('');
+                  setSelectedSize('');
+                  if (activeList) setActiveList(null);
+                }}
+                className="text-xs text-gray-500 hover:text-gray-700 flex items-center px-2 py-1 hover:bg-gray-50 rounded-md transition-colors"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={selectedStatus ? 'text-indigo-500' : 'text-gray-500'}>
-                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                  <path d="M18 6L6 18"></path>
+                  <path d="M6 6l12 12"></path>
                 </svg>
-                <span>Status{selectedStatus ? ': Active' : ''}</span>
-                {selectedStatus && (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                    <path d="M18 6 6 18"></path>
-                    <path d="m6 6 12 12"></path>
-                  </svg>
-                )}
+                Clear filters
               </button>
-              
-              <button 
-                className={`flex items-center space-x-1 px-3 py-2 border rounded-md text-sm ${selectedIndustry ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
-                onClick={() => setSelectedIndustry(selectedIndustry ? '' : 'Manufacturing')}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={selectedIndustry ? 'text-indigo-500' : 'text-gray-500'}>
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
-                </svg>
-                <span>Industry{selectedIndustry ? `: ${selectedIndustry}` : ''}</span>
-                {selectedIndustry && (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                    <path d="M18 6 6 18"></path>
-                    <path d="m6 6 12 12"></path>
-                  </svg>
-                )}
-              </button>
-              
-              <button 
-                className={`flex items-center space-x-1 px-3 py-2 border rounded-md text-sm ${selectedSize ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
-                onClick={() => setSelectedSize(selectedSize ? '' : 'enterprise')}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={selectedSize ? 'text-indigo-500' : 'text-gray-500'}>
-                  <path d="M12 22V8"></path>
-                  <path d="M5 12H2a10 10 0 0 0 20 0h-3"></path>
-                </svg>
-                <span>Size{selectedSize ? `: ${selectedSize}` : ''}</span>
-                {selectedSize && (
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                    <path d="M18 6 6 18"></path>
-                    <path d="m6 6 12 12"></path>
-                  </svg>
-                )}
-              </button>
-            </div>
+            )}
           </div>
         </div>
       </div>
