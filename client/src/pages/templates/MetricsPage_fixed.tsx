@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Fragment } from 'react';
+import { useState, useEffect } from 'react';
 import { Link } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
@@ -1438,7 +1438,7 @@ export default function MetricsPage() {
                 </TableHeader>
                 <TableBody>
                   {getHierarchicalMetrics().map(objective => (
-                    <Fragment key={`objective-${objective.id}`}>
+                    <React.Fragment key={`objective-${objective.id}`}>
                       {/* Objective row */}
                       <TableRow 
                         className={`${selectedMetrics.includes(objective.id) ? "bg-indigo-50" : "hover:bg-amber-50/30"}`}
