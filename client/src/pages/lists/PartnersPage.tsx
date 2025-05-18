@@ -465,9 +465,7 @@ export default function PartnersPage() {
   
   return (
     <div className="container mx-auto px-4 py-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">Partners</h1>
-      </div>
+      <h1 className="text-2xl font-bold tracking-tight mb-6">Partners</h1>
       <PartnersTable />
     </div>
   );
