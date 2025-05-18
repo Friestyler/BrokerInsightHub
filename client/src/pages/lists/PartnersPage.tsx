@@ -477,57 +477,25 @@ function PartnersCardView() {
 
 export default function PartnersPage() {
   const { environment } = useEnvironment();
-  const [viewType, setViewType] = useState<'table' | 'cards'>('table');
-  
-  const filterOptions = [
-    { label: 'All Partners', value: 'all' },
-    { label: 'Brokers', value: 'broker' },
-    { label: 'Agents', value: 'agent' },
-    { label: 'Consultants', value: 'consultant' },
-  ];
-  
-  const sortOptions = [
-    { label: 'Recently Added', value: 'recent' },
-    { label: 'Alphabetical (A-Z)', value: 'alpha_asc' },
-    { label: 'Most Customers', value: 'customers_desc' },
-    { label: 'Most Opportunities', value: 'opportunities_desc' },
-  ];
-  
-  const viewOptions = [
-    { 
-      label: 'Table View', 
-      value: 'table',
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M3 3h18v18H3zM3 9h18M9 21V9"/>
-        </svg>
-      )
-    },
-    { 
-      label: 'Card View', 
-      value: 'cards',
-      icon: (
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <rect width="7" height="7" x="3" y="3" rx="1" />
-          <rect width="7" height="7" x="14" y="3" rx="1" />
-          <rect width="7" height="7" x="14" y="14" rx="1" />
-          <rect width="7" height="7" x="3" y="14" rx="1" />
-        </svg>
-      )
-    },
-  ];
   
   return (
-    <ListLayout
-      title="Partners"
-      description="Manage your broker, agent, and consultant relationships"
-      entityName="Partner"
-      createPath="/lists/partners/new"
-      filterOptions={filterOptions}
-      sortOptions={sortOptions}
-      viewOptions={viewOptions}
-    >
-      {viewType === 'table' ? <PartnersTable /> : <PartnersCardView />}
-    </ListLayout>
+    <div className="container mx-auto px-4 py-6">
+      <div className="flex flex-col space-y-2 mb-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold tracking-tight">Partners</h1>
+            <p className="text-md text-gray-500">Manage your broker, agent, and consultant relationships</p>
+          </div>
+          <Button size="sm" className="flex items-center bg-indigo-600 hover:bg-indigo-700">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            New Partner
+          </Button>
+        </div>
+      </div>
+      <PartnersTable />
+    </div>
   );
 }
