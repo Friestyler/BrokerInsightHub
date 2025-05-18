@@ -536,7 +536,8 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
                     }}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                      <path d="M22 2 11 13" />
+                      <path d="M22 2 15 22 11 13 2 9 22 2z" />
                     </svg>
                     Add to Campaign
                   </Button>
@@ -702,6 +703,22 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
                 <polyline points="7 3 7 8 15 8"></polyline>
               </svg>
               Create List
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="text-indigo-600"
+              onClick={() => {
+                // TODO: Implement campaign creation
+                alert('Selected customers can be added to a campaign. This will be available in the Campaigns section');
+              }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                <path d="M22 2 11 13" />
+                <path d="M22 2 15 22 11 13 2 9 22 2z" />
+              </svg>
+              Add to Campaign
             </Button>
             
             <Button 
