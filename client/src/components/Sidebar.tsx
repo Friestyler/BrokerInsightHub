@@ -111,7 +111,7 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
               <path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3" />
             </svg>
             <span className={`ml-3 text-sm ${collapsed ? "hidden" : "hidden md:inline-block"}`}>
-              {environment.id === 'myqollabi' ? 'Lists' : 'Data'}
+              {environment.id === 'myqollabi' ? 'Collaborate' : 'Collaborate'}
             </span>
             {!collapsed && (
               <svg 

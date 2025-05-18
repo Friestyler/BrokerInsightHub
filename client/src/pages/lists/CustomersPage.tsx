@@ -496,7 +496,7 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
               <path d="M2 9h6v6H2z"></path>
               <path d="M2 23v-6h20v6"></path>
             </svg>
-            <span>{activeView ? activeView.name : 'Saved Views'}</span>
+            <span>{activeView ? activeView.name : 'Saved Lists'}</span>
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
               width="14" 
@@ -517,11 +517,11 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
           {showViewsDropdown && (
             <div className="absolute z-40 mt-1 w-80 bg-white rounded-md shadow-lg border border-gray-200 overflow-hidden">
               <div className="p-2 border-b">
-                <div className="text-sm font-medium mb-1">Saved Views</div>
+                <div className="text-sm font-medium mb-1">Saved Lists</div>
                 <div className="relative">
                   <input
                     type="text"
-                    placeholder="Search saved views..."
+                    placeholder="Search saved lists..."
                     className="w-full pl-3 pr-10 py-1.5 text-xs border border-gray-300 rounded-md"
                   />
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
@@ -584,7 +584,7 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
                     <line x1="12" y1="5" x2="12" y2="19"></line>
                     <line x1="5" y1="12" x2="19" y2="12"></line>
                   </svg>
-                  Create New View
+                  Create New List
                 </button>
               </div>
             </div>
@@ -741,9 +741,9 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
       <Dialog open={showSaveViewModal} onOpenChange={setShowSaveViewModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{activeView ? 'Update Saved View' : 'Save Current View'}</DialogTitle>
+            <DialogTitle>{activeView ? 'Update Saved List' : 'Save Current List'}</DialogTitle>
             <DialogDescription>
-              Save your current filter settings as a view that you can easily access later.
+              Save your current filter settings as a list that you can easily access later.
             </DialogDescription>
           </DialogHeader>
           
