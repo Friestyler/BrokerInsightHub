@@ -349,6 +349,8 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
   const [showSaveListModal, setShowSaveListModal] = useState(false);
   const [showShareListModal, setShowShareListModal] = useState(false);
   const [showListsDropdown, setShowListsDropdown] = useState(false);
+  const [showCreateOpportunityModal, setShowCreateOpportunityModal] = useState(false);
+  const [opportunityName, setOpportunityName] = useState('');
   
   // Apply filtering based on the partnerId if provided
   const filteredCustomers = partnerId
@@ -710,6 +712,23 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
               size="sm"
               className="text-indigo-600"
               onClick={() => {
+                setShowCreateOpportunityModal(true);
+                setOpportunityName('');
+              }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="8" x2="12" y2="16"></line>
+                <line x1="8" y1="12" x2="16" y2="12"></line>
+              </svg>
+              Create Opportunity
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="text-indigo-600"
+              onClick={() => {
                 // TODO: Implement campaign creation
                 alert('Selected customers can be added to a campaign. This will be available in the Campaigns section');
               }}
@@ -778,6 +797,90 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
           <div className="text-sm text-gray-500">Total Opportunities</div>
         </div>
       </div>
+      
+      {/* Create Opportunity Modal */}
+      <Dialog open={showCreateOpportunityModal} onOpenChange={setShowCreateOpportunityModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Create New Opportunities</DialogTitle>
+            <DialogDescription>
+              You're creating opportunities for {selectedCustomers.length} customer(s). The standard name will be applied to each customer.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="opportunityName">Opportunity Name <span className="text-red-500">*</span></Label>
+              <Input 
+                id="opportunityName" 
+                placeholder="Enter a standard name for these opportunities"
+                value={opportunityName}
+                onChange={(e) => setOpportunityName(e.target.value)}
+                required
+              />
+              <p className="text-xs text-gray-500">
+                This name will be used for all selected customers. Each opportunity will be clearly labeled with the customer name.
+              </p>
+            </div>
+            
+            <div className="mt-2">
+              <div className="text-sm font-medium mb-2">Selected Customers ({selectedCustomers.length})</div>
+              <div className="max-h-48 overflow-y-auto border border-gray-200 rounded-md p-2">
+                {displayedCustomers.filter(c => selectedCustomers.includes(c.id)).map(customer => (
+                  <div key={customer.id} className="flex items-center py-1.5 px-2 hover:bg-gray-50 rounded-md">
+                    <div className="w-6 h-6 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-xs mr-2">
+                      {customer.initials}
+                    </div>
+                    <div className="text-sm">{customer.name}</div>
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-gray-500 mt-2">
+                Each opportunity will be created with format: "{opportunityName || '[Standard Name]'} - {displayedCustomers[0]?.name || 'Customer Name'}"
+              </p>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button
+              onClick={() => {
+                if (!opportunityName.trim()) {
+                  alert('Please enter an opportunity name');
+                  return;
+                }
+                
+                // Create opportunities for each selected customer
+                const selectedCustomerDetails = displayedCustomers.filter(c => selectedCustomers.includes(c.id));
+                
+                // Format: show what would be created in a real implementation
+                const createdOpportunities = selectedCustomerDetails.map(customer => {
+                  const formattedName = `${opportunityName} - ${customer.name}`;
+                  return {
+                    id: Date.now() + customer.id, // mock ID
+                    name: formattedName,
+                    customerId: customer.id,
+                    customerName: customer.name,
+                    status: 'New',
+                    createdAt: new Date()
+                  };
+                });
+                
+                // In a real implementation, these would be saved to the database
+                alert(`Created ${createdOpportunities.length} opportunities:\n\n${createdOpportunities.map(o => o.name).join('\n')}`);
+                
+                setShowCreateOpportunityModal(false);
+                setOpportunityName('');
+              }}
+              disabled={!opportunityName.trim()}
+            >
+              Create Opportunities
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       
       {/* Save List Modal */}
       <Dialog open={showSaveListModal} onOpenChange={setShowSaveListModal}>
