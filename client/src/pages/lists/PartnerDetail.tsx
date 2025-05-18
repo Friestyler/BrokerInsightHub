@@ -804,133 +804,173 @@ export default function PartnerDetail() {
             
             <TabsContent value="opportunities" className="mt-4">
               {/* Opportunities content */}
-              <div className="bg-white rounded-md border shadow-sm overflow-hidden">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                        Name
-                      </th>
-                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                        Customer
-                      </th>
-                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                        Amount
-                      </th>
-                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                        Probability
-                      </th>
-                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                        Status
-                      </th>
-                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                        Closing Date
-                      </th>
-                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                        Owner
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 bg-white">
-                    {mockOpportunities.map((opportunity) => (
-                      <tr key={opportunity.id} className="hover:bg-gray-50">
-                        <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm font-medium text-gray-900">
-                          <Link href={`/lists/opportunities/${opportunity.id}`} className="hover:text-indigo-600">
-                            {opportunity.title}
-                          </Link>
-                        </td>
-                        <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
-                          <Link 
-                            href={`/lists/customers/${opportunity.customerId}`}
-                            className="text-indigo-600 hover:text-indigo-800 hover:underline"
-                          >
-                            {opportunity.customerName}
-                          </Link>
-                        </td>
-                        <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
-                          {formatCurrency(opportunity.estimatedValue)}
-                        </td>
-                        <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
-                          {opportunity.probability}%
-                        </td>
-                        <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
-                          <StatusBadge status={opportunity.status} />
-                        </td>
-                        <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
-                          {format(opportunity.closingDate, 'dd.MM.yyyy')}
-                        </td>
-                        <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
-                          <OwnerAvatar owner={opportunity.owner} />
-                        </td>
-                      </tr>
+              <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
+                <Table>
+                  <TableHeader className="bg-gray-50">
+                    <TableRow>
+                      <TableHead className="w-[40px] text-center">
+                        <Checkbox 
+                          id="select-all" 
+                          onCheckedChange={() => toggleSelectAll(mockOpportunities)} 
+                          checked={selectedItems.length === mockOpportunities.length && mockOpportunities.length > 0}
+                        />
+                      </TableHead>
+                      <TableHead>Name</TableHead>
+                      <TableHead>Customer</TableHead>
+                      <TableHead>Amount</TableHead>
+                      <TableHead>Probability</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Closing Date</TableHead>
+                      <TableHead>Owner</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {mockOpportunities
+                      .filter(opp => 
+                        searchTerm ? 
+                          opp.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          opp.customerName.toLowerCase().includes(searchTerm.toLowerCase()) : 
+                          true
+                      )
+                      .map((opportunity) => (
+                        <TableRow 
+                          key={opportunity.id} 
+                          className={`hover:bg-gray-50 ${selectedItems.includes(opportunity.id) ? 'bg-indigo-50' : ''}`}
+                        >
+                          <TableCell className="text-center">
+                            <Checkbox 
+                              checked={selectedItems.includes(opportunity.id)} 
+                              onCheckedChange={() => toggleItemSelection(opportunity.id)}
+                            />
+                          </TableCell>
+                          <TableCell className="font-medium">
+                            <Link href={`/lists/opportunities/${opportunity.id}`} className="hover:text-indigo-600">
+                              {opportunity.title}
+                            </Link>
+                          </TableCell>
+                          <TableCell>
+                            <Link 
+                              href={`/lists/customers/${opportunity.customerId}`}
+                              className="text-indigo-600 hover:text-indigo-800 hover:underline"
+                            >
+                              {opportunity.customerName}
+                            </Link>
+                          </TableCell>
+                          <TableCell>
+                            {formatCurrency(opportunity.estimatedValue)}
+                          </TableCell>
+                          <TableCell>
+                            {opportunity.probability}%
+                          </TableCell>
+                          <TableCell>
+                            <StatusBadge status={opportunity.status} />
+                          </TableCell>
+                          <TableCell>
+                            {format(opportunity.closingDate, 'dd.MM.yyyy')}
+                          </TableCell>
+                          <TableCell>
+                            <OwnerAvatar owner={opportunity.owner} />
+                          </TableCell>
+                        </TableRow>
                     ))}
-                  </tbody>
-                </table>
+                  </TableBody>
+                </Table>
+                {mockOpportunities.filter(opp => 
+                  searchTerm ? 
+                    opp.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                    opp.customerName.toLowerCase().includes(searchTerm.toLowerCase()) : 
+                    true
+                ).length === 0 && (
+                  <div className="py-8 text-center text-gray-500">
+                    No opportunities found matching your criteria.
+                  </div>
+                )}
               </div>
             </TabsContent>
             
             <TabsContent value="customers" className="mt-4">
               {/* Customers content */}
-              <div className="bg-white rounded-md border shadow-sm overflow-hidden">
-                <table className="min-w-full divide-y divide-gray-200">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                        Customer
-                      </th>
-                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                        Industry
-                      </th>
-                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                        Size
-                      </th>
-                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                        Status
-                      </th>
-                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                        Products
-                      </th>
-                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                        Opportunities
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 bg-white">
-                    {mockCustomers.map((customer) => (
-                      <tr key={customer.id} className="hover:bg-gray-50">
-                        <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm font-medium">
-                          <div className="flex items-center">
-                            <Avatar className="h-8 w-8 mr-3 bg-indigo-100 text-indigo-600">
-                              <AvatarFallback>{customer.initials}</AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <Link href={`/lists/customers/${customer.id}`} className="font-medium text-gray-900 hover:text-indigo-600">
-                                {customer.name}
-                              </Link>
+              <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
+                <Table>
+                  <TableHeader className="bg-gray-50">
+                    <TableRow>
+                      <TableHead className="w-[40px] text-center">
+                        <Checkbox 
+                          id="select-all-customers" 
+                          onCheckedChange={() => toggleSelectAll(mockCustomers)} 
+                          checked={selectedItems.length === mockCustomers.length && mockCustomers.length > 0}
+                        />
+                      </TableHead>
+                      <TableHead>Customer</TableHead>
+                      <TableHead>Industry</TableHead>
+                      <TableHead>Size</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead className="text-center">Products</TableHead>
+                      <TableHead className="text-center">Opportunities</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {mockCustomers
+                      .filter(customer => 
+                        searchTerm ? 
+                          customer.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          customer.industry.toLowerCase().includes(searchTerm.toLowerCase()) : 
+                          true
+                      )
+                      .map((customer) => (
+                        <TableRow 
+                          key={customer.id} 
+                          className={`hover:bg-gray-50 ${selectedItems.includes(customer.id) ? 'bg-indigo-50' : ''}`}
+                        >
+                          <TableCell className="text-center">
+                            <Checkbox 
+                              checked={selectedItems.includes(customer.id)} 
+                              onCheckedChange={() => toggleItemSelection(customer.id)}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center">
+                              <Avatar className="h-8 w-8 mr-3 bg-indigo-100 text-indigo-600">
+                                <AvatarFallback>{customer.initials}</AvatarFallback>
+                              </Avatar>
+                              <div>
+                                <Link href={`/lists/customers/${customer.id}`} className="font-medium text-gray-900 hover:text-indigo-600">
+                                  {customer.name}
+                                </Link>
+                              </div>
                             </div>
-                          </div>
-                        </td>
-                        <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
-                          {customer.industry}
-                        </td>
-                        <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
-                          <span className="capitalize">{customer.size}</span>
-                        </td>
-                        <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
-                          <Badge variant={customer.status === 'active' ? 'outline' : 'secondary'} className="capitalize">
-                            {customer.status}
-                          </Badge>
-                        </td>
-                        <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm text-center">
-                          {customer.products}
-                        </td>
-                        <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm text-center">
-                          {customer.opportunities}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                          </TableCell>
+                          <TableCell>
+                            {customer.industry}
+                          </TableCell>
+                          <TableCell>
+                            <span className="capitalize">{customer.size}</span>
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant={customer.status === 'active' ? 'outline' : 'secondary'} className="capitalize">
+                              {customer.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {customer.products}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {customer.opportunities}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                  </TableBody>
+                </Table>
+                {mockCustomers.filter(customer => 
+                  searchTerm ? 
+                    customer.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                    customer.industry.toLowerCase().includes(searchTerm.toLowerCase()) : 
+                    true
+                ).length === 0 && (
+                  <div className="py-8 text-center text-gray-500">
+                    No customers found matching your criteria.
+                  </div>
+                )}
               </div>
             </TabsContent>
           </Tabs>
