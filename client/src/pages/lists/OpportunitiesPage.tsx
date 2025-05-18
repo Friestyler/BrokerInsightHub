@@ -177,9 +177,120 @@ function OpportunitiesTable() {
   const [selectedStage, setSelectedStage] = useState('');
   const [selectedOwner, setSelectedOwner] = useState('');
   const [showFilters, setShowFilters] = useState(false);
+  const [selectedOpportunities, setSelectedOpportunities] = useState<number[]>([]);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [itemsPerPage, setItemsPerPage] = useState(12);
   
   // Calculate stats
   const stats = calculateOpportunityStats(mockOpportunities);
+  
+  // Function to toggle opportunity selection
+  const toggleSelectOpportunity = (id: number) => {
+    if (selectedOpportunities.includes(id)) {
+      setSelectedOpportunities(selectedOpportunities.filter(oppId => oppId !== id));
+    } else {
+      setSelectedOpportunities([...selectedOpportunities, id]);
+    }
+  };
+  
+  // Function to select/deselect all opportunities
+  const toggleSelectAll = () => {
+    if (selectedOpportunities.length === mockOpportunities.length) {
+      setSelectedOpportunities([]);
+    } else {
+      setSelectedOpportunities(mockOpportunities.map(opp => opp.id));
+    }
+  };
+  
+  // Owner avatar component
+  const OwnerAvatar = ({ owner }: { owner: string }) => {
+    // Mock profile pictures for specific owners
+    const profilePics: Record<string, string | null> = {
+      'John Smith': null,
+      'Sarah Johnson': null,
+      'Michael Lee': null,
+      'Emily Chen': null,
+      'James Wilson': null
+    };
+    
+    // Get initials from owner name
+    const getInitials = (name: string) => {
+      return name
+        .split(' ')
+        .map(part => part[0])
+        .join('')
+        .toUpperCase();
+    };
+    
+    // Different avatar background colors based on owner
+    const getAvatarColor = (name: string) => {
+      const colors = [
+        'bg-blue-500',
+        'bg-purple-500',
+        'bg-green-500',
+        'bg-indigo-500',
+        'bg-teal-500'
+      ];
+      const hash = name.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0);
+      return colors[hash % colors.length];
+    };
+    
+    // If owner has a profile pic, show it, otherwise show initials
+    const avatarImg = profilePics[owner];
+    
+    return (
+      <div className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-medium ${avatarImg ? '' : getAvatarColor(owner)}`}>
+        {avatarImg ? (
+          <img src={avatarImg} alt={owner} className="w-full h-full rounded-full object-cover" />
+        ) : (
+          <span>{getInitials(owner)}</span>
+        )}
+      </div>
+    );
+  };
+  
+  // Template badges component
+  const TemplateBadges = ({ type }: { type: string }) => {
+    // Mock template badges based on type
+    const getBadges = (type: string) => {
+      if (type === 'Commercial Property Insurance') {
+        return [
+          { code: 'RP', color: 'bg-blue-100 text-blue-600' },
+          { code: 'CO', color: 'bg-purple-100 text-purple-600' }
+        ];
+      } else if (type === 'Directors & Officers Insurance') {
+        return [
+          { code: 'CO', color: 'bg-purple-100 text-purple-600' }
+        ];
+      } else if (type === 'Cyber Security Insurance') {
+        return [
+          { code: 'AC', color: 'bg-teal-100 text-teal-600' }
+        ];
+      } else if (type === 'Business Interruption Insurance') {
+        return [
+          { code: 'RP', color: 'bg-blue-100 text-blue-600' },
+          { code: 'CO', color: 'bg-purple-100 text-purple-600' }
+        ];
+      } else {
+        return [
+          { code: 'CO', color: 'bg-purple-100 text-purple-600' },
+          { code: 'RP', color: 'bg-blue-100 text-blue-600' }
+        ];
+      }
+    };
+    
+    const badges = getBadges(type);
+    
+    return (
+      <div className="flex space-x-1">
+        {badges.map((badge, index) => (
+          <div key={index} className={`${badge.color} w-7 h-7 rounded-md flex items-center justify-center text-xs font-medium`}>
+            {badge.code}
+          </div>
+        ))}
+      </div>
+    );
+  };
   
   return (
     <div className="space-y-4">
@@ -284,7 +395,7 @@ function OpportunitiesTable() {
         </div>
         
         <div className="bg-white p-4 rounded-md border border-gray-200">
-          <div className="text-xl font-semibold">€{(stats.currentPageValue).toLocaleString()}</div>
+          <div className="text-xl font-semibold">€{stats.currentPageValue.toLocaleString()}</div>
           <div className="text-sm text-gray-500">Total Value Opportunities on this page</div>
         </div>
         
@@ -299,12 +410,20 @@ function OpportunitiesTable() {
         </div>
       </div>
       
-      {/* Table */}
-      <div className="bg-white rounded-md border shadow-sm overflow-hidden">
-        <Table>
-          <TableHeader>
-            <TableRow className="bg-gray-50 border-b border-gray-200">
-              <TableHead className="w-[250px]">
+      {/* Table section without a border */}
+      <div className="bg-white overflow-hidden">
+        <table className="min-w-full divide-y divide-gray-200">
+          <thead className="bg-gray-50">
+            <tr>
+              <th scope="col" className="relative px-3 py-3.5">
+                <input
+                  type="checkbox"
+                  className="absolute h-4 w-4 rounded border-gray-300"
+                  checked={selectedOpportunities.length === mockOpportunities.length && mockOpportunities.length > 0}
+                  onChange={toggleSelectAll}
+                />
+              </th>
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                 <div className="flex items-center">
                   Name
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
@@ -312,8 +431,8 @@ function OpportunitiesTable() {
                     <path d="M16 15l-4 4-4-4"></path>
                   </svg>
                 </div>
-              </TableHead>
-              <TableHead>
+              </th>
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                 <div className="flex items-center">
                   Customer
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
@@ -321,8 +440,8 @@ function OpportunitiesTable() {
                     <path d="M16 15l-4 4-4-4"></path>
                   </svg>
                 </div>
-              </TableHead>
-              <TableHead>
+              </th>
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                 <div className="flex items-center">
                   Partner
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
@@ -330,8 +449,8 @@ function OpportunitiesTable() {
                     <path d="M16 15l-4 4-4-4"></path>
                   </svg>
                 </div>
-              </TableHead>
-              <TableHead>
+              </th>
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                 <div className="flex items-center">
                   Amount
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
@@ -339,8 +458,8 @@ function OpportunitiesTable() {
                     <path d="M16 15l-4 4-4-4"></path>
                   </svg>
                 </div>
-              </TableHead>
-              <TableHead>
+              </th>
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                 <div className="flex items-center">
                   Prob.
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
@@ -348,8 +467,8 @@ function OpportunitiesTable() {
                     <path d="M16 15l-4 4-4-4"></path>
                   </svg>
                 </div>
-              </TableHead>
-              <TableHead>
+              </th>
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                 <div className="flex items-center">
                   Stage
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
@@ -357,17 +476,17 @@ function OpportunitiesTable() {
                     <path d="M16 15l-4 4-4-4"></path>
                   </svg>
                 </div>
-              </TableHead>
-              <TableHead>
+              </th>
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                 <div className="flex items-center">
                   Closing date
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1 rotate-180">
                     <path d="M8 9l4-4 4 4"></path>
                     <path d="M16 15l-4 4-4-4"></path>
                   </svg>
                 </div>
-              </TableHead>
-              <TableHead>
+              </th>
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                 <div className="flex items-center">
                   Plans
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
@@ -375,8 +494,13 @@ function OpportunitiesTable() {
                     <path d="M16 15l-4 4-4-4"></path>
                   </svg>
                 </div>
-              </TableHead>
-              <TableHead>
+              </th>
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                <div className="flex items-center">
+                  Template
+                </div>
+              </th>
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                 <div className="flex items-center">
                   Owner
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
@@ -384,53 +508,177 @@ function OpportunitiesTable() {
                     <path d="M16 15l-4 4-4-4"></path>
                   </svg>
                 </div>
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-gray-100 bg-white">
             {mockOpportunities.map((opportunity) => (
-              <TableRow key={opportunity.id} className="border-gray-100 hover:bg-gray-50">
-                <TableCell className="font-medium border-b border-gray-100">
-                  <div className="font-medium text-gray-900">{opportunity.title}</div>
-                </TableCell>
-                <TableCell className="border-b border-gray-100">
+              <tr 
+                key={opportunity.id} 
+                className={`hover:bg-gray-50 group ${selectedOpportunities.includes(opportunity.id) ? 'bg-blue-50' : ''}`}
+              >
+                <td className="relative whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 rounded border-gray-300"
+                    checked={selectedOpportunities.includes(opportunity.id)}
+                    onChange={() => toggleSelectOpportunity(opportunity.id)}
+                  />
+                </td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm font-medium">
+                  {opportunity.title}
+                </td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
                   <Link 
                     href={`/lists/customers/${opportunity.customerId}`}
                     className="text-indigo-600 hover:text-indigo-800 hover:underline"
                   >
                     {opportunity.customerName}
                   </Link>
-                </TableCell>
-                <TableCell className="border-b border-gray-100">
+                </td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
                   <Link 
                     href={`/lists/partners/${opportunity.partnerId}`}
                     className="text-indigo-600 hover:text-indigo-800 hover:underline"
                   >
                     {opportunity.partnerName}
                   </Link>
-                </TableCell>
-                <TableCell className="border-b border-gray-100">
+                </td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
                   {formatCurrency(opportunity.estimatedValue)}
-                </TableCell>
-                <TableCell className="border-b border-gray-100">
+                </td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
                   {opportunity.probability}%
-                </TableCell>
-                <TableCell className="border-b border-gray-100">
+                </td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
                   {getStatusBadge(opportunity.status)}
-                </TableCell>
-                <TableCell className="border-b border-gray-100">
-                  {format(opportunity.updatedAt, 'MMM d, yyyy')}
-                </TableCell>
-                <TableCell className="border-b border-gray-100">
+                </td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                  {format(opportunity.updatedAt, 'dd.MM.yyyy')}
+                </td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
                   {opportunity.productMissing}
-                </TableCell>
-                <TableCell className="border-b border-gray-100">
-                  {opportunity.owner}
-                </TableCell>
-              </TableRow>
+                </td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                  <TemplateBadges type={opportunity.productMissing} />
+                </td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                  <OwnerAvatar owner={opportunity.owner} />
+                </td>
+              </tr>
             ))}
-          </TableBody>
-        </Table>
+          </tbody>
+        </table>
+      </div>
+      
+      {/* Pagination */}
+      <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3">
+        <div className="flex flex-1 justify-between sm:hidden">
+          <a href="#" className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Previous</a>
+          <a href="#" className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Next</a>
+        </div>
+        <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm text-gray-700">
+              <span className="font-medium">0</span> of <span className="font-medium">250</span> item(s) selected
+            </p>
+          </div>
+          <div className="flex items-center space-x-4">
+            <div>
+              <p className="text-sm text-gray-700">
+                Items per page: 
+                <select
+                  value={itemsPerPage}
+                  onChange={(e) => setItemsPerPage(Number(e.target.value))}
+                  className="ml-1 rounded border-gray-300 text-indigo-600 focus:border-indigo-500 focus:ring-indigo-500"
+                >
+                  <option value={12}>12</option>
+                  <option value={24}>24</option>
+                  <option value={48}>48</option>
+                </select>
+              </p>
+            </div>
+            <div>
+              <p className="text-sm text-gray-700">
+                Page <span className="font-medium">1</span> of <span className="font-medium">25</span>
+              </p>
+            </div>
+            <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+              <a
+                href="#"
+                className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+              >
+                <span className="sr-only">First</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="11 17 6 12 11 7"></polyline>
+                  <polyline points="18 17 13 12 18 7"></polyline>
+                </svg>
+              </a>
+              <a
+                href="#"
+                className="relative inline-flex items-center px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+              >
+                <span className="sr-only">Previous</span>
+                <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fillRule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clipRule="evenodd" />
+                </svg>
+              </a>
+              <a
+                href="#"
+                aria-current="page"
+                className="relative z-10 inline-flex items-center bg-indigo-600 px-4 py-2 text-sm font-semibold text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+              >
+                1
+              </a>
+              <a
+                href="#"
+                className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+              >
+                2
+              </a>
+              <a
+                href="#"
+                className="relative hidden items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0 md:inline-flex"
+              >
+                3
+              </a>
+              <span className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-700 ring-1 ring-inset ring-gray-300 focus:outline-offset-0">
+                ...
+              </span>
+              <a
+                href="#"
+                className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+              >
+                24
+              </a>
+              <a
+                href="#"
+                className="relative inline-flex items-center px-4 py-2 text-sm font-semibold text-gray-900 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+              >
+                25
+              </a>
+              <a
+                href="#"
+                className="relative inline-flex items-center px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+              >
+                <span className="sr-only">Next</span>
+                <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
+                </svg>
+              </a>
+              <a
+                href="#"
+                className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+              >
+                <span className="sr-only">Last</span>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="13 17 18 12 13 7"></polyline>
+                  <polyline points="6 17 11 12 6 7"></polyline>
+                </svg>
+              </a>
+            </nav>
+          </div>
+        </div>
       </div>
     </div>
   );
