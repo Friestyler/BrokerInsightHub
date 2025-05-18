@@ -298,12 +298,7 @@ function OpportunitiesTable() {
   
   return (
     <div className="space-y-4">
-      {/* Header with title */}
-      <div className="flex justify-between items-center">
-        <div className="flex items-center space-x-2">
-          <h2 className="text-xl font-semibold text-black">Open Opportunities</h2>
-        </div>
-      </div>
+      {/* Search and filters section */}
       
       {/* Search and filters */}
       <div className="flex flex-wrap items-center gap-3">
