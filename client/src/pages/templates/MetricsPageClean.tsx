@@ -31,6 +31,12 @@ import {
 } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { 
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { apiRequest } from '@/lib/queryClient';
 
 // Mock data for metrics with parent-child relationships
@@ -274,20 +280,6 @@ const formatTargetValue = (value: number | undefined, unit: string) => {
   }
 };
 
-// Get badge color by hierarchy
-const getBadgeColorByHierarchy = (hierarchy: string) => {
-  switch (hierarchy) {
-    case "objective":
-      return "bg-amber-100 text-amber-800 hover:bg-amber-100";
-    case "activity":
-      return "bg-blue-100 text-blue-800 hover:bg-blue-100";
-    case "subactivity":
-      return "bg-gray-100 text-gray-700 hover:bg-gray-100";
-    default:
-      return "bg-gray-100 text-gray-700";
-  }
-};
-
 // Main Metrics Page component
 export default function MetricsPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -453,145 +445,83 @@ export default function MetricsPage() {
     setSelectedMetrics([]);
   };
   
-  // Function to render a single metric row
-  const renderMetricRow = (metric: any, indentLevel: number = 0) => {
-    const hasChildren = metric.children && metric.children.length > 0;
-    const isExpanded = expandedItems.includes(metric.id);
-    const childMetrics = hasChildren ? 
-      metrics.filter(m => metric.children.includes(m.id)) : [];
-      
-    let hierarchyIndicator = null;
-    let hierarchyBadge = null;
-    
-    // Set up the hierarchy indicators based on the level
-    switch(metric.hierarchy) {
-      case "objective":
-        hierarchyBadge = <Badge variant="outline" className="capitalize bg-amber-100 text-amber-800 ml-2 text-xs">Objective</Badge>;
-        break;
-      case "activity":
-        hierarchyIndicator = (
-          <div className="w-8 pl-6 flex justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-              <polyline points="9 10 4 15 9 20" />
-              <path d="M20 4v7a4 4 0 0 1-4 4H4" />
-            </svg>
-          </div>
-        );
-        hierarchyBadge = <Badge variant="outline" className="capitalize bg-blue-100 text-blue-800 ml-2 text-xs">Activity</Badge>;
-        break;
-      case "subactivity":
-        hierarchyIndicator = (
-          <>
-            <div className="w-8 pl-6 flex justify-center opacity-0">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                <polyline points="9 10 4 15 9 20" />
-                <path d="M20 4v7a4 4 0 0 1-4 4H4" />
-              </svg>
-            </div>
-            <div className="w-8 ml-8 flex justify-center">
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                <circle cx="12" cy="12" r="4" />
-              </svg>
-            </div>
-          </>
-        );
-        hierarchyBadge = <Badge variant="outline" className="capitalize bg-gray-100 text-gray-700 ml-2 text-xs">Subactivity</Badge>;
-        break;
-    }
-      
-    return (
-      <div key={`metric-${metric.id}`}>
-        <TableRow 
-          className={`${selectedMetrics.includes(metric.id) ? "bg-indigo-50" : 
-                      metric.hierarchy === "objective" ? "hover:bg-amber-50/30" : "hover:bg-slate-50"}`}
-        >
-          <TableCell>
-            <Checkbox 
-              checked={selectedMetrics.includes(metric.id)}
-              onCheckedChange={() => toggleMetricSelection(metric.id)}
-            />
-          </TableCell>
-          <TableCell className="font-medium">
-            <div className="flex items-center">
-              {hierarchyIndicator}
-              {hasChildren && (
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="h-6 w-6 p-0 mr-2" 
-                  onClick={() => toggleExpand(metric.id)}
-                >
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    width="16" 
-                    height="16" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round"
-                    className={`transition-transform ${isExpanded ? 'rotate-90' : ''}`}
-                  >
-                    <polyline points="9 18 15 12 9 6"></polyline>
-                  </svg>
-                </Button>
-              )}
-              <div className={metric.hierarchy === "subactivity" ? "ml-2" : ""}>
-                <div className="flex items-center">
-                  <span className={metric.hierarchy === "objective" ? "font-semibold" : 
-                                  metric.hierarchy === "activity" ? "font-medium" : ""}>
-                    {metric.title}
-                  </span>
-                  {hierarchyBadge}
-                </div>
-                {metric.description && (
-                  <div className="text-sm text-gray-600 mt-1">{metric.description}</div>
-                )}
-              </div>
-            </div>
-          </TableCell>
-          <TableCell>
-            <div className="font-medium">{formatTargetValue(metric.targetValue, metric.unit)}</div>
-            <div className="text-xs text-gray-500 capitalize">{metric.unit}</div>
-          </TableCell>
-          <TableCell>
-            <div className="flex flex-wrap">
-              {metric.tags.map((tag: string) => (
-                <TagBadge key={tag} tag={tag} />
-              ))}
-            </div>
-          </TableCell>
-          <TableCell className="text-right">
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
-                <path d="m15 5 4 4"/>
-              </svg>
-            </Button>
-            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-600">
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M3 6h18"></path>
-                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-              </svg>
-            </Button>
-          </TableCell>
-        </TableRow>
-        
-        {/* Render children if expanded */}
-        {isExpanded && childMetrics.map(childMetric => 
-          renderMetricRow(childMetric, indentLevel + 1)
-        )}
-      </div>
-    );
-  };
-  
-  // Get all top-level objectives
+  // Get all objectives (top-level)
   const objectives = filteredMetrics.filter(m => m.hierarchy === "objective");
   
-  // Standalone metrics (not part of hierarchy)
-  const standaloneMetrics = filteredMetrics.filter(m => !m.parent && m.hierarchy !== "objective");
+  // Build the hierarchical tree structure
+  const createHierarchicalMetrics = () => {
+    const result: any[] = [];
+    
+    // Process objectives first
+    objectives.forEach(objective => {
+      result.push({
+        ...objective,
+        level: 0,
+        children: [] as any[]
+      });
+      
+      // Find activities for this objective
+      const activities = filteredMetrics.filter(m => m.parent === objective.id);
+      activities.forEach(activity => {
+        result.push({
+          ...activity,
+          level: 1,
+          parent: objective.id
+        });
+        
+        // Find subactivities for this activity
+        const subactivities = filteredMetrics.filter(m => m.parent === activity.id);
+        subactivities.forEach(subactivity => {
+          result.push({
+            ...subactivity,
+            level: 2, 
+            parent: activity.id,
+            grandparent: objective.id
+          });
+        });
+      });
+    });
+    
+    // Add standalone metrics at the end
+    const standalone = filteredMetrics.filter(m => 
+      m.hierarchy !== "objective" && !m.parent
+    );
+    standalone.forEach(metric => {
+      result.push({
+        ...metric,
+        level: 0,
+        isStandalone: true
+      });
+    });
+    
+    return result;
+  };
+  
+  // Determine what items should be visible based on expanded state
+  const getVisibleMetrics = () => {
+    const hierarchicalMetrics = createHierarchicalMetrics();
+    
+    return hierarchicalMetrics.filter(metric => {
+      // Always show objectives and standalone metrics
+      if (metric.level === 0) {
+        return true;
+      }
+      
+      // Show activities if their parent objective is expanded
+      if (metric.level === 1) {
+        return expandedItems.includes(metric.parent);
+      }
+      
+      // Show subactivities if both their parent activity and grandparent objective are expanded
+      if (metric.level === 2) {
+        return expandedItems.includes(metric.parent) && expandedItems.includes(metric.grandparent);
+      }
+      
+      return false;
+    });
+  };
+  
+  const visibleMetrics = getVisibleMetrics();
   
   return (
     <div className="container mx-auto px-4 py-6">
@@ -767,7 +697,6 @@ export default function MetricsPage() {
             </div>
           ) : (
             <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-              {/* Hierarchical Table View */}
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -777,28 +706,284 @@ export default function MetricsPage() {
                         onCheckedChange={handleSelectAllMetrics}
                       />
                     </TableHead>
-                    <TableHead>Title</TableHead>
+                    <TableHead>Metric</TableHead>
                     <TableHead className="whitespace-nowrap">Target</TableHead>
                     <TableHead>Tags</TableHead>
                     <TableHead className="text-right">Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {/* Render all objectives */}
-                  {objectives.map(objective => renderMetricRow(objective))}
-                  
-                  {/* Standalone metrics section */}
-                  {standaloneMetrics.length > 0 && (
-                    <>
-                      <TableRow className="border-t border-gray-200">
-                        <TableCell colSpan={5} className="py-2">
-                          <h3 className="text-sm font-medium text-gray-500">Standalone Metrics</h3>
+                  {visibleMetrics.map((metric, idx) => {
+                    // Add visual separator before standalone metrics
+                    const isFirstStandalone = metric.isStandalone && 
+                      (!visibleMetrics[idx-1]?.isStandalone);
+                    
+                    const hasChildren = metrics.some(m => m.parent === metric.id);
+                    const isExpanded = expandedItems.includes(metric.id);
+                    
+                    // Determine indentation and visual indicators
+                    let indentationElement = null;
+                    
+                    if (metric.level === 1) {
+                      // Activity level
+                      indentationElement = (
+                        <div className="w-8 pl-6 flex justify-center">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                            <polyline points="9 10 4 15 9 20" />
+                            <path d="M20 4v7a4 4 0 0 1-4 4H4" />
+                          </svg>
+                        </div>
+                      );
+                    } else if (metric.level === 2) {
+                      // Subactivity level
+                      indentationElement = (
+                        <>
+                          <div className="w-8 pl-6 flex justify-center opacity-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                              <polyline points="9 10 4 15 9 20" />
+                              <path d="M20 4v7a4 4 0 0 1-4 4H4" />
+                            </svg>
+                          </div>
+                          <div className="w-8 ml-8 flex justify-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                              <circle cx="12" cy="12" r="4" />
+                            </svg>
+                          </div>
+                        </>
+                      );
+                    }
+                    
+                    // Set row style based on metric level
+                    let rowStyle = "";
+                    if (selectedMetrics.includes(metric.id)) {
+                      rowStyle = "bg-indigo-50";
+                    } else if (metric.level === 0 && !metric.isStandalone) {
+                      rowStyle = "hover:bg-amber-50/30 font-medium";
+                    } else {
+                      rowStyle = "hover:bg-slate-50";
+                    }
+                    
+                    // Add top border for standalone metrics section
+                    if (isFirstStandalone) {
+                      return (
+                        <React.Fragment key={`section-${metric.id}`}>
+                          <TableRow className="border-t border-gray-200">
+                            <TableCell colSpan={5} className="py-2">
+                              <h3 className="text-sm font-medium text-gray-500">Standalone Metrics</h3>
+                            </TableCell>
+                          </TableRow>
+                          <TableRow className={rowStyle}>
+                            <TableCell>
+                              <Checkbox 
+                                checked={selectedMetrics.includes(metric.id)}
+                                onCheckedChange={() => toggleMetricSelection(metric.id)}
+                              />
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex items-center">
+                                {indentationElement}
+                                {hasChildren && (
+                                  <Button 
+                                    variant="ghost" 
+                                    size="sm" 
+                                    className="h-6 w-6 p-0 mr-2" 
+                                    onClick={() => toggleExpand(metric.id)}
+                                  >
+                                    <svg 
+                                      xmlns="http://www.w3.org/2000/svg" 
+                                      width="16" 
+                                      height="16" 
+                                      viewBox="0 0 24 24" 
+                                      fill="none" 
+                                      stroke="currentColor" 
+                                      strokeWidth="2" 
+                                      strokeLinecap="round" 
+                                      strokeLinejoin="round"
+                                      className={`transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+                                    >
+                                      <polyline points="9 18 15 12 9 6"></polyline>
+                                    </svg>
+                                  </Button>
+                                )}
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <span className={metric.level === 0 ? "font-semibold" : 
+                                                       metric.level === 1 ? "font-medium" : ""}>
+                                        {metric.title.length > 35 
+                                          ? `${metric.title.substring(0, 35)}...` 
+                                          : metric.title
+                                        }
+                                      </span>
+                                    </TooltipTrigger>
+                                    {metric.title.length > 35 && (
+                                      <TooltipContent>
+                                        <div className="max-w-xs">
+                                          <p>{metric.title}</p>
+                                          {metric.description && (
+                                            <p className="text-xs text-gray-500 mt-1">{metric.description}</p>
+                                          )}
+                                        </div>
+                                      </TooltipContent>
+                                    )}
+                                  </Tooltip>
+                                </TooltipProvider>
+                                {metric.description && metric.title.length <= 35 && (
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2 text-gray-400">
+                                          <circle cx="12" cy="12" r="10" />
+                                          <line x1="12" y1="16" x2="12" y2="12" />
+                                          <line x1="12" y1="8" x2="12.01" y2="8" />
+                                        </svg>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p className="max-w-xs">{metric.description}</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="font-medium">{formatTargetValue(metric.targetValue, metric.unit)}</div>
+                              <div className="text-xs text-gray-500 capitalize">{metric.unit}</div>
+                            </TableCell>
+                            <TableCell>
+                              <div className="flex flex-wrap">
+                                {metric.tags.map((tag: string) => (
+                                  <TagBadge key={tag} tag={tag} />
+                                ))}
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                                  <path d="m15 5 4 4"/>
+                                </svg>
+                              </Button>
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <path d="M3 6h18"></path>
+                                  <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                                  <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                                </svg>
+                              </Button>
+                            </TableCell>
+                          </TableRow>
+                        </React.Fragment>
+                      );
+                    }
+                    
+                    return (
+                      <TableRow 
+                        key={`metric-${metric.id}`} 
+                        className={rowStyle}
+                      >
+                        <TableCell>
+                          <Checkbox 
+                            checked={selectedMetrics.includes(metric.id)}
+                            onCheckedChange={() => toggleMetricSelection(metric.id)}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center">
+                            {indentationElement}
+                            {hasChildren && (
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="h-6 w-6 p-0 mr-2" 
+                                onClick={() => toggleExpand(metric.id)}
+                              >
+                                <svg 
+                                  xmlns="http://www.w3.org/2000/svg" 
+                                  width="16" 
+                                  height="16" 
+                                  viewBox="0 0 24 24" 
+                                  fill="none" 
+                                  stroke="currentColor" 
+                                  strokeWidth="2" 
+                                  strokeLinecap="round" 
+                                  strokeLinejoin="round"
+                                  className={`transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+                                >
+                                  <polyline points="9 18 15 12 9 6"></polyline>
+                                </svg>
+                              </Button>
+                            )}
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <span className={metric.level === 0 ? "font-semibold" : 
+                                                   metric.level === 1 ? "font-medium" : ""}>
+                                    {metric.title.length > 35 
+                                      ? `${metric.title.substring(0, 35)}...` 
+                                      : metric.title
+                                    }
+                                  </span>
+                                </TooltipTrigger>
+                                {metric.title.length > 35 && (
+                                  <TooltipContent>
+                                    <div className="max-w-xs">
+                                      <p>{metric.title}</p>
+                                      {metric.description && (
+                                        <p className="text-xs text-gray-500 mt-1">{metric.description}</p>
+                                      )}
+                                    </div>
+                                  </TooltipContent>
+                                )}
+                              </Tooltip>
+                            </TooltipProvider>
+                            {metric.description && metric.title.length <= 35 && (
+                              <TooltipProvider>
+                                <Tooltip>
+                                  <TooltipTrigger asChild>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2 text-gray-400">
+                                      <circle cx="12" cy="12" r="10" />
+                                      <line x1="12" y1="16" x2="12" y2="12" />
+                                      <line x1="12" y1="8" x2="12.01" y2="8" />
+                                    </svg>
+                                  </TooltipTrigger>
+                                  <TooltipContent>
+                                    <p className="max-w-xs">{metric.description}</p>
+                                  </TooltipContent>
+                                </Tooltip>
+                              </TooltipProvider>
+                            )}
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-medium">{formatTargetValue(metric.targetValue, metric.unit)}</div>
+                          <div className="text-xs text-gray-500 capitalize">{metric.unit}</div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex flex-wrap">
+                            {metric.tags.map((tag: string) => (
+                              <TagBadge key={tag} tag={tag} />
+                            ))}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                              <path d="m15 5 4 4"/>
+                            </svg>
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M3 6h18"></path>
+                              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                            </svg>
+                          </Button>
                         </TableCell>
                       </TableRow>
-                      
-                      {standaloneMetrics.map(metric => renderMetricRow(metric))}
-                    </>
-                  )}
+                    );
+                  })}
                 </TableBody>
               </Table>
             </div>
