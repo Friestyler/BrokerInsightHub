@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -31,6 +30,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { apiRequest } from '@/lib/queryClient';
 
 // Mock data for metrics
@@ -65,6 +65,7 @@ const mockMetrics = [
     targetValue: 1,
     hierarchy: "activity",
     tags: ["Training", "Certification", "People"],
+    relatedTo: 1, // Related to Revenue Goal
     createdAt: new Date("2025-03-15"),
     updatedAt: new Date("2025-04-10"),
   },
@@ -76,6 +77,7 @@ const mockMetrics = [
     targetValue: 100000,
     hierarchy: "activity",
     tags: ["Financial", "Marketing", "Budget"],
+    relatedTo: 1, // Related to Revenue Goal
     createdAt: new Date("2025-03-18"),
     updatedAt: new Date("2025-04-12"),
   },
@@ -98,6 +100,7 @@ const mockMetrics = [
     targetValue: 1,
     hierarchy: "activity",
     tags: ["Digital", "Website", "Marketing"],
+    relatedTo: 5, // Related to Co-branded Campaigns
     createdAt: new Date("2025-02-20"),
     updatedAt: new Date("2025-04-05"),
   },
@@ -118,10 +121,35 @@ const mockMetrics = [
     description: "Average time to first response in hours",
     unit: "number",
     targetValue: 4,
-    hierarchy: "objective",
+    hierarchy: "activity",
     tags: ["Support", "Service", "Quality"],
+    relatedTo: 7, // Related to Customer Satisfaction
     createdAt: new Date("2025-01-22"),
     updatedAt: new Date("2025-03-10"),
+  },
+  {
+    id: 9,
+    title: "Document Review Sessions",
+    description: "Number of document review sessions with team",
+    unit: "number",
+    targetValue: 6,
+    hierarchy: "subactivity",
+    tags: ["Training", "Certification"],
+    relatedTo: 3, // Related to Training & Certification
+    createdAt: new Date("2025-03-16"),
+    updatedAt: new Date("2025-04-11"),
+  },
+  {
+    id: 10,
+    title: "Customer Support Scripts",
+    description: "Creation of standard customer support scripts",
+    unit: "boolean",
+    targetValue: 1,
+    hierarchy: "subactivity",
+    tags: ["Support", "Service"],
+    relatedTo: 8, // Related to Response Time
+    createdAt: new Date("2025-01-25"),
+    updatedAt: new Date("2025-03-12"),
   }
 ];
 
@@ -216,11 +244,12 @@ const TagBadge = ({ tag }: { tag: string }) => {
 };
 
 // Component for creating a new metric form
-const NewMetricForm = ({ isOpen, onClose, onSubmit, existingTags }: { 
+const NewMetricForm = ({ isOpen, onClose, onSubmit, existingTags, preselectedMetrics = [] }: { 
   isOpen: boolean, 
   onClose: () => void, 
   onSubmit: (data: any) => void,
-  existingTags: string[] 
+  existingTags: string[], 
+  preselectedMetrics?: number[]
 }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -228,7 +257,11 @@ const NewMetricForm = ({ isOpen, onClose, onSubmit, existingTags }: {
   const [targetValue, setTargetValue] = useState("");
   const [hierarchy, setHierarchy] = useState("activity");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [relatedTo, setRelatedTo] = useState<string>("");
   const [newTag, setNewTag] = useState("");
+  
+  // Get objectives for relationship selection
+  const objectives = mockMetrics.filter(m => m.hierarchy === "objective");
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -240,6 +273,7 @@ const NewMetricForm = ({ isOpen, onClose, onSubmit, existingTags }: {
       targetValue: unit === "boolean" ? (targetValue === "true" ? 1 : 0) : parseFloat(targetValue),
       hierarchy,
       tags: selectedTags,
+      relatedTo: relatedTo ? parseInt(relatedTo) : undefined,
     };
     
     onSubmit(metricData);
@@ -251,6 +285,7 @@ const NewMetricForm = ({ isOpen, onClose, onSubmit, existingTags }: {
     setTargetValue("");
     setHierarchy("activity");
     setSelectedTags([]);
+    setRelatedTo("");
     setNewTag("");
     
     onClose();
@@ -405,6 +440,27 @@ const NewMetricForm = ({ isOpen, onClose, onSubmit, existingTags }: {
               </Select>
             </div>
             
+            {(hierarchy === "activity" || hierarchy === "subactivity") && (
+              <div className="grid grid-cols-4 items-center gap-4">
+                <label htmlFor="relatedTo" className="text-right text-sm font-medium">
+                  Related To
+                </label>
+                <Select value={relatedTo} onValueChange={setRelatedTo}>
+                  <SelectTrigger className="col-span-3">
+                    <SelectValue placeholder="Select parent objective" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">None</SelectItem>
+                    {objectives.map(obj => (
+                      <SelectItem key={obj.id} value={obj.id.toString()}>
+                        {obj.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            
             <div className="grid grid-cols-4 items-start gap-4">
               <label className="text-right text-sm font-medium pt-2">
                 Tags
@@ -485,6 +541,13 @@ const NewGroupForm = ({ isOpen, onClose, onSubmit, metrics, existingTags, presel
       );
     }
   }, [selectedTags, metrics]);
+  
+  // Update when preselectedMetrics changes
+  useEffect(() => {
+    if (preselectedMetrics.length > 0) {
+      setSelectedMetrics(preselectedMetrics);
+    }
+  }, [preselectedMetrics]);
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -916,21 +979,15 @@ export default function MetricsPage() {
   const [metrics, setMetrics] = useState(mockMetrics);
   const [metricGroups, setMetricGroups] = useState(mockMetricGroups);
   const [tags, setTags] = useState(mockTags);
-  const [groupByHierarchy, setGroupByHierarchy] = useState(true);
+  const [expandedObjectives, setExpandedObjectives] = useState<number[]>([]);
   
   // Collect all unique tags from metrics
   const allTagNames = Array.from(
     new Set(metrics.flatMap(metric => metric.tags))
   ).sort();
   
-  // Organize metrics by hierarchy when grouping is enabled
-  const hierarchyGroups = groupByHierarchy 
-    ? {
-        objective: metrics.filter(m => m.hierarchy === "objective"),
-        activity: metrics.filter(m => m.hierarchy === "activity"),
-        subactivity: metrics.filter(m => m.hierarchy === "subactivity")
-      }
-    : null;
+  // Organize metrics by hierarchy and relationships
+  const objectiveMetrics = metrics.filter(m => m.hierarchy === "objective");
   
   // Filter metrics based on search, tags, and selected groups
   const filteredMetrics = metrics.filter(metric => {
@@ -977,6 +1034,13 @@ export default function MetricsPage() {
       prev.includes(groupId)
         ? prev.filter(id => id !== groupId)
         : [...prev, groupId]
+    );
+  };
+  
+  // Toggle objective expansion
+  const toggleObjectiveExpansion = (id: number) => {
+    setExpandedObjectives(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
     );
   };
   
@@ -1050,8 +1114,7 @@ export default function MetricsPage() {
       
       setIsCreateGroupOpen(true);
       
-      // Pre-populate the new group form (handled in the NewGroupForm component)
-      // This is just preparing the data, the actual form state is managed in the NewGroupForm component
+      // Pre-populate the new group form is handled by passing preselectedMetrics
       return {
         metrics: selectedMetrics,
         tags: suggestedTags
@@ -1098,54 +1161,6 @@ export default function MetricsPage() {
     setSelectedMetrics([]);
   };
   
-  // Render a metric row with optional selection checkbox
-  const renderMetricRow = (metric: any, isSelectable = true) => (
-    <TableRow 
-      key={metric.id} 
-      className={selectedMetrics.includes(metric.id) ? "bg-indigo-50" : ""}
-    >
-      {isSelectable && (
-        <TableCell>
-          <Checkbox 
-            checked={selectedMetrics.includes(metric.id)}
-            onCheckedChange={() => toggleMetricSelection(metric.id)}
-          />
-        </TableCell>
-      )}
-      <TableCell className="font-medium">{metric.title}</TableCell>
-      <TableCell>{metric.description}</TableCell>
-      <TableCell>
-        <Badge variant="outline" className="capitalize">
-          {metric.hierarchy}
-        </Badge>
-      </TableCell>
-      <TableCell className="capitalize">{metric.unit}</TableCell>
-      <TableCell>{formatTargetValue(metric.targetValue, metric.unit)}</TableCell>
-      <TableCell>
-        <div className="flex flex-wrap">
-          {metric.tags.map(tag => (
-            <TagBadge key={tag} tag={tag} />
-          ))}
-        </div>
-      </TableCell>
-      <TableCell className="text-right">
-        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
-            <path d="m15 5 4 4"/>
-          </svg>
-        </Button>
-        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-600">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M3 6h18"></path>
-            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-          </svg>
-        </Button>
-      </TableCell>
-    </TableRow>
-  );
-  
   return (
     <div className="container mx-auto px-4 py-6">
       <div className="flex justify-between items-center mb-6">
@@ -1176,10 +1191,10 @@ export default function MetricsPage() {
         </div>
       </div>
       
-      {/* Unified search and filter bar */}
+      {/* Simplified search and filter bar */}
       <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-        <div className="flex flex-wrap gap-3 mb-4">
-          <div className="relative flex-grow max-w-md">
+        <div className="flex flex-wrap gap-3 items-center">
+          <div className="relative flex-grow">
             <Input
               placeholder="Search metrics or groups..."
               value={searchTerm}
@@ -1194,75 +1209,61 @@ export default function MetricsPage() {
             </div>
           </div>
           
-          <Button variant="outline" className="h-10" onClick={() => setGroupByHierarchy(!groupByHierarchy)}>
-            {groupByHierarchy ? (
-              <>
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                  <rect width="6" height="6" x="4" y="4" rx="1" />
-                  <rect width="6" height="6" x="14" y="4" rx="1" />
-                  <rect width="6" height="6" x="4" y="14" rx="1" />
-                  <rect width="6" height="6" x="14" y="14" rx="1" />
-                </svg>
-                Group by Hierarchy
-              </>
-            ) : (
-              <>
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                  <line x1="8" y1="6" x2="21" y2="6" />
-                  <line x1="8" y1="12" x2="21" y2="12" />
-                  <line x1="8" y1="18" x2="21" y2="18" />
-                  <line x1="3" y1="6" x2="3.01" y2="6" />
-                  <line x1="3" y1="12" x2="3.01" y2="12" />
-                  <line x1="3" y1="18" x2="3.01" y2="18" />
-                </svg>
-                Flat List View
-              </>
-            )}
-          </Button>
+          <div className="flex space-x-2 items-center">
+            <Select 
+              value={selectedTags.length === 1 ? selectedTags[0] : " "}
+              onValueChange={(value) => {
+                if (value && value !== " ") {
+                  setSelectedTags([value]);
+                } else {
+                  setSelectedTags([]);
+                }
+              }}
+            >
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder="Filter by tag" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value=" ">All Tags</SelectItem>
+                {allTagNames.map(tag => (
+                  <SelectItem key={tag} value={tag}>
+                    <div className="flex items-center">
+                      <TagBadge tag={tag} />
+                    </div>
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            
+            <Select 
+              value={selectedGroups.length === 1 ? selectedGroups[0].toString() : " "}
+              onValueChange={(value) => {
+                if (value && value !== " ") {
+                  setSelectedGroups([parseInt(value)]);
+                } else {
+                  setSelectedGroups([]);
+                }
+              }}
+            >
+              <SelectTrigger className="w-[160px]">
+                <SelectValue placeholder="Filter by group" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value=" ">All Groups</SelectItem>
+                {metricGroups.map(group => (
+                  <SelectItem key={group.id} value={group.id.toString()}>
+                    {group.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           
-          {(selectedTags.length > 0 || selectedGroups.length > 0) && (
+          {(selectedTags.length > 0 || selectedGroups.length > 0 || searchTerm) && (
             <Button variant="ghost" onClick={clearFilters} className="h-10">
               Clear filters
             </Button>
           )}
-        </div>
-        
-        <div className="space-y-3">
-          {/* Tags filter section */}
-          <div>
-            <h3 className="text-sm font-medium mb-2">Filter by Tags:</h3>
-            <div className="flex flex-wrap gap-2">
-              {allTagNames.map(tag => (
-                <Button
-                  key={tag}
-                  variant={selectedTags.includes(tag) ? "default" : "outline"}
-                  size="sm"
-                  className={selectedTags.includes(tag) ? "bg-indigo-600 hover:bg-indigo-700" : ""}
-                  onClick={() => toggleTag(tag)}
-                >
-                  {tag}
-                </Button>
-              ))}
-            </div>
-          </div>
-          
-          {/* Group filter section */}
-          <div>
-            <h3 className="text-sm font-medium mb-2">Filter by Groups:</h3>
-            <div className="flex flex-wrap gap-2">
-              {metricGroups.map(group => (
-                <Button
-                  key={group.id}
-                  variant={selectedGroups.includes(group.id) ? "default" : "outline"}
-                  size="sm"
-                  className={selectedGroups.includes(group.id) ? "bg-indigo-600 hover:bg-indigo-700" : ""}
-                  onClick={() => toggleGroup(group.id)}
-                >
-                  {group.name}
-                </Button>
-              ))}
-            </div>
-          </div>
         </div>
       </div>
       
@@ -1284,11 +1285,7 @@ export default function MetricsPage() {
               className="bg-indigo-600 hover:bg-indigo-700"
               size="sm"
               onClick={() => {
-                const groupData = handleCreateGroupFromSelection();
-                if (groupData) {
-                  // This will be handled by the NewGroupForm component
-                  // The form is opened with setIsCreateGroupOpen(true) in handleCreateGroupFromSelection
-                }
+                handleCreateGroupFromSelection();
               }}
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
@@ -1321,95 +1318,70 @@ export default function MetricsPage() {
         </div>
       ) : (
         <div className="space-y-8">
-          {/* Metrics section */}
-          {groupByHierarchy ? (
-            // Hierarchical view
-            <>
-              {/* All metrics in a unified list with clear hierarchy */}
-              <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-                <div className="px-4 py-3 bg-gray-50 border-b flex justify-between items-center">
-                  <h2 className="text-lg font-semibold">Metrics By Hierarchy</h2>
-                  
-                  {/* Tag group selector for quick filtering */}
-                  <div className="flex items-center">
-                    <span className="text-sm text-gray-500 mr-2">Group by Tag:</span>
-                    <Select 
-                      value={selectedTags.length === 1 ? selectedTags[0] : ""}
-                      onValueChange={(value) => {
-                        if (value) {
-                          setSelectedTags([value]);
-                        } else {
-                          setSelectedTags([]);
-                        }
-                      }}
-                    >
-                      <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Select a tag" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value=" ">All Tags</SelectItem>
-                        {allTagNames.map(tag => (
-                          <SelectItem key={tag} value={tag}>
-                            <div className="flex items-center">
-                              <TagBadge tag={tag} />
-                            </div>
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-                
-                <div className="p-4">
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-[50px]">
-                          <Checkbox 
-                            checked={filteredMetrics.length > 0 && filteredMetrics.every(m => selectedMetrics.includes(m.id))}
-                            onCheckedChange={(checked) => {
-                              if (checked) {
-                                setSelectedMetrics(prev => [
-                                  ...prev, 
-                                  ...filteredMetrics
-                                    .filter(m => !selectedMetrics.includes(m.id))
-                                    .map(m => m.id)
-                                ]);
-                              } else {
-                                setSelectedMetrics(prev => 
-                                  prev.filter(id => !filteredMetrics.find(m => m.id === id))
-                                );
-                              }
-                            }}
-                          />
-                        </TableHead>
-                        <TableHead>Hierarchy</TableHead>
-                        <TableHead>Title</TableHead>
-                        <TableHead>Description</TableHead>
-                        <TableHead>Unit</TableHead>
-                        <TableHead>Target</TableHead>
-                        <TableHead>Tags</TableHead>
-                        <TableHead className="text-right">Actions</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {/* Objectives First */}
-                      {hierarchyGroups?.objective
-                        .filter(metric => 
-                          (selectedTags.length === 0 || selectedTags.some(tag => metric.tags.includes(tag))) &&
-                          (selectedGroups.length === 0 || selectedGroups.some(groupId => 
-                            metricGroups.find(g => g.id === groupId)?.metrics.includes(metric.id)
-                          ))
-                        )
-                        .map(metric => (
+          {/* Metrics with hierarchical relationships */}
+          <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+            <div className="px-4 py-3 bg-gray-50 border-b flex justify-between items-center">
+              <h2 className="text-lg font-semibold">Metrics</h2>
+            </div>
+            
+            <div className="p-4">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[50px]">
+                      <Checkbox 
+                        checked={filteredMetrics.length > 0 && filteredMetrics.every(m => selectedMetrics.includes(m.id))}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedMetrics(prev => [
+                              ...prev, 
+                              ...filteredMetrics
+                                .filter(m => !selectedMetrics.includes(m.id))
+                                .map(m => m.id)
+                            ]);
+                          } else {
+                            setSelectedMetrics(prev => 
+                              prev.filter(id => !filteredMetrics.find(m => m.id === id))
+                            );
+                          }
+                        }}
+                      />
+                    </TableHead>
+                    <TableHead>Hierarchy</TableHead>
+                    <TableHead>Title</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead>Unit</TableHead>
+                    <TableHead>Target</TableHead>
+                    <TableHead>Tags</TableHead>
+                    <TableHead className="text-right">Actions</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {/* First list all objectives */}
+                  {filteredMetrics
+                    .filter(metric => metric.hierarchy === "objective")
+                    .map(objective => {
+                      // Find activities related to this objective
+                      const relatedActivities = filteredMetrics.filter(
+                        metric => metric.hierarchy === "activity" && metric.relatedTo === objective.id
+                      );
+                      
+                      const isExpanded = expandedObjectives.includes(objective.id);
+                      
+                      return (
+                        <>
                           <TableRow 
-                            key={metric.id} 
-                            className={`${selectedMetrics.includes(metric.id) ? "bg-indigo-50" : "bg-amber-50"}`}
+                            key={objective.id} 
+                            className={`${selectedMetrics.includes(objective.id) ? "bg-indigo-50" : "bg-amber-50"} cursor-pointer hover:bg-amber-100`}
+                            onClick={() => toggleObjectiveExpansion(objective.id)}
                           >
-                            <TableCell>
+                            <TableCell onClick={(e) => {
+                              e.stopPropagation();
+                              toggleMetricSelection(objective.id);
+                            }}>
                               <Checkbox 
-                                checked={selectedMetrics.includes(metric.id)}
-                                onCheckedChange={() => toggleMetricSelection(metric.id)}
+                                checked={selectedMetrics.includes(objective.id)}
+                                onCheckedChange={() => toggleMetricSelection(objective.id)}
                               />
                             </TableCell>
                             <TableCell>
@@ -1417,13 +1389,36 @@ export default function MetricsPage() {
                                 Objective
                               </Badge>
                             </TableCell>
-                            <TableCell className="font-medium">{metric.title}</TableCell>
-                            <TableCell>{metric.description}</TableCell>
-                            <TableCell className="capitalize">{metric.unit}</TableCell>
-                            <TableCell>{formatTargetValue(metric.targetValue, metric.unit)}</TableCell>
+                            <TableCell className="font-medium">
+                              <div className="flex items-center">
+                                <svg 
+                                  xmlns="http://www.w3.org/2000/svg" 
+                                  width="16" 
+                                  height="16" 
+                                  viewBox="0 0 24 24" 
+                                  fill="none" 
+                                  stroke="currentColor" 
+                                  strokeWidth="2" 
+                                  strokeLinecap="round" 
+                                  strokeLinejoin="round"
+                                  className={`mr-1 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+                                >
+                                  <path d="m9 18 6-6-6-6"/>
+                                </svg>
+                                {objective.title}
+                                {relatedActivities.length > 0 && (
+                                  <Badge variant="outline" className="ml-2">
+                                    {relatedActivities.length}
+                                  </Badge>
+                                )}
+                              </div>
+                            </TableCell>
+                            <TableCell>{objective.description}</TableCell>
+                            <TableCell className="capitalize">{objective.unit}</TableCell>
+                            <TableCell>{formatTargetValue(objective.targetValue, objective.unit)}</TableCell>
                             <TableCell>
                               <div className="flex flex-wrap">
-                                {metric.tags.map(tag => (
+                                {objective.tags.map(tag => (
                                   <TagBadge key={tag} tag={tag} />
                                 ))}
                               </div>
@@ -1444,194 +1439,183 @@ export default function MetricsPage() {
                               </Button>
                             </TableCell>
                           </TableRow>
-                        ))}
-                      
-                      {/* Activities Next */}
-                      {hierarchyGroups?.activity
-                        .filter(metric => 
-                          (selectedTags.length === 0 || selectedTags.some(tag => metric.tags.includes(tag))) &&
-                          (selectedGroups.length === 0 || selectedGroups.some(groupId => 
-                            metricGroups.find(g => g.id === groupId)?.metrics.includes(metric.id)
-                          ))
-                        )
-                        .map(metric => (
-                          <TableRow 
-                            key={metric.id} 
-                            className={`${selectedMetrics.includes(metric.id) ? "bg-indigo-50" : ""}`}
-                          >
-                            <TableCell>
-                              <Checkbox 
-                                checked={selectedMetrics.includes(metric.id)}
-                                onCheckedChange={() => toggleMetricSelection(metric.id)}
-                              />
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant="outline" className="capitalize">
-                                Activity
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="font-medium">{metric.title}</TableCell>
-                            <TableCell>{metric.description}</TableCell>
-                            <TableCell className="capitalize">{metric.unit}</TableCell>
-                            <TableCell>{formatTargetValue(metric.targetValue, metric.unit)}</TableCell>
-                            <TableCell>
-                              <div className="flex flex-wrap">
-                                {metric.tags.map(tag => (
-                                  <TagBadge key={tag} tag={tag} />
+                          
+                          {/* Show related activities when expanded */}
+                          {isExpanded && relatedActivities.map(activity => {
+                            // Find subactivities related to this activity
+                            const relatedSubactivities = filteredMetrics.filter(
+                              metric => metric.hierarchy === "subactivity" && metric.relatedTo === activity.id
+                            );
+                            
+                            return (
+                              <>
+                                <TableRow 
+                                  key={activity.id} 
+                                  className={`${selectedMetrics.includes(activity.id) ? "bg-indigo-50" : ""}`}
+                                >
+                                  <TableCell>
+                                    <Checkbox 
+                                      checked={selectedMetrics.includes(activity.id)}
+                                      onCheckedChange={() => toggleMetricSelection(activity.id)}
+                                    />
+                                  </TableCell>
+                                  <TableCell>
+                                    <Badge variant="outline" className="capitalize">
+                                      Activity
+                                    </Badge>
+                                  </TableCell>
+                                  <TableCell className="font-medium">
+                                    <div className="flex items-center pl-6">
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                                        <polyline points="9 10 4 15 9 20" />
+                                        <path d="M20 4v7a4 4 0 0 1-4 4H4" />
+                                      </svg>
+                                      {activity.title}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell>{activity.description}</TableCell>
+                                  <TableCell className="capitalize">{activity.unit}</TableCell>
+                                  <TableCell>{formatTargetValue(activity.targetValue, activity.unit)}</TableCell>
+                                  <TableCell>
+                                    <div className="flex flex-wrap">
+                                      {activity.tags.map(tag => (
+                                        <TagBadge key={tag} tag={tag} />
+                                      ))}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell className="text-right">
+                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                                        <path d="m15 5 4 4"/>
+                                      </svg>
+                                    </Button>
+                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-600">
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <path d="M3 6h18"></path>
+                                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                                      </svg>
+                                    </Button>
+                                  </TableCell>
+                                </TableRow>
+                                
+                                {/* Show subactivities */}
+                                {relatedSubactivities.map(subactivity => (
+                                  <TableRow 
+                                    key={subactivity.id} 
+                                    className={`${selectedMetrics.includes(subactivity.id) ? "bg-indigo-50" : "bg-gray-50"}`}
+                                  >
+                                    <TableCell>
+                                      <Checkbox 
+                                        checked={selectedMetrics.includes(subactivity.id)}
+                                        onCheckedChange={() => toggleMetricSelection(subactivity.id)}
+                                      />
+                                    </TableCell>
+                                    <TableCell>
+                                      <Badge variant="outline" className="bg-gray-100 text-gray-700">
+                                        Subactivity
+                                      </Badge>
+                                    </TableCell>
+                                    <TableCell className="font-medium">
+                                      <div className="flex items-center pl-12">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                                          <circle cx="12" cy="12" r="10" />
+                                          <path d="m4.93 4.93 14.14 14.14" />
+                                        </svg>
+                                        {subactivity.title}
+                                      </div>
+                                    </TableCell>
+                                    <TableCell>{subactivity.description}</TableCell>
+                                    <TableCell className="capitalize">{subactivity.unit}</TableCell>
+                                    <TableCell>{formatTargetValue(subactivity.targetValue, subactivity.unit)}</TableCell>
+                                    <TableCell>
+                                      <div className="flex flex-wrap">
+                                        {subactivity.tags.map(tag => (
+                                          <TagBadge key={tag} tag={tag} />
+                                        ))}
+                                      </div>
+                                    </TableCell>
+                                    <TableCell className="text-right">
+                                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                          <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                                          <path d="m15 5 4 4"/>
+                                        </svg>
+                                      </Button>
+                                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-600">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                          <path d="M3 6h18"></path>
+                                          <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                                          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                                        </svg>
+                                      </Button>
+                                    </TableCell>
+                                  </TableRow>
                                 ))}
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-right">
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
-                                  <path d="m15 5 4 4"/>
-                                </svg>
-                              </Button>
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-600">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <path d="M3 6h18"></path>
-                                  <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-                                  <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-                                </svg>
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      
-                      {/* Subactivities Last */}
-                      {hierarchyGroups?.subactivity
-                        .filter(metric => 
-                          (selectedTags.length === 0 || selectedTags.some(tag => metric.tags.includes(tag))) &&
-                          (selectedGroups.length === 0 || selectedGroups.some(groupId => 
-                            metricGroups.find(g => g.id === groupId)?.metrics.includes(metric.id)
-                          ))
-                        )
-                        .map(metric => (
-                          <TableRow 
-                            key={metric.id} 
-                            className={`${selectedMetrics.includes(metric.id) ? "bg-indigo-50" : "bg-gray-50"}`}
-                          >
-                            <TableCell>
-                              <Checkbox 
-                                checked={selectedMetrics.includes(metric.id)}
-                                onCheckedChange={() => toggleMetricSelection(metric.id)}
-                              />
-                            </TableCell>
-                            <TableCell>
-                              <div className="pl-4">
-                                <Badge variant="outline" className="bg-gray-100 text-gray-700">
-                                  Subactivity
-                                </Badge>
-                              </div>
-                            </TableCell>
-                            <TableCell className="font-medium">{metric.title}</TableCell>
-                            <TableCell>{metric.description}</TableCell>
-                            <TableCell className="capitalize">{metric.unit}</TableCell>
-                            <TableCell>{formatTargetValue(metric.targetValue, metric.unit)}</TableCell>
-                            <TableCell>
-                              <div className="flex flex-wrap">
-                                {metric.tags.map(tag => (
-                                  <TagBadge key={tag} tag={tag} />
-                                ))}
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-right">
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
-                                  <path d="m15 5 4 4"/>
-                                </svg>
-                              </Button>
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-600">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <path d="M3 6h18"></path>
-                                  <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-                                  <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-                                </svg>
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              </div>
-            </>
-          ) : (
-            // Flat table view
-            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-              <div className="px-4 py-3 bg-gray-50 border-b flex justify-between items-center">
-                <h2 className="text-lg font-semibold">All Metrics</h2>
-                
-                {/* Tag group selector for quick filtering */}
-                <div className="flex items-center">
-                  <span className="text-sm text-gray-500 mr-2">Group by Tag:</span>
-                  <Select 
-                    value={selectedTags.length === 1 ? selectedTags[0] : " "}
-                    onValueChange={(value) => {
-                      if (value && value !== " ") {
-                        setSelectedTags([value]);
-                      } else {
-                        setSelectedTags([]);
-                      }
-                    }}
-                  >
-                    <SelectTrigger className="w-[180px]">
-                      <SelectValue placeholder="Select a tag" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value=" ">All Tags</SelectItem>
-                      {allTagNames.map(tag => (
-                        <SelectItem key={tag} value={tag}>
-                          <div className="flex items-center">
-                            <TagBadge tag={tag} />
+                              </>
+                            );
+                          })}
+                        </>
+                      );
+                    })
+                  }
+                  
+                  {/* List any remaining metrics that aren't part of the hierarchy */}
+                  {filteredMetrics
+                    .filter(metric => 
+                      (metric.hierarchy === "activity" && !metric.relatedTo) || 
+                      (metric.hierarchy === "subactivity" && !metric.relatedTo)
+                    )
+                    .map(metric => (
+                      <TableRow 
+                        key={metric.id} 
+                        className={`${selectedMetrics.includes(metric.id) ? "bg-indigo-50" : ""}`}
+                      >
+                        <TableCell>
+                          <Checkbox 
+                            checked={selectedMetrics.includes(metric.id)}
+                            onCheckedChange={() => toggleMetricSelection(metric.id)}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant={metric.hierarchy === "activity" ? "outline" : "outline"} className={`capitalize ${metric.hierarchy === "subactivity" ? "bg-gray-100 text-gray-700" : ""}`}>
+                            {metric.hierarchy}
+                          </Badge>
+                        </TableCell>
+                        <TableCell className="font-medium">{metric.title}</TableCell>
+                        <TableCell>{metric.description}</TableCell>
+                        <TableCell className="capitalize">{metric.unit}</TableCell>
+                        <TableCell>{formatTargetValue(metric.targetValue, metric.unit)}</TableCell>
+                        <TableCell>
+                          <div className="flex flex-wrap">
+                            {metric.tags.map(tag => (
+                              <TagBadge key={tag} tag={tag} />
+                            ))}
                           </div>
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-              <div className="p-4">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[50px]">
-                        <Checkbox 
-                          checked={filteredMetrics.length > 0 && filteredMetrics.every(m => selectedMetrics.includes(m.id))}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedMetrics(prev => [
-                                ...prev, 
-                                ...filteredMetrics
-                                  .filter(m => !selectedMetrics.includes(m.id))
-                                  .map(m => m.id)
-                              ]);
-                            } else {
-                              setSelectedMetrics(prev => 
-                                prev.filter(id => !filteredMetrics.find(m => m.id === id))
-                              );
-                            }
-                          }}
-                        />
-                      </TableHead>
-                      <TableHead>Title</TableHead>
-                      <TableHead>Description</TableHead>
-                      <TableHead>Hierarchy</TableHead>
-                      <TableHead>Unit</TableHead>
-                      <TableHead>Target</TableHead>
-                      <TableHead>Tags</TableHead>
-                      <TableHead className="text-right">Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {filteredMetrics.map(metric => renderMetricRow(metric))}
-                  </TableBody>
-                </Table>
-              </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                              <path d="m15 5 4 4"/>
+                            </svg>
+                          </Button>
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-600">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M3 6h18"></path>
+                              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                            </svg>
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    ))
+                  }
+                </TableBody>
+              </Table>
             </div>
-          )}
+          </div>
           
           {/* Metric Groups section */}
           <div className="bg-white rounded-lg shadow-sm overflow-hidden">
