@@ -30,10 +30,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { apiRequest } from '@/lib/queryClient';
 
-// Mock data for metrics
+// Mock data for metrics with parent-child relationships
 const mockMetrics = [
   {
     id: 1,
@@ -43,6 +42,7 @@ const mockMetrics = [
     targetValue: 1000000,
     hierarchy: "objective",
     tags: ["Financial", "Revenue", "Partner"],
+    children: [3, 4], // References to child metrics
     createdAt: new Date("2025-03-10"),
     updatedAt: new Date("2025-04-15"),
   },
@@ -54,6 +54,7 @@ const mockMetrics = [
     targetValue: 2000000,
     hierarchy: "objective",
     tags: ["Financial", "Pipeline", "Sales"],
+    children: [], // No children
     createdAt: new Date("2025-03-12"),
     updatedAt: new Date("2025-04-16"),
   },
@@ -65,7 +66,8 @@ const mockMetrics = [
     targetValue: 1,
     hierarchy: "activity",
     tags: ["Training", "Certification", "People"],
-    relatedTo: 1, // Related to Revenue Goal
+    parent: 1, // Parent reference
+    children: [9], // References to child metrics
     createdAt: new Date("2025-03-15"),
     updatedAt: new Date("2025-04-10"),
   },
@@ -77,7 +79,8 @@ const mockMetrics = [
     targetValue: 100000,
     hierarchy: "activity",
     tags: ["Financial", "Marketing", "Budget"],
-    relatedTo: 1, // Related to Revenue Goal
+    parent: 1, // Parent reference
+    children: [], // No children
     createdAt: new Date("2025-03-18"),
     updatedAt: new Date("2025-04-12"),
   },
@@ -89,6 +92,7 @@ const mockMetrics = [
     targetValue: 4,
     hierarchy: "objective",
     tags: ["Marketing", "Campaign", "Brand"],
+    children: [6], // References to child metrics
     createdAt: new Date("2025-02-15"),
     updatedAt: new Date("2025-04-10"),
   },
@@ -100,7 +104,8 @@ const mockMetrics = [
     targetValue: 1,
     hierarchy: "activity",
     tags: ["Digital", "Website", "Marketing"],
-    relatedTo: 5, // Related to Co-branded Campaigns
+    parent: 5, // Parent reference
+    children: [],
     createdAt: new Date("2025-02-20"),
     updatedAt: new Date("2025-04-05"),
   },
@@ -112,6 +117,7 @@ const mockMetrics = [
     targetValue: 95,
     hierarchy: "objective",
     tags: ["Customer", "Support", "Quality"],
+    children: [8], // References to child metrics
     createdAt: new Date("2025-01-20"),
     updatedAt: new Date("2025-03-05"),
   },
@@ -123,7 +129,8 @@ const mockMetrics = [
     targetValue: 4,
     hierarchy: "activity",
     tags: ["Support", "Service", "Quality"],
-    relatedTo: 7, // Related to Customer Satisfaction
+    parent: 7, // Parent reference
+    children: [10], // References to child metrics
     createdAt: new Date("2025-01-22"),
     updatedAt: new Date("2025-03-10"),
   },
@@ -135,7 +142,8 @@ const mockMetrics = [
     targetValue: 6,
     hierarchy: "subactivity",
     tags: ["Training", "Certification"],
-    relatedTo: 3, // Related to Training & Certification
+    parent: 3, // Parent reference
+    children: [],
     createdAt: new Date("2025-03-16"),
     updatedAt: new Date("2025-04-11"),
   },
@@ -147,7 +155,8 @@ const mockMetrics = [
     targetValue: 1,
     hierarchy: "subactivity",
     tags: ["Support", "Service"],
-    relatedTo: 8, // Related to Response Time
+    parent: 8, // Parent reference
+    children: [],
     createdAt: new Date("2025-01-25"),
     updatedAt: new Date("2025-03-12"),
   }
@@ -244,24 +253,38 @@ const TagBadge = ({ tag }: { tag: string }) => {
 };
 
 // Component for creating a new metric form
-const NewMetricForm = ({ isOpen, onClose, onSubmit, existingTags, preselectedMetrics = [] }: { 
+const NewMetricForm = ({ isOpen, onClose, onSubmit, metrics, existingTags }: { 
   isOpen: boolean, 
   onClose: () => void, 
   onSubmit: (data: any) => void,
-  existingTags: string[], 
-  preselectedMetrics?: number[]
+  metrics: any[],
+  existingTags: string[] 
 }) => {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [unit, setUnit] = useState("number");
   const [targetValue, setTargetValue] = useState("");
   const [hierarchy, setHierarchy] = useState("activity");
+  const [parentId, setParentId] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [relatedTo, setRelatedTo] = useState<string>("");
   const [newTag, setNewTag] = useState("");
   
-  // Get objectives for relationship selection
-  const objectives = mockMetrics.filter(m => m.hierarchy === "objective");
+  // Get potential parent metrics based on hierarchy
+  const getPotentialParents = () => {
+    if (hierarchy === "activity") {
+      return metrics.filter(m => m.hierarchy === "objective");
+    } else if (hierarchy === "subactivity") {
+      return metrics.filter(m => m.hierarchy === "activity");
+    }
+    return [];
+  };
+  
+  const potentialParents = getPotentialParents();
+  
+  useEffect(() => {
+    // Reset parent when hierarchy changes
+    setParentId("");
+  }, [hierarchy]);
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -272,8 +295,9 @@ const NewMetricForm = ({ isOpen, onClose, onSubmit, existingTags, preselectedMet
       unit,
       targetValue: unit === "boolean" ? (targetValue === "true" ? 1 : 0) : parseFloat(targetValue),
       hierarchy,
+      parent: parentId ? parseInt(parentId) : undefined,
       tags: selectedTags,
-      relatedTo: relatedTo ? parseInt(relatedTo) : undefined,
+      children: [],
     };
     
     onSubmit(metricData);
@@ -284,8 +308,8 @@ const NewMetricForm = ({ isOpen, onClose, onSubmit, existingTags, preselectedMet
     setUnit("number");
     setTargetValue("");
     setHierarchy("activity");
+    setParentId("");
     setSelectedTags([]);
-    setRelatedTo("");
     setNewTag("");
     
     onClose();
@@ -440,20 +464,20 @@ const NewMetricForm = ({ isOpen, onClose, onSubmit, existingTags, preselectedMet
               </Select>
             </div>
             
-            {(hierarchy === "activity" || hierarchy === "subactivity") && (
+            {hierarchy !== "objective" && potentialParents.length > 0 && (
               <div className="grid grid-cols-4 items-center gap-4">
-                <label htmlFor="relatedTo" className="text-right text-sm font-medium">
-                  Related To
+                <label htmlFor="parent" className="text-right text-sm font-medium">
+                  Parent {hierarchy === "activity" ? "Objective" : "Activity"}
                 </label>
-                <Select value={relatedTo} onValueChange={setRelatedTo}>
+                <Select value={parentId} onValueChange={setParentId}>
                   <SelectTrigger className="col-span-3">
-                    <SelectValue placeholder="Select parent objective" />
+                    <SelectValue placeholder={`Select parent ${hierarchy === "activity" ? "objective" : "activity"}`} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="">None</SelectItem>
-                    {objectives.map(obj => (
-                      <SelectItem key={obj.id} value={obj.id.toString()}>
-                        {obj.title}
+                    {potentialParents.map(parent => (
+                      <SelectItem key={parent.id} value={parent.id.toString()}>
+                        {parent.title}
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -515,18 +539,18 @@ const NewMetricForm = ({ isOpen, onClose, onSubmit, existingTags, preselectedMet
 };
 
 // Component for creating a new group form
-const NewGroupForm = ({ isOpen, onClose, onSubmit, metrics, existingTags, preselectedMetrics = [] }: { 
+const NewGroupForm = ({ isOpen, onClose, onSubmit, metrics, existingTags, selectedMetrics = [] }: { 
   isOpen: boolean, 
   onClose: () => void, 
   onSubmit: (data: any) => void,
   metrics: any[],
-  existingTags: string[], 
-  preselectedMetrics?: number[]
+  existingTags: string[],
+  selectedMetrics?: number[] 
 }) => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [selectedMetrics, setSelectedMetrics] = useState<number[]>(preselectedMetrics);
+  const [metricIds, setMetricIds] = useState<number[]>(selectedMetrics);
   const [filteredMetrics, setFilteredMetrics] = useState<any[]>(metrics);
   
   // Update filtered metrics when tags change
@@ -542,12 +566,12 @@ const NewGroupForm = ({ isOpen, onClose, onSubmit, metrics, existingTags, presel
     }
   }, [selectedTags, metrics]);
   
-  // Update when preselectedMetrics changes
+  // Update selected metrics when the selectedMetrics prop changes
   useEffect(() => {
-    if (preselectedMetrics.length > 0) {
-      setSelectedMetrics(preselectedMetrics);
+    if (selectedMetrics.length > 0) {
+      setMetricIds(selectedMetrics);
     }
-  }, [preselectedMetrics]);
+  }, [selectedMetrics]);
   
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -556,7 +580,7 @@ const NewGroupForm = ({ isOpen, onClose, onSubmit, metrics, existingTags, presel
       name,
       description,
       tags: selectedTags,
-      metrics: selectedMetrics,
+      metrics: metricIds,
     };
     
     onSubmit(groupData);
@@ -565,7 +589,7 @@ const NewGroupForm = ({ isOpen, onClose, onSubmit, metrics, existingTags, presel
     setName("");
     setDescription("");
     setSelectedTags([]);
-    setSelectedMetrics([]);
+    setMetricIds([]);
     
     onClose();
   };
@@ -579,7 +603,7 @@ const NewGroupForm = ({ isOpen, onClose, onSubmit, metrics, existingTags, presel
   };
   
   const toggleMetric = (id: number) => {
-    setSelectedMetrics(prev => 
+    setMetricIds(prev => 
       prev.includes(id) 
         ? prev.filter(m => m !== id) 
         : [...prev, id]
@@ -658,17 +682,18 @@ const NewGroupForm = ({ isOpen, onClose, onSubmit, metrics, existingTags, presel
                       <TableRow>
                         <TableHead className="w-[50px]">
                           <Checkbox 
-                            checked={filteredMetrics.length > 0 && selectedMetrics.length === filteredMetrics.length}
+                            checked={filteredMetrics.length > 0 && metricIds.length === filteredMetrics.length}
                             onCheckedChange={(checked) => {
                               if (checked) {
-                                setSelectedMetrics(filteredMetrics.map(m => m.id));
+                                setMetricIds(filteredMetrics.map(m => m.id));
                               } else {
-                                setSelectedMetrics([]);
+                                setMetricIds([]);
                               }
                             }}
                           />
                         </TableHead>
                         <TableHead>Metric</TableHead>
+                        <TableHead>Hierarchy</TableHead>
                         <TableHead>Unit</TableHead>
                         <TableHead>Target</TableHead>
                         <TableHead>Tags</TableHead>
@@ -677,20 +702,29 @@ const NewGroupForm = ({ isOpen, onClose, onSubmit, metrics, existingTags, presel
                     <TableBody>
                       {filteredMetrics.length === 0 ? (
                         <TableRow>
-                          <TableCell colSpan={5} className="text-center py-4 text-gray-500">
+                          <TableCell colSpan={6} className="text-center py-4 text-gray-500">
                             No metrics found that match the selected tags
                           </TableCell>
                         </TableRow>
                       ) : (
                         filteredMetrics.map(metric => (
-                          <TableRow key={metric.id} className="cursor-pointer hover:bg-gray-50" onClick={() => toggleMetric(metric.id)}>
+                          <TableRow 
+                            key={metric.id} 
+                            className={`cursor-pointer hover:bg-gray-50 ${metricIds.includes(metric.id) ? "bg-indigo-50" : ""}`} 
+                            onClick={() => toggleMetric(metric.id)}
+                          >
                             <TableCell>
                               <Checkbox 
-                                checked={selectedMetrics.includes(metric.id)}
+                                checked={metricIds.includes(metric.id)}
                                 onCheckedChange={() => toggleMetric(metric.id)}
                               />
                             </TableCell>
                             <TableCell className="font-medium">{metric.title}</TableCell>
+                            <TableCell>
+                              <Badge variant="outline" className="capitalize">
+                                {metric.hierarchy}
+                              </Badge>
+                            </TableCell>
                             <TableCell className="capitalize">{metric.unit}</TableCell>
                             <TableCell>
                               {metric.unit === 'currency' ? `€${metric.targetValue.toLocaleString()}` : 
@@ -714,9 +748,9 @@ const NewGroupForm = ({ isOpen, onClose, onSubmit, metrics, existingTags, presel
                     </TableBody>
                   </Table>
                 </div>
-                {selectedMetrics.length > 0 && (
+                {metricIds.length > 0 && (
                   <div className="mt-2 text-sm text-gray-500">
-                    {selectedMetrics.length} metric{selectedMetrics.length !== 1 ? 's' : ''} selected
+                    {metricIds.length} metric{metricIds.length !== 1 ? 's' : ''} selected
                   </div>
                 )}
               </div>
@@ -729,7 +763,7 @@ const NewGroupForm = ({ isOpen, onClose, onSubmit, metrics, existingTags, presel
             </Button>
             <Button 
               type="submit" 
-              disabled={!name.trim() || selectedMetrics.length === 0}
+              disabled={!name.trim() || metricIds.length === 0}
             >
               Create Group
             </Button>
@@ -979,15 +1013,15 @@ export default function MetricsPage() {
   const [metrics, setMetrics] = useState(mockMetrics);
   const [metricGroups, setMetricGroups] = useState(mockMetricGroups);
   const [tags, setTags] = useState(mockTags);
-  const [expandedObjectives, setExpandedObjectives] = useState<number[]>([]);
+  const [expandedItems, setExpandedItems] = useState<number[]>([]);
   
   // Collect all unique tags from metrics
   const allTagNames = Array.from(
     new Set(metrics.flatMap(metric => metric.tags))
   ).sort();
   
-  // Organize metrics by hierarchy and relationships
-  const objectiveMetrics = metrics.filter(m => m.hierarchy === "objective");
+  // Get top-level objectives
+  const objectives = metrics.filter(m => m.hierarchy === "objective");
   
   // Filter metrics based on search, tags, and selected groups
   const filteredMetrics = metrics.filter(metric => {
@@ -998,7 +1032,6 @@ export default function MetricsPage() {
     const matchesTags = selectedTags.length === 0 || 
       selectedTags.some(tag => metric.tags.includes(tag));
     
-    // If groups are selected, only show metrics in those groups
     const matchesGroups = selectedGroups.length === 0 ||
       selectedGroups.some(groupId => 
         metricGroups.find(g => g.id === groupId)?.metrics.includes(metric.id)
@@ -1019,6 +1052,24 @@ export default function MetricsPage() {
     return matchesSearch && matchesTags;
   });
   
+  // Helper function to toggle expansion of a metric
+  const toggleExpand = (id: number) => {
+    setExpandedItems(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+  
+  // Helper function to toggle metric selection
+  const toggleMetricSelection = (id: number, e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
+    
+    setSelectedMetrics(prev => 
+      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
+    );
+  };
+  
   // Toggle tag selection
   const toggleTag = (tag: string) => {
     setSelectedTags(prev => 
@@ -1037,25 +1088,8 @@ export default function MetricsPage() {
     );
   };
   
-  // Toggle objective expansion
-  const toggleObjectiveExpansion = (id: number) => {
-    setExpandedObjectives(prev => 
-      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
-    );
-  };
-  
-  // Toggle metric selection
-  const toggleMetricSelection = (metricId: number) => {
-    setSelectedMetrics(prev => 
-      prev.includes(metricId)
-        ? prev.filter(id => id !== metricId)
-        : [...prev, metricId]
-    );
-  };
-  
   // Handle metric creation
   const handleCreateMetric = (metricData: any) => {
-    // In a real app, this would be an API call
     const newMetric = {
       id: Math.max(0, ...metrics.map(m => m.id)) + 1,
       ...metricData,
@@ -1064,6 +1098,17 @@ export default function MetricsPage() {
     };
     
     setMetrics([...metrics, newMetric]);
+    
+    // If this metric has a parent, update the parent's children
+    if (metricData.parent) {
+      setMetrics(prev => 
+        prev.map(m => 
+          m.id === metricData.parent 
+            ? { ...m, children: [...(m.children || []), newMetric.id] }
+            : m
+        )
+      );
+    }
     
     // Update tags if there are new ones
     const newTags = metricData.tags.filter((tag: string) => !allTagNames.includes(tag));
@@ -1081,7 +1126,6 @@ export default function MetricsPage() {
   
   // Handle group creation
   const handleCreateGroup = (groupData: any) => {
-    // In a real app, this would be an API call
     const newGroup = {
       id: Math.max(0, ...metricGroups.map(g => g.id)) + 1,
       ...groupData,
@@ -1093,40 +1137,8 @@ export default function MetricsPage() {
     setSelectedMetrics([]);
   };
   
-  // Handle creating a group from selected metrics
-  const handleCreateGroupFromSelection = () => {
-    if (selectedMetrics.length > 0) {
-      // Auto-generate tags based on most common tags in selected metrics
-      const selectedMetricsData = metrics.filter(m => selectedMetrics.includes(m.id));
-      const tagCounts: Record<string, number> = {};
-      
-      selectedMetricsData.forEach(metric => {
-        metric.tags.forEach(tag => {
-          tagCounts[tag] = (tagCounts[tag] || 0) + 1;
-        });
-      });
-      
-      // Get top 3 tags
-      const suggestedTags = Object.entries(tagCounts)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 3)
-        .map(([tag]) => tag);
-      
-      setIsCreateGroupOpen(true);
-      
-      // Pre-populate the new group form is handled by passing preselectedMetrics
-      return {
-        metrics: selectedMetrics,
-        tags: suggestedTags
-      };
-    }
-    
-    return null;
-  };
-  
   // Handle tag creation
   const handleCreateTag = (tagData: { name: string, color: string }) => {
-    // In a real app, this would be an API call
     const newTag = {
       id: Math.max(0, ...tags.map(t => t.id)) + 1,
       ...tagData,
@@ -1137,7 +1149,6 @@ export default function MetricsPage() {
   
   // Handle tag update
   const handleUpdateTag = (id: number, updates: { name?: string, color?: string }) => {
-    // In a real app, this would be an API call
     setTags(tags.map(tag => 
       tag.id === id ? { ...tag, ...updates } : tag
     ));
@@ -1145,7 +1156,6 @@ export default function MetricsPage() {
   
   // Handle tag deletion
   const handleDeleteTag = (id: number) => {
-    // In a real app, this would be an API call
     setTags(tags.filter(tag => tag.id !== id));
   };
   
@@ -1160,6 +1170,107 @@ export default function MetricsPage() {
   const clearMetricSelection = () => {
     setSelectedMetrics([]);
   };
+  
+  // Recursively render a metric and its children
+  const renderMetricTree = (metric: any, level: number = 0) => {
+    const isExpanded = expandedItems.includes(metric.id);
+    const hasChildren = metric.children && metric.children.length > 0;
+    const childMetrics = hasChildren 
+      ? metrics.filter(m => metric.children.includes(m.id))
+      : [];
+    
+    const getBadgeColorByHierarchy = (hierarchy: string) => {
+      switch (hierarchy) {
+        case "objective":
+          return "bg-amber-100 text-amber-800 hover:bg-amber-100";
+        case "activity":
+          return "bg-blue-100 text-blue-800 hover:bg-blue-100";
+        case "subactivity":
+          return "bg-gray-100 text-gray-700 hover:bg-gray-100";
+        default:
+          return "bg-gray-100 text-gray-700";
+      }
+    };
+    
+    return (
+      <div key={metric.id} className="mb-1">
+        <div 
+          className={`flex items-center p-3 rounded-md ${selectedMetrics.includes(metric.id) ? "bg-indigo-50" : "hover:bg-gray-50"} ${level > 0 ? `ml-${level * 6}` : ""} cursor-pointer`}
+          onClick={() => hasChildren && toggleExpand(metric.id)}
+        >
+          <div className="flex-shrink-0 mr-2">
+            <Checkbox 
+              checked={selectedMetrics.includes(metric.id)}
+              onCheckedChange={() => toggleMetricSelection(metric.id)}
+              onClick={(e: any) => e.stopPropagation()}
+            />
+          </div>
+          
+          <div className="flex-shrink-0 mr-2">
+            {hasChildren && (
+              <Button variant="ghost" size="sm" className="h-6 w-6 p-0" onClick={() => toggleExpand(metric.id)}>
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  width="16" 
+                  height="16" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                  className={`transition-transform ${isExpanded ? 'rotate-90' : ''}`}
+                >
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </Button>
+            )}
+          </div>
+          
+          <div className="flex-shrink-0 mr-2">
+            <Badge variant="outline" className={`capitalize ${getBadgeColorByHierarchy(metric.hierarchy)}`}>
+              {metric.hierarchy}
+            </Badge>
+          </div>
+          
+          <div className="flex-grow">
+            <div className="font-medium">{metric.title}</div>
+            <div className="text-sm text-gray-600 mt-1">{metric.description}</div>
+            <div className="flex flex-wrap mt-1">
+              {metric.tags.map((tag: string) => (
+                <TagBadge key={tag} tag={tag} />
+              ))}
+            </div>
+          </div>
+          
+          <div className="flex-shrink-0 ml-2 text-right">
+            <div className="text-sm font-medium">{formatTargetValue(metric.targetValue, metric.unit)}</div>
+            <div className="text-xs text-gray-500 capitalize">{metric.unit}</div>
+          </div>
+          
+          <div className="flex-shrink-0 ml-4">
+            <Button variant="ghost" size="sm" className="h-8 w-8 p-0" onClick={(e) => e.stopPropagation()}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                <path d="m15 5 4 4"/>
+              </svg>
+            </Button>
+          </div>
+        </div>
+        
+        {isExpanded && hasChildren && (
+          <div className="pl-6">
+            {childMetrics.map(childMetric => renderMetricTree(childMetric, level + 1))}
+          </div>
+        )}
+      </div>
+    );
+  };
+  
+  // Find metrics that don't belong to any objective (standalone metrics)
+  const standaloneMetrics = filteredMetrics.filter(
+    m => !m.parent && m.hierarchy !== "objective"
+  );
   
   return (
     <div className="container mx-auto px-4 py-6">
@@ -1284,9 +1395,7 @@ export default function MetricsPage() {
             <Button 
               className="bg-indigo-600 hover:bg-indigo-700"
               size="sm"
-              onClick={() => {
-                handleCreateGroupFromSelection();
-              }}
+              onClick={() => setIsCreateGroupOpen(true)}
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
                 <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
@@ -1318,302 +1427,43 @@ export default function MetricsPage() {
         </div>
       ) : (
         <div className="space-y-8">
-          {/* Metrics with hierarchical relationships */}
+          {/* Hierarchical metrics view */}
           <div className="bg-white rounded-lg shadow-sm overflow-hidden">
             <div className="px-4 py-3 bg-gray-50 border-b flex justify-between items-center">
               <h2 className="text-lg font-semibold">Metrics</h2>
+              <div className="flex items-center text-sm text-gray-500">
+                <div className="flex items-center mr-4">
+                  <Badge variant="outline" className="bg-amber-100 text-amber-800 mr-2">Objective</Badge>
+                  <span>Top-level goals</span>
+                </div>
+                <div className="flex items-center mr-4">
+                  <Badge variant="outline" className="bg-blue-100 text-blue-800 mr-2">Activity</Badge>
+                  <span>Supporting tasks</span>
+                </div>
+                <div className="flex items-center">
+                  <Badge variant="outline" className="bg-gray-100 text-gray-700 mr-2">Subactivity</Badge>
+                  <span>Detailed steps</span>
+                </div>
+              </div>
             </div>
             
             <div className="p-4">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[50px]">
-                      <Checkbox 
-                        checked={filteredMetrics.length > 0 && filteredMetrics.every(m => selectedMetrics.includes(m.id))}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setSelectedMetrics(prev => [
-                              ...prev, 
-                              ...filteredMetrics
-                                .filter(m => !selectedMetrics.includes(m.id))
-                                .map(m => m.id)
-                            ]);
-                          } else {
-                            setSelectedMetrics(prev => 
-                              prev.filter(id => !filteredMetrics.find(m => m.id === id))
-                            );
-                          }
-                        }}
-                      />
-                    </TableHead>
-                    <TableHead>Hierarchy</TableHead>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Unit</TableHead>
-                    <TableHead>Target</TableHead>
-                    <TableHead>Tags</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {/* First list all objectives */}
-                  {filteredMetrics
-                    .filter(metric => metric.hierarchy === "objective")
-                    .map(objective => {
-                      // Find activities related to this objective
-                      const relatedActivities = filteredMetrics.filter(
-                        metric => metric.hierarchy === "activity" && metric.relatedTo === objective.id
-                      );
-                      
-                      const isExpanded = expandedObjectives.includes(objective.id);
-                      
-                      return (
-                        <>
-                          <TableRow 
-                            key={objective.id} 
-                            className={`${selectedMetrics.includes(objective.id) ? "bg-indigo-50" : "bg-amber-50"} cursor-pointer hover:bg-amber-100`}
-                            onClick={() => toggleObjectiveExpansion(objective.id)}
-                          >
-                            <TableCell onClick={(e) => {
-                              e.stopPropagation();
-                              toggleMetricSelection(objective.id);
-                            }}>
-                              <Checkbox 
-                                checked={selectedMetrics.includes(objective.id)}
-                                onCheckedChange={() => toggleMetricSelection(objective.id)}
-                              />
-                            </TableCell>
-                            <TableCell>
-                              <Badge variant="default" className="bg-amber-100 text-amber-800 hover:bg-amber-100">
-                                Objective
-                              </Badge>
-                            </TableCell>
-                            <TableCell className="font-medium">
-                              <div className="flex items-center">
-                                <svg 
-                                  xmlns="http://www.w3.org/2000/svg" 
-                                  width="16" 
-                                  height="16" 
-                                  viewBox="0 0 24 24" 
-                                  fill="none" 
-                                  stroke="currentColor" 
-                                  strokeWidth="2" 
-                                  strokeLinecap="round" 
-                                  strokeLinejoin="round"
-                                  className={`mr-1 transition-transform ${isExpanded ? 'rotate-90' : ''}`}
-                                >
-                                  <path d="m9 18 6-6-6-6"/>
-                                </svg>
-                                {objective.title}
-                                {relatedActivities.length > 0 && (
-                                  <Badge variant="outline" className="ml-2">
-                                    {relatedActivities.length}
-                                  </Badge>
-                                )}
-                              </div>
-                            </TableCell>
-                            <TableCell>{objective.description}</TableCell>
-                            <TableCell className="capitalize">{objective.unit}</TableCell>
-                            <TableCell>{formatTargetValue(objective.targetValue, objective.unit)}</TableCell>
-                            <TableCell>
-                              <div className="flex flex-wrap">
-                                {objective.tags.map(tag => (
-                                  <TagBadge key={tag} tag={tag} />
-                                ))}
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-right">
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
-                                  <path d="m15 5 4 4"/>
-                                </svg>
-                              </Button>
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-600">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <path d="M3 6h18"></path>
-                                  <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-                                  <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-                                </svg>
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                          
-                          {/* Show related activities when expanded */}
-                          {isExpanded && relatedActivities.map(activity => {
-                            // Find subactivities related to this activity
-                            const relatedSubactivities = filteredMetrics.filter(
-                              metric => metric.hierarchy === "subactivity" && metric.relatedTo === activity.id
-                            );
-                            
-                            return (
-                              <>
-                                <TableRow 
-                                  key={activity.id} 
-                                  className={`${selectedMetrics.includes(activity.id) ? "bg-indigo-50" : ""}`}
-                                >
-                                  <TableCell>
-                                    <Checkbox 
-                                      checked={selectedMetrics.includes(activity.id)}
-                                      onCheckedChange={() => toggleMetricSelection(activity.id)}
-                                    />
-                                  </TableCell>
-                                  <TableCell>
-                                    <Badge variant="outline" className="capitalize">
-                                      Activity
-                                    </Badge>
-                                  </TableCell>
-                                  <TableCell className="font-medium">
-                                    <div className="flex items-center pl-6">
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                                        <polyline points="9 10 4 15 9 20" />
-                                        <path d="M20 4v7a4 4 0 0 1-4 4H4" />
-                                      </svg>
-                                      {activity.title}
-                                    </div>
-                                  </TableCell>
-                                  <TableCell>{activity.description}</TableCell>
-                                  <TableCell className="capitalize">{activity.unit}</TableCell>
-                                  <TableCell>{formatTargetValue(activity.targetValue, activity.unit)}</TableCell>
-                                  <TableCell>
-                                    <div className="flex flex-wrap">
-                                      {activity.tags.map(tag => (
-                                        <TagBadge key={tag} tag={tag} />
-                                      ))}
-                                    </div>
-                                  </TableCell>
-                                  <TableCell className="text-right">
-                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
-                                        <path d="m15 5 4 4"/>
-                                      </svg>
-                                    </Button>
-                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-600">
-                                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                        <path d="M3 6h18"></path>
-                                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-                                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-                                      </svg>
-                                    </Button>
-                                  </TableCell>
-                                </TableRow>
-                                
-                                {/* Show subactivities */}
-                                {relatedSubactivities.map(subactivity => (
-                                  <TableRow 
-                                    key={subactivity.id} 
-                                    className={`${selectedMetrics.includes(subactivity.id) ? "bg-indigo-50" : "bg-gray-50"}`}
-                                  >
-                                    <TableCell>
-                                      <Checkbox 
-                                        checked={selectedMetrics.includes(subactivity.id)}
-                                        onCheckedChange={() => toggleMetricSelection(subactivity.id)}
-                                      />
-                                    </TableCell>
-                                    <TableCell>
-                                      <Badge variant="outline" className="bg-gray-100 text-gray-700">
-                                        Subactivity
-                                      </Badge>
-                                    </TableCell>
-                                    <TableCell className="font-medium">
-                                      <div className="flex items-center pl-12">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                                          <circle cx="12" cy="12" r="10" />
-                                          <path d="m4.93 4.93 14.14 14.14" />
-                                        </svg>
-                                        {subactivity.title}
-                                      </div>
-                                    </TableCell>
-                                    <TableCell>{subactivity.description}</TableCell>
-                                    <TableCell className="capitalize">{subactivity.unit}</TableCell>
-                                    <TableCell>{formatTargetValue(subactivity.targetValue, subactivity.unit)}</TableCell>
-                                    <TableCell>
-                                      <div className="flex flex-wrap">
-                                        {subactivity.tags.map(tag => (
-                                          <TagBadge key={tag} tag={tag} />
-                                        ))}
-                                      </div>
-                                    </TableCell>
-                                    <TableCell className="text-right">
-                                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                          <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
-                                          <path d="m15 5 4 4"/>
-                                        </svg>
-                                      </Button>
-                                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-600">
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                          <path d="M3 6h18"></path>
-                                          <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-                                          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-                                        </svg>
-                                      </Button>
-                                    </TableCell>
-                                  </TableRow>
-                                ))}
-                              </>
-                            );
-                          })}
-                        </>
-                      );
-                    })
-                  }
-                  
-                  {/* List any remaining metrics that aren't part of the hierarchy */}
-                  {filteredMetrics
-                    .filter(metric => 
-                      (metric.hierarchy === "activity" && !metric.relatedTo) || 
-                      (metric.hierarchy === "subactivity" && !metric.relatedTo)
-                    )
-                    .map(metric => (
-                      <TableRow 
-                        key={metric.id} 
-                        className={`${selectedMetrics.includes(metric.id) ? "bg-indigo-50" : ""}`}
-                      >
-                        <TableCell>
-                          <Checkbox 
-                            checked={selectedMetrics.includes(metric.id)}
-                            onCheckedChange={() => toggleMetricSelection(metric.id)}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant={metric.hierarchy === "activity" ? "outline" : "outline"} className={`capitalize ${metric.hierarchy === "subactivity" ? "bg-gray-100 text-gray-700" : ""}`}>
-                            {metric.hierarchy}
-                          </Badge>
-                        </TableCell>
-                        <TableCell className="font-medium">{metric.title}</TableCell>
-                        <TableCell>{metric.description}</TableCell>
-                        <TableCell className="capitalize">{metric.unit}</TableCell>
-                        <TableCell>{formatTargetValue(metric.targetValue, metric.unit)}</TableCell>
-                        <TableCell>
-                          <div className="flex flex-wrap">
-                            {metric.tags.map(tag => (
-                              <TagBadge key={tag} tag={tag} />
-                            ))}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
-                              <path d="m15 5 4 4"/>
-                            </svg>
-                          </Button>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-600">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M3 6h18"></path>
-                              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-                              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-                            </svg>
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))
-                  }
-                </TableBody>
-              </Table>
+              <div className="space-y-1 mb-4">
+                {/* Filter to show only objectives that match the filtered metrics */}
+                {objectives
+                  .filter(obj => filteredMetrics.some(m => m.id === obj.id))
+                  .map(objective => renderMetricTree(objective))}
+                
+                {/* Show standalone metrics (not part of hierarchy) */}
+                {standaloneMetrics.length > 0 && (
+                  <>
+                    <div className="border-t my-4 pt-4">
+                      <h3 className="text-sm font-medium text-gray-500 mb-2">Standalone Metrics</h3>
+                    </div>
+                    {standaloneMetrics.map(metric => renderMetricTree(metric))}
+                  </>
+                )}
+              </div>
             </div>
           </div>
           
@@ -1714,6 +1564,7 @@ export default function MetricsPage() {
         isOpen={isCreateMetricOpen}
         onClose={() => setIsCreateMetricOpen(false)}
         onSubmit={handleCreateMetric}
+        metrics={metrics}
         existingTags={allTagNames}
       />
       
@@ -1724,7 +1575,7 @@ export default function MetricsPage() {
         onSubmit={handleCreateGroup}
         metrics={metrics}
         existingTags={allTagNames}
-        preselectedMetrics={selectedMetrics}
+        selectedMetrics={selectedMetrics}
       />
       
       {/* Manage tags dialog */}
