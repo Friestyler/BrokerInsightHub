@@ -371,7 +371,7 @@ function TemplateBadges({ industry, size }: { industry: string, size: string }) 
   );
 }
 
-// Define interface for saved views
+// Define interface for saved lists
 interface SavedView {
   id: string;
   name: string;
@@ -513,7 +513,7 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
             </svg>
           </button>
           
-          {/* Saved Views dropdown menu */}
+          {/* Saved Lists dropdown menu */}
           {showViewsDropdown && (
             <div className="absolute z-40 mt-1 w-80 bg-white rounded-md shadow-lg border border-gray-200 overflow-hidden">
               <div className="p-2 border-b">
@@ -681,7 +681,7 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
         </div>
         
         <div className="flex items-center ml-auto">
-          {/* Save View button - only shown when filters are applied or when editing existing view */}
+          {/* Save List button - only shown when filters are applied or when editing existing list */}
           {(filterText || selectedStatus || selectedIndustry || selectedSize || activeView) && (
             <Button 
               variant="outline" 
@@ -694,7 +694,7 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
                 <polyline points="17 21 17 13 7 13 7 21"></polyline>
                 <polyline points="7 3 7 8 15 8"></polyline>
               </svg>
-              {activeView ? 'Update View' : 'Save View'}
+              {activeView ? 'Update List' : 'Save List'}
             </Button>
           )}
           
