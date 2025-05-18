@@ -223,6 +223,11 @@ function CustomersTable() {
             </svg>
             Import/Export
           </Button>
+          
+          <Button size="sm" className="flex items-center bg-indigo-600 hover:bg-indigo-700">
+            <span className="mr-1 text-lg">+</span>
+            New Customer
+          </Button>
         </div>
       </div>
       
@@ -534,17 +539,8 @@ export default function CustomersPage() {
   
   return (
     <div className="container mx-auto px-4 py-6">
-      <div className="flex flex-col space-y-2 mb-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Customers</h1>
-            <p className="text-md text-gray-500">Manage your end clients and their product portfolio</p>
-          </div>
-          <Button size="sm" className="flex items-center bg-indigo-600 hover:bg-indigo-700">
-            <span className="mr-1 text-lg">+</span>
-            New Customer
-          </Button>
-        </div>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold tracking-tight">Customers</h1>
       </div>
       <CustomersTable />
     </div>

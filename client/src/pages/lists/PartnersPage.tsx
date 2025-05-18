@@ -190,6 +190,11 @@ function PartnersTable() {
             </svg>
             Import/Export
           </Button>
+          
+          <Button size="sm" className="flex items-center bg-indigo-600 hover:bg-indigo-700">
+            <span className="mr-1 text-lg">+</span>
+            New Partner
+          </Button>
         </div>
       </div>
       
@@ -460,17 +465,8 @@ export default function PartnersPage() {
   
   return (
     <div className="container mx-auto px-4 py-6">
-      <div className="flex flex-col space-y-2 mb-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold tracking-tight">Partners</h1>
-            <p className="text-md text-gray-500">Manage your broker, agent, and consultant relationships</p>
-          </div>
-          <Button size="sm" className="flex items-center bg-indigo-600 hover:bg-indigo-700">
-            <span className="mr-1 text-lg">+</span>
-            New Partner
-          </Button>
-        </div>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold tracking-tight">Partners</h1>
       </div>
       <PartnersTable />
     </div>
