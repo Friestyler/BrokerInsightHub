@@ -233,3 +233,84 @@ export type InsertProject = InsertOpportunity;
 export { customerTeamMembers as contacts };
 export type Contact = CustomerTeamMember;
 export type InsertContact = InsertCustomerTeamMember;
+
+// OKR templates schema
+export const okrTemplates = pgTable("okr_templates", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  tags: text("tags").array().default([]),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+  createdBy: integer("created_by").references(() => users.id),
+});
+
+export const okrMetrics = pgTable("okr_metrics", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  templateId: integer("template_id").references(() => okrTemplates.id),
+  targetValue: integer("target_value"),
+  realizedValue: integer("realized_value"),
+  unit: text("unit").default("number"), // currency, number, percentage, boolean
+  progress: integer("progress"),
+  status: text("status").default("on_track"), // on_track, at_risk, off_track
+  responsibleId: integer("responsible_id").references(() => users.id),
+  dueDate: timestamp("due_date"),
+  timeframe: text("timeframe"),
+  frequency: text("frequency").default("once"), // monthly, quarterly, once
+  parentId: integer("parent_id"),
+  hierarchy: text("hierarchy").default("activity"), // objective, activity, subactivity
+  tags: text("tags").array().default([]),
+  createdAt: timestamp("created_at").defaultNow(),
+  updatedAt: timestamp("updated_at").defaultNow(),
+});
+
+export const okrTemplatesRelations = relations(okrTemplates, ({ one, many }) => ({
+  metrics: many(okrMetrics),
+  createdBy: one(users, {
+    fields: [okrTemplates.createdBy],
+    references: [users.id],
+  }),
+}));
+
+export const okrMetricsRelations = relations(okrMetrics, ({ one, many }) => ({
+  template: one(okrTemplates, {
+    fields: [okrMetrics.templateId],
+    references: [okrTemplates.id],
+  }),
+  responsible: one(users, {
+    fields: [okrMetrics.responsibleId],
+    references: [users.id],
+  }),
+}));
+
+export const insertOkrTemplateSchema = createInsertSchema(okrTemplates).pick({
+  name: true,
+  description: true,
+  tags: true,
+  createdBy: true,
+});
+
+export const insertOkrMetricSchema = createInsertSchema(okrMetrics).pick({
+  title: true,
+  description: true,
+  templateId: true,
+  targetValue: true,
+  realizedValue: true,
+  unit: true,
+  status: true,
+  responsibleId: true,
+  dueDate: true,
+  timeframe: true,
+  frequency: true,
+  parentId: true,
+  hierarchy: true,
+  tags: true,
+});
+
+export type InsertOkrTemplate = z.infer<typeof insertOkrTemplateSchema>;
+export type OkrTemplate = typeof okrTemplates.$inferSelect;
+
+export type InsertOkrMetric = z.infer<typeof insertOkrMetricSchema>;
+export type OkrMetric = typeof okrMetrics.$inferSelect;

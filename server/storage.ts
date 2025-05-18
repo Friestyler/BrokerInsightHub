@@ -75,6 +75,18 @@ export interface IStorage {
   // Customer partners operations
   getCustomerPartners(customerId: number): Promise<CustomerPartner[]>;
   addCustomerPartner(data: InsertCustomerPartner): Promise<CustomerPartner>;
+  
+  // OKR Templates operations
+  getAllOkrTemplates(): Promise<OkrTemplate[]>;
+  getOkrTemplate(id: number): Promise<OkrTemplate | undefined>;
+  createOkrTemplate(template: InsertOkrTemplate): Promise<OkrTemplate>;
+  getOkrTemplatesByTags(tags: string[]): Promise<OkrTemplate[]>;
+  
+  // OKR Metrics operations
+  getOkrMetrics(templateId: number): Promise<OkrMetric[]>;
+  getOkrMetric(id: number): Promise<OkrMetric | undefined>;
+  createOkrMetric(metric: InsertOkrMetric): Promise<OkrMetric>;
+  updateOkrMetric(id: number, updates: Partial<InsertOkrMetric>): Promise<OkrMetric | undefined>;
 }
 
 export class MemStorage implements IStorage {
@@ -89,6 +101,8 @@ export class MemStorage implements IStorage {
   private customers: Map<number, Customer>;
   private customerTeamMembers: Map<number, CustomerTeamMember>;
   private customerPartners: Map<number, CustomerPartner>;
+  private okrTemplates: Map<number, any>;
+  private okrMetrics: Map<number, any>;
   
   currentUserId: number;
   currentNewsArticleId: number;
