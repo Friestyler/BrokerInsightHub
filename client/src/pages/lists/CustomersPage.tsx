@@ -1302,7 +1302,6 @@ function CustomersCardView({ partnerId }: { partnerId?: number }) {
 
 export default function CustomersPage() {
   const { environment } = useEnvironment();
-  const [viewType, setViewType] = useState<'table' | 'cards'>('table');
   
   // Get URL search parameters - extract partnerId if present
   // Format example: /lists/customers?partnerId=1
@@ -1323,44 +1322,6 @@ export default function CustomersPage() {
             ? `${partnerName || 'Partner'} Customers` 
             : "Customers"}
         </h1>
-        
-        {/* View switcher */}
-        <div className="flex items-center space-x-4">
-          <button
-            onClick={() => setViewType('table')}
-            className={`flex items-center px-3 py-1.5 text-sm font-medium rounded transition-colors ${
-              viewType === 'table' 
-                ? 'bg-indigo-100 text-indigo-700' 
-                : 'text-gray-600 hover:bg-gray-100'
-            }`}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
-              <line x1="3" y1="9" x2="21" y2="9"></line>
-              <line x1="3" y1="15" x2="21" y2="15"></line>
-              <line x1="9" y1="3" x2="9" y2="21"></line>
-              <line x1="15" y1="3" x2="15" y2="21"></line>
-            </svg>
-            Table
-          </button>
-          
-          <button
-            onClick={() => setViewType('cards')}
-            className={`flex items-center px-3 py-1.5 text-sm font-medium rounded transition-colors ${
-              viewType === 'cards' 
-                ? 'bg-indigo-100 text-indigo-700' 
-                : 'text-gray-600 hover:bg-gray-100'
-            }`}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="3" width="7" height="7"></rect>
-              <rect x="14" y="3" width="7" height="7"></rect>
-              <rect x="14" y="14" width="7" height="7"></rect>
-              <rect x="3" y="14" width="7" height="7"></rect>
-            </svg>
-            Cards
-          </button>
-        </div>
       </div>
       
       {/* Partner filter indicator */}
@@ -1380,7 +1341,7 @@ export default function CustomersPage() {
         </div>
       )}
       
-      {viewType === 'table' ? <CustomersTable partnerId={partnerId} /> : <CustomersCardView partnerId={partnerId} />}
+      <CustomersTable partnerId={partnerId} />
     </div>
   );
 }
