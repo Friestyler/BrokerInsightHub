@@ -528,6 +528,22 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
                   <Button 
                     variant="ghost" 
                     size="sm"
+                    className="text-indigo-600"
+                    onClick={() => {
+                      // Show campaign options modal
+                      // This would be implemented with a proper modal in the final version
+                      alert('This list can be added to a campaign in the Campaigns section');
+                    }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                    </svg>
+                    Add to Campaign
+                  </Button>
+                  
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
                     className="text-gray-600"
                     onClick={() => setActiveList(null)}
                   >
@@ -654,6 +670,75 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
         </div>
       </div>
       
+      {/* Selection actions bar - visible when items are selected */}
+      {selectedCustomers.length > 0 && (
+        <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between mb-4">
+          <div className="flex items-center">
+            <span className="text-indigo-700 font-medium mr-2">{selectedCustomers.length} customers selected</span>
+            <Button 
+              variant="ghost" 
+              size="sm"
+              className="text-gray-600"
+              onClick={() => setSelectedCustomers([])}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                <path d="M18 6 6 18"></path>
+                <path d="m6 6 12 12"></path>
+              </svg>
+              Clear selection
+            </Button>
+          </div>
+          
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="text-indigo-600"
+              onClick={() => setShowSaveListModal(true)}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                <polyline points="7 3 7 8 15 8"></polyline>
+              </svg>
+              Create List
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                // TODO: Implement partner assignment
+                alert('Assign to partner functionality will be implemented here');
+              }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+              Assign to Partner
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                // TODO: Implement OKR template assignment
+                alert('Assign template OKRs functionality will be implemented in future');
+              }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+              Assign Template OKRs
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Statistics overview */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white p-4 rounded-md border border-gray-200">
