@@ -1419,7 +1419,7 @@ export default function MetricsPage() {
                         metrics.filter(m => objective.children.includes(m.id)) : [];
                       
                       return (
-                        <div key={objective.id}>
+                        <React.Fragment key={objective.id}>
                           <TableRow 
                             className={`${selectedMetrics.includes(objective.id) ? "bg-indigo-50" : "hover:bg-amber-50/30"}`}
                           >
@@ -1503,8 +1503,11 @@ export default function MetricsPage() {
                               metrics.filter(m => activity.children.includes(m.id)) : [];
                               
                             return (
-                              <div key={activity.id}>
-                                <TableRow className={`${selectedMetrics.includes(activity.id) ? "bg-indigo-50" : "hover:bg-slate-50"}`}>
+                              <>
+                                <TableRow 
+                                  key={activity.id} 
+                                  className={`${selectedMetrics.includes(activity.id) ? "bg-indigo-50" : "hover:bg-slate-50"}`}
+                                >
                                   <TableCell>
                                     <Checkbox 
                                       checked={selectedMetrics.includes(activity.id)}
@@ -1649,10 +1652,10 @@ export default function MetricsPage() {
                                     </TableCell>
                                   </TableRow>
                                 ))}
-                              </div>
+                              </>
                             );
                           })}
-                        </div>
+                        </>
                       );
                     })
                   }
