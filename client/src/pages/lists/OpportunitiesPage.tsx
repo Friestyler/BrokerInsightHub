@@ -255,26 +255,30 @@ function OpportunitiesTable() {
     const getBadges = (type: string) => {
       if (type === 'Commercial Property Insurance') {
         return [
-          { code: 'RP', color: 'bg-blue-100 text-blue-600' },
-          { code: 'CO', color: 'bg-purple-100 text-purple-600' }
+          { code: 'RP', color: 'bg-blue-200 text-blue-800' },
+          { code: 'CO', color: 'bg-purple-200 text-purple-800' }
         ];
       } else if (type === 'Directors & Officers Insurance') {
         return [
-          { code: 'CO', color: 'bg-purple-100 text-purple-600' }
+          { code: 'CO', color: 'bg-purple-200 text-purple-800' }
         ];
       } else if (type === 'Cyber Security Insurance') {
         return [
-          { code: 'AC', color: 'bg-teal-100 text-teal-600' }
+          { code: 'AC', color: 'bg-teal-200 text-teal-800' }
         ];
       } else if (type === 'Business Interruption Insurance') {
         return [
-          { code: 'RP', color: 'bg-blue-100 text-blue-600' },
-          { code: 'CO', color: 'bg-purple-100 text-purple-600' }
+          { code: 'RP', color: 'bg-blue-200 text-blue-800' },
+          { code: 'CO', color: 'bg-purple-200 text-purple-800' }
+        ];
+      } else if (type === 'Fleet Vehicle Coverage') {
+        return [
+          { code: 'CO', color: 'bg-green-200 text-green-800' }
         ];
       } else {
         return [
-          { code: 'CO', color: 'bg-purple-100 text-purple-600' },
-          { code: 'RP', color: 'bg-blue-100 text-blue-600' }
+          { code: 'CO', color: 'bg-purple-200 text-purple-800' },
+          { code: 'RP', color: 'bg-blue-200 text-blue-800' }
         ];
       }
     };
@@ -282,9 +286,9 @@ function OpportunitiesTable() {
     const badges = getBadges(type);
     
     return (
-      <div className="flex space-x-1">
+      <div className="flex space-x-2">
         {badges.map((badge, index) => (
-          <div key={index} className={`${badge.color} w-7 h-7 rounded-md flex items-center justify-center text-xs font-medium`}>
+          <div key={index} className={`${badge.color} w-8 h-8 rounded-lg flex items-center justify-center text-xs font-medium`}>
             {badge.code}
           </div>
         ))}
@@ -411,11 +415,11 @@ function OpportunitiesTable() {
       </div>
       
       {/* Table section without a border */}
-      <div className="bg-white overflow-hidden">
+      <div className="bg-white overflow-x-auto">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
-              <th scope="col" className="relative px-3 py-3.5">
+              <th scope="col" className="relative px-3 py-3.5 w-10">
                 <input
                   type="checkbox"
                   className="absolute h-4 w-4 rounded border-gray-300"
@@ -488,19 +492,14 @@ function OpportunitiesTable() {
               </th>
               <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                 <div className="flex items-center">
-                  Plans
+                  Template
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
                     <path d="M8 9l4-4 4 4"></path>
                     <path d="M16 15l-4 4-4-4"></path>
                   </svg>
                 </div>
               </th>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                <div className="flex items-center">
-                  Template
-                </div>
-              </th>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 min-w-[100px]">
                 <div className="flex items-center">
                   Owner
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
@@ -517,15 +516,15 @@ function OpportunitiesTable() {
                 key={opportunity.id} 
                 className={`hover:bg-gray-50 group ${selectedOpportunities.includes(opportunity.id) ? 'bg-blue-50' : ''}`}
               >
-                <td className="relative whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                <td className="relative whitespace-nowrap py-4 pl-3 pr-3 text-sm w-10">
                   <input
                     type="checkbox"
-                    className="h-4 w-4 rounded border-gray-300"
+                    className={`h-4 w-4 rounded border-gray-300 ${selectedOpportunities.includes(opportunity.id) ? 'visible' : 'invisible group-hover:visible'}`}
                     checked={selectedOpportunities.includes(opportunity.id)}
                     onChange={() => toggleSelectOpportunity(opportunity.id)}
                   />
                 </td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm font-medium">
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm font-medium text-gray-900">
                   {opportunity.title}
                 </td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
@@ -557,12 +556,9 @@ function OpportunitiesTable() {
                   {format(opportunity.updatedAt, 'dd.MM.yyyy')}
                 </td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
-                  {opportunity.productMissing}
-                </td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
                   <TemplateBadges type={opportunity.productMissing} />
                 </td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm min-w-[100px]">
                   <OwnerAvatar owner={opportunity.owner} />
                 </td>
               </tr>
