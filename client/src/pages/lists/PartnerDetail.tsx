@@ -293,14 +293,7 @@ export default function PartnerDetail() {
   
   return (
     <div className="container mx-auto px-4 py-6">
-      {/* Breadcrumb navigation */}
-      <div className="flex items-center text-sm text-gray-500 mb-4">
-        <Link href="/lists/partners" className="hover:text-indigo-600">
-          Partners
-        </Link>
-        <span className="mx-2">/</span>
-        <span className="text-gray-700">{partner.name}</span>
-      </div>
+
 
       {/* Partner header */}
       <div className="mb-8">

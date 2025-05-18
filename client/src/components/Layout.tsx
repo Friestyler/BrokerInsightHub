@@ -1,5 +1,6 @@
 import { ReactNode, useEffect, useState } from "react";
 import Sidebar from "./Sidebar";
+import Breadcrumbs from "./Breadcrumbs";
 import { Button } from "@/components/ui/button";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { useLocation } from "wouter";
@@ -49,9 +50,9 @@ export default function Layout({ children }: LayoutProps) {
       <div className="flex-1 flex flex-col bg-white overflow-hidden">
         {/* Top bar - fixed, not scrollable */}
         <div className="h-14 border-b border-gray-100 flex items-center justify-between px-4 flex-shrink-0">
-          <div className="flex items-center">
+          <div className="flex items-center space-x-4">
             <button 
-              className="mr-3 text-gray-600 hover:text-indigo-600 p-1.5 rounded-md hover:bg-indigo-50 focus:outline-none"
+              className="text-gray-600 hover:text-indigo-600 p-1.5 rounded-md hover:bg-indigo-50 focus:outline-none"
               onClick={toggleSidebar}
             >
               <Menu size={18} />
@@ -66,6 +67,8 @@ export default function Layout({ children }: LayoutProps) {
                 {currentPageTitle}
               </div>
             </div>
+            <div className="border-l border-gray-200 h-6 mx-2"></div>
+            <Breadcrumbs />
           </div>
           
           <div className="flex items-center space-x-3">
