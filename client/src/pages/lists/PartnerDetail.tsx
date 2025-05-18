@@ -846,30 +846,6 @@ export default function PartnerDetail() {
             </TabsContent>
             
             <TabsContent value="opportunities" className="mt-4">
-              <div className="flex justify-between items-center mb-4">
-                <div className="flex flex-col gap-1">
-                  <h2 className="text-2xl font-bold">Partners</h2>
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" className="text-sm">
-                    <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M21 15V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
-                      <polyline points="17 8 21 12 17 16"></polyline>
-                      <line x1="21" y1="12" x2="9" y2="12"></line>
-                    </svg>
-                    Export
-                  </Button>
-                  
-                  <Button size="sm" className="text-sm bg-indigo-600 hover:bg-indigo-700">
-                    <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="12" y1="5" x2="12" y2="19"></line>
-                      <line x1="5" y1="12" x2="19" y2="12"></line>
-                    </svg>
-                    New
-                  </Button>
-                </div>
-              </div>
-              
               <div className="mb-4 flex gap-2">
                 <Button variant="outline" size="sm" className="flex items-center gap-2">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -985,11 +961,7 @@ export default function PartnerDetail() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[40px]">
-                      <Checkbox 
-                        id="select-all-opps" 
-                        onCheckedChange={() => toggleSelectAll(mockOpportunities)} 
-                        checked={selectedItems.length === mockOpportunities.length && mockOpportunities.length > 0}
-                      />
+                      <Checkbox />
                     </TableHead>
                     <TableHead>Partner</TableHead>
                     <TableHead>Industry</TableHead>
@@ -1097,30 +1069,6 @@ export default function PartnerDetail() {
             </TabsContent>
             
             <TabsContent value="customers" className="mt-4">
-              <div className="flex justify-between items-center mb-4">
-                <div className="flex flex-col gap-1">
-                  <h2 className="text-2xl font-bold">Partners</h2>
-                </div>
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" className="text-sm">
-                    <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M21 15V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
-                      <polyline points="17 8 21 12 17 16"></polyline>
-                      <line x1="21" y1="12" x2="9" y2="12"></line>
-                    </svg>
-                    Export
-                  </Button>
-                  
-                  <Button size="sm" className="text-sm bg-indigo-600 hover:bg-indigo-700">
-                    <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="12" y1="5" x2="12" y2="19"></line>
-                      <line x1="5" y1="12" x2="19" y2="12"></line>
-                    </svg>
-                    New
-                  </Button>
-                </div>
-              </div>
-              
               <div className="mb-4 flex gap-2">
                 <Button variant="outline" size="sm" className="flex items-center gap-2">
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1236,11 +1184,7 @@ export default function PartnerDetail() {
                 <TableHeader>
                   <TableRow>
                     <TableHead className="w-[40px]">
-                      <Checkbox 
-                        id="select-all" 
-                        onCheckedChange={() => toggleSelectAll(mockCustomers)} 
-                        checked={selectedItems.length === mockCustomers.length && mockCustomers.length > 0}
-                      />
+                      <Checkbox />
                     </TableHead>
                     <TableHead>Partner</TableHead>
                     <TableHead>Industry</TableHead>
