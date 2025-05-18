@@ -678,127 +678,135 @@ export default function PartnerDetail() {
 
             <TabsContent value="okr" className="mt-4">
               {/* OKR content */}
-              <div className="space-y-8">
-                {mockOKRs.map((plan) => (
-                  <div key={plan.id} className="bg-white rounded-md border border-gray-200 overflow-hidden">
-                    <div className="bg-gray-50 px-4 py-3 border-b flex justify-between items-center">
-                      <div className="flex items-center space-x-2">
-                        <div className="h-6 w-6 rounded bg-amber-100 text-amber-800 flex items-center justify-center text-xs font-medium">
-                          {plan.id.toUpperCase()}
-                        </div>
-                        <h3 className="font-medium">{plan.title}</h3>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                          <polyline points="6 9 12 15 18 9"></polyline>
-                        </svg>
-                      </div>
-                      <div className="flex items-center w-3/4">
-                        <div className="w-16 text-right">
-                          <span className="text-sm font-medium text-gray-600">Realized</span>
-                        </div>
-                        <div className="w-16 text-right">
-                          <span className="text-sm font-medium text-gray-600">Target</span>
-                        </div>
-                        <div className="w-24 text-center">
-                          <span className="text-sm font-medium text-gray-600">Progress</span>
-                        </div>
-                        <div className="w-10 flex justify-center">
-                          <span className="text-sm font-medium text-gray-600">TL</span>
-                        </div>
-                        <div className="w-28 flex justify-center">
-                          <span className="text-sm font-medium text-gray-600">Due date</span>
-                        </div>
-                        <div className="w-16 flex justify-center">
-                          <span className="text-sm font-medium text-gray-600">Resp.</span>
-                        </div>
-                        <div className="w-32 flex justify-end">
-                          <span className="text-sm font-medium text-gray-600">Comments</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div>
-                      {plan.objectives.map((objective) => (
-                        <div key={objective.id} className="px-4 py-3 border-b hover:bg-gray-50 flex justify-between items-center">
-                          <div className="w-1/4">
-                            <p className="text-sm font-medium text-gray-900">
-                              {objective.title}
-                            </p>
-                          </div>
-                          <div className="flex items-center space-x-4 w-3/4">
-                            <div className="w-16 text-right text-sm">
-                              {objective.type === 'financial' ? (
-                                <span className="text-gray-700">€ {objective.realized}</span>
-                              ) : (
-                                <span className="flex justify-center">
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500">
-                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                                  </svg>
-                                </span>
-                              )}
+              <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
+                <Table>
+                  <TableHeader className="bg-gray-50">
+                    <TableRow>
+                      <TableHead className="w-[40px] text-center">
+                        <Checkbox 
+                          id="select-all-okr"
+                          // Flatten all objectives from all plans for selection
+                          onCheckedChange={() => {
+                            const allObjectives = mockOKRs.flatMap(plan => 
+                              plan.objectives.map(obj => obj.id)
+                            );
+                            toggleSelectAll(allObjectives);
+                          }}
+                          checked={
+                            selectedItems.length > 0 && 
+                            mockOKRs.flatMap(plan => plan.objectives.map(obj => obj.id)).every(id => 
+                              selectedItems.includes(id)
+                            ) && 
+                            mockOKRs.flatMap(plan => plan.objectives).length > 0
+                          }
+                        />
+                      </TableHead>
+                      <TableHead>Objective</TableHead>
+                      <TableHead>Plan</TableHead>
+                      <TableHead>Realized</TableHead>
+                      <TableHead>Target</TableHead>
+                      <TableHead>Progress</TableHead>
+                      <TableHead>Due Date</TableHead>
+                      <TableHead>Owner</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {mockOKRs
+                      .flatMap(plan => 
+                        plan.objectives.map(obj => ({
+                          ...obj,
+                          planId: plan.id,
+                          planTitle: plan.title
+                        }))
+                      )
+                      .filter(obj => 
+                        searchTerm ? 
+                          obj.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          obj.planTitle.toLowerCase().includes(searchTerm.toLowerCase()) : 
+                          true
+                      )
+                      .map((objective) => (
+                        <TableRow 
+                          key={objective.id} 
+                          className={`hover:bg-gray-50 ${selectedItems.includes(objective.id) ? 'bg-indigo-50' : ''}`}
+                        >
+                          <TableCell className="text-center">
+                            <Checkbox 
+                              checked={selectedItems.includes(objective.id)} 
+                              onCheckedChange={() => toggleItemSelection(objective.id)}
+                            />
+                          </TableCell>
+                          <TableCell className="font-medium">
+                            {objective.title}
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center space-x-2">
+                              <div className="h-6 w-6 rounded bg-amber-100 text-amber-800 flex items-center justify-center text-xs font-medium">
+                                {objective.planId.toUpperCase()}
+                              </div>
+                              <span>{objective.planTitle}</span>
                             </div>
-                            <div className="w-16 text-right text-sm">
-                              {objective.type === 'financial' ? (
-                                <span className="text-gray-700">€ {objective.target}</span>
-                              ) : (
-                                <span className="text-gray-700">Complete</span>
-                              )}
-                            </div>
-                            <div className="w-24 flex items-center">
-                              {objective.type === 'financial' ? (
-                                <>
-                                  <span className="text-xs text-gray-700 w-8">{objective.progress}%</span>
-                                  <div className="flex-grow ml-1">
-                                    <ProgressBar 
-                                      progress={objective.progress} 
-                                      type={objective.progress >= 70 ? "success" : objective.progress >= 40 ? "warning" : "danger"}
-                                    />
-                                  </div>
-                                </>
-                              ) : (
-                                <span className="text-sm text-gray-700">Complete</span>
-                              )}
-                            </div>
-                            <div className="w-10 flex justify-center">
-                              <span className="flex justify-center">
-                                {objective.progress >= 70 ? (
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500">
-                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                                  </svg>
-                                ) : objective.progress >= 40 ? (
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-yellow-500">
-                                    <circle cx="12" cy="12" r="10"></circle>
-                                    <line x1="12" y1="8" x2="12" y2="12"></line>
-                                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                                  </svg>
-                                ) : (
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-500">
-                                    <circle cx="12" cy="12" r="10"></circle>
-                                    <line x1="12" y1="8" x2="12" y2="12"></line>
-                                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
-                                  </svg>
-                                )}
+                          </TableCell>
+                          <TableCell>
+                            {objective.type === 'financial' ? (
+                              <span>€ {objective.realized}</span>
+                            ) : (
+                              <span className="flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500 mr-1">
+                                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                </svg>
+                                Complete
                               </span>
-                            </div>
-                            <div className="w-28 flex justify-center">
-                              <span className="text-xs text-gray-700">
-                                {format(objective.dueDate, 'dd.MM.yyyy')}
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {objective.type === 'financial' ? (
+                              <span>€ {objective.target}</span>
+                            ) : (
+                              <span>Complete</span>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {objective.type === 'financial' ? (
+                              <div className="flex items-center space-x-2">
+                                <span>{objective.progress}%</span>
+                                <div className="w-24">
+                                  <ProgressBar 
+                                    progress={objective.progress} 
+                                    type={objective.progress >= 70 ? "success" : objective.progress >= 40 ? "warning" : "danger"}
+                                  />
+                                </div>
+                              </div>
+                            ) : (
+                              <span className="flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500 mr-1">
+                                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                </svg>
+                                100%
                               </span>
-                            </div>
-                            <div className="w-16 flex justify-center">
-                              <OwnerAvatar owner={objective.owner} />
-                            </div>
-                            <div className="w-32 flex justify-end">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
-                              </svg>
-                            </div>
-                          </div>
-                        </div>
+                            )}
+                          </TableCell>
+                          <TableCell>
+                            {format(objective.dueDate, 'dd.MM.yyyy')}
+                          </TableCell>
+                          <TableCell>
+                            <OwnerAvatar owner={objective.owner} />
+                          </TableCell>
+                        </TableRow>
                       ))}
-                    </div>
+                  </TableBody>
+                </Table>
+                {mockOKRs.flatMap(plan => plan.objectives).filter(obj => 
+                  searchTerm ? 
+                    obj.title.toLowerCase().includes(searchTerm.toLowerCase()) : 
+                    true
+                ).length === 0 && (
+                  <div className="py-8 text-center text-gray-500">
+                    No objectives found matching your criteria.
                   </div>
-                ))}
+                )}
               </div>
             </TabsContent>
             
