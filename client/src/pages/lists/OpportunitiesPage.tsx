@@ -324,7 +324,7 @@ function OpportunitiesTable() {
   return (
     <div className="space-y-4">
       {/* Unified toolbar with more emphasis on saved lists */}
-      <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+      <div className="bg-white p-4 rounded-lg shadow-sm">
         <div className="flex flex-col gap-4">
           {/* Top row with saved lists and action buttons */}
           <div className="flex flex-wrap items-center justify-between">
@@ -673,22 +673,22 @@ function OpportunitiesTable() {
 
       {/* Statistics overview */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-md border border-gray-200">
+        <div className="bg-white p-4 rounded-md">
           <div className="text-xl font-semibold">{stats.totalOpportunities}</div>
           <div className="text-sm text-gray-500">Total Opportunities</div>
         </div>
         
-        <div className="bg-white p-4 rounded-md border border-gray-200">
+        <div className="bg-white p-4 rounded-md">
           <div className="text-xl font-semibold">{stats.closedWon}</div>
           <div className="text-sm text-gray-500">Closed Won</div>
         </div>
         
-        <div className="bg-white p-4 rounded-md border border-gray-200">
+        <div className="bg-white p-4 rounded-md">
           <div className="text-xl font-semibold">{stats.totalValue}</div>
           <div className="text-sm text-gray-500">Total Value</div>
         </div>
         
-        <div className="bg-white p-4 rounded-md border border-gray-200">
+        <div className="bg-white p-4 rounded-md">
           <div className="text-xl font-semibold">{stats.weightedValue}</div>
           <div className="text-sm text-gray-500">Weighted Value</div>
         </div>

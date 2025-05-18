@@ -268,7 +268,7 @@ function PartnersTable() {
   return (
     <div className="space-y-4">
       {/* Unified toolbar with more emphasis on saved lists */}
-      <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+      <div className="bg-white p-4 rounded-lg shadow-sm">
         <div className="flex flex-col gap-4">
           {/* Top row with saved lists and action buttons */}
           <div className="flex flex-wrap items-center justify-between">
@@ -637,22 +637,22 @@ function PartnersTable() {
 
       {/* Statistics overview */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-md border border-gray-200">
+        <div className="bg-white p-4 rounded-md">
           <div className="text-xl font-semibold">{stats.totalPartners}</div>
           <div className="text-sm text-gray-500">Total Partners</div>
         </div>
         
-        <div className="bg-white p-4 rounded-md border border-gray-200">
+        <div className="bg-white p-4 rounded-md">
           <div className="text-xl font-semibold">{stats.activePartners}</div>
           <div className="text-sm text-gray-500">Active Partners</div>
         </div>
         
-        <div className="bg-white p-4 rounded-md border border-gray-200">
+        <div className="bg-white p-4 rounded-md">
           <div className="text-xl font-semibold">{stats.totalCustomers}</div>
           <div className="text-sm text-gray-500">Total Customers</div>
         </div>
         
-        <div className="bg-white p-4 rounded-md border border-gray-200">
+        <div className="bg-white p-4 rounded-md">
           <div className="text-xl font-semibold">{stats.totalOpportunities}</div>
           <div className="text-sm text-gray-500">Total Opportunities</div>
         </div>
@@ -941,7 +941,7 @@ function PartnersTable() {
       </Dialog>
       
       {/* Table section without a border */}
-      <div className="bg-white overflow-x-auto rounded-lg border border-gray-200">
+      <div className="bg-white overflow-x-auto rounded-lg">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -1042,7 +1042,7 @@ function PartnersTable() {
                     <Avatar className="h-9 w-9 mr-3 bg-indigo-100 text-indigo-600">
                       <AvatarFallback>{partner.initials}</AvatarFallback>
                     </Avatar>
-                    <div className="font-medium text-gray-900">{partner.name}</div>
+                    <Link href={`/lists/partners/${partner.id}`} className="font-medium text-gray-900 hover:text-indigo-700">{partner.name}</Link>
                   </div>
                 </td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{partner.industry}</td>

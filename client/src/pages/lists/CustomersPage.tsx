@@ -395,7 +395,7 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
   return (
     <div className="space-y-4">
       {/* Unified toolbar with more emphasis on saved lists */}
-      <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+      <div className="bg-white p-4 rounded-lg shadow-sm">
         <div className="flex flex-col gap-4">
           {/* Top row with saved lists and action buttons */}
           <div className="flex flex-wrap items-center justify-between">
@@ -1206,7 +1206,7 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
       </Dialog>
       
       {/* Table section without a border */}
-      <div className="bg-white overflow-x-auto rounded-lg border border-gray-200">
+      <div className="bg-white overflow-x-auto rounded-lg">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -1307,7 +1307,7 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
                     <Avatar className="h-9 w-9 mr-3 bg-indigo-100 text-indigo-600">
                       <AvatarFallback>{customer.initials}</AvatarFallback>
                     </Avatar>
-                    <div className="font-medium text-gray-900">{customer.name}</div>
+                    <Link href={`/lists/customers/${customer.id}`} className="font-medium text-gray-900 hover:text-indigo-700">{customer.name}</Link>
                   </div>
                 </td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
