@@ -281,10 +281,7 @@ function PartnersTable() {
                   onClick={() => setShowListsDropdown(!showListsDropdown)}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={activeList ? 'text-indigo-600' : 'text-gray-500'}>
-                    <path d="M2 7V1h20v6"></path>
-                    <path d="M11 9h10v6H11z"></path>
-                    <path d="M2 9h6v6H2z"></path>
-                    <path d="M2 23v-6h20v6"></path>
+                    <path d="M19 21l-7-4-7 4V5a2 2 0 012-2h10a2 2 0 012 2v16z"/>
                   </svg>
                   <span className="max-w-[180px] truncate font-medium">{activeList ? activeList.name : 'Saved Lists'}</span>
                   <svg 
