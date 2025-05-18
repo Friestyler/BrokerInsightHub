@@ -428,14 +428,28 @@ export default function PartnerDetail() {
                           <polyline points="6 9 12 15 18 9"></polyline>
                         </svg>
                       </div>
-                      <div className="flex items-center space-x-4">
-                        <span className="text-sm font-medium text-gray-600">Realized</span>
-                        <span className="text-sm font-medium text-gray-600">Target</span>
-                        <span className="text-sm font-medium text-gray-600">Progress</span>
-                        <span className="text-sm font-medium text-gray-600 pr-2">TL</span>
-                        <span className="text-sm font-medium text-gray-600 pr-2">Due date</span>
-                        <span className="text-sm font-medium text-gray-600 pr-8">Resp.</span>
-                        <span className="text-sm font-medium text-gray-600">Comments</span>
+                      <div className="flex items-center w-3/4">
+                        <div className="w-16 text-center">
+                          <span className="text-sm font-medium text-gray-600">Realized</span>
+                        </div>
+                        <div className="w-16 text-center">
+                          <span className="text-sm font-medium text-gray-600">Target</span>
+                        </div>
+                        <div className="w-24 text-center">
+                          <span className="text-sm font-medium text-gray-600">Progress</span>
+                        </div>
+                        <div className="w-10 text-center">
+                          <span className="text-sm font-medium text-gray-600">TL</span>
+                        </div>
+                        <div className="w-28 text-center">
+                          <span className="text-sm font-medium text-gray-600">Due date</span>
+                        </div>
+                        <div className="w-16 text-center">
+                          <span className="text-sm font-medium text-gray-600">Resp.</span>
+                        </div>
+                        <div className="w-32 text-center">
+                          <span className="text-sm font-medium text-gray-600">Comments</span>
+                        </div>
                       </div>
                     </div>
                     <div>

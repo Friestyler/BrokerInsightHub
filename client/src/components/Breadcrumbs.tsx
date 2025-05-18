@@ -21,31 +21,25 @@ export default function Breadcrumbs() {
 
     // Special handling for lists pages and detail pages
     if (paths[0] === 'lists') {
-      // Start with Home
-      items.push({
-        label: 'Home',
-        path: '/',
-        isCurrent: false
-      });
-      
-      // Add Lists
-      items.push({
-        label: 'Lists',
-        path: '/lists',
-        isCurrent: paths.length === 1
-      });
-      
-      // Add entity type if available (Partners, Customers, etc.)
+      // Only show the entity type (Partners, Customers, etc.) for list pages
       if (paths.length > 1) {
         const entityType = paths[1].charAt(0).toUpperCase() + paths[1].slice(1);
-        items.push({
-          label: entityType,
-          path: `/lists/${paths[1]}`,
-          isCurrent: paths.length === 2
-        });
         
-        // Add specific entity (e.g., ABC Partner) if this is a detail page
-        if (paths.length > 2) {
+        if (paths.length === 2) {
+          // Just show the entity type for list pages
+          items.push({
+            label: entityType,
+            path: `/lists/${paths[1]}`,
+            isCurrent: true
+          });
+        } else if (paths.length > 2) {
+          // For detail pages, show both the list and the specific entity
+          items.push({
+            label: entityType,
+            path: `/lists/${paths[1]}`,
+            isCurrent: false
+          });
+          
           // Entity detail page
           const entityId = paths[2];
           
