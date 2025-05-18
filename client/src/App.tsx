@@ -17,6 +17,8 @@ import PartnersPage from "@/pages/lists/PartnersPage";
 import PartnerDetail from "@/pages/lists/PartnerDetail";
 import CustomersPage from "@/pages/lists/CustomersPage";
 import OpportunitiesPage from "@/pages/lists/OpportunitiesPage";
+import OkrTemplatesPage from "@/pages/templates/OkrTemplatesPage";
+import OkrTemplateDetail from "@/pages/templates/OkrTemplateDetail";
 import NotFound from "@/pages/not-found";
 import EnvironmentRouteGuard from "@/components/EnvironmentRouteGuard";
 
@@ -50,6 +52,10 @@ function Router() {
             />
           )}
         </Route>
+        
+        {/* Templates section routes */}
+        <Route path="/templates/okr" component={OkrTemplatesPage} />
+        <Route path="/templates/okr/:id" component={OkrTemplateDetail} />
         
         {/* Legacy routes - will be migrated to new structure */}
         <Route path="/clients" component={Clients} />

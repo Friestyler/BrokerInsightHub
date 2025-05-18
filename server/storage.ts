@@ -115,6 +115,8 @@ export class MemStorage implements IStorage {
   currentCustomerId: number;
   currentCustomerTeamMemberId: number;
   currentCustomerPartnerId: number;
+  currentOkrTemplateId: number;
+  currentOkrMetricId: number;
 
   constructor() {
     this.users = new Map();
@@ -128,6 +130,8 @@ export class MemStorage implements IStorage {
     this.customers = new Map();
     this.customerTeamMembers = new Map();
     this.customerPartners = new Map();
+    this.okrTemplates = new Map();
+    this.okrMetrics = new Map();
     
     this.currentUserId = 1;
     this.currentNewsArticleId = 1;
@@ -140,6 +144,8 @@ export class MemStorage implements IStorage {
     this.currentCustomerId = 1;
     this.currentCustomerTeamMemberId = 1;
     this.currentCustomerPartnerId = 1;
+    this.currentOkrTemplateId = 1;
+    this.currentOkrMetricId = 1;
     
     // Initialize with sample data
     this.initializeSampleData();
