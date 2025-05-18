@@ -532,6 +532,26 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
                     size="sm"
                     className="text-indigo-600"
                     onClick={() => {
+                      // All customers in this list become selected
+                      const listCustomers = displayedCustomers.map(c => c.id);
+                      setSelectedCustomers(listCustomers);
+                      setShowCreateOpportunityModal(true);
+                      setOpportunityName('');
+                    }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="12" y1="8" x2="12" y2="16"></line>
+                      <line x1="8" y1="12" x2="16" y2="12"></line>
+                    </svg>
+                    Create {displayedCustomers.length === 1 ? 'Opportunity' : 'Opportunities'}
+                  </Button>
+                  
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    className="text-indigo-600"
+                    onClick={() => {
                       // Show campaign options modal
                       // This would be implemented with a proper modal in the final version
                       alert('This list can be added to a campaign in the Campaigns section');
