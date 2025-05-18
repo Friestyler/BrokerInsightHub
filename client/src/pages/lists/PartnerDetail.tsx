@@ -846,9 +846,8 @@ export default function PartnerDetail() {
             </TabsContent>
             
             <TabsContent value="opportunities" className="mt-4">
-              {/* Header with Saved Lists and Export/New buttons */}
-              <div className="flex justify-between items-center mb-4">
-                <div className="relative">
+              <div>
+                <div className="flex justify-between items-center mb-4">
                   <Button variant="outline" size="sm" className="flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
@@ -858,32 +857,29 @@ export default function PartnerDetail() {
                       <polyline points="6 9 12 15 18 9"></polyline>
                     </svg>
                   </Button>
+                  
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" className="text-sm">
+                      <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 15V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                        <polyline points="17 8 21 12 17 16"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                      </svg>
+                      Export
+                    </Button>
+                    
+                    <Button size="sm" className="text-sm bg-indigo-600 hover:bg-indigo-700">
+                      <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                      </svg>
+                      New
+                    </Button>
+                  </div>
                 </div>
                 
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" className="text-sm">
-                    <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M21 15V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
-                      <polyline points="17 8 21 12 17 16"></polyline>
-                      <line x1="21" y1="12" x2="9" y2="12"></line>
-                    </svg>
-                    Export
-                  </Button>
-                  
-                  <Button size="sm" className="text-sm bg-indigo-600 hover:bg-indigo-700">
-                    <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="12" y1="5" x2="12" y2="19"></line>
-                      <line x1="5" y1="12" x2="19" y2="12"></line>
-                    </svg>
-                    New
-                  </Button>
-                </div>
-              </div>
-              
-              {/* Search and filter */}
-              <div className="mb-4">
-                <div className="flex mb-2">
-                  <div className="relative flex-grow">
+                <div className="mb-4">
+                  <div className="relative w-[230px]">
                     <input 
                       type="text" 
                       placeholder="Search by name, industry..." 
@@ -899,413 +895,133 @@ export default function PartnerDetail() {
                     </div>
                   </div>
                 </div>
-                
-                <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="text-sm flex items-center"
-                  >
-                    Status
-                  </Button>
-                  
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="text-sm flex items-center"
-                  >
-                    Industry
-                  </Button>
-                  
-                  <Button variant="outline" size="sm" className="text-sm">
-                    Type
-                  </Button>
-                </div>
-              </div>
               
-              {/* Selected items actions */}
-              {selectedItems.length > 0 && (
-                <div className="bg-indigo-50 rounded p-3 mb-4 flex justify-between items-center">
-                  <div className="flex items-center">
-                    <span className="text-indigo-700 font-medium mr-2">{selectedItems.length} opportunities selected</span>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="text-gray-500 hover:text-gray-700 p-1 h-auto"
-                      onClick={clearSelection}
-                    >
-                      Clear selection
-                    </Button>
-                  </div>
-                  
-                  <div className="flex gap-2">
-                    <Button variant="ghost" size="sm" className="text-indigo-700" onClick={() => handleSaveList()}>
-                      Create List
-                    </Button>
+                {/* Selected items actions */}
+                {selectedItems.length > 0 && (
+                  <div className="bg-indigo-50 rounded p-3 mb-4 flex justify-between items-center">
+                    <div className="flex items-center">
+                      <span className="text-indigo-700 font-medium mr-2">{selectedItems.length} items selected</span>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-gray-500 hover:text-gray-700 p-1 h-auto"
+                        onClick={clearSelection}
+                      >
+                        Clear selection
+                      </Button>
+                    </div>
                     
-                    <Button variant="ghost" size="sm" className="text-indigo-700" onClick={() => handleAddToCampaign()}>
-                      Add to Campaign
-                    </Button>
-                    
-                    <Button variant="ghost" size="sm" className="text-indigo-700" onClick={() => handleAssignToPartner()}>
-                      Assign to Partner
-                    </Button>
-                  </div>
-                </div>
-              )}
-              
-              {/* Stat cards */}
-              <div className="grid grid-cols-4 gap-4 mb-6">
-                <div className="bg-white p-4 rounded-md border border-gray-200">
-                  <div className="text-2xl font-semibold">
-                    6
-                  </div>
-                  <div className="text-gray-500 text-sm">Total Partners</div>
-                </div>
-                
-                <div className="bg-white p-4 rounded-md border border-gray-200">
-                  <div className="text-2xl font-semibold">
-                    5
-                  </div>
-                  <div className="text-gray-500 text-sm">Active Partners</div>
-                </div>
-                
-                <div className="bg-white p-4 rounded-md border border-gray-200">
-                  <div className="text-2xl font-semibold">
-                    81
-                  </div>
-                  <div className="text-gray-500 text-sm">Total Customers</div>
-                </div>
-                
-                <div className="bg-white p-4 rounded-md border border-gray-200">
-                  <div className="text-2xl font-semibold">
-                    52
-                  </div>
-                  <div className="text-gray-500 text-sm">Total Opportunities</div>
-                </div>
-              </div>
-              
-              {/* Opportunities table */}
-              <div>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[40px]">
-                        <Checkbox 
-                          id="select-all-opps" 
-                          onCheckedChange={() => toggleSelectAll(mockOpportunities)} 
-                          checked={selectedItems.length === mockOpportunities.length && mockOpportunities.length > 0}
-                        />
-                      </TableHead>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Customer</TableHead>
-                      <TableHead>Amount</TableHead>
-                      <TableHead>Probability</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Closing Date</TableHead>
-                      <TableHead>Owner</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {mockOpportunities
-                      .filter(opp => {
-                        // Apply search filter
-                        const matchesSearch = !searchTerm || 
-                          opp.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          opp.customerName.toLowerCase().includes(searchTerm.toLowerCase());
-                        
-                        return matchesSearch;
-                      })
-                      .map((opportunity) => (
-                        <TableRow 
-                          key={opportunity.id} 
-                          className={`hover:bg-gray-50 ${selectedItems.includes(opportunity.id) ? 'bg-indigo-50' : ''}`}
-                        >
-                          <TableCell>
-                            <Checkbox 
-                              checked={selectedItems.includes(opportunity.id)} 
-                              onCheckedChange={() => toggleItemSelection(opportunity.id)}
-                            />
-                          </TableCell>
-                          <TableCell className="font-medium">
-                            <Link href={`/lists/opportunities/${opportunity.id}`} className="hover:text-indigo-600">
-                              {opportunity.title}
-                            </Link>
-                          </TableCell>
-                          <TableCell>
-                            <Link 
-                              href={`/lists/customers/${opportunity.customerId}`}
-                              className="text-indigo-600 hover:text-indigo-800 hover:underline"
-                            >
-                              {opportunity.customerName}
-                            </Link>
-                          </TableCell>
-                          <TableCell>
-                            {formatCurrency(opportunity.estimatedValue)}
-                          </TableCell>
-                          <TableCell>
-                            {opportunity.probability}%
-                          </TableCell>
-                          <TableCell>
-                            <StatusBadge status={opportunity.status} />
-                          </TableCell>
-                          <TableCell>
-                            {format(opportunity.closingDate, 'dd.MM.yyyy')}
-                          </TableCell>
-                          <TableCell>
-                            <OwnerAvatar owner={opportunity.owner} />
-                          </TableCell>
-                        </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-                {mockOpportunities.filter(opp => {
-                  const matchesSearch = !searchTerm || 
-                    opp.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                    opp.customerName.toLowerCase().includes(searchTerm.toLowerCase());
-                  
-                  return matchesSearch;
-                }).length === 0 && (
-                  <div className="py-8 text-center text-gray-500">
-                    No opportunities found matching your criteria.
+                    <div className="flex gap-2">
+                      <Button variant="ghost" size="sm" className="text-indigo-700" onClick={() => handleSaveList()}>
+                        Create List
+                      </Button>
+                      
+                      <Button variant="ghost" size="sm" className="text-indigo-700" onClick={() => handleCreateOpportunity()}>
+                        Create Opportunity
+                      </Button>
+                    </div>
                   </div>
                 )}
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="customers" className="mt-4">
-              {/* Header with Saved Lists and Export/New buttons */}
-              <div className="flex justify-between items-center mb-4">
-                <div className="relative">
-                  <Button variant="outline" size="sm" className="flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-                    </svg>
-                    <span>Saved Lists</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="6 9 12 15 18 9"></polyline>
-                    </svg>
-                  </Button>
-                </div>
                 
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" className="text-sm">
-                    <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M21 15V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
-                      <polyline points="17 8 21 12 17 16"></polyline>
-                      <line x1="21" y1="12" x2="9" y2="12"></line>
-                    </svg>
-                    Export
-                  </Button>
-                  
-                  <Button size="sm" className="text-sm bg-indigo-600 hover:bg-indigo-700">
-                    <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="12" y1="5" x2="12" y2="19"></line>
-                      <line x1="5" y1="12" x2="19" y2="12"></line>
-                    </svg>
-                    New
-                  </Button>
-                </div>
-              </div>
-              
-              {/* Search and filter */}
-              <div className="mb-4">
-                <div className="flex mb-2">
-                  <div className="relative flex-grow">
-                    <input 
-                      type="text" 
-                      placeholder="Search by name, industry..." 
-                      className="w-full border border-gray-300 rounded-md py-2 pl-10 pr-4 text-sm"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                      </svg>
+                {/* Stat cards */}
+                <div className="grid grid-cols-4 gap-4 mb-6">
+                  <div className="bg-white p-4 rounded-md border border-gray-200">
+                    <div className="text-2xl font-semibold">
+                      6
                     </div>
-                  </div>
-                </div>
-                
-                <div className="flex gap-2">
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="text-sm flex items-center"
-                  >
-                    Status
-                  </Button>
-                  
-                  <Button 
-                    variant="outline" 
-                    size="sm" 
-                    className="text-sm flex items-center"
-                  >
-                    Industry
-                  </Button>
-                  
-                  <Button variant="outline" size="sm" className="text-sm">
-                    Type
-                  </Button>
-                </div>
-              </div>
-              
-              {/* Selected items actions */}
-              {selectedItems.length > 0 && (
-                <div className="bg-indigo-50 rounded p-3 mb-4 flex justify-between items-center">
-                  <div className="flex items-center">
-                    <span className="text-indigo-700 font-medium mr-2">{selectedItems.length} customers selected</span>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="text-gray-500 hover:text-gray-700 p-1 h-auto"
-                      onClick={clearSelection}
-                    >
-                      Clear selection
-                    </Button>
+                    <div className="text-gray-500 text-sm">Total Partners</div>
                   </div>
                   
-                  <div className="flex gap-2">
-                    <Button variant="ghost" size="sm" className="text-indigo-700" onClick={() => handleSaveList()}>
-                      Create List
-                    </Button>
-                    
-                    <Button variant="ghost" size="sm" className="text-indigo-700" onClick={() => handleCreateOpportunity()}>
-                      Create Opportunity
-                    </Button>
-                    
-                    <Button variant="ghost" size="sm" className="text-indigo-700" onClick={() => handleAddToCampaign()}>
-                      Add to Campaign
-                    </Button>
-                    
-                    <Button variant="ghost" size="sm" className="text-indigo-700" onClick={() => handleAssignToPartner()}>
-                      Assign to Partner
-                    </Button>
-                    
-                    <Button variant="ghost" size="sm" className="text-indigo-700" onClick={() => handleAssignTemplate()}>
-                      Assign Template
-                    </Button>
+                  <div className="bg-white p-4 rounded-md border border-gray-200">
+                    <div className="text-2xl font-semibold">
+                      5
+                    </div>
+                    <div className="text-gray-500 text-sm">Active Partners</div>
                   </div>
-                </div>
-              )}
-              
-              {/* Stat cards */}
-              <div className="grid grid-cols-4 gap-4 mb-6">
-                <div className="bg-white p-4 rounded-md border border-gray-200">
-                  <div className="text-2xl font-semibold">
-                    6
+                  
+                  <div className="bg-white p-4 rounded-md border border-gray-200">
+                    <div className="text-2xl font-semibold">
+                      81
+                    </div>
+                    <div className="text-gray-500 text-sm">Total Customers</div>
                   </div>
-                  <div className="text-gray-500 text-sm">Total Partners</div>
+                  
+                  <div className="bg-white p-4 rounded-md border border-gray-200">
+                    <div className="text-2xl font-semibold">
+                      52
+                    </div>
+                    <div className="text-gray-500 text-sm">Total Opportunities</div>
+                  </div>
                 </div>
                 
-                <div className="bg-white p-4 rounded-md border border-gray-200">
-                  <div className="text-2xl font-semibold">
-                    5
-                  </div>
-                  <div className="text-gray-500 text-sm">Active Partners</div>
-                </div>
-                
-                <div className="bg-white p-4 rounded-md border border-gray-200">
-                  <div className="text-2xl font-semibold">
-                    81
-                  </div>
-                  <div className="text-gray-500 text-sm">Total Customers</div>
-                </div>
-                
-                <div className="bg-white p-4 rounded-md border border-gray-200">
-                  <div className="text-2xl font-semibold">
-                    52
-                  </div>
-                  <div className="text-gray-500 text-sm">Total Opportunities</div>
-                </div>
-              </div>
-              
-              {/* Customers table */}
-              <div>
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[40px]">
-                        <Checkbox 
-                          id="select-all-customers" 
-                          onCheckedChange={() => toggleSelectAll(mockCustomers)} 
-                          checked={selectedItems.length === mockCustomers.length && mockCustomers.length > 0}
-                        />
-                      </TableHead>
-                      <TableHead>Partner</TableHead>
-                      <TableHead>Industry</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Size</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Customers</TableHead>
-                      <TableHead>Opportunities</TableHead>
-                      <TableHead>Template</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {mockCustomers
-                      .filter(customer => {
-                        // Apply search filter
-                        const matchesSearch = !searchTerm || 
-                          customer.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          customer.industry.toLowerCase().includes(searchTerm.toLowerCase());
-                        
-                        return matchesSearch;
-                      })
-                      .map((customer) => (
-                        <TableRow 
-                          key={customer.id} 
-                          className={`hover:bg-gray-50 ${selectedItems.includes(customer.id) ? 'bg-indigo-50' : ''}`}
-                        >
-                          <TableCell>
-                            <Checkbox 
-                              checked={selectedItems.includes(customer.id)} 
-                              onCheckedChange={() => toggleItemSelection(customer.id)}
-                            />
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center">
-                              <div className="h-8 w-8 mr-3 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-medium">
-                                AB
-                              </div>
-                              <Link href={`/lists/partners/1`} className="font-medium text-gray-900 hover:text-indigo-600">
-                                ABC Insurance Brokers
-                              </Link>
+                {/* Partners table */}
+                <div>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[40px]">
+                          <Checkbox 
+                            id="select-all-opps" 
+                            onCheckedChange={() => toggleSelectAll(mockOpportunities)} 
+                            checked={selectedItems.length === mockOpportunities.length && mockOpportunities.length > 0}
+                          />
+                        </TableHead>
+                        <TableHead>Partner</TableHead>
+                        <TableHead>Industry</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead>Size</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Customers</TableHead>
+                        <TableHead>Opportunities</TableHead>
+                        <TableHead>Template</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      <TableRow>
+                        <TableCell>
+                          <Checkbox />
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center">
+                            <div className="h-8 w-8 mr-3 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-medium">
+                              AB
                             </div>
-                          </TableCell>
-                          <TableCell>
-                            Insurance
-                          </TableCell>
-                          <TableCell>
-                            Broker
-                          </TableCell>
-                          <TableCell>
-                            Enterprise
-                          </TableCell>
-                          <TableCell>
-                            <span className="px-2 py-1 rounded-full text-xs bg-gray-100">
-                              Active
+                            <span className="font-medium">
+                              ABC Insurance Brokers
                             </span>
-                          </TableCell>
-                          <TableCell>
-                            12
-                          </TableCell>
-                          <TableCell>
-                            8
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex space-x-1">
-                              <div className="h-6 w-6 rounded-full bg-indigo-100 text-indigo-700 text-xs flex items-center justify-center">
-                                IB
-                              </div>
-                              <div className="h-6 w-6 rounded-full bg-fuchsia-100 text-fuchsia-700 text-xs flex items-center justify-center">
-                                PR
-                              </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          Insurance
+                        </TableCell>
+                        <TableCell>
+                          Broker
+                        </TableCell>
+                        <TableCell>
+                          Enterprise
+                        </TableCell>
+                        <TableCell>
+                          <span className="px-2 py-1 rounded-full text-xs bg-gray-100">
+                            Active
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          12
+                        </TableCell>
+                        <TableCell>
+                          8
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex space-x-1">
+                            <div className="h-6 w-6 rounded-full bg-indigo-100 text-indigo-700 text-xs flex items-center justify-center">
+                              IB
                             </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                            <div className="h-6 w-6 rounded-full bg-fuchsia-100 text-fuchsia-700 text-xs flex items-center justify-center">
+                              PR
+                            </div>
+                          </div>
+                        </TableCell>
+                      </TableRow>
                       <TableRow>
                         <TableCell>
                           <Checkbox />
@@ -1315,9 +1031,9 @@ export default function PartnerDetail() {
                             <div className="h-8 w-8 mr-3 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-medium">
                               XY
                             </div>
-                            <Link href={`/lists/partners/2`} className="font-medium text-gray-900 hover:text-indigo-600">
+                            <span className="font-medium">
                               XYZ Consulting Group
-                            </Link>
+                            </span>
                           </div>
                         </TableCell>
                         <TableCell>
@@ -1351,8 +1067,237 @@ export default function PartnerDetail() {
                           </div>
                         </TableCell>
                       </TableRow>
-                  </TableBody>
-                </Table>
+                    </TableBody>
+                  </Table>
+                </div>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="customers" className="mt-4">
+              <div>
+                <div className="flex justify-between items-center mb-4">
+                  <Button variant="outline" size="sm" className="flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                    <span>Saved Lists</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                  </Button>
+                  
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" className="text-sm">
+                      <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M21 15V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                        <polyline points="17 8 21 12 17 16"></polyline>
+                        <line x1="21" y1="12" x2="9" y2="12"></line>
+                      </svg>
+                      Export
+                    </Button>
+                    
+                    <Button size="sm" className="text-sm bg-indigo-600 hover:bg-indigo-700">
+                      <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                      </svg>
+                      New
+                    </Button>
+                  </div>
+                </div>
+                
+                <div className="mb-4">
+                  <div className="relative w-[230px]">
+                    <input 
+                      type="text" 
+                      placeholder="Search by name, industry..." 
+                      className="w-full border border-gray-300 rounded-md py-2 pl-10 pr-4 text-sm"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              
+                {/* Selected items actions */}
+                {selectedItems.length > 0 && (
+                  <div className="bg-indigo-50 rounded p-3 mb-4 flex justify-between items-center">
+                    <div className="flex items-center">
+                      <span className="text-indigo-700 font-medium mr-2">{selectedItems.length} items selected</span>
+                      <Button 
+                        variant="ghost" 
+                        size="sm" 
+                        className="text-gray-500 hover:text-gray-700 p-1 h-auto"
+                        onClick={clearSelection}
+                      >
+                        Clear selection
+                      </Button>
+                    </div>
+                    
+                    <div className="flex gap-2">
+                      <Button variant="ghost" size="sm" className="text-indigo-700" onClick={() => handleSaveList()}>
+                        Create List
+                      </Button>
+                      
+                      <Button variant="ghost" size="sm" className="text-indigo-700" onClick={() => handleCreateOpportunity()}>
+                        Create Opportunity
+                      </Button>
+                    </div>
+                  </div>
+                )}
+                
+                {/* Stat cards */}
+                <div className="grid grid-cols-4 gap-4 mb-6">
+                  <div className="bg-white p-4 rounded-md border border-gray-200">
+                    <div className="text-2xl font-semibold">
+                      6
+                    </div>
+                    <div className="text-gray-500 text-sm">Total Partners</div>
+                  </div>
+                  
+                  <div className="bg-white p-4 rounded-md border border-gray-200">
+                    <div className="text-2xl font-semibold">
+                      5
+                    </div>
+                    <div className="text-gray-500 text-sm">Active Partners</div>
+                  </div>
+                  
+                  <div className="bg-white p-4 rounded-md border border-gray-200">
+                    <div className="text-2xl font-semibold">
+                      81
+                    </div>
+                    <div className="text-gray-500 text-sm">Total Customers</div>
+                  </div>
+                  
+                  <div className="bg-white p-4 rounded-md border border-gray-200">
+                    <div className="text-2xl font-semibold">
+                      52
+                    </div>
+                    <div className="text-gray-500 text-sm">Total Opportunities</div>
+                  </div>
+                </div>
+                
+                {/* Partners table */}
+                <div>
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-[40px]">
+                          <Checkbox 
+                            id="select-all" 
+                            onCheckedChange={() => toggleSelectAll(mockCustomers)} 
+                            checked={selectedItems.length === mockCustomers.length && mockCustomers.length > 0}
+                          />
+                        </TableHead>
+                        <TableHead>Partner</TableHead>
+                        <TableHead>Industry</TableHead>
+                        <TableHead>Type</TableHead>
+                        <TableHead>Size</TableHead>
+                        <TableHead>Status</TableHead>
+                        <TableHead>Customers</TableHead>
+                        <TableHead>Opportunities</TableHead>
+                        <TableHead>Template</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      <TableRow>
+                        <TableCell>
+                          <Checkbox />
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center">
+                            <div className="h-8 w-8 mr-3 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-medium">
+                              AB
+                            </div>
+                            <span className="font-medium">
+                              ABC Insurance Brokers
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          Insurance
+                        </TableCell>
+                        <TableCell>
+                          Broker
+                        </TableCell>
+                        <TableCell>
+                          Enterprise
+                        </TableCell>
+                        <TableCell>
+                          <span className="px-2 py-1 rounded-full text-xs bg-gray-100">
+                            Active
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          12
+                        </TableCell>
+                        <TableCell>
+                          8
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex space-x-1">
+                            <div className="h-6 w-6 rounded-full bg-indigo-100 text-indigo-700 text-xs flex items-center justify-center">
+                              IB
+                            </div>
+                            <div className="h-6 w-6 rounded-full bg-fuchsia-100 text-fuchsia-700 text-xs flex items-center justify-center">
+                              PR
+                            </div>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                      <TableRow>
+                        <TableCell>
+                          <Checkbox />
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center">
+                            <div className="h-8 w-8 mr-3 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-medium">
+                              XY
+                            </div>
+                            <span className="font-medium">
+                              XYZ Consulting Group
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          Consulting
+                        </TableCell>
+                        <TableCell>
+                          Agent
+                        </TableCell>
+                        <TableCell>
+                          Large
+                        </TableCell>
+                        <TableCell>
+                          <span className="px-2 py-1 rounded-full text-xs bg-gray-100">
+                            Active
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          8
+                        </TableCell>
+                        <TableCell>
+                          5
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex space-x-1">
+                            <div className="h-6 w-6 rounded-full bg-amber-100 text-amber-700 text-xs flex items-center justify-center">
+                              CO
+                            </div>
+                            <div className="h-6 w-6 rounded-full bg-purple-100 text-purple-700 text-xs flex items-center justify-center">
+                              AD
+                            </div>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </div>
               </div>
             </TabsContent>
           </Tabs>
