@@ -846,459 +846,505 @@ export default function PartnerDetail() {
             </TabsContent>
             
             <TabsContent value="opportunities" className="mt-4">
-              <div>
-                <div className="flex justify-between items-center mb-4">
-                  <Button variant="outline" size="sm" className="flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+              <div className="flex justify-between items-center mb-4">
+                <div className="flex flex-col gap-1">
+                  <h2 className="text-2xl font-bold">Partners</h2>
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" className="text-sm">
+                    <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                      <polyline points="17 8 21 12 17 16"></polyline>
+                      <line x1="21" y1="12" x2="9" y2="12"></line>
                     </svg>
-                    <span>Saved Lists</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="6 9 12 15 18 9"></polyline>
-                    </svg>
+                    Export
                   </Button>
                   
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="text-sm">
-                      <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M21 15V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
-                        <polyline points="17 8 21 12 17 16"></polyline>
-                        <line x1="21" y1="12" x2="9" y2="12"></line>
-                      </svg>
-                      Export
-                    </Button>
-                    
-                    <Button size="sm" className="text-sm bg-indigo-600 hover:bg-indigo-700">
-                      <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <line x1="12" y1="5" x2="12" y2="19"></line>
-                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                      </svg>
-                      New
-                    </Button>
-                  </div>
-                </div>
-                
-                <div className="mb-4">
-                  <div className="relative w-[230px]">
-                    <input 
-                      type="text" 
-                      placeholder="Search by name, industry..." 
-                      className="w-full border border-gray-300 rounded-md py-2 pl-10 pr-4 text-sm"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-              
-                {/* Selected items actions */}
-                {selectedItems.length > 0 && (
-                  <div className="bg-indigo-50 rounded p-3 mb-4 flex justify-between items-center">
-                    <div className="flex items-center">
-                      <span className="text-indigo-700 font-medium mr-2">{selectedItems.length} items selected</span>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-gray-500 hover:text-gray-700 p-1 h-auto"
-                        onClick={clearSelection}
-                      >
-                        Clear selection
-                      </Button>
-                    </div>
-                    
-                    <div className="flex gap-2">
-                      <Button variant="ghost" size="sm" className="text-indigo-700" onClick={() => handleSaveList()}>
-                        Create List
-                      </Button>
-                      
-                      <Button variant="ghost" size="sm" className="text-indigo-700" onClick={() => handleCreateOpportunity()}>
-                        Create Opportunity
-                      </Button>
-                    </div>
-                  </div>
-                )}
-                
-                {/* Stat cards */}
-                <div className="grid grid-cols-4 gap-4 mb-6">
-                  <div className="bg-white p-4 rounded-md border border-gray-200">
-                    <div className="text-2xl font-semibold">
-                      6
-                    </div>
-                    <div className="text-gray-500 text-sm">Total Partners</div>
-                  </div>
-                  
-                  <div className="bg-white p-4 rounded-md border border-gray-200">
-                    <div className="text-2xl font-semibold">
-                      5
-                    </div>
-                    <div className="text-gray-500 text-sm">Active Partners</div>
-                  </div>
-                  
-                  <div className="bg-white p-4 rounded-md border border-gray-200">
-                    <div className="text-2xl font-semibold">
-                      81
-                    </div>
-                    <div className="text-gray-500 text-sm">Total Customers</div>
-                  </div>
-                  
-                  <div className="bg-white p-4 rounded-md border border-gray-200">
-                    <div className="text-2xl font-semibold">
-                      52
-                    </div>
-                    <div className="text-gray-500 text-sm">Total Opportunities</div>
-                  </div>
-                </div>
-                
-                {/* Partners table */}
-                <div>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-[40px]">
-                          <Checkbox 
-                            id="select-all-opps" 
-                            onCheckedChange={() => toggleSelectAll(mockOpportunities)} 
-                            checked={selectedItems.length === mockOpportunities.length && mockOpportunities.length > 0}
-                          />
-                        </TableHead>
-                        <TableHead>Partner</TableHead>
-                        <TableHead>Industry</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Size</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Customers</TableHead>
-                        <TableHead>Opportunities</TableHead>
-                        <TableHead>Template</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      <TableRow>
-                        <TableCell>
-                          <Checkbox />
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center">
-                            <div className="h-8 w-8 mr-3 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-medium">
-                              AB
-                            </div>
-                            <span className="font-medium">
-                              ABC Insurance Brokers
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          Insurance
-                        </TableCell>
-                        <TableCell>
-                          Broker
-                        </TableCell>
-                        <TableCell>
-                          Enterprise
-                        </TableCell>
-                        <TableCell>
-                          <span className="px-2 py-1 rounded-full text-xs bg-gray-100">
-                            Active
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          12
-                        </TableCell>
-                        <TableCell>
-                          8
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex space-x-1">
-                            <div className="h-6 w-6 rounded-full bg-indigo-100 text-indigo-700 text-xs flex items-center justify-center">
-                              IB
-                            </div>
-                            <div className="h-6 w-6 rounded-full bg-fuchsia-100 text-fuchsia-700 text-xs flex items-center justify-center">
-                              PR
-                            </div>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>
-                          <Checkbox />
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center">
-                            <div className="h-8 w-8 mr-3 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-medium">
-                              XY
-                            </div>
-                            <span className="font-medium">
-                              XYZ Consulting Group
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          Consulting
-                        </TableCell>
-                        <TableCell>
-                          Agent
-                        </TableCell>
-                        <TableCell>
-                          Large
-                        </TableCell>
-                        <TableCell>
-                          <span className="px-2 py-1 rounded-full text-xs bg-gray-100">
-                            Active
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          8
-                        </TableCell>
-                        <TableCell>
-                          5
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex space-x-1">
-                            <div className="h-6 w-6 rounded-full bg-amber-100 text-amber-700 text-xs flex items-center justify-center">
-                              CO
-                            </div>
-                            <div className="h-6 w-6 rounded-full bg-purple-100 text-purple-700 text-xs flex items-center justify-center">
-                              AD
-                            </div>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
+                  <Button size="sm" className="text-sm bg-indigo-600 hover:bg-indigo-700">
+                    <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="12" y1="5" x2="12" y2="19"></line>
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    New
+                  </Button>
                 </div>
               </div>
+              
+              <div className="mb-4 flex gap-2">
+                <Button variant="outline" size="sm" className="flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                  </svg>
+                  <span>Saved Lists</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </Button>
+                
+                <div className="relative">
+                  <input 
+                    type="text" 
+                    placeholder="Search by name, industry..." 
+                    className="w-[230px] border border-gray-300 rounded-md py-2 pl-10 pr-4 text-sm"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="11" cy="11" r="8"></circle>
+                      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                  </div>
+                </div>
+                
+                <Button variant="outline" size="sm" className="flex items-center gap-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                  </svg>
+                  <span>Status</span>
+                </Button>
+                
+                <Button variant="outline" size="sm" className="flex items-center gap-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="2" y1="12" x2="22" y2="12"></line>
+                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                  </svg>
+                  <span>Industry</span>
+                </Button>
+                
+                <Button variant="outline" size="sm" className="flex items-center gap-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                    <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                  </svg>
+                  <span>Type</span>
+                </Button>
+              </div>
+            
+              {/* Selected items actions */}
+              {selectedItems.length > 0 && (
+                <div className="bg-indigo-50 rounded p-3 mb-4 flex justify-between items-center">
+                  <div className="flex items-center">
+                    <span className="text-indigo-700 font-medium mr-2">{selectedItems.length} items selected</span>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-gray-500 hover:text-gray-700 p-1 h-auto"
+                      onClick={clearSelection}
+                    >
+                      Clear selection
+                    </Button>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Button variant="ghost" size="sm" className="text-indigo-700" onClick={() => handleSaveList()}>
+                      Create List
+                    </Button>
+                    
+                    <Button variant="ghost" size="sm" className="text-indigo-700" onClick={() => handleCreateOpportunity()}>
+                      Create Opportunity
+                    </Button>
+                  </div>
+                </div>
+              )}
+              
+              {/* Stat cards */}
+              <div className="grid grid-cols-4 gap-4 mb-6">
+                <div className="bg-white p-4 rounded-md border border-gray-200">
+                  <div className="text-2xl font-semibold">
+                    6
+                  </div>
+                  <div className="text-gray-500 text-sm">Total Partners</div>
+                </div>
+                
+                <div className="bg-white p-4 rounded-md border border-gray-200">
+                  <div className="text-2xl font-semibold">
+                    5
+                  </div>
+                  <div className="text-gray-500 text-sm">Active Partners</div>
+                </div>
+                
+                <div className="bg-white p-4 rounded-md border border-gray-200">
+                  <div className="text-2xl font-semibold">
+                    81
+                  </div>
+                  <div className="text-gray-500 text-sm">Total Customers</div>
+                </div>
+                
+                <div className="bg-white p-4 rounded-md border border-gray-200">
+                  <div className="text-2xl font-semibold">
+                    52
+                  </div>
+                  <div className="text-gray-500 text-sm">Total Opportunities</div>
+                </div>
+              </div>
+              
+              {/* Partners table */}
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[40px]">
+                      <Checkbox 
+                        id="select-all-opps" 
+                        onCheckedChange={() => toggleSelectAll(mockOpportunities)} 
+                        checked={selectedItems.length === mockOpportunities.length && mockOpportunities.length > 0}
+                      />
+                    </TableHead>
+                    <TableHead>Partner</TableHead>
+                    <TableHead>Industry</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Size</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Customers</TableHead>
+                    <TableHead>Opportunities</TableHead>
+                    <TableHead>Template</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell>
+                      <Checkbox />
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center">
+                        <div className="h-8 w-8 mr-3 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-medium">
+                          AB
+                        </div>
+                        <span className="font-medium">
+                          ABC Insurance Brokers
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      Insurance
+                    </TableCell>
+                    <TableCell>
+                      Broker
+                    </TableCell>
+                    <TableCell>
+                      Enterprise
+                    </TableCell>
+                    <TableCell>
+                      <span className="px-2 py-1 rounded-full text-xs bg-gray-100">
+                        Active
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      12
+                    </TableCell>
+                    <TableCell>
+                      8
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex space-x-1">
+                        <div className="h-6 w-6 rounded-full bg-indigo-100 text-indigo-700 text-xs flex items-center justify-center">
+                          IB
+                        </div>
+                        <div className="h-6 w-6 rounded-full bg-fuchsia-100 text-fuchsia-700 text-xs flex items-center justify-center">
+                          PR
+                        </div>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>
+                      <Checkbox />
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center">
+                        <div className="h-8 w-8 mr-3 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-medium">
+                          XY
+                        </div>
+                        <span className="font-medium">
+                          XYZ Consulting Group
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      Consulting
+                    </TableCell>
+                    <TableCell>
+                      Agent
+                    </TableCell>
+                    <TableCell>
+                      Large
+                    </TableCell>
+                    <TableCell>
+                      <span className="px-2 py-1 rounded-full text-xs bg-gray-100">
+                        Active
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      8
+                    </TableCell>
+                    <TableCell>
+                      5
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex space-x-1">
+                        <div className="h-6 w-6 rounded-full bg-amber-100 text-amber-700 text-xs flex items-center justify-center">
+                          CO
+                        </div>
+                        <div className="h-6 w-6 rounded-full bg-purple-100 text-purple-700 text-xs flex items-center justify-center">
+                          AD
+                        </div>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
             </TabsContent>
             
             <TabsContent value="customers" className="mt-4">
-              <div>
-                <div className="flex justify-between items-center mb-4">
-                  <Button variant="outline" size="sm" className="flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+              <div className="flex justify-between items-center mb-4">
+                <div className="flex flex-col gap-1">
+                  <h2 className="text-2xl font-bold">Partners</h2>
+                </div>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" className="text-sm">
+                    <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                      <polyline points="17 8 21 12 17 16"></polyline>
+                      <line x1="21" y1="12" x2="9" y2="12"></line>
                     </svg>
-                    <span>Saved Lists</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="6 9 12 15 18 9"></polyline>
-                    </svg>
+                    Export
                   </Button>
                   
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="text-sm">
-                      <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M21 15V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
-                        <polyline points="17 8 21 12 17 16"></polyline>
-                        <line x1="21" y1="12" x2="9" y2="12"></line>
-                      </svg>
-                      Export
-                    </Button>
-                    
-                    <Button size="sm" className="text-sm bg-indigo-600 hover:bg-indigo-700">
-                      <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <line x1="12" y1="5" x2="12" y2="19"></line>
-                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                      </svg>
-                      New
-                    </Button>
-                  </div>
-                </div>
-                
-                <div className="mb-4">
-                  <div className="relative w-[230px]">
-                    <input 
-                      type="text" 
-                      placeholder="Search by name, industry..." 
-                      className="w-full border border-gray-300 rounded-md py-2 pl-10 pr-4 text-sm"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                      </svg>
-                    </div>
-                  </div>
-                </div>
-              
-                {/* Selected items actions */}
-                {selectedItems.length > 0 && (
-                  <div className="bg-indigo-50 rounded p-3 mb-4 flex justify-between items-center">
-                    <div className="flex items-center">
-                      <span className="text-indigo-700 font-medium mr-2">{selectedItems.length} items selected</span>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-gray-500 hover:text-gray-700 p-1 h-auto"
-                        onClick={clearSelection}
-                      >
-                        Clear selection
-                      </Button>
-                    </div>
-                    
-                    <div className="flex gap-2">
-                      <Button variant="ghost" size="sm" className="text-indigo-700" onClick={() => handleSaveList()}>
-                        Create List
-                      </Button>
-                      
-                      <Button variant="ghost" size="sm" className="text-indigo-700" onClick={() => handleCreateOpportunity()}>
-                        Create Opportunity
-                      </Button>
-                    </div>
-                  </div>
-                )}
-                
-                {/* Stat cards */}
-                <div className="grid grid-cols-4 gap-4 mb-6">
-                  <div className="bg-white p-4 rounded-md border border-gray-200">
-                    <div className="text-2xl font-semibold">
-                      6
-                    </div>
-                    <div className="text-gray-500 text-sm">Total Partners</div>
-                  </div>
-                  
-                  <div className="bg-white p-4 rounded-md border border-gray-200">
-                    <div className="text-2xl font-semibold">
-                      5
-                    </div>
-                    <div className="text-gray-500 text-sm">Active Partners</div>
-                  </div>
-                  
-                  <div className="bg-white p-4 rounded-md border border-gray-200">
-                    <div className="text-2xl font-semibold">
-                      81
-                    </div>
-                    <div className="text-gray-500 text-sm">Total Customers</div>
-                  </div>
-                  
-                  <div className="bg-white p-4 rounded-md border border-gray-200">
-                    <div className="text-2xl font-semibold">
-                      52
-                    </div>
-                    <div className="text-gray-500 text-sm">Total Opportunities</div>
-                  </div>
-                </div>
-                
-                {/* Partners table */}
-                <div>
-                  <Table>
-                    <TableHeader>
-                      <TableRow>
-                        <TableHead className="w-[40px]">
-                          <Checkbox 
-                            id="select-all" 
-                            onCheckedChange={() => toggleSelectAll(mockCustomers)} 
-                            checked={selectedItems.length === mockCustomers.length && mockCustomers.length > 0}
-                          />
-                        </TableHead>
-                        <TableHead>Partner</TableHead>
-                        <TableHead>Industry</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Size</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Customers</TableHead>
-                        <TableHead>Opportunities</TableHead>
-                        <TableHead>Template</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      <TableRow>
-                        <TableCell>
-                          <Checkbox />
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center">
-                            <div className="h-8 w-8 mr-3 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-medium">
-                              AB
-                            </div>
-                            <span className="font-medium">
-                              ABC Insurance Brokers
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          Insurance
-                        </TableCell>
-                        <TableCell>
-                          Broker
-                        </TableCell>
-                        <TableCell>
-                          Enterprise
-                        </TableCell>
-                        <TableCell>
-                          <span className="px-2 py-1 rounded-full text-xs bg-gray-100">
-                            Active
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          12
-                        </TableCell>
-                        <TableCell>
-                          8
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex space-x-1">
-                            <div className="h-6 w-6 rounded-full bg-indigo-100 text-indigo-700 text-xs flex items-center justify-center">
-                              IB
-                            </div>
-                            <div className="h-6 w-6 rounded-full bg-fuchsia-100 text-fuchsia-700 text-xs flex items-center justify-center">
-                              PR
-                            </div>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                      <TableRow>
-                        <TableCell>
-                          <Checkbox />
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center">
-                            <div className="h-8 w-8 mr-3 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-medium">
-                              XY
-                            </div>
-                            <span className="font-medium">
-                              XYZ Consulting Group
-                            </span>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          Consulting
-                        </TableCell>
-                        <TableCell>
-                          Agent
-                        </TableCell>
-                        <TableCell>
-                          Large
-                        </TableCell>
-                        <TableCell>
-                          <span className="px-2 py-1 rounded-full text-xs bg-gray-100">
-                            Active
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          8
-                        </TableCell>
-                        <TableCell>
-                          5
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex space-x-1">
-                            <div className="h-6 w-6 rounded-full bg-amber-100 text-amber-700 text-xs flex items-center justify-center">
-                              CO
-                            </div>
-                            <div className="h-6 w-6 rounded-full bg-purple-100 text-purple-700 text-xs flex items-center justify-center">
-                              AD
-                            </div>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    </TableBody>
-                  </Table>
+                  <Button size="sm" className="text-sm bg-indigo-600 hover:bg-indigo-700">
+                    <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="12" y1="5" x2="12" y2="19"></line>
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    New
+                  </Button>
                 </div>
               </div>
+              
+              <div className="mb-4 flex gap-2">
+                <Button variant="outline" size="sm" className="flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                  </svg>
+                  <span>Saved Lists</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </Button>
+                
+                <div className="relative">
+                  <input 
+                    type="text" 
+                    placeholder="Search by name, industry..." 
+                    className="w-[230px] border border-gray-300 rounded-md py-2 pl-10 pr-4 text-sm"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                  />
+                  <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                    <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="11" cy="11" r="8"></circle>
+                      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                  </div>
+                </div>
+                
+                <Button variant="outline" size="sm" className="flex items-center gap-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                  </svg>
+                  <span>Status</span>
+                </Button>
+                
+                <Button variant="outline" size="sm" className="flex items-center gap-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="2" y1="12" x2="22" y2="12"></line>
+                    <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                  </svg>
+                  <span>Industry</span>
+                </Button>
+                
+                <Button variant="outline" size="sm" className="flex items-center gap-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+                    <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+                  </svg>
+                  <span>Type</span>
+                </Button>
+              </div>
+            
+              {/* Selected items actions */}
+              {selectedItems.length > 0 && (
+                <div className="bg-indigo-50 rounded p-3 mb-4 flex justify-between items-center">
+                  <div className="flex items-center">
+                    <span className="text-indigo-700 font-medium mr-2">{selectedItems.length} items selected</span>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-gray-500 hover:text-gray-700 p-1 h-auto"
+                      onClick={clearSelection}
+                    >
+                      Clear selection
+                    </Button>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Button variant="ghost" size="sm" className="text-indigo-700" onClick={() => handleSaveList()}>
+                      Create List
+                    </Button>
+                    
+                    <Button variant="ghost" size="sm" className="text-indigo-700" onClick={() => handleCreateOpportunity()}>
+                      Create Opportunity
+                    </Button>
+                  </div>
+                </div>
+              )}
+              
+              {/* Stat cards */}
+              <div className="grid grid-cols-4 gap-4 mb-6">
+                <div className="bg-white p-4 rounded-md border border-gray-200">
+                  <div className="text-2xl font-semibold">
+                    6
+                  </div>
+                  <div className="text-gray-500 text-sm">Total Partners</div>
+                </div>
+                
+                <div className="bg-white p-4 rounded-md border border-gray-200">
+                  <div className="text-2xl font-semibold">
+                    5
+                  </div>
+                  <div className="text-gray-500 text-sm">Active Partners</div>
+                </div>
+                
+                <div className="bg-white p-4 rounded-md border border-gray-200">
+                  <div className="text-2xl font-semibold">
+                    81
+                  </div>
+                  <div className="text-gray-500 text-sm">Total Customers</div>
+                </div>
+                
+                <div className="bg-white p-4 rounded-md border border-gray-200">
+                  <div className="text-2xl font-semibold">
+                    52
+                  </div>
+                  <div className="text-gray-500 text-sm">Total Opportunities</div>
+                </div>
+              </div>
+              
+              {/* Partners table */}
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[40px]">
+                      <Checkbox 
+                        id="select-all" 
+                        onCheckedChange={() => toggleSelectAll(mockCustomers)} 
+                        checked={selectedItems.length === mockCustomers.length && mockCustomers.length > 0}
+                      />
+                    </TableHead>
+                    <TableHead>Partner</TableHead>
+                    <TableHead>Industry</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Size</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Customers</TableHead>
+                    <TableHead>Opportunities</TableHead>
+                    <TableHead>Template</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell>
+                      <Checkbox />
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center">
+                        <div className="h-8 w-8 mr-3 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-medium">
+                          AB
+                        </div>
+                        <span className="font-medium">
+                          ABC Insurance Brokers
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      Insurance
+                    </TableCell>
+                    <TableCell>
+                      Broker
+                    </TableCell>
+                    <TableCell>
+                      Enterprise
+                    </TableCell>
+                    <TableCell>
+                      <span className="px-2 py-1 rounded-full text-xs bg-gray-100">
+                        Active
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      12
+                    </TableCell>
+                    <TableCell>
+                      8
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex space-x-1">
+                        <div className="h-6 w-6 rounded-full bg-indigo-100 text-indigo-700 text-xs flex items-center justify-center">
+                          IB
+                        </div>
+                        <div className="h-6 w-6 rounded-full bg-fuchsia-100 text-fuchsia-700 text-xs flex items-center justify-center">
+                          PR
+                        </div>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>
+                      <Checkbox />
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center">
+                        <div className="h-8 w-8 mr-3 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-medium">
+                          XY
+                        </div>
+                        <span className="font-medium">
+                          XYZ Consulting Group
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      Consulting
+                    </TableCell>
+                    <TableCell>
+                      Agent
+                    </TableCell>
+                    <TableCell>
+                      Large
+                    </TableCell>
+                    <TableCell>
+                      <span className="px-2 py-1 rounded-full text-xs bg-gray-100">
+                        Active
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      8
+                    </TableCell>
+                    <TableCell>
+                      5
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex space-x-1">
+                        <div className="h-6 w-6 rounded-full bg-amber-100 text-amber-700 text-xs flex items-center justify-center">
+                          CO
+                        </div>
+                        <div className="h-6 w-6 rounded-full bg-purple-100 text-purple-700 text-xs flex items-center justify-center">
+                          AD
+                        </div>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
             </TabsContent>
           </Tabs>
         </div>
