@@ -31,7 +31,39 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 
-// Sample data for customer entities
+// Sample data for partners (for reference in customer data)
+const mockPartners = [
+  {
+    id: 1,
+    name: "ABC Insurance Brokers",
+    initials: "AB",
+    industry: "Insurance",
+    type: "Broker"
+  },
+  {
+    id: 2,
+    name: "XYZ Consulting Group",
+    initials: "XY",
+    industry: "Consulting",
+    type: "Agent"
+  },
+  {
+    id: 3,
+    name: "Global Risk Partners",
+    initials: "GR",
+    industry: "Insurance",
+    type: "Broker"
+  },
+  {
+    id: 4,
+    name: "Premier Insurance Agency",
+    initials: "PI",
+    industry: "Insurance",
+    type: "Agency"
+  },
+];
+
+// Sample data for customer entities - tied to specific partners
 const mockCustomers = [
   {
     id: 1,
@@ -44,6 +76,9 @@ const mockCustomers = [
     products: 5,
     opportunities: 2,
     initials: "AC",
+    lastContact: "2025-05-01",
+    annualRevenue: "$25M-$50M",
+    location: "New York, NY"
   },
   {
     id: 2,
@@ -56,6 +91,9 @@ const mockCustomers = [
     products: 3,
     opportunities: 1,
     initials: "GI",
+    lastContact: "2025-05-10",
+    annualRevenue: "$100M-$250M",
+    location: "San Francisco, CA"
   },
   {
     id: 3,
@@ -68,6 +106,9 @@ const mockCustomers = [
     products: 8,
     opportunities: 3,
     initials: "SE",
+    lastContact: "2025-04-22",
+    annualRevenue: "$500M+",
+    location: "Chicago, IL"
   },
   {
     id: 4,
@@ -80,6 +121,9 @@ const mockCustomers = [
     products: 2,
     opportunities: 0,
     initials: "UC",
+    lastContact: "2024-12-15",
+    annualRevenue: "$50M-$100M",
+    location: "Boston, MA"
   },
   {
     id: 5,
@@ -92,6 +136,188 @@ const mockCustomers = [
     products: 4,
     opportunities: 1,
     initials: "OA",
+    lastContact: "2025-05-08",
+    annualRevenue: "$25M-$50M",
+    location: "Miami, FL"
+  },
+  {
+    id: 6,
+    name: "Wayne Enterprises",
+    partnerId: 2,
+    partnerName: "XYZ Consulting Group",
+    industry: "Manufacturing",
+    size: "enterprise",
+    status: "active",
+    products: 6,
+    opportunities: 2,
+    initials: "WE",
+    lastContact: "2025-05-12",
+    annualRevenue: "$500M+",
+    location: "Gotham City, NY"
+  },
+  {
+    id: 7,
+    name: "LexCorp",
+    partnerId: 3,
+    partnerName: "Global Risk Partners",
+    industry: "Technology",
+    size: "large",
+    status: "active",
+    products: 4,
+    opportunities: 2,
+    initials: "LC",
+    lastContact: "2025-04-30",
+    annualRevenue: "$100M-$250M",
+    location: "Metropolis, IL"
+  },
+  {
+    id: 8,
+    name: "Cyberdyne Systems",
+    partnerId: 1,
+    partnerName: "ABC Insurance Brokers",
+    industry: "Technology",
+    size: "medium",
+    status: "active",
+    products: 3,
+    opportunities: 1,
+    initials: "CS",
+    lastContact: "2025-05-15",
+    annualRevenue: "$25M-$50M",
+    location: "Los Angeles, CA"
+  },
+];
+
+// Sample data for opportunities - tied to specific customers and partners
+const mockOpportunities = [
+  {
+    id: 1,
+    customerId: 1,
+    customerName: "Acme Corporation",
+    partnerId: 1,
+    partnerName: "ABC Insurance Brokers",
+    title: "Property Insurance Renewal",
+    type: "Renewal",
+    status: "In Progress",
+    probability: 80,
+    value: 125000,
+    dueDate: "2025-06-15"
+  },
+  {
+    id: 2,
+    customerId: 1,
+    customerName: "Acme Corporation",
+    partnerId: 1,
+    partnerName: "ABC Insurance Brokers",
+    title: "Cyber Security Coverage",
+    type: "New Business",
+    status: "Qualification",
+    probability: 40,
+    value: 75000,
+    dueDate: "2025-07-30"
+  },
+  {
+    id: 3,
+    customerId: 2,
+    customerName: "Globex Industries",
+    partnerId: 3,
+    partnerName: "Global Risk Partners",
+    title: "D&O Insurance",
+    type: "New Business",
+    status: "Proposal",
+    probability: 60,
+    value: 150000,
+    dueDate: "2025-06-01"
+  },
+  {
+    id: 4,
+    customerId: 3,
+    customerName: "Stark Enterprises",
+    partnerId: 2,
+    partnerName: "XYZ Consulting Group",
+    title: "Fleet Insurance",
+    type: "Renewal",
+    status: "Negotiation",
+    probability: 90,
+    value: 320000,
+    dueDate: "2025-05-30"
+  },
+  {
+    id: 5,
+    customerId: 3,
+    customerName: "Stark Enterprises",
+    partnerId: 2,
+    partnerName: "XYZ Consulting Group",
+    title: "Liability Coverage Expansion",
+    type: "Expansion",
+    status: "In Progress",
+    probability: 75,
+    value: 180000,
+    dueDate: "2025-07-15"
+  },
+  {
+    id: 6,
+    customerId: 3,
+    customerName: "Stark Enterprises",
+    partnerId: 2,
+    partnerName: "XYZ Consulting Group",
+    title: "Workers Compensation",
+    type: "Renewal",
+    status: "Qualification",
+    probability: 50,
+    value: 95000,
+    dueDate: "2025-08-01"
+  },
+  {
+    id: 7,
+    customerId: 5,
+    customerName: "Oceanic Airlines",
+    partnerId: 4,
+    partnerName: "Premier Insurance Agency",
+    title: "Aviation Insurance",
+    type: "New Business",
+    status: "Proposal",
+    probability: 65,
+    value: 500000,
+    dueDate: "2025-06-20"
+  },
+  {
+    id: 8,
+    customerId: 7,
+    customerName: "LexCorp",
+    partnerId: 3,
+    partnerName: "Global Risk Partners",
+    title: "Research Lab Coverage",
+    type: "New Business",
+    status: "In Progress",
+    probability: 70,
+    value: 250000,
+    dueDate: "2025-07-10"
+  },
+  {
+    id: 9,
+    customerId: 7,
+    customerName: "LexCorp",
+    partnerId: 3,
+    partnerName: "Global Risk Partners",
+    title: "Executive Protection",
+    type: "New Business",
+    status: "Qualification",
+    probability: 30,
+    value: 80000,
+    dueDate: "2025-08-15"
+  },
+  {
+    id: 10,
+    customerId: 8,
+    customerName: "Cyberdyne Systems",
+    partnerId: 1,
+    partnerName: "ABC Insurance Brokers",
+    title: "Product Liability",
+    type: "New Business",
+    status: "Proposal",
+    probability: 60,
+    value: 175000,
+    dueDate: "2025-06-25"
   },
 ];
 
@@ -164,6 +390,7 @@ interface SavedView {
     status?: string;
     industry?: string;
     size?: string;
+    partnerId?: string;
   };
   isShared: boolean;
   sharedWith?: string[];
@@ -172,7 +399,7 @@ interface SavedView {
 }
 
 // Table view for customers
-function CustomersTable() {
+function CustomersTable({ partnerId }: { partnerId?: number }) {
   const [filterText, setFilterText] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedIndustry, setSelectedIndustry] = useState('');
@@ -199,6 +426,23 @@ function CustomersTable() {
       isShared: false,
       createdBy: 'John Smith',
       createdAt: new Date('2025-05-10')
+    },
+    {
+      id: '3',
+      name: 'ABC Insurance Brokers Customers',
+      filters: { partnerId: "1" },
+      isShared: true,
+      sharedWith: ['team@abc-insurance.com'],
+      createdBy: 'John Smith',
+      createdAt: new Date('2025-05-15')
+    },
+    {
+      id: '4',
+      name: 'Inactive Customers',
+      filters: { status: 'inactive' },
+      isShared: false,
+      createdBy: 'John Smith',
+      createdAt: new Date('2025-05-11')
     }
   ]);
   const [activeView, setActiveView] = useState<SavedView | null>(null);
@@ -206,8 +450,27 @@ function CustomersTable() {
   const [showShareViewModal, setShowShareViewModal] = useState(false);
   const [showViewsDropdown, setShowViewsDropdown] = useState(false);
   
-  // Calculate stats
-  const stats = calculateCustomerStats(mockCustomers);
+  // Apply filtering based on the partnerId if provided
+  const filteredCustomers = partnerId
+    ? mockCustomers.filter(customer => customer.partnerId === partnerId)
+    : mockCustomers;
+    
+  // Filter customers based on search text and filter selections
+  const displayedCustomers = filteredCustomers.filter(customer => {
+    const matchesText = !filterText || 
+      customer.name.toLowerCase().includes(filterText.toLowerCase()) ||
+      customer.industry.toLowerCase().includes(filterText.toLowerCase()) ||
+      customer.partnerName.toLowerCase().includes(filterText.toLowerCase());
+      
+    const matchesStatus = !selectedStatus || customer.status === selectedStatus;
+    const matchesIndustry = !selectedIndustry || customer.industry === selectedIndustry;
+    const matchesSize = !selectedSize || customer.size === selectedSize;
+    
+    return matchesText && matchesStatus && matchesIndustry && matchesSize;
+  });
+  
+  // Calculate stats based on filtered customers
+  const stats = calculateCustomerStats(displayedCustomers);
   
   // Function to toggle customer selection
   const toggleSelectCustomer = (id: number) => {
@@ -708,7 +971,7 @@ function CustomersTable() {
                 <input
                   type="checkbox"
                   className="absolute h-4 w-4 rounded border-gray-300"
-                  checked={selectedCustomers.length === mockCustomers.length && mockCustomers.length > 0}
+                  checked={selectedCustomers.length === displayedCustomers.length && displayedCustomers.length > 0}
                   onChange={toggleSelectAll}
                 />
               </th>
@@ -783,7 +1046,7 @@ function CustomersTable() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 bg-white">
-            {mockCustomers.map((customer) => (
+            {displayedCustomers.map((customer) => (
               <tr 
                 key={customer.id} 
                 className={`hover:bg-gray-50 group ${selectedCustomers.includes(customer.id) ? 'bg-blue-50' : ''}`}
