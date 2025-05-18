@@ -309,7 +309,9 @@ function PartnersTable() {
                     <Avatar className="h-9 w-9 mr-3 bg-indigo-100 text-indigo-600">
                       <AvatarFallback>{partner.initials}</AvatarFallback>
                     </Avatar>
-                    <div className="font-medium text-gray-900">{partner.name}</div>
+                    <Link href={`/lists/partners/${partner.id}`} className="font-medium text-gray-900 hover:text-indigo-600">
+                      {partner.name}
+                    </Link>
                   </div>
                 </td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">

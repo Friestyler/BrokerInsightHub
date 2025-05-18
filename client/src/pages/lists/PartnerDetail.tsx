@@ -1,0 +1,678 @@
+import { useState } from 'react';
+import { useParams, Link } from 'wouter';
+import { format } from 'date-fns';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { useEnvironment } from "@/contexts/EnvironmentContext";
+
+// Mock data for a partner
+const mockPartnerData = {
+  id: 1,
+  name: "Computacenter",
+  description: "Joint action & business plan to drive growth with business",
+  segment: "broker",
+  address: "123 Main St, New York, NY",
+  customers: 42,
+  opportunities: 12,
+  initials: "CC",
+  owner: {
+    id: 1,
+    name: "John Doe",
+    initials: "JD",
+    avatar: "",
+  },
+  team: [
+    { id: 1, name: "John Doe", initials: "JD", avatar: "" },
+    { id: 2, name: "Alice Cooper", initials: "AC", avatar: "" },
+  ],
+  createdAt: new Date(),
+  updatedAt: new Date(),
+};
+
+// Mock OKRs data
+const mockOKRs = [
+  {
+    id: "pp",
+    title: "Focus Partner Plan 2025",
+    objectives: [
+      {
+        id: 1,
+        title: "Revenue Goal",
+        realized: "560.000",
+        target: "1.000.000",
+        progress: 56,
+        type: "financial",
+        dueDate: new Date(),
+        owner: { id: 1, name: "John Doe", initials: "JD", avatar: "" },
+      },
+      {
+        id: 2,
+        title: "Pipeline New Business",
+        realized: "1.095.000",
+        target: "2.000.000",
+        progress: 54,
+        type: "financial",
+        dueDate: new Date(),
+        owner: { id: 2, name: "Alice Cooper", initials: "AC", avatar: "" },
+      },
+      {
+        id: 3,
+        title: "Training & Certification",
+        realized: "Complete",
+        target: "Complete",
+        progress: 100,
+        type: "task",
+        dueDate: new Date("2025-04-20"),
+        owner: { id: 1, name: "John Doe", initials: "JD", avatar: "" },
+      },
+      {
+        id: 4,
+        title: "Marketing Development Funds",
+        realized: "60.000",
+        target: "100.000",
+        progress: 60,
+        type: "financial",
+        dueDate: new Date(),
+        owner: { id: 3, name: "Bob Smith", initials: "BS", avatar: "" },
+      },
+    ]
+  },
+  {
+    id: "mp",
+    title: "Marketing Plan",
+    objectives: [
+      {
+        id: 5,
+        title: "Marketing Budget for Round Tables",
+        realized: "0",
+        target: "22.500",
+        progress: 0,
+        type: "financial",
+        dueDate: new Date(),
+        owner: { id: 3, name: "Bob Smith", initials: "BS", avatar: "" },
+      },
+      {
+        id: 6,
+        title: "Joint Marketing Materials",
+        realized: "Complete",
+        target: "Complete",
+        progress: 100,
+        type: "task",
+        dueDate: new Date("2025-04-20"),
+        owner: { id: 2, name: "Alice Cooper", initials: "AC", avatar: "" },
+      },
+      {
+        id: 7,
+        title: "Co-branded Digital Campaigns",
+        realized: "9.000",
+        target: "15.000",
+        progress: 60,
+        type: "financial",
+        dueDate: new Date(),
+        owner: { id: 3, name: "Bob Smith", initials: "BS", avatar: "" },
+      },
+    ]
+  }
+];
+
+// Mock customers data
+const mockCustomers = [
+  {
+    id: 1,
+    name: "Acme Corporation",
+    industry: "Manufacturing",
+    size: "enterprise",
+    products: 3,
+    opportunities: 2,
+    status: "active",
+    initials: "AC",
+  },
+  {
+    id: 2,
+    name: "Globex Industries",
+    industry: "Technology",
+    size: "large",
+    products: 5,
+    opportunities: 1,
+    status: "active",
+    initials: "GI",
+  },
+  {
+    id: 3,
+    name: "Stark Enterprises",
+    industry: "Energy",
+    size: "enterprise",
+    products: 2,
+    opportunities: 3,
+    status: "active",
+    initials: "SE",
+  },
+];
+
+// Mock opportunities data
+const mockOpportunities = [
+  {
+    id: 1,
+    title: "IT Infrastructure Upgrade",
+    customerName: "Acme Corporation",
+    customerId: 1,
+    estimatedValue: 250000,
+    probability: 75,
+    status: "qualified",
+    closingDate: new Date("2025-07-15"),
+    owner: { id: 1, name: "John Doe", initials: "JD", avatar: "" },
+  },
+  {
+    id: 2,
+    title: "Cloud Migration Project",
+    customerName: "Globex Industries",
+    customerId: 2,
+    estimatedValue: 185000,
+    probability: 60,
+    status: "proposal",
+    closingDate: new Date("2025-08-30"),
+    owner: { id: 2, name: "Alice Cooper", initials: "AC", avatar: "" },
+  },
+  {
+    id: 3,
+    title: "Cybersecurity Assessment",
+    customerName: "Stark Enterprises",
+    customerId: 3,
+    estimatedValue: 75000,
+    probability: 90,
+    status: "closed_won",
+    closingDate: new Date("2025-05-10"),
+    owner: { id: 1, name: "John Doe", initials: "JD", avatar: "" },
+  },
+];
+
+// Owner avatar component
+function OwnerAvatar({ owner }: { owner: { initials: string, avatar?: string } }) {
+  return (
+    <Avatar className="h-8 w-8">
+      {owner.avatar ? (
+        <AvatarImage src={owner.avatar} alt={owner.initials} />
+      ) : (
+        <AvatarFallback className="bg-indigo-100 text-indigo-600">
+          {owner.initials}
+        </AvatarFallback>
+      )}
+    </Avatar>
+  );
+}
+
+// Status badge component
+function StatusBadge({ status }: { status: string }) {
+  let color = "";
+  let label = "";
+
+  switch (status) {
+    case "qualified":
+      color = "bg-blue-100 text-blue-800";
+      label = "Qualified";
+      break;
+    case "proposal":
+      color = "bg-yellow-100 text-yellow-800";
+      label = "Proposal";
+      break;
+    case "negotiation":
+      color = "bg-purple-100 text-purple-800";
+      label = "Negotiation";
+      break;
+    case "closed_won":
+      color = "bg-green-100 text-green-800";
+      label = "Closed Won";
+      break;
+    case "closed_lost":
+      color = "bg-red-100 text-red-800";
+      label = "Closed Lost";
+      break;
+    default:
+      color = "bg-gray-100 text-gray-800";
+      label = status.charAt(0).toUpperCase() + status.slice(1);
+  }
+
+  return (
+    <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${color}`}>
+      {label}
+    </span>
+  );
+}
+
+// Format currency
+function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'EUR',
+    maximumFractionDigits: 0,
+  }).format(amount);
+}
+
+// Progress bar component
+function ProgressBar({ progress, type = "default" }: { progress: number, type?: "default" | "success" | "warning" | "danger" }) {
+  let colorClass = "bg-indigo-500";
+  
+  if (type === "success") colorClass = "bg-green-500";
+  if (type === "warning") colorClass = "bg-yellow-500";
+  if (type === "danger") colorClass = "bg-red-500";
+  
+  return (
+    <div className="w-full bg-gray-200 rounded-full h-2.5">
+      <div 
+        className={`h-2.5 rounded-full ${colorClass}`} 
+        style={{ width: `${progress}%` }}
+      ></div>
+    </div>
+  );
+}
+
+export default function PartnerDetail() {
+  const { id } = useParams();
+  const { environment } = useEnvironment();
+  const [isEditingDescription, setIsEditingDescription] = useState(false);
+  const [description, setDescription] = useState(mockPartnerData.description);
+  const [activeTab, setActiveTab] = useState("okr");
+  const [activeView, setActiveView] = useState("default");
+  
+  // Get partner data (using mock data for now)
+  const partner = mockPartnerData;
+  
+  // Handle description edit
+  const handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setDescription(e.target.value);
+  };
+  
+  const handleDescriptionSave = () => {
+    // Here would be an API call to save the description
+    setIsEditingDescription(false);
+  };
+  
+  return (
+    <div className="container mx-auto px-4 py-6">
+      {/* Breadcrumb navigation */}
+      <div className="flex items-center text-sm text-gray-500 mb-4">
+        <Link href="/lists/partners" className="hover:text-indigo-600">
+          Partners
+        </Link>
+        <span className="mx-2">/</span>
+        <span className="text-gray-700">{partner.name}</span>
+      </div>
+
+      {/* Partner header */}
+      <div className="mb-8">
+        <div className="flex justify-between items-start">
+          <div className="flex items-start space-x-4">
+            <Avatar className="h-12 w-12 mt-1">
+              <AvatarFallback className="bg-indigo-100 text-indigo-600 text-lg">
+                {partner.initials}
+              </AvatarFallback>
+            </Avatar>
+            
+            <div>
+              <div className="flex items-center space-x-3">
+                <h1 className="text-2xl font-bold tracking-tight text-black">
+                  {partner.name}
+                </h1>
+                <Badge variant="outline" className="capitalize">
+                  {partner.segment}
+                </Badge>
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-500">Owner:</span>
+                  <OwnerAvatar owner={partner.owner} />
+                </div>
+                <Link href={`/lists/partners/${id}/details`}>
+                  <Button variant="outline" size="sm" className="ml-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                    Details
+                  </Button>
+                </Link>
+              </div>
+              
+              <div className="mt-2">
+                {isEditingDescription ? (
+                  <div className="flex items-center">
+                    <Input 
+                      value={description} 
+                      onChange={handleDescriptionChange} 
+                      className="mr-2 w-96"
+                    />
+                    <Button size="sm" onClick={handleDescriptionSave}>
+                      Save
+                    </Button>
+                  </div>
+                ) : (
+                  <div 
+                    className="text-gray-600 cursor-pointer hover:text-gray-900"
+                    onClick={() => setIsEditingDescription(true)}
+                  >
+                    {description}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="flex items-center space-x-2">
+            <Button variant="outline" size="sm" className="text-indigo-600 hover:text-indigo-800">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                <path d="M21 12a9 9 0 0 1-9 9m9-9a9 9 0 0 0-9-9m9 9H3m9 9a9 9 0 0 1-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9"></path>
+              </svg>
+              Ask partner copilot
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Tabs and content */}
+      <div>
+        <div className="flex justify-between items-center mb-6">
+          <Tabs 
+            value={activeTab} 
+            onValueChange={setActiveTab}
+            className="w-full"
+          >
+            <TabsList className="grid w-96 grid-cols-3">
+              <TabsTrigger value="okr">OKR plans</TabsTrigger>
+              <TabsTrigger value="opportunities">Opportunities</TabsTrigger>
+              <TabsTrigger value="customers">Customers</TabsTrigger>
+            </TabsList>
+            
+            <div className="flex justify-between mt-4">
+              <div className="flex gap-3 items-center">
+                {/* View selector placeholder */}
+                <div className="flex items-center space-x-2">
+                  <Button variant="outline" size="sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                      <path d="M21 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h6"></path>
+                      <path d="M16 8.4V3h5.4"></path>
+                      <path d="M21 3l-7.4 7.4"></path>
+                    </svg>
+                    Add view
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2">
+                <div className="text-sm text-gray-500 mr-2">Team</div>
+                <div className="flex -space-x-2">
+                  {partner.team.map((member, idx) => (
+                    <Avatar key={idx} className="h-8 w-8 border-2 border-white">
+                      <AvatarFallback className="bg-indigo-100 text-indigo-600">
+                        {member.initials}
+                      </AvatarFallback>
+                    </Avatar>
+                  ))}
+                  <div className="h-8 w-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center border-2 border-white text-xs">
+                    +2
+                  </div>
+                </div>
+                
+                <Button className="bg-indigo-600 hover:bg-indigo-700">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                    <circle cx="18" cy="5" r="3"></circle>
+                    <circle cx="6" cy="12" r="3"></circle>
+                    <circle cx="18" cy="19" r="3"></circle>
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                  </svg>
+                  Share
+                </Button>
+              </div>
+            </div>
+
+            <TabsContent value="okr" className="mt-4">
+              {/* OKR content */}
+              <div className="space-y-8">
+                {mockOKRs.map((plan) => (
+                  <div key={plan.id} className="bg-white rounded-md border border-gray-200 overflow-hidden">
+                    <div className="bg-gray-50 px-4 py-3 border-b flex justify-between items-center">
+                      <div className="flex items-center space-x-2">
+                        <div className="h-6 w-6 rounded bg-amber-100 text-amber-800 flex items-center justify-center text-xs font-medium">
+                          {plan.id.toUpperCase()}
+                        </div>
+                        <h3 className="font-medium">{plan.title}</h3>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                          <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                      </div>
+                      <div className="flex items-center space-x-4">
+                        <span className="text-sm font-medium text-gray-600">Realized</span>
+                        <span className="text-sm font-medium text-gray-600">Target</span>
+                        <span className="text-sm font-medium text-gray-600">Progress</span>
+                        <span className="text-sm font-medium text-gray-600 pr-2">TL</span>
+                        <span className="text-sm font-medium text-gray-600 pr-2">Due date</span>
+                        <span className="text-sm font-medium text-gray-600 pr-8">Resp.</span>
+                        <span className="text-sm font-medium text-gray-600">Comments</span>
+                      </div>
+                    </div>
+                    <div>
+                      {plan.objectives.map((objective) => (
+                        <div key={objective.id} className="px-4 py-3 border-b hover:bg-gray-50 flex justify-between items-center">
+                          <div className="w-1/4">
+                            <p className="text-sm font-medium text-gray-900">
+                              {objective.title}
+                            </p>
+                          </div>
+                          <div className="flex items-center space-x-4 w-3/4">
+                            <div className="w-16 text-right text-sm">
+                              {objective.type === 'financial' ? (
+                                <span className="text-gray-700">€ {objective.realized}</span>
+                              ) : (
+                                <span className="flex justify-center">
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500">
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                  </svg>
+                                </span>
+                              )}
+                            </div>
+                            <div className="w-16 text-right text-sm">
+                              {objective.type === 'financial' ? (
+                                <span className="text-gray-700">€ {objective.target}</span>
+                              ) : (
+                                <span className="text-gray-700">Complete</span>
+                              )}
+                            </div>
+                            <div className="w-24 flex items-center">
+                              {objective.type === 'financial' ? (
+                                <>
+                                  <span className="text-xs text-gray-700 w-8">{objective.progress}%</span>
+                                  <div className="flex-grow ml-1">
+                                    <ProgressBar 
+                                      progress={objective.progress} 
+                                      type={objective.progress >= 70 ? "success" : objective.progress >= 40 ? "warning" : "danger"}
+                                    />
+                                  </div>
+                                </>
+                              ) : (
+                                <span className="text-sm text-gray-700">Complete</span>
+                              )}
+                            </div>
+                            <div className="w-10 flex justify-center">
+                              <span className="flex justify-center">
+                                {objective.progress >= 70 ? (
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500">
+                                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                  </svg>
+                                ) : objective.progress >= 40 ? (
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-yellow-500">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                  </svg>
+                                ) : (
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-red-500">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="8" x2="12" y2="12"></line>
+                                    <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                                  </svg>
+                                )}
+                              </span>
+                            </div>
+                            <div className="w-28 flex justify-center">
+                              <span className="text-xs text-gray-700">
+                                {format(objective.dueDate, 'dd.MM.yyyy')}
+                              </span>
+                            </div>
+                            <div className="w-16 flex justify-center">
+                              <OwnerAvatar owner={objective.owner} />
+                            </div>
+                            <div className="w-32 flex justify-end">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                                <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+                              </svg>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="opportunities" className="mt-4">
+              {/* Opportunities content */}
+              <div className="bg-white rounded-md border shadow-sm overflow-hidden">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                        Name
+                      </th>
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                        Customer
+                      </th>
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                        Amount
+                      </th>
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                        Probability
+                      </th>
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                        Status
+                      </th>
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                        Closing Date
+                      </th>
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                        Owner
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 bg-white">
+                    {mockOpportunities.map((opportunity) => (
+                      <tr key={opportunity.id} className="hover:bg-gray-50">
+                        <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm font-medium text-gray-900">
+                          <Link href={`/lists/opportunities/${opportunity.id}`} className="hover:text-indigo-600">
+                            {opportunity.title}
+                          </Link>
+                        </td>
+                        <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                          <Link 
+                            href={`/lists/customers/${opportunity.customerId}`}
+                            className="text-indigo-600 hover:text-indigo-800 hover:underline"
+                          >
+                            {opportunity.customerName}
+                          </Link>
+                        </td>
+                        <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                          {formatCurrency(opportunity.estimatedValue)}
+                        </td>
+                        <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                          {opportunity.probability}%
+                        </td>
+                        <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                          <StatusBadge status={opportunity.status} />
+                        </td>
+                        <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                          {format(opportunity.closingDate, 'dd.MM.yyyy')}
+                        </td>
+                        <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                          <OwnerAvatar owner={opportunity.owner} />
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="customers" className="mt-4">
+              {/* Customers content */}
+              <div className="bg-white rounded-md border shadow-sm overflow-hidden">
+                <table className="min-w-full divide-y divide-gray-200">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                        Customer
+                      </th>
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                        Industry
+                      </th>
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                        Size
+                      </th>
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                        Status
+                      </th>
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                        Products
+                      </th>
+                      <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                        Opportunities
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 bg-white">
+                    {mockCustomers.map((customer) => (
+                      <tr key={customer.id} className="hover:bg-gray-50">
+                        <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm font-medium">
+                          <div className="flex items-center">
+                            <Avatar className="h-8 w-8 mr-3 bg-indigo-100 text-indigo-600">
+                              <AvatarFallback>{customer.initials}</AvatarFallback>
+                            </Avatar>
+                            <div>
+                              <Link href={`/lists/customers/${customer.id}`} className="font-medium text-gray-900 hover:text-indigo-600">
+                                {customer.name}
+                              </Link>
+                            </div>
+                          </div>
+                        </td>
+                        <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                          {customer.industry}
+                        </td>
+                        <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                          <span className="capitalize">{customer.size}</span>
+                        </td>
+                        <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                          <Badge variant={customer.status === 'active' ? 'outline' : 'secondary'} className="capitalize">
+                            {customer.status}
+                          </Badge>
+                        </td>
+                        <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm text-center">
+                          {customer.products}
+                        </td>
+                        <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm text-center">
+                          {customer.opportunities}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </TabsContent>
+          </Tabs>
+        </div>
+      </div>
+    </div>
+  );
+}
