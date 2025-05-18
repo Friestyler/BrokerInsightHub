@@ -172,18 +172,6 @@ function CustomersTable() {
   
   return (
     <div className="space-y-4">
-      {/* Header with title and dropdown */}
-      <div className="flex justify-between items-center">
-        <div className="flex items-center space-x-2">
-          <h2 className="text-xl font-semibold">Customers</h2>
-          <button className="p-1">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500">
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-          </button>
-        </div>
-      </div>
-      
       {/* Search and filters */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative w-60">
@@ -234,14 +222,6 @@ function CustomersTable() {
               <line x1="12" y1="15" x2="12" y2="3"></line>
             </svg>
             Import/Export
-          </Button>
-          
-          <Button size="sm" className="flex items-center bg-indigo-600 hover:bg-indigo-700">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-              <line x1="12" y1="5" x2="12" y2="19"></line>
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-            Add Customer
           </Button>
         </div>
       </div>
@@ -561,10 +541,7 @@ export default function CustomersPage() {
             <p className="text-md text-gray-500">Manage your end clients and their product portfolio</p>
           </div>
           <Button size="sm" className="flex items-center bg-indigo-600 hover:bg-indigo-700">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-              <line x1="12" y1="5" x2="12" y2="19"></line>
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
+            <span className="mr-1 text-lg">+</span>
             New Customer
           </Button>
         </div>
