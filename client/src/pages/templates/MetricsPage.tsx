@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'wouter';
+import { Link, useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -1057,7 +1057,10 @@ export default function MetricsPage() {
                       <Button variant="outline" size="sm">
                         Apply
                       </Button>
-                      <Link href={`/templates/groups/${group.id}`}>
+                      <Link href={`/templates/groups/${group.id}`} onClick={(e) => {
+                        e.preventDefault();
+                        window.location.href = `/templates/groups/${group.id}`;
+                      }}>
                         <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700">
                           Edit Group
                         </Button>
