@@ -16,7 +16,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { 
   Dialog, 
   DialogContent, 
@@ -1180,10 +1180,92 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
 }
 
 // Card view for customers
-function CustomersCardView() {
+// Card view for customer list
+function CustomersCardView({ partnerId }: { partnerId?: number }) {
+  const [filterText, setFilterText] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('');
+  const [selectedIndustry, setSelectedIndustry] = useState('');
+  const [selectedSize, setSelectedSize] = useState('');
+  
+  // Apply filtering based on the partnerId if provided
+  const filteredCustomers = partnerId
+    ? mockCustomers.filter(customer => customer.partnerId === partnerId)
+    : mockCustomers;
+    
+  // Apply additional filters based on user selections
+  const displayedCustomers = filteredCustomers.filter(customer => {
+    const matchesText = !filterText || 
+      customer.name.toLowerCase().includes(filterText.toLowerCase()) ||
+      customer.industry.toLowerCase().includes(filterText.toLowerCase()) ||
+      customer.partnerName.toLowerCase().includes(filterText.toLowerCase());
+      
+    const matchesStatus = !selectedStatus || customer.status === selectedStatus;
+    const matchesIndustry = !selectedIndustry || customer.industry === selectedIndustry;
+    const matchesSize = !selectedSize || customer.size === selectedSize;
+    
+    return matchesText && matchesStatus && matchesIndustry && matchesSize;
+  });
+  
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      {mockCustomers.map((customer) => (
+    <div>
+      {/* Search and filters */}
+      <div className="flex flex-wrap items-center gap-3 mb-6">
+        <div className="relative w-60">
+          <input
+            type="text"
+            placeholder="Search by name, industry..."
+            value={filterText}
+            onChange={(e) => setFilterText(e.target.value)}
+            className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
+          />
+          <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </button>
+        </div>
+        
+        <div className="relative">
+          <button 
+            className={`flex items-center space-x-1 px-3 py-2 border rounded-md text-sm ${selectedStatus ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+            onClick={() => setSelectedStatus(selectedStatus ? '' : 'active')}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={selectedStatus ? 'text-indigo-500' : 'text-gray-500'}>
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+            </svg>
+            <span>Status{selectedStatus ? ': Active' : ''}</span>
+            {selectedStatus && (
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                <path d="M18 6 6 18"></path>
+                <path d="m6 6 12 12"></path>
+              </svg>
+            )}
+          </button>
+        </div>
+        
+        <div className="relative">
+          <button 
+            className={`flex items-center space-x-1 px-3 py-2 border rounded-md text-sm ${selectedIndustry ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+            onClick={() => setSelectedIndustry(selectedIndustry ? '' : 'Technology')}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={selectedIndustry ? 'text-indigo-500' : 'text-gray-500'}>
+              <circle cx="12" cy="12" r="10"></circle>
+              <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+            </svg>
+            <span>Industry{selectedIndustry ? `: ${selectedIndustry}` : ''}</span>
+            {selectedIndustry && (
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                <path d="M18 6 6 18"></path>
+                <path d="m6 6 12 12"></path>
+              </svg>
+            )}
+          </button>
+        </div>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">>
+        {displayedCustomers.map((customer) => (
         <Card key={customer.id} className="overflow-hidden hover:shadow-md transition-shadow">
           <CardContent className="p-0">
             <div className="p-4">
@@ -1244,11 +1326,85 @@ function CustomersCardView() {
 
 export default function CustomersPage() {
   const { environment } = useEnvironment();
+  const [viewType, setViewType] = useState<'table' | 'cards'>('table');
+  
+  // Get URL search parameters - extract partnerId if present
+  // Format example: /lists/customers?partnerId=1
+  const [path, search] = useLocation();
+  const searchParams = new URLSearchParams(search || "");
+  const partnerId = searchParams.get('partnerId') ? Number(searchParams.get('partnerId')) : undefined;
+  
+  // Get the partner name if partnerId is provided
+  const partnerName = partnerId 
+    ? mockPartners.find(p => p.id === partnerId)?.name 
+    : undefined;
   
   return (
     <div className="container mx-auto px-4 py-6">
-      <h1 className="text-2xl font-bold tracking-tight mb-6 text-black">Customers</h1>
-      <CustomersTable />
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold tracking-tight text-black">
+          {partnerId 
+            ? `${partnerName || 'Partner'} Customers` 
+            : "Customers"}
+        </h1>
+        
+        {/* View switcher */}
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={() => setViewType('table')}
+            className={`flex items-center px-3 py-1.5 text-sm font-medium rounded transition-colors ${
+              viewType === 'table' 
+                ? 'bg-indigo-100 text-indigo-700' 
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="3" y1="9" x2="21" y2="9"></line>
+              <line x1="3" y1="15" x2="21" y2="15"></line>
+              <line x1="9" y1="3" x2="9" y2="21"></line>
+              <line x1="15" y1="3" x2="15" y2="21"></line>
+            </svg>
+            Table
+          </button>
+          
+          <button
+            onClick={() => setViewType('cards')}
+            className={`flex items-center px-3 py-1.5 text-sm font-medium rounded transition-colors ${
+              viewType === 'cards' 
+                ? 'bg-indigo-100 text-indigo-700' 
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+            Cards
+          </button>
+        </div>
+      </div>
+      
+      {/* Partner filter indicator */}
+      {partnerId && (
+        <div className="mb-4">
+          <div className="inline-flex items-center bg-indigo-50 text-indigo-700 px-3 py-1.5 rounded-md">
+            <span className="mr-2">Filtered by Partner: {partnerName}</span>
+            <Link href="/lists/customers">
+              <button className="text-indigo-500 hover:text-indigo-700">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M18 6L6 18"></path>
+                  <path d="M6 6l12 12"></path>
+                </svg>
+              </button>
+            </Link>
+          </div>
+        </div>
+      )}
+      
+      {viewType === 'table' ? <CustomersTable partnerId={partnerId} /> : <CustomersCardView partnerId={partnerId} />}
     </div>
   );
 }
