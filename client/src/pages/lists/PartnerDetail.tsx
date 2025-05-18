@@ -610,7 +610,7 @@ export default function PartnerDetail() {
             
           <TabsContent value="opportunities" className="mt-4">
             <div>
-              <h2 className="text-2xl font-bold mb-4">Opportunities</h2>
+
               
               <div className="flex justify-between items-center mb-4">
                 <Button variant="outline" size="sm" className="flex items-center gap-2">
@@ -882,7 +882,7 @@ export default function PartnerDetail() {
           
           <TabsContent value="customers" className="mt-4">
             <div>
-              <h2 className="text-2xl font-bold mb-4">Customers</h2>
+
               
               <div className="flex justify-between items-center mb-4">
                 <Button variant="outline" size="sm" className="flex items-center gap-2">
