@@ -139,8 +139,12 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
           {/* Dropdown menu - always visible even when collapsed */}
           {dataMenuOpen && (
             <div className={`${collapsed ? "absolute left-16 top-0 bg-white border border-gray-200 rounded-md shadow-md py-1 z-50 w-48" : "mt-0.5"}`}>
-              <Link 
-                href="/lists/partners" 
+              <a
+                href="/lists/partners"
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.location.href = "/lists/partners";
+                }} 
                 className={`flex py-2 text-sm ${collapsed ? "px-4" : "pl-12"} ${location.startsWith("/lists/partners") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -150,9 +154,13 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
                   <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                 </svg>
                 Partners
-              </Link>
-              <Link 
-                href="/lists/customers" 
+              </a>
+              <a
+                href="/lists/customers"
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.location.href = "/lists/customers";
+                }} 
                 className={`flex py-2 text-sm ${collapsed ? "px-4" : "pl-12"} ${location.startsWith("/lists/customers") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -160,16 +168,20 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
                   <circle cx="12" cy="7" r="4"></circle>
                 </svg>
                 Customers
-              </Link>
-              <Link 
-                href="/lists/opportunities" 
+              </a>
+              <a
+                href="/lists/opportunities"
+                onClick={(e) => {
+                  e.preventDefault();
+                  window.location.href = "/lists/opportunities";
+                }} 
                 className={`flex py-2 text-sm ${collapsed ? "px-4" : "pl-12"} ${location.startsWith("/lists/opportunities") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
                 </svg>
                 Opportunities
-              </Link>
+              </a>
               <Link 
                 href="/lists/projects" 
                 className={`flex py-2 text-sm ${collapsed ? "px-4" : "pl-12"} ${location.startsWith("/lists/projects") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
