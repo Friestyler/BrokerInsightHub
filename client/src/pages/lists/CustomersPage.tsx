@@ -17,6 +17,19 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Link } from "wouter";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogFooter, 
+  DialogHeader, 
+  DialogTitle,
+  DialogClose
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 
 // Sample data for customer entities
 const mockCustomers = [
@@ -141,13 +154,57 @@ function TemplateBadges({ industry, size }: { industry: string, size: string }) 
   );
 }
 
+// Define interface for saved views
+interface SavedView {
+  id: string;
+  name: string;
+  description?: string;
+  filters: {
+    searchText?: string;
+    status?: string;
+    industry?: string;
+    size?: string;
+  };
+  isShared: boolean;
+  sharedWith?: string[];
+  createdBy: string;
+  createdAt: Date;
+}
+
 // Table view for customers
 function CustomersTable() {
   const [filterText, setFilterText] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
+  const [selectedIndustry, setSelectedIndustry] = useState('');
+  const [selectedSize, setSelectedSize] = useState('');
   const [selectedCustomers, setSelectedCustomers] = useState<number[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
+  
+  // State for saved views
+  const [savedViews, setSavedViews] = useState<SavedView[]>([
+    {
+      id: '1',
+      name: 'Active Manufacturing Clients',
+      filters: { status: 'active', industry: 'Manufacturing' },
+      isShared: true,
+      sharedWith: ['team@acme.com'],
+      createdBy: 'John Smith',
+      createdAt: new Date('2025-05-01')
+    },
+    {
+      id: '2',
+      name: 'Tech Companies',
+      filters: { industry: 'Technology' },
+      isShared: false,
+      createdBy: 'John Smith',
+      createdAt: new Date('2025-05-10')
+    }
+  ]);
+  const [activeView, setActiveView] = useState<SavedView | null>(null);
+  const [showSaveViewModal, setShowSaveViewModal] = useState(false);
+  const [showShareViewModal, setShowShareViewModal] = useState(false);
+  const [showViewsDropdown, setShowViewsDropdown] = useState(false);
   
   // Calculate stats
   const stats = calculateCustomerStats(mockCustomers);
@@ -172,6 +229,148 @@ function CustomersTable() {
   
   return (
     <div className="space-y-4">
+      {/* Saved Views dropdown */}
+      <div className="flex flex-wrap items-center gap-3 mb-2">
+        <div className="relative">
+          <button 
+            className="flex items-center space-x-2 px-3 py-2 border border-gray-300 rounded-md text-sm font-medium"
+            onClick={() => setShowViewsDropdown(!showViewsDropdown)}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+              <path d="M2 7V1h20v6"></path>
+              <path d="M11 9h10v6H11z"></path>
+              <path d="M2 9h6v6H2z"></path>
+              <path d="M2 23v-6h20v6"></path>
+            </svg>
+            <span>{activeView ? activeView.name : 'Saved Views'}</span>
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              width="14" 
+              height="14" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              className={`transition-transform ${showViewsDropdown ? 'rotate-180' : ''}`}
+            >
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </button>
+          
+          {/* Saved Views dropdown menu */}
+          {showViewsDropdown && (
+            <div className="absolute z-40 mt-1 w-80 bg-white rounded-md shadow-lg border border-gray-200 overflow-hidden">
+              <div className="p-2 border-b">
+                <div className="text-sm font-medium mb-1">Saved Views</div>
+                <div className="relative">
+                  <input
+                    type="text"
+                    placeholder="Search saved views..."
+                    className="w-full pl-3 pr-10 py-1.5 text-xs border border-gray-300 rounded-md"
+                  />
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                  </svg>
+                </div>
+              </div>
+              
+              <div className="max-h-60 overflow-y-auto">
+                {savedViews.map(view => (
+                  <button
+                    key={view.id}
+                    className={`w-full text-left py-2 px-3 hover:bg-gray-50 flex items-center justify-between ${activeView?.id === view.id ? 'bg-indigo-50' : ''}`}
+                    onClick={() => {
+                      setActiveView(view);
+                      if (view.filters.searchText) setFilterText(view.filters.searchText);
+                      if (view.filters.status) setSelectedStatus(view.filters.status);
+                      if (view.filters.industry) setSelectedIndustry(view.filters.industry);
+                      if (view.filters.size) setSelectedSize(view.filters.size);
+                      setShowViewsDropdown(false);
+                    }}
+                  >
+                    <div>
+                      <div className="font-medium text-sm">{view.name}</div>
+                      <div className="text-xs text-gray-500 mt-0.5">
+                        {Object.entries(view.filters)
+                          .filter(([_, value]) => value)
+                          .map(([key]) => key)
+                          .join(', ')}
+                      </div>
+                    </div>
+                    {view.isShared && (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-500">
+                        <circle cx="18" cy="5" r="3"></circle>
+                        <circle cx="6" cy="12" r="3"></circle>
+                        <circle cx="18" cy="19" r="3"></circle>
+                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                      </svg>
+                    )}
+                  </button>
+                ))}
+              </div>
+              
+              <div className="p-2 border-t">
+                <button
+                  className="w-full text-left py-1.5 px-3 text-indigo-600 hover:bg-indigo-50 rounded-md text-sm flex items-center"
+                  onClick={() => {
+                    setActiveView(null);
+                    setFilterText('');
+                    setSelectedStatus('');
+                    setSelectedIndustry('');
+                    setSelectedSize('');
+                    setShowSaveViewModal(true);
+                    setShowViewsDropdown(false);
+                  }}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                  </svg>
+                  Create New View
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+        
+        {activeView && (
+          <div className="flex items-center space-x-2">
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="text-indigo-600"
+              onClick={() => setShowShareViewModal(true)}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                <circle cx="18" cy="5" r="3"></circle>
+                <circle cx="6" cy="12" r="3"></circle>
+                <circle cx="18" cy="19" r="3"></circle>
+                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+              </svg>
+              Share
+            </Button>
+            
+            <Button 
+              variant="ghost" 
+              size="sm"
+              className="text-gray-600"
+              onClick={() => setActiveView(null)}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                <path d="M18 6 6 18"></path>
+                <path d="m6 6 12 12"></path>
+              </svg>
+              Clear View
+            </Button>
+          </div>
+        )}
+      </div>
+      
       {/* Search and filters */}
       <div className="flex flex-wrap items-center gap-3">
         <div className="relative w-60">
@@ -192,29 +391,59 @@ function CustomersTable() {
         
         <div className="relative">
           <button 
-            className="flex items-center space-x-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
+            className={`flex items-center space-x-1 px-3 py-2 border rounded-md text-sm ${selectedStatus ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
             onClick={() => setSelectedStatus(selectedStatus ? '' : 'active')}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={selectedStatus ? 'text-indigo-500' : 'text-gray-500'}>
               <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
             </svg>
-            <span>Status</span>
+            <span>Status{selectedStatus ? ': Active' : ''}</span>
+            {selectedStatus && (
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                <path d="M18 6 6 18"></path>
+                <path d="m6 6 12 12"></path>
+              </svg>
+            )}
           </button>
         </div>
         
         <div className="relative">
           <button 
-            className="flex items-center space-x-1 px-3 py-2 border border-gray-300 rounded-md text-sm"
+            className={`flex items-center space-x-1 px-3 py-2 border rounded-md text-sm ${selectedIndustry ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+            onClick={() => setSelectedIndustry(selectedIndustry ? '' : 'Manufacturing')}
           >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={selectedIndustry ? 'text-indigo-500' : 'text-gray-500'}>
               <circle cx="12" cy="12" r="10"></circle>
               <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
             </svg>
-            <span>Industry</span>
+            <span>Industry{selectedIndustry ? `: ${selectedIndustry}` : ''}</span>
+            {selectedIndustry && (
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                <path d="M18 6 6 18"></path>
+                <path d="m6 6 12 12"></path>
+              </svg>
+            )}
           </button>
         </div>
         
-        <div className="ml-auto flex space-x-2">
+        <div className="flex items-center ml-auto">
+          {/* Save View button - only shown when filters are applied or when editing existing view */}
+          {(filterText || selectedStatus || selectedIndustry || selectedSize || activeView) && (
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="mr-2 text-indigo-600"
+              onClick={() => setShowSaveViewModal(true)}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                <polyline points="7 3 7 8 15 8"></polyline>
+              </svg>
+              {activeView ? 'Update View' : 'Save View'}
+            </Button>
+          )}
+          
           <Button variant="outline" size="sm" className="flex items-center">
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
               <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -224,7 +453,7 @@ function CustomersTable() {
             Import/Export
           </Button>
           
-          <Button size="sm" className="flex items-center bg-indigo-600 hover:bg-indigo-700">
+          <Button size="sm" className="flex items-center bg-indigo-600 hover:bg-indigo-700 ml-2">
             <span className="mr-1 text-lg">+</span>
             New Customer
           </Button>
@@ -253,6 +482,222 @@ function CustomersTable() {
           <div className="text-sm text-gray-500">Total Opportunities</div>
         </div>
       </div>
+      
+      {/* Save View Modal */}
+      <Dialog open={showSaveViewModal} onOpenChange={setShowSaveViewModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{activeView ? 'Update Saved View' : 'Save Current View'}</DialogTitle>
+            <DialogDescription>
+              Save your current filter settings as a view that you can easily access later.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="viewName">View Name</Label>
+              <Input 
+                id="viewName" 
+                placeholder="Enter a name for this view"
+                defaultValue={activeView?.name || ''}
+              />
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="viewDescription">Description (Optional)</Label>
+              <Textarea 
+                id="viewDescription" 
+                placeholder="Add a short description to help others understand this view"
+                rows={3}
+                defaultValue={activeView?.description || ''}
+              />
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Checkbox id="shareView" defaultChecked={activeView?.isShared || false} />
+              <Label htmlFor="shareView" className="text-sm font-normal">
+                Share this view with collaborators
+              </Label>
+            </div>
+          </div>
+          
+          <DialogFooter className="sm:justify-between">
+            <div className="text-xs text-gray-500">
+              {activeView ? 'Last updated on ' + new Date(activeView.createdAt).toLocaleDateString() : 'Applied filters will be saved with this view'}
+            </div>
+            <div className="flex space-x-2">
+              <DialogClose asChild>
+                <Button variant="outline">Cancel</Button>
+              </DialogClose>
+              <Button
+                onClick={() => {
+                  // Handle save/update view
+                  if (!activeView) {
+                    // Create new view
+                    const viewName = (document.getElementById('viewName') as HTMLInputElement).value;
+                    const viewDescription = (document.getElementById('viewDescription') as HTMLTextAreaElement).value;
+                    const isShared = (document.getElementById('shareView') as HTMLInputElement).checked;
+                    
+                    const newView: SavedView = {
+                      id: String(Date.now()),
+                      name: viewName,
+                      description: viewDescription || undefined,
+                      filters: {
+                        searchText: filterText || undefined,
+                        status: selectedStatus || undefined,
+                        industry: selectedIndustry || undefined,
+                        size: selectedSize || undefined
+                      },
+                      isShared,
+                      createdBy: 'John Smith',
+                      createdAt: new Date()
+                    };
+                    
+                    setSavedViews([...savedViews, newView]);
+                    setActiveView(newView);
+                  } else {
+                    // Update existing view
+                    const viewName = (document.getElementById('viewName') as HTMLInputElement).value;
+                    const viewDescription = (document.getElementById('viewDescription') as HTMLTextAreaElement).value;
+                    const isShared = (document.getElementById('shareView') as HTMLInputElement).checked;
+                    
+                    const updatedViews = savedViews.map(view => {
+                      if (view.id === activeView.id) {
+                        return {
+                          ...view,
+                          name: viewName,
+                          description: viewDescription || undefined,
+                          filters: {
+                            searchText: filterText || undefined,
+                            status: selectedStatus || undefined,
+                            industry: selectedIndustry || undefined,
+                            size: selectedSize || undefined
+                          },
+                          isShared
+                        };
+                      }
+                      return view;
+                    });
+                    
+                    setSavedViews(updatedViews);
+                    setActiveView(updatedViews.find(v => v.id === activeView.id) || null);
+                  }
+                  
+                  setShowSaveViewModal(false);
+                }}
+              >
+                {activeView ? 'Update View' : 'Save View'}
+              </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Share View Modal */}
+      <Dialog open={showShareViewModal} onOpenChange={setShowShareViewModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Share View: {activeView?.name}</DialogTitle>
+            <DialogDescription>
+              Share this view with colleagues or external partners. They will be able to see the same filtered data view.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="recipients">Add Recipients</Label>
+              <Input 
+                id="recipients" 
+                placeholder="Enter email addresses, separated by commas"
+                defaultValue={activeView?.sharedWith?.join(', ') || ''}
+              />
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Permission Settings</Label>
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Checkbox id="canView" defaultChecked />
+                  <Label htmlFor="canView" className="text-sm font-normal">
+                    Can view this saved filter
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox id="canEdit" />
+                  <Label htmlFor="canEdit" className="text-sm font-normal">
+                    Can edit this saved filter
+                  </Label>
+                </div>
+              </div>
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="shareMessage">Add a Message (Optional)</Label>
+              <Textarea 
+                id="shareMessage" 
+                placeholder="Include a note to the recipients"
+                rows={2}
+              />
+            </div>
+            
+            {/* Copy Link Section */}
+            <div className="bg-gray-50 p-3 rounded-md">
+              <div className="text-xs font-medium mb-2">Anyone with the link can view</div>
+              <div className="flex">
+                <Input 
+                  id="shareLink" 
+                  value={`https://qollabi.com/share/view/${activeView?.id}`}
+                  readOnly
+                  className="text-xs"
+                />
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="ml-2"
+                  onClick={() => {
+                    navigator.clipboard.writeText(`https://qollabi.com/share/view/${activeView?.id}`);
+                  }}
+                >
+                  Copy
+                </Button>
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button onClick={() => {
+              // Handle sharing logic
+              const recipients = (document.getElementById('recipients') as HTMLInputElement).value;
+              const canEdit = (document.getElementById('canEdit') as HTMLInputElement).checked;
+              const message = (document.getElementById('shareMessage') as HTMLTextAreaElement).value;
+              
+              // Update the active view's sharing settings
+              if (activeView) {
+                const updatedViews = savedViews.map(view => {
+                  if (view.id === activeView.id) {
+                    return {
+                      ...view,
+                      isShared: true,
+                      sharedWith: recipients.split(',').map(email => email.trim())
+                    };
+                  }
+                  return view;
+                });
+                
+                setSavedViews(updatedViews);
+                setActiveView(updatedViews.find(v => v.id === activeView.id) || null);
+              }
+              
+              setShowShareViewModal(false);
+            }}>
+              Share View
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       
       {/* Table section without a border */}
       <div className="bg-white overflow-x-auto">
