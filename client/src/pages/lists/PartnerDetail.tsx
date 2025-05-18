@@ -301,6 +301,11 @@ export default function PartnerDetail() {
   const [saveListName, setSaveListName] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [filterOpen, setFilterOpen] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<{
+    status?: string;
+    industry?: string;
+    size?: string;
+  }>({});
   const dragTab = useRef<string | null>(null);
   const dragOverTab = useRef<string | null>(null);
   
@@ -380,6 +385,36 @@ export default function PartnerDetail() {
     } else {
       setSelectedItems(items.map(item => item.id));
     }
+  };
+  
+  // Handle clearing selection
+  const clearSelection = () => {
+    setSelectedItems([]);
+  };
+  
+  // Handle create opportunity
+  const handleCreateOpportunity = () => {
+    // Logic to create opportunity from selected customers
+    console.log("Creating opportunity for", selectedItems);
+    // Would open a modal/dialog to create opportunity
+  };
+  
+  // Handle assign to partner
+  const handleAssignToPartner = () => {
+    // Logic to assign selected items to partner
+    console.log("Assigning to partner", selectedItems);
+  };
+  
+  // Handle assign template
+  const handleAssignTemplate = () => {
+    // Logic to assign template to selected items
+    console.log("Assigning template to", selectedItems); 
+  };
+  
+  // Handle add to campaign
+  const handleAddToCampaign = () => {
+    // Logic to add selected items to campaign
+    console.log("Adding to campaign", selectedItems);
   };
   
   // Handle save list
@@ -811,7 +846,212 @@ export default function PartnerDetail() {
             </TabsContent>
             
             <TabsContent value="opportunities" className="mt-4">
-              {/* Opportunities content */}
+              {/* Opportunities list selection/filter bar */}
+              <div className="flex justify-between items-center mb-4">
+                <div className="flex gap-3 items-center">
+                  <div className="relative w-56">
+                    <select className="w-full py-2 pl-3 pr-10 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 appearance-none bg-white">
+                      <option>All Opportunities</option>
+                      <option>Open Opportunities</option>
+                      <option>Closing This Month</option>
+                      <option>High Value Deals</option>
+                    </select>
+                    <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path d="M19 9l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+                      </svg>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" className="text-sm">
+                      <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="18" cy="5" r="3"></circle>
+                        <circle cx="6" cy="12" r="3"></circle>
+                        <circle cx="18" cy="19" r="3"></circle>
+                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                      </svg>
+                      Share
+                    </Button>
+                    
+                    <Button variant="outline" size="sm" className="text-sm" onClick={() => handleAddToCampaign()}>
+                      <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M4 11a9 9 0 0 1 9 9"></path>
+                        <path d="M4 4a16 16 0 0 1 16 16"></path>
+                        <circle cx="5" cy="19" r="2"></circle>
+                      </svg>
+                      Add to Campaign
+                    </Button>
+                  </div>
+                </div>
+                
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" className="text-sm">
+                    <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                      <polyline points="17 8 21 12 17 16"></polyline>
+                      <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                    Export
+                  </Button>
+                  
+                  <Button variant="outline" size="sm" className="text-sm bg-indigo-50 text-indigo-700">
+                    <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                    Update
+                  </Button>
+                  
+                  <Button size="sm" className="text-sm bg-indigo-600 hover:bg-indigo-700">
+                    <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="12" y1="5" x2="12" y2="19"></line>
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    New
+                  </Button>
+                </div>
+              </div>
+              
+              {/* Filter section */}
+              <div className="mb-4">
+                <div className="flex mb-2">
+                  <div className="relative flex-grow">
+                    <input 
+                      type="text" 
+                      placeholder="Search by name, customer..." 
+                      className="w-full border border-gray-300 rounded-md py-2 pl-10 pr-4 text-sm"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className={`text-sm flex items-center ${activeFilters.status ? 'bg-indigo-50 text-indigo-700' : ''}`}
+                    onClick={() => setActiveFilters({...activeFilters, status: activeFilters.status ? undefined : 'qualified'})}
+                  >
+                    Status: {activeFilters.status || 'Any'}
+                    {activeFilters.status && (
+                      <svg className="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    )}
+                  </Button>
+                  
+                  <Button variant="outline" size="sm" className="text-sm">
+                    Probability
+                  </Button>
+                  
+                  <Button variant="outline" size="sm" className="text-sm">
+                    Closing Date
+                  </Button>
+                  
+                  {(activeFilters.status || activeFilters.industry || activeFilters.size) && (
+                    <Button 
+                      variant="link" 
+                      size="sm" 
+                      className="text-sm text-gray-500"
+                      onClick={() => setActiveFilters({})}
+                    >
+                      Clear filters
+                    </Button>
+                  )}
+                </div>
+              </div>
+              
+              {/* Selected items actions */}
+              {selectedItems.length > 0 && (
+                <div className="bg-indigo-50 rounded p-3 mb-4 flex justify-between items-center">
+                  <div className="flex items-center">
+                    <span className="text-indigo-700 font-medium mr-2">{selectedItems.length} opportunities selected</span>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-gray-500 hover:text-gray-700 p-1 h-auto"
+                      onClick={clearSelection}
+                    >
+                      Clear selection
+                    </Button>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Button variant="ghost" size="sm" className="text-indigo-700" onClick={() => handleSaveList()}>
+                      <svg className="h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                        <polyline points="7 3 7 8 15 8"></polyline>
+                      </svg>
+                      Create List
+                    </Button>
+                    
+                    <Button variant="ghost" size="sm" className="text-indigo-700" onClick={() => handleAddToCampaign()}>
+                      <svg className="h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M4 11a9 9 0 0 1 9 9"></path>
+                        <path d="M4 4a16 16 0 0 1 16 16"></path>
+                        <circle cx="5" cy="19" r="2"></circle>
+                      </svg>
+                      Add to Campaign
+                    </Button>
+                    
+                    <Button variant="ghost" size="sm" className="text-indigo-700" onClick={() => handleAssignToPartner()}>
+                      <svg className="h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="8.5" cy="7" r="4"></circle>
+                        <polyline points="17 11 19 13 23 9"></polyline>
+                      </svg>
+                      Assign to Partner
+                    </Button>
+                  </div>
+                </div>
+              )}
+              
+              {/* Stat cards */}
+              <div className="grid grid-cols-4 gap-4 mb-6">
+                <div className="bg-white p-4 rounded-md border border-gray-200">
+                  <div className="text-gray-500 text-sm">Total Opportunities</div>
+                  <div className="text-2xl font-semibold">
+                    {mockOpportunities.length}
+                  </div>
+                </div>
+                
+                <div className="bg-white p-4 rounded-md border border-gray-200">
+                  <div className="text-gray-500 text-sm">Closed Won</div>
+                  <div className="text-2xl font-semibold">
+                    {mockOpportunities.filter(opp => opp.status === 'closed_won').length}
+                  </div>
+                </div>
+                
+                <div className="bg-white p-4 rounded-md border border-gray-200">
+                  <div className="text-gray-500 text-sm">Total Value</div>
+                  <div className="text-2xl font-semibold">
+                    {formatCurrency(mockOpportunities.reduce((sum, opp) => sum + opp.estimatedValue, 0))}
+                  </div>
+                </div>
+                
+                <div className="bg-white p-4 rounded-md border border-gray-200">
+                  <div className="text-gray-500 text-sm">Weighted Value</div>
+                  <div className="text-2xl font-semibold">
+                    {formatCurrency(
+                      mockOpportunities.reduce(
+                        (sum, opp) => sum + (opp.estimatedValue * opp.probability / 100), 0
+                      )
+                    )}
+                  </div>
+                </div>
+              </div>
+              
+              {/* Opportunities table */}
               <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
                 <Table>
                   <TableHeader className="bg-gray-50">
@@ -834,12 +1074,18 @@ export default function PartnerDetail() {
                   </TableHeader>
                   <TableBody>
                     {mockOpportunities
-                      .filter(opp => 
-                        searchTerm ? 
+                      .filter(opp => {
+                        // Apply search filter
+                        const matchesSearch = !searchTerm || 
                           opp.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          opp.customerName.toLowerCase().includes(searchTerm.toLowerCase()) : 
-                          true
-                      )
+                          opp.customerName.toLowerCase().includes(searchTerm.toLowerCase());
+                        
+                        // Apply status filter
+                        const matchesStatus = !activeFilters.status || 
+                          opp.status === activeFilters.status;
+                        
+                        return matchesSearch && matchesStatus;
+                      })
                       .map((opportunity) => (
                         <TableRow 
                           key={opportunity.id} 
@@ -883,12 +1129,18 @@ export default function PartnerDetail() {
                     ))}
                   </TableBody>
                 </Table>
-                {mockOpportunities.filter(opp => 
-                  searchTerm ? 
+                {mockOpportunities.filter(opp => {
+                  // Apply search filter
+                  const matchesSearch = !searchTerm || 
                     opp.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                    opp.customerName.toLowerCase().includes(searchTerm.toLowerCase()) : 
-                    true
-                ).length === 0 && (
+                    opp.customerName.toLowerCase().includes(searchTerm.toLowerCase());
+                  
+                  // Apply status filter
+                  const matchesStatus = !activeFilters.status || 
+                    opp.status === activeFilters.status;
+                  
+                  return matchesSearch && matchesStatus;
+                }).length === 0 && (
                   <div className="py-8 text-center text-gray-500">
                     No opportunities found matching your criteria.
                   </div>
@@ -897,7 +1149,244 @@ export default function PartnerDetail() {
             </TabsContent>
             
             <TabsContent value="customers" className="mt-4">
-              {/* Customers content */}
+              {/* Customers list selection/filter bar */}
+              <div className="flex justify-between items-center mb-4">
+                <div className="flex gap-3 items-center">
+                  <div className="relative w-56">
+                    <select className="w-full py-2 pl-3 pr-10 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 appearance-none bg-white">
+                      <option>Active Manufacturing Clients</option>
+                      <option>All Customers</option>
+                      <option>New Customers (30 days)</option>
+                      <option>High Value Customers</option>
+                    </select>
+                    <div className="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+                      <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path d="M19 9l-7 7-7-7" strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" />
+                      </svg>
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" className="text-sm" onClick={() => handleCreateOpportunity()}>
+                      <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline>
+                        <path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path>
+                      </svg>
+                      Create Opportunities
+                    </Button>
+                    
+                    <Button variant="outline" size="sm" className="text-sm">
+                      <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="18" cy="5" r="3"></circle>
+                        <circle cx="6" cy="12" r="3"></circle>
+                        <circle cx="18" cy="19" r="3"></circle>
+                        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                      </svg>
+                      Share
+                    </Button>
+                    
+                    <Button variant="outline" size="sm" className="text-sm" onClick={() => handleAddToCampaign()}>
+                      <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M4 11a9 9 0 0 1 9 9"></path>
+                        <path d="M4 4a16 16 0 0 1 16 16"></path>
+                        <circle cx="5" cy="19" r="2"></circle>
+                      </svg>
+                      Add to Campaign
+                    </Button>
+                  </div>
+                </div>
+                
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" className="text-sm">
+                    <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                      <polyline points="17 8 21 12 17 16"></polyline>
+                      <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                    Export
+                  </Button>
+                  
+                  <Button variant="outline" size="sm" className="text-sm bg-indigo-50 text-indigo-700">
+                    <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                      <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                    </svg>
+                    Update
+                  </Button>
+                  
+                  <Button size="sm" className="text-sm bg-indigo-600 hover:bg-indigo-700">
+                    <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="12" y1="5" x2="12" y2="19"></line>
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    New
+                  </Button>
+                </div>
+              </div>
+              
+              {/* Filter section */}
+              <div className="mb-4">
+                <div className="flex mb-2">
+                  <div className="relative flex-grow">
+                    <input 
+                      type="text" 
+                      placeholder="Search by name, industry..." 
+                      className="w-full border border-gray-300 rounded-md py-2 pl-10 pr-4 text-sm"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+                
+                <div className="flex gap-2">
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className={`text-sm flex items-center ${activeFilters.status ? 'bg-indigo-50 text-indigo-700' : ''}`}
+                    onClick={() => setActiveFilters({...activeFilters, status: activeFilters.status ? undefined : 'active'})}
+                  >
+                    Status: {activeFilters.status || 'Any'}
+                    {activeFilters.status && (
+                      <svg className="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    )}
+                  </Button>
+                  
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    className={`text-sm flex items-center ${activeFilters.industry ? 'bg-indigo-50 text-indigo-700' : ''}`}
+                    onClick={() => setActiveFilters({...activeFilters, industry: activeFilters.industry ? undefined : 'manufacturing'})}
+                  >
+                    Industry: {activeFilters.industry || 'Any'}
+                    {activeFilters.industry && (
+                      <svg className="ml-1 h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    )}
+                  </Button>
+                  
+                  <Button variant="outline" size="sm" className="text-sm">
+                    Size
+                  </Button>
+                  
+                  {(activeFilters.status || activeFilters.industry || activeFilters.size) && (
+                    <Button 
+                      variant="link" 
+                      size="sm" 
+                      className="text-sm text-gray-500"
+                      onClick={() => setActiveFilters({})}
+                    >
+                      Clear filters
+                    </Button>
+                  )}
+                </div>
+              </div>
+              
+              {/* Selected items actions */}
+              {selectedItems.length > 0 && (
+                <div className="bg-indigo-50 rounded p-3 mb-4 flex justify-between items-center">
+                  <div className="flex items-center">
+                    <span className="text-indigo-700 font-medium mr-2">{selectedItems.length} customers selected</span>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-gray-500 hover:text-gray-700 p-1 h-auto"
+                      onClick={clearSelection}
+                    >
+                      Clear selection
+                    </Button>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Button variant="ghost" size="sm" className="text-indigo-700" onClick={() => handleSaveList()}>
+                      <svg className="h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                        <polyline points="7 3 7 8 15 8"></polyline>
+                      </svg>
+                      Create List
+                    </Button>
+                    
+                    <Button variant="ghost" size="sm" className="text-indigo-700" onClick={() => handleCreateOpportunity()}>
+                      <svg className="h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline>
+                        <path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path>
+                      </svg>
+                      Create Opportunity
+                    </Button>
+                    
+                    <Button variant="ghost" size="sm" className="text-indigo-700" onClick={() => handleAddToCampaign()}>
+                      <svg className="h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M4 11a9 9 0 0 1 9 9"></path>
+                        <path d="M4 4a16 16 0 0 1 16 16"></path>
+                        <circle cx="5" cy="19" r="2"></circle>
+                      </svg>
+                      Add to Campaign
+                    </Button>
+                    
+                    <Button variant="ghost" size="sm" className="text-indigo-700" onClick={() => handleAssignToPartner()}>
+                      <svg className="h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="8.5" cy="7" r="4"></circle>
+                        <polyline points="17 11 19 13 23 9"></polyline>
+                      </svg>
+                      Assign to Partner
+                    </Button>
+                    
+                    <Button variant="ghost" size="sm" className="text-indigo-700" onClick={() => handleAssignTemplate()}>
+                      <svg className="h-4 w-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="9" y1="9" x2="15" y2="9"></line>
+                        <line x1="9" y1="15" x2="15" y2="15"></line>
+                        <line x1="9" y1="18" x2="15" y2="18"></line>
+                      </svg>
+                      Assign Template
+                    </Button>
+                  </div>
+                </div>
+              )}
+              
+              {/* Stat cards */}
+              <div className="grid grid-cols-4 gap-4 mb-6">
+                <div className="bg-white p-4 rounded-md border border-gray-200">
+                  <div className="text-gray-500 text-sm">Total Customers</div>
+                  <div className="text-2xl font-semibold">
+                    {mockCustomers.length}
+                  </div>
+                </div>
+                
+                <div className="bg-white p-4 rounded-md border border-gray-200">
+                  <div className="text-gray-500 text-sm">Active Customers</div>
+                  <div className="text-2xl font-semibold">
+                    {mockCustomers.filter(c => c.status === 'active').length}
+                  </div>
+                </div>
+                
+                <div className="bg-white p-4 rounded-md border border-gray-200">
+                  <div className="text-gray-500 text-sm">Total Products</div>
+                  <div className="text-2xl font-semibold">
+                    {mockCustomers.reduce((sum, c) => sum + c.products, 0)}
+                  </div>
+                </div>
+                
+                <div className="bg-white p-4 rounded-md border border-gray-200">
+                  <div className="text-gray-500 text-sm">Total Opportunities</div>
+                  <div className="text-2xl font-semibold">
+                    {mockCustomers.reduce((sum, c) => sum + c.opportunities, 0)}
+                  </div>
+                </div>
+              </div>
+              
+              {/* Customers table */}
               <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
                 <Table>
                   <TableHeader className="bg-gray-50">
@@ -910,21 +1399,33 @@ export default function PartnerDetail() {
                         />
                       </TableHead>
                       <TableHead>Customer</TableHead>
+                      <TableHead>Partner</TableHead>
                       <TableHead>Industry</TableHead>
                       <TableHead>Size</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead className="text-center">Products</TableHead>
                       <TableHead className="text-center">Opportunities</TableHead>
+                      <TableHead>Template</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {mockCustomers
-                      .filter(customer => 
-                        searchTerm ? 
+                      .filter(customer => {
+                        // Apply search filter
+                        const matchesSearch = !searchTerm || 
                           customer.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          customer.industry.toLowerCase().includes(searchTerm.toLowerCase()) : 
-                          true
-                      )
+                          customer.industry.toLowerCase().includes(searchTerm.toLowerCase());
+                        
+                        // Apply status filter
+                        const matchesStatus = !activeFilters.status || 
+                          customer.status === activeFilters.status;
+                        
+                        // Apply industry filter
+                        const matchesIndustry = !activeFilters.industry || 
+                          customer.industry.toLowerCase() === activeFilters.industry.toLowerCase();
+                        
+                        return matchesSearch && matchesStatus && matchesIndustry;
+                      })
                       .map((customer) => (
                         <TableRow 
                           key={customer.id} 
@@ -938,15 +1439,20 @@ export default function PartnerDetail() {
                           </TableCell>
                           <TableCell>
                             <div className="flex items-center">
-                              <Avatar className="h-8 w-8 mr-3 bg-indigo-100 text-indigo-600">
-                                <AvatarFallback>{customer.initials}</AvatarFallback>
-                              </Avatar>
+                              <div className="h-8 w-8 mr-3 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-medium">
+                                {customer.initials}
+                              </div>
                               <div>
                                 <Link href={`/lists/customers/${customer.id}`} className="font-medium text-gray-900 hover:text-indigo-600">
                                   {customer.name}
                                 </Link>
                               </div>
                             </div>
+                          </TableCell>
+                          <TableCell>
+                            <Link href={`/lists/partners/1`} className="text-indigo-600 hover:text-indigo-800 hover:underline">
+                              {partner.name}
+                            </Link>
                           </TableCell>
                           <TableCell>
                             {customer.industry}
@@ -965,16 +1471,36 @@ export default function PartnerDetail() {
                           <TableCell className="text-center">
                             {customer.opportunities}
                           </TableCell>
+                          <TableCell>
+                            <div className="flex space-x-1">
+                              <div className="h-6 w-6 rounded-full bg-indigo-100 text-indigo-700 text-xs flex items-center justify-center">
+                                RP
+                              </div>
+                              <div className="h-6 w-6 rounded-full bg-cyan-100 text-cyan-700 text-xs flex items-center justify-center">
+                                CO
+                              </div>
+                            </div>
+                          </TableCell>
                         </TableRow>
                       ))}
                   </TableBody>
                 </Table>
-                {mockCustomers.filter(customer => 
-                  searchTerm ? 
+                {mockCustomers.filter(customer => {
+                  // Apply search filter
+                  const matchesSearch = !searchTerm || 
                     customer.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                    customer.industry.toLowerCase().includes(searchTerm.toLowerCase()) : 
-                    true
-                ).length === 0 && (
+                    customer.industry.toLowerCase().includes(searchTerm.toLowerCase());
+                  
+                  // Apply status filter
+                  const matchesStatus = !activeFilters.status || 
+                    customer.status === activeFilters.status;
+                  
+                  // Apply industry filter
+                  const matchesIndustry = !activeFilters.industry || 
+                    customer.industry.toLowerCase() === activeFilters.industry.toLowerCase();
+                  
+                  return matchesSearch && matchesStatus && matchesIndustry;
+                }).length === 0 && (
                   <div className="py-8 text-center text-gray-500">
                     No customers found matching your criteria.
                   </div>
