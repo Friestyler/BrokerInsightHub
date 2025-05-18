@@ -847,24 +847,74 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
         </DialogContent>
       </Dialog>
       
-      {/* Share View Modal */}
+      {/* Share List Modal with Extended Options */}
       <Dialog open={showShareViewModal} onOpenChange={setShowShareViewModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Share View: {activeView?.name}</DialogTitle>
+            <DialogTitle>Share List: {activeView?.name}</DialogTitle>
             <DialogDescription>
-              Share this view with colleagues or external partners. They will be able to see the same filtered data view.
+              Share this list with partners, teams, or individuals.
             </DialogDescription>
           </DialogHeader>
           
           <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="recipients">Add Recipients</Label>
-              <Input 
-                id="recipients" 
-                placeholder="Enter email addresses, separated by commas"
-                defaultValue={activeView?.sharedWith?.join(', ') || ''}
-              />
+            {/* Tabs for different sharing options */}
+            <div className="flex border-b">
+              <button className="px-3 py-2 text-sm font-medium text-indigo-600 border-b-2 border-indigo-600">
+                Partners
+              </button>
+              <button className="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700">
+                Teams
+              </button>
+              <button className="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700">
+                Individuals
+              </button>
+            </div>
+            
+            {/* Partners Section */}
+            <div className="grid gap-3">
+              <Label>Select Partner</Label>
+              <div className="relative">
+                <select className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm appearance-none">
+                  <option value="">Select a partner...</option>
+                  {mockPartners.map(partner => (
+                    <option key={partner.id} value={partner.id}>{partner.name}</option>
+                  ))}
+                </select>
+                <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </div>
+              </div>
+              
+              <Label className="mt-2">Partner Contacts</Label>
+              <div className="border border-gray-200 rounded-md max-h-36 overflow-y-auto">
+                <div className="p-2 border-b hover:bg-gray-50">
+                  <div className="flex items-center">
+                    <Checkbox id="contact-1" className="mr-2" />
+                    <Label htmlFor="contact-1" className="text-sm font-normal cursor-pointer flex-grow">
+                      Sarah Johnson <span className="text-xs text-gray-500 ml-1">(sjohnson@abc-insurance.com)</span>
+                    </Label>
+                  </div>
+                </div>
+                <div className="p-2 border-b hover:bg-gray-50">
+                  <div className="flex items-center">
+                    <Checkbox id="contact-2" className="mr-2" />
+                    <Label htmlFor="contact-2" className="text-sm font-normal cursor-pointer flex-grow">
+                      Michael Chen <span className="text-xs text-gray-500 ml-1">(mchen@abc-insurance.com)</span>
+                    </Label>
+                  </div>
+                </div>
+                <div className="p-2 hover:bg-gray-50">
+                  <div className="flex items-center">
+                    <Checkbox id="contact-3" className="mr-2" />
+                    <Label htmlFor="contact-3" className="text-sm font-normal cursor-pointer flex-grow">
+                      All Contacts <span className="text-xs text-gray-500 ml-1">(3 people)</span>
+                    </Label>
+                  </div>
+                </div>
+              </div>
             </div>
             
             <div className="space-y-2">
@@ -873,13 +923,19 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
                 <div className="flex items-center space-x-2">
                   <Checkbox id="canView" defaultChecked />
                   <Label htmlFor="canView" className="text-sm font-normal">
-                    Can view this saved filter
+                    Can view this saved list
                   </Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <Checkbox id="canEdit" />
                   <Label htmlFor="canEdit" className="text-sm font-normal">
-                    Can edit this saved filter
+                    Can edit this saved list
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox id="canShare" />
+                  <Label htmlFor="canShare" className="text-sm font-normal">
+                    Can share this list with others
                   </Label>
                 </div>
               </div>
@@ -896,11 +952,14 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
             
             {/* Copy Link Section */}
             <div className="bg-gray-50 p-3 rounded-md">
-              <div className="text-xs font-medium mb-2">Anyone with the link can view</div>
+              <div className="flex justify-between items-center mb-2">
+                <div className="text-xs font-medium">Direct Link</div>
+                <div className="text-xs text-gray-500">Only accessible by people with permissions</div>
+              </div>
               <div className="flex">
                 <Input 
                   id="shareLink" 
-                  value={`https://qollabi.com/share/view/${activeView?.id}`}
+                  value={`https://qollabi.com/share/list/${activeView?.id}`}
                   readOnly
                   className="text-xs"
                 />
@@ -909,7 +968,7 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
                   size="sm" 
                   className="ml-2"
                   onClick={() => {
-                    navigator.clipboard.writeText(`https://qollabi.com/share/view/${activeView?.id}`);
+                    navigator.clipboard.writeText(`https://qollabi.com/share/list/${activeView?.id}`);
                   }}
                 >
                   Copy
@@ -924,9 +983,16 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
             </DialogClose>
             <Button onClick={() => {
               // Handle sharing logic
-              const recipients = (document.getElementById('recipients') as HTMLInputElement).value;
+              const partners = document.querySelectorAll('input[type="checkbox"]:checked');
               const canEdit = (document.getElementById('canEdit') as HTMLInputElement).checked;
+              const canShare = (document.getElementById('canShare') as HTMLInputElement).checked;
               const message = (document.getElementById('shareMessage') as HTMLTextAreaElement).value;
+              
+              // Extract recipients from selected partners and contacts
+              const selectedPartnerIds = Array.from(partners).map(el => el.id.split('-')[1]);
+              
+              // Just for demonstration, we'll use hardcoded emails
+              const recipientEmails = ['sjohnson@abc-insurance.com', 'mchen@abc-insurance.com'];
               
               // Update the active view's sharing settings
               if (activeView) {
@@ -935,7 +1001,7 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
                     return {
                       ...view,
                       isShared: true,
-                      sharedWith: recipients.split(',').map(email => email.trim())
+                      sharedWith: recipientEmails
                     };
                   }
                   return view;
@@ -947,7 +1013,7 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
               
               setShowShareViewModal(false);
             }}>
-              Share View
+              Share List
             </Button>
           </DialogFooter>
         </DialogContent>
