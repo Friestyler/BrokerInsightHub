@@ -1,14 +1,5 @@
 import { useState } from 'react';
-import ListLayout from "@/components/lists/ListLayout";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import {
   Card,
   CardContent,
@@ -481,12 +472,12 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
     }
   };
   
-  // Function to select/deselect all customers
+  // Function to toggle select/deselect all customers
   const toggleSelectAll = () => {
-    if (selectedCustomers.length === mockCustomers.length) {
+    if (selectedCustomers.length === displayedCustomers.length) {
       setSelectedCustomers([]);
     } else {
-      setSelectedCustomers(mockCustomers.map(customer => customer.id));
+      setSelectedCustomers(displayedCustomers.map(customer => customer.id));
     }
   };
   
@@ -1069,7 +1060,7 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
                 </td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
                   <Link 
-                    href={`/lists/partners/${customer.partnerId}`}
+                    href={`/lists/customers?partnerId=${customer.partnerId}`}
                     className="text-indigo-600 hover:text-indigo-800 hover:underline"
                   >
                     {customer.partnerName}
@@ -1089,98 +1080,45 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
                 </td>
               </tr>
             ))}
+            
+            {displayedCustomers.length === 0 && (
+              <tr>
+                <td colSpan={9} className="py-10 text-center">
+                  <div className="flex flex-col items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 mb-3">
+                      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="12" cy="7" r="4"></circle>
+                    </svg>
+                    <h3 className="text-base font-medium text-gray-900 mb-1">No customers found</h3>
+                    <p className="text-sm text-gray-500 max-w-md mb-4">
+                      {partnerId 
+                        ? `There are no customers associated with this partner that match your filter criteria.` 
+                        : `There are no customers matching your filter criteria.`}
+                    </p>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      onClick={() => {
+                        setFilterText('');
+                        setSelectedStatus('');
+                        setSelectedIndustry('');
+                        setSelectedSize('');
+                      }}
+                    >
+                      Clear Filters
+                    </Button>
+                  </div>
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
-      </div>
-      
-      {/* Pagination */}
-      <div className="flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3">
-        <div className="flex flex-1 justify-between sm:hidden">
-          <a href="#" className="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Previous</a>
-          <a href="#" className="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50">Next</a>
-        </div>
-        <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-          <div>
-            <p className="text-sm text-gray-700">
-              <span className="font-medium">{selectedCustomers.length}</span> of <span className="font-medium">{mockCustomers.length}</span> item(s) selected
-            </p>
-          </div>
-          <div className="flex items-center space-x-4">
-            <div>
-              <p className="text-sm text-gray-700">
-                Items per page: 
-                <select
-                  value={itemsPerPage}
-                  onChange={(e) => setItemsPerPage(Number(e.target.value))}
-                  className="ml-1 rounded border-gray-300 text-indigo-600 focus:border-indigo-500 focus:ring-indigo-500"
-                >
-                  <option value={12}>12</option>
-                  <option value={24}>24</option>
-                  <option value={48}>48</option>
-                </select>
-              </p>
-            </div>
-            <div>
-              <p className="text-sm text-gray-700">
-                Page <span className="font-medium">1</span> of <span className="font-medium">1</span>
-              </p>
-            </div>
-            <nav className="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
-              <a
-                href="#"
-                className="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
-              >
-                <span className="sr-only">First</span>
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="11 17 6 12 11 7"></polyline>
-                  <polyline points="18 17 13 12 18 7"></polyline>
-                </svg>
-              </a>
-              <a
-                href="#"
-                className="relative inline-flex items-center px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
-              >
-                <span className="sr-only">Previous</span>
-                <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fillRule="evenodd" d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z" clipRule="evenodd" />
-                </svg>
-              </a>
-              <a
-                href="#"
-                aria-current="page"
-                className="relative z-10 inline-flex items-center bg-indigo-600 px-4 py-2 text-sm font-semibold text-white focus:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-              >
-                1
-              </a>
-              <a
-                href="#"
-                className="relative inline-flex items-center px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
-              >
-                <span className="sr-only">Next</span>
-                <svg className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                  <path fillRule="evenodd" d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z" clipRule="evenodd" />
-                </svg>
-              </a>
-              <a
-                href="#"
-                className="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
-              >
-                <span className="sr-only">Last</span>
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="13 17 18 12 13 7"></polyline>
-                  <polyline points="6 17 11 12 6 7"></polyline>
-                </svg>
-              </a>
-            </nav>
-          </div>
-        </div>
       </div>
     </div>
   );
 }
 
-// Card view for customers
-// Card view for customer list
+// Card view for customers list
 function CustomersCardView({ partnerId }: { partnerId?: number }) {
   const [filterText, setFilterText] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
@@ -1192,7 +1130,7 @@ function CustomersCardView({ partnerId }: { partnerId?: number }) {
     ? mockCustomers.filter(customer => customer.partnerId === partnerId)
     : mockCustomers;
     
-  // Apply additional filters based on user selections
+  // Filter customers based on search text and filter selections
   const displayedCustomers = filteredCustomers.filter(customer => {
     const matchesText = !filterText || 
       customer.name.toLowerCase().includes(filterText.toLowerCase()) ||
@@ -1264,62 +1202,92 @@ function CustomersCardView({ partnerId }: { partnerId?: number }) {
         </div>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">>
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {displayedCustomers.map((customer) => (
-        <Card key={customer.id} className="overflow-hidden hover:shadow-md transition-shadow">
-          <CardContent className="p-0">
-            <div className="p-4">
-              <div className="flex items-center mb-3">
-                <Avatar className="h-10 w-10 mr-3 bg-indigo-100 text-indigo-600">
-                  <AvatarFallback>{customer.initials}</AvatarFallback>
-                </Avatar>
-                <div>
-                  <h3 className="font-medium text-gray-900">{customer.name}</h3>
-                  <Badge variant={customer.status === 'active' ? 'outline' : 'secondary'} className="capitalize text-xs mt-1">
-                    {customer.status}
-                  </Badge>
+          <Card key={customer.id} className="overflow-hidden hover:shadow-md transition-shadow">
+            <CardContent className="p-0">
+              <div className="p-4">
+                <div className="flex items-center mb-3">
+                  <Avatar className="h-10 w-10 mr-3 bg-indigo-100 text-indigo-600">
+                    <AvatarFallback>{customer.initials}</AvatarFallback>
+                  </Avatar>
+                  <div>
+                    <h3 className="font-medium">{customer.name}</h3>
+                    <p className="text-xs text-gray-500">{customer.industry}</p>
+                  </div>
                 </div>
               </div>
-              <div className="mb-3">
-                <div className="text-sm text-gray-500">Partner</div>
-                <Link 
-                  href={`/lists/partners/${customer.partnerId}`}
-                  className="text-indigo-600 hover:text-indigo-800 hover:underline text-sm"
-                >
-                  {customer.partnerName}
-                </Link>
-              </div>
-              <div className="flex gap-4 text-sm mb-3">
-                <div>
-                  <div className="text-gray-500">Industry</div>
-                  <div>{customer.industry}</div>
-                </div>
-                <div>
+              
+              <div className="border-t border-gray-100 p-4">
+                <div className="grid grid-cols-2 gap-y-2 text-sm">
+                  <div className="text-gray-500">Partner</div>
+                  <div className="text-right">
+                    <Link 
+                      href={`/lists/customers?partnerId=${customer.partnerId}`}
+                      className="text-indigo-600 hover:text-indigo-800 hover:underline"
+                    >
+                      {customer.partnerName}
+                    </Link>
+                  </div>
+                  
+                  <div className="text-gray-500">Status</div>
+                  <div className="text-right">
+                    <Badge variant={customer.status === 'active' ? 'outline' : 'secondary'} className="capitalize">{customer.status}</Badge>
+                  </div>
+                  
                   <div className="text-gray-500">Size</div>
-                  <div className="capitalize">{customer.size}</div>
+                  <div className="text-right capitalize">{customer.size}</div>
+                  
+                  <div className="text-gray-500">Products</div>
+                  <div className="text-right">{customer.products}</div>
+                  
+                  <div className="text-gray-500">Opportunities</div>
+                  <div className="text-right">{customer.opportunities}</div>
                 </div>
               </div>
-              <div className="flex justify-between text-sm">
+              
+              <div className="bg-gray-50 border-t border-gray-100 p-4 flex items-center justify-between">
                 <div>
-                  <span className="font-medium text-gray-900">{customer.products}</span>
-                  <span className="text-gray-600 ml-1">products</span>
+                  <TemplateBadges industry={customer.industry} size={customer.size} />
                 </div>
-                <div>
-                  <span className="font-medium text-gray-900">{customer.opportunities}</span>
-                  <span className="text-gray-600 ml-1">opportunities</span>
-                </div>
-              </div>
-            </div>
-            <div className="border-t p-3 bg-gray-50 flex justify-end">
-              <Button variant="outline" size="sm" asChild>
+                
                 <Link href={`/lists/customers/${customer.id}`}>
-                  View Details
+                  <Button variant="ghost" size="sm" className="text-indigo-600">
+                    View
+                  </Button>
                 </Link>
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      ))}
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+        
+        {displayedCustomers.length === 0 && (
+          <div className="col-span-3 flex flex-col items-center justify-center py-12 px-4 bg-gray-50 rounded-lg border border-dashed border-gray-300">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 mb-4">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+              <circle cx="12" cy="7" r="4"></circle>
+            </svg>
+            <h3 className="text-lg font-medium text-gray-900 mb-1">No customers found</h3>
+            <p className="text-gray-500 text-center max-w-md mb-4">
+              {partnerId 
+                ? `There are no customers associated with this partner that match your filter criteria.` 
+                : `There are no customers matching your filter criteria.`}
+            </p>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={() => {
+                setFilterText('');
+                setSelectedStatus('');
+                setSelectedIndustry('');
+                setSelectedSize('');
+              }}
+            >
+              Clear Filters
+            </Button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
@@ -1330,8 +1298,8 @@ export default function CustomersPage() {
   
   // Get URL search parameters - extract partnerId if present
   // Format example: /lists/customers?partnerId=1
-  const [path, search] = useLocation();
-  const searchParams = new URLSearchParams(search || "");
+  const [path, searchParam] = useLocation();
+  const searchParams = new URLSearchParams(searchParam || "");
   const partnerId = searchParams.get('partnerId') ? Number(searchParams.get('partnerId')) : undefined;
   
   // Get the partner name if partnerId is provided
