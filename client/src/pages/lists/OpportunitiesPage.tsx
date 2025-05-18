@@ -301,7 +301,7 @@ function OpportunitiesTable() {
       {/* Header with title */}
       <div className="flex justify-between items-center">
         <div className="flex items-center space-x-2">
-          <h2 className="text-xl font-semibold">Open Opportunities</h2>
+          <h2 className="text-xl font-semibold text-black">Open Opportunities</h2>
         </div>
       </div>
       
@@ -767,6 +767,7 @@ export default function OpportunitiesPage() {
   // We're using our custom table view now instead of the ListLayout's built-in view options
   return (
     <div className="container mx-auto px-4 py-6">
+      <h1 className="text-2xl font-bold tracking-tight mb-6 text-black">Opportunities</h1>
       <OpportunitiesTable />
     </div>
   );
