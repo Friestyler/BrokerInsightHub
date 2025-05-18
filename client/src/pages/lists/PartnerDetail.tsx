@@ -18,7 +18,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
-import { Bookmark } from "lucide-react";
+import { Bookmark, Filter, Search, Share } from "lucide-react";
 
 // Mock data for a partner
 const mockPartnerData = {
@@ -98,34 +98,24 @@ const mockOKRs = [
     objectives: [
       {
         id: 5,
-        title: "Marketing Budget for Round Tables",
-        realized: "0",
-        target: "22.500",
-        progress: 0,
-        type: "financial",
+        title: "Co-branded Campaigns",
+        realized: "3",
+        target: "4",
+        progress: 75,
+        type: "task",
         dueDate: new Date(),
-        owner: { id: 3, name: "Bob Smith", initials: "BS", avatar: "" },
+        owner: { id: 1, name: "John Doe", initials: "JD", avatar: "" },
       },
       {
         id: 6,
-        title: "Joint Marketing Materials",
-        realized: "Complete",
-        target: "Complete",
-        progress: 100,
+        title: "New Website Launch",
+        realized: "90%",
+        target: "100%",
+        progress: 90,
         type: "task",
-        dueDate: new Date("2025-04-20"),
-        owner: { id: 2, name: "Alice Cooper", initials: "AC", avatar: "" },
-      },
-      {
-        id: 7,
-        title: "Co-branded Digital Campaigns",
-        realized: "9.000",
-        target: "15.000",
-        progress: 60,
-        type: "financial",
         dueDate: new Date(),
-        owner: { id: 3, name: "Bob Smith", initials: "BS", avatar: "" },
-      },
+        owner: { id: 2, name: "Alice Cooper", initials: "AC", avatar: "" },
+      }
     ]
   }
 ];
@@ -213,11 +203,11 @@ const mockOpportunities = [
 // Owner avatar component
 function OwnerAvatar({ owner }: { owner: { initials: string, avatar?: string } }) {
   return (
-    <Avatar className="h-8 w-8">
+    <Avatar className="h-6 w-6">
       {owner.avatar ? (
         <AvatarImage src={owner.avatar} alt={owner.initials} />
       ) : (
-        <AvatarFallback className="bg-indigo-100 text-indigo-600">
+        <AvatarFallback className="bg-indigo-100 text-indigo-600 text-xs">
           {owner.initials}
         </AvatarFallback>
       )}
@@ -227,64 +217,52 @@ function OwnerAvatar({ owner }: { owner: { initials: string, avatar?: string } }
 
 // Status badge component
 function StatusBadge({ status }: { status: string }) {
-  let color = "";
-  let label = "";
-
-  switch (status) {
-    case "qualified":
-      color = "bg-blue-100 text-blue-800";
-      label = "Qualified";
-      break;
-    case "proposal":
-      color = "bg-yellow-100 text-yellow-800";
-      label = "Proposal";
-      break;
-    case "negotiation":
-      color = "bg-purple-100 text-purple-800";
-      label = "Negotiation";
-      break;
-    case "closed_won":
-      color = "bg-green-100 text-green-800";
-      label = "Closed Won";
-      break;
-    case "closed_lost":
-      color = "bg-red-100 text-red-800";
-      label = "Closed Lost";
-      break;
-    default:
-      color = "bg-gray-100 text-gray-800";
-      label = status.charAt(0).toUpperCase() + status.slice(1);
-  }
-
+  const statusMap: Record<string, { color: string, label: string }> = {
+    in_progress: { color: "bg-blue-100 text-blue-800", label: "In Progress" },
+    qualification: { color: "bg-purple-100 text-purple-800", label: "Qualification" },
+    proposal: { color: "bg-amber-100 text-amber-800", label: "Proposal" },
+    negotiation: { color: "bg-orange-100 text-orange-800", label: "Negotiation" },
+    closed_won: { color: "bg-green-100 text-green-800", label: "Closed Won" },
+    closed_lost: { color: "bg-red-100 text-red-800", label: "Closed Lost" },
+    active: { color: "bg-green-100 text-green-800", label: "Active" },
+    inactive: { color: "bg-gray-100 text-gray-800", label: "Inactive" },
+  };
+  
+  const { color, label } = statusMap[status] || { color: "bg-gray-100 text-gray-800", label: status };
+  
   return (
-    <span className={`inline-flex rounded-full px-2 py-1 text-xs font-medium ${color}`}>
+    <span className={`px-2 py-1 rounded-full text-xs ${color}`}>
       {label}
     </span>
   );
 }
 
-// Format currency
+// Format currency helper
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('en-US', {
     style: 'currency',
     currency: 'EUR',
+    minimumFractionDigits: 0,
     maximumFractionDigits: 0,
   }).format(amount);
 }
 
 // Progress bar component
 function ProgressBar({ progress, type = "default" }: { progress: number, type?: "default" | "success" | "warning" | "danger" }) {
-  let colorClass = "bg-indigo-500";
+  const colorMap = {
+    default: "bg-blue-600",
+    success: "bg-green-600",
+    warning: "bg-yellow-500",
+    danger: "bg-red-600",
+  };
   
-  if (type === "success") colorClass = "bg-green-500";
-  if (type === "warning") colorClass = "bg-yellow-500";
-  if (type === "danger") colorClass = "bg-red-500";
+  const color = colorMap[type];
   
   return (
-    <div className="w-full bg-gray-200 rounded-full h-2.5">
-      <div 
-        className={`h-2.5 rounded-full ${colorClass}`} 
-        style={{ width: `${progress}%` }}
+    <div className="w-full bg-gray-200 rounded-full h-2">
+      <div
+        className={`${color} h-2 rounded-full`}
+        style={{ width: `${Math.min(100, Math.max(0, progress))}%` }}
       ></div>
     </div>
   );
@@ -292,9 +270,13 @@ function ProgressBar({ progress, type = "default" }: { progress: number, type?: 
 
 export default function PartnerDetail() {
   const { id } = useParams();
-  const { environment } = useEnvironment();
+  const { environmentName } = useEnvironment();
+  
+  // State for partner description editing
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [description, setDescription] = useState(mockPartnerData.description);
+  
+  // Tabs state
   const [activeTab, setActiveTab] = useState("okr");
   const [activeView, setActiveView] = useState("default");
   const [tabOrder, setTabOrder] = useState<string[]>(["okr", "opportunities", "customers"]);
@@ -396,41 +378,23 @@ export default function PartnerDetail() {
     }
   };
   
-  // Handle clearing selection
   const clearSelection = () => {
     setSelectedItems([]);
   };
   
-  // Handle create opportunity
-  const handleCreateOpportunity = () => {
-    // Logic to create opportunity from selected customers
-    console.log("Creating opportunity for", selectedItems);
-    // Would open a modal/dialog to create opportunity
-  };
-  
-  // Handle assign to partner
-  const handleAssignToPartner = () => {
-    // Logic to assign selected items to partner
-    console.log("Assigning to partner", selectedItems);
-  };
-  
-  // Handle assign template
-  const handleAssignTemplate = () => {
-    // Logic to assign template to selected items
-    console.log("Assigning template to", selectedItems); 
-  };
-  
-  // Handle add to campaign
-  const handleAddToCampaign = () => {
-    // Logic to add selected items to campaign
-    console.log("Adding to campaign", selectedItems);
-  };
-  
-  // Handle save list
+  // Handle saving a list
   const handleSaveList = () => {
-    // Save logic would go here
-    setShowSaveListModal(false);
-    setSaveListName("");
+    setShowSaveListModal(true);
+  };
+  
+  const handleAddToCampaign = () => {
+    // This would handle adding selected items to a campaign
+    console.log("Adding to campaign:", selectedItems);
+  };
+  
+  const handleCreateOpportunity = () => {
+    // This would handle creating an opportunity from selected items
+    console.log("Creating opportunity from:", selectedItems);
   };
   
   return (
@@ -464,12 +428,17 @@ export default function PartnerDetail() {
               <div className="mt-2">
                 {isEditingDescription ? (
                   <div className="flex items-center">
-                    <Input 
-                      value={description} 
-                      onChange={handleDescriptionChange} 
-                      className="mr-2 w-96"
+                    <Input
+                      value={description}
+                      onChange={handleDescriptionChange}
+                      className="w-full"
                     />
-                    <Button size="sm" onClick={handleDescriptionSave}>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="ml-2"
+                      onClick={handleDescriptionSave}
+                    >
                       Save
                     </Button>
                   </div>
@@ -484,937 +453,741 @@ export default function PartnerDetail() {
               </div>
             </div>
           </div>
-
-
         </div>
       </div>
 
-      {/* Tabs and content */}
+      {/* Main content area with search and tabs */}
       <div>
-        <div className="flex justify-between items-center mb-6">
-          <Tabs 
-            value={activeTab} 
-            onValueChange={setActiveTab}
-            className="w-full"
-          >
-            <div className="flex items-center border-b space-x-1 overflow-x-auto">
-              {tabOrder.map((tab) => (
-                <div 
-                  key={tab}
-                  draggable
-                  onDragStart={(e) => handleDragStart(e, tab)}
-                  onDragOver={(e) => handleDragOver(e, tab)}
-                  onDrop={handleDrop}
-                  className="relative"
-                >
-                  <div 
-                    className={`px-4 py-2 cursor-pointer flex items-center ${
-                      activeTab === tab 
-                        ? 'bg-indigo-100 text-indigo-700 rounded-t-md border-b-2 border-indigo-600' 
-                        : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
-                    }`}
-                    onClick={() => setActiveTab(tab)}
-                  >
-                    {isEditingTabName === tab ? (
-                      <Input
-                        value={editedTabName}
-                        onChange={(e) => setEditedTabName(e.target.value)}
-                        onBlur={saveTabName}
-                        onKeyDown={(e) => e.key === 'Enter' && saveTabName()}
-                        className="w-40 h-8 text-sm"
-                        autoFocus
-                      />
-                    ) : (
-                      <div 
-                        onDoubleClick={() => startEditingTabName(tab)}
-                        className="cursor-text"
-                      >
-                        {tabNames[tab] || tab}
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ))}
+        <div className="flex justify-between items-center mb-4">
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" className="flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+              </svg>
+              <span>Saved Lists</span>
+            </Button>
+            
+            <Button variant="outline" size="sm" className="flex items-center gap-2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+              </svg>
+              <span>Filters</span>
+            </Button>
+            
+            <div className="relative">
+              <Input
+                placeholder="Search..."
+                className="w-[200px] pl-8"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <svg className="h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex items-center gap-2">
+            <div className="flex items-center">
+              <div className="flex -space-x-2">
+                <Avatar className="h-7 w-7 border-2 border-white">
+                  <AvatarFallback className="bg-indigo-100 text-indigo-600 text-xs">JD</AvatarFallback>
+                </Avatar>
+                <Avatar className="h-7 w-7 border-2 border-white">
+                  <AvatarFallback className="bg-blue-100 text-blue-600 text-xs">AC</AvatarFallback>
+                </Avatar>
+              </div>
+              <div className="h-7 w-7 rounded-full bg-indigo-600 text-white flex items-center justify-center text-xs font-medium ml-1">+2</div>
             </div>
             
-            <div className="flex justify-between mt-4">
-              <div className="flex gap-3 items-center">
-                {/* View selector and filters */}
-                <div className="flex items-center space-x-3">
-                  <div className="flex items-center space-x-2">
-                    <Button variant="outline" size="sm" className="flex items-center">
-                      <Bookmark className="h-4 w-4 mr-1" />
-                      <span>Saved Lists</span>
-                    </Button>
-                    
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => setFilterOpen(!filterOpen)}
-                      className={filterOpen ? "bg-gray-100" : ""}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                      </svg>
-                      Filters
-                    </Button>
-                    
-                    {searchTerm && (
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        onClick={() => setSearchTerm("")}
-                        className="text-gray-500 hover:text-gray-700"
-                      >
-                        Clear filters
-                      </Button>
-                    )}
-                  </div>
-                  
-                  <div className="relative w-64">
+            <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700 text-white">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+                <polyline points="16 6 12 2 8 6"></polyline>
+                <line x1="12" y1="2" x2="12" y2="15"></line>
+              </svg>
+              Share
+            </Button>
+          </div>
+        </div>
+        
+        <Tabs 
+          value={activeTab} 
+          onValueChange={setActiveTab}
+          className="w-full"
+        >
+          <div className="flex items-center border-b space-x-1 overflow-x-auto">
+            {tabOrder.map((tab) => (
+              <div 
+                key={tab}
+                draggable
+                onDragStart={(e) => handleDragStart(e, tab)}
+                onDragOver={(e) => handleDragOver(e, tab)}
+                onDrop={handleDrop}
+                className="relative"
+              >
+                <div 
+                  className={`px-4 py-2 cursor-pointer flex items-center ${
+                    activeTab === tab 
+                      ? 'bg-indigo-100 text-indigo-700 rounded-t-md border-b-2 border-indigo-600' 
+                      : 'text-gray-600 hover:bg-gray-100 hover:text-gray-900'
+                  }`}
+                  onClick={() => setActiveTab(tab)}
+                >
+                  {isEditingTabName === tab ? (
                     <Input
-                      className="pl-8"
-                      placeholder="Search..."
+                      value={editedTabName}
+                      onChange={(e) => setEditedTabName(e.target.value)}
+                      onBlur={saveTabName}
+                      onKeyDown={(e) => e.key === 'Enter' && saveTabName()}
+                      className="w-40 h-8 text-sm"
+                      autoFocus
+                    />
+                  ) : (
+                    <div 
+                      onDoubleClick={() => startEditingTabName(tab)}
+                      className="cursor-text"
+                    >
+                      {tabNames[tab] || tab}
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+            
+          {/* Tab Contents */}
+          <TabsContent value="okr" className="mt-4">
+            <div className="space-y-6">
+              {mockOKRs.map((plan) => (
+                <Card key={plan.id} className="overflow-hidden">
+                  <CardContent className="p-0">
+                    <div className="bg-indigo-50 p-4 border-b">
+                      <h2 className="font-semibold text-lg">{plan.title}</h2>
+                    </div>
+                    
+                    <div className="p-4">
+                      <div className="space-y-6">
+                        {plan.objectives.map((objective) => (
+                          <div key={objective.id} className="border-b pb-4 last:border-0 last:pb-0">
+                            <div className="flex justify-between mb-2">
+                              <div>
+                                <h3 className="font-medium">{objective.title}</h3>
+                                <div className="flex items-center mt-1 text-sm text-gray-600">
+                                  <span className="mr-1">Owner:</span>
+                                  <OwnerAvatar owner={objective.owner} />
+                                  <span className="ml-2 mr-4">{objective.owner.name}</span>
+                                  
+                                  <span className="mr-1">Due:</span>
+                                  <span>{format(objective.dueDate, 'MMM dd, yyyy')}</span>
+                                </div>
+                              </div>
+                              
+                              <div className="text-right">
+                                <div className="mb-1">
+                                  <Badge variant={objective.type === 'financial' ? "default" : "outline"} className="capitalize">
+                                    {objective.type}
+                                  </Badge>
+                                </div>
+                                <div className="text-sm">
+                                  <span className="font-medium">{objective.realized}</span>
+                                  <span className="text-gray-500"> / {objective.target}</span>
+                                </div>
+                              </div>
+                            </div>
+                            
+                            <div className="mt-2">
+                              <ProgressBar 
+                                progress={objective.progress} 
+                                type={
+                                  objective.progress >= 80 ? "success" : 
+                                  objective.progress >= 50 ? "default" : 
+                                  objective.progress >= 25 ? "warning" : "danger"
+                                } 
+                              />
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </TabsContent>
+            
+          <TabsContent value="opportunities" className="mt-4">
+            <div>
+              <h2 className="text-2xl font-bold mb-4">Opportunities</h2>
+              
+              <div className="flex justify-between items-center mb-4">
+                <Button variant="outline" size="sm" className="flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                  </svg>
+                  <span>Saved Lists</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </Button>
+                
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" className="text-sm">
+                    <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                      <polyline points="17 8 21 12 17 16"></polyline>
+                      <line x1="21" y1="12" x2="9" y2="12"></line>
+                    </svg>
+                    Export
+                  </Button>
+                  
+                  <Button size="sm" className="text-sm bg-indigo-600 hover:bg-indigo-700">
+                    <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="12" y1="5" x2="12" y2="19"></line>
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    New
+                  </Button>
+                </div>
+              </div>
+              
+              <div className="mb-4">
+                <div className="flex gap-2">
+                  <div className="relative">
+                    <input 
+                      type="text" 
+                      placeholder="Search opportunities..." 
+                      className="w-[230px] border border-gray-300 rounded-md py-2 pl-10 pr-4 text-sm"
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                     />
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                      />
-                    </svg>
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                      </svg>
+                    </div>
                   </div>
+                  
+                  <Button variant="outline" size="sm" className="flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                    </svg>
+                    <span>Status</span>
+                  </Button>
+                  
+                  <Button variant="outline" size="sm" className="flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
+                      <rect x="9" y="9" width="6" height="6"></rect>
+                      <line x1="9" y1="1" x2="9" y2="4"></line>
+                      <line x1="15" y1="1" x2="15" y2="4"></line>
+                      <line x1="9" y1="20" x2="9" y2="23"></line>
+                      <line x1="15" y1="20" x2="15" y2="23"></line>
+                      <line x1="20" y1="9" x2="23" y2="9"></line>
+                      <line x1="20" y1="14" x2="23" y2="14"></line>
+                      <line x1="1" y1="9" x2="4" y2="9"></line>
+                      <line x1="1" y1="14" x2="4" y2="14"></line>
+                    </svg>
+                    <span>Type</span>
+                  </Button>
                 </div>
               </div>
-              
-              {/* Selection actions */}
+            
+              {/* Selected items actions */}
               {selectedItems.length > 0 && (
-                <div className="flex items-center gap-2">
-                  <span className="text-sm text-gray-700 font-medium">
-                    {selectedItems.length} item{selectedItems.length > 1 ? 's' : ''} selected
-                  </span>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => setShowSaveListModal(true)}
-                  >
-                    <Bookmark className="h-4 w-4 mr-1" />
-                    Save {selectedItems.length > 1 ? 'items' : 'item'} to list
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                      <circle cx="18" cy="5" r="3"></circle>
-                      <circle cx="6" cy="12" r="3"></circle>
-                      <circle cx="18" cy="19" r="3"></circle>
-                      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                    </svg>
-                    Share
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                      <polyline points="22 12 16 12 14 15 10 15 8 12 2 12"></polyline>
-                      <path d="M5.45 5.11L2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"></path>
-                    </svg>
-                    Add to Campaign
-                  </Button>
+                <div className="bg-indigo-50 rounded p-3 mb-4 flex justify-between items-center">
+                  <div className="flex items-center">
+                    <span className="text-indigo-700 font-medium mr-2">{selectedItems.length} opportunities selected</span>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-gray-500 hover:text-gray-700 p-1 h-auto"
+                      onClick={clearSelection}
+                    >
+                      Clear selection
+                    </Button>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Button variant="ghost" size="sm" className="text-indigo-700" onClick={() => handleSaveList()}>
+                      Create List
+                    </Button>
+                    
+                    <Button variant="ghost" size="sm" className="text-indigo-700" onClick={() => handleAddToCampaign()}>
+                      Add to Campaign
+                    </Button>
+                  </div>
                 </div>
               )}
               
-              {/* Team display when nothing selected */}
-              {selectedItems.length === 0 && (
-                <div className="flex items-center gap-2">
-                  <div className="text-sm text-gray-500 mr-2">Team</div>
-                  <div className="flex -space-x-2">
-                    {partner.team.map((member, idx) => (
-                      <Avatar key={idx} className="h-8 w-8 border-2 border-white">
-                        <AvatarFallback className="bg-indigo-100 text-indigo-600">
-                          {member.initials}
-                        </AvatarFallback>
-                      </Avatar>
-                    ))}
-                    <div className="h-8 w-8 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center border-2 border-white text-xs">
-                      +2
-                    </div>
+              {/* Stat cards */}
+              <div className="grid grid-cols-4 gap-4 mb-6">
+                <div className="bg-white p-4 rounded-md border border-gray-200">
+                  <div className="text-2xl font-semibold">
+                    3
                   </div>
-                  
-                  <Button className="bg-indigo-600 hover:bg-indigo-700">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                      <circle cx="18" cy="5" r="3"></circle>
-                      <circle cx="6" cy="12" r="3"></circle>
-                      <circle cx="18" cy="19" r="3"></circle>
-                      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                    </svg>
-                    Share
-                  </Button>
+                  <div className="text-gray-500 text-sm">Total Opportunities</div>
                 </div>
-              )}
+                
+                <div className="bg-white p-4 rounded-md border border-gray-200">
+                  <div className="text-2xl font-semibold">
+                    1
+                  </div>
+                  <div className="text-gray-500 text-sm">Closed Won</div>
+                </div>
+                
+                <div className="bg-white p-4 rounded-md border border-gray-200">
+                  <div className="text-2xl font-semibold">
+                    €280,000
+                  </div>
+                  <div className="text-gray-500 text-sm">Total Value</div>
+                </div>
+                
+                <div className="bg-white p-4 rounded-md border border-gray-200">
+                  <div className="text-2xl font-semibold">
+                    €150,000
+                  </div>
+                  <div className="text-gray-500 text-sm">Weighted Value</div>
+                </div>
+              </div>
+              
+              {/* Opportunities table */}
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[40px]">
+                      <Checkbox />
+                    </TableHead>
+                    <TableHead>Title</TableHead>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Partner</TableHead>
+                    <TableHead>Type</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Value</TableHead>
+                    <TableHead>Due Date</TableHead>
+                    <TableHead>Template</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell>
+                      <Checkbox />
+                    </TableCell>
+                    <TableCell>
+                      <span className="font-medium">
+                        Property Insurance Renewal
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-indigo-600">
+                      Acme Corporation
+                    </TableCell>
+                    <TableCell className="text-indigo-600">
+                      ABC Insurance Brokers
+                    </TableCell>
+                    <TableCell>
+                      Renewal
+                    </TableCell>
+                    <TableCell>
+                      <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+                        In Progress
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      €125,000
+                    </TableCell>
+                    <TableCell>
+                      15/06/2025
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex space-x-1">
+                        <div className="h-6 w-6 rounded-full bg-indigo-100 text-indigo-700 text-xs flex items-center justify-center">
+                          RN
+                        </div>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                  
+                  <TableRow>
+                    <TableCell>
+                      <Checkbox />
+                    </TableCell>
+                    <TableCell>
+                      <span className="font-medium">
+                        Cyber Security Coverage
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-indigo-600">
+                      Acme Corporation
+                    </TableCell>
+                    <TableCell className="text-indigo-600">
+                      ABC Insurance Brokers
+                    </TableCell>
+                    <TableCell>
+                      New Business
+                    </TableCell>
+                    <TableCell>
+                      <span className="px-2 py-1 rounded-full text-xs bg-purple-100 text-purple-800">
+                        Qualification
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      €75,000
+                    </TableCell>
+                    <TableCell>
+                      30/07/2025
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex space-x-1">
+                        <div className="h-6 w-6 rounded-full bg-green-100 text-green-700 text-xs flex items-center justify-center">
+                          NB
+                        </div>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                  
+                  <TableRow>
+                    <TableCell>
+                      <Checkbox />
+                    </TableCell>
+                    <TableCell>
+                      <span className="font-medium">
+                        Workers Compensation
+                      </span>
+                    </TableCell>
+                    <TableCell className="text-indigo-600">
+                      Umbrella Corporation
+                    </TableCell>
+                    <TableCell className="text-indigo-600">
+                      ABC Insurance Brokers
+                    </TableCell>
+                    <TableCell>
+                      Cross-sell
+                    </TableCell>
+                    <TableCell>
+                      <span className="px-2 py-1 rounded-full text-xs bg-red-100 text-red-800">
+                        Closed Lost
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      €80,000
+                    </TableCell>
+                    <TableCell>
+                      15/05/2025
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex space-x-1">
+                        <div className="h-6 w-6 rounded-full bg-cyan-100 text-cyan-700 text-xs flex items-center justify-center">
+                          CS
+                        </div>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
             </div>
-            
-            {/* Save List Modal */}
-            <Dialog open={showSaveListModal} onOpenChange={setShowSaveListModal}>
-              <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                  <DialogTitle>Save to List</DialogTitle>
-                  <DialogDescription>
-                    Create a new list or add to an existing list.
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="py-4">
-                  <Input
-                    placeholder="List name"
-                    value={saveListName}
-                    onChange={(e) => setSaveListName(e.target.value)}
-                    className="mb-4"
-                  />
-                  <div className="text-sm font-medium mb-2">Or add to existing list:</div>
-                  <div className="space-y-2 max-h-40 overflow-y-auto">
-                    {["My active customers", "High value customers", "Q2 targets"].map((list, idx) => (
-                      <div key={idx} className="flex items-center space-x-2 p-2 hover:bg-gray-100 rounded cursor-pointer">
-                        <Bookmark className="h-4 w-4" />
-                        <span>{list}</span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <DialogFooter className="sm:justify-end">
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowSaveListModal(false)}
-                  >
-                    Cancel
-                  </Button>
-                  <Button 
-                    type="submit"
-                    onClick={handleSaveList}
-                    disabled={!saveListName && true}
-                  >
-                    Save
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
-
-            <TabsContent value="okr" className="mt-4">
-              {/* OKR content */}
-              <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
-                <Table>
-                  <TableHeader className="bg-gray-50">
-                    <TableRow>
-                      <TableHead className="w-[40px] text-center">
-                        <Checkbox 
-                          id="select-all-okr"
-                          // Flatten all objectives from all plans for selection
-                          onCheckedChange={() => {
-                            const allObjectives = mockOKRs.flatMap(plan => 
-                              plan.objectives.map(obj => obj.id)
-                            );
-                            toggleSelectAll(allObjectives);
-                          }}
-                          checked={
-                            selectedItems.length > 0 && 
-                            mockOKRs.flatMap(plan => plan.objectives.map(obj => obj.id)).every(id => 
-                              selectedItems.includes(id)
-                            ) && 
-                            mockOKRs.flatMap(plan => plan.objectives).length > 0
-                          }
-                        />
-                      </TableHead>
-                      <TableHead>Objective</TableHead>
-                      <TableHead>Plan</TableHead>
-                      <TableHead>Realized</TableHead>
-                      <TableHead>Target</TableHead>
-                      <TableHead>Progress</TableHead>
-                      <TableHead>Due Date</TableHead>
-                      <TableHead>Owner</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {mockOKRs
-                      .flatMap(plan => 
-                        plan.objectives.map(obj => ({
-                          ...obj,
-                          planId: plan.id,
-                          planTitle: plan.title
-                        }))
-                      )
-                      .filter(obj => 
-                        searchTerm ? 
-                          obj.title.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          obj.planTitle.toLowerCase().includes(searchTerm.toLowerCase()) : 
-                          true
-                      )
-                      .map((objective) => (
-                        <TableRow 
-                          key={objective.id} 
-                          className={`hover:bg-gray-50 ${selectedItems.includes(objective.id) ? 'bg-indigo-50' : ''}`}
-                        >
-                          <TableCell className="text-center">
-                            <Checkbox 
-                              checked={selectedItems.includes(objective.id)} 
-                              onCheckedChange={() => toggleItemSelection(objective.id)}
-                            />
-                          </TableCell>
-                          <TableCell className="font-medium">
-                            {objective.title}
-                          </TableCell>
-                          <TableCell>
-                            <div className="flex items-center space-x-2">
-                              <div className="h-6 w-6 rounded bg-amber-100 text-amber-800 flex items-center justify-center text-xs font-medium">
-                                {objective.planId.toUpperCase()}
-                              </div>
-                              <span>{objective.planTitle}</span>
-                            </div>
-                          </TableCell>
-                          <TableCell>
-                            {objective.type === 'financial' ? (
-                              <span>€ {objective.realized}</span>
-                            ) : (
-                              <span className="flex items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500 mr-1">
-                                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                                </svg>
-                                Complete
-                              </span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {objective.type === 'financial' ? (
-                              <span>€ {objective.target}</span>
-                            ) : (
-                              <span>Complete</span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {objective.type === 'financial' ? (
-                              <div className="flex items-center space-x-2">
-                                <span>{objective.progress}%</span>
-                                <div className="w-24">
-                                  <ProgressBar 
-                                    progress={objective.progress} 
-                                    type={objective.progress >= 70 ? "success" : objective.progress >= 40 ? "warning" : "danger"}
-                                  />
-                                </div>
-                              </div>
-                            ) : (
-                              <span className="flex items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500 mr-1">
-                                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                                </svg>
-                                100%
-                              </span>
-                            )}
-                          </TableCell>
-                          <TableCell>
-                            {format(objective.dueDate, 'dd.MM.yyyy')}
-                          </TableCell>
-                          <TableCell>
-                            <OwnerAvatar owner={objective.owner} />
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                  </TableBody>
-                </Table>
-                {mockOKRs.flatMap(plan => plan.objectives).filter(obj => 
-                  searchTerm ? 
-                    obj.title.toLowerCase().includes(searchTerm.toLowerCase()) : 
-                    true
-                ).length === 0 && (
-                  <div className="py-8 text-center text-gray-500">
-                    No objectives found matching your criteria.
-                  </div>
-                )}
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="opportunities" className="mt-4">
-              <div>
-                <h2 className="text-2xl font-bold mb-4">Opportunities</h2>
-                
-                <div className="flex justify-between items-center mb-4">
-                  <Button variant="outline" size="sm" className="flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-                    </svg>
-                    <span>Saved Lists</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="6 9 12 15 18 9"></polyline>
-                    </svg>
-                  </Button>
-                  
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="text-sm">
-                      <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M21 15V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
-                        <polyline points="17 8 21 12 17 16"></polyline>
-                        <line x1="21" y1="12" x2="9" y2="12"></line>
-                      </svg>
-                      Export
-                    </Button>
-                    
-                    <Button size="sm" className="text-sm bg-indigo-600 hover:bg-indigo-700">
-                      <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <line x1="12" y1="5" x2="12" y2="19"></line>
-                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                      </svg>
-                      New
-                    </Button>
-                  </div>
-                </div>
-                
-                <div className="mb-4">
-                  <div className="flex gap-2">
-                    <div className="relative">
-                      <input 
-                        type="text" 
-                        placeholder="Search opportunities..." 
-                        className="w-[230px] border border-gray-300 rounded-md py-2 pl-10 pr-4 text-sm"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                      />
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <circle cx="11" cy="11" r="8"></circle>
-                          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                        </svg>
-                      </div>
-                    </div>
-                    
-                    <Button variant="outline" size="sm" className="flex items-center gap-1">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                      </svg>
-                      <span>Status</span>
-                    </Button>
-                    
-                    <Button variant="outline" size="sm" className="flex items-center gap-1">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
-                        <rect x="9" y="9" width="6" height="6"></rect>
-                        <line x1="9" y1="1" x2="9" y2="4"></line>
-                        <line x1="15" y1="1" x2="15" y2="4"></line>
-                        <line x1="9" y1="20" x2="9" y2="23"></line>
-                        <line x1="15" y1="20" x2="15" y2="23"></line>
-                        <line x1="20" y1="9" x2="23" y2="9"></line>
-                        <line x1="20" y1="14" x2="23" y2="14"></line>
-                        <line x1="1" y1="9" x2="4" y2="9"></line>
-                        <line x1="1" y1="14" x2="4" y2="14"></line>
-                      </svg>
-                      <span>Type</span>
-                    </Button>
-                  </div>
-                </div>
+          </TabsContent>
+          
+          <TabsContent value="customers" className="mt-4">
+            <div>
+              <h2 className="text-2xl font-bold mb-4">Customers</h2>
               
-                {/* Selected items actions */}
-                {selectedItems.length > 0 && (
-                  <div className="bg-indigo-50 rounded p-3 mb-4 flex justify-between items-center">
-                    <div className="flex items-center">
-                      <span className="text-indigo-700 font-medium mr-2">{selectedItems.length} opportunities selected</span>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-gray-500 hover:text-gray-700 p-1 h-auto"
-                        onClick={clearSelection}
-                      >
-                        Clear selection
-                      </Button>
-                    </div>
-                    
-                    <div className="flex gap-2">
-                      <Button variant="ghost" size="sm" className="text-indigo-700" onClick={() => handleSaveList()}>
-                        Create List
-                      </Button>
-                      
-                      <Button variant="ghost" size="sm" className="text-indigo-700" onClick={() => handleAddToCampaign()}>
-                        Add to Campaign
-                      </Button>
-                    </div>
-                  </div>
-                )}
+              <div className="flex justify-between items-center mb-4">
+                <Button variant="outline" size="sm" className="flex items-center gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                  </svg>
+                  <span>Saved Lists</span>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </Button>
                 
-                {/* Stat cards */}
-                <div className="grid grid-cols-4 gap-4 mb-6">
-                  <div className="bg-white p-4 rounded-md border border-gray-200">
-                    <div className="text-2xl font-semibold">
-                      3
-                    </div>
-                    <div className="text-gray-500 text-sm">Total Opportunities</div>
-                  </div>
-                  
-                  <div className="bg-white p-4 rounded-md border border-gray-200">
-                    <div className="text-2xl font-semibold">
-                      1
-                    </div>
-                    <div className="text-gray-500 text-sm">Closed Won</div>
-                  </div>
-                  
-                  <div className="bg-white p-4 rounded-md border border-gray-200">
-                    <div className="text-2xl font-semibold">
-                      €280,000
-                    </div>
-                    <div className="text-gray-500 text-sm">Total Value</div>
-                  </div>
-                  
-                  <div className="bg-white p-4 rounded-md border border-gray-200">
-                    <div className="text-2xl font-semibold">
-                      €150,000
-                    </div>
-                    <div className="text-gray-500 text-sm">Weighted Value</div>
-                  </div>
-                </div>
-                
-                {/* Opportunities table */}
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[40px]">
-                        <Checkbox />
-                      </TableHead>
-                      <TableHead>Title</TableHead>
-                      <TableHead>Customer</TableHead>
-                      <TableHead>Partner</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Value</TableHead>
-                      <TableHead>Due Date</TableHead>
-                      <TableHead>Template</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    <TableRow>
-                      <TableCell>
-                        <Checkbox />
-                      </TableCell>
-                      <TableCell>
-                        <span className="font-medium">
-                          Property Insurance Renewal
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-indigo-600">
-                        Acme Corporation
-                      </TableCell>
-                      <TableCell className="text-indigo-600">
-                        ABC Insurance Brokers
-                      </TableCell>
-                      <TableCell>
-                        Renewal
-                      </TableCell>
-                      <TableCell>
-                        <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
-                          In Progress
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        €125,000
-                      </TableCell>
-                      <TableCell>
-                        15/06/2025
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex space-x-1">
-                          <div className="h-6 w-6 rounded-full bg-indigo-100 text-indigo-700 text-xs flex items-center justify-center">
-                            RN
-                          </div>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                    
-                    <TableRow>
-                      <TableCell>
-                        <Checkbox />
-                      </TableCell>
-                      <TableCell>
-                        <span className="font-medium">
-                          Cyber Security Coverage
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-indigo-600">
-                        Acme Corporation
-                      </TableCell>
-                      <TableCell className="text-indigo-600">
-                        ABC Insurance Brokers
-                      </TableCell>
-                      <TableCell>
-                        New Business
-                      </TableCell>
-                      <TableCell>
-                        <span className="px-2 py-1 rounded-full text-xs bg-purple-100 text-purple-800">
-                          Qualification
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        €75,000
-                      </TableCell>
-                      <TableCell>
-                        30/07/2025
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex space-x-1">
-                          <div className="h-6 w-6 rounded-full bg-green-100 text-green-700 text-xs flex items-center justify-center">
-                            NB
-                          </div>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                    
-                    <TableRow>
-                      <TableCell>
-                        <Checkbox />
-                      </TableCell>
-                      <TableCell>
-                        <span className="font-medium">
-                          Workers Compensation
-                        </span>
-                      </TableCell>
-                      <TableCell className="text-indigo-600">
-                        Umbrella Corporation
-                      </TableCell>
-                      <TableCell className="text-indigo-600">
-                        ABC Insurance Brokers
-                      </TableCell>
-                      <TableCell>
-                        Cross-sell
-                      </TableCell>
-                      <TableCell>
-                        <span className="px-2 py-1 rounded-full text-xs bg-red-100 text-red-800">
-                          Closed Lost
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        €80,000
-                      </TableCell>
-                      <TableCell>
-                        15/05/2025
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex space-x-1">
-                          <div className="h-6 w-6 rounded-full bg-cyan-100 text-cyan-700 text-xs flex items-center justify-center">
-                            CS
-                          </div>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="customers" className="mt-4">
-              <div>
-                <h2 className="text-2xl font-bold mb-4">Customers</h2>
-                
-                <div className="flex justify-between items-center mb-4">
-                  <Button variant="outline" size="sm" className="flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                <div className="flex gap-2">
+                  <Button variant="outline" size="sm" className="text-sm">
+                    <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M21 15V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+                      <polyline points="17 8 21 12 17 16"></polyline>
+                      <line x1="21" y1="12" x2="9" y2="12"></line>
                     </svg>
-                    <span>Saved Lists</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="6 9 12 15 18 9"></polyline>
-                    </svg>
+                    Export
                   </Button>
                   
-                  <div className="flex gap-2">
-                    <Button variant="outline" size="sm" className="text-sm">
-                      <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M21 15V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
-                        <polyline points="17 8 21 12 17 16"></polyline>
-                        <line x1="21" y1="12" x2="9" y2="12"></line>
-                      </svg>
-                      Export
-                    </Button>
-                    
-                    <Button size="sm" className="text-sm bg-indigo-600 hover:bg-indigo-700">
-                      <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <line x1="12" y1="5" x2="12" y2="19"></line>
-                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                      </svg>
-                      New
-                    </Button>
-                  </div>
+                  <Button size="sm" className="text-sm bg-indigo-600 hover:bg-indigo-700">
+                    <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <line x1="12" y1="5" x2="12" y2="19"></line>
+                      <line x1="5" y1="12" x2="19" y2="12"></line>
+                    </svg>
+                    New
+                  </Button>
                 </div>
-                
-                <div className="mb-4">
-                  <div className="flex gap-2">
-                    <div className="relative">
-                      <input 
-                        type="text" 
-                        placeholder="Search by name, industry..." 
-                        className="w-[230px] border border-gray-300 rounded-md py-2 pl-10 pr-4 text-sm"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                      />
-                      <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                        <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <circle cx="11" cy="11" r="8"></circle>
-                          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                        </svg>
-                      </div>
-                    </div>
-                    
-                    <Button variant="outline" size="sm" className="flex items-center gap-1">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                      </svg>
-                      <span>Status</span>
-                    </Button>
-                    
-                    <Button variant="outline" size="sm" className="flex items-center gap-1">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <line x1="2" y1="12" x2="22" y2="12"></line>
-                        <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
-                      </svg>
-                      <span>Industry</span>
-                    </Button>
-                    
-                    <Button variant="outline" size="sm" className="flex items-center gap-1">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M9 11l3 3l8-8"></path>
-                        <path d="M21 12V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10"></path>
-                      </svg>
-                      <span>Size</span>
-                    </Button>
-                  </div>
-                </div>
+              </div>
               
-                {/* Selected items actions */}
-                {selectedItems.length > 0 && (
-                  <div className="bg-indigo-50 rounded p-3 mb-4 flex justify-between items-center">
-                    <div className="flex items-center">
-                      <span className="text-indigo-700 font-medium mr-2">{selectedItems.length} customers selected</span>
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="text-gray-500 hover:text-gray-700 p-1 h-auto"
-                        onClick={clearSelection}
-                      >
-                        Clear selection
-                      </Button>
+              <div className="mb-4">
+                <div className="flex gap-2">
+                  <div className="relative">
+                    <input 
+                      type="text" 
+                      placeholder="Search by name, industry..." 
+                      className="w-[230px] border border-gray-300 rounded-md py-2 pl-10 pr-4 text-sm"
+                      value={searchTerm}
+                      onChange={(e) => setSearchTerm(e.target.value)}
+                    />
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                      </svg>
                     </div>
-                    
-                    <div className="flex gap-2">
-                      <Button variant="ghost" size="sm" className="text-indigo-700" onClick={() => handleSaveList()}>
-                        Create List
-                      </Button>
-                      
-                      <Button variant="ghost" size="sm" className="text-indigo-700" onClick={() => handleCreateOpportunity()}>
-                        Create Opportunity
-                      </Button>
-                    </div>
-                  </div>
-                )}
-                
-                {/* Stat cards */}
-                <div className="grid grid-cols-4 gap-4 mb-6">
-                  <div className="bg-white p-4 rounded-md border border-gray-200">
-                    <div className="text-2xl font-semibold">
-                      3
-                    </div>
-                    <div className="text-gray-500 text-sm">Total Customers</div>
                   </div>
                   
-                  <div className="bg-white p-4 rounded-md border border-gray-200">
-                    <div className="text-2xl font-semibold">
+                  <Button variant="outline" size="sm" className="flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                    </svg>
+                    <span>Status</span>
+                  </Button>
+                  
+                  <Button variant="outline" size="sm" className="flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="2" y1="12" x2="22" y2="12"></line>
+                      <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+                    </svg>
+                    <span>Industry</span>
+                  </Button>
+                  
+                  <Button variant="outline" size="sm" className="flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M9 11l3 3l8-8"></path>
+                      <path d="M21 12V7a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h10"></path>
+                    </svg>
+                    <span>Size</span>
+                  </Button>
+                </div>
+              </div>
+            
+              {/* Selected items actions */}
+              {selectedItems.length > 0 && (
+                <div className="bg-indigo-50 rounded p-3 mb-4 flex justify-between items-center">
+                  <div className="flex items-center">
+                    <span className="text-indigo-700 font-medium mr-2">{selectedItems.length} customers selected</span>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-gray-500 hover:text-gray-700 p-1 h-auto"
+                      onClick={clearSelection}
+                    >
+                      Clear selection
+                    </Button>
+                  </div>
+                  
+                  <div className="flex gap-2">
+                    <Button variant="ghost" size="sm" className="text-indigo-700" onClick={() => handleSaveList()}>
+                      Create List
+                    </Button>
+                    
+                    <Button variant="ghost" size="sm" className="text-indigo-700" onClick={() => handleCreateOpportunity()}>
+                      Create Opportunity
+                    </Button>
+                  </div>
+                </div>
+              )}
+              
+              {/* Stat cards */}
+              <div className="grid grid-cols-4 gap-4 mb-6">
+                <div className="bg-white p-4 rounded-md border border-gray-200">
+                  <div className="text-2xl font-semibold">
+                    3
+                  </div>
+                  <div className="text-gray-500 text-sm">Total Customers</div>
+                </div>
+                
+                <div className="bg-white p-4 rounded-md border border-gray-200">
+                  <div className="text-2xl font-semibold">
+                    2
+                  </div>
+                  <div className="text-gray-500 text-sm">Active Customers</div>
+                </div>
+                
+                <div className="bg-white p-4 rounded-md border border-gray-200">
+                  <div className="text-2xl font-semibold">
+                    13
+                  </div>
+                  <div className="text-gray-500 text-sm">Total Products</div>
+                </div>
+                
+                <div className="bg-white p-4 rounded-md border border-gray-200">
+                  <div className="text-2xl font-semibold">
+                    4
+                  </div>
+                  <div className="text-gray-500 text-sm">Total Opportunities</div>
+                </div>
+              </div>
+              
+              {/* Customers table */}
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-[40px]">
+                      <Checkbox />
+                    </TableHead>
+                    <TableHead>Customer</TableHead>
+                    <TableHead>Partner</TableHead>
+                    <TableHead>Industry</TableHead>
+                    <TableHead>Size</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Products</TableHead>
+                    <TableHead>Opportunities</TableHead>
+                    <TableHead>Template</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell>
+                      <Checkbox />
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center">
+                        <div className="h-8 w-8 mr-3 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-medium">
+                          AC
+                        </div>
+                        <span className="font-medium">
+                          Acme Corporation
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-indigo-600">
+                      ABC Insurance Brokers
+                    </TableCell>
+                    <TableCell>
+                      Manufacturing
+                    </TableCell>
+                    <TableCell>
+                      Enterprise
+                    </TableCell>
+                    <TableCell>
+                      <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
+                        Active
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      5
+                    </TableCell>
+                    <TableCell>
                       2
-                    </div>
-                    <div className="text-gray-500 text-sm">Active Customers</div>
-                  </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex space-x-1">
+                        <div className="h-6 w-6 rounded-full bg-indigo-100 text-indigo-700 text-xs flex items-center justify-center">
+                          RP
+                        </div>
+                        <div className="h-6 w-6 rounded-full bg-fuchsia-100 text-fuchsia-700 text-xs flex items-center justify-center">
+                          CO
+                        </div>
+                      </div>
+                    </TableCell>
+                  </TableRow>
                   
-                  <div className="bg-white p-4 rounded-md border border-gray-200">
-                    <div className="text-2xl font-semibold">
-                      13
-                    </div>
-                    <div className="text-gray-500 text-sm">Total Products</div>
-                  </div>
+                  <TableRow>
+                    <TableCell>
+                      <Checkbox />
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center">
+                        <div className="h-8 w-8 mr-3 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-medium">
+                          UC
+                        </div>
+                        <span className="font-medium">
+                          Umbrella Corporation
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-indigo-600">
+                      ABC Insurance Brokers
+                    </TableCell>
+                    <TableCell>
+                      Pharmaceuticals
+                    </TableCell>
+                    <TableCell>
+                      Large
+                    </TableCell>
+                    <TableCell>
+                      <span className="px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800">
+                        Inactive
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      2
+                    </TableCell>
+                    <TableCell>
+                      0
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex space-x-1">
+                        <div className="h-6 w-6 rounded-full bg-indigo-100 text-indigo-700 text-xs flex items-center justify-center">
+                          CO
+                        </div>
+                        <div className="h-6 w-6 rounded-full bg-blue-100 text-blue-700 text-xs flex items-center justify-center">
+                          RP
+                        </div>
+                      </div>
+                    </TableCell>
+                  </TableRow>
                   
-                  <div className="bg-white p-4 rounded-md border border-gray-200">
-                    <div className="text-2xl font-semibold">
-                      4
-                    </div>
-                    <div className="text-gray-500 text-sm">Total Opportunities</div>
-                  </div>
-                </div>
-                
-                {/* Customers table */}
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-[40px]">
-                        <Checkbox />
-                      </TableHead>
-                      <TableHead>Customer</TableHead>
-                      <TableHead>Partner</TableHead>
-                      <TableHead>Industry</TableHead>
-                      <TableHead>Size</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Products</TableHead>
-                      <TableHead>Opportunities</TableHead>
-                      <TableHead>Template</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    <TableRow>
-                      <TableCell>
-                        <Checkbox />
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center">
-                          <div className="h-8 w-8 mr-3 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-medium">
-                            AC
-                          </div>
-                          <span className="font-medium">
-                            Acme Corporation
-                          </span>
+                  <TableRow>
+                    <TableCell>
+                      <Checkbox />
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center">
+                        <div className="h-8 w-8 mr-3 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-medium">
+                          WE
                         </div>
-                      </TableCell>
-                      <TableCell className="text-indigo-600">
-                        ABC Insurance Brokers
-                      </TableCell>
-                      <TableCell>
-                        Manufacturing
-                      </TableCell>
-                      <TableCell>
-                        Enterprise
-                      </TableCell>
-                      <TableCell>
-                        <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
-                          Active
+                        <span className="font-medium">
+                          Wayne Enterprises
                         </span>
-                      </TableCell>
-                      <TableCell>
-                        5
-                      </TableCell>
-                      <TableCell>
-                        2
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex space-x-1">
-                          <div className="h-6 w-6 rounded-full bg-indigo-100 text-indigo-700 text-xs flex items-center justify-center">
-                            RP
-                          </div>
-                          <div className="h-6 w-6 rounded-full bg-fuchsia-100 text-fuchsia-700 text-xs flex items-center justify-center">
-                            CO
-                          </div>
+                      </div>
+                    </TableCell>
+                    <TableCell className="text-indigo-600">
+                      ABC Insurance Brokers
+                    </TableCell>
+                    <TableCell>
+                      Manufacturing
+                    </TableCell>
+                    <TableCell>
+                      Enterprise
+                    </TableCell>
+                    <TableCell>
+                      <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
+                        Active
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      6
+                    </TableCell>
+                    <TableCell>
+                      2
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex space-x-1">
+                        <div className="h-6 w-6 rounded-full bg-blue-100 text-blue-700 text-xs flex items-center justify-center">
+                          RP
                         </div>
-                      </TableCell>
-                    </TableRow>
-                    
-                    <TableRow>
-                      <TableCell>
-                        <Checkbox />
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center">
-                          <div className="h-8 w-8 mr-3 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-medium">
-                            UC
-                          </div>
-                          <span className="font-medium">
-                            Umbrella Corporation
-                          </span>
+                        <div className="h-6 w-6 rounded-full bg-fuchsia-100 text-fuchsia-700 text-xs flex items-center justify-center">
+                          CO
                         </div>
-                      </TableCell>
-                      <TableCell className="text-indigo-600">
-                        ABC Insurance Brokers
-                      </TableCell>
-                      <TableCell>
-                        Pharmaceuticals
-                      </TableCell>
-                      <TableCell>
-                        Large
-                      </TableCell>
-                      <TableCell>
-                        <span className="px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800">
-                          Inactive
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        2
-                      </TableCell>
-                      <TableCell>
-                        0
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex space-x-1">
-                          <div className="h-6 w-6 rounded-full bg-indigo-100 text-indigo-700 text-xs flex items-center justify-center">
-                            CO
-                          </div>
-                          <div className="h-6 w-6 rounded-full bg-blue-100 text-blue-700 text-xs flex items-center justify-center">
-                            RP
-                          </div>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                    
-                    <TableRow>
-                      <TableCell>
-                        <Checkbox />
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center">
-                          <div className="h-8 w-8 mr-3 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-medium">
-                            WE
-                          </div>
-                          <span className="font-medium">
-                            Wayne Enterprises
-                          </span>
-                        </div>
-                      </TableCell>
-                      <TableCell className="text-indigo-600">
-                        ABC Insurance Brokers
-                      </TableCell>
-                      <TableCell>
-                        Manufacturing
-                      </TableCell>
-                      <TableCell>
-                        Enterprise
-                      </TableCell>
-                      <TableCell>
-                        <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
-                          Active
-                        </span>
-                      </TableCell>
-                      <TableCell>
-                        6
-                      </TableCell>
-                      <TableCell>
-                        2
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex space-x-1">
-                          <div className="h-6 w-6 rounded-full bg-blue-100 text-blue-700 text-xs flex items-center justify-center">
-                            RP
-                          </div>
-                          <div className="h-6 w-6 rounded-full bg-fuchsia-100 text-fuchsia-700 text-xs flex items-center justify-center">
-                            CO
-                          </div>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  </TableBody>
-                </Table>
-              </div>
-            </TabsContent>
-          </Tabs>
-        </div>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
+            </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
