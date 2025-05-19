@@ -9,218 +9,101 @@ import {
   TableRow 
 } from "@/components/ui/table";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
-import {
-  ChevronLeft,
-  CalendarClock,
-  Layers,
-  DollarSign,
-  PieChart,
-  Users,
-  Building,
-  Briefcase,
-  CheckCircle,
-  AlertTriangle,
-  XCircle,
-  Clock,
-  FileText,
-  Tag,
-  MessageCircle
-} from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Separator } from "@/components/ui/separator";
+import { ChevronLeft } from "lucide-react";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Checkbox } from "@/components/ui/checkbox";
 
-type MetricStatus = "on_track" | "at_risk" | "off_track";
-
-interface Metric {
-  id: number;
-  title: string;
-  status: MetricStatus;
-  progress: number;
-  dueDate: Date;
-  owner: string;
-  ownerInitials: string;
-  targetValue: number;
-  realizedValue: number;
-  unit: string;
-  tags: string[];
-}
-
-interface Activity {
-  id: number;
-  type: string;
-  description: string;
-  user: string;
-  userInitials: string;
-  timestamp: Date;
-}
-
-// Mock opportunity for this example
+// Mock opportunity data
 const opportunity = {
   id: 1,
   name: "Property Insurance Renewal",
-  customer: "Acme Corporation",
-  customerInitials: "AC",
-  partner: "ABC Insurance Brokers",
-  partnerInitials: "AB",
-  type: "Renewal",
-  status: "In Progress",
-  value: 125000,
-  probability: 75,
-  dueDate: new Date("2025-06-15"),
-  createdAt: new Date("2025-01-10"),
-  updatedAt: new Date("2025-05-01"),
-  assignedTo: "Richard Newman",
-  assignedToInitials: "RN",
-  description: "Annual renewal of property insurance coverage for Acme Corporation's manufacturing facilities. The client is considering expanding coverage to include additional cyber protection elements.",
-  notes: [
+  description: "Objective to renew property insurance for Acme Corporation's main facilities",
+  amount: 2120000,
+  probability: 60,
+  stage: "Discovery",
+  customer: {
+    id: 1,
+    name: "Acme Corporation",
+    link: "/lists/customers/1"
+  },
+  partners: [
     {
       id: 1,
-      text: "Client requested quote for additional cyber coverage",
-      createdBy: "Richard Newman",
-      createdByInitials: "RN",
-      createdAt: new Date("2025-04-15")
+      name: "ABC Insurance Brokers",
+      link: "/lists/partners/1"
     },
     {
       id: 2,
-      text: "Sent updated proposal with cyber coverage options",
-      createdBy: "Maria Johnson",
-      createdByInitials: "MJ",
-      createdAt: new Date("2025-04-20")
-    },
-    {
-      id: 3,
-      text: "Client is reviewing the proposal, follow-up scheduled for May 10",
-      createdBy: "Richard Newman",
-      createdByInitials: "RN",
-      createdAt: new Date("2025-04-25")
+      name: "XYZ Consulting",
+      link: "/lists/partners/2"
     }
   ],
-  contactHistory: [
-    {
-      id: 1,
-      type: "Email",
-      description: "Initial renewal notification",
-      date: new Date("2025-03-10")
-    },
-    {
-      id: 2,
-      type: "Call",
-      description: "Discussed coverage options and potential changes",
-      date: new Date("2025-03-25")
-    },
-    {
-      id: 3,
-      type: "Meeting",
-      description: "On-site facility inspection and coverage review",
-      date: new Date("2025-04-15")
-    }
-  ],
-  documents: [
-    {
-      id: 1,
-      name: "Current Policy.pdf",
-      size: "2.4 MB",
-      uploadedBy: "Richard Newman",
-      uploadedAt: new Date("2025-03-15")
-    },
-    {
-      id: 2,
-      name: "Renewal Proposal.pdf",
-      size: "1.8 MB",
-      uploadedBy: "Maria Johnson",
-      uploadedAt: new Date("2025-04-20")
-    },
-    {
-      id: 3,
-      name: "Facility Inspection Report.pdf",
-      size: "3.5 MB",
-      uploadedBy: "Richard Newman",
-      uploadedAt: new Date("2025-04-15")
-    }
-  ]
+  owner: {
+    name: "Lenny K.",
+    initials: "LK"
+  }
 };
 
-// Sample metrics
-const metrics: Metric[] = [
+// Mock metrics data for this opportunity
+const metrics = [
   {
     id: 1,
-    title: "Response time to customer inquiries",
+    title: "New contracts signed",
     status: "on_track",
-    progress: 90,
-    dueDate: new Date("2025-06-15"),
-    owner: "Richard Newman",
-    ownerInitials: "RN",
-    targetValue: 24,
-    realizedValue: 18,
-    unit: "hours",
-    tags: ["Customer", "Service", "Response"]
+    progress: 75,
+    dueDate: new Date("2025-06-30"),
+    targetValue: 1,
+    realizedValue: 0,
+    unit: "contracts",
+    tags: ["Sales", "Contract"]
   },
   {
     id: 2,
-    title: "Documentation completion rate",
+    title: "Client meetings conducted",
+    status: "on_track",
+    progress: 100,
+    dueDate: new Date("2025-05-15"),
+    targetValue: 3,
+    realizedValue: 3,
+    unit: "meetings",
+    tags: ["Client", "Meeting"]
+  },
+  {
+    id: 3,
+    title: "Requirements documentation completion",
     status: "at_risk",
-    progress: 65,
-    dueDate: new Date("2025-05-30"),
-    owner: "Maria Johnson",
-    ownerInitials: "MJ",
+    progress: 60,
+    dueDate: new Date("2025-05-20"),
     targetValue: 100,
-    realizedValue: 65,
-    unit: "percentage",
-    tags: ["Documentation", "Compliance"]
-  },
-  {
-    id: 3,
-    title: "Customer satisfaction score",
-    status: "on_track",
-    progress: 85,
-    dueDate: new Date("2025-06-15"),
-    owner: "Richard Newman",
-    ownerInitials: "RN",
-    targetValue: 90,
-    realizedValue: 85,
-    unit: "percentage",
-    tags: ["Customer", "Satisfaction", "Quality"]
-  }
-];
-
-// Activity log
-const activities: Activity[] = [
-  {
-    id: 1,
-    type: "note",
-    description: "Added a new note about client requirements",
-    user: "Richard Newman",
-    userInitials: "RN",
-    timestamp: new Date("2025-05-01T14:30:00")
-  },
-  {
-    id: 2,
-    type: "document",
-    description: "Uploaded Renewal Proposal.pdf",
-    user: "Maria Johnson",
-    userInitials: "MJ",
-    timestamp: new Date("2025-04-20T10:15:00")
-  },
-  {
-    id: 3,
-    type: "contact",
-    description: "Scheduled on-site meeting with client",
-    user: "Richard Newman",
-    userInitials: "RN",
-    timestamp: new Date("2025-04-10T09:45:00")
+    realizedValue: 60,
+    unit: "%",
+    tags: ["Documentation", "Requirements"]
   },
   {
     id: 4,
-    type: "status",
-    description: "Changed status from 'Qualification' to 'In Progress'",
-    user: "Richard Newman",
-    userInitials: "RN",
-    timestamp: new Date("2025-03-28T16:20:00")
+    title: "Technical proposal submission",
+    status: "not_started",
+    progress: 0,
+    dueDate: new Date("2025-06-10"),
+    targetValue: 1,
+    realizedValue: 0,
+    unit: "proposals",
+    tags: ["Proposal", "Technical"]
+  },
+  {
+    id: 5,
+    title: "Budget approval",
+    status: "not_started",
+    progress: 0,
+    dueDate: new Date("2025-06-20"),
+    targetValue: 1,
+    realizedValue: 0,
+    unit: "approvals",
+    tags: ["Budget", "Approval"]
   }
 ];
 
@@ -235,41 +118,26 @@ function formatCurrency(value: number): string {
 
 // Status badge variant helper
 function getStatusBadgeVariant(status: string): string {
-  switch (status) {
-    case "Qualification":
-      return "bg-purple-100 text-purple-800";
-    case "In Progress":
-      return "bg-blue-100 text-blue-800";
-    case "Proposal":
-      return "bg-indigo-100 text-indigo-800";
-    case "Negotiation":
-      return "bg-amber-100 text-amber-800";
-    case "Closed Won":
-      return "bg-green-100 text-green-800";
-    case "Closed Lost":
-      return "bg-red-100 text-red-800";
-    default:
-      return "bg-gray-100 text-gray-800";
-  }
-}
-
-// Metric status icon component
-function MetricStatusIcon({ status }: { status: MetricStatus }) {
-  switch (status) {
-    case "on_track":
-      return <CheckCircle className="h-5 w-5 text-green-500" />;
-    case "at_risk":
-      return <AlertTriangle className="h-5 w-5 text-amber-500" />;
-    case "off_track":
-      return <XCircle className="h-5 w-5 text-red-500" />;
-    default:
-      return <Clock className="h-5 w-5 text-gray-500" />;
-  }
+  const statusClasses = {
+    "on_track": "bg-green-100 text-green-800",
+    "at_risk": "bg-amber-100 text-amber-800",
+    "off_track": "bg-red-100 text-red-800",
+    "not_started": "bg-gray-100 text-gray-800",
+    "completed": "bg-blue-100 text-blue-800",
+    "Discovery": "bg-indigo-100 text-indigo-800",
+    "Qualification": "bg-purple-100 text-purple-800",
+    "Proposal": "bg-amber-100 text-amber-800",
+    "Negotiation": "bg-blue-100 text-blue-800",
+    "Closed Won": "bg-green-100 text-green-800",
+    "Closed Lost": "bg-red-100 text-red-800"
+  };
+  
+  return statusClasses[status as keyof typeof statusClasses] || "bg-gray-100 text-gray-800";
 }
 
 // Tag badge component
 const TagBadge = ({ tag }: { tag: string }) => {
-  // Get a consistent color for each tag based on a simple hash function
+  // Get a consistent color for each tag
   const getTagColor = (tag: string) => {
     const tagColors: Record<string, string> = {
       "Financial": "bg-emerald-100 text-emerald-800 border-emerald-200",
@@ -283,50 +151,57 @@ const TagBadge = ({ tag }: { tag: string }) => {
       "Marketing": "bg-purple-100 text-purple-800 border-purple-200",
       "Budget": "bg-lime-100 text-lime-800 border-lime-200",
       "Digital": "bg-sky-100 text-sky-800 border-sky-200",
-      "Website": "bg-cyan-100 text-cyan-800 border-cyan-200",
-      "Campaign": "bg-fuchsia-100 text-fuchsia-800 border-fuchsia-200",
-      "Brand": "bg-red-100 text-red-800 border-red-200",
-      "Customer": "bg-teal-100 text-teal-800 border-teal-200",
-      "Support": "bg-slate-100 text-slate-800 border-slate-200",
-      "Service": "bg-gray-100 text-gray-800 border-gray-200",
-      "Quality": "bg-yellow-100 text-yellow-800 border-yellow-200",
-      "Response": "bg-blue-100 text-blue-800 border-blue-200",
-      "Satisfaction": "bg-green-100 text-green-800 border-green-200",
-      "Compliance": "bg-red-100 text-red-800 border-red-200",
-      "Documentation": "bg-amber-100 text-amber-800 border-amber-200",
+      "Contract": "bg-cyan-100 text-cyan-800 border-cyan-200",
+      "Proposal": "bg-amber-100 text-amber-800 border-amber-200",
+      "Technical": "bg-blue-100 text-blue-800 border-blue-200",
+      "Client": "bg-teal-100 text-teal-800 border-teal-200",
+      "Meeting": "bg-slate-100 text-slate-800 border-slate-200",
+      "Documentation": "bg-gray-100 text-gray-800 border-gray-200",
+      "Requirements": "bg-yellow-100 text-yellow-800 border-yellow-200",
+      "Approval": "bg-red-100 text-red-800 border-red-200",
     };
     
     return tagColors[tag] || "bg-gray-100 text-gray-800 border-gray-200";
   };
   
   return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mr-2 mb-1 ${getTagColor(tag)}`}>
+    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mr-2 ${getTagColor(tag)}`}>
       {tag}
     </span>
   );
 };
 
-// Opportunity detail component
+// Date formatter
+const formatDate = (date: Date) => {
+  return new Intl.DateTimeFormat('en-US', { 
+    day: 'numeric', 
+    month: 'short', 
+    year: 'numeric' 
+  }).format(new Date(date));
+};
+
+// Main opportunity component
 export default function OpportunityDetail() {
   const { id } = useParams();
   const { environment } = useEnvironment();
-  const [activeTab, setActiveTab] = useState("overview");
+  const [selectedMetrics, setSelectedMetrics] = useState<number[]>([]);
   
-  // Format dates
-  const formatDate = (date: Date) => {
-    return new Date(date).toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'short', 
-      day: 'numeric' 
-    });
+  // Toggle selection of a metric
+  const toggleMetricSelection = (id: number) => {
+    if (selectedMetrics.includes(id)) {
+      setSelectedMetrics(selectedMetrics.filter(m => m !== id));
+    } else {
+      setSelectedMetrics([...selectedMetrics, id]);
+    }
   };
   
-  // Format time
-  const formatTime = (date: Date) => {
-    return new Date(date).toLocaleTimeString('en-US', { 
-      hour: '2-digit', 
-      minute: '2-digit'
-    });
+  // Toggle all metrics
+  const toggleAllMetrics = () => {
+    if (selectedMetrics.length === metrics.length) {
+      setSelectedMetrics([]);
+    } else {
+      setSelectedMetrics(metrics.map(m => m.id));
+    }
   };
 
   return (
@@ -339,392 +214,178 @@ export default function OpportunityDetail() {
         </Link>
         
         <div className="flex justify-between items-center">
-          <div>
+          <div className="flex items-center">
             <h1 className="text-2xl font-bold tracking-tight">{opportunity.name}</h1>
-            <div className="flex items-center mt-1 text-gray-500">
-              <Building className="h-4 w-4 mr-1" />
-              <span className="mr-4 text-indigo-600">{opportunity.customer}</span>
-              <Briefcase className="h-4 w-4 mr-1" />
-              <span className="text-indigo-600">{opportunity.partner}</span>
+            <div className="ml-4 flex items-center">
+              <Avatar className="h-8 w-8">
+                <AvatarFallback className="bg-indigo-100 text-indigo-600">
+                  {opportunity.owner.initials}
+                </AvatarFallback>
+              </Avatar>
+              <span className="ml-2 text-gray-600">{opportunity.owner.name}</span>
             </div>
           </div>
           
           <div className="flex space-x-3">
             <Button variant="outline">Edit</Button>
-            <Button className="bg-indigo-600 hover:bg-indigo-700">Add Note</Button>
+            <Button className="bg-indigo-600 hover:bg-indigo-700">Actions</Button>
+          </div>
+        </div>
+        
+        <p className="text-gray-600 mt-2">{opportunity.description}</p>
+      </div>
+      
+      {/* Key metrics section - similar to screenshot */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-6 mb-6">
+        <div className="border-r border-gray-200 pr-6">
+          <span className="text-sm text-gray-500 block">Amount</span>
+          <span className="text-xl font-bold">€ {(opportunity.amount / 1000).toFixed(0)}.000</span>
+        </div>
+        
+        <div className="border-r border-gray-200 px-6">
+          <span className="text-sm text-gray-500 block">Probability</span>
+          <span className="text-xl font-bold">{opportunity.probability}%</span>
+        </div>
+        
+        <div className="pl-6">
+          <span className="text-sm text-gray-500 block">Stage</span>
+          <span className={`px-2.5 py-1 rounded-full text-xs ${getStatusBadgeVariant(opportunity.stage)}`}>
+            {opportunity.stage}
+          </span>
+        </div>
+      </div>
+      
+      {/* Related records section */}
+      <div className="mb-8">
+        <h2 className="text-base font-medium mb-3">Related Records</h2>
+        <div className="bg-gray-50 p-4 rounded-md">
+          <div className="flex flex-wrap gap-x-8 gap-y-2">
+            <div>
+              <span className="text-sm text-gray-500 mr-2">Customer:</span>
+              <Link href={opportunity.customer.link} className="text-indigo-600 hover:underline">
+                {opportunity.customer.name}
+              </Link>
+            </div>
+            
+            {opportunity.partners.map((partner, index) => (
+              <div key={partner.id}>
+                <span className="text-sm text-gray-500 mr-2">Partner{opportunity.partners.length > 1 ? ` ${index + 1}` : ''}:</span>
+                <Link href={partner.link} className="text-indigo-600 hover:underline">
+                  {partner.name}
+                </Link>
+              </div>
+            ))}
           </div>
         </div>
       </div>
       
-      {/* Summary cards */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-        {/* Left card: Basic information */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Opportunity Details</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex justify-between">
-                <span className="text-gray-500">Type</span>
-                <span className="font-medium">{opportunity.type}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Status</span>
-                <span className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeVariant(opportunity.status)}`}>
-                  {opportunity.status}
-                </span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Created</span>
-                <span>{formatDate(opportunity.createdAt)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Last Updated</span>
-                <span>{formatDate(opportunity.updatedAt)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Owner</span>
-                <div className="flex items-center">
-                  <Avatar className="h-6 w-6 mr-2">
-                    <AvatarFallback className="bg-indigo-100 text-indigo-800 text-xs">
-                      {opportunity.assignedToInitials}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span>{opportunity.assignedTo}</span>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      {/* OKR Metrics Table */}
+      <div className="mt-8">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold">OKR Metrics</h2>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm">Export</Button>
+            <Button className="bg-indigo-600 hover:bg-indigo-700" size="sm">Add Metric</Button>
+          </div>
+        </div>
         
-        {/* Middle card: Financials */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Financial Details</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-gray-500">Value</span>
-                <span className="text-xl font-semibold">{formatCurrency(opportunity.value)}</span>
-              </div>
-              <div className="space-y-1">
-                <div className="flex justify-between">
-                  <span className="text-gray-500">Probability</span>
-                  <span className="font-medium">{opportunity.probability}%</span>
-                </div>
-                <Progress value={opportunity.probability} className="h-2" />
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Weighted Value</span>
-                <span className="font-medium">{formatCurrency(opportunity.value * opportunity.probability / 100)}</span>
-              </div>
-              <div className="flex justify-between">
-                <span className="text-gray-500">Expected Close Date</span>
-                <span className="font-medium">{formatDate(opportunity.dueDate)}</span>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        {/* Right card: Related entities */}
-        <Card>
-          <CardHeader className="pb-2">
-            <CardTitle className="text-lg">Related Entities</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4">
-              <div>
-                <span className="text-gray-500 block mb-2">Customer</span>
-                <Link href="/lists/customers/1">
-                  <div className="flex items-center p-2 rounded-md hover:bg-gray-50">
-                    <Avatar className="h-10 w-10 mr-3">
-                      <AvatarFallback className="bg-indigo-100 text-indigo-800">
-                        {opportunity.customerInitials}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <span className="font-medium block">{opportunity.customer}</span>
-                      <span className="text-sm text-gray-500">Manufacturing</span>
-                    </div>
-                  </div>
-                </Link>
-              </div>
-              
-              <Separator />
-              
-              <div>
-                <span className="text-gray-500 block mb-2">Partner</span>
-                <Link href="/lists/partners/1">
-                  <div className="flex items-center p-2 rounded-md hover:bg-gray-50">
-                    <Avatar className="h-10 w-10 mr-3">
-                      <AvatarFallback className="bg-indigo-100 text-indigo-800">
-                        {opportunity.partnerInitials}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <span className="font-medium block">{opportunity.partner}</span>
-                      <span className="text-sm text-gray-500">Insurance Broker</span>
-                    </div>
-                  </div>
-                </Link>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </div>
-      
-      {/* Tabs for different opportunity views */}
-      <Tabs defaultValue="overview" className="mt-6">
-        <TabsList>
-          <TabsTrigger value="overview" onClick={() => setActiveTab("overview")}>Overview</TabsTrigger>
-          <TabsTrigger value="metrics" onClick={() => setActiveTab("metrics")}>Metrics</TabsTrigger>
-          <TabsTrigger value="activity" onClick={() => setActiveTab("activity")}>Activity</TabsTrigger>
-          <TabsTrigger value="documents" onClick={() => setActiveTab("documents")}>Documents</TabsTrigger>
-        </TabsList>
-        
-        {/* Overview tab */}
-        <TabsContent value="overview" className="mt-4">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {/* Description */}
-            <div className="md:col-span-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Description</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-700">{opportunity.description}</p>
-                </CardContent>
-              </Card>
-              
-              {/* Notes */}
-              <Card className="mt-6">
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <div>
-                    <CardTitle className="text-lg">Notes</CardTitle>
-                    <CardDescription>Recent notes and updates</CardDescription>
-                  </div>
-                  <Button variant="outline" size="sm">
-                    <MessageCircle className="h-4 w-4 mr-2" />
-                    Add Note
-                  </Button>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {opportunity.notes.map((note) => (
-                    <div key={note.id} className="flex p-3 border border-gray-100 rounded-md">
-                      <Avatar className="h-8 w-8 mr-3">
-                        <AvatarFallback className="bg-indigo-100 text-indigo-800 text-xs">
-                          {note.createdByInitials}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <div className="flex items-center mb-1">
-                          <span className="font-medium text-sm">{note.createdBy}</span>
-                          <span className="mx-2 text-gray-400">•</span>
-                          <span className="text-xs text-gray-500">{formatDate(note.createdAt)}</span>
-                        </div>
-                        <p className="text-gray-700">{note.text}</p>
-                      </div>
-                    </div>
-                  ))}
-                </CardContent>
-              </Card>
+        {selectedMetrics.length > 0 && (
+          <div className="bg-indigo-50 rounded p-3 mb-4 flex justify-between items-center">
+            <div className="flex items-center">
+              <span className="text-indigo-700 font-medium mr-2">{selectedMetrics.length} metrics selected</span>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-gray-500 hover:text-gray-700 p-1 h-auto"
+                onClick={() => setSelectedMetrics([])}
+              >
+                Clear selection
+              </Button>
             </div>
             
-            {/* Contact History */}
-            <div>
-              <Card>
-                <CardHeader>
-                  <CardTitle className="text-lg">Contact History</CardTitle>
-                  <CardDescription>Recent customer interactions</CardDescription>
-                </CardHeader>
-                <CardContent className="p-0">
-                  <div className="divide-y">
-                    {opportunity.contactHistory.map((contact) => (
-                      <div key={contact.id} className="p-4">
-                        <div className="flex justify-between mb-1">
-                          <span className="font-medium">{contact.type}</span>
-                          <span className="text-sm text-gray-500">{formatDate(contact.date)}</span>
-                        </div>
-                        <p className="text-sm text-gray-700">{contact.description}</p>
-                      </div>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+            <div className="flex gap-2">
+              <Button variant="ghost" size="sm" className="text-indigo-700">
+                Assign
+              </Button>
+              
+              <Button variant="ghost" size="sm" className="text-indigo-700">
+                Change Status
+              </Button>
             </div>
           </div>
-        </TabsContent>
+        )}
         
-        {/* Metrics tab */}
-        <TabsContent value="metrics" className="mt-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="text-lg">Opportunity Metrics</CardTitle>
-                <CardDescription>Performance metrics and KPIs</CardDescription>
-              </div>
-              <Button className="bg-indigo-600 hover:bg-indigo-700">
-                Assign Template
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Metric</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Progress</TableHead>
-                    <TableHead>Target</TableHead>
-                    <TableHead>Current</TableHead>
-                    <TableHead>Due Date</TableHead>
-                    <TableHead>Owner</TableHead>
-                    <TableHead>Tags</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {metrics.map((metric) => (
-                    <TableRow key={metric.id}>
-                      <TableCell className="font-medium">{metric.title}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center">
-                          <MetricStatusIcon status={metric.status} />
-                          <span className="ml-2 capitalize">{metric.status.replace('_', ' ')}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="w-[100px]">
-                          <Progress value={metric.progress} className="h-2" />
-                          <div className="text-xs text-right mt-1">{metric.progress}%</div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {metric.targetValue} {metric.unit}
-                      </TableCell>
-                      <TableCell>
-                        {metric.realizedValue} {metric.unit}
-                      </TableCell>
-                      <TableCell>{formatDate(metric.dueDate)}</TableCell>
-                      <TableCell>
-                        <div className="flex items-center">
-                          <Avatar className="h-6 w-6 mr-2">
-                            <AvatarFallback className="bg-indigo-100 text-indigo-800 text-xs">
-                              {metric.ownerInitials}
-                            </AvatarFallback>
-                          </Avatar>
-                          <span>{metric.owner}</span>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex flex-wrap">
-                          {metric.tags.map((tag, i) => (
-                            <TagBadge key={i} tag={tag} />
-                          ))}
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        {/* Activity tab */}
-        <TabsContent value="activity" className="mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg">Activity Log</CardTitle>
-              <CardDescription>Recent activity and changes</CardDescription>
-            </CardHeader>
-            <CardContent className="p-0">
-              <div className="divide-y">
-                {activities.map((activity) => (
-                  <div key={activity.id} className="p-4 flex">
-                    <div className="mr-4">
-                      <Avatar className="h-8 w-8">
-                        <AvatarFallback className="bg-indigo-100 text-indigo-800 text-xs">
-                          {activity.userInitials}
-                        </AvatarFallback>
-                      </Avatar>
+        <div className="border rounded-md overflow-hidden">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[40px]">
+                  <Checkbox 
+                    checked={selectedMetrics.length === metrics.length && metrics.length > 0}
+                    onCheckedChange={toggleAllMetrics}
+                  />
+                </TableHead>
+                <TableHead>Metric</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Progress</TableHead>
+                <TableHead>Target</TableHead>
+                <TableHead>Current</TableHead>
+                <TableHead>Due Date</TableHead>
+                <TableHead>Tags</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {metrics.map((metric) => (
+                <TableRow key={metric.id}>
+                  <TableCell>
+                    <Checkbox 
+                      checked={selectedMetrics.includes(metric.id)}
+                      onCheckedChange={() => toggleMetricSelection(metric.id)}
+                    />
+                  </TableCell>
+                  <TableCell className="font-medium">{metric.title}</TableCell>
+                  <TableCell>
+                    <span className={`px-2.5 py-1 rounded-full text-xs ${getStatusBadgeVariant(metric.status)}`}>
+                      {metric.status.replace('_', ' ')}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <div className="w-[100px]">
+                      <Progress value={metric.progress} className="h-2" />
+                      <div className="text-xs text-right mt-1">{metric.progress}%</div>
                     </div>
-                    <div className="flex-1">
-                      <div className="flex justify-between">
-                        <span className="font-medium">{activity.user}</span>
-                        <span className="text-sm text-gray-500">
-                          {formatDate(activity.timestamp)} at {formatTime(activity.timestamp)}
-                        </span>
-                      </div>
-                      <p className="text-gray-700 mt-1">{activity.description}</p>
+                  </TableCell>
+                  <TableCell>
+                    {metric.targetValue} {metric.unit}
+                  </TableCell>
+                  <TableCell>
+                    {metric.realizedValue} {metric.unit}
+                  </TableCell>
+                  <TableCell>{formatDate(metric.dueDate)}</TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap">
+                      {metric.tags.map((tag, i) => (
+                        <TagBadge key={i} tag={tag} />
+                      ))}
                     </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-        
-        {/* Documents tab */}
-        <TabsContent value="documents" className="mt-4">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between">
-              <div>
-                <CardTitle className="text-lg">Documents</CardTitle>
-                <CardDescription>Files related to this opportunity</CardDescription>
-              </div>
-              <Button variant="outline">
-                <FileText className="h-4 w-4 mr-2" />
-                Upload Document
-              </Button>
-            </CardHeader>
-            <CardContent>
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Size</TableHead>
-                    <TableHead>Uploaded By</TableHead>
-                    <TableHead>Upload Date</TableHead>
-                    <TableHead>Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {opportunity.documents.map((doc) => (
-                    <TableRow key={doc.id}>
-                      <TableCell className="font-medium flex items-center">
-                        <FileText className="h-4 w-4 mr-2 text-indigo-600" />
-                        {doc.name}
-                      </TableCell>
-                      <TableCell>{doc.size}</TableCell>
-                      <TableCell>{doc.uploadedBy}</TableCell>
-                      <TableCell>{formatDate(doc.uploadedAt)}</TableCell>
-                      <TableCell>
-                        <div className="flex space-x-2">
-                          <Button variant="ghost" size="sm" className="h-8 px-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500">
-                              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                              <polyline points="7 10 12 15 17 10"></polyline>
-                              <line x1="12" y1="15" x2="12" y2="3"></line>
-                            </svg>
-                          </Button>
-                          <Button variant="ghost" size="sm" className="h-8 px-2">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500">
-                              <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
-                              <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
-                              <path d="M19.07 4.93a10 10 0 0 1 0 14.14"></path>
-                            </svg>
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+                  </TableCell>
+                </TableRow>
+              ))}
+              
+              {metrics.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center py-8">
+                    <p className="text-gray-500">No metrics assigned to this opportunity</p>
+                    <Button className="mt-4 bg-indigo-600 hover:bg-indigo-700">
+                      Assign Metrics
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
+        </div>
+      </div>
     </div>
   );
 }
