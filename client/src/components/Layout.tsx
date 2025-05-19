@@ -82,7 +82,7 @@ export default function Layout({ children }: LayoutProps) {
             </button>
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white font-medium text-sm cursor-pointer hover:bg-indigo-600">
-                JS
+                KKS
               </div>
             </div>
           </div>
