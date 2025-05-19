@@ -708,23 +708,16 @@ export default function PartnerDetail() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <TableRow 
-                    className="cursor-pointer hover:bg-gray-50"
-                    onClick={(e) => {
-                      // Don't navigate if checkbox was clicked
-                      if ((e.target as HTMLElement).closest('input[type="checkbox"]')) {
-                        return;
-                      }
-                      window.location.href = `/lists/opportunities/1?from=partner/${id}`;
-                    }}
-                  >
-                    <TableCell onClick={(e) => e.stopPropagation()}>
+                  <TableRow>
+                    <TableCell>
                       <Checkbox />
                     </TableCell>
                     <TableCell>
-                      <span className="font-medium text-indigo-600 hover:underline">
-                        Property Insurance Renewal
-                      </span>
+                      <Link href={`/lists/opportunities/1?from=partner/${id}`} className="inline-block">
+                        <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
+                          Property Insurance Renewal
+                        </span>
+                      </Link>
                     </TableCell>
                     <TableCell className="text-indigo-600">
                       Acme Corporation
@@ -755,23 +748,16 @@ export default function PartnerDetail() {
                     </TableCell>
                   </TableRow>
                   
-                  <TableRow
-                    className="cursor-pointer hover:bg-gray-50"
-                    onClick={(e) => {
-                      // Don't navigate if checkbox was clicked
-                      if ((e.target as HTMLElement).closest('input[type="checkbox"]')) {
-                        return;
-                      }
-                      window.location.href = `/lists/opportunities/2?from=partner/${id}`;
-                    }}
-                  >
-                    <TableCell onClick={(e) => e.stopPropagation()}>
+                  <TableRow>
+                    <TableCell>
                       <Checkbox />
                     </TableCell>
                     <TableCell>
-                      <span className="font-medium text-indigo-600 hover:underline">
-                        Cyber Security Coverage
-                      </span>
+                      <Link href={`/lists/opportunities/2?from=partner/${id}`} className="inline-block">
+                        <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
+                          Cyber Security Coverage
+                        </span>
+                      </Link>
                     </TableCell>
                     <TableCell className="text-indigo-600">
                       Acme Corporation
@@ -802,23 +788,16 @@ export default function PartnerDetail() {
                     </TableCell>
                   </TableRow>
                   
-                  <TableRow
-                    className="cursor-pointer hover:bg-gray-50"
-                    onClick={(e) => {
-                      // Don't navigate if checkbox was clicked
-                      if ((e.target as HTMLElement).closest('input[type="checkbox"]')) {
-                        return;
-                      }
-                      window.location.href = `/lists/opportunities/5?from=partner/${id}`;
-                    }}
-                  >
-                    <TableCell onClick={(e) => e.stopPropagation()}>
+                  <TableRow>
+                    <TableCell>
                       <Checkbox />
                     </TableCell>
                     <TableCell>
-                      <span className="font-medium text-indigo-600 hover:underline">
-                        Workers Compensation
-                      </span>
+                      <Link href={`/lists/opportunities/5?from=partner/${id}`} className="inline-block">
+                        <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
+                          Workers Compensation
+                        </span>
+                      </Link>
                     </TableCell>
                     <TableCell className="text-indigo-600">
                       Umbrella Corporation
