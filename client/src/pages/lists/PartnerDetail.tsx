@@ -1,5 +1,5 @@
 import { useState, useRef, DragEvent } from 'react';
-import { useParams } from 'wouter';
+import { useParams, Link, useLocation } from 'wouter';
 import { format } from 'date-fns';
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -708,12 +708,21 @@ export default function PartnerDetail() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <TableRow>
-                    <TableCell>
+                  <TableRow 
+                    className="cursor-pointer hover:bg-gray-50"
+                    onClick={(e) => {
+                      // Don't navigate if checkbox was clicked
+                      if ((e.target as HTMLElement).closest('input[type="checkbox"]')) {
+                        return;
+                      }
+                      window.location.href = `/lists/opportunities/1?from=partner/${id}`;
+                    }}
+                  >
+                    <TableCell onClick={(e) => e.stopPropagation()}>
                       <Checkbox />
                     </TableCell>
                     <TableCell>
-                      <span className="font-medium">
+                      <span className="font-medium text-indigo-600 hover:underline">
                         Property Insurance Renewal
                       </span>
                     </TableCell>
@@ -746,12 +755,21 @@ export default function PartnerDetail() {
                     </TableCell>
                   </TableRow>
                   
-                  <TableRow>
-                    <TableCell>
+                  <TableRow
+                    className="cursor-pointer hover:bg-gray-50"
+                    onClick={(e) => {
+                      // Don't navigate if checkbox was clicked
+                      if ((e.target as HTMLElement).closest('input[type="checkbox"]')) {
+                        return;
+                      }
+                      window.location.href = `/lists/opportunities/2?from=partner/${id}`;
+                    }}
+                  >
+                    <TableCell onClick={(e) => e.stopPropagation()}>
                       <Checkbox />
                     </TableCell>
                     <TableCell>
-                      <span className="font-medium">
+                      <span className="font-medium text-indigo-600 hover:underline">
                         Cyber Security Coverage
                       </span>
                     </TableCell>

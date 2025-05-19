@@ -195,6 +195,22 @@ export default function OpportunityDetail() {
   const { environment } = useEnvironment();
   const [selectedMetrics, setSelectedMetrics] = useState<number[]>([]);
   
+  // Handle back navigation based on referer
+  const getBackNavigationLink = () => {
+    // Parse the query string to see if we came from a specific page
+    const urlParams = new URLSearchParams(window.location.search);
+    const fromParam = urlParams.get('from');
+    
+    if (fromParam && fromParam.startsWith('partner/')) {
+      // Extract partner ID and return to that partner page
+      const partnerId = fromParam.split('/')[1];
+      return `/lists/partners/${partnerId}`;
+    }
+    
+    // Default back to opportunities list
+    return "/lists/opportunities";
+  };
+  
   // Toggle selection of a metric
   const toggleMetricSelection = (id: number) => {
     if (selectedMetrics.includes(id)) {
