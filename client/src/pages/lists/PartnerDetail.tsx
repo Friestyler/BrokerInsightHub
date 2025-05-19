@@ -1,6 +1,8 @@
 import { useState, useRef, DragEvent } from 'react';
 import { useParams, Link, useLocation } from 'wouter';
 import { ChevronLeft } from 'lucide-react';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faAddressCard } from "@fortawesome/free-solid-svg-icons";
 import { format } from 'date-fns';
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -406,13 +408,13 @@ export default function PartnerDetail() {
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  className="h-6 w-6 p-0 rounded-md flex items-center justify-center"
+                  className="h-6 w-6 p-0 rounded-md flex items-center justify-center bg-gray-800"
                 >
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="2"/>
-                    <path d="M9 10H15" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                    <path d="M9 14H15" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                  </svg>
+                  <FontAwesomeIcon 
+                    icon={faAddressCard} 
+                    className="text-white" 
+                    size="xs" 
+                  />
                 </Button>
                 <Badge variant="outline" className="capitalize">
                   {partner.segment}
