@@ -385,8 +385,8 @@ function PartnersTable() {
                     
                     {/* Create new list button */}
                     <div className="p-1">
-                      <button
-                        className="relative flex w-full cursor-default select-none items-center justify-center rounded-sm px-2 py-1.5 text-sm font-medium outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 text-indigo-600"
+                      <div
+                        className="relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm font-medium outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 text-indigo-600"
                         onClick={() => {
                           setActiveList(null);
                           setFilterText('');
@@ -398,7 +398,7 @@ function PartnersTable() {
                         }}
                       >
                         + Create new list
-                      </button>
+                      </div>
                     </div>
                   </div>
                 )}
