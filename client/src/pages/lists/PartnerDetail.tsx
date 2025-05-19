@@ -719,11 +719,19 @@ export default function PartnerDetail() {
                         </span>
                       </Link>
                     </TableCell>
-                    <TableCell className="text-indigo-600">
-                      Acme Corporation
+                    <TableCell>
+                      <Link href={`/lists/clients/1`} className="inline-block">
+                        <span className="text-indigo-600 hover:underline cursor-pointer">
+                          Acme Corporation
+                        </span>
+                      </Link>
                     </TableCell>
-                    <TableCell className="text-indigo-600">
-                      ABC Insurance Brokers
+                    <TableCell>
+                      <Link href={`/lists/partners/2`} className="inline-block">
+                        <span className="text-indigo-600 hover:underline cursor-pointer">
+                          ABC Insurance Brokers
+                        </span>
+                      </Link>
                     </TableCell>
                     <TableCell>
                       Renewal
@@ -759,11 +767,19 @@ export default function PartnerDetail() {
                         </span>
                       </Link>
                     </TableCell>
-                    <TableCell className="text-indigo-600">
-                      Acme Corporation
+                    <TableCell>
+                      <Link href={`/lists/clients/1`} className="inline-block">
+                        <span className="text-indigo-600 hover:underline cursor-pointer">
+                          Acme Corporation
+                        </span>
+                      </Link>
                     </TableCell>
-                    <TableCell className="text-indigo-600">
-                      ABC Insurance Brokers
+                    <TableCell>
+                      <Link href={`/lists/partners/2`} className="inline-block">
+                        <span className="text-indigo-600 hover:underline cursor-pointer">
+                          ABC Insurance Brokers
+                        </span>
+                      </Link>
                     </TableCell>
                     <TableCell>
                       New Business
@@ -799,11 +815,19 @@ export default function PartnerDetail() {
                         </span>
                       </Link>
                     </TableCell>
-                    <TableCell className="text-indigo-600">
-                      Umbrella Corporation
+                    <TableCell>
+                      <Link href={`/lists/clients/3`} className="inline-block">
+                        <span className="text-indigo-600 hover:underline cursor-pointer">
+                          Umbrella Corporation
+                        </span>
+                      </Link>
                     </TableCell>
-                    <TableCell className="text-indigo-600">
-                      ABC Insurance Brokers
+                    <TableCell>
+                      <Link href={`/lists/partners/2`} className="inline-block">
+                        <span className="text-indigo-600 hover:underline cursor-pointer">
+                          ABC Insurance Brokers
+                        </span>
+                      </Link>
                     </TableCell>
                     <TableCell>
                       Cross-sell
