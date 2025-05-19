@@ -274,16 +274,17 @@ function PartnersTable() {
           <div className="flex flex-wrap items-center justify-between">
             {/* Left side - Saved Lists with actions */}
             <div className="flex items-center gap-3">
-              {/* Saved Lists dropdown - now more prominent */}
+              {/* Saved Lists dropdown - redesigned to match provided image */}
               <div className="relative">
                 <button 
-                  className={`flex items-center space-x-2 px-4 py-2.5 border-2 rounded-md text-sm font-medium ${activeList ? 'bg-indigo-50 border-indigo-400 text-indigo-700' : 'border-gray-300 hover:border-gray-400'}`}
+                  className="flex items-center space-x-2 px-4 py-2.5 border rounded-md text-sm font-medium shadow-sm bg-white hover:bg-gray-50"
                   onClick={() => setShowListsDropdown(!showListsDropdown)}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={activeList ? 'text-indigo-600' : 'text-gray-500'}>
-                    <path d="M19 21l-7-4-7 4V5a2 2 0 012-2h10a2 2 0 012 2v16z"/>
+                  <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path>
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path>
                   </svg>
-                  <span className="max-w-[180px] truncate font-medium">{activeList ? activeList.name : 'Saved Lists'}</span>
+                  <span className="font-medium">Saved lists</span>
                   <svg 
                     xmlns="http://www.w3.org/2000/svg" 
                     width="14" 
@@ -300,63 +301,86 @@ function PartnersTable() {
                   </svg>
                 </button>
                 
-                {/* Saved Lists dropdown menu */}
+                {/* Saved Lists dropdown menu - updated design */}
                 {showListsDropdown && (
                   <div className="absolute z-40 mt-1 w-80 bg-white rounded-md shadow-lg border border-gray-200 overflow-hidden">
+                    {/* Search section */}
                     <div className="p-2 border-b">
-                      <div className="text-sm font-medium mb-1">Saved Lists</div>
                       <div className="relative">
                         <input
                           type="text"
-                          placeholder="Search saved lists..."
-                          className="w-full pl-3 pr-10 py-1.5 text-xs border border-gray-300 rounded-md"
+                          placeholder="Search lists..."
+                          className="w-full pl-8 pr-3 py-2 text-sm border border-gray-300 rounded-md"
                         />
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
                           <circle cx="11" cy="11" r="8"></circle>
                           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                         </svg>
                       </div>
                     </div>
                     
+                    {/* Lists with edit options */}
                     <div className="max-h-60 overflow-y-auto">
                       {savedLists.map(list => (
-                        <button
+                        <div 
                           key={list.id}
-                          className={`w-full text-left py-2 px-3 hover:bg-gray-50 flex items-center justify-between ${activeList?.id === list.id ? 'bg-indigo-50' : ''}`}
-                          onClick={() => {
-                            setActiveList(list);
-                            if (list.filters.searchText) setFilterText(list.filters.searchText);
-                            if (list.filters.status) setSelectedStatus(list.filters.status);
-                            if (list.filters.industry) setSelectedIndustry(list.filters.industry);
-                            if (list.filters.type) setSelectedType(list.filters.type);
-                            setShowListsDropdown(false);
-                          }}
+                          className={`border-b border-gray-100 hover:bg-gray-50 ${activeList?.id === list.id ? 'bg-indigo-50' : ''}`}
                         >
-                          <div>
-                            <div className="font-medium text-sm">{list.name}</div>
-                            <div className="text-xs text-gray-500 mt-0.5">
-                              {Object.entries(list.filters)
-                                .filter(([_, value]) => value)
-                                .map(([key]) => key)
-                                .join(', ')}
+                          <div className="flex items-center justify-between py-2 px-3">
+                            <button
+                              className="flex-1 text-left"
+                              onClick={() => {
+                                setActiveList(list);
+                                if (list.filters.searchText) setFilterText(list.filters.searchText);
+                                if (list.filters.status) setSelectedStatus(list.filters.status);
+                                if (list.filters.industry) setSelectedIndustry(list.filters.industry);
+                                if (list.filters.type) setSelectedType(list.filters.type);
+                                setShowListsDropdown(false);
+                              }}
+                            >
+                              <div className="flex items-center">
+                                <div className="font-medium text-sm">{list.name}</div>
+                                {list.isShared && (
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2 text-indigo-500">
+                                    <circle cx="18" cy="5" r="3"></circle>
+                                    <circle cx="6" cy="12" r="3"></circle>
+                                    <circle cx="18" cy="19" r="3"></circle>
+                                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                                  </svg>
+                                )}
+                              </div>
+                            </button>
+                            
+                            {/* Three dots menu */}
+                            <div className="relative group">
+                              <button className="p-1 rounded-full hover:bg-gray-200">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <circle cx="12" cy="12" r="1"></circle>
+                                  <circle cx="12" cy="5" r="1"></circle>
+                                  <circle cx="12" cy="19" r="1"></circle>
+                                </svg>
+                              </button>
+                              
+                              {/* Edit menu options (popup on hover) */}
+                              <div className="absolute right-0 mt-1 w-36 bg-white rounded-md shadow-lg border border-gray-200 hidden group-hover:block z-50">
+                                <button className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 border-b border-gray-100">
+                                  Rename
+                                </button>
+                                <button className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 text-red-600">
+                                  Delete
+                                </button>
+                              </div>
                             </div>
                           </div>
-                          {list.isShared && (
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-500">
-                              <circle cx="18" cy="5" r="3"></circle>
-                              <circle cx="6" cy="12" r="3"></circle>
-                              <circle cx="18" cy="19" r="3"></circle>
-                              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                            </svg>
-                          )}
-                        </button>
+                        </div>
                       ))}
                     </div>
                     
+                    {/* Create new list button */}
                     <div className="p-2 border-t">
                       <button
-                        className="w-full text-left py-1.5 px-3 text-indigo-600 hover:bg-indigo-50 rounded-md text-sm flex items-center"
+                        className="w-full text-center py-2 px-3 text-indigo-600 hover:bg-indigo-50 rounded-md text-sm font-medium"
                         onClick={() => {
                           setActiveList(null);
                           setFilterText('');
@@ -367,11 +391,7 @@ function PartnersTable() {
                           setShowListsDropdown(false);
                         }}
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                          <line x1="12" y1="5" x2="12" y2="19"></line>
-                          <line x1="5" y1="12" x2="19" y2="12"></line>
-                        </svg>
-                        Create New List
+                        + Create new list
                       </button>
                     </div>
                   </div>
