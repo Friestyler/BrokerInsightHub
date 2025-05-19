@@ -13,9 +13,18 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
-import { ChevronLeft } from "lucide-react";
+import { ChevronLeft, ChevronDown, ExternalLink } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuGroup,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 // Mock opportunity data
 const opportunity = {
@@ -235,48 +244,71 @@ export default function OpportunityDetail() {
         <p className="text-gray-600 mt-2">{opportunity.description}</p>
       </div>
       
-      {/* Key metrics section - similar to screenshot */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-6 mb-6">
-        <div className="border-r border-gray-200 pr-6">
-          <span className="text-sm text-gray-500 block">Amount</span>
-          <span className="text-xl font-bold">€ {(opportunity.amount / 1000).toFixed(0)}.000</span>
-        </div>
+      {/* Key attribute cards section - matching the screenshot */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mb-6">
+        <Card className="shadow-sm">
+          <CardContent className="p-4">
+            <div className="text-sm text-gray-500 mb-1">Amount</div>
+            <div className="text-xl font-semibold">€ {(opportunity.amount / 1000).toFixed(0)}.000</div>
+          </CardContent>
+        </Card>
         
-        <div className="border-r border-gray-200 px-6">
-          <span className="text-sm text-gray-500 block">Probability</span>
-          <span className="text-xl font-bold">{opportunity.probability}%</span>
-        </div>
+        <Card className="shadow-sm">
+          <CardContent className="p-4">
+            <div className="text-sm text-gray-500 mb-1">Probability</div>
+            <div className="text-xl font-semibold">{opportunity.probability}%</div>
+          </CardContent>
+        </Card>
         
-        <div className="pl-6">
-          <span className="text-sm text-gray-500 block">Stage</span>
-          <span className={`px-2.5 py-1 rounded-full text-xs ${getStatusBadgeVariant(opportunity.stage)}`}>
-            {opportunity.stage}
-          </span>
-        </div>
+        <Card className="shadow-sm">
+          <CardContent className="p-4">
+            <div className="text-sm text-gray-500 mb-1">Stage</div>
+            <div className={`inline-block px-3 py-1 rounded-md text-sm font-medium ${getStatusBadgeVariant(opportunity.stage)}`}>
+              {opportunity.stage}
+            </div>
+          </CardContent>
+        </Card>
       </div>
       
-      {/* Related records section */}
+      {/* Related records dropdown - new compact implementation */}
       <div className="mb-8">
-        <h2 className="text-base font-medium mb-3">Related Records</h2>
-        <div className="bg-gray-50 p-4 rounded-md">
-          <div className="flex flex-wrap gap-x-8 gap-y-2">
-            <div>
-              <span className="text-sm text-gray-500 mr-2">Customer:</span>
-              <Link href={opportunity.customer.link} className="text-indigo-600 hover:underline">
-                {opportunity.customer.name}
-              </Link>
-            </div>
-            
-            {opportunity.partners.map((partner, index) => (
-              <div key={partner.id}>
-                <span className="text-sm text-gray-500 mr-2">Partner{opportunity.partners.length > 1 ? ` ${index + 1}` : ''}:</span>
-                <Link href={partner.link} className="text-indigo-600 hover:underline">
-                  {partner.name}
-                </Link>
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <Button variant="outline" className="flex items-center space-x-1">
+              <div className="flex items-center">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="2">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <span>Related Records ({opportunity.partners.length + 1})</span>
               </div>
+              <ChevronDown className="h-4 w-4 ml-2 opacity-70" />
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="w-56">
+            <DropdownMenuLabel>Customer</DropdownMenuLabel>
+            <DropdownMenuItem 
+              className="cursor-pointer flex justify-between items-center" 
+              onClick={() => window.open(opportunity.customer.link, '_blank')}
+            >
+              {opportunity.customer.name}
+              <ExternalLink className="h-4 w-4 ml-2 opacity-70" />
+            </DropdownMenuItem>
+            
+            <DropdownMenuSeparator />
+            <DropdownMenuLabel>Partners</DropdownMenuLabel>
+            
+            {opportunity.partners.map((partner) => (
+              <DropdownMenuItem 
+                key={partner.id}
+                className="cursor-pointer flex justify-between items-center" 
+                onClick={() => window.open(partner.link, '_blank')}
+              >
+                {partner.name}
+                <ExternalLink className="h-4 w-4 ml-2 opacity-70" />
+              </DropdownMenuItem>
             ))}
-          </div>
-        </div>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
       
       {/* OKR Metrics Table */}
