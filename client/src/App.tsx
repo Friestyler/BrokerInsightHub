@@ -17,6 +17,7 @@ import PartnersPage from "@/pages/lists/PartnersPage";
 import PartnerDetail from "@/pages/lists/PartnerDetail";
 import CustomersPage from "@/pages/lists/CustomersPage";
 import OpportunitiesPage from "@/pages/lists/OpportunitiesPage";
+import OpportunityDetail from "@/pages/lists/OpportunityDetail";
 import MetricsPage from "@/pages/templates/MetricsPage";
 import GroupDetail from "@/pages/templates/GroupDetail";
 import NotFound from "@/pages/not-found";
@@ -40,6 +41,7 @@ function Router() {
         <Route path="/lists/partners/:id" component={PartnerDetail} />
         <Route path="/lists/customers" component={CustomersPage} />
         <Route path="/lists/opportunities" component={OpportunitiesPage} />
+        <Route path="/lists/opportunities/:id" component={OpportunityDetail} />
         <Route path="/lists/projects" component={ProjectsPage} />
         <Route path="/lists/contacts" component={ContactsPage} />
         
