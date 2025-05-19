@@ -196,13 +196,17 @@ export default function OpportunityDetail() {
                       {opportunity.name}
                     </h1>
                     
-                    {/* Details Button */}
+                    {/* Details Button - Updated design */}
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="px-2 py-1 h-7 text-xs rounded-full"
+                      className="h-6 w-6 p-0 rounded-md flex items-center justify-center"
                     >
-                      Details
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" strokeWidth="2"/>
+                        <path d="M9 10H15" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                        <path d="M9 14H15" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                      </svg>
                     </Button>
                     
                     {/* Owner Information */}
