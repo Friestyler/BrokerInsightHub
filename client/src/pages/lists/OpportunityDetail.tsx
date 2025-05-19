@@ -181,96 +181,112 @@ export default function OpportunityDetail() {
   return (
     <div className="container mx-auto px-4 py-6">
       {/* Header with back navigation */}
-      <div className="mb-6">
+      <div className="mb-8">
         <Link href={getBackNavigationLink()} className="inline-flex items-center text-indigo-600 hover:text-indigo-800 mb-4">
           <ChevronLeft className="h-4 w-4 mr-1" />
           {getBackNavigationLink().includes('partners') ? 'Back to Partner' : 'Back to Opportunities'}
         </Link>
         
-        {/* Title and action buttons */}
-        <div className="flex justify-between items-center mb-1">
-          <h1 className="text-2xl font-bold tracking-tight">{opportunity.name}</h1>
-          <div className="flex space-x-3">
-            <Button variant="outline">Edit</Button>
-            <Button className="bg-indigo-600 hover:bg-indigo-700">Actions</Button>
-          </div>
-        </div>
-        
-        {/* Description text */}
-        <p className="text-gray-600 mb-4">{opportunity.description}</p>
-        
-        {/* Attribute cards and related records on one row - exactly matching the screenshot */}
-        <div className="flex flex-wrap items-center gap-4">
-          {/* Amount Card */}
-          <Card className="shadow-sm">
-            <CardContent className="p-4">
-              <div className="text-sm text-gray-500 mb-1">Amount</div>
-              <div className="text-xl font-semibold">€ {(opportunity.amount / 1000).toFixed(0)}.000</div>
-            </CardContent>
-          </Card>
-          
-          {/* Probability Card */}
-          <Card className="shadow-sm">
-            <CardContent className="p-4">
-              <div className="text-sm text-gray-500 mb-1">Probability</div>
-              <div className="text-xl font-semibold">{opportunity.probability}%</div>
-            </CardContent>
-          </Card>
-          
-          {/* Stage Card */}
-          <Card className="shadow-sm">
-            <CardContent className="p-4">
-              <div className="text-sm text-gray-500 mb-1">Stage</div>
-              <div className="text-xl font-semibold">{opportunity.stage}</div>
-            </CardContent>
-          </Card>
-          
-          {/* Related Records Dropdown - on the same level as the cards */}
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button variant="outline" className="h-[72px] flex items-center gap-2">
-                <Users className="h-4 w-4" />
-                Related Records (3)
-                <ChevronDown className="h-4 w-4" />
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-60 p-4">
-              <div className="space-y-4">
-                <div>
-                  <h3 className="text-sm font-medium mb-2">Customer</h3>
-                  <Link href={opportunity.customer.link} className="text-indigo-600 hover:underline flex items-center gap-1">
-                    <span>{opportunity.customer.name}</span>
-                    <ExternalLink className="h-3 w-3" />
-                  </Link>
-                </div>
-                
-                <div>
-                  <h3 className="text-sm font-medium mb-2">Partners</h3>
-                  <div className="space-y-2">
-                    {opportunity.partners.map(partner => (
-                      <Link 
-                        key={partner.id} 
-                        href={partner.link} 
-                        className="text-indigo-600 hover:underline flex items-center gap-1 block"
-                      >
-                        <span>{partner.name}</span>
-                        <ExternalLink className="h-3 w-3" />
-                      </Link>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </PopoverContent>
-          </Popover>
-          
-          {/* Owner info */}
-          <div className="flex items-center ml-auto">
-            <Avatar className="h-8 w-8">
-              <AvatarFallback className="bg-indigo-100 text-indigo-600">
+        {/* Partner-style header with title, buttons and metadata */}
+        <div className="flex justify-between items-start">
+          <div className="flex items-start space-x-4">
+            <Avatar className="h-12 w-12 mt-1">
+              <AvatarFallback className="bg-indigo-100 text-indigo-600 text-lg">
                 {opportunity.owner.initials}
               </AvatarFallback>
             </Avatar>
-            <span className="ml-2 text-gray-600">{opportunity.owner.name}</span>
+            
+            <div>
+              <div className="flex items-center space-x-3">
+                <h1 className="text-2xl font-bold tracking-tight text-black">
+                  {opportunity.name}
+                </h1>
+                <div className="flex items-center space-x-2">
+                  <span className="text-sm text-gray-500">Owner:</span>
+                  <Avatar className="h-6 w-6">
+                    <AvatarFallback className="bg-indigo-100 text-indigo-600 text-xs">
+                      {opportunity.owner.initials}
+                    </AvatarFallback>
+                  </Avatar>
+                </div>
+              </div>
+              
+              <div className="mt-2">
+                <div className="text-gray-600">
+                  {opportunity.description}
+                </div>
+              </div>
+              
+              {/* Attribute cards and related records on same line, below description */}
+              <div className="flex flex-wrap items-center gap-4 mt-4">
+                {/* Amount Card */}
+                <Card className="shadow-sm">
+                  <CardContent className="p-4">
+                    <div className="text-sm text-gray-500 mb-1">Amount</div>
+                    <div className="text-xl font-semibold">€ {(opportunity.amount / 1000).toFixed(0)}.000</div>
+                  </CardContent>
+                </Card>
+                
+                {/* Probability Card */}
+                <Card className="shadow-sm">
+                  <CardContent className="p-4">
+                    <div className="text-sm text-gray-500 mb-1">Probability</div>
+                    <div className="text-xl font-semibold">{opportunity.probability}%</div>
+                  </CardContent>
+                </Card>
+                
+                {/* Stage Card */}
+                <Card className="shadow-sm">
+                  <CardContent className="p-4">
+                    <div className="text-sm text-gray-500 mb-1">Stage</div>
+                    <div className="text-xl font-semibold">{opportunity.stage}</div>
+                  </CardContent>
+                </Card>
+                
+                {/* Related Records Dropdown - on the same level as the cards */}
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="outline" className="h-[72px] flex items-center gap-2">
+                      <Users className="h-4 w-4" />
+                      Related Records (3)
+                      <ChevronDown className="h-4 w-4" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-60 p-4">
+                    <div className="space-y-4">
+                      <div>
+                        <h3 className="text-sm font-medium mb-2">Customer</h3>
+                        <Link href={opportunity.customer.link} className="text-indigo-600 hover:underline flex items-center gap-1">
+                          <span>{opportunity.customer.name}</span>
+                          <ExternalLink className="h-3 w-3" />
+                        </Link>
+                      </div>
+                      
+                      <div>
+                        <h3 className="text-sm font-medium mb-2">Partners</h3>
+                        <div className="space-y-2">
+                          {opportunity.partners.map(partner => (
+                            <Link 
+                              key={partner.id} 
+                              href={partner.link} 
+                              className="text-indigo-600 hover:underline flex items-center gap-1 block"
+                            >
+                              <span>{partner.name}</span>
+                              <ExternalLink className="h-3 w-3" />
+                            </Link>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              </div>
+            </div>
+          </div>
+          
+          <div className="flex space-x-3">
+            <Button variant="outline">Edit</Button>
+            <Button className="bg-indigo-600 hover:bg-indigo-700">Actions</Button>
           </div>
         </div>
       </div>
