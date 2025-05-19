@@ -21,6 +21,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Sample data for opportunities
 const mockOpportunities = [
@@ -222,6 +229,7 @@ function OpportunitiesTable() {
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedType, setSelectedType] = useState('');
   const [selectedOpportunities, setSelectedOpportunities] = useState<number[]>([]);
+  const [bulkStatusValue, setBulkStatusValue] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
   
@@ -300,6 +308,36 @@ function OpportunitiesTable() {
   };
   
   // Status badge color mapping
+  // Function to handle bulk status change
+  const handleBulkStatusChange = (newStatus: string) => {
+    if (!newStatus) return;
+    
+    // In a real application, this would make an API call to update the opportunities
+    // For now, we'll update our mock data
+    const updatedOpportunities = mockOpportunities.map(opportunity => {
+      if (selectedOpportunities.includes(opportunity.id)) {
+        return { ...opportunity, status: newStatus };
+      }
+      return opportunity;
+    });
+    
+    // For the mock, we'll just reset the bulk status value
+    // In a real app, you'd update the data source and refresh the list
+    setBulkStatusValue('');
+    alert(`Status for ${selectedOpportunities.length} opportunities updated to "${newStatus}"`);
+  };
+
+  // Available opportunity statuses
+  const opportunityStatuses = [
+    'Discovery',
+    'Qualification',
+    'Proposal',
+    'Negotiation',
+    'In Progress',
+    'Closed Won',
+    'Closed Lost'
+  ];
+  
   const getStatusBadgeVariant = (status: string) => {
     switch (status) {
       case 'Closed Won':
@@ -623,6 +661,31 @@ function OpportunitiesTable() {
           </div>
           
           <div className="flex items-center gap-2 flex-wrap">
+            {/* New Bulk Status Change dropdown */}
+            <div className="flex items-center gap-1">
+              <Select
+                value={bulkStatusValue}
+                onValueChange={(value) => {
+                  setBulkStatusValue(value);
+                  handleBulkStatusChange(value);
+                }}
+              >
+                <SelectTrigger className="h-9 border-indigo-200 bg-white text-sm w-[180px]">
+                  <SelectValue placeholder="Change Status..." />
+                </SelectTrigger>
+                <SelectContent>
+                  {opportunityStatuses.map((status) => (
+                    <SelectItem key={status} value={status}>
+                      <div className="flex items-center">
+                        <span className={`w-2 h-2 rounded-full mr-2 ${getStatusBadgeVariant(status)}`}></span>
+                        {status}
+                      </div>
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
             <Button 
               variant="outline" 
               size="sm"
