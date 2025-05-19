@@ -314,16 +314,20 @@ function OpportunitiesTable() {
     
     // In a real application, this would make an API call to update the opportunities
     // For now, we'll update our mock data
-    const updatedOpportunities = mockOpportunities.map(opportunity => {
+    mockOpportunities.forEach((opportunity, index) => {
       if (selectedOpportunities.includes(opportunity.id)) {
-        return { ...opportunity, status: newStatus };
+        mockOpportunities[index].status = newStatus;
       }
-      return opportunity;
     });
     
-    // For the mock, we'll just reset the bulk status value
-    // In a real app, you'd update the data source and refresh the list
+    // Force a re-render by setting state
+    setFilterText(filterText + " ");
+    setTimeout(() => setFilterText(filterText.trim()), 10);
+    
+    // Reset the bulk status value
     setBulkStatusValue('');
+    
+    // Provide feedback to the user
     alert(`Status for ${selectedOpportunities.length} opportunities updated to "${newStatus}"`);
   };
 
