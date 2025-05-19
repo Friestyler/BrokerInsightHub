@@ -188,13 +188,7 @@ export default function OpportunityDetail() {
         </Link>
         
         {/* Header with opportunity name and details - restructured as requested */}
-        <div className="flex items-start space-x-4">
-          <Avatar className="h-12 w-12 mt-1">
-            <AvatarFallback className="bg-indigo-100 text-indigo-600 text-lg">
-              {opportunity.owner.initials}
-            </AvatarFallback>
-          </Avatar>
-          
+        <div className="flex items-start">
           <div className="w-full">
             <div className="flex flex-wrap items-center gap-3">
               {/* Opportunity Name and Details Button */}
