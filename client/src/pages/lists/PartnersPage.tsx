@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import {
   Card,
@@ -236,6 +236,8 @@ function PartnersTable() {
     }
   ]);
   const [activeList, setActiveList] = useState<SavedList | null>(null);
+  const [originalListFilters, setOriginalListFilters] = useState<SavedList['filters'] | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showSaveListModal, setShowSaveListModal] = useState(false);
   const [showShareListModal, setShowShareListModal] = useState(false);
   const [showListsDropdown, setShowListsDropdown] = useState(false);
@@ -254,6 +256,46 @@ function PartnersTable() {
     return matchesText && matchesStatus && matchesIndustry && matchesType;
   });
   
+
+  
+  // Function to revert changes to the original list filters
+  const revertChanges = () => {
+    if (activeList && originalListFilters) {
+      setFilterText(originalListFilters.searchText || '');
+      setSelectedStatus(originalListFilters.status || '');
+      setSelectedIndustry(originalListFilters.industry || '');
+      setSelectedType(originalListFilters.type || '');
+      setHasUnsavedChanges(false);
+    }
+  };
+  
+  // Function to save changes to the current list
+  const saveChanges = () => {
+    if (activeList && !activeList.isDefault) {
+      const updatedList = {
+        ...activeList,
+        filters: {
+          searchText: filterText || undefined,
+          status: selectedStatus || undefined,
+          industry: selectedIndustry || undefined,
+          type: selectedType || undefined,
+          size: originalListFilters?.size // Preserve size filter if it exists
+        },
+        createdAt: new Date() // Update the timestamp
+      };
+      
+      // Update the list in the savedLists array
+      const updatedLists = savedLists.map(list => 
+        list.id === activeList.id ? updatedList : list
+      );
+      
+      setSavedLists(updatedLists);
+      setActiveList(updatedList);
+      setOriginalListFilters(updatedList.filters);
+      setHasUnsavedChanges(false);
+    }
+  };
+
   // Calculate stats based on filtered partners
   const stats = calculatePartnerStats(displayedPartners);
   
@@ -341,10 +383,14 @@ function PartnersTable() {
                             className={`relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 ${activeList?.id === list.id ? 'bg-indigo-50 text-indigo-900' : 'text-slate-700'}`}
                             onClick={() => {
                               setActiveList(list);
-                              if (list.filters.searchText) setFilterText(list.filters.searchText);
-                              if (list.filters.status) setSelectedStatus(list.filters.status);
-                              if (list.filters.industry) setSelectedIndustry(list.filters.industry);
-                              if (list.filters.type) setSelectedType(list.filters.type);
+                              // Store the original filters to enable reverting changes
+                              setOriginalListFilters(list.filters);
+                              // Apply filter settings
+                              setFilterText(list.filters.searchText || '');
+                              setSelectedStatus(list.filters.status || '');
+                              setSelectedIndustry(list.filters.industry || '');
+                              setSelectedType(list.filters.type || '');
+                              setHasUnsavedChanges(false);
                               setShowListsDropdown(false);
                             }}
                           >
@@ -433,6 +479,38 @@ function PartnersTable() {
               {/* List actions - Share/Clear when a list is active */}
               {activeList && (
                 <div className="flex items-center gap-2">
+                  {/* Revert and Save buttons - only shown for non-default lists with unsaved changes */}
+                  {hasUnsavedChanges && !activeList.isDefault && (
+                    <>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="text-gray-600"
+                        onClick={revertChanges}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                          <path d="M3 7v6h6"></path>
+                          <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
+                        </svg>
+                        Revert Changes
+                      </Button>
+                      
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="text-indigo-600"
+                        onClick={saveChanges}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                          <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                          <polyline points="7 3 7 8 15 8"></polyline>
+                        </svg>
+                        Save Changes
+                      </Button>
+                    </>
+                  )}
+                  
                   <Button 
                     variant="ghost" 
                     size="sm" 
@@ -470,7 +548,15 @@ function PartnersTable() {
                     variant="ghost" 
                     size="sm"
                     className="text-gray-600"
-                    onClick={() => setActiveList(null)}
+                    onClick={() => {
+                      setActiveList(null);
+                      setOriginalListFilters(null);
+                      setFilterText('');
+                      setSelectedStatus('');
+                      setSelectedIndustry('');
+                      setSelectedType('');
+                      setHasUnsavedChanges(false);
+                    }}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
                       <path d="M18 6 6 18"></path>
