@@ -256,7 +256,29 @@ function PartnersTable() {
     return matchesText && matchesStatus && matchesIndustry && matchesType;
   });
   
-
+  // Check if current filters differ from original list filters to detect unsaved changes
+  useEffect(() => {
+    if (activeList && originalListFilters) {
+      const currentFilters = {
+        searchText: filterText || undefined,
+        status: selectedStatus || undefined,
+        industry: selectedIndustry || undefined,
+        type: selectedType || undefined,
+        size: originalListFilters.size // Preserve size filter if it exists
+      };
+      
+      // Compare current filters with original list filters
+      const hasChanges = 
+        currentFilters.searchText !== originalListFilters.searchText ||
+        currentFilters.status !== originalListFilters.status ||
+        currentFilters.industry !== originalListFilters.industry ||
+        currentFilters.type !== originalListFilters.type;
+      
+      setHasUnsavedChanges(hasChanges);
+    } else {
+      setHasUnsavedChanges(false);
+    }
+  }, [filterText, selectedStatus, selectedIndustry, selectedType, activeList, originalListFilters]);
   
   // Function to revert changes to the original list filters
   const revertChanges = () => {
