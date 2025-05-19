@@ -300,18 +300,18 @@ function PartnersTable() {
                   </svg>
                 </button>
                 
-                {/* Saved Lists dropdown menu - updated design */}
+                {/* Saved Lists dropdown menu - shadcn/ui style with Qollabi colors */}
                 {showListsDropdown && (
-                  <div className="absolute z-40 mt-1 w-80 bg-white rounded-md shadow-lg border border-gray-200 overflow-hidden">
+                  <div className="absolute z-50 mt-1.5 w-80 rounded-md border border-slate-200 bg-white text-slate-950 shadow-md animate-in fade-in-80 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2">
                     {/* Search section */}
-                    <div className="p-2 border-b">
+                    <div className="p-2 border-b border-slate-100">
                       <div className="relative">
                         <input
                           type="text"
                           placeholder="Search lists..."
-                          className="w-full pl-8 pr-3 py-2 text-sm border border-gray-300 rounded-md"
+                          className="w-full pl-8 pr-3 py-2 text-sm rounded-md bg-transparent border border-slate-200 ring-offset-white placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
                         />
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500">
                           <circle cx="11" cy="11" r="8"></circle>
                           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                         </svg>
@@ -319,41 +319,45 @@ function PartnersTable() {
                     </div>
                     
                     {/* Lists with edit options */}
-                    <div className="max-h-60 overflow-y-auto">
+                    <div className="max-h-[300px] overflow-y-auto p-1">
                       {savedLists.map(list => (
                         <div 
                           key={list.id}
-                          className={`border-b border-gray-100 hover:bg-gray-50 ${activeList?.id === list.id ? 'bg-indigo-50' : ''}`}
+                          className="relative"
                         >
-                          <div className="flex items-center justify-between py-2 px-3">
-                            <button
-                              className="flex-1 text-left"
-                              onClick={() => {
-                                setActiveList(list);
-                                if (list.filters.searchText) setFilterText(list.filters.searchText);
-                                if (list.filters.status) setSelectedStatus(list.filters.status);
-                                if (list.filters.industry) setSelectedIndustry(list.filters.industry);
-                                if (list.filters.type) setSelectedType(list.filters.type);
-                                setShowListsDropdown(false);
-                              }}
-                            >
-                              <div className="flex items-center">
-                                <div className="font-medium text-sm">{list.name}</div>
-                                {list.isShared && (
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2 text-indigo-500">
-                                    <circle cx="18" cy="5" r="3"></circle>
-                                    <circle cx="6" cy="12" r="3"></circle>
-                                    <circle cx="18" cy="19" r="3"></circle>
-                                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                                  </svg>
-                                )}
-                              </div>
-                            </button>
+                          <button
+                            className={`relative flex w-full cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 ${activeList?.id === list.id ? 'bg-indigo-50 text-indigo-900' : 'text-slate-700'}`}
+                            onClick={() => {
+                              setActiveList(list);
+                              if (list.filters.searchText) setFilterText(list.filters.searchText);
+                              if (list.filters.status) setSelectedStatus(list.filters.status);
+                              if (list.filters.industry) setSelectedIndustry(list.filters.industry);
+                              if (list.filters.type) setSelectedType(list.filters.type);
+                              setShowListsDropdown(false);
+                            }}
+                          >
+                            <div className="flex flex-1 items-center">
+                              <span className="font-medium">{list.name}</span>
+                              {list.isShared && (
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2 text-indigo-500">
+                                  <circle cx="18" cy="5" r="3"></circle>
+                                  <circle cx="6" cy="12" r="3"></circle>
+                                  <circle cx="18" cy="19" r="3"></circle>
+                                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                                </svg>
+                              )}
+                            </div>
                             
                             {/* Three dots menu */}
-                            <div className="relative group">
-                              <button className="p-1 rounded-full hover:bg-gray-200">
+                            <div className="group ml-auto relative">
+                              <button 
+                                className="rounded-full p-1 hover:bg-slate-200 text-slate-500 focus:outline-none"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  // This would toggle the edit menu in a real implementation
+                                }}
+                              >
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                                   <circle cx="12" cy="12" r="1"></circle>
                                   <circle cx="12" cy="5" r="1"></circle>
@@ -361,25 +365,28 @@ function PartnersTable() {
                                 </svg>
                               </button>
                               
-                              {/* Edit menu options (popup on hover) */}
-                              <div className="absolute right-0 mt-1 w-36 bg-white rounded-md shadow-lg border border-gray-200 hidden group-hover:block z-50">
-                                <button className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 border-b border-gray-100">
+                              {/* Edit menu - shown on hover */}
+                              <div className="absolute right-0 mt-1 w-36 rounded-md border border-slate-200 bg-white p-1 shadow-md hidden group-hover:block z-50">
+                                <button className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 w-full text-left text-slate-700">
                                   Rename
                                 </button>
-                                <button className="w-full text-left px-3 py-2 text-sm hover:bg-gray-50 text-red-600">
+                                <button className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 w-full text-left text-red-600">
                                   Delete
                                 </button>
                               </div>
                             </div>
-                          </div>
+                          </button>
                         </div>
                       ))}
                     </div>
                     
+                    {/* Separator */}
+                    <div className="mx-1 my-1 h-px bg-slate-100"></div>
+                    
                     {/* Create new list button */}
-                    <div className="p-2 border-t">
+                    <div className="p-1">
                       <button
-                        className="w-full text-center py-2 px-3 text-indigo-600 hover:bg-indigo-50 rounded-md text-sm font-medium"
+                        className="relative flex w-full cursor-default select-none items-center justify-center rounded-sm px-2 py-1.5 text-sm font-medium outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 text-indigo-600"
                         onClick={() => {
                           setActiveList(null);
                           setFilterText('');
