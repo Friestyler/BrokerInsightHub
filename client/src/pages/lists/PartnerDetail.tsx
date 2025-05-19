@@ -1,5 +1,6 @@
 import { useState, useRef, DragEvent } from 'react';
 import { useParams, Link, useLocation } from 'wouter';
+import { ChevronLeft } from 'lucide-react';
 import { format } from 'date-fns';
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -393,16 +394,13 @@ export default function PartnerDetail() {
       {/* Partner header */}
       <div className="mb-8">
         <div className="flex justify-between items-start">
-          <div className="flex items-start space-x-4">
-            <Avatar className="h-12 w-12 mt-1">
-              <AvatarFallback className="bg-indigo-100 text-indigo-600 text-lg">
-                {partner.initials}
-              </AvatarFallback>
-            </Avatar>
-            
+          <div className="flex items-start">
             <div>
               <div className="flex items-center space-x-3">
-                <h1 className="text-2xl font-bold tracking-tight text-black">
+                <Link href="/lists/partners" className="inline-flex items-center text-indigo-600 hover:text-indigo-800 mr-2">
+                  <ChevronLeft className="h-4 w-4" />
+                </Link>
+                <h1 className="text-[20px] font-bold tracking-tight text-black">
                   {partner.name}
                 </h1>
                 <Badge variant="outline" className="capitalize">
@@ -414,7 +412,7 @@ export default function PartnerDetail() {
                 </div>
               </div>
               
-              <div className="mt-2">
+              <div className="mt-[10px]">
                 {isEditingDescription ? (
                   <div className="flex items-center">
                     <Input
@@ -433,7 +431,7 @@ export default function PartnerDetail() {
                   </div>
                 ) : (
                   <div 
-                    className="text-gray-600 cursor-pointer hover:text-gray-900"
+                    className="text-gray-600 text-[14px] cursor-pointer hover:text-gray-900"
                     onClick={() => setIsEditingDescription(true)}
                   >
                     {description}
