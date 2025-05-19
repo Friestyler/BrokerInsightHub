@@ -282,7 +282,7 @@ export default function OpportunityDetail() {
             </div>
             
             {/* Description text */}
-            <div className="mt-2">
+            <div className="mt-[10px]">
               <div className="text-gray-600 text-[14px]">
                 {opportunity.description}
               </div>
