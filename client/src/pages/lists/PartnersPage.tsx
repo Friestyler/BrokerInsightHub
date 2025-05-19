@@ -676,32 +676,30 @@ function PartnersTable() {
             {/* Revert and Save buttons - only shown for non-default lists with unsaved changes */}
             {hasUnsavedChanges && activeList && !activeList.isDefault && (
               <div className="flex items-center gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="text-gray-600"
+                <button 
+                  className="flex items-center rounded-md px-4 py-2 text-gray-600 hover:bg-gray-100"
                   onClick={revertChanges}
+                  style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5F6585" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
                     <path d="M3 7v6h6"></path>
                     <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
                   </svg>
-                  Revert Changes
-                </Button>
+                  <span className="text-[#5F6585]">Revert changes</span>
+                </button>
                 
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className="text-indigo-600"
+                <button 
+                  className="flex items-center rounded-md bg-[#EBEEFB] px-4 py-2 hover:bg-[#E3E6F7]"
                   onClick={saveChanges}
+                  style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
                     <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
                     <polyline points="17 21 17 13 7 13 7 21"></polyline>
                     <polyline points="7 3 7 8 15 8"></polyline>
                   </svg>
-                  Save Changes
-                </Button>
+                  <span className="text-[#3E4DC4] font-medium">Save</span>
+                </button>
               </div>
             )}
 
