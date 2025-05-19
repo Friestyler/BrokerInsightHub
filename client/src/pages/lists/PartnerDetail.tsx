@@ -802,12 +802,21 @@ export default function PartnerDetail() {
                     </TableCell>
                   </TableRow>
                   
-                  <TableRow>
-                    <TableCell>
+                  <TableRow
+                    className="cursor-pointer hover:bg-gray-50"
+                    onClick={(e) => {
+                      // Don't navigate if checkbox was clicked
+                      if ((e.target as HTMLElement).closest('input[type="checkbox"]')) {
+                        return;
+                      }
+                      window.location.href = `/lists/opportunities/5?from=partner/${id}`;
+                    }}
+                  >
+                    <TableCell onClick={(e) => e.stopPropagation()}>
                       <Checkbox />
                     </TableCell>
                     <TableCell>
-                      <span className="font-medium">
+                      <span className="font-medium text-indigo-600 hover:underline">
                         Workers Compensation
                       </span>
                     </TableCell>

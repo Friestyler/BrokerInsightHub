@@ -233,9 +233,9 @@ export default function OpportunityDetail() {
     <div className="container mx-auto px-4 py-6">
       {/* Header with back navigation */}
       <div className="mb-6">
-        <Link href="/lists/opportunities" className="inline-flex items-center text-indigo-600 hover:text-indigo-800 mb-4">
+        <Link href={getBackNavigationLink()} className="inline-flex items-center text-indigo-600 hover:text-indigo-800 mb-4">
           <ChevronLeft className="h-4 w-4 mr-1" />
-          Back to Opportunities
+          {getBackNavigationLink().includes('partners') ? 'Back to Partner' : 'Back to Opportunities'}
         </Link>
         
         <div className="flex justify-between items-center">
