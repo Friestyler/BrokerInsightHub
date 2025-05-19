@@ -187,38 +187,42 @@ export default function OpportunityDetail() {
           {getBackNavigationLink().includes('partners') ? 'Back to Partner' : 'Back to Opportunities'}
         </Link>
         
-        {/* Partner-style header with title, buttons and metadata */}
-        <div className="flex justify-between items-start">
-          <div className="flex items-start space-x-4">
-            <Avatar className="h-12 w-12 mt-1">
-              <AvatarFallback className="bg-indigo-100 text-indigo-600 text-lg">
-                {opportunity.owner.initials}
-              </AvatarFallback>
-            </Avatar>
-            
-            <div>
-              <div className="flex items-center space-x-3">
-                <h1 className="text-2xl font-bold tracking-tight text-black">
-                  {opportunity.name}
-                </h1>
-                <div className="flex items-center space-x-2">
-                  <span className="text-sm text-gray-500">Owner:</span>
-                  <Avatar className="h-6 w-6">
-                    <AvatarFallback className="bg-indigo-100 text-indigo-600 text-xs">
-                      {opportunity.owner.initials}
-                    </AvatarFallback>
-                  </Avatar>
-                </div>
+        {/* Header with opportunity name and details - restructured as requested */}
+        <div className="flex items-start space-x-4">
+          <Avatar className="h-12 w-12 mt-1">
+            <AvatarFallback className="bg-indigo-100 text-indigo-600 text-lg">
+              {opportunity.owner.initials}
+            </AvatarFallback>
+          </Avatar>
+          
+          <div className="w-full">
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Opportunity Name and Details Button */}
+              <h1 className="text-2xl font-bold tracking-tight text-black">
+                {opportunity.name}
+              </h1>
+              
+              {/* Details Button */}
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="px-2 py-1 h-7 text-xs rounded-full"
+              >
+                Details
+              </Button>
+              
+              {/* Owner Information */}
+              <div className="flex items-center space-x-2 ml-3">
+                <span className="text-sm text-gray-500">Owner:</span>
+                <Avatar className="h-6 w-6">
+                  <AvatarFallback className="bg-indigo-100 text-indigo-600 text-xs">
+                    {opportunity.owner.initials}
+                  </AvatarFallback>
+                </Avatar>
               </div>
               
-              <div className="mt-2">
-                <div className="text-gray-600">
-                  {opportunity.description}
-                </div>
-              </div>
-              
-              {/* Attribute cards and related records on same line, below description */}
-              <div className="flex flex-wrap items-center gap-4 mt-4">
+              {/* Right side - attribute cards and related records on the same level */}
+              <div className="flex flex-wrap items-center gap-4 ml-auto">
                 {/* Amount Card */}
                 <Card className="shadow-sm">
                   <CardContent className="p-4">
@@ -243,7 +247,7 @@ export default function OpportunityDetail() {
                   </CardContent>
                 </Card>
                 
-                {/* Related Records Dropdown - on the same level as the cards */}
+                {/* Related Records Dropdown - positioned at the end */}
                 <Popover>
                   <PopoverTrigger asChild>
                     <Button variant="outline" className="h-[72px] flex items-center gap-2">
@@ -282,11 +286,13 @@ export default function OpportunityDetail() {
                 </Popover>
               </div>
             </div>
-          </div>
-          
-          <div className="flex space-x-3">
-            <Button variant="outline">Edit</Button>
-            <Button className="bg-indigo-600 hover:bg-indigo-700">Actions</Button>
+            
+            {/* Description text */}
+            <div className="mt-2">
+              <div className="text-gray-600">
+                {opportunity.description}
+              </div>
+            </div>
           </div>
         </div>
       </div>
