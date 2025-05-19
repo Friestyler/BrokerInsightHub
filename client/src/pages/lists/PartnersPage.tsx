@@ -335,8 +335,8 @@ function PartnersTable() {
                           key={list.id}
                           className="relative"
                         >
-                          <button
-                            className={`relative flex w-full cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 ${activeList?.id === list.id ? 'bg-indigo-50 text-indigo-900' : 'text-slate-700'}`}
+                          <div
+                            className={`relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 ${activeList?.id === list.id ? 'bg-indigo-50 text-indigo-900' : 'text-slate-700'}`}
                             onClick={() => {
                               setActiveList(list);
                               if (list.filters.searchText) setFilterText(list.filters.searchText);
@@ -347,7 +347,7 @@ function PartnersTable() {
                             }}
                           >
                             <div className="flex flex-1 items-center">
-                              <span className="font-medium">{list.name}</span>
+                              <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>{list.name}</span>
                               {list.isShared && (
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2 text-indigo-500">
                                   <circle cx="18" cy="5" r="3"></circle>
@@ -362,8 +362,8 @@ function PartnersTable() {
                             {/* Three dots menu - only shown for non-default lists */}
                             {!list.isDefault && (
                               <div className="group ml-auto relative">
-                                <button 
-                                  className="rounded-full p-1 hover:bg-slate-200 text-slate-500 focus:outline-none"
+                                <div 
+                                  className="rounded-full p-1 hover:bg-slate-200 text-slate-500 focus:outline-none cursor-pointer"
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     // This would toggle the edit menu in a real implementation
@@ -374,16 +374,16 @@ function PartnersTable() {
                                     <circle cx="12" cy="5" r="1"></circle>
                                     <circle cx="12" cy="19" r="1"></circle>
                                   </svg>
-                                </button>
+                                </div>
                                 
                                 {/* Edit menu - shown on hover */}
                                 <div className="absolute right-0 mt-1 w-36 rounded-md border border-slate-200 bg-white p-1 shadow-md hidden group-hover:block z-50">
-                                  <button className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 w-full text-left text-slate-700">
+                                  <div className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 w-full text-left text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
                                     Rename
-                                  </button>
-                                  <button className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 w-full text-left text-red-600">
+                                  </div>
+                                  <div className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 w-full text-left text-red-600" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
                                     Delete
-                                  </button>
+                                  </div>
                                 </div>
                               </div>
                             )}
@@ -391,10 +391,10 @@ function PartnersTable() {
                             {/* Visual indicator for default list */}
                             {list.isDefault && (
                               <div className="ml-auto">
-                                <span className="text-xs text-slate-400 italic">Default</span>
+                                <span className="text-xs text-[#282A3F] italic" style={{ fontFamily: 'Poppins, sans-serif' }}>Default</span>
                               </div>
                             )}
-                          </button>
+                          </div>
                         </div>
                       ))}
                     </div>
@@ -415,8 +415,13 @@ function PartnersTable() {
                           setShowSaveListModal(true);
                           setShowListsDropdown(false);
                         }}
+                        style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
                       >
-                        + Create new list
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                          <path d="M5 12h14"></path>
+                          <path d="M12 5v14"></path>
+                        </svg>
+                        Create new list
                       </div>
                     </div>
                   </div>
