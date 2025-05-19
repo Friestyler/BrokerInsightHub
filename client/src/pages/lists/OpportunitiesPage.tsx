@@ -28,6 +28,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
 
 // Sample data for opportunities
 const mockOpportunities = [
@@ -225,6 +226,7 @@ interface SavedList {
 
 // Main opportunity list component
 function OpportunitiesTable() {
+  const { toast } = useToast();
   const [filterText, setFilterText] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedType, setSelectedType] = useState('');
@@ -327,8 +329,12 @@ function OpportunitiesTable() {
     // Reset the bulk status value
     setBulkStatusValue('');
     
-    // Provide feedback to the user
-    alert(`Status for ${selectedOpportunities.length} opportunities updated to "${newStatus}"`);
+    // Show toast notification with Qollabi styling
+    toast({
+      title: "Status updated",
+      description: `${selectedOpportunities.length} ${selectedOpportunities.length === 1 ? 'opportunity' : 'opportunities'} updated to "${newStatus}"`,
+      className: "bg-indigo-50 border-indigo-200 text-indigo-800",
+    });
   };
 
   // Available opportunity statuses
