@@ -180,14 +180,8 @@ export default function OpportunityDetail() {
 
   return (
     <div className="container mx-auto px-4 py-6">
-      {/* Header with back navigation */}
+      {/* Header with opportunity name and details - restructured as requested */}
       <div className="mb-8">
-        <Link href={getBackNavigationLink()} className="inline-flex items-center text-indigo-600 hover:text-indigo-800 mb-4">
-          <ChevronLeft className="h-4 w-4 mr-1" />
-          {getBackNavigationLink().includes('partners') ? 'Back to Partner' : 'Back to Opportunities'}
-        </Link>
-        
-        {/* Header with opportunity name and details - restructured as requested */}
         <div className="flex items-start">
           <div className="w-full">
             <div className="flex flex-col">
@@ -195,6 +189,9 @@ export default function OpportunityDetail() {
                 <div>
                   {/* Opportunity Name and Details Button */}
                   <div className="flex items-center gap-3">
+                    <Link href={getBackNavigationLink()} className="inline-flex items-center text-indigo-600 hover:text-indigo-800 mr-2">
+                      <ChevronLeft className="h-4 w-4" />
+                    </Link>
                     <h1 className="text-[20px] font-bold tracking-tight text-black">
                       {opportunity.name}
                     </h1>
