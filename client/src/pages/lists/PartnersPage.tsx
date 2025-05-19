@@ -184,6 +184,7 @@ interface SavedList {
   sharedWith?: string[];
   createdBy: string;
   createdAt: Date;
+  isDefault?: boolean; // Flag for system-generated default lists that can't be edited/deleted
 }
 
 // Main partner list component
@@ -198,6 +199,15 @@ function PartnersTable() {
   
   // State for saved lists
   const [savedLists, setSavedLists] = useState<SavedList[]>([
+    {
+      id: 'all-partners',
+      name: 'All Partners',
+      filters: { },
+      isShared: false,
+      createdBy: 'System',
+      createdAt: new Date('2025-01-01'),
+      isDefault: true // Flag to indicate this is a default list that can't be edited/deleted
+    },
     {
       id: '1',
       name: 'Active Insurance Brokers',
@@ -349,32 +359,41 @@ function PartnersTable() {
                               )}
                             </div>
                             
-                            {/* Three dots menu */}
-                            <div className="group ml-auto relative">
-                              <button 
-                                className="rounded-full p-1 hover:bg-slate-200 text-slate-500 focus:outline-none"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  // This would toggle the edit menu in a real implementation
-                                }}
-                              >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <circle cx="12" cy="12" r="1"></circle>
-                                  <circle cx="12" cy="5" r="1"></circle>
-                                  <circle cx="12" cy="19" r="1"></circle>
-                                </svg>
-                              </button>
-                              
-                              {/* Edit menu - shown on hover */}
-                              <div className="absolute right-0 mt-1 w-36 rounded-md border border-slate-200 bg-white p-1 shadow-md hidden group-hover:block z-50">
-                                <button className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 w-full text-left text-slate-700">
-                                  Rename
+                            {/* Three dots menu - only shown for non-default lists */}
+                            {!list.isDefault && (
+                              <div className="group ml-auto relative">
+                                <button 
+                                  className="rounded-full p-1 hover:bg-slate-200 text-slate-500 focus:outline-none"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    // This would toggle the edit menu in a real implementation
+                                  }}
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <circle cx="12" cy="12" r="1"></circle>
+                                    <circle cx="12" cy="5" r="1"></circle>
+                                    <circle cx="12" cy="19" r="1"></circle>
+                                  </svg>
                                 </button>
-                                <button className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 w-full text-left text-red-600">
-                                  Delete
-                                </button>
+                                
+                                {/* Edit menu - shown on hover */}
+                                <div className="absolute right-0 mt-1 w-36 rounded-md border border-slate-200 bg-white p-1 shadow-md hidden group-hover:block z-50">
+                                  <button className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 w-full text-left text-slate-700">
+                                    Rename
+                                  </button>
+                                  <button className="relative flex cursor-default select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 w-full text-left text-red-600">
+                                    Delete
+                                  </button>
+                                </div>
                               </div>
-                            </div>
+                            )}
+                            
+                            {/* Visual indicator for default list */}
+                            {list.isDefault && (
+                              <div className="ml-auto">
+                                <span className="text-xs text-slate-400 italic">Default</span>
+                              </div>
+                            )}
                           </button>
                         </div>
                       ))}
