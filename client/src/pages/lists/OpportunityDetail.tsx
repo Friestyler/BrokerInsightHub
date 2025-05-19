@@ -198,7 +198,7 @@ export default function OpportunityDetail() {
           <div className="w-full">
             <div className="flex flex-wrap items-center gap-3">
               {/* Opportunity Name and Details Button */}
-              <h1 className="text-2xl font-bold tracking-tight text-black">
+              <h1 className="text-[20px] font-bold tracking-tight text-black">
                 {opportunity.name}
               </h1>
               
@@ -227,7 +227,7 @@ export default function OpportunityDetail() {
                 <Card className="shadow-sm">
                   <CardContent className="p-4">
                     <div className="text-sm text-gray-500 mb-1">Amount</div>
-                    <div className="text-xl font-semibold">€ {(opportunity.amount / 1000).toFixed(0)}.000</div>
+                    <div className="text-[16px] font-semibold text-[#282A3F]">€ {(opportunity.amount / 1000).toFixed(0)}.000</div>
                   </CardContent>
                 </Card>
                 
@@ -235,7 +235,7 @@ export default function OpportunityDetail() {
                 <Card className="shadow-sm">
                   <CardContent className="p-4">
                     <div className="text-sm text-gray-500 mb-1">Probability</div>
-                    <div className="text-xl font-semibold">{opportunity.probability}%</div>
+                    <div className="text-[16px] font-semibold text-[#282A3F]">{opportunity.probability}%</div>
                   </CardContent>
                 </Card>
                 
@@ -243,7 +243,7 @@ export default function OpportunityDetail() {
                 <Card className="shadow-sm">
                   <CardContent className="p-4">
                     <div className="text-sm text-gray-500 mb-1">Stage</div>
-                    <div className="text-xl font-semibold">{opportunity.stage}</div>
+                    <div className="text-[16px] font-semibold text-[#282A3F]">{opportunity.stage}</div>
                   </CardContent>
                 </Card>
                 
@@ -252,7 +252,7 @@ export default function OpportunityDetail() {
                   <PopoverTrigger asChild>
                     <Button variant="outline" className="h-[72px] flex items-center gap-2">
                       <Users className="h-4 w-4" />
-                      Related Records (3)
+                      <span className="text-[#282A3F]">Related Records (3)</span>
                       <ChevronDown className="h-4 w-4" />
                     </Button>
                   </PopoverTrigger>
@@ -289,7 +289,7 @@ export default function OpportunityDetail() {
             
             {/* Description text */}
             <div className="mt-2">
-              <div className="text-gray-600">
+              <div className="text-gray-600 text-[14px]">
                 {opportunity.description}
               </div>
             </div>
