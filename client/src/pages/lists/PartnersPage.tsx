@@ -887,19 +887,28 @@ function PartnersTable() {
             <div className="grid gap-4">
               {/* List Name */}
               <div className="grid gap-2">
-                <Label htmlFor="listName" className="text-base font-medium">List Name</Label>
+                <Label htmlFor="listName" className="text-sm font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>List Name</Label>
                 <Input 
                   id="listName" 
                   placeholder="Enter a name for this list"
                   defaultValue={activeList?.name || ''}
                 />
+                <div className="grid gap-2">
+                  <Label htmlFor="listDescription" className="text-sm font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>Description (Optional)</Label>
+                  <Textarea 
+                    id="listDescription" 
+                    placeholder="Add a short description"
+                    rows={2}
+                    defaultValue={activeList?.description || ''}
+                  />
+                </div>
               </div>
               
               {/* List Type as Radio Buttons */}
               <div className="grid gap-2">
                 <input type="hidden" id="hidden-list-type-value" value={activeList?.type || (selectedPartners.length > 0 ? "selection" : "filter")} />
                 <div className="space-y-2">
-                  <Label className="text-base font-medium">List Behavior</Label>
+                  <Label className="text-sm font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>List Behavior</Label>
                   
                   <div className="grid grid-cols-1 gap-3">
                     {/* Dynamic List Option */}
@@ -1010,17 +1019,7 @@ function PartnersTable() {
                   </div>
                 </div>
               </div>
-              
-              {/* Description Field */}
-              <div className="grid gap-2">
-                <Label htmlFor="listDescription" className="text-sm font-medium">Description (Optional)</Label>
-                <Textarea 
-                  id="listDescription" 
-                  placeholder="Add a short description"
-                  rows={2}
-                  defaultValue={activeList?.description || ''}
-                />
-              </div>
+
             </div>
             
             <div className="flex p-3 rounded-lg border border-gray-200 items-center space-x-3 bg-gray-50">
