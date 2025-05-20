@@ -80,7 +80,8 @@ export default function CampaignsPage() {
       id: "personal-liability-pets",
       name: "Personal Liability + Pets",
       category: "Cross-Sell",
-      isSponsored: false,
+      isSponsored: true,
+      sponsor: "Arag",
       icon: <Send className="h-8 w-8 text-indigo-500" />
     },
     {
@@ -263,8 +264,14 @@ export default function CampaignsPage() {
                     <div className="flex justify-between items-start">
                       {template.icon}
                       {template.isSponsored && (
-                        <Badge variant="outline" className="bg-yellow-50 text-yellow-700 border-yellow-200">
-                          Sponsored
+                        <Badge 
+                          variant="outline" 
+                          className={template.sponsor === "Arag" 
+                            ? "bg-green-50 text-green-700 border-green-200"
+                            : "bg-yellow-50 text-yellow-700 border-yellow-200"
+                          }
+                        >
+                          {template.sponsor === "Arag" ? "Created for you" : "Sponsored"}
                         </Badge>
                       )}
                     </div>
