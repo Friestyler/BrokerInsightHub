@@ -97,7 +97,7 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
             <path d="M17 19h4" />
           </svg>
           <span className={`ml-3 text-sm ${collapsed ? "hidden" : "hidden md:inline-block"}`}>
-            {environment.id === 'myqollabi' ? 'Broker Copilot' : 'Partner Copilot'}
+            {environment.id === 'myqollabi' ? 'Partner Pilot' : 'Partner Pilot'}
           </span>
         </Link>
         <div ref={dataMenuRef} className="relative">

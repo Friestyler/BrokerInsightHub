@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { EnvironmentProvider } from "./contexts/EnvironmentContext";
 
 import Layout from "@/components/Layout";
+import PartnerPilot from "@/pages/PartnerPilot";
 import Dashboard from "@/pages/Dashboard";
 import InsuranceNews from "@/pages/InsuranceNews";
 import CompareFiles from "@/pages/CompareFiles";
@@ -36,7 +37,7 @@ function Router() {
   return (
     <Layout>
       <Switch>
-        <Route path="/" component={Dashboard} />
+        <Route path="/" component={PartnerPilot} />
         <Route path="/news" component={InsuranceNews} />
         <Route path="/compare" component={CompareFiles} />
         <Route path="/predict" component={PredictOpportunities} />
