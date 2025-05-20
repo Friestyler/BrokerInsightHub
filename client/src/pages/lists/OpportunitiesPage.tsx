@@ -1049,7 +1049,7 @@ function OpportunitiesTable() {
                   setShowSaveListModal(false);
                 }}
               >
-                {activeList ? 'Update List' : 'Save List'}
+                {activeList ? 'Update List' : 'Create new list'}
               </Button>
             </div>
           </DialogFooter>
