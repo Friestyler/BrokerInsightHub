@@ -875,7 +875,7 @@ function PartnersTable() {
       <Dialog open={showSaveListModal} onOpenChange={setShowSaveListModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{activeList ? 'Update Saved List' : 'Save Current List'}</DialogTitle>
+            <DialogTitle className="text-[#282A3F] font-semibold text-lg" style={{ fontFamily: 'Poppins, sans-serif' }}>{activeList ? 'Update Saved List' : 'Save Current List'}</DialogTitle>
             <DialogDescription>
               {activeList ? 
                 'Update your list settings below.' : 
