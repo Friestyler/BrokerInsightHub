@@ -819,17 +819,20 @@ function OpportunitiesTable() {
           <DialogHeader>
             <DialogTitle>{activeList ? 'Update Saved List' : 'Save Current List'}</DialogTitle>
             <DialogDescription>
-              Save your current filter settings as a list that you can easily access later.
+              {activeList ? 
+                'Update your list settings below.' : 
+                'Choose a list type and give your list a name. Dynamic lists update automatically based on filters, while Static lists contain only the opportunities you select.'}
             </DialogDescription>
           </DialogHeader>
           
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="listName">List Name</Label>
+              <Label htmlFor="listName" className="text-base font-semibold">Step 1: Name Your List</Label>
               <Input 
                 id="listName" 
                 placeholder="Enter a name for this list"
                 defaultValue={activeList?.name || ''}
+                className="border-2"
               />
             </div>
             
@@ -844,7 +847,7 @@ function OpportunitiesTable() {
             </div>
             
             <div className="grid gap-2">
-              <Label htmlFor="listType">List Type</Label>
+              <Label htmlFor="listType" className="text-base font-semibold">Step 2: Choose List Type</Label>
               <input type="hidden" id="hidden-list-type-value" value={activeList?.type || "filter"} />
               <Select 
                 defaultValue={activeList?.type || "filter"} 
@@ -853,35 +856,81 @@ function OpportunitiesTable() {
                   document.getElementById('hidden-list-type-value')?.setAttribute('value', value);
                 }}
               >
-                <SelectTrigger>
+                <SelectTrigger className="border-2">
                   <SelectValue placeholder="Select list type" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="filter">
-                    <div className="flex flex-col">
-                      <span>Dynamic List</span>
-                      <span className="text-xs text-gray-500">Updates automatically as records match filters</span>
+                    <div className="flex items-center gap-2">
+                      <div className="p-1 rounded-full bg-blue-100">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-800">
+                          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                        </svg>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="font-medium">Dynamic List</span>
+                        <span className="text-xs text-gray-500">Updates automatically as records match filters</span>
+                      </div>
                     </div>
                   </SelectItem>
                   <SelectItem value="selection">
-                    <div className="flex flex-col">
-                      <span>Static List</span>
-                      <span className="text-xs text-gray-500">Contains only specifically selected records</span>
+                    <div className="flex items-center gap-2">
+                      <div className="p-1 rounded-full bg-emerald-100">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-800">
+                          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                      </div>
+                      <div className="flex flex-col">
+                        <span className="font-medium">Static List</span>
+                        <span className="text-xs text-gray-500">Contains only specifically selected records</span>
+                      </div>
                     </div>
                   </SelectItem>
                 </SelectContent>
               </Select>
-              {selectedOpportunities.length > 0 && (
-                <div className="text-xs text-gray-500 mt-1">
-                  {selectedOpportunities.length} opportunities currently selected
+              
+              <div className="px-3 py-2 bg-gray-50 rounded-md mt-1">
+                {/* Use state instead of DOM to avoid TypeScript errors */}
+                <div className="text-sm">
+                  {document.getElementById('hidden-list-type-value')?.getAttribute('value') === 'filter' ? (
+                    <>
+                      <span className="font-medium">Dynamic List:</span> Your current filter settings will be saved and the list will automatically update as opportunities match these filters.
+                      {(!filterText && !selectedStatus && !selectedType) && (
+                        <div className="mt-1 text-amber-600">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block mr-1">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                            <line x1="12" y1="9" x2="12" y2="13"></line>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                          </svg>
+                          You don't have any filters active. This list will include all opportunities.
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <>
+                      <span className="font-medium">Static List:</span> {selectedOpportunities.length > 0 ? (
+                        `${selectedOpportunities.length} opportunities selected will be saved in this list.`
+                      ) : (
+                        <div className="text-amber-600">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block mr-1">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                            <line x1="12" y1="9" x2="12" y2="13"></line>
+                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                          </svg>
+                          You haven't selected any opportunities. Close this dialog, check the checkboxes next to opportunities you want to include, then try again.
+                        </div>
+                      )}
+                    </>
+                  )}
                 </div>
-              )}
+              </div>
             </div>
             
             <div className="flex items-center space-x-2">
               <Checkbox id="shareList" defaultChecked={activeList?.isShared || false} />
               <Label htmlFor="shareList" className="text-sm font-normal">
-                Share this list with collaborators
+                Step 3: Share this list with collaborators (optional)
               </Label>
             </div>
           </div>
