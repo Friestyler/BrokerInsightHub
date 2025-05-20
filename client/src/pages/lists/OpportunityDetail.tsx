@@ -57,7 +57,7 @@ const opportunityDataMap: Record<string, OpportunityData> = {
     name: "Property Insurance Renewal",
     description: "Annual renewal of property insurance policy for Acme Corporation",
     amount: 125000,
-    probability: 60,
+    probability: 80,
     stage: "In Progress",
     customer: {
       id: 1,
@@ -66,15 +66,15 @@ const opportunityDataMap: Record<string, OpportunityData> = {
     },
     partners: [
       {
-        id: 1,
+        id: 2,
         name: "ABC Insurance Brokers",
         link: "/lists/partners/2"
       }
     ],
     owner: {
       id: 1,
-      name: "Richard N.",
-      initials: "RN"
+      name: "Sarah Johnson",
+      initials: "SJ"
     },
     expectedCloseDate: "2025-06-15"
   },
@@ -99,20 +99,72 @@ const opportunityDataMap: Record<string, OpportunityData> = {
     ],
     owner: {
       id: 2,
-      name: "Nancy B.",
-      initials: "NB"
+      name: "Michael Chen",
+      initials: "MC"
     },
     expectedCloseDate: "2025-07-30"
+  },
+  "3": {
+    id: 3,
+    name: "D&O Insurance",
+    description: "Directors and Officers liability insurance for Globex Industries",
+    amount: 150000,
+    probability: 60,
+    stage: "Proposal",
+    customer: {
+      id: 2,
+      name: "Globex Industries",
+      link: "/lists/clients/2"
+    },
+    partners: [
+      {
+        id: 3,
+        name: "Global Insurance Partners",
+        link: "/lists/partners/3"
+      }
+    ],
+    owner: {
+      id: 3,
+      name: "Emma Wilson",
+      initials: "EW"
+    },
+    expectedCloseDate: "2025-06-01"
+  },
+  "4": {
+    id: 4,
+    name: "Group Health Insurance",
+    description: "Comprehensive group health insurance for Stark Enterprises employees",
+    amount: 225000,
+    probability: 70,
+    stage: "Negotiation",
+    customer: {
+      id: 3,
+      name: "Stark Enterprises",
+      link: "/lists/clients/3"
+    },
+    partners: [
+      {
+        id: 1,
+        name: "XYZ Insurance Group",
+        link: "/lists/partners/1"
+      }
+    ],
+    owner: {
+      id: 4,
+      name: "Robert Smith",
+      initials: "RS"
+    },
+    expectedCloseDate: "2025-07-01"
   },
   "5": {
     id: 5,
     name: "Workers Compensation",
     description: "Workers compensation policy for Umbrella Corporation employees",
     amount: 80000,
-    probability: 20,
+    probability: 0,
     stage: "Closed Lost",
     customer: {
-      id: 3,
+      id: 4,
       name: "Umbrella Corporation",
       link: "/lists/clients/3"
     },
@@ -124,11 +176,63 @@ const opportunityDataMap: Record<string, OpportunityData> = {
       }
     ],
     owner: {
-      id: 3,
-      name: "Carla S.",
-      initials: "CS"
+      id: 1,
+      name: "Sarah Johnson",
+      initials: "SJ"
     },
     expectedCloseDate: "2025-05-15"
+  },
+  "6": {
+    id: 6,
+    name: "Professional Liability",
+    description: "Professional liability coverage for Oceanic Airlines staff",
+    amount: 95000,
+    probability: 100,
+    stage: "Closed Won",
+    customer: {
+      id: 5,
+      name: "Oceanic Airlines",
+      link: "/lists/clients/5"
+    },
+    partners: [
+      {
+        id: 4,
+        name: "Premier Insurance Agency",
+        link: "/lists/partners/4"
+      }
+    ],
+    owner: {
+      id: 4,
+      name: "John Davis",
+      initials: "JD"
+    },
+    expectedCloseDate: "2025-04-01"
+  },
+  "7": {
+    id: 7,
+    name: "Product Liability Insurance",
+    description: "Product liability coverage for Wayne Enterprises manufacturing",
+    amount: 110000,
+    probability: 20,
+    stage: "Discovery",
+    customer: {
+      id: 6,
+      name: "Wayne Enterprises",
+      link: "/lists/clients/6"
+    },
+    partners: [
+      {
+        id: 1,
+        name: "XYZ Insurance Group",
+        link: "/lists/partners/1"
+      }
+    ],
+    owner: {
+      id: 2,
+      name: "Michael Chen",
+      initials: "MC"
+    },
+    expectedCloseDate: "2025-08-15"
   }
 };
 
