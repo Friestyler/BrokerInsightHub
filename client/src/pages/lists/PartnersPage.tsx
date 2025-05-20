@@ -1052,6 +1052,17 @@ function PartnersTable() {
                     const listDescription = (document.getElementById('listDescription') as HTMLTextAreaElement).value;
                     const isShared = (document.getElementById('shareList') as HTMLInputElement).checked;
                     
+                    // Validate required fields
+                    if (!listName.trim()) {
+                      // Show error toast notification
+                      toast({
+                        title: "Missing required field",
+                        description: "Please enter a name for your list.",
+                        variant: "destructive",
+                      });
+                      return;
+                    }
+                    
                     const newList: SavedList = {
                       id: String(Date.now()),
                       name: listName,
@@ -1066,6 +1077,12 @@ function PartnersTable() {
                       createdBy: 'John Smith',
                       createdAt: new Date()
                     };
+                    
+                    // Show success toast notification
+                    toast({
+                      title: "List created",
+                      description: `"${listName}" has been created successfully.`,
+                    });
                     
                     setSavedLists([...savedLists, newList]);
                     setActiveList(newList);

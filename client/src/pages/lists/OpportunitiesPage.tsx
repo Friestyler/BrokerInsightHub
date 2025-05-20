@@ -995,6 +995,17 @@ function OpportunitiesTable() {
                     const listDescription = (document.getElementById('listDescription') as HTMLTextAreaElement).value;
                     const isShared = (document.getElementById('shareList') as HTMLInputElement).checked;
                     
+                    // Validate required fields
+                    if (!listName.trim()) {
+                      // Show error toast notification
+                      toast({
+                        title: "Missing required field",
+                        description: "Please enter a name for your list.",
+                        variant: "destructive",
+                      });
+                      return;
+                    }
+                    
                     // Get the selected list type from our hidden input
                     const listTypeInput = document.getElementById('hidden-list-type-value') as HTMLInputElement;
                     const listType = (listTypeInput?.value || "filter") as "filter" | "selection";
@@ -1016,6 +1027,12 @@ function OpportunitiesTable() {
                       createdBy: 'John Smith',
                       createdAt: new Date()
                     };
+                    
+                    // Show success toast notification
+                    toast({
+                      title: "List created",
+                      description: `"${listName}" has been created successfully.`,
+                    });
                     
                     setSavedLists([...savedLists, newList]);
                     setActiveList(newList);
