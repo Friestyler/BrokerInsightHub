@@ -20,7 +20,7 @@ import OpportunitiesPage from "@/pages/lists/OpportunitiesPage";
 import OpportunityDetail from "@/pages/lists/OpportunityDetail";
 import MetricsPage from "@/pages/templates/MetricsPage";
 import GroupDetail from "@/pages/templates/GroupDetail";
-import ButtonOptionsDemo from "@/pages/ButtonOptionsDemo";
+
 import NotFound from "@/pages/not-found";
 import EnvironmentRouteGuard from "@/components/EnvironmentRouteGuard";
 
@@ -63,9 +63,6 @@ function Router() {
         {/* Legacy routes - will be migrated to new structure */}
         <Route path="/clients" component={Clients} />
         <Route path="/clients/:id" component={ClientDetail} />
-        
-        {/* Demo routes */}
-        <Route path="/demo/button-options" component={ButtonOptionsDemo} />
         
         <Route component={NotFound} />
       </Switch>

@@ -351,18 +351,6 @@ function PartnersTable() {
   
   return (
     <div className="space-y-4">
-      {/* Page header with demo button */}
-      <div className="flex justify-between items-center mb-4">
-        <h1 className="text-2xl font-bold">Partners</h1>
-        <Button
-          onClick={() => window.location.href = '/demo/button-options'}
-          variant="outline"
-          size="sm"
-        >
-          View Button Options Demo
-        </Button>
-      </div>
-    
       {/* Unified toolbar with more emphasis on saved lists */}
       <div className="bg-white p-4 rounded-lg shadow-sm">
         <div className="flex flex-col gap-4">
@@ -575,7 +563,7 @@ function PartnersTable() {
                       <path d="M18 6 6 18"></path>
                       <path d="m6 6 12 12"></path>
                     </svg>
-                    Clear
+                    Return to all partners
                   </Button>
                 </div>
               )}
