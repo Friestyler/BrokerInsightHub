@@ -833,23 +833,12 @@ function PartnersTable() {
               )}
               
               {/* Save as new list button - shown when filters are applied or for non-default lists with unsaved changes */}
-              {((filterText || selectedStatus || selectedIndustry || selectedType) && (activeList?.isDefault || !activeList)) && (
-                <button 
-                  className="flex items-center rounded-md bg-[#EBEEFB] px-4 py-2 hover:bg-[#E3E6F7]"
-                  onClick={() => setShowSaveListModal(true)}
-                  style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                    <polyline points="7 3 7 8 15 8"></polyline>
-                  </svg>
-                  <span className="text-[#3E4DC4] font-medium">Save as new list</span>
-                </button>
-              )}
-              
-              {/* Save as new list button - only shown for existing non-default lists with unsaved changes */}
-              {activeList && !activeList.isDefault && hasUnsavedChanges && (
+              {(
+                // Show for default lists or no active list when filters are applied
+                ((filterText || selectedStatus || selectedIndustry || selectedType) && (activeList?.isDefault || !activeList)) || 
+                // OR show for non-default lists with unsaved changes
+                (activeList && !activeList.isDefault && hasUnsavedChanges)
+              ) && (
                 <button 
                   className="flex items-center rounded-md bg-[#EBEEFB] px-4 py-2 hover:bg-[#E3E6F7]"
                   onClick={() => setShowSaveListModal(true)}
@@ -1283,69 +1272,56 @@ function PartnersTable() {
               </div>
             </div>
             
-            {/* Partners table */}
+            {/* Partners list */}
             <div className="border rounded-md mb-4 overflow-hidden max-h-96 overflow-y-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50 sticky top-0">
-                  <tr>
-                    <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-10">
+              {/* Filter out partners already in the list */}
+              <div className="divide-y divide-gray-200">
+                {mockPartners
+                  .filter(p => !activeList?.members?.includes(p.id))
+                  .map(partner => (
+                    <div 
+                      key={partner.id}
+                      className={`flex items-center p-3 hover:bg-gray-50 ${partnersToAdd.includes(partner.id) ? 'bg-blue-50' : ''}`}
+                    >
                       <Checkbox 
-                        checked={partnersToAdd.length === mockPartners.length}
+                        checked={partnersToAdd.includes(partner.id)}
                         onCheckedChange={(checked) => {
                           if (checked) {
-                            setPartnersToAdd(mockPartners.map(p => p.id));
+                            setPartnersToAdd([...partnersToAdd, partner.id]);
                           } else {
-                            setPartnersToAdd([]);
+                            setPartnersToAdd(partnersToAdd.filter(id => id !== partner.id));
                           }
                         }}
+                        className="mr-3"
                       />
-                    </th>
-                    <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Partner</th>
-                    <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Industry</th>
-                    <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-                    <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {mockPartners.filter(p => activeList?.members?.includes(p.id) === false).map(partner => (
-                    <tr 
-                      key={partner.id}
-                      className={`hover:bg-gray-50 ${partnersToAdd.includes(partner.id) ? 'bg-blue-50' : ''}`}
-                    >
-                      <td className="px-3 py-4 whitespace-nowrap w-10">
-                        <Checkbox 
-                          checked={partnersToAdd.includes(partner.id)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setPartnersToAdd([...partnersToAdd, partner.id]);
-                            } else {
-                              setPartnersToAdd(partnersToAdd.filter(id => id !== partner.id));
-                            }
-                          }}
-                        />
-                      </td>
-                      <td className="px-3 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          <Avatar className="h-8 w-8 mr-2 bg-indigo-100 text-indigo-600">
-                            <AvatarFallback>{partner.initials}</AvatarFallback>
-                          </Avatar>
+                      <div className="flex items-center grow">
+                        <Avatar className="h-8 w-8 mr-3 bg-indigo-100 text-indigo-600">
+                          <AvatarFallback>{partner.initials}</AvatarFallback>
+                        </Avatar>
+                        <div className="flex flex-col">
                           <span className="font-medium">{partner.name}</span>
+                          <div className="flex text-xs text-gray-500 mt-1 space-x-3">
+                            <span>{partner.industry}</span>
+                            <span>•</span>
+                            <span>{partner.type}</span>
+                            <span>•</span>
+                            <Badge variant={partner.status === 'active' ? 'outline' : 'secondary'} className="capitalize text-xs">
+                              {partner.status}
+                            </Badge>
+                          </div>
                         </div>
-                      </td>
-                      <td className="px-3 py-4 whitespace-nowrap text-sm">{partner.industry}</td>
-                      <td className="px-3 py-4 whitespace-nowrap text-sm">{partner.type}</td>
-                      <td className="px-3 py-4 whitespace-nowrap text-sm">
-                        <Badge variant={partner.status === 'active' ? 'outline' : 'secondary'} className="capitalize">
-                          {partner.status}
-                        </Badge>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
+                      </div>
+                    </div>
+                ))}
+                {mockPartners.filter(p => !activeList?.members?.includes(p.id)).length === 0 && (
+                  <div className="p-8 text-center">
+                    <p className="text-gray-500">All partners have already been added to this list.</p>
+                  </div>
+                )}
+              </div>
             </div>
             
-            {/* Selected count and actions */}
+            {/* Selected count */}
             <div className="flex justify-between items-center">
               <div className="text-sm text-gray-500">
                 {partnersToAdd.length} partners selected
@@ -1363,33 +1339,33 @@ function PartnersTable() {
             <Button
               onClick={() => {
                 if (activeList && activeList.type === 'selection') {
-                  // Add selected partners to the list
+                  // Get current list members and add new selected partners
                   const currentMembers = activeList.members || [];
-                  // Create a combined, deduplicated array
-                  const allMembers = [...currentMembers, ...partnersToAdd];
-                  const newMembers = allMembers.filter((value, index) => 
-                    allMembers.indexOf(value) === index
-                  );
+                  const updatedMembers = [...currentMembers];
+                  
+                  // Add each selected partner if not already in the list
+                  partnersToAdd.forEach(id => {
+                    if (!updatedMembers.includes(id)) {
+                      updatedMembers.push(id);
+                    }
+                  });
                   
                   // Update the active list
-                  const updatedList: SavedList = {
+                  const updatedList = {
                     ...activeList,
-                    members: Array.from(newMembers)
+                    members: updatedMembers
                   };
                   
-                  // Update active list
+                  // Update active list state
                   setActiveList(updatedList);
                   
                   // Mark as having unsaved changes
                   setHasUnsavedChanges(true);
                   
                   // Update the saved lists
-                  const updatedLists = savedLists.map(list => {
-                    if (list.id === activeList.id) {
-                      return updatedList;
-                    }
-                    return list;
-                  });
+                  const updatedLists = savedLists.map(list => 
+                    list.id === activeList.id ? updatedList : list
+                  );
                   setSavedLists(updatedLists);
                   
                   // Display success message
