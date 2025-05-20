@@ -245,6 +245,7 @@ function OpportunitiesTable() {
     {
       id: '1',
       name: 'High Value Renewals',
+      type: 'filter',
       filters: { status: 'In Progress', type: 'Renewal' },
       isShared: true,
       sharedWith: ['team@acme.com'],
@@ -254,6 +255,7 @@ function OpportunitiesTable() {
     {
       id: '2',
       name: 'New Business Pipeline',
+      type: 'filter',
       filters: { type: 'New Business' },
       isShared: false,
       createdBy: 'John Smith',
@@ -262,11 +264,23 @@ function OpportunitiesTable() {
     {
       id: '3',
       name: 'Acme Corporation Opportunities',
+      type: 'filter',
       filters: { customerId: "1" },
       isShared: true,
       sharedWith: ['team@acme.com'],
       createdBy: 'John Smith',
       createdAt: new Date('2025-05-15')
+    },
+    {
+      id: '4',
+      name: 'Strategic Accounts',
+      type: 'selection',
+      filters: {},
+      members: [1, 3, 6],
+      isShared: true,
+      sharedWith: ['team@acme.com'],
+      createdBy: 'John Smith',
+      createdAt: new Date('2025-05-18')
     }
   ]);
   const [activeList, setActiveList] = useState<SavedList | null>(null);
@@ -434,19 +448,46 @@ function OpportunitiesTable() {
                           className={`w-full text-left py-2 px-3 hover:bg-gray-50 flex items-center justify-between ${activeList?.id === list.id ? 'bg-indigo-50' : ''}`}
                           onClick={() => {
                             setActiveList(list);
-                            if (list.filters.searchText) setFilterText(list.filters.searchText);
-                            if (list.filters.status) setSelectedStatus(list.filters.status);
-                            if (list.filters.type) setSelectedType(list.filters.type);
+                            
+                            // Handle different list types differently
+                            if (list.type === 'filter') {
+                              // For filter lists, apply the saved filters
+                              if (list.filters.searchText) setFilterText(list.filters.searchText);
+                              if (list.filters.status) setSelectedStatus(list.filters.status);
+                              if (list.filters.type) setSelectedType(list.filters.type);
+                              // Clear selections when switching to a filter list
+                              setSelectedOpportunities([]);
+                            } else if (list.type === 'selection' && list.members) {
+                              // For selection lists, select the specific opportunities
+                              setSelectedOpportunities(list.members);
+                              // Clear filters when switching to a selection list
+                              setFilterText('');
+                              setSelectedStatus('');
+                              setSelectedType('');
+                            }
+                            
                             setShowListsDropdown(false);
                           }}
                         >
                           <div>
                             <div className="font-medium text-sm">{list.name}</div>
                             <div className="text-xs text-gray-500 mt-0.5">
-                              {Object.entries(list.filters)
-                                .filter(([_, value]) => value)
-                                .map(([key]) => key)
-                                .join(', ')}
+                              {list.type === 'filter' ? (
+                                // Show filter criteria for filter lists
+                                <>
+                                  <span className="bg-blue-100 text-blue-800 text-xs rounded px-1 mr-1">Filter</span>
+                                  {Object.entries(list.filters)
+                                    .filter(([_, value]) => value)
+                                    .map(([key]) => key)
+                                    .join(', ')}
+                                </>
+                              ) : (
+                                // Show selection info for selection lists
+                                <>
+                                  <span className="bg-emerald-100 text-emerald-800 text-xs rounded px-1 mr-1">Selection</span>
+                                  {list.members ? `${list.members.length} items selected` : 'No items selected'}
+                                </>
+                              )}
                             </div>
                           </div>
                           {list.isShared && (
@@ -804,9 +845,13 @@ function OpportunitiesTable() {
             
             <div className="grid gap-2">
               <Label htmlFor="listType">List Type</Label>
+              <input type="hidden" id="hidden-list-type-value" value={activeList?.type || "filter"} />
               <Select 
-                id="listType"
                 defaultValue={activeList?.type || "filter"} 
+                onValueChange={(value: string) => {
+                  // Store in a hidden input so we can access it when saving
+                  document.getElementById('hidden-list-type-value')?.setAttribute('value', value);
+                }}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select list type" />
@@ -858,9 +903,9 @@ function OpportunitiesTable() {
                     const listDescription = (document.getElementById('listDescription') as HTMLTextAreaElement).value;
                     const isShared = (document.getElementById('shareList') as HTMLInputElement).checked;
                     
-                    // Get the selected list type
-                    const listTypeSelect = document.getElementById('listType') as HTMLSelectElement;
-                    const listType = listTypeSelect ? listTypeSelect.value : 'filter';
+                    // Get the selected list type from our hidden input
+                    const listTypeInput = document.getElementById('hidden-list-type-value') as HTMLInputElement;
+                    const listType = (listTypeInput?.value || "filter") as "filter" | "selection";
                     
                     const newList: SavedList = {
                       id: String(Date.now()),
