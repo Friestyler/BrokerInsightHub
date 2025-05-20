@@ -189,6 +189,7 @@ interface SavedList {
     type?: string;
     size?: string;
   };
+  members?: number[]; // Array of partner IDs for static selection lists
   isShared: boolean;
   sharedWith?: string[];
   createdBy: string;
@@ -251,18 +252,41 @@ function PartnersTable() {
   const [showShareListModal, setShowShareListModal] = useState(false);
   const [showListsDropdown, setShowListsDropdown] = useState(false);
     
-  // Filter partners based on search text and filter selections
+  // Filter partners based on search text, filter selections, and list type
   const displayedPartners = mockPartners.filter(partner => {
-    const matchesText = !filterText || 
-      partner.name.toLowerCase().includes(filterText.toLowerCase()) ||
-      partner.industry.toLowerCase().includes(filterText.toLowerCase()) ||
-      partner.type.toLowerCase().includes(filterText.toLowerCase());
+    // If we have an active static list, only show partners that were explicitly selected for that list
+    if (activeList && activeList.type === 'selection') {
+      // First check if the partner is in the selection list
+      const isInSelectionList = activeList.members?.includes(partner.id) || false;
       
-    const matchesStatus = !selectedStatus || partner.status === selectedStatus;
-    const matchesIndustry = !selectedIndustry || partner.industry === selectedIndustry;
-    const matchesType = !selectedType || partner.type === selectedType;
-    
-    return matchesText && matchesStatus && matchesIndustry && matchesType;
+      if (!isInSelectionList) {
+        return false; // Skip partners not in selection list
+      }
+      
+      // Then apply filters only to the selected partners
+      const matchesText = !filterText || 
+        partner.name.toLowerCase().includes(filterText.toLowerCase()) ||
+        partner.industry.toLowerCase().includes(filterText.toLowerCase()) ||
+        partner.type.toLowerCase().includes(filterText.toLowerCase());
+        
+      const matchesStatus = !selectedStatus || partner.status === selectedStatus;
+      const matchesIndustry = !selectedIndustry || partner.industry === selectedIndustry;
+      const matchesType = !selectedType || partner.type === selectedType;
+      
+      return matchesText && matchesStatus && matchesIndustry && matchesType;
+    } else {
+      // For dynamic lists or no list, apply filters to all partners
+      const matchesText = !filterText || 
+        partner.name.toLowerCase().includes(filterText.toLowerCase()) ||
+        partner.industry.toLowerCase().includes(filterText.toLowerCase()) ||
+        partner.type.toLowerCase().includes(filterText.toLowerCase());
+        
+      const matchesStatus = !selectedStatus || partner.status === selectedStatus;
+      const matchesIndustry = !selectedIndustry || partner.industry === selectedIndustry;
+      const matchesType = !selectedType || partner.type === selectedType;
+      
+      return matchesText && matchesStatus && matchesIndustry && matchesType;
+    }
   });
   
   // Check if current filters differ from original list filters to detect unsaved changes
@@ -343,8 +367,30 @@ function PartnersTable() {
   const toggleSelectPartner = (id: number) => {
     if (selectedPartners.includes(id)) {
       setSelectedPartners(selectedPartners.filter(partnerId => partnerId !== id));
+      
+      // If we have an active static list, update its members and mark as having unsaved changes
+      if (activeList && activeList.type === 'selection') {
+        // Update the activeList temporarily but don't save to savedLists yet
+        const updatedList: SavedList = {
+          ...activeList,
+          members: activeList.members?.filter((memberId: number) => memberId !== id) || []
+        };
+        setActiveList(updatedList);
+        setHasUnsavedChanges(true);
+      }
     } else {
       setSelectedPartners([...selectedPartners, id]);
+      
+      // If we have an active static list, update its members and mark as having unsaved changes
+      if (activeList && activeList.type === 'selection') {
+        // Update the activeList temporarily but don't save to savedLists yet
+        const updatedList: SavedList = {
+          ...activeList,
+          members: [...(activeList.members || []), id]
+        };
+        setActiveList(updatedList);
+        setHasUnsavedChanges(true);
+      }
     }
   };
   
