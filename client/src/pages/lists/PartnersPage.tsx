@@ -375,9 +375,47 @@ function PartnersTable() {
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-indigo-600">
                     <path d="M5.25 1.5V4.25H12.6875V2C12.6875 1.725 12.4906 1.5 12.25 1.5H5.25ZM3.9375 1.5H1.75C1.50937 1.5 1.3125 1.725 1.3125 2V4.25H3.9375V1.5ZM1.3125 5.75V8.25H3.9375V5.75H1.3125ZM1.3125 9.75V12C1.3125 12.275 1.50937 12.5 1.75 12.5H3.9375V9.75H1.3125ZM5.25 12.5H12.25C12.4906 12.5 12.6875 12.275 12.6875 12V9.75H5.25V12.5ZM12.6875 8.25V5.75H5.25V8.25H12.6875ZM0 2C0 0.896875 0.784766 0 1.75 0H12.25C13.2152 0 14 0.896875 14 2V12C14 13.1031 13.2152 14 12.25 14H1.75C0.784766 14 0 13.1031 0 12V2Z" fill="#3E4DC4"/>
                   </svg>
-                  <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
-                    {activeList ? activeList.name : "Saved lists"}
-                  </span>
+                  <div className="flex items-center">
+                    <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
+                      {activeList ? activeList.name : "Saved lists"}
+                    </span>
+                    
+                    {/* Dynamic List Type Indicator */}
+                    {activeList && (
+                      <div className="group relative ml-2">
+                        {activeList.type === 'filter' || !activeList.type ? (
+                          <div className="flex items-center">
+                            <div className="bg-blue-100 text-blue-800 rounded-full px-2 py-0.5 text-xs">
+                              <div className="flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                                </svg>
+                                <span>Dynamic</span>
+                              </div>
+                            </div>
+                            <div className="opacity-0 absolute -top-9 left-0 px-2 py-1 rounded bg-gray-800 text-white text-xs whitespace-nowrap transition-opacity group-hover:opacity-100 z-10">
+                              Updates automatically based on filters
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center">
+                            <div className="bg-emerald-100 text-emerald-800 rounded-full px-2 py-0.5 text-xs">
+                              <div className="flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                </svg>
+                                <span>Static</span>
+                              </div>
+                            </div>
+                            <div className="opacity-0 absolute -top-9 left-0 px-2 py-1 rounded bg-gray-800 text-white text-xs whitespace-nowrap transition-opacity group-hover:opacity-100 z-10">
+                              Contains only selected partners
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
                   <svg 
                     xmlns="http://www.w3.org/2000/svg" 
                     width="14" 
