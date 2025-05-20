@@ -292,6 +292,9 @@ function PartnersTable() {
     }
   };
   
+  // Initialize toast
+  const { toast } = useToast();
+
   // Function to save changes to the current list
   const saveChanges = () => {
     if (activeList && !activeList.isDefault) {
@@ -316,6 +319,12 @@ function PartnersTable() {
       setActiveList(updatedList);
       setOriginalListFilters(updatedList.filters);
       setHasUnsavedChanges(false);
+      
+      // Show toast notification for successful save
+      toast({
+        title: "List Saved",
+        description: "Your changes have been saved successfully"
+      });
     }
   };
 
@@ -677,8 +686,8 @@ function PartnersTable() {
                 )}
                 
                 {/* Save/Save as new list button - context-dependent */}
-                {activeList && !activeList.isDefault ? (
-                  // Save button for existing non-default lists
+                {activeList && !activeList.isDefault && hasUnsavedChanges ? (
+                  // Save button for existing non-default lists with unsaved changes
                   <button 
                     className="flex items-center rounded-md bg-[#EBEEFB] px-4 py-2 hover:bg-[#E3E6F7]"
                     onClick={saveChanges}
@@ -708,7 +717,7 @@ function PartnersTable() {
                 )}
                 
                 {/* Save as... button - only shown for existing non-default lists */}
-                {activeList && !activeList.isDefault && (
+                {activeList && !activeList.isDefault && hasUnsavedChanges && (
                   <button 
                     className="flex items-center rounded-md border border-[#E3E6F7] px-4 py-2 hover:bg-gray-50"
                     onClick={() => setShowSaveListModal(true)}
