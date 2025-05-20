@@ -594,8 +594,6 @@ export default function OpportunityDetail() {
           </Table>
         </div>
       </div>
-      
-
     </div>
   );
 }
