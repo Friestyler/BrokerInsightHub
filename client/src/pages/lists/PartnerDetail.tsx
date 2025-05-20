@@ -549,13 +549,9 @@ export default function PartnerDetail() {
                 <Button 
                   variant="outline" 
                   size="sm" 
-                  className="h-6 w-6 p-0 rounded-md flex items-center justify-center bg-gray-800"
+                  className="h-6 px-2 py-0 rounded-md flex items-center justify-center border-gray-200 text-xs text-indigo-600"
                 >
-                  <FontAwesomeIcon 
-                    icon={faAddressCard} 
-                    className="text-white" 
-                    size="xs" 
-                  />
+                  Details
                 </Button>
                 <Badge variant="outline" className="capitalize">
                   {partner.segment}
