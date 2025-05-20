@@ -8,8 +8,6 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
@@ -28,7 +26,7 @@ const opportunity = {
   customer: {
     id: 1,
     name: "SARP Groupe",
-    link: "/lists/clients/1"
+    link: "/lists/customers/1"
   },
   partners: [
     {
@@ -43,93 +41,140 @@ const opportunity = {
     }
   ],
   owner: {
-    id: 1,
     name: "Lenny K.",
     initials: "LK"
-  },
-  expectedCloseDate: "2025-08-15"
+  }
 };
 
-// Mock metrics data
+// Mock metrics data for this opportunity
 const metrics = [
   {
     id: 1,
-    name: "Discovery Call Completion",
-    target: "100%",
-    current: "100%",
-    progress: 100,
-    status: "Complete"
+    title: "New contracts signed",
+    status: "on_track",
+    progress: 75,
+    dueDate: new Date("2025-06-30"),
+    targetValue: 1,
+    realizedValue: 0,
+    unit: "contracts",
+    tags: ["Sales", "Contract"]
   },
   {
     id: 2,
-    name: "Requirements Documentation",
-    target: "100%",
-    current: "75%",
-    progress: 75,
-    status: "In Progress"
+    title: "Client meetings conducted",
+    status: "on_track",
+    progress: 100,
+    dueDate: new Date("2025-05-15"),
+    targetValue: 3,
+    realizedValue: 3,
+    unit: "meetings",
+    tags: ["Client", "Meeting"]
   },
   {
     id: 3,
-    name: "Stakeholder Alignment",
-    target: "100%",
-    current: "50%",
-    progress: 50,
-    status: "In Progress"
+    title: "Requirements documentation completion",
+    status: "at_risk",
+    progress: 60,
+    dueDate: new Date("2025-05-20"),
+    targetValue: 100,
+    realizedValue: 60,
+    unit: "%",
+    tags: ["Documentation", "Requirements"]
   },
   {
     id: 4,
-    name: "Budget Approval",
-    target: "100%",
-    current: "25%",
-    progress: 25,
-    status: "At Risk"
+    title: "Technical proposal submission",
+    status: "not_started",
+    progress: 0,
+    dueDate: new Date("2025-06-10"),
+    targetValue: 1,
+    realizedValue: 0,
+    unit: "proposals",
+    tags: ["Proposal", "Technical"]
   },
   {
     id: 5,
-    name: "Contract Preparation",
-    target: "100%",
-    current: "0%",
+    title: "Budget approval",
+    status: "not_started",
     progress: 0,
-    status: "Not Started"
+    dueDate: new Date("2025-06-20"),
+    targetValue: 1,
+    realizedValue: 0,
+    unit: "approvals",
+    tags: ["Budget", "Approval"]
   }
 ];
 
-// Helper function to format amounts as currency
+// Format currency
 function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('de-DE', {
-    style: 'currency',
+  return new Intl.NumberFormat('en-US', { 
+    style: 'currency', 
     currency: 'EUR',
-    minimumFractionDigits: 0,
     maximumFractionDigits: 0
   }).format(value);
 }
 
-// Helper function to determine the status badge variant based on stage
+// Status badge variant helper
 function getStatusBadgeVariant(status: string): string {
-  switch (status) {
-    case "Qualification":
-      return "bg-purple-100 text-purple-800";
-    case "Discovery":
-      return "bg-blue-100 text-blue-800";
-    case "Proposal":
-      return "bg-indigo-100 text-indigo-800";
-    case "Negotiation":
-      return "bg-amber-100 text-amber-800";
-    case "Closed Won":
-      return "bg-green-100 text-green-800";
-    case "Closed Lost":
-      return "bg-red-100 text-red-800";
-    default:
-      return "bg-gray-100 text-gray-800";
-  }
+  const statusClasses: {[key: string]: string} = {
+    "on_track": "bg-green-100 text-green-800",
+    "at_risk": "bg-amber-100 text-amber-800",
+    "off_track": "bg-red-100 text-red-800",
+    "not_started": "bg-gray-100 text-gray-800",
+    "completed": "bg-blue-100 text-blue-800",
+    "Discovery": "bg-indigo-100 text-indigo-800",
+    "Qualification": "bg-purple-100 text-purple-800",
+    "Proposal": "bg-amber-100 text-amber-800",
+    "Negotiation": "bg-blue-100 text-blue-800",
+    "Closed Won": "bg-green-100 text-green-800",
+    "Closed Lost": "bg-red-100 text-red-800"
+  };
+  
+  return statusClasses[status] || "bg-gray-100 text-gray-800";
 }
 
-// Helper function to format dates
+// Tag badge component
+const TagBadge = ({ tag }: { tag: string }) => {
+  // Get a consistent color for each tag
+  const getTagColor = (tag: string) => {
+    const tagColors: {[key: string]: string} = {
+      "Financial": "bg-emerald-100 text-emerald-800 border-emerald-200",
+      "Revenue": "bg-green-100 text-green-800 border-green-200",
+      "Partner": "bg-blue-100 text-blue-800 border-blue-200",
+      "Pipeline": "bg-amber-100 text-amber-800 border-amber-200",
+      "Sales": "bg-orange-100 text-orange-800 border-orange-200",
+      "Training": "bg-indigo-100 text-indigo-800 border-indigo-200",
+      "Certification": "bg-violet-100 text-violet-800 border-violet-200",
+      "People": "bg-pink-100 text-pink-800 border-pink-200",
+      "Marketing": "bg-purple-100 text-purple-800 border-purple-200",
+      "Budget": "bg-lime-100 text-lime-800 border-lime-200",
+      "Digital": "bg-sky-100 text-sky-800 border-sky-200",
+      "Contract": "bg-cyan-100 text-cyan-800 border-cyan-200",
+      "Proposal": "bg-amber-100 text-amber-800 border-amber-200",
+      "Technical": "bg-blue-100 text-blue-800 border-blue-200",
+      "Client": "bg-teal-100 text-teal-800 border-teal-200",
+      "Meeting": "bg-slate-100 text-slate-800 border-slate-200",
+      "Documentation": "bg-gray-100 text-gray-800 border-gray-200",
+      "Requirements": "bg-yellow-100 text-yellow-800 border-yellow-200",
+      "Approval": "bg-red-100 text-red-800 border-red-200",
+    };
+    
+    return tagColors[tag] || "bg-gray-100 text-gray-800 border-gray-200";
+  };
+  
+  return (
+    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mr-2 ${getTagColor(tag)}`}>
+      {tag}
+    </span>
+  );
+};
+
+// Date formatter
 const formatDate = (date: Date) => {
-  return new Intl.DateTimeFormat('en-GB', {
-    day: '2-digit',
-    month: '2-digit',
-    year: 'numeric'
+  return new Intl.DateTimeFormat('en-US', { 
+    day: 'numeric', 
+    month: 'short', 
+    year: 'numeric' 
   }).format(new Date(date));
 };
 
@@ -138,22 +183,6 @@ export default function OpportunityDetail() {
   const { id } = useParams();
   const { environment } = useEnvironment();
   const [selectedMetrics, setSelectedMetrics] = useState<number[]>([]);
-  
-  // Handle back navigation based on referer
-  const getBackNavigationLink = () => {
-    // Parse the query string to see if we came from a specific page
-    const urlParams = new URLSearchParams(window.location.search);
-    const fromParam = urlParams.get('from');
-    
-    if (fromParam && fromParam.startsWith('partner/')) {
-      // Extract partner ID and return to that partner page
-      const partnerId = fromParam.split('/')[1];
-      return `/lists/partners/${partnerId}`;
-    }
-    
-    // Default back to opportunities list
-    return "/lists/opportunities";
-  };
   
   // Toggle selection of a metric
   const toggleMetricSelection = (id: number) => {
@@ -175,120 +204,75 @@ export default function OpportunityDetail() {
 
   return (
     <div className="container mx-auto px-4 py-6">
-      {/* Header with opportunity name and details - restructured as requested */}
-      <div className="mb-8">
-        <div className="flex items-start">
-          <div className="w-full">
-            <div className="flex flex-col">
-              <div className="flex items-center justify-between">
-                <div>
-                  {/* Opportunity Name and Details Button */}
-                  <div className="flex items-center gap-3">
-                    <Link href={getBackNavigationLink()} className="inline-flex items-center text-indigo-600 hover:text-indigo-800 mr-2">
-                      <ChevronLeft className="h-4 w-4" />
-                    </Link>
-                    <h1 className="text-[20px] font-bold tracking-tight text-black">
-                      {opportunity.name}
-                    </h1>
-                    
-                    {/* Details Button - Using FontAwesome icon */}
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="h-6 w-6 p-0 rounded-md flex items-center justify-center bg-gray-800"
-                    >
-                      <FontAwesomeIcon 
-                        icon={faAddressCard} 
-                        className="text-white" 
-                        size="xs" 
-                      />
-                    </Button>
-                    
-                    {/* Owner Information */}
-                    <div className="flex items-center space-x-2 ml-3">
-                      <span className="text-sm text-gray-500">Owner:</span>
-                      <Avatar className="h-6 w-6">
-                        <AvatarFallback className="bg-indigo-100 text-indigo-600 text-xs">
-                          {opportunity.owner.initials}
-                        </AvatarFallback>
-                      </Avatar>
-                    </div>
-                  </div>
-                  
-                  {/* Description text - positioned 10px under the record name */}
-                  <div className="mt-[10px]">
-                    <div className="text-gray-600 text-[14px]">
-                      {opportunity.description}
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Right side - attribute cards and related records on the same level */}
-                <div className="flex flex-wrap items-center gap-4">
-                  {/* Amount Card */}
-                  <Card className="shadow-sm">
-                    <CardContent className="p-4">
-                      <div className="text-sm text-gray-500 mb-1">Amount</div>
-                      <div className="text-[16px] font-semibold text-[#282A3F]">€ {(opportunity.amount / 1000).toFixed(0)}.000</div>
-                    </CardContent>
-                  </Card>
-                  
-                  {/* Probability Card */}
-                  <Card className="shadow-sm">
-                    <CardContent className="p-4">
-                      <div className="text-sm text-gray-500 mb-1">Probability</div>
-                      <div className="text-[16px] font-semibold text-[#282A3F]">{opportunity.probability}%</div>
-                    </CardContent>
-                  </Card>
-                  
-                  {/* Stage Card */}
-                  <Card className="shadow-sm">
-                    <CardContent className="p-4">
-                      <div className="text-sm text-gray-500 mb-1">Stage</div>
-                      <div className="text-[16px] font-semibold text-[#282A3F]">{opportunity.stage}</div>
-                    </CardContent>
-                  </Card>
-                  
-                  {/* Related Records Dropdown - positioned at the end */}
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className="h-[72px] flex items-center gap-2">
-                        <Users className="h-4 w-4" />
-                        <span className="text-[#282A3F]">Related Records (3)</span>
-                        <ChevronDown className="h-4 w-4" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-60 p-4">
-                      <div className="space-y-4">
-                        <div>
-                          <h3 className="text-sm font-medium mb-2">Customer</h3>
-                          <Link href={opportunity.customer.link} className="text-indigo-600 hover:underline flex items-center gap-1">
-                            <span>{opportunity.customer.name}</span>
-                            <ExternalLink className="h-3 w-3" />
-                          </Link>
-                        </div>
-                        
-                        <div>
-                          <h3 className="text-sm font-medium mb-2">Partners</h3>
-                          <div className="space-y-2">
-                            {opportunity.partners.map(partner => (
-                              <Link 
-                                key={partner.id} 
-                                href={partner.link} 
-                                className="text-indigo-600 hover:underline flex items-center gap-1 block"
-                              >
-                                <span>{partner.name}</span>
-                                <ExternalLink className="h-3 w-3" />
-                              </Link>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              </div>
+      {/* Header with back navigation */}
+      <div className="mb-6">
+        <Link href="/lists/opportunities" className="inline-flex items-center text-indigo-600 hover:text-indigo-800 mb-4">
+          <ChevronLeft className="h-4 w-4 mr-1" />
+          Back to Opportunities
+        </Link>
+        
+        <div className="flex justify-between items-center">
+          <div className="flex items-center">
+            <h1 className="text-2xl font-bold tracking-tight">{opportunity.name}</h1>
+            <div className="ml-4 flex items-center">
+              <Avatar className="h-8 w-8">
+                <AvatarFallback className="bg-indigo-100 text-indigo-600">
+                  {opportunity.owner.initials}
+                </AvatarFallback>
+              </Avatar>
+              <span className="ml-2 text-gray-600">{opportunity.owner.name}</span>
             </div>
+          </div>
+          
+          <div className="flex space-x-3">
+            <Button variant="outline">Edit</Button>
+            <Button className="bg-indigo-600 hover:bg-indigo-700">Actions</Button>
+          </div>
+        </div>
+        
+        <p className="text-gray-600 mt-2">{opportunity.description}</p>
+      </div>
+      
+      {/* Key metrics section - similar to screenshot */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-6 mb-6">
+        <div className="border-r border-gray-200 pr-6">
+          <span className="text-sm text-gray-500 block">Amount</span>
+          <span className="text-xl font-bold">€ {(opportunity.amount / 1000).toFixed(0)}.000</span>
+        </div>
+        
+        <div className="border-r border-gray-200 px-6">
+          <span className="text-sm text-gray-500 block">Probability</span>
+          <span className="text-xl font-bold">{opportunity.probability}%</span>
+        </div>
+        
+        <div className="pl-6">
+          <span className="text-sm text-gray-500 block">Stage</span>
+          <span className={`px-2.5 py-1 rounded-full text-xs ${getStatusBadgeVariant(opportunity.stage)}`}>
+            {opportunity.stage}
+          </span>
+        </div>
+      </div>
+      
+      {/* Related records section */}
+      <div className="mb-8">
+        <h2 className="text-base font-medium mb-3">Related Records</h2>
+        <div className="bg-gray-50 p-4 rounded-md">
+          <div className="flex flex-wrap gap-x-8 gap-y-2">
+            <div>
+              <span className="text-sm text-gray-500 mr-2">Customer:</span>
+              <Link href={opportunity.customer.link} className="text-indigo-600 hover:underline">
+                {opportunity.customer.name}
+              </Link>
+            </div>
+            
+            {opportunity.partners.map((partner, index) => (
+              <div key={partner.id}>
+                <span className="text-sm text-gray-500 mr-2">Partner{opportunity.partners.length > 1 ? ` ${index + 1}` : ''}:</span>
+                <Link href={partner.link} className="text-indigo-600 hover:underline">
+                  {partner.name}
+                </Link>
+              </div>
+            ))}
           </div>
         </div>
       </div>
@@ -306,30 +290,46 @@ export default function OpportunityDetail() {
         {selectedMetrics.length > 0 && (
           <div className="bg-indigo-50 rounded p-3 mb-4 flex justify-between items-center">
             <div className="flex items-center">
-              <span className="font-medium">{selectedMetrics.length} metrics selected</span>
+              <span className="text-indigo-700 font-medium mr-2">{selectedMetrics.length} metrics selected</span>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-gray-500 hover:text-gray-700 p-1 h-auto"
+                onClick={() => setSelectedMetrics([])}
+              >
+                Clear selection
+              </Button>
             </div>
+            
             <div className="flex gap-2">
-              <Button variant="ghost" size="sm">Bulk Update</Button>
-              <Button variant="ghost" size="sm" className="text-red-600 hover:text-red-800">Delete</Button>
+              <Button variant="ghost" size="sm" className="text-indigo-700">
+                Assign
+              </Button>
+              
+              <Button variant="ghost" size="sm" className="text-indigo-700">
+                Change Status
+              </Button>
             </div>
           </div>
         )}
         
-        <div className="bg-white rounded-md border shadow-sm overflow-hidden">
+        <div className="border rounded-md overflow-hidden">
           <Table>
             <TableHeader>
               <TableRow>
                 <TableHead className="w-[40px]">
                   <Checkbox 
-                    checked={selectedMetrics.length === metrics.length && metrics.length > 0} 
+                    checked={selectedMetrics.length === metrics.length && metrics.length > 0}
                     onCheckedChange={toggleAllMetrics}
                   />
                 </TableHead>
-                <TableHead>Metric Name</TableHead>
+                <TableHead>Metric</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Progress</TableHead>
                 <TableHead>Target</TableHead>
                 <TableHead>Current</TableHead>
-                <TableHead>Progress</TableHead>
-                <TableHead>Status</TableHead>
+                <TableHead>Due Date</TableHead>
+                <TableHead>Tags</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -337,163 +337,52 @@ export default function OpportunityDetail() {
                 <TableRow key={metric.id}>
                   <TableCell>
                     <Checkbox 
-                      checked={selectedMetrics.includes(metric.id)} 
+                      checked={selectedMetrics.includes(metric.id)}
                       onCheckedChange={() => toggleMetricSelection(metric.id)}
                     />
                   </TableCell>
-                  <TableCell className="font-medium">{metric.name}</TableCell>
-                  <TableCell>{metric.target}</TableCell>
-                  <TableCell>{metric.current}</TableCell>
+                  <TableCell className="font-medium">{metric.title}</TableCell>
                   <TableCell>
-                    <div className="w-32">
+                    <span className={`px-2.5 py-1 rounded-full text-xs ${getStatusBadgeVariant(metric.status)}`}>
+                      {metric.status.replace('_', ' ')}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <div className="w-[100px]">
                       <Progress value={metric.progress} className="h-2" />
+                      <div className="text-xs text-right mt-1">{metric.progress}%</div>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <span className={`inline-block px-2 py-1 rounded-full text-xs ${
-                      metric.status === "Complete" ? "bg-green-100 text-green-800" :
-                      metric.status === "In Progress" ? "bg-blue-100 text-blue-800" :
-                      metric.status === "At Risk" ? "bg-amber-100 text-amber-800" :
-                      "bg-gray-100 text-gray-800"
-                    }`}>
-                      {metric.status}
-                    </span>
+                    {metric.targetValue} {metric.unit}
+                  </TableCell>
+                  <TableCell>
+                    {metric.realizedValue} {metric.unit}
+                  </TableCell>
+                  <TableCell>{formatDate(metric.dueDate)}</TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap">
+                      {metric.tags.map((tag, i) => (
+                        <TagBadge key={i} tag={tag} />
+                      ))}
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
+              
+              {metrics.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center py-8">
+                    <p className="text-gray-500">No metrics assigned to this opportunity</p>
+                    <Button className="mt-4 bg-indigo-600 hover:bg-indigo-700">
+                      Assign Metrics
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </div>
-      </div>
-      
-      {/* Tabs Section for Additional Details */}
-      <div className="mt-8">
-        <Tabs defaultValue="timeline">
-          <TabsList className="mb-4">
-            <TabsTrigger value="timeline">Timeline</TabsTrigger>
-            <TabsTrigger value="documents">Documents</TabsTrigger>
-            <TabsTrigger value="contacts">Contacts</TabsTrigger>
-            <TabsTrigger value="notes">Notes</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="timeline" className="space-y-4">
-            <div className="bg-white p-4 rounded-md border">
-              <h3 className="font-medium mb-2">Recent Activity</h3>
-              <div className="space-y-3">
-                <div className="flex gap-3">
-                  <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-700 shrink-0">
-                    JS
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">Jane Smith added a note</p>
-                    <p className="text-sm text-gray-600">Customer confirmed budget approval process is starting.</p>
-                    <p className="text-xs text-gray-500 mt-1">2 days ago</p>
-                  </div>
-                </div>
-                
-                <div className="flex gap-3">
-                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 shrink-0">
-                    RH
-                  </div>
-                  <div>
-                    <p className="text-sm font-medium">Robert Harris updated the probability</p>
-                    <p className="text-sm text-gray-600">Changed from 50% to 60%</p>
-                    <p className="text-xs text-gray-500 mt-1">5 days ago</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="documents" className="space-y-4">
-            <div className="bg-white p-4 rounded-md border">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="font-medium">Documents</h3>
-                <Button size="sm" variant="outline">Upload Document</Button>
-              </div>
-              <div className="space-y-2">
-                <div className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-md">
-                  <div className="flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-indigo-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    <span>Proposal_Draft_v3.pdf</span>
-                  </div>
-                  <span className="text-xs text-gray-500">Added 2 weeks ago</span>
-                </div>
-                
-                <div className="flex items-center justify-between p-2 hover:bg-gray-50 rounded-md">
-                  <div className="flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-green-600 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                    </svg>
-                    <span>Cost_Analysis_Spreadsheet.xlsx</span>
-                  </div>
-                  <span className="text-xs text-gray-500">Added 3 weeks ago</span>
-                </div>
-              </div>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="contacts" className="space-y-4">
-            <div className="bg-white p-4 rounded-md border">
-              <h3 className="font-medium mb-4">Key Contacts</h3>
-              <div className="grid md:grid-cols-2 gap-4">
-                <div className="flex items-center p-3 border rounded-md">
-                  <Avatar className="h-10 w-10 mr-3">
-                    <AvatarFallback className="bg-blue-100 text-blue-700">
-                      JD
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-medium">John Doe</p>
-                    <p className="text-sm text-gray-600">CTO, SARP Groupe</p>
-                    <p className="text-sm text-indigo-600">john.doe@example.com</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center p-3 border rounded-md">
-                  <Avatar className="h-10 w-10 mr-3">
-                    <AvatarFallback className="bg-purple-100 text-purple-700">
-                      AS
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="font-medium">Alice Smith</p>
-                    <p className="text-sm text-gray-600">Procurement Manager, SARP Groupe</p>
-                    <p className="text-sm text-indigo-600">alice.smith@example.com</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="notes" className="space-y-4">
-            <div className="bg-white p-4 rounded-md border">
-              <div className="flex justify-between items-center mb-4">
-                <h3 className="font-medium">Notes</h3>
-                <Button size="sm" variant="outline">Add Note</Button>
-              </div>
-              <div className="space-y-4">
-                <div className="border-b pb-4">
-                  <div className="flex justify-between items-center mb-2">
-                    <p className="font-medium">Initial Discovery Call Notes</p>
-                    <span className="text-xs text-gray-500">2 weeks ago</span>
-                  </div>
-                  <p className="text-sm text-gray-600">Customer expressed interest in our Product B solution. Main pain points: current system is slow and doesn't integrate well with their existing tech stack. Budget is a potential concern, but they're willing to invest in the right solution.</p>
-                </div>
-                
-                <div>
-                  <div className="flex justify-between items-center mb-2">
-                    <p className="font-medium">Follow-up Meeting Summary</p>
-                    <span className="text-xs text-gray-500">1 week ago</span>
-                  </div>
-                  <p className="text-sm text-gray-600">Demonstrated the integration capabilities of Product B. Customer was impressed with the performance improvements. They'll be starting the internal budget approval process next week. We should prepare a detailed ROI analysis to support their case.</p>
-                </div>
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs>
       </div>
     </div>
   );
