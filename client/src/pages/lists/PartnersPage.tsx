@@ -429,21 +429,7 @@ function PartnersTable() {
                     {/* Dynamic List Type Indicator */}
                     {activeList && (
                       <div className="group relative ml-2">
-                        {activeList.type === 'filter' || !activeList.type ? (
-                          <div className="flex items-center">
-                            <div className="bg-blue-100 text-blue-800 rounded-full px-2 py-0.5 text-xs">
-                              <div className="flex items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                                </svg>
-                                <span>Dynamic</span>
-                              </div>
-                            </div>
-                            <div className="opacity-0 absolute -top-9 left-0 px-2 py-1 rounded bg-gray-800 text-white text-xs whitespace-nowrap transition-opacity group-hover:opacity-100 z-10">
-                              Updates automatically based on filters
-                            </div>
-                          </div>
-                        ) : (
+                        {activeList.type === 'selection' ? (
                           <div className="flex items-center">
                             <div className="bg-emerald-100 text-emerald-800 rounded-full px-2 py-0.5 text-xs">
                               <div className="flex items-center">
@@ -456,6 +442,20 @@ function PartnersTable() {
                             </div>
                             <div className="opacity-0 absolute -top-9 left-0 px-2 py-1 rounded bg-gray-800 text-white text-xs whitespace-nowrap transition-opacity group-hover:opacity-100 z-10">
                               Contains only selected partners
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="flex items-center">
+                            <div className="bg-blue-100 text-blue-800 rounded-full px-2 py-0.5 text-xs">
+                              <div className="flex items-center">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                                </svg>
+                                <span>Dynamic</span>
+                              </div>
+                            </div>
+                            <div className="opacity-0 absolute -top-9 left-0 px-2 py-1 rounded bg-gray-800 text-white text-xs whitespace-nowrap transition-opacity group-hover:opacity-100 z-10">
+                              Updates automatically based on filters
                             </div>
                           </div>
                         )}
