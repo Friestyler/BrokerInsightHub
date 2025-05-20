@@ -329,16 +329,52 @@ export default function OpportunityDetail() {
   // In a real app, this would use a database query or API call
   const opportunity = opportunityDataMap[id as keyof typeof opportunityDataMap] || opportunityDataMap["1"];
   
-  // Handle back navigation based on referer
+  // Enhanced back navigation based on referrer
   const getBackNavigationLink = () => {
     // Parse the query string to see if we came from a specific page
     const urlParams = new URLSearchParams(window.location.search);
     const fromParam = urlParams.get('from');
     
-    if (fromParam && fromParam.startsWith('partner/')) {
-      // Extract partner ID and return to that partner page
-      const partnerId = fromParam.split('/')[1];
-      return `/lists/partners/${partnerId}`;
+    if (fromParam) {
+      // Handle various sources
+      if (fromParam.startsWith('partner/')) {
+        // Extract partner ID and return to that partner page
+        const partnerId = fromParam.split('/')[1];
+        return `/lists/partners/${partnerId}`;
+      } else if (fromParam.startsWith('client/')) {
+        // Extract client ID and return to that client page
+        const clientId = fromParam.split('/')[1];
+        return `/lists/clients/${clientId}`;
+      } else if (fromParam.startsWith('dashboard')) {
+        // Return to dashboard
+        return `/`;
+      } else if (fromParam.startsWith('customer/')) {
+        // Extract customer ID and return to that customer page
+        const customerId = fromParam.split('/')[1];
+        return `/lists/customers/${customerId}`;
+      } else if (fromParam === 'list') {
+        // Return to the saved list view
+        const listId = urlParams.get('listId');
+        if (listId) {
+          return `/lists/opportunities?list=${listId}`;
+        }
+      }
+    }
+    
+    // Try to get referrer from document.referrer if no query param
+    const referrer = document.referrer;
+    if (referrer) {
+      try {
+        const url = new URL(referrer);
+        const pathname = url.pathname;
+        
+        // Only use referrer if it's an internal page
+        if (pathname && url.origin === window.location.origin) {
+          return pathname + url.search;
+        }
+      } catch (e) {
+        console.error("Error parsing referrer URL:", e);
+      }
     }
     
     // Default back to opportunities list
