@@ -821,117 +821,160 @@ function OpportunitiesTable() {
             <DialogDescription>
               {activeList ? 
                 'Update your list settings below.' : 
-                'Choose a list type and give your list a name. Dynamic lists update automatically based on filters, while Static lists contain only the opportunities you select.'}
+                'Give your list a name and choose how it should work.'}
             </DialogDescription>
           </DialogHeader>
           
           <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="listName" className="text-base font-semibold">Step 1: Name Your List</Label>
-              <Input 
-                id="listName" 
-                placeholder="Enter a name for this list"
-                defaultValue={activeList?.name || ''}
-                className="border-2"
-              />
-            </div>
-            
-            <div className="grid gap-2">
-              <Label htmlFor="listDescription">Description (Optional)</Label>
-              <Textarea 
-                id="listDescription" 
-                placeholder="Add a short description to help others understand this list"
-                rows={3}
-                defaultValue={activeList?.description || ''}
-              />
-            </div>
-            
-            <div className="grid gap-2">
-              <Label htmlFor="listType" className="text-base font-semibold">Step 2: Choose List Type</Label>
-              <input type="hidden" id="hidden-list-type-value" value={activeList?.type || "filter"} />
-              <Select 
-                defaultValue={activeList?.type || "filter"} 
-                onValueChange={(value: string) => {
-                  // Store in a hidden input so we can access it when saving
-                  document.getElementById('hidden-list-type-value')?.setAttribute('value', value);
-                }}
-              >
-                <SelectTrigger className="border-2">
-                  <SelectValue placeholder="Select list type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="filter">
-                    <div className="flex items-center gap-2">
-                      <div className="p-1 rounded-full bg-blue-100">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-800">
-                          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                        </svg>
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="font-medium">Dynamic List</span>
-                        <span className="text-xs text-gray-500">Updates automatically as records match filters</span>
-                      </div>
-                    </div>
-                  </SelectItem>
-                  <SelectItem value="selection">
-                    <div className="flex items-center gap-2">
-                      <div className="p-1 rounded-full bg-emerald-100">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-800">
-                          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                          <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                        </svg>
-                      </div>
-                      <div className="flex flex-col">
-                        <span className="font-medium">Static List</span>
-                        <span className="text-xs text-gray-500">Contains only specifically selected records</span>
-                      </div>
-                    </div>
-                  </SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="grid gap-4">
+              {/* List Name */}
+              <div className="grid gap-2">
+                <Label htmlFor="listName" className="text-base font-medium">List Name</Label>
+                <Input 
+                  id="listName" 
+                  placeholder="Enter a name for this list"
+                  defaultValue={activeList?.name || ''}
+                />
+              </div>
               
-              <div className="px-3 py-2 bg-gray-50 rounded-md mt-1">
-                {/* Use state instead of DOM to avoid TypeScript errors */}
-                <div className="text-sm">
-                  {document.getElementById('hidden-list-type-value')?.getAttribute('value') === 'filter' ? (
-                    <>
-                      <span className="font-medium">Dynamic List:</span> Your current filter settings will be saved and the list will automatically update as opportunities match these filters.
-                      {(!filterText && !selectedStatus && !selectedType) && (
-                        <div className="mt-1 text-amber-600">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block mr-1">
-                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-                            <line x1="12" y1="9" x2="12" y2="13"></line>
-                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+              {/* List Type as Radio Buttons */}
+              <div className="grid gap-2">
+                <input type="hidden" id="hidden-list-type-value" value={activeList?.type || (selectedOpportunities.length > 0 ? "selection" : "filter")} />
+                <div className="space-y-2">
+                  <Label className="text-base font-medium">List Behavior</Label>
+                  
+                  <div className="grid grid-cols-1 gap-3">
+                    {/* Dynamic List Option */}
+                    <div 
+                      className={`relative flex items-start p-3 rounded-lg border-2 ${
+                        document.getElementById('hidden-list-type-value')?.getAttribute('value') === 'filter' 
+                        ? 'border-indigo-600 bg-indigo-50' 
+                        : 'border-gray-200 hover:border-gray-300'
+                      } cursor-pointer`}
+                      onClick={() => {
+                        document.getElementById('hidden-list-type-value')?.setAttribute('value', 'filter');
+                        const radioElement = document.getElementById('list-type-filter') as HTMLInputElement;
+                        if (radioElement) radioElement.checked = true;
+                      }}
+                    >
+                      <div className="flex items-center h-5">
+                        <input
+                          id="list-type-filter"
+                          type="radio"
+                          name="list-type"
+                          className="w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-600"
+                          defaultChecked={!activeList?.type || activeList?.type === 'filter'}
+                          onChange={() => {
+                            document.getElementById('hidden-list-type-value')?.setAttribute('value', 'filter');
+                          }}
+                        />
+                      </div>
+                      <div className="ml-3 flex gap-2 items-center">
+                        <div className="p-1 rounded-full bg-blue-100">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-800">
+                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
                           </svg>
-                          You don't have any filters active. This list will include all opportunities.
                         </div>
-                      )}
-                    </>
-                  ) : (
-                    <>
-                      <span className="font-medium">Static List:</span> {selectedOpportunities.length > 0 ? (
-                        `${selectedOpportunities.length} opportunities selected will be saved in this list.`
-                      ) : (
-                        <div className="text-amber-600">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block mr-1">
-                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-                            <line x1="12" y1="9" x2="12" y2="13"></line>
-                            <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                        <div>
+                          <Label className="font-medium text-sm">Save my current filters</Label>
+                          <p className="text-xs text-gray-500">
+                            The list will automatically update when opportunities match your filters
+                            {(!filterText && !selectedStatus && !selectedType) && (
+                              <span className="block mt-1 text-amber-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block mr-1">
+                                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                                </svg>
+                                You don't have any filters active right now
+                              </span>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Static List Option */}
+                    <div 
+                      className={`relative flex items-start p-3 rounded-lg border-2 ${
+                        document.getElementById('hidden-list-type-value')?.getAttribute('value') === 'selection' 
+                        ? 'border-indigo-600 bg-indigo-50' 
+                        : 'border-gray-200 hover:border-gray-300'
+                      } cursor-pointer`}
+                      onClick={() => {
+                        document.getElementById('hidden-list-type-value')?.setAttribute('value', 'selection');
+                        const radioElement = document.getElementById('list-type-selection') as HTMLInputElement;
+                        if (radioElement) radioElement.checked = true;
+                      }}
+                    >
+                      <div className="flex items-center h-5">
+                        <input
+                          id="list-type-selection"
+                          type="radio"
+                          name="list-type"
+                          className="w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-600"
+                          defaultChecked={activeList?.type === 'selection' || (!activeList?.type && selectedOpportunities.length > 0)}
+                          onChange={() => {
+                            document.getElementById('hidden-list-type-value')?.setAttribute('value', 'selection');
+                          }}
+                        />
+                      </div>
+                      <div className="ml-3 flex gap-2 items-center">
+                        <div className="p-1 rounded-full bg-emerald-100">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-800">
+                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
                           </svg>
-                          You haven't selected any opportunities. Close this dialog, check the checkboxes next to opportunities you want to include, then try again.
                         </div>
-                      )}
-                    </>
-                  )}
+                        <div>
+                          <Label className="font-medium text-sm">Save my selected opportunities</Label>
+                          <p className="text-xs text-gray-500">
+                            Only your specifically selected opportunities will be in this list
+                            {selectedOpportunities.length === 0 && (
+                              <span className="block mt-1 text-amber-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block mr-1">
+                                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                                </svg>
+                                You haven't selected any opportunities yet
+                              </span>
+                            )}
+                            {selectedOpportunities.length > 0 && (
+                              <span className="block mt-1 text-emerald-600">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block mr-1">
+                                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                                </svg>
+                                {selectedOpportunities.length} opportunities selected
+                              </span>
+                            )}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
+              </div>
+              
+              {/* Description Field */}
+              <div className="grid gap-2">
+                <Label htmlFor="listDescription" className="text-sm font-medium">Description (Optional)</Label>
+                <Textarea 
+                  id="listDescription" 
+                  placeholder="Add a short description"
+                  rows={2}
+                  defaultValue={activeList?.description || ''}
+                />
               </div>
             </div>
             
-            <div className="flex items-center space-x-2">
+            <div className="flex p-3 rounded-lg border border-gray-200 items-center space-x-3 bg-gray-50">
               <Checkbox id="shareList" defaultChecked={activeList?.isShared || false} />
-              <Label htmlFor="shareList" className="text-sm font-normal">
-                Step 3: Share this list with collaborators (optional)
-              </Label>
+              <div>
+                <Label htmlFor="shareList" className="text-sm font-medium">
+                  Share this list with my team
+                </Label>
+                <p className="text-xs text-gray-500">
+                  Make this list visible to all collaborators in your environment
+                </p>
+              </div>
             </div>
           </div>
           
