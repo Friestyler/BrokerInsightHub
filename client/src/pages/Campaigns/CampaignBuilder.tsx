@@ -100,7 +100,10 @@ const campaignFormSchema = selectListSchema
   .merge(composeEmailSchema)
   .merge(selectRecipientsSchema)
   .merge(followUpSchema)
-  .merge(campaignSettingsSchema);
+  .merge(campaignSettingsSchema)
+  .extend({
+    status: z.string().optional(),
+  });
 
 type CampaignFormValues = z.infer<typeof campaignFormSchema>;
 
@@ -155,19 +158,14 @@ export default function CampaignBuilder() {
       fromName: "",
       fromEmail: "",
       isShared: false,
+      status: "draft",
     }
   });
 
   // Campaign creation mutation
   const createCampaignMutation = useMutation({
     mutationFn: (data: any) => {
-      return apiRequest('/api/campaigns', {
-        method: 'POST',
-        body: JSON.stringify(data),
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+      return apiRequest('POST', '/api/campaigns', data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/campaigns'] });

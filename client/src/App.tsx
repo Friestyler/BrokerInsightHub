@@ -10,7 +10,8 @@ import Dashboard from "@/pages/Dashboard";
 import InsuranceNews from "@/pages/InsuranceNews";
 import CompareFiles from "@/pages/CompareFiles";
 import PredictOpportunities from "@/pages/PredictOpportunities";
-import CrossSellCampaigns from "@/pages/CrossSellCampaigns";
+import CampaignsPage from "@/pages/Campaigns/CampaignsPage";
+import CampaignBuilder from "@/pages/Campaigns/CampaignBuilder";
 import Clients from "@/pages/Clients";
 import ClientDetail from "@/pages/ClientDetail";
 import PartnersPage from "@/pages/lists/PartnersPage";
@@ -50,11 +51,19 @@ function Router() {
         <Route path="/lists/vendors" component={VendorsPage} />
         <Route path="/lists/products" component={ProductsPage} />
         
-        {/* Prevent access to Campaigns page in ACME environment */}
+        {/* Campaign routes */}
         <Route path="/campaigns">
           {() => (
             <EnvironmentRouteGuard
-              component={CrossSellCampaigns} 
+              component={CampaignsPage} 
+              excludedEnvironments={["acme"]} 
+            />
+          )}
+        </Route>
+        <Route path="/campaigns/new">
+          {() => (
+            <EnvironmentRouteGuard
+              component={CampaignBuilder} 
               excludedEnvironments={["acme"]} 
             />
           )}
