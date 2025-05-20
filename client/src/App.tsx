@@ -18,6 +18,8 @@ import PartnerDetail from "@/pages/lists/PartnerDetail";
 import CustomersPage from "@/pages/lists/CustomersPage";
 import OpportunitiesPage from "@/pages/lists/OpportunitiesPage";
 import OpportunityDetail from "@/pages/lists/OpportunityDetail";
+import VendorsPage from "@/pages/lists/VendorsPage";
+import ProductsPage from "@/pages/lists/ProductsPage";
 import MetricsPage from "@/pages/templates/MetricsPage";
 import GroupDetail from "@/pages/templates/GroupDetail";
 
@@ -45,6 +47,8 @@ function Router() {
         <Route path="/lists/opportunities/:id" component={OpportunityDetail} />
         <Route path="/lists/projects" component={ProjectsPage} />
         <Route path="/lists/contacts" component={ContactsPage} />
+        <Route path="/lists/vendors" component={VendorsPage} />
+        <Route path="/lists/products" component={ProductsPage} />
         
         {/* Prevent access to Campaigns page in ACME environment */}
         <Route path="/campaigns">
