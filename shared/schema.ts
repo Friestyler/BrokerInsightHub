@@ -382,3 +382,119 @@ export type Vendor = typeof vendors.$inferSelect;
 
 export type InsertProduct = z.infer<typeof insertProductSchema>;
 export type Product = typeof products.$inferSelect;
+
+// Campaign model
+export const campaigns = pgTable("campaigns", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  type: text("type").notNull(), // e.g., "cross_sell", "upsell", "custom"
+  category: text("category"), // e.g., "Life + Pension", "Car + Legal", etc.
+  status: text("status").notNull().default("draft"), // draft, active, completed, paused
+  createdById: integer("created_by_id").references(() => users.id),
+  sponsorId: integer("sponsor_id"), // Optional sponsor (e.g., AXA)
+  listId: integer("list_id"), // The list of entities this campaign targets
+  subject: text("subject"),
+  emailBody: text("email_body"),
+  emailLogo: text("email_logo"), // URL to the logo
+  fromName: text("from_name"),
+  fromEmail: text("from_email"),
+  scheduledTime: timestamp("scheduled_time"),
+  frequency: text("frequency").default("one_time"), // one_time, weekly, monthly
+  isShared: boolean("is_shared").default(false),
+  isTemplate: boolean("is_template").default(false),
+  tags: text("tags").array(),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Campaign recipients
+export const campaignRecipients = pgTable("campaign_recipients", {
+  id: serial("id").primaryKey(),
+  campaignId: integer("campaign_id").notNull().references(() => campaigns.id),
+  contactId: integer("contact_id").notNull(), // Reference to a contact
+  status: text("status").notNull().default("pending"), // pending, sent, opened, clicked, responded
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Campaign follow-ups
+export const campaignFollowUps = pgTable("campaign_follow_ups", {
+  id: serial("id").primaryKey(),
+  campaignId: integer("campaign_id").notNull().references(() => campaigns.id),
+  subject: text("subject"),
+  emailBody: text("email_body"),
+  delayDays: integer("delay_days").notNull(), // Days after the initial campaign
+  status: text("status").notNull().default("pending"), // pending, sent, completed
+  attachment: text("attachment"), // URL to attachment
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Define relationships
+export const campaignsRelations = relations(campaigns, ({ one, many }) => ({
+  createdBy: one(users, {
+    fields: [campaigns.createdById],
+    references: [users.id],
+  }),
+  recipients: many(campaignRecipients),
+  followUps: many(campaignFollowUps),
+}));
+
+export const campaignRecipientsRelations = relations(campaignRecipients, ({ one }) => ({
+  campaign: one(campaigns, {
+    fields: [campaignRecipients.campaignId],
+    references: [campaigns.id],
+  }),
+}));
+
+export const campaignFollowUpsRelations = relations(campaignFollowUps, ({ one }) => ({
+  campaign: one(campaigns, {
+    fields: [campaignFollowUps.campaignId],
+    references: [campaigns.id],
+  }),
+}));
+
+// Insert schemas
+export const insertCampaignSchema = createInsertSchema(campaigns).pick({
+  name: true,
+  description: true,
+  type: true,
+  category: true,
+  status: true,
+  createdById: true,
+  sponsorId: true,
+  listId: true,
+  subject: true,
+  emailBody: true,
+  emailLogo: true,
+  fromName: true,
+  fromEmail: true,
+  scheduledTime: true,
+  frequency: true,
+  isShared: true,
+  isTemplate: true,
+  tags: true,
+});
+
+export const insertCampaignRecipientSchema = createInsertSchema(campaignRecipients).pick({
+  campaignId: true,
+  contactId: true,
+  status: true,
+});
+
+export const insertCampaignFollowUpSchema = createInsertSchema(campaignFollowUps).pick({
+  campaignId: true,
+  subject: true,
+  emailBody: true,
+  delayDays: true,
+  status: true,
+  attachment: true,
+});
+
+export type InsertCampaign = z.infer<typeof insertCampaignSchema>;
+export type Campaign = typeof campaigns.$inferSelect;
+
+export type InsertCampaignRecipient = z.infer<typeof insertCampaignRecipientSchema>;
+export type CampaignRecipient = typeof campaignRecipients.$inferSelect;
+
+export type InsertCampaignFollowUp = z.infer<typeof insertCampaignFollowUpSchema>;
+export type CampaignFollowUp = typeof campaignFollowUps.$inferSelect;
