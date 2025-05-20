@@ -343,7 +343,7 @@ export default function ButtonOptionsDemo() {
                 <path d="M18 6 6 18"></path>
                 <path d="m6 6 12 12"></path>
               </svg>
-              Clear Selection
+              Return to all partners
             </Button>
           )}
         </div>
