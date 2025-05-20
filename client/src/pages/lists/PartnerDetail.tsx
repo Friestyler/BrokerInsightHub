@@ -1,5 +1,8 @@
 import { useState, useRef, DragEvent } from 'react';
-import { useParams } from 'wouter';
+import { useParams, Link, useLocation } from 'wouter';
+import { ChevronLeft } from 'lucide-react';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faAddressCard } from "@fortawesome/free-solid-svg-icons";
 import { format } from 'date-fns';
 import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Button } from "@/components/ui/button";
@@ -393,18 +396,26 @@ export default function PartnerDetail() {
       {/* Partner header */}
       <div className="mb-8">
         <div className="flex justify-between items-start">
-          <div className="flex items-start space-x-4">
-            <Avatar className="h-12 w-12 mt-1">
-              <AvatarFallback className="bg-indigo-100 text-indigo-600 text-lg">
-                {partner.initials}
-              </AvatarFallback>
-            </Avatar>
-            
+          <div className="flex items-start">
             <div>
               <div className="flex items-center space-x-3">
-                <h1 className="text-2xl font-bold tracking-tight text-black">
+                <Link href="/lists/partners" className="inline-flex items-center text-indigo-600 hover:text-indigo-800 mr-2">
+                  <ChevronLeft className="h-4 w-4" />
+                </Link>
+                <h1 className="text-[20px] font-bold tracking-tight text-black">
                   {partner.name}
                 </h1>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="h-6 w-6 p-0 rounded-md flex items-center justify-center bg-gray-800"
+                >
+                  <FontAwesomeIcon 
+                    icon={faAddressCard} 
+                    className="text-white" 
+                    size="xs" 
+                  />
+                </Button>
                 <Badge variant="outline" className="capitalize">
                   {partner.segment}
                 </Badge>
@@ -414,7 +425,7 @@ export default function PartnerDetail() {
                 </div>
               </div>
               
-              <div className="mt-2">
+              <div className="mt-[10px]">
                 {isEditingDescription ? (
                   <div className="flex items-center">
                     <Input
@@ -433,7 +444,7 @@ export default function PartnerDetail() {
                   </div>
                 ) : (
                   <div 
-                    className="text-gray-600 cursor-pointer hover:text-gray-900"
+                    className="text-gray-600 text-[14px] cursor-pointer hover:text-gray-900"
                     onClick={() => setIsEditingDescription(true)}
                   >
                     {description}
@@ -713,15 +724,25 @@ export default function PartnerDetail() {
                       <Checkbox />
                     </TableCell>
                     <TableCell>
-                      <span className="font-medium">
-                        Property Insurance Renewal
-                      </span>
+                      <Link href={`/lists/opportunities/1?from=partner/${id}`} className="inline-block">
+                        <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
+                          Property Insurance Renewal
+                        </span>
+                      </Link>
                     </TableCell>
-                    <TableCell className="text-indigo-600">
-                      Acme Corporation
+                    <TableCell>
+                      <Link href={`/lists/clients/1`} className="inline-block">
+                        <span className="text-indigo-600 hover:underline cursor-pointer">
+                          Acme Corporation
+                        </span>
+                      </Link>
                     </TableCell>
-                    <TableCell className="text-indigo-600">
-                      ABC Insurance Brokers
+                    <TableCell>
+                      <Link href={`/lists/partners/2`} className="inline-block">
+                        <span className="text-indigo-600 hover:underline cursor-pointer">
+                          ABC Insurance Brokers
+                        </span>
+                      </Link>
                     </TableCell>
                     <TableCell>
                       Renewal
@@ -751,15 +772,25 @@ export default function PartnerDetail() {
                       <Checkbox />
                     </TableCell>
                     <TableCell>
-                      <span className="font-medium">
-                        Cyber Security Coverage
-                      </span>
+                      <Link href={`/lists/opportunities/2?from=partner/${id}`} className="inline-block">
+                        <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
+                          Cyber Security Coverage
+                        </span>
+                      </Link>
                     </TableCell>
-                    <TableCell className="text-indigo-600">
-                      Acme Corporation
+                    <TableCell>
+                      <Link href={`/lists/clients/1`} className="inline-block">
+                        <span className="text-indigo-600 hover:underline cursor-pointer">
+                          Acme Corporation
+                        </span>
+                      </Link>
                     </TableCell>
-                    <TableCell className="text-indigo-600">
-                      ABC Insurance Brokers
+                    <TableCell>
+                      <Link href={`/lists/partners/2`} className="inline-block">
+                        <span className="text-indigo-600 hover:underline cursor-pointer">
+                          ABC Insurance Brokers
+                        </span>
+                      </Link>
                     </TableCell>
                     <TableCell>
                       New Business
@@ -789,15 +820,25 @@ export default function PartnerDetail() {
                       <Checkbox />
                     </TableCell>
                     <TableCell>
-                      <span className="font-medium">
-                        Workers Compensation
-                      </span>
+                      <Link href={`/lists/opportunities/5?from=partner/${id}`} className="inline-block">
+                        <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
+                          Workers Compensation
+                        </span>
+                      </Link>
                     </TableCell>
-                    <TableCell className="text-indigo-600">
-                      Umbrella Corporation
+                    <TableCell>
+                      <Link href={`/lists/clients/3`} className="inline-block">
+                        <span className="text-indigo-600 hover:underline cursor-pointer">
+                          Umbrella Corporation
+                        </span>
+                      </Link>
                     </TableCell>
-                    <TableCell className="text-indigo-600">
-                      ABC Insurance Brokers
+                    <TableCell>
+                      <Link href={`/lists/partners/2`} className="inline-block">
+                        <span className="text-indigo-600 hover:underline cursor-pointer">
+                          ABC Insurance Brokers
+                        </span>
+                      </Link>
                     </TableCell>
                     <TableCell>
                       Cross-sell

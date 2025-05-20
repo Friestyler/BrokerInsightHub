@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import {
   Card,
@@ -184,6 +184,7 @@ interface SavedList {
   sharedWith?: string[];
   createdBy: string;
   createdAt: Date;
+  isDefault?: boolean; // Flag for system-generated default lists that can't be edited/deleted
 }
 
 // Main partner list component
@@ -198,6 +199,15 @@ function PartnersTable() {
   
   // State for saved lists
   const [savedLists, setSavedLists] = useState<SavedList[]>([
+    {
+      id: 'all-partners',
+      name: 'All Partners',
+      filters: { },
+      isShared: false,
+      createdBy: 'System',
+      createdAt: new Date('2025-01-01'),
+      isDefault: true // Flag to indicate this is a default list that can't be edited/deleted
+    },
     {
       id: '1',
       name: 'Active Insurance Brokers',
@@ -226,6 +236,8 @@ function PartnersTable() {
     }
   ]);
   const [activeList, setActiveList] = useState<SavedList | null>(null);
+  const [originalListFilters, setOriginalListFilters] = useState<SavedList['filters'] | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showSaveListModal, setShowSaveListModal] = useState(false);
   const [showShareListModal, setShowShareListModal] = useState(false);
   const [showListsDropdown, setShowListsDropdown] = useState(false);
@@ -244,6 +256,68 @@ function PartnersTable() {
     return matchesText && matchesStatus && matchesIndustry && matchesType;
   });
   
+  // Check if current filters differ from original list filters to detect unsaved changes
+  useEffect(() => {
+    if (activeList && originalListFilters) {
+      const currentFilters = {
+        searchText: filterText || undefined,
+        status: selectedStatus || undefined,
+        industry: selectedIndustry || undefined,
+        type: selectedType || undefined,
+        size: originalListFilters.size // Preserve size filter if it exists
+      };
+      
+      // Compare current filters with original list filters
+      const hasChanges = 
+        currentFilters.searchText !== originalListFilters.searchText ||
+        currentFilters.status !== originalListFilters.status ||
+        currentFilters.industry !== originalListFilters.industry ||
+        currentFilters.type !== originalListFilters.type;
+      
+      setHasUnsavedChanges(hasChanges);
+    } else {
+      setHasUnsavedChanges(false);
+    }
+  }, [filterText, selectedStatus, selectedIndustry, selectedType, activeList, originalListFilters]);
+  
+  // Function to revert changes to the original list filters
+  const revertChanges = () => {
+    if (activeList && originalListFilters) {
+      setFilterText(originalListFilters.searchText || '');
+      setSelectedStatus(originalListFilters.status || '');
+      setSelectedIndustry(originalListFilters.industry || '');
+      setSelectedType(originalListFilters.type || '');
+      setHasUnsavedChanges(false);
+    }
+  };
+  
+  // Function to save changes to the current list
+  const saveChanges = () => {
+    if (activeList && !activeList.isDefault) {
+      const updatedList = {
+        ...activeList,
+        filters: {
+          searchText: filterText || undefined,
+          status: selectedStatus || undefined,
+          industry: selectedIndustry || undefined,
+          type: selectedType || undefined,
+          size: originalListFilters?.size // Preserve size filter if it exists
+        },
+        createdAt: new Date() // Update the timestamp
+      };
+      
+      // Update the list in the savedLists array
+      const updatedLists = savedLists.map(list => 
+        list.id === activeList.id ? updatedList : list
+      );
+      
+      setSavedLists(updatedLists);
+      setActiveList(updatedList);
+      setOriginalListFilters(updatedList.filters);
+      setHasUnsavedChanges(false);
+    }
+  };
+
   // Calculate stats based on filtered partners
   const stats = calculatePartnerStats(displayedPartners);
   
@@ -274,16 +348,18 @@ function PartnersTable() {
           <div className="flex flex-wrap items-center justify-between">
             {/* Left side - Saved Lists with actions */}
             <div className="flex items-center gap-3">
-              {/* Saved Lists dropdown - now more prominent */}
+              {/* Saved Lists dropdown - redesigned to match provided image */}
               <div className="relative">
                 <button 
-                  className={`flex items-center space-x-2 px-4 py-2.5 border-2 rounded-md text-sm font-medium ${activeList ? 'bg-indigo-50 border-indigo-400 text-indigo-700' : 'border-gray-300 hover:border-gray-400'}`}
+                  className="flex items-center space-x-2 px-4 py-2.5 border rounded-md text-sm font-medium shadow-sm bg-white hover:bg-gray-50"
                   onClick={() => setShowListsDropdown(!showListsDropdown)}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={activeList ? 'text-indigo-600' : 'text-gray-500'}>
-                    <path d="M19 21l-7-4-7 4V5a2 2 0 012-2h10a2 2 0 012 2v16z"/>
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-indigo-600">
+                    <path d="M5.25 1.5V4.25H12.6875V2C12.6875 1.725 12.4906 1.5 12.25 1.5H5.25ZM3.9375 1.5H1.75C1.50937 1.5 1.3125 1.725 1.3125 2V4.25H3.9375V1.5ZM1.3125 5.75V8.25H3.9375V5.75H1.3125ZM1.3125 9.75V12C1.3125 12.275 1.50937 12.5 1.75 12.5H3.9375V9.75H1.3125ZM5.25 12.5H12.25C12.4906 12.5 12.6875 12.275 12.6875 12V9.75H5.25V12.5ZM12.6875 8.25V5.75H5.25V8.25H12.6875ZM0 2C0 0.896875 0.784766 0 1.75 0H12.25C13.2152 0 14 0.896875 14 2V12C14 13.1031 13.2152 14 12.25 14H1.75C0.784766 14 0 13.1031 0 12V2Z" fill="#3E4DC4"/>
                   </svg>
-                  <span className="max-w-[180px] truncate font-medium">{activeList ? activeList.name : 'Saved Lists'}</span>
+                  <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
+                    {activeList ? activeList.name : "Saved lists"}
+                  </span>
                   <svg 
                     xmlns="http://www.w3.org/2000/svg" 
                     width="14" 
@@ -300,63 +376,106 @@ function PartnersTable() {
                   </svg>
                 </button>
                 
-                {/* Saved Lists dropdown menu */}
+                {/* Saved Lists dropdown menu - shadcn/ui style with Qollabi colors */}
                 {showListsDropdown && (
-                  <div className="absolute z-40 mt-1 w-80 bg-white rounded-md shadow-lg border border-gray-200 overflow-hidden">
-                    <div className="p-2 border-b">
-                      <div className="text-sm font-medium mb-1">Saved Lists</div>
+                  <div className="absolute z-50 mt-1.5 w-80 rounded-md border border-slate-200 bg-white text-slate-950 shadow-md animate-in fade-in-80 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2">
+                    {/* Search section */}
+                    <div className="p-2 border-b border-slate-100">
                       <div className="relative">
                         <input
                           type="text"
-                          placeholder="Search saved lists..."
-                          className="w-full pl-3 pr-10 py-1.5 text-xs border border-gray-300 rounded-md"
+                          placeholder="Search lists..."
+                          className="w-full pl-8 pr-3 py-2 text-sm rounded-md bg-transparent border border-slate-200 ring-offset-white placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
                         />
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500">
                           <circle cx="11" cy="11" r="8"></circle>
                           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                         </svg>
                       </div>
                     </div>
                     
-                    <div className="max-h-60 overflow-y-auto">
+                    {/* Lists with edit options */}
+                    <div className="max-h-[300px] overflow-y-auto p-1">
                       {savedLists.map(list => (
-                        <button
+                        <div 
                           key={list.id}
-                          className={`w-full text-left py-2 px-3 hover:bg-gray-50 flex items-center justify-between ${activeList?.id === list.id ? 'bg-indigo-50' : ''}`}
-                          onClick={() => {
-                            setActiveList(list);
-                            if (list.filters.searchText) setFilterText(list.filters.searchText);
-                            if (list.filters.status) setSelectedStatus(list.filters.status);
-                            if (list.filters.industry) setSelectedIndustry(list.filters.industry);
-                            if (list.filters.type) setSelectedType(list.filters.type);
-                            setShowListsDropdown(false);
-                          }}
+                          className="relative"
                         >
-                          <div>
-                            <div className="font-medium text-sm">{list.name}</div>
-                            <div className="text-xs text-gray-500 mt-0.5">
-                              {Object.entries(list.filters)
-                                .filter(([_, value]) => value)
-                                .map(([key]) => key)
-                                .join(', ')}
+                          <div
+                            className={`relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 ${activeList?.id === list.id ? 'bg-indigo-50 text-indigo-900' : 'text-slate-700'}`}
+                            onClick={() => {
+                              setActiveList(list);
+                              // Store the original filters to enable reverting changes
+                              setOriginalListFilters(list.filters);
+                              // Apply filter settings
+                              setFilterText(list.filters.searchText || '');
+                              setSelectedStatus(list.filters.status || '');
+                              setSelectedIndustry(list.filters.industry || '');
+                              setSelectedType(list.filters.type || '');
+                              setHasUnsavedChanges(false);
+                              setShowListsDropdown(false);
+                            }}
+                          >
+                            <div className="flex flex-1 items-center">
+                              <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>{list.name}</span>
+                              {list.isShared && (
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2 text-indigo-500">
+                                  <circle cx="18" cy="5" r="3"></circle>
+                                  <circle cx="6" cy="12" r="3"></circle>
+                                  <circle cx="18" cy="19" r="3"></circle>
+                                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                                </svg>
+                              )}
                             </div>
+                            
+                            {/* Three dots menu - only shown for non-default lists */}
+                            {!list.isDefault && (
+                              <div className="group ml-auto relative">
+                                <div 
+                                  className="rounded-full p-1 hover:bg-slate-200 text-slate-500 focus:outline-none cursor-pointer"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    // This would toggle the edit menu in a real implementation
+                                  }}
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <circle cx="12" cy="12" r="1"></circle>
+                                    <circle cx="12" cy="5" r="1"></circle>
+                                    <circle cx="12" cy="19" r="1"></circle>
+                                  </svg>
+                                </div>
+                                
+                                {/* Edit menu - shown on hover */}
+                                <div className="absolute right-0 mt-1 w-36 rounded-md border border-slate-200 bg-white p-1 shadow-md hidden group-hover:block z-50">
+                                  <div className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 w-full text-left text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
+                                    Rename
+                                  </div>
+                                  <div className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 w-full text-left text-red-600" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
+                                    Delete
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                            
+                            {/* Visual indicator for default list */}
+                            {list.isDefault && (
+                              <div className="ml-auto">
+                                <span className="text-xs text-[#282A3F] italic" style={{ fontFamily: 'Poppins, sans-serif' }}>Default</span>
+                              </div>
+                            )}
                           </div>
-                          {list.isShared && (
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-500">
-                              <circle cx="18" cy="5" r="3"></circle>
-                              <circle cx="6" cy="12" r="3"></circle>
-                              <circle cx="18" cy="19" r="3"></circle>
-                              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                            </svg>
-                          )}
-                        </button>
+                        </div>
                       ))}
                     </div>
                     
-                    <div className="p-2 border-t">
-                      <button
-                        className="w-full text-left py-1.5 px-3 text-indigo-600 hover:bg-indigo-50 rounded-md text-sm flex items-center"
+                    {/* Separator */}
+                    <div className="mx-1 my-1 h-px bg-slate-100"></div>
+                    
+                    {/* Create new list button */}
+                    <div className="p-1">
+                      <div
+                        className="relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm font-medium outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 text-indigo-600"
                         onClick={() => {
                           setActiveList(null);
                           setFilterText('');
@@ -366,13 +485,14 @@ function PartnersTable() {
                           setShowSaveListModal(true);
                           setShowListsDropdown(false);
                         }}
+                        style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                          <line x1="12" y1="5" x2="12" y2="19"></line>
-                          <line x1="5" y1="12" x2="19" y2="12"></line>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                          <path d="M5 12h14"></path>
+                          <path d="M12 5v14"></path>
                         </svg>
-                        Create New List
-                      </button>
+                        Create new list
+                      </div>
                     </div>
                   </div>
                 )}
@@ -381,6 +501,7 @@ function PartnersTable() {
               {/* List actions - Share/Clear when a list is active */}
               {activeList && (
                 <div className="flex items-center gap-2">
+                  
                   <Button 
                     variant="ghost" 
                     size="sm" 
@@ -418,7 +539,15 @@ function PartnersTable() {
                     variant="ghost" 
                     size="sm"
                     className="text-gray-600"
-                    onClick={() => setActiveList(null)}
+                    onClick={() => {
+                      setActiveList(null);
+                      setOriginalListFilters(null);
+                      setFilterText('');
+                      setSelectedStatus('');
+                      setSelectedIndustry('');
+                      setSelectedType('');
+                      setHasUnsavedChanges(false);
+                    }}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
                       <path d="M18 6 6 18"></path>
@@ -432,22 +561,6 @@ function PartnersTable() {
             
             {/* Right-side action buttons */}
             <div className="flex items-center gap-2">
-              {/* Save button - only shown when filters are applied */}
-              {(filterText || selectedStatus || selectedIndustry || selectedType) && (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="text-indigo-600"
-                  onClick={() => setShowSaveListModal(true)}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                    <polyline points="7 3 7 8 15 8"></polyline>
-                  </svg>
-                  {activeList ? 'Update' : 'Save'}
-                </Button>
-              )}
               
               <Button variant="outline" size="sm" className="hidden md:flex items-center">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
@@ -544,6 +657,68 @@ function PartnersTable() {
               </div>
             </div>
             
+            {/* Save/Revert buttons - show different options based on context */}
+            {(filterText || selectedStatus || selectedIndustry || selectedType) && (
+              <div className="flex items-center gap-2">
+                {/* Revert button - only shown for non-default lists with unsaved changes */}
+                {hasUnsavedChanges && activeList && !activeList.isDefault && (
+                  <button 
+                    className="flex items-center rounded-md px-4 py-2 text-gray-600 hover:bg-gray-100"
+                    onClick={revertChanges}
+                    style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5F6585" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                      <path d="M3 7v6h6"></path>
+                      <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
+                    </svg>
+                    <span className="text-[#5F6585]">Revert changes</span>
+                  </button>
+                )}
+                
+                {/* Save/Save as new list button - context-dependent */}
+                {activeList && !activeList.isDefault ? (
+                  // Save button for existing non-default lists
+                  <button 
+                    className="flex items-center rounded-md bg-[#EBEEFB] px-4 py-2 hover:bg-[#E3E6F7]"
+                    onClick={saveChanges}
+                    style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                      <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                      <polyline points="7 3 7 8 15 8"></polyline>
+                    </svg>
+                    <span className="text-[#3E4DC4] font-medium">Save</span>
+                  </button>
+                ) : (
+                  // Save as new list button for All Partners or when no list is selected
+                  <button 
+                    className="flex items-center rounded-md bg-[#EBEEFB] px-4 py-2 hover:bg-[#E3E6F7]"
+                    onClick={() => setShowSaveListModal(true)}
+                    style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                      <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                      <polyline points="7 3 7 8 15 8"></polyline>
+                    </svg>
+                    <span className="text-[#3E4DC4] font-medium">Save as new list</span>
+                  </button>
+                )}
+                
+                {/* Save as... button - only shown for existing non-default lists */}
+                {activeList && !activeList.isDefault && (
+                  <button 
+                    className="flex items-center rounded-md border border-[#E3E6F7] px-4 py-2 hover:bg-gray-50"
+                    onClick={() => setShowSaveListModal(true)}
+                    style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
+                  >
+                    <span className="text-[#3E4DC4]">Save as...</span>
+                  </button>
+                )}
+              </div>
+            )}
+
             {/* Clear filters button - only shown when at least one filter is applied */}
             {(filterText || selectedStatus || selectedIndustry || selectedType) && (
               <button 
