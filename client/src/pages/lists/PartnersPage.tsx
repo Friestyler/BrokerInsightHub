@@ -23,40 +23,40 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useToast } from "@/hooks/use-toast";
 
-// Sample data for partners
+// Sample data for partners - updated to match the detail page data
 const mockPartners = [
   {
     id: 1,
-    name: "ABC Insurance Brokers",
-    initials: "AB",
+    name: "XYZ Insurance Group",  // Updated to match PartnerDetail.tsx
+    initials: "XY",
     industry: "Insurance",
     type: "Broker",
     status: "active",
     size: "enterprise",
-    customers: 12,
-    opportunities: 8,
+    customers: 3,
+    opportunities: 3,
+    location: "New York, NY",
+    contactEmail: "contact@xyz-insurance.com",
+    primaryContact: "John Doe"
+  },
+  {
+    id: 2,
+    name: "ABC Insurance Brokers",  // This matches PartnerDetail.tsx
+    initials: "AB",
+    industry: "Insurance",
+    type: "Broker",
+    status: "active",
+    size: "large",
+    customers: 5,
+    opportunities: 4,
     location: "New York, NY",
     contactEmail: "contact@abc-insurance.com",
     primaryContact: "Sarah Johnson"
   },
   {
-    id: 2,
-    name: "XYZ Consulting Group",
-    initials: "XY",
-    industry: "Consulting",
-    type: "Agent",
-    status: "active",
-    size: "large",
-    customers: 8,
-    opportunities: 5,
-    location: "Chicago, IL",
-    contactEmail: "info@xyz-consulting.com",
-    primaryContact: "Michael Chen"
-  },
-  {
     id: 3,
-    name: "Global Risk Partners",
-    initials: "GR",
+    name: "Global Insurance Partners",  // Updated to match PartnerDetail.tsx
+    initials: "GI",
     industry: "Insurance",
     type: "Broker",
     status: "active",
