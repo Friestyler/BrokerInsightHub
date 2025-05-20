@@ -377,7 +377,7 @@ export default function OpportunityDetail() {
       }
     }
     
-    // Default back to opportunities list
+    // Default back to opportunities list instead of customers
     return "/lists/opportunities";
   };
   
