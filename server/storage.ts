@@ -167,6 +167,8 @@ export class MemStorage implements IStorage {
     this.currentCustomerId = 1;
     this.currentCustomerTeamMemberId = 1;
     this.currentCustomerPartnerId = 1;
+    this.currentVendorId = 1;
+    this.currentProductId = 1;
     this.currentOkrTemplateId = 1;
     this.currentOkrMetricId = 1;
     
@@ -389,6 +391,53 @@ export class MemStorage implements IStorage {
     const partner: CustomerPartner = { ...data, id };
     this.customerPartners.set(id, partner);
     return partner;
+  }
+  
+  // Vendor operations
+  async getAllVendors(): Promise<Vendor[]> {
+    return Array.from(this.vendors.values());
+  }
+  
+  async getVendor(id: number): Promise<Vendor | undefined> {
+    return this.vendors.get(id);
+  }
+  
+  async createVendor(vendor: InsertVendor): Promise<Vendor> {
+    const id = this.currentVendorId++;
+    const newVendor: Vendor = { 
+      ...vendor, 
+      id, 
+      createdAt: new Date(), 
+      updatedAt: new Date() 
+    };
+    this.vendors.set(id, newVendor);
+    return newVendor;
+  }
+  
+  // Product operations
+  async getAllProducts(): Promise<Product[]> {
+    return Array.from(this.products.values());
+  }
+  
+  async getProduct(id: number): Promise<Product | undefined> {
+    return this.products.get(id);
+  }
+  
+  async createProduct(product: InsertProduct): Promise<Product> {
+    const id = this.currentProductId++;
+    const newProduct: Product = { 
+      ...product, 
+      id, 
+      createdAt: new Date(), 
+      updatedAt: new Date() 
+    };
+    this.products.set(id, newProduct);
+    return newProduct;
+  }
+  
+  async getVendorProducts(vendorId: number): Promise<Product[]> {
+    return Array.from(this.products.values())
+      .filter(product => product.vendorId === vendorId);
   }
   
   // Initialize sample data
