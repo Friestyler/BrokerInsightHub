@@ -21,41 +21,42 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useToast } from "@/hooks/use-toast";
 
-// Sample data for partners
+// Sample data for partners - updated to match the detail page data
 const mockPartners = [
   {
     id: 1,
-    name: "ABC Insurance Brokers",
-    initials: "AB",
+    name: "XYZ Insurance Group",  // Updated to match PartnerDetail.tsx
+    initials: "XY",
     industry: "Insurance",
     type: "Broker",
     status: "active",
     size: "enterprise",
-    customers: 12,
-    opportunities: 8,
+    customers: 3,
+    opportunities: 3,
+    location: "New York, NY",
+    contactEmail: "contact@xyz-insurance.com",
+    primaryContact: "John Doe"
+  },
+  {
+    id: 2,
+    name: "ABC Insurance Brokers",  // This matches PartnerDetail.tsx
+    initials: "AB",
+    industry: "Insurance",
+    type: "Broker",
+    status: "active",
+    size: "large",
+    customers: 5,
+    opportunities: 4,
     location: "New York, NY",
     contactEmail: "contact@abc-insurance.com",
     primaryContact: "Sarah Johnson"
   },
   {
-    id: 2,
-    name: "XYZ Consulting Group",
-    initials: "XY",
-    industry: "Consulting",
-    type: "Agent",
-    status: "active",
-    size: "large",
-    customers: 8,
-    opportunities: 5,
-    location: "Chicago, IL",
-    contactEmail: "info@xyz-consulting.com",
-    primaryContact: "Michael Chen"
-  },
-  {
     id: 3,
-    name: "Global Risk Partners",
-    initials: "GR",
+    name: "Global Insurance Partners",  // Updated to match PartnerDetail.tsx
+    initials: "GI",
     industry: "Insurance",
     type: "Broker",
     status: "active",
@@ -291,6 +292,9 @@ function PartnersTable() {
     }
   };
   
+  // Initialize toast
+  const { toast } = useToast();
+
   // Function to save changes to the current list
   const saveChanges = () => {
     if (activeList && !activeList.isDefault) {
@@ -315,6 +319,12 @@ function PartnersTable() {
       setActiveList(updatedList);
       setOriginalListFilters(updatedList.filters);
       setHasUnsavedChanges(false);
+      
+      // Show toast notification for successful save
+      toast({
+        title: "List Saved",
+        description: "Your changes have been saved successfully"
+      });
     }
   };
 
@@ -404,15 +414,28 @@ function PartnersTable() {
                           <div
                             className={`relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 ${activeList?.id === list.id ? 'bg-indigo-50 text-indigo-900' : 'text-slate-700'}`}
                             onClick={() => {
-                              setActiveList(list);
-                              // Store the original filters to enable reverting changes
-                              setOriginalListFilters(list.filters);
-                              // Apply filter settings
-                              setFilterText(list.filters.searchText || '');
-                              setSelectedStatus(list.filters.status || '');
-                              setSelectedIndustry(list.filters.industry || '');
-                              setSelectedType(list.filters.type || '');
-                              setHasUnsavedChanges(false);
+                              // Special handling for "All Partners" default list
+                              if (list.isDefault && list.name === "All Partners") {
+                                // Clear filters and active list (same behavior as "Return to all partners" button)
+                                setActiveList(null);
+                                setOriginalListFilters(null);
+                                setFilterText('');
+                                setSelectedStatus('');
+                                setSelectedIndustry('');
+                                setSelectedType('');
+                                setHasUnsavedChanges(false);
+                              } else {
+                                // Normal behavior for other lists
+                                setActiveList(list);
+                                // Store the original filters to enable reverting changes
+                                setOriginalListFilters(list.filters);
+                                // Apply filter settings
+                                setFilterText(list.filters.searchText || '');
+                                setSelectedStatus(list.filters.status || '');
+                                setSelectedIndustry(list.filters.industry || '');
+                                setSelectedType(list.filters.type || '');
+                                setHasUnsavedChanges(false);
+                              }
                               setShowListsDropdown(false);
                             }}
                           >
@@ -553,7 +576,7 @@ function PartnersTable() {
                       <path d="M18 6 6 18"></path>
                       <path d="m6 6 12 12"></path>
                     </svg>
-                    Clear
+                    Return to all partners
                   </Button>
                 </div>
               )}
@@ -676,8 +699,8 @@ function PartnersTable() {
                 )}
                 
                 {/* Save/Save as new list button - context-dependent */}
-                {activeList && !activeList.isDefault ? (
-                  // Save button for existing non-default lists
+                {activeList && !activeList.isDefault && hasUnsavedChanges ? (
+                  // Save button for existing non-default lists with unsaved changes
                   <button 
                     className="flex items-center rounded-md bg-[#EBEEFB] px-4 py-2 hover:bg-[#E3E6F7]"
                     onClick={saveChanges}
@@ -691,7 +714,25 @@ function PartnersTable() {
                     <span className="text-[#3E4DC4] font-medium">Save</span>
                   </button>
                 ) : (
-                  // Save as new list button for All Partners or when no list is selected
+                  // Save as new list button - only shown when filters are applied and on default/no list
+                  (filterText || selectedStatus || selectedIndustry || selectedType) && (activeList?.isDefault || !activeList) && (
+                    <button 
+                      className="flex items-center rounded-md bg-[#EBEEFB] px-4 py-2 hover:bg-[#E3E6F7]"
+                      onClick={() => setShowSaveListModal(true)}
+                      style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                        <polyline points="7 3 7 8 15 8"></polyline>
+                      </svg>
+                      <span className="text-[#3E4DC4] font-medium">Save as new list</span>
+                    </button>
+                  )
+                )}
+                
+                {/* Save as new list button - only shown for existing non-default lists */}
+                {activeList && !activeList.isDefault && hasUnsavedChanges && (
                   <button 
                     className="flex items-center rounded-md bg-[#EBEEFB] px-4 py-2 hover:bg-[#E3E6F7]"
                     onClick={() => setShowSaveListModal(true)}
@@ -703,17 +744,6 @@ function PartnersTable() {
                       <polyline points="7 3 7 8 15 8"></polyline>
                     </svg>
                     <span className="text-[#3E4DC4] font-medium">Save as new list</span>
-                  </button>
-                )}
-                
-                {/* Save as... button - only shown for existing non-default lists */}
-                {activeList && !activeList.isDefault && (
-                  <button 
-                    className="flex items-center rounded-md border border-[#E3E6F7] px-4 py-2 hover:bg-gray-50"
-                    onClick={() => setShowSaveListModal(true)}
-                    style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
-                  >
-                    <span className="text-[#3E4DC4]">Save as...</span>
                   </button>
                 )}
               </div>
