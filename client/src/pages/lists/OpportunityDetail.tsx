@@ -105,15 +105,6 @@ const metrics = [
   }
 ];
 
-// Format currency
-function formatCurrency(value: number): string {
-  return new Intl.NumberFormat('en-US', { 
-    style: 'currency', 
-    currency: 'EUR',
-    maximumFractionDigits: 0
-  }).format(value);
-}
-
 // Status badge variant helper
 function getStatusBadgeVariant(status: string): string {
   const statusClasses: {[key: string]: string} = {
@@ -138,28 +129,28 @@ const TagBadge = ({ tag }: { tag: string }) => {
   // Get a consistent color for each tag
   const getTagColor = (tag: string) => {
     const tagColors: {[key: string]: string} = {
-      "Financial": "bg-emerald-100 text-emerald-800 border-emerald-200",
-      "Revenue": "bg-green-100 text-green-800 border-green-200",
-      "Partner": "bg-blue-100 text-blue-800 border-blue-200",
-      "Pipeline": "bg-amber-100 text-amber-800 border-amber-200",
-      "Sales": "bg-orange-100 text-orange-800 border-orange-200",
-      "Training": "bg-indigo-100 text-indigo-800 border-indigo-200",
-      "Certification": "bg-violet-100 text-violet-800 border-violet-200",
-      "People": "bg-pink-100 text-pink-800 border-pink-200",
-      "Marketing": "bg-purple-100 text-purple-800 border-purple-200",
-      "Budget": "bg-lime-100 text-lime-800 border-lime-200",
-      "Digital": "bg-sky-100 text-sky-800 border-sky-200",
-      "Contract": "bg-cyan-100 text-cyan-800 border-cyan-200",
-      "Proposal": "bg-amber-100 text-amber-800 border-amber-200",
-      "Technical": "bg-blue-100 text-blue-800 border-blue-200",
-      "Client": "bg-teal-100 text-teal-800 border-teal-200",
-      "Meeting": "bg-slate-100 text-slate-800 border-slate-200",
-      "Documentation": "bg-gray-100 text-gray-800 border-gray-200",
-      "Requirements": "bg-yellow-100 text-yellow-800 border-yellow-200",
-      "Approval": "bg-red-100 text-red-800 border-red-200"
+      "Financial": "bg-emerald-100 text-emerald-800",
+      "Revenue": "bg-green-100 text-green-800",
+      "Partner": "bg-blue-100 text-blue-800",
+      "Pipeline": "bg-amber-100 text-amber-800",
+      "Sales": "bg-orange-100 text-orange-800",
+      "Training": "bg-indigo-100 text-indigo-800",
+      "Certification": "bg-violet-100 text-violet-800",
+      "People": "bg-pink-100 text-pink-800",
+      "Marketing": "bg-purple-100 text-purple-800",
+      "Budget": "bg-lime-100 text-lime-800",
+      "Digital": "bg-sky-100 text-sky-800",
+      "Contract": "bg-cyan-100 text-cyan-800",
+      "Proposal": "bg-amber-100 text-amber-800",
+      "Technical": "bg-blue-100 text-blue-800",
+      "Client": "bg-teal-100 text-teal-800",
+      "Meeting": "bg-slate-100 text-slate-800",
+      "Documentation": "bg-gray-100 text-gray-800",
+      "Requirements": "bg-yellow-100 text-yellow-800",
+      "Approval": "bg-red-100 text-red-800"
     };
     
-    return tagColors[tag] || "bg-gray-100 text-gray-800 border-gray-200";
+    return tagColors[tag] || "bg-gray-100 text-gray-800";
   };
   
   return (
@@ -255,113 +246,6 @@ export default function OpportunityDetail() {
       
       {/* Related records section */}
       <div className="mb-8">
-        <div className="flex items-start">
-          <div className="w-full">
-            <div className="flex flex-col">
-              <div className="flex items-center justify-between">
-                <div>
-                  {/* Opportunity Name and Details Button */}
-                  <div className="flex items-center gap-3">
-                    <Link href={getBackNavigationLink()} className="inline-flex items-center text-indigo-600 hover:text-indigo-800">
-                      <ChevronLeft className="h-5 w-5" />
-                    </Link>
-                    <h1 className="text-[20px] font-bold tracking-tight text-black">
-                      {opportunity.name}
-                    </h1>
-                    
-                    {/* Details Button - Updated to use text instead of icon */}
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="h-6 px-2 py-0 rounded-md flex items-center justify-center border-gray-200 text-xs text-indigo-600"
-                    >
-                      Details
-                    </Button>
-                    
-                    {/* Owner Information */}
-                    <div className="flex items-center space-x-2 ml-3">
-                      <span className="text-sm text-gray-500">Owner:</span>
-                      <Avatar className="h-6 w-6">
-                        <AvatarFallback className="bg-indigo-100 text-indigo-600 text-xs">
-                          {opportunity.owner.initials}
-                        </AvatarFallback>
-                      </Avatar>
-                    </div>
-                  </div>
-                  
-                  {/* Description text - positioned 10px under the record name */}
-                  <div className="mt-[10px]">
-                    <div className="text-gray-600 text-[14px]">
-                      {opportunity.description}
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Right side - attribute cards and related records on the same level */}
-                <div className="flex flex-wrap items-center gap-4">
-                  {/* Amount Card */}
-                  <Card className="shadow-sm">
-                    <CardContent className="p-4">
-                      <div className="text-sm text-gray-500 mb-1">Amount</div>
-                      <div className="text-[16px] font-semibold text-[#282A3F]">€ {(opportunity.amount / 1000).toFixed(0)}.000</div>
-                    </CardContent>
-                  </Card>
-                  
-                  {/* Probability Card */}
-                  <Card className="shadow-sm">
-                    <CardContent className="p-4">
-                      <div className="text-sm text-gray-500 mb-1">Probability</div>
-                      <div className="text-[16px] font-semibold text-[#282A3F]">{opportunity.probability}%</div>
-                    </CardContent>
-                  </Card>
-                  
-                  {/* Stage Card */}
-                  <Card className="shadow-sm">
-                    <CardContent className="p-4">
-                      <div className="text-sm text-gray-500 mb-1">Stage</div>
-                      <div className="text-[16px] font-semibold text-[#282A3F]">{opportunity.stage}</div>
-                    </CardContent>
-                  </Card>
-                  
-                  {/* Related Records Dropdown - positioned at the end */}
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button variant="outline" className="h-[72px] flex items-center gap-2">
-                        <Users className="h-4 w-4" />
-                        <span className="text-[#282A3F]">Related Records (3)</span>
-                        <ChevronDown className="h-4 w-4" />
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-60 p-4">
-                      <div className="space-y-4">
-                        <div>
-                          <h3 className="text-sm font-medium mb-2">Customer</h3>
-                          <Link href={opportunity.customer.link} className="text-indigo-600 hover:underline flex items-center gap-1">
-                            <span>{opportunity.customer.name}</span>
-                            <ExternalLink className="h-3 w-3" />
-                          </Link>
-                        </div>
-                        
-                        <div>
-                          <h3 className="text-sm font-medium mb-2">Partners</h3>
-                          <div className="space-y-2">
-                            {opportunity.partners.map(partner => (
-                              <Link 
-                                key={partner.id} 
-                                href={partner.link} 
-                                className="text-indigo-600 hover:underline flex items-center gap-1 block"
-                              >
-                                <span>{partner.name}</span>
-                                <ExternalLink className="h-3 w-3" />
-                              </Link>
-                            ))}
-                          </div>
-                        </div>
-                      </div>
-                    </PopoverContent>
-                  </Popover>
-                </div>
-              </div>
         <h2 className="text-base font-medium mb-3">Related Records</h2>
         <div className="bg-gray-50 p-4 rounded-md">
           <div className="flex flex-wrap gap-x-8 gap-y-2">
