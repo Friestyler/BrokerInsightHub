@@ -59,7 +59,8 @@ export default function CampaignsPage() {
       id: "car-legal",
       name: "Car + Legal",
       category: "Cross-Sell",
-      isSponsored: false,
+      isSponsored: true,
+      sponsor: "Arag",
       icon: <Send className="h-8 w-8 text-indigo-500" />
     },
     {
@@ -80,8 +81,7 @@ export default function CampaignsPage() {
       id: "personal-liability-pets",
       name: "Personal Liability + Pets",
       category: "Cross-Sell",
-      isSponsored: true,
-      sponsor: "Arag",
+      isSponsored: false,
       icon: <Send className="h-8 w-8 text-indigo-500" />
     },
     {
