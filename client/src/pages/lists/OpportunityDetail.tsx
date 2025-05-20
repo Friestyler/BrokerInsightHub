@@ -420,15 +420,15 @@ export default function OpportunityDetail() {
                       {opportunity.name}
                     </h1>
                     
-                    {/* Details Button - Using FontAwesome icon */}
+                    {/* Details Button - Using FontAwesome icon with improved styling */}
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="h-6 w-6 p-0 rounded-md flex items-center justify-center bg-gray-800"
+                      className="h-6 w-6 p-0 rounded-md flex items-center justify-center border-gray-200"
                     >
                       <FontAwesomeIcon 
                         icon={faAddressCard} 
-                        className="text-white" 
+                        className="text-indigo-600" 
                         size="xs" 
                       />
                     </Button>
