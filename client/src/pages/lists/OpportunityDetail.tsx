@@ -358,6 +358,9 @@ export default function OpportunityDetail() {
         if (listId) {
           return `/lists/opportunities?list=${listId}`;
         }
+      } else if (fromParam === 'opportunity_list') {
+        // Return to the main opportunities list
+        return `/lists/opportunities`;
       }
     }
     
