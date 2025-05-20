@@ -701,19 +701,21 @@ function PartnersTable() {
                     <span className="text-[#3E4DC4] font-medium">Save</span>
                   </button>
                 ) : (
-                  // Save as new list button for All Partners or when no list is selected
-                  <button 
-                    className="flex items-center rounded-md bg-[#EBEEFB] px-4 py-2 hover:bg-[#E3E6F7]"
-                    onClick={() => setShowSaveListModal(true)}
-                    style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                      <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                      <polyline points="7 3 7 8 15 8"></polyline>
-                    </svg>
-                    <span className="text-[#3E4DC4] font-medium">Save as new list</span>
-                  </button>
+                  // Save as new list button - only shown when filters are applied and on default/no list
+                  (filterText || selectedStatus || selectedIndustry || selectedType) && (activeList?.isDefault || !activeList) && (
+                    <button 
+                      className="flex items-center rounded-md bg-[#EBEEFB] px-4 py-2 hover:bg-[#E3E6F7]"
+                      onClick={() => setShowSaveListModal(true)}
+                      style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                        <polyline points="7 3 7 8 15 8"></polyline>
+                      </svg>
+                      <span className="text-[#3E4DC4] font-medium">Save as new list</span>
+                    </button>
+                  )
                 )}
                 
                 {/* Save as... button - only shown for existing non-default lists */}
