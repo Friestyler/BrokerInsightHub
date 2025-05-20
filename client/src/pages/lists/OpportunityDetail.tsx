@@ -24,37 +24,112 @@ import {
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faAddressCard } from "@fortawesome/free-solid-svg-icons";
 
-// Mock opportunity data
-const opportunity = {
-  id: 1,
-  name: "Product B - SARP Groupe",
-  description: "Objective to install B to help SARP Group with XYZ",
-  amount: 2120000,
-  probability: 60,
-  stage: "Discovery",
+// Opportunity data map - this would typically come from an API or context
+// This allows for consistent naming across the application
+interface OpportunityData {
+  id: number;
+  name: string;
+  description: string;
+  amount: number;
+  probability: number;
+  stage: string;
   customer: {
-    id: 1,
-    name: "SARP Groupe",
-    link: "/lists/clients/1"
-  },
-  partners: [
-    {
-      id: 1,
-      name: "Computacenter",
-      link: "/lists/partners/1"
-    },
-    {
-      id: 2,
-      name: "Deloitte",
-      link: "/lists/partners/2"
-    }
-  ],
+    id: number;
+    name: string;
+    link: string;
+  };
+  partners: Array<{
+    id: number;
+    name: string;
+    link: string;
+  }>;
   owner: {
+    id: number;
+    name: string;
+    initials: string;
+  };
+  expectedCloseDate: string;
+}
+
+const opportunityDataMap: Record<string, OpportunityData> = {
+  "1": {
     id: 1,
-    name: "Lenny K.",
-    initials: "LK"
+    name: "Property Insurance Renewal",
+    description: "Annual renewal of property insurance policy for Acme Corporation",
+    amount: 125000,
+    probability: 60,
+    stage: "In Progress",
+    customer: {
+      id: 1,
+      name: "Acme Corporation",
+      link: "/lists/clients/1"
+    },
+    partners: [
+      {
+        id: 1,
+        name: "ABC Insurance Brokers",
+        link: "/lists/partners/2"
+      }
+    ],
+    owner: {
+      id: 1,
+      name: "Richard N.",
+      initials: "RN"
+    },
+    expectedCloseDate: "2025-06-15"
   },
-  expectedCloseDate: "2025-08-15"
+  "2": {
+    id: 2,
+    name: "Cyber Security Coverage",
+    description: "New cyber security insurance policy for improved digital protection",
+    amount: 75000,
+    probability: 40,
+    stage: "Qualification",
+    customer: {
+      id: 1,
+      name: "Acme Corporation",
+      link: "/lists/clients/1"
+    },
+    partners: [
+      {
+        id: 2,
+        name: "ABC Insurance Brokers",
+        link: "/lists/partners/2"
+      }
+    ],
+    owner: {
+      id: 2,
+      name: "Nancy B.",
+      initials: "NB"
+    },
+    expectedCloseDate: "2025-07-30"
+  },
+  "5": {
+    id: 5,
+    name: "Workers Compensation",
+    description: "Workers compensation policy for Umbrella Corporation employees",
+    amount: 80000,
+    probability: 20,
+    stage: "Closed Lost",
+    customer: {
+      id: 3,
+      name: "Umbrella Corporation",
+      link: "/lists/clients/3"
+    },
+    partners: [
+      {
+        id: 2,
+        name: "ABC Insurance Brokers",
+        link: "/lists/partners/2"
+      }
+    ],
+    owner: {
+      id: 3,
+      name: "Carla S.",
+      initials: "CS"
+    },
+    expectedCloseDate: "2025-05-15"
+  }
 };
 
 // Mock metrics data
@@ -145,6 +220,10 @@ export default function OpportunityDetail() {
   const { id } = useParams();
   const { environment } = useEnvironment();
   const [selectedMetrics, setSelectedMetrics] = useState<number[]>([]);
+  
+  // Get the opportunity data based on the ID from URL
+  // In a real app, this would use a database query or API call
+  const opportunity = opportunityDataMap[id as keyof typeof opportunityDataMap] || opportunityDataMap["1"];
   
   // Handle back navigation based on referer
   const getBackNavigationLink = () => {
