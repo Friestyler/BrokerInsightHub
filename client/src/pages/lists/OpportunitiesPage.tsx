@@ -475,7 +475,7 @@ function OpportunitiesTable() {
                               {list.type === 'filter' ? (
                                 // Show filter criteria for filter lists
                                 <>
-                                  <span className="bg-blue-100 text-blue-800 text-xs rounded px-1 mr-1">Filter</span>
+                                  <span className="bg-blue-100 text-blue-800 text-xs rounded px-1 mr-1">Dynamic</span>
                                   {Object.entries(list.filters)
                                     .filter(([_, value]) => value)
                                     .map(([key]) => key)
@@ -484,7 +484,7 @@ function OpportunitiesTable() {
                               ) : (
                                 // Show selection info for selection lists
                                 <>
-                                  <span className="bg-emerald-100 text-emerald-800 text-xs rounded px-1 mr-1">Selection</span>
+                                  <span className="bg-emerald-100 text-emerald-800 text-xs rounded px-1 mr-1">Static</span>
                                   {list.members ? `${list.members.length} items selected` : 'No items selected'}
                                 </>
                               )}
@@ -859,13 +859,13 @@ function OpportunitiesTable() {
                 <SelectContent>
                   <SelectItem value="filter">
                     <div className="flex flex-col">
-                      <span>Filter List</span>
+                      <span>Dynamic List</span>
                       <span className="text-xs text-gray-500">Updates automatically as records match filters</span>
                     </div>
                   </SelectItem>
                   <SelectItem value="selection">
                     <div className="flex flex-col">
-                      <span>Selection List</span>
+                      <span>Static List</span>
                       <span className="text-xs text-gray-500">Contains only specifically selected records</span>
                     </div>
                   </SelectItem>
