@@ -221,6 +221,68 @@ export type CustomerTeamMember = typeof customerTeamMembers.$inferSelect;
 export type InsertCustomerPartner = z.infer<typeof insertCustomerPartnerSchema>;
 export type CustomerPartner = typeof customerPartners.$inferSelect;
 
+// Vendor model
+export const vendors = pgTable("vendors", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  contactName: text("contact_name"),
+  contactEmail: text("contact_email"),
+  contactPhone: text("contact_phone"),
+  ownerId: integer("owner_id").references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Product model
+export const products = pgTable("products", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description").notNull(),
+  category: text("category").notNull(),
+  sku: text("sku"),
+  price: integer("price"),
+  vendorId: integer("vendor_id").references(() => vendors.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Define relationships
+export const vendorsRelations = relations(vendors, ({ one, many }) => ({
+  owner: one(users, {
+    fields: [vendors.ownerId],
+    references: [users.id],
+    relationName: "vendorOwner",
+  }),
+  products: many(products),
+}));
+
+export const productsRelations = relations(products, ({ one }) => ({
+  vendor: one(vendors, {
+    fields: [products.vendorId],
+    references: [vendors.id],
+  }),
+}));
+
+// Insert schemas
+export const insertVendorSchema = createInsertSchema(vendors).pick({
+  name: true,
+  description: true,
+  contactName: true,
+  contactEmail: true,
+  contactPhone: true,
+  ownerId: true,
+});
+
+export const insertProductSchema = createInsertSchema(products).pick({
+  name: true,
+  description: true,
+  category: true,
+  sku: true,
+  price: true,
+  vendorId: true,
+});
+
 // For compatibility - new UI using mock data doesn't need these in the database yet
 export { customers as partners };
 export type Partner = Customer;
@@ -314,3 +376,9 @@ export type OkrTemplate = typeof okrTemplates.$inferSelect;
 
 export type InsertOkrMetric = z.infer<typeof insertOkrMetricSchema>;
 export type OkrMetric = typeof okrMetrics.$inferSelect;
+
+export type InsertVendor = z.infer<typeof insertVendorSchema>;
+export type Vendor = typeof vendors.$inferSelect;
+
+export type InsertProduct = z.infer<typeof insertProductSchema>;
+export type Product = typeof products.$inferSelect;
