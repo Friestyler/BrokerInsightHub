@@ -251,6 +251,8 @@ function PartnersTable() {
   const [showSaveListModal, setShowSaveListModal] = useState(false);
   const [showShareListModal, setShowShareListModal] = useState(false);
   const [showListsDropdown, setShowListsDropdown] = useState(false);
+  const [showAddPartnersModal, setShowAddPartnersModal] = useState(false);
+  const [partnersToAdd, setPartnersToAdd] = useState<number[]>([]);
     
   // Filter partners based on search text, filter selections, and list type
   const displayedPartners = mockPartners.filter(partner => {
@@ -1219,6 +1221,176 @@ function PartnersTable() {
         </DialogContent>
       </Dialog>
       
+      {/* Add Partners Modal */}
+      <Dialog open={showAddPartnersModal} onOpenChange={setShowAddPartnersModal}>
+        <DialogContent className="sm:max-w-3xl">
+          <DialogHeader>
+            <DialogTitle className="text-[#282A3F] font-semibold text-lg" style={{ fontFamily: 'Poppins, sans-serif' }}>Add Partners to List</DialogTitle>
+            <DialogDescription>
+              Select partners you want to add to "{activeList?.name}".
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4">
+            {/* Search and filter */}
+            <div className="mb-4">
+              <Input 
+                placeholder="Search partners..." 
+                className="mb-2"
+              />
+              
+              <div className="flex gap-2 flex-wrap">
+                <Button variant="outline" size="sm">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                  </svg>
+                  Status
+                </Button>
+                
+                <Button variant="outline" size="sm">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+                  </svg>
+                  Industry
+                </Button>
+                
+                <Button variant="outline" size="sm">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                  </svg>
+                  Type
+                </Button>
+              </div>
+            </div>
+            
+            {/* Partners table */}
+            <div className="border rounded-md mb-4 overflow-hidden max-h-96 overflow-y-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50 sticky top-0">
+                  <tr>
+                    <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-10">
+                      <Checkbox 
+                        checked={partnersToAdd.length === mockPartners.length}
+                        indeterminate={partnersToAdd.length > 0 && partnersToAdd.length < mockPartners.length}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setPartnersToAdd(mockPartners.map(p => p.id));
+                          } else {
+                            setPartnersToAdd([]);
+                          }
+                        }}
+                      />
+                    </th>
+                    <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Partner</th>
+                    <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Industry</th>
+                    <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
+                    <th scope="col" className="px-3 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {mockPartners.filter(p => activeList?.members?.includes(p.id) === false).map(partner => (
+                    <tr 
+                      key={partner.id}
+                      className={`hover:bg-gray-50 ${partnersToAdd.includes(partner.id) ? 'bg-blue-50' : ''}`}
+                    >
+                      <td className="px-3 py-4 whitespace-nowrap w-10">
+                        <Checkbox 
+                          checked={partnersToAdd.includes(partner.id)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setPartnersToAdd([...partnersToAdd, partner.id]);
+                            } else {
+                              setPartnersToAdd(partnersToAdd.filter(id => id !== partner.id));
+                            }
+                          }}
+                        />
+                      </td>
+                      <td className="px-3 py-4 whitespace-nowrap">
+                        <div className="flex items-center">
+                          <Avatar className="h-8 w-8 mr-2 bg-indigo-100 text-indigo-600">
+                            <AvatarFallback>{partner.initials}</AvatarFallback>
+                          </Avatar>
+                          <span className="font-medium">{partner.name}</span>
+                        </div>
+                      </td>
+                      <td className="px-3 py-4 whitespace-nowrap text-sm">{partner.industry}</td>
+                      <td className="px-3 py-4 whitespace-nowrap text-sm">{partner.type}</td>
+                      <td className="px-3 py-4 whitespace-nowrap text-sm">
+                        <Badge variant={partner.status === 'active' ? 'outline' : 'secondary'} className="capitalize">
+                          {partner.status}
+                        </Badge>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            
+            {/* Selected count and actions */}
+            <div className="flex justify-between items-center">
+              <div className="text-sm text-gray-500">
+                {partnersToAdd.length} partners selected
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowAddPartnersModal(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                if (activeList && activeList.type === 'selection') {
+                  // Add selected partners to the list
+                  const currentMembers = activeList.members || [];
+                  const newMembers = [...new Set([...currentMembers, ...partnersToAdd])];
+                  
+                  // Update the active list
+                  const updatedList: SavedList = {
+                    ...activeList,
+                    members: newMembers
+                  };
+                  
+                  // Update active list
+                  setActiveList(updatedList);
+                  
+                  // Mark as having unsaved changes
+                  setHasUnsavedChanges(true);
+                  
+                  // Update the saved lists
+                  const updatedLists = savedLists.map(list => {
+                    if (list.id === activeList.id) {
+                      return updatedList;
+                    }
+                    return list;
+                  });
+                  setSavedLists(updatedLists);
+                  
+                  // Display success message
+                  toast({
+                    title: "Partners added",
+                    description: `${partnersToAdd.length} partners have been added to "${activeList.name}"`,
+                  });
+                  
+                  // Close the modal
+                  setShowAddPartnersModal(false);
+                }
+              }}
+              disabled={partnersToAdd.length === 0}
+            >
+              Add to List
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
       {/* Share List Modal with Extended Options */}
       <Dialog open={showShareListModal} onOpenChange={setShowShareListModal}>
         <DialogContent className="sm:max-w-md">
@@ -1516,28 +1688,62 @@ function PartnersTable() {
               <tr>
                 <td colSpan={9} className="py-10 text-center">
                   <div className="flex flex-col items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 mb-3">
-                      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                      <circle cx="9" cy="7" r="4"></circle>
-                      <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                    </svg>
-                    <h3 className="text-base font-medium text-gray-900 mb-1">No partners found</h3>
-                    <p className="text-sm text-gray-500 max-w-md mb-4">
-                      There are no partners matching your filter criteria.
-                    </p>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => {
-                        setFilterText('');
-                        setSelectedStatus('');
-                        setSelectedIndustry('');
-                        setSelectedType('');
-                      }}
-                    >
-                      Clear Filters
-                    </Button>
+                    {activeList && activeList.type === 'selection' ? (
+                      // Empty state for static lists
+                      <>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 mb-3">
+                          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                          <circle cx="9" cy="7" r="4"></circle>
+                          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                        <h3 className="text-base font-medium text-gray-900 mb-1">No partners</h3>
+                        <p className="text-sm text-gray-500 max-w-md mb-4">
+                          There are no partners in this list yet! Add your first partner to get started.
+                        </p>
+                        <Button 
+                          className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                          onClick={() => {
+                            setPartnersToAdd([]);
+                            setShowAddPartnersModal(true);
+                          }}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="8.5" cy="7" r="4"></circle>
+                            <line x1="20" y1="8" x2="20" y2="14"></line>
+                            <line x1="23" y1="11" x2="17" y2="11"></line>
+                          </svg>
+                          Add Partners
+                        </Button>
+                      </>
+                    ) : (
+                      // Empty state for dynamic lists or regular filtered view
+                      <>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 mb-3">
+                          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                          <circle cx="9" cy="7" r="4"></circle>
+                          <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                        </svg>
+                        <h3 className="text-base font-medium text-gray-900 mb-1">No partners found</h3>
+                        <p className="text-sm text-gray-500 max-w-md mb-4">
+                          There are no partners matching your filter criteria.
+                        </p>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => {
+                            setFilterText('');
+                            setSelectedStatus('');
+                            setSelectedIndustry('');
+                            setSelectedType('');
+                          }}
+                        >
+                          Clear Filters
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </td>
               </tr>
