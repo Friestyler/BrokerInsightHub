@@ -14,217 +14,38 @@ import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { ChevronLeft } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
-// Opportunity data map - this would typically come from an API or context
-// This allows for consistent naming across the application
-interface OpportunityData {
-  id: number;
-  name: string;
-  description: string;
-  amount: number;
-  probability: number;
-  stage: string;
-  customer: {
-    id: number;
-    name: string;
-    link: string;
-  };
-  partners: Array<{
-    id: number;
-    name: string;
-    link: string;
-  }>;
-  owner: {
-    id: number;
-    name: string;
-    initials: string;
-  };
-  expectedCloseDate: string;
-}
 
-const opportunityDataMap: Record<string, OpportunityData> = {
-  "1": {
+// Mock opportunity data
+const opportunity = {
+  id: 1,
+  name: "Product B - SARP Groupe",
+  description: "Objective to install B to help SARP Group with XYZ",
+  amount: 2120000,
+  probability: 60,
+  stage: "Discovery",
+  customer: {
     id: 1,
-    name: "Property Insurance Renewal",
-    description: "Annual renewal of property insurance policy for Acme Corporation",
-    amount: 125000,
-    probability: 80,
-    stage: "In Progress",
-    customer: {
-      id: 1,
-      name: "Acme Corporation",
-      link: "/lists/clients/1"
-    },
-    partners: [
-      {
-        id: 2,
-        name: "ABC Insurance Brokers",
-        link: "/lists/partners/2"
-      }
-    ],
-    owner: {
-      id: 1,
-      name: "Sarah Johnson",
-      initials: "SJ"
-    },
-    expectedCloseDate: "2025-06-15"
+    name: "SARP Groupe",
+    link: "/lists/customers/1"
   },
-  "2": {
-    id: 2,
-    name: "Cyber Security Coverage",
-    description: "New cyber security insurance policy for improved digital protection",
-    amount: 75000,
-    probability: 40,
-    stage: "Qualification",
-    customer: {
+  partners: [
+    {
       id: 1,
-      name: "Acme Corporation",
-      link: "/lists/clients/1"
+      name: "Computacenter",
+      link: "/lists/partners/1"
     },
-    partners: [
-      {
-        id: 2,
-        name: "ABC Insurance Brokers",
-        link: "/lists/partners/2"
-      }
-    ],
-    owner: {
+    {
       id: 2,
-      name: "Michael Chen",
-      initials: "MC"
-    },
-    expectedCloseDate: "2025-07-30"
-  },
-  "3": {
-    id: 3,
-    name: "D&O Insurance",
-    description: "Directors and Officers liability insurance for Globex Industries",
-    amount: 150000,
-    probability: 60,
-    stage: "Proposal",
-    customer: {
-      id: 2,
-      name: "Globex Industries",
-      link: "/lists/clients/2"
-    },
-    partners: [
-      {
-        id: 3,
-        name: "Global Insurance Partners",
-        link: "/lists/partners/3"
-      }
-    ],
-    owner: {
-      id: 3,
-      name: "Emma Wilson",
-      initials: "EW"
-    },
-    expectedCloseDate: "2025-06-01"
-  },
-  "4": {
-    id: 4,
-    name: "Group Health Insurance",
-    description: "Comprehensive group health insurance for Stark Enterprises employees",
-    amount: 225000,
-    probability: 70,
-    stage: "Negotiation",
-    customer: {
-      id: 3,
-      name: "Stark Enterprises",
-      link: "/lists/clients/3"
-    },
-    partners: [
-      {
-        id: 1,
-        name: "XYZ Insurance Group",
-        link: "/lists/partners/1"
-      }
-    ],
-    owner: {
-      id: 4,
-      name: "Robert Smith",
-      initials: "RS"
-    },
-    expectedCloseDate: "2025-07-01"
-  },
-  "5": {
-    id: 5,
-    name: "Workers Compensation",
-    description: "Workers compensation policy for Umbrella Corporation employees",
-    amount: 80000,
-    probability: 0,
-    stage: "Closed Lost",
-    customer: {
-      id: 4,
-      name: "Umbrella Corporation",
-      link: "/lists/clients/3"
-    },
-    partners: [
-      {
-        id: 2,
-        name: "ABC Insurance Brokers",
-        link: "/lists/partners/2"
-      }
-    ],
-    owner: {
-      id: 1,
-      name: "Sarah Johnson",
-      initials: "SJ"
-    },
-    expectedCloseDate: "2025-05-15"
-  },
-  "6": {
-    id: 6,
-    name: "Professional Liability",
-    description: "Professional liability coverage for Oceanic Airlines staff",
-    amount: 95000,
-    probability: 100,
-    stage: "Closed Won",
-    customer: {
-      id: 5,
-      name: "Oceanic Airlines",
-      link: "/lists/clients/5"
-    },
-    partners: [
-      {
-        id: 4,
-        name: "Premier Insurance Agency",
-        link: "/lists/partners/4"
-      }
-    ],
-    owner: {
-      id: 4,
-      name: "John Davis",
-      initials: "JD"
-    },
-    expectedCloseDate: "2025-04-01"
-  },
-  "7": {
-    id: 7,
-    name: "Product Liability Insurance",
-    description: "Product liability coverage for Wayne Enterprises manufacturing",
-    amount: 110000,
-    probability: 20,
-    stage: "Discovery",
-    customer: {
-      id: 6,
-      name: "Wayne Enterprises",
-      link: "/lists/clients/6"
-    },
-    partners: [
-      {
-        id: 1,
-        name: "XYZ Insurance Group",
-        link: "/lists/partners/1"
-      }
-    ],
-    owner: {
-      id: 2,
-      name: "Michael Chen",
-      initials: "MC"
-    },
-    expectedCloseDate: "2025-08-15"
+      name: "Deloitte",
+      link: "/lists/partners/2"
+    }
+  ],
+  owner: {
+    name: "Lenny K.",
+    initials: "LK"
   }
 };
+
 // Mock metrics data for this opportunity
 const metrics = [
   {
@@ -335,7 +156,7 @@ const TagBadge = ({ tag }: { tag: string }) => {
       "Meeting": "bg-slate-100 text-slate-800 border-slate-200",
       "Documentation": "bg-gray-100 text-gray-800 border-gray-200",
       "Requirements": "bg-yellow-100 text-yellow-800 border-yellow-200",
-      "Approval": "bg-red-100 text-red-800 border-red-200",
+      "Approval": "bg-red-100 text-red-800 border-red-200"
     };
     
     return tagColors[tag] || "bg-gray-100 text-gray-800 border-gray-200";
@@ -362,65 +183,7 @@ export default function OpportunityDetail() {
   const { id } = useParams();
   const { environment } = useEnvironment();
   const [selectedMetrics, setSelectedMetrics] = useState<number[]>([]);
-  // Get the opportunity data based on the ID from URL
-  // In a real app, this would use a database query or API call
-  const opportunity = opportunityDataMap[id as keyof typeof opportunityDataMap] || opportunityDataMap["1"];
   
-  // Enhanced back navigation based on referrer
-  const getBackNavigationLink = () => {
-    // Parse the query string to see if we came from a specific page
-    const urlParams = new URLSearchParams(window.location.search);
-    const fromParam = urlParams.get('from');
-    
-    if (fromParam) {
-      // Handle various sources
-      if (fromParam.startsWith('partner/')) {
-        // Extract partner ID and return to that partner page
-        const partnerId = fromParam.split('/')[1];
-        return `/lists/partners/${partnerId}`;
-      } else if (fromParam.startsWith('client/')) {
-        // Extract client ID and return to that client page
-        const clientId = fromParam.split('/')[1];
-        return `/lists/clients/${clientId}`;
-      } else if (fromParam.startsWith('dashboard')) {
-        // Return to dashboard
-        return `/`;
-      } else if (fromParam.startsWith('customer/')) {
-        // Extract customer ID and return to that customer page
-        const customerId = fromParam.split('/')[1];
-        return `/lists/customers/${customerId}`;
-      } else if (fromParam === 'list') {
-        // Return to the saved list view
-        const listId = urlParams.get('listId');
-        if (listId) {
-          return `/lists/opportunities?list=${listId}`;
-        }
-      } else if (fromParam === 'opportunity_list') {
-        // Return to the main opportunities list
-        return `/lists/opportunities`;
-      }
-    }
-    
-    // Try to get referrer from document.referrer if no query param
-    const referrer = document.referrer;
-    if (referrer) {
-      try {
-        const url = new URL(referrer);
-        const pathname = url.pathname;
-        
-        // Only use referrer if it's an internal page
-        if (pathname && url.origin === window.location.origin) {
-          return pathname + url.search;
-        }
-      } catch (e) {
-        console.error("Error parsing referrer URL:", e);
-      }
-    }
-    
-    // Default back to opportunities list instead of customers
-    return "/lists/opportunities";
-  };
-
   // Toggle selection of a metric
   const toggleMetricSelection = (id: number) => {
     if (selectedMetrics.includes(id)) {
