@@ -592,11 +592,17 @@ function PartnersTable() {
                       <div
                         className="relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm font-medium outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 text-indigo-600"
                         onClick={() => {
+                          // Clear everything for a fresh start
                           setActiveList(null);
                           setFilterText('');
                           setSelectedStatus('');
                           setSelectedIndustry('');
                           setSelectedType('');
+                          
+                          // Clear selected partners for a fresh start with static lists
+                          setSelectedPartners([]);
+                          
+                          // Open the save list modal
                           setShowSaveListModal(true);
                           setShowListsDropdown(false);
                         }}
@@ -990,7 +996,7 @@ function PartnersTable() {
               
               {/* List Type as Radio Buttons */}
               <div className="grid gap-2">
-                <input type="hidden" id="hidden-list-type-value" value={activeList?.type || (selectedPartners.length > 0 ? "selection" : "filter")} />
+                <input type="hidden" id="hidden-list-type-value" value={activeList?.type || "filter"} />
                 <div className="space-y-2">
                   <Label className="text-sm font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>List Behavior</Label>
                   
@@ -1062,7 +1068,7 @@ function PartnersTable() {
                           type="radio"
                           name="list-type"
                           className="w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-600"
-                          defaultChecked={activeList?.type === 'selection' || (!activeList?.type && selectedPartners.length > 0)}
+                          defaultChecked={activeList?.type === 'selection'}
                           onChange={() => {
                             document.getElementById('hidden-list-type-value')?.setAttribute('value', 'selection');
                           }}
@@ -1076,26 +1082,17 @@ function PartnersTable() {
                           </svg>
                         </div>
                         <div>
-                          <Label className="font-medium text-sm">Save my selected partners</Label>
+                          <Label className="font-medium text-sm">Create a static partner list</Label>
                           <p className="text-xs text-gray-500">
-                            Only your specifically selected partners will be in this list
-                            {selectedPartners.length === 0 && (
-                              <span className="block mt-1 text-amber-600">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block mr-1">
-                                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-                                </svg>
-                                You haven't selected any partners yet
-                              </span>
-                            )}
-                            {selectedPartners.length > 0 && (
-                              <span className="block mt-1 text-emerald-600">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block mr-1">
-                                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                                </svg>
-                                {selectedPartners.length} partners selected
-                              </span>
-                            )}
+                            Create an empty list and manually select partners to add
+                            <span className="block mt-1 text-blue-600">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block mr-1">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="8" x2="12" y2="16"></line>
+                                <line x1="8" y1="12" x2="16" y2="12"></line>
+                              </svg>
+                              You'll be able to add partners after creating the list
+                            </span>
                           </p>
                         </div>
                       </div>
@@ -1147,26 +1144,40 @@ function PartnersTable() {
                       return;
                     }
                     
+                    // Get the selected list type from our hidden input
+                    const listTypeInput = document.getElementById('hidden-list-type-value') as HTMLInputElement;
+                    const listType = (listTypeInput?.value || "filter") as "filter" | "selection";
+                    
                     const newList: SavedList = {
                       id: String(Date.now()),
                       name: listName,
                       description: listDescription || undefined,
+                      type: listType, // Set the list type (dynamic filter or static selection)
                       filters: {
                         searchText: filterText || undefined,
                         status: selectedStatus || undefined,
                         industry: selectedIndustry || undefined,
                         type: selectedType || undefined
                       },
+                      // For static lists, start with an empty array
+                      members: listType === 'selection' ? [] : undefined,
                       isShared,
                       createdBy: 'John Smith',
                       createdAt: new Date()
                     };
                     
-                    // Show success toast notification
-                    toast({
-                      title: "List created",
-                      description: `"${listName}" has been created successfully.`,
-                    });
+                    // Show success toast notification - different message based on list type
+                    if (listType === 'selection') {
+                      toast({
+                        title: "Static list created",
+                        description: `"${listName}" has been created. Select partners to add them to this list.`,
+                      });
+                    } else {
+                      toast({
+                        title: "Dynamic list created",
+                        description: `"${listName}" has been created and will update automatically based on filters.`,
+                      });
+                    }
                     
                     setSavedLists([...savedLists, newList]);
                     setActiveList(newList);
