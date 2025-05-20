@@ -77,8 +77,8 @@ export default function CampaignsPage() {
       icon: <Send className="h-8 w-8 text-indigo-500" />
     },
     {
-      id: "ba-familial-pets",
-      name: "BA Familial + Pets",
+      id: "personal-liability-pets",
+      name: "Personal Liability + Pets",
       category: "Cross-Sell",
       isSponsored: false,
       icon: <Send className="h-8 w-8 text-indigo-500" />
