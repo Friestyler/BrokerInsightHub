@@ -410,12 +410,14 @@ export default function OpportunityDetail() {
                 <div>
                   {/* Opportunity Name and Details Button */}
                   <div className="flex items-center gap-3">
-                    <Link href={getBackNavigationLink()} className="inline-flex items-center text-indigo-600 hover:text-indigo-800 mr-2">
-                      <ChevronLeft className="h-4 w-4" />
-                    </Link>
-                    <h1 className="text-[20px] font-bold tracking-tight text-black">
-                      {opportunity.name}
-                    </h1>
+                    <div className="flex items-center">
+                      <Link href={getBackNavigationLink()} className="inline-flex items-center text-indigo-600 hover:text-indigo-800 mr-2">
+                        <ChevronLeft className="h-4 w-4" />
+                      </Link>
+                      <h1 className="text-[20px] font-bold tracking-tight text-black">
+                        {opportunity.name}
+                      </h1>
+                    </div>
                     
                     {/* Details Button - Using FontAwesome icon */}
                     <Button 
