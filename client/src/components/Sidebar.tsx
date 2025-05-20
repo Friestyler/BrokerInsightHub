@@ -13,13 +13,18 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
   const [location] = useLocation();
   const [isMobile, setIsMobile] = useState(false);
   const [dataMenuOpen, setDataMenuOpen] = useState(false);
+  const [templatesMenuOpen, setTemplatesMenuOpen] = useState(false);
   const dataMenuRef = useRef<HTMLDivElement>(null);
   const { environment } = useEnvironment();
   
-  // Auto-open the Lists menu when on a Lists page
+  // Auto-open the appropriate menu when on relevant pages
   useEffect(() => {
     if (location.startsWith('/lists')) {
       setDataMenuOpen(true);
+      setTemplatesMenuOpen(false);
+    } else if (location.startsWith('/templates')) {
+      setTemplatesMenuOpen(true);
+      setDataMenuOpen(false);
     }
   }, [location]);
 
@@ -254,25 +259,59 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
         <div className="relative">
           <button 
             className={`flex items-center py-2.5 px-4 rounded-md w-full text-left ${location.startsWith("/templates") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
-            onClick={() => setDataMenuOpen(false)}
+            onClick={() => {
+              // Toggle the templates submenu when templates is clicked
+              const newValue = !templatesMenuOpen;
+              setTemplatesMenuOpen(newValue);
+              // Close the data menu when opening templates menu
+              if (newValue) {
+                setDataMenuOpen(false);
+              }
+            }}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-center" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"></path>
             </svg>
             <span className={`ml-3 text-sm ${collapsed ? "hidden" : "hidden md:inline-block"}`}>Templates</span>
+            {!collapsed && (
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="14" 
+                height="14" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+                className={`ml-auto transition-transform ${templatesMenuOpen ? 'rotate-180' : ''} ${collapsed ? "hidden" : "hidden md:inline-block"}`}
+              >
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            )}
           </button>
           
-          <button
-            onClick={() => navigateTo('/templates/metrics')}
-            className={`flex py-2 text-sm pl-12 w-full text-left ${location.startsWith("/templates/metrics") || location.startsWith("/templates/groups") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
-              <path d="M12 8v4l3 3"></path>
-              <circle cx="12" cy="12" r="7"></circle>
-            </svg>
-            OKR Metrics
-          </button>
+          {/* Always show a tiny indicator on the sidebar if a templates section is active */}
+          {collapsed && !templatesMenuOpen && location.startsWith('/templates') && (
+            <div className="absolute top-[93px] right-0 w-1 h-7 bg-indigo-500 rounded-l-md"></div>
+          )}
+          
+          {/* Templates submenu */}
+          {templatesMenuOpen && (
+            <div className={`${collapsed ? "absolute left-16 top-0 bg-white border border-gray-200 rounded-md shadow-md py-1 z-50 w-48" : "mt-0.5"}`}>
+              <button
+                onClick={() => navigateTo('/templates/metrics')}
+                className={`flex py-2 text-sm ${collapsed ? "px-4" : "pl-12"} w-full text-left ${location.startsWith("/templates/metrics") || location.startsWith("/templates/groups") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
+                  <path d="M12 8v4l3 3"></path>
+                  <circle cx="12" cy="12" r="7"></circle>
+                </svg>
+                OKR Metrics
+              </button>
+            </div>
+          )}
         </div>
       </div>
       <div className="mt-auto mb-4 flex-shrink-0">
