@@ -153,7 +153,7 @@ export default function PartnerPilot() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-6xl">
+    <div className="container mx-auto px-4 py-6 max-w-full">
       {/* Top Navigation */}
       <div className="flex space-x-1 mb-10">
         <Button variant="ghost" className="bg-indigo-50 text-indigo-700 hover:bg-indigo-100">
@@ -179,7 +179,7 @@ export default function PartnerPilot() {
       </div>
 
       {/* ChatGPT-style Assistant Section */}
-      <div className="mb-10 max-w-3xl mx-auto text-center">
+      <div className="mb-10 mx-auto text-center max-w-5xl">
         <div className="flex justify-center mb-6">
           <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
             <MessageSquare className="h-6 w-6" />
@@ -225,78 +225,144 @@ export default function PartnerPilot() {
         </div>
       </div>
 
-      {/* Activity Inbox Section */}
-      <div className="max-w-3xl mx-auto">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-medium">Activity</h2>
-          <div className="flex space-x-2">
-            <Button variant="outline" size="sm">
-              <ListFilter className="h-3.5 w-3.5 mr-1" />
-              Filter
-            </Button>
-            <Button variant="outline" size="sm">
-              <Archive className="h-3.5 w-3.5 mr-1" />
-              Archive
-            </Button>
+      {/* Activity and Stats Section - Two Column Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
+        {/* Left Column - Activity Feed */}
+        <div className="lg:col-span-3">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-medium">Activity</h2>
+            <div className="flex space-x-2">
+              <Button variant="outline" size="sm">
+                <ListFilter className="h-3.5 w-3.5 mr-1" />
+                Filter
+              </Button>
+              <Button variant="outline" size="sm">
+                <Archive className="h-3.5 w-3.5 mr-1" />
+                Archive
+              </Button>
+            </div>
+          </div>
+
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
+            <TabsList className="bg-gray-100">
+              <TabsTrigger value="all" className="text-xs">All</TabsTrigger>
+              <TabsTrigger value="mention" className="text-xs">Mentions</TabsTrigger>
+              <TabsTrigger value="task" className="text-xs">Tasks</TabsTrigger>
+              <TabsTrigger value="campaign" className="text-xs">Campaigns</TabsTrigger>
+              <TabsTrigger value="okr" className="text-xs">OKRs</TabsTrigger>
+              <TabsTrigger value="collaboration" className="text-xs">Collaborations</TabsTrigger>
+            </TabsList>
+          </Tabs>
+
+          <div className="space-y-1">
+            {filteredActivities.length > 0 ? (
+              filteredActivities.map((activity) => (
+                <div 
+                  key={activity.id} 
+                  className="p-3 hover:bg-gray-50 rounded-md flex items-start justify-between cursor-pointer border border-gray-100"
+                >
+                  <div className="flex items-start space-x-3">
+                    <div className="mt-0.5">
+                      {activity.icon}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">{activity.title}</p>
+                      <p className="text-xs text-gray-500">{activity.description}</p>
+                    </div>
+                  </div>
+                  <div className="flex items-center space-x-2">
+                    {activity.priority && (
+                      <Badge 
+                        variant="outline" 
+                        className={
+                          activity.priority === 'high' ? "text-red-600 bg-red-50 border-red-200" :
+                          activity.priority === 'medium' ? "text-amber-600 bg-amber-50 border-amber-200" :
+                          "text-green-600 bg-green-50 border-green-200"
+                        }
+                      >
+                        {activity.priority}
+                      </Badge>
+                    )}
+                    {activity.user && (
+                      <Avatar className="h-6 w-6">
+                        {activity.user.avatar && <AvatarImage src={activity.user.avatar} alt={activity.user.name} />}
+                        <AvatarFallback className="text-xs bg-indigo-100 text-indigo-600">{activity.user.initials}</AvatarFallback>
+                      </Avatar>
+                    )}
+                    <span className="text-xs text-gray-500 whitespace-nowrap">{activity.date}</span>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-10">
+                <Bell className="mx-auto h-10 w-10 text-gray-300 mb-2" />
+                <p className="text-gray-500">No activities to show</p>
+              </div>
+            )}
           </div>
         </div>
 
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-          <TabsList className="bg-gray-100">
-            <TabsTrigger value="all" className="text-xs">All</TabsTrigger>
-            <TabsTrigger value="mention" className="text-xs">Mentions</TabsTrigger>
-            <TabsTrigger value="task" className="text-xs">Tasks</TabsTrigger>
-            <TabsTrigger value="campaign" className="text-xs">Campaigns</TabsTrigger>
-            <TabsTrigger value="okr" className="text-xs">OKRs</TabsTrigger>
-            <TabsTrigger value="collaboration" className="text-xs">Collaborations</TabsTrigger>
-          </TabsList>
-        </Tabs>
-
-        <div className="space-y-1">
-          {filteredActivities.length > 0 ? (
-            filteredActivities.map((activity) => (
-              <div 
-                key={activity.id} 
-                className="p-3 hover:bg-gray-50 rounded-md flex items-start justify-between cursor-pointer border border-gray-100"
-              >
-                <div className="flex items-start space-x-3">
-                  <div className="mt-0.5">
-                    {activity.icon}
+        {/* Right Column - Additional Info */}
+        <div className="lg:col-span-2">
+          <Card>
+            <CardContent className="p-4">
+              <h2 className="text-xl font-medium mb-4">Quick Stats</h2>
+              
+              <div className="space-y-4">
+                <div className="p-3 border rounded-md">
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center">
+                      <Send className="h-4 w-4 text-indigo-500 mr-2" />
+                      <h3 className="text-sm font-medium">Active Campaigns</h3>
+                    </div>
+                    <span className="font-medium text-lg">3</span>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium">{activity.title}</p>
-                    <p className="text-xs text-gray-500">{activity.description}</p>
+                  <div className="mt-1 text-xs text-gray-500">
+                    2 performing above average
                   </div>
                 </div>
-                <div className="flex items-center space-x-2">
-                  {activity.priority && (
-                    <Badge 
-                      variant="outline" 
-                      className={
-                        activity.priority === 'high' ? "text-red-600 bg-red-50 border-red-200" :
-                        activity.priority === 'medium' ? "text-amber-600 bg-amber-50 border-amber-200" :
-                        "text-green-600 bg-green-50 border-green-200"
-                      }
-                    >
-                      {activity.priority}
-                    </Badge>
-                  )}
-                  {activity.user && (
-                    <Avatar className="h-6 w-6">
-                      {activity.user.avatar && <AvatarImage src={activity.user.avatar} alt={activity.user.name} />}
-                      <AvatarFallback className="text-xs bg-indigo-100 text-indigo-600">{activity.user.initials}</AvatarFallback>
-                    </Avatar>
-                  )}
-                  <span className="text-xs text-gray-500 whitespace-nowrap">{activity.date}</span>
+                
+                <div className="p-3 border rounded-md">
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center">
+                      <CheckSquare className="h-4 w-4 text-green-500 mr-2" />
+                      <h3 className="text-sm font-medium">Pending Tasks</h3>
+                    </div>
+                    <span className="font-medium text-lg">7</span>
+                  </div>
+                  <div className="mt-1 text-xs text-gray-500">
+                    2 high priority tasks due soon
+                  </div>
+                </div>
+                
+                <div className="p-3 border rounded-md">
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center">
+                      <Users className="h-4 w-4 text-blue-500 mr-2" />
+                      <h3 className="text-sm font-medium">Partner Activity</h3>
+                    </div>
+                    <span className="font-medium text-lg">+12%</span>
+                  </div>
+                  <div className="mt-1 text-xs text-gray-500">
+                    Increased engagement this month
+                  </div>
+                </div>
+                
+                <div className="p-3 border rounded-md">
+                  <div className="flex justify-between items-center">
+                    <div className="flex items-center">
+                      <Timer className="h-4 w-4 text-orange-500 mr-2" />
+                      <h3 className="text-sm font-medium">OKR Progress</h3>
+                    </div>
+                    <span className="font-medium text-lg">68%</span>
+                  </div>
+                  <div className="mt-1 text-xs text-gray-500">
+                    Q2 targets in progress
+                  </div>
                 </div>
               </div>
-            ))
-          ) : (
-            <div className="text-center py-10">
-              <Bell className="mx-auto h-10 w-10 text-gray-300 mb-2" />
-              <p className="text-gray-500">No activities to show</p>
-            </div>
-          )}
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>
