@@ -211,6 +211,9 @@ interface SavedList {
   id: string;
   name: string;
   description?: string;
+  // Add the list type to indicate if it's a filter-based or selection-based list
+  type: 'filter' | 'selection';
+  // Filter criteria for dynamic lists
   filters: {
     searchText?: string;
     status?: string;
@@ -218,6 +221,8 @@ interface SavedList {
     customerId?: string;
     partnerId?: string;
   };
+  // Selected opportunity IDs for static lists
+  members?: number[];
   isShared: boolean;
   sharedWith?: string[];
   createdBy: string;
@@ -797,6 +802,37 @@ function OpportunitiesTable() {
               />
             </div>
             
+            <div className="grid gap-2">
+              <Label htmlFor="listType">List Type</Label>
+              <Select 
+                id="listType"
+                defaultValue={activeList?.type || "filter"} 
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select list type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="filter">
+                    <div className="flex flex-col">
+                      <span>Filter List</span>
+                      <span className="text-xs text-gray-500">Updates automatically as records match filters</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="selection">
+                    <div className="flex flex-col">
+                      <span>Selection List</span>
+                      <span className="text-xs text-gray-500">Contains only specifically selected records</span>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              {selectedOpportunities.length > 0 && (
+                <div className="text-xs text-gray-500 mt-1">
+                  {selectedOpportunities.length} opportunities currently selected
+                </div>
+              )}
+            </div>
+            
             <div className="flex items-center space-x-2">
               <Checkbox id="shareList" defaultChecked={activeList?.isShared || false} />
               <Label htmlFor="shareList" className="text-sm font-normal">
@@ -822,15 +858,23 @@ function OpportunitiesTable() {
                     const listDescription = (document.getElementById('listDescription') as HTMLTextAreaElement).value;
                     const isShared = (document.getElementById('shareList') as HTMLInputElement).checked;
                     
+                    // Get the selected list type
+                    const listTypeSelect = document.getElementById('listType') as HTMLSelectElement;
+                    const listType = listTypeSelect ? listTypeSelect.value : 'filter';
+                    
                     const newList: SavedList = {
                       id: String(Date.now()),
                       name: listName,
                       description: listDescription || undefined,
-                      filters: {
+                      type: listType, // Store the list type
+                      // For filter lists, store the current filters
+                      filters: listType === 'filter' ? {
                         searchText: filterText || undefined,
                         status: selectedStatus || undefined,
                         type: selectedType || undefined
-                      },
+                      } : {},
+                      // For selection lists, store the selected records
+                      members: listType === 'selection' ? selectedOpportunities : [],
                       isShared,
                       createdBy: 'John Smith',
                       createdAt: new Date()
