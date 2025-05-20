@@ -85,13 +85,7 @@ export default function ProductsPage() {
 
   const createProductMutation = useMutation({
     mutationFn: (data: any) => {
-      return apiRequest('/api/products', {
-        method: 'POST',
-        body: JSON.stringify(data),
-        headers: {
-          'Content-Type': 'application/json'
-        }
-      });
+      return apiRequest('POST', '/api/products', data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/products'] });
