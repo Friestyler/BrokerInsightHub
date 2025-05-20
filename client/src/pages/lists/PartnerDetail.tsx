@@ -22,28 +22,100 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 
 
-// Mock data for a partner
-const mockPartnerData = {
-  id: 1,
-  name: "ABC Insurance Brokers",
-  description: "Joint action & business plan to drive growth with insurance business",
-  segment: "broker",
-  address: "123 Main St, New York, NY",
-  customers: 3,
-  opportunities: 3,
-  initials: "AB",
+// Partner data interface
+interface PartnerData {
+  id: number;
+  name: string;
+  description: string;
+  segment: string;
+  address: string;
+  customers: number;
+  opportunities: number;
+  initials: string;
   owner: {
+    id: number;
+    name: string;
+    initials: string;
+    avatar: string;
+  };
+  team: Array<{
+    id: number;
+    name: string;
+    initials: string;
+    avatar: string;
+  }>;
+  createdAt: Date;
+  updatedAt: Date;
+}
+
+// Partner data map - ensures consistent naming throughout the application
+const partnerDataMap: Record<string, PartnerData> = {
+  "1": {
     id: 1,
-    name: "John Doe",
-    initials: "JD",
-    avatar: "",
+    name: "XYZ Insurance Group",
+    description: "Strategic partnership focused on market expansion in Europe",
+    segment: "broker",
+    address: "123 Main St, New York, NY",
+    customers: 3,
+    opportunities: 3,
+    initials: "XY",
+    owner: {
+      id: 1,
+      name: "John Doe",
+      initials: "JD",
+      avatar: "",
+    },
+    team: [
+      { id: 1, name: "John Doe", initials: "JD", avatar: "" },
+      { id: 2, name: "Alice Cooper", initials: "AC", avatar: "" },
+    ],
+    createdAt: new Date(),
+    updatedAt: new Date(),
   },
-  team: [
-    { id: 1, name: "John Doe", initials: "JD", avatar: "" },
-    { id: 2, name: "Alice Cooper", initials: "AC", avatar: "" },
-  ],
-  createdAt: new Date(),
-  updatedAt: new Date(),
+  "2": {
+    id: 2,
+    name: "ABC Insurance Brokers",
+    description: "Joint action & business plan to drive growth with insurance business",
+    segment: "broker",
+    address: "456 Broadway, New York, NY",
+    customers: 5,
+    opportunities: 4,
+    initials: "AB",
+    owner: {
+      id: 2,
+      name: "Sarah Johnson",
+      initials: "SJ",
+      avatar: "",
+    },
+    team: [
+      { id: 2, name: "Sarah Johnson", initials: "SJ", avatar: "" },
+      { id: 3, name: "Michael Brown", initials: "MB", avatar: "" },
+    ],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  "3": {
+    id: 3,
+    name: "Global Insurance Partners",
+    description: "Strategic partnership focusing on enterprise clients",
+    segment: "broker",
+    address: "789 Fifth Avenue, New York, NY",
+    customers: 8,
+    opportunities: 6,
+    initials: "GI",
+    owner: {
+      id: 3,
+      name: "David Wilson",
+      initials: "DW",
+      avatar: "",
+    },
+    team: [
+      { id: 3, name: "David Wilson", initials: "DW", avatar: "" },
+      { id: 4, name: "Emily Clark", initials: "EC", avatar: "" },
+    ],
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  }
 };
 
 // Mock OKRs data
@@ -273,9 +345,12 @@ function ProgressBar({ progress, type = "default" }: { progress: number, type?: 
 export default function PartnerDetail() {
   const { id } = useParams();
   
+  // Get the partner data based on ID from URL
+  const partner = partnerDataMap[id as keyof typeof partnerDataMap] || partnerDataMap["1"];
+  
   // State for partner description editing
   const [isEditingDescription, setIsEditingDescription] = useState(false);
-  const [description, setDescription] = useState(mockPartnerData.description);
+  const [description, setDescription] = useState(partner.description);
   
   // Tabs state
   const [activeTab, setActiveTab] = useState("okr");
@@ -295,7 +370,7 @@ export default function PartnerDetail() {
   const dragOverTab = useRef<string | null>(null);
   
   // Get partner data (using mock data for now)
-  const partner = mockPartnerData;
+  // Partner data already defined above using partnerDataMap[id]
   
   // Handle description edit
   const handleDescriptionChange = (e: React.ChangeEvent<HTMLInputElement>) => {
