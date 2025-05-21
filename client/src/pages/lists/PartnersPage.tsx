@@ -335,6 +335,9 @@ function PartnersTable() {
   // State to track if a dynamic list was just created (to show guidance)
   const [showDynamicListGuidance, setShowDynamicListGuidance] = useState(false);
   
+  // State to track if guidance is collapsed
+  const [isGuidanceCollapsed, setIsGuidanceCollapsed] = useState(false);
+  
   // Initialize toast
   const { toast } = useToast();
   
@@ -732,36 +735,47 @@ function PartnersTable() {
           
           {/* Dynamic List Guidance Banner - appears after creating a dynamic list */}
           {showDynamicListGuidance && activeList?.type === 'filter' && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-              <div className="flex items-start">
-                <div className="flex-shrink-0 bg-blue-100 rounded-full p-1.5 mt-0.5">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1e40af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <line x1="12" y1="16" x2="12" y2="12"></line>
-                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                  </svg>
+            <div className="bg-blue-50 border border-blue-200 rounded-lg mb-4 overflow-hidden transition-all duration-300">
+              <div className="p-4 cursor-pointer flex items-center justify-between" 
+                   onClick={() => setIsGuidanceCollapsed(!isGuidanceCollapsed)}>
+                <div className="flex items-center">
+                  <div className="flex-shrink-0 bg-blue-100 rounded-full p-1.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1e40af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="12" y1="16" x2="12" y2="12"></line>
+                      <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                    </svg>
+                  </div>
+                  <h3 className="ml-3 text-sm font-medium text-blue-800" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                    Next step: Define your partner criteria
+                  </h3>
                 </div>
-                <div className="ml-3">
-                  <h3 className="text-sm font-medium text-blue-800" style={{ fontFamily: 'Poppins, sans-serif' }}>Next step: Define your partner criteria</h3>
-                  <div className="mt-1 text-sm text-blue-700">
+                <div>
+                  {isGuidanceCollapsed ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1e40af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="18 15 12 9 6 15"></polyline>
+                    </svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1e40af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                  )}
+                </div>
+              </div>
+              
+              {/* Collapsible content */}
+              {!isGuidanceCollapsed && (
+                <div className="px-4 pb-4 pt-1 ml-10">
+                  <div className="text-sm text-blue-700">
                     <p>Use the filters below to specify which partners should be included in this dynamic list.</p>
                     <ul className="list-disc pl-5 mt-2 space-y-1">
                       <li><strong>Business Value:</strong> Maintain real-time partner segments for targeted campaigns</li>
                       <li><strong>Automation:</strong> New partners matching your criteria are added automatically</li>
                       <li><strong>Consistency:</strong> Always up-to-date view for reporting and opportunity tracking</li>
                     </ul>
-                    <div className="mt-3">
-                      <Button 
-                        size="sm"
-                        className="bg-blue-600 hover:bg-blue-700 text-white"
-                        onClick={() => setShowDynamicListGuidance(false)}
-                      >
-                        Got it
-                      </Button>
-                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
           )}
           
