@@ -1102,7 +1102,10 @@ function PartnersTable() {
                           type="radio"
                           name="list-type"
                           className="w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-600"
-                          defaultChecked={!activeList?.type || activeList?.type === 'filter'}
+                          defaultChecked={
+                            // Default to dynamic list when filters are applied but no partners are selected
+                            (filterText || selectedStatus || selectedIndustry || selectedType) && selectedPartners.length === 0
+                          }
                           onChange={() => {
                             document.getElementById('hidden-list-type-value')?.setAttribute('value', 'filter');
                           }}
@@ -1115,15 +1118,23 @@ function PartnersTable() {
                           </svg>
                         </div>
                         <div>
-                          <Label className="font-medium text-sm">Save my current filters</Label>
+                          <Label className="font-medium text-sm">
+                            {(filterText || selectedStatus || selectedIndustry || selectedType) ? 
+                              'Save my current filters as a dynamic list' : 
+                              'Create a dynamic filter-based list'
+                            }
+                          </Label>
                           <p className="text-xs text-gray-500">
-                            The list will automatically update when partners match your filters
+                            {(filterText || selectedStatus || selectedIndustry || selectedType) ? 
+                              <>Partners matching these filters will be <strong>automatically included</strong> and updated</> : 
+                              <>Set up filters and partners matching them will be automatically included</>
+                            }
                             {(!filterText && !selectedStatus && !selectedIndustry && !selectedType) && (
                               <span className="block mt-1 text-amber-600">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block mr-1">
                                   <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
                                 </svg>
-                                You don't have any filters active right now
+                                You don't have any filters applied right now
                               </span>
                             )}
                           </p>
@@ -1150,7 +1161,8 @@ function PartnersTable() {
                           type="radio"
                           name="list-type"
                           className="w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-600"
-                          defaultChecked={activeList?.type === 'selection'}
+                          // Default to selection list when partners are selected
+                          defaultChecked={selectedPartners.length > 0}
                           onChange={() => {
                             document.getElementById('hidden-list-type-value')?.setAttribute('value', 'selection');
                           }}
@@ -1164,16 +1176,27 @@ function PartnersTable() {
                           </svg>
                         </div>
                         <div>
-                          <Label className="font-medium text-sm">Create a static partner list</Label>
+                          <Label className="font-medium text-sm">
+                            {selectedPartners.length > 0 ? 
+                              `Save my ${selectedPartners.length} selected partner${selectedPartners.length > 1 ? 's' : ''}` : 
+                              'Create a static partner list'
+                            }
+                          </Label>
                           <p className="text-xs text-gray-500">
-                            Create an empty list and manually select partners to add
+                            {selectedPartners.length > 0 ? 
+                              <>Only <strong>specifically selected partners</strong> are included in this list</> :
+                              <>Create a list where you manually control which partners are included</>
+                            }
                             <span className="block mt-1 text-blue-600">
                               <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block mr-1">
                                 <circle cx="12" cy="12" r="10"></circle>
                                 <line x1="12" y1="8" x2="12" y2="16"></line>
                                 <line x1="8" y1="12" x2="16" y2="12"></line>
                               </svg>
-                              You'll be able to add partners after creating the list
+                              {selectedPartners.length > 0 ? 
+                                `${selectedPartners.length} partner${selectedPartners.length > 1 ? 's' : ''} will be added immediately` : 
+                                "You'll need to add partners manually after creating"
+                              }
                             </span>
                           </p>
                         </div>
