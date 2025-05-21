@@ -181,7 +181,7 @@ interface SavedList {
   id: string;
   name: string;
   description?: string;
-  type?: 'filter' | 'selection'; // The type of list (dynamic or static selection)
+  type?: 'filter' | 'selection'; // 'filter' for Saved Filters, 'selection' for Custom Lists
   filters: {
     searchText?: string;
     status?: string;
@@ -189,7 +189,7 @@ interface SavedList {
     type?: string;
     size?: string;
   };
-  members?: number[]; // Array of partner IDs for static selection lists
+  members?: number[]; // Array of partner IDs for Custom Lists
   isShared: boolean;
   sharedWith?: string[];
   createdBy: string;
@@ -455,7 +455,7 @@ function PartnersTable() {
                   </svg>
                   <div className="flex items-center">
                     <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
-                      {activeList ? activeList.name : "Saved lists"}
+                      {activeList ? activeList.name : "My Lists"}
                     </span>
                     
                     {/* Dynamic List Type Indicator */}
@@ -469,7 +469,7 @@ function PartnersTable() {
                                   <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                                   <polyline points="22 4 12 14.01 9 11.01"></polyline>
                                 </svg>
-                                <span>Static</span>
+                                <span>Custom List</span>
                               </div>
                             </div>
                             <div className="opacity-0 absolute -top-9 left-0 px-2 py-1 rounded bg-gray-800 text-white text-xs whitespace-nowrap transition-opacity group-hover:opacity-100 z-10">
@@ -1104,11 +1104,11 @@ function PartnersTable() {
       <Dialog open={showSaveListModal} onOpenChange={setShowSaveListModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-[#282A3F] font-semibold text-lg" style={{ fontFamily: 'Poppins, sans-serif' }}>{activeList ? 'Update Saved List' : 'Create new list'}</DialogTitle>
+            <DialogTitle className="text-[#282A3F] font-semibold text-lg" style={{ fontFamily: 'Poppins, sans-serif' }}>{activeList ? 'Update List' : 'Create a new list'}</DialogTitle>
             <DialogDescription>
               {activeList ? 
                 'Update your list settings below.' : 
-                'Give your list a name and choose how it should work.'}
+                'Give your list a name and choose which type you want to create.'}
             </DialogDescription>
           </DialogHeader>
           
@@ -1137,7 +1137,7 @@ function PartnersTable() {
               <div className="grid gap-2">
                 <input type="hidden" id="hidden-list-type-value" value={activeList?.type || "filter"} />
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>List Behavior</Label>
+                  <Label className="text-sm font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>List Type</Label>
                   
                   <div className="grid grid-cols-1 gap-3">
                     {/* Dynamic List Option */}
@@ -1174,14 +1174,14 @@ function PartnersTable() {
                         <div>
                           <Label className="font-medium text-sm">
                             {(filterText || selectedStatus || selectedIndustry || selectedType) ? 
-                              'Save my current filters as a dynamic list' : 
-                              'Create a dynamic filter-based list'
+                              'Save my current filters' : 
+                              'Create a Saved Filter'
                             }
                           </Label>
                           <p className="text-xs text-gray-500">
                             {(filterText || selectedStatus || selectedIndustry || selectedType) ? 
-                              <>Partners matching these filters will be <strong>automatically included</strong> and updated</> : 
-                              <>Set up filters and partners matching them will be automatically included</>
+                              <>Partners matching these criteria will <strong>automatically update</strong> as data changes</> : 
+                              <>Define criteria and see all partners that match them, automatically</>
                             }
                             {(!filterText && !selectedStatus && !selectedIndustry && !selectedType) && (
                               <span className="block mt-1 text-amber-600">
@@ -1232,14 +1232,14 @@ function PartnersTable() {
                         <div>
                           <Label className="font-medium text-sm">
                             {selectedPartners.length > 0 ? 
-                              `Save my ${selectedPartners.length} selected partner${selectedPartners.length > 1 ? 's' : ''}` : 
-                              'Create a static partner list'
+                              `Save selected partners as a Custom List` : 
+                              'Create a Custom List'
                             }
                           </Label>
                           <p className="text-xs text-gray-500">
                             {selectedPartners.length > 0 ? 
-                              <>Only <strong>specifically selected partners</strong> are included in this list</> :
-                              <>Create a list where you manually control which partners are included</>
+                              <>Only the partners you <strong>specifically select</strong> will be included</> :
+                              <>Create a list where you manually add and remove partners as needed</>
                             }
                             <span className="block mt-1 text-blue-600">
                               <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block mr-1">
