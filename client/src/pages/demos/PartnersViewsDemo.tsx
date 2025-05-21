@@ -960,14 +960,14 @@ export default function PartnersViewsDemo() {
                 {/* Clear filters button */}
                 {(filterText || selectedStatus || selectedIndustry || selectedType) && (
                   <button 
-                    onClick={clearFilters}
+                    onClick={clearAdditionalFilters}
                     className="text-xs text-gray-500 hover:text-gray-700 flex items-center px-2 py-1 hover:bg-gray-50 rounded-md transition-colors"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
                       <path d="M18 6L6 18"></path>
                       <path d="M6 6l12 12"></path>
                     </svg>
-                    Clear filters
+                    Reset filters
                   </button>
                 )}
               </div>
@@ -1031,7 +1031,7 @@ export default function PartnersViewsDemo() {
                       <button
                         type="button"
                         className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                        onClick={clearFilters}
+                        onClick={clearAdditionalFilters}
                       >
                         Clear all filters
                       </button>
