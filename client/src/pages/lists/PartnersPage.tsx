@@ -618,41 +618,6 @@ function PartnersTable() {
                       ))}
                     </div>
                     
-                    {/* Separator */}
-                    <div className="mx-1 my-1 h-px bg-slate-100"></div>
-                    
-                    {/* Create new list button */}
-                    <div className="p-1">
-                      <div
-                        className="relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm font-medium outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 text-indigo-600"
-                        onClick={() => {
-                          // Clear everything for a fresh start
-                          setActiveList(null);
-                          setFilterText('');
-                          setSelectedStatus('');
-                          setSelectedIndustry('');
-                          setSelectedType('');
-                          
-                          // Clear selected partners for a fresh start with static lists
-                          setSelectedPartners([]);
-                          
-                          // Open the Create List modal instead of the Save List modal
-                          // This gives users the choice between Saved Filters and Custom Lists
-                          setShowCreateListModal(true);
-                          setNewListName('');
-                          setNewListDescription('');
-                          setSelectionListType('filter'); // Default to Saved Filter
-                          setShowListsDropdown(false);
-                        }}
-                        style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                          <path d="M5 12h14"></path>
-                          <path d="M12 5v14"></path>
-                        </svg>
-                        Create new list
-                      </div>
-                    </div>
                   </div>
                 )}
               </div>
