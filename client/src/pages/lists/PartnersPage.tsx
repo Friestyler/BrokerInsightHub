@@ -332,6 +332,9 @@ function PartnersTable() {
   const [selectionListDescription, setSelectionListDescription] = useState('');
   const [selectionListType, setSelectionListType] = useState<'filter' | 'selection'>('filter');
   
+  // State to track if a dynamic list was just created (to show guidance)
+  const [showDynamicListGuidance, setShowDynamicListGuidance] = useState(false);
+  
   // Initialize toast
   const { toast } = useToast();
   
@@ -1560,12 +1563,28 @@ function PartnersTable() {
                 // Clear selection after creating the list
                 setSelectedPartners([]);
                 
-                // Show success message
-                const listTypeText = selectionListType === 'selection' ? 'static' : 'dynamic';
-                toast({
-                  title: `${listTypeText.charAt(0).toUpperCase() + listTypeText.slice(1)} list created`,
-                  description: `"${selectionListName}" has been created successfully${selectionListType === 'selection' ? ' with ' + selectedPartners.length + ' partners' : ''}.`,
-                });
+                // Show success message with guidance for next steps
+                if (selectionListType === 'selection') {
+                  // Success message for static list
+                  toast({
+                    title: "Static list created",
+                    description: `"${selectionListName}" has been created with ${selectedPartners.length} partners.`,
+                  });
+                } else {
+                  // Success message with next steps guidance for dynamic list
+                  toast({
+                    title: "Dynamic list created",
+                    description: `"${selectionListName}" is ready! Now define your filter criteria to automatically track partners matching your target profile.`,
+                  });
+                  
+                  // After a brief delay, show a second toast with business value
+                  setTimeout(() => {
+                    toast({
+                      title: "💡 Pro Tip",
+                      description: "Fine-tune your filters to maintain up-to-date partner segments for campaigns, reporting, and opportunity tracking.",
+                    });
+                  }, 2000);
+                }
               }}
               disabled={!selectionListName.trim()}
             >
@@ -1949,6 +1968,36 @@ export default function PartnersPage() {
       </div>
       
       <PartnersTable />
+    </div>
+  );
+}
+
+// Helper component to guide users on dynamic list usage
+function DynamicListGuidance({ isNewList }: { isNewList: boolean }) {
+  return (
+    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+      <div className="flex items-start">
+        <div className="flex-shrink-0 bg-blue-100 rounded-full p-1.5 mt-0.5">
+          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1e40af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="16" x2="12" y2="12"></line>
+            <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          </svg>
+        </div>
+        <div className="ml-3">
+          <h3 className="text-sm font-medium text-blue-800" style={{ fontFamily: 'Poppins, sans-serif' }}>
+            {isNewList ? 'Define your partner criteria' : 'About this dynamic list'}
+          </h3>
+          <div className="mt-1 text-sm text-blue-700">
+            <p>Set up filters below to define which partners should be included in this dynamic list. This helps you:</p>
+            <ul className="list-disc pl-5 mt-1 space-y-1">
+              <li>Track specific partner segments (e.g., active insurance brokers) in real-time</li>
+              <li>Maintain an always up-to-date view for targeted campaigns and reporting</li>
+              <li>Automatically capture new partners that match your business criteria</li>
+            </ul>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }
