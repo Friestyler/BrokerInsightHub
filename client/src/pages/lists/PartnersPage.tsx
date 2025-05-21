@@ -253,6 +253,7 @@ function PartnersTable() {
   const [showListsDropdown, setShowListsDropdown] = useState(false);
   const [showAddPartnersModal, setShowAddPartnersModal] = useState(false);
   const [partnersToAdd, setPartnersToAdd] = useState<number[]>([]);
+  const [showCreateFromSelectionModal, setShowCreateFromSelectionModal] = useState(false);
     
   // Filter partners based on search text, filter selections, and list type
   const displayedPartners = mockPartners.filter(partner => {
