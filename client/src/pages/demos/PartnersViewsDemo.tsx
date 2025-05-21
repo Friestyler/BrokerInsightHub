@@ -225,6 +225,12 @@ interface View {
   createdAt: Date;
 }
 
+// Define interface for list with views
+interface ListWithViews extends SavedList {
+  views: View[];
+  activeViewId?: string;
+}
+
 // Main Partners Views Demo component
 export default function PartnersViewsDemo() {
   // State for list data, views, and filters
@@ -236,38 +242,119 @@ export default function PartnersViewsDemo() {
   const [selectedViewStyle, setSelectedViewStyle] = useState('tabs');
   const [showSaveViewModal, setShowSaveViewModal] = useState(false);
   
-  // Demo views for the active list
-  const [views, setViews] = useState<View[]>([
+  // Demo lists with views
+  const [lists, setLists] = useState<ListWithViews[]>([
     {
-      id: '1',
-      name: 'Active Brokers',
-      description: 'All active insurance brokers',
-      filters: { status: 'active', type: 'Broker' },
+      id: 'partners-list',
+      name: 'All Partners',
+      description: 'Complete list of all partners in the system',
+      type: 'filter',
+      filters: {},
       isShared: true,
-      createdBy: 'John Smith',
-      createdAt: new Date('2025-05-01')
+      createdBy: 'System',
+      createdAt: new Date('2025-01-01'),
+      isDefault: true,
+      views: [
+        {
+          id: 'partners-all',
+          name: 'All Partners',
+          description: 'Default view showing all partners without filters',
+          filters: {},
+          isShared: true,
+          createdBy: 'System',
+          createdAt: new Date('2025-01-01')
+        },
+        {
+          id: 'partners-active-brokers',
+          name: 'Active Brokers',
+          description: 'All active insurance brokers',
+          filters: { status: 'active', type: 'Broker' },
+          isShared: true,
+          createdBy: 'John Smith',
+          createdAt: new Date('2025-05-01')
+        },
+        {
+          id: 'partners-insurance',
+          name: 'Insurance Partners',
+          description: 'All partners in the insurance industry',
+          filters: { industry: 'Insurance' },
+          isShared: true,
+          createdBy: 'John Smith',
+          createdAt: new Date('2025-05-05')
+        }
+      ],
+      activeViewId: 'partners-all'
     },
     {
-      id: '2',
-      name: 'Insurance Partners',
-      description: 'All partners in the insurance industry',
-      filters: { industry: 'Insurance' },
+      id: 'strategic-partners',
+      name: 'Strategic Partners',
+      description: 'Key strategic partners with special relationships',
+      type: 'selection',
+      filters: {},
+      members: [1, 3, 5],
       isShared: true,
       createdBy: 'John Smith',
-      createdAt: new Date('2025-05-05')
+      createdAt: new Date('2025-02-15'),
+      views: [
+        {
+          id: 'strategic-all',
+          name: 'All Strategic Partners',
+          description: 'Default view showing all strategic partners',
+          filters: {},
+          isShared: true,
+          createdBy: 'John Smith',
+          createdAt: new Date('2025-02-15')
+        },
+        {
+          id: 'strategic-insurance',
+          name: 'Insurance Strategic Partners',
+          description: 'Strategic partners in the insurance industry',
+          filters: { industry: 'Insurance' },
+          isShared: true,
+          createdBy: 'John Smith',
+          createdAt: new Date('2025-03-10')
+        }
+      ],
+      activeViewId: 'strategic-all'
     },
     {
-      id: '3',
-      name: 'Enterprise Customers',
-      description: 'All enterprise-sized partners',
-      filters: { industry: 'Insurance', type: 'Broker' },
-      isShared: false,
-      createdBy: 'John Smith',
-      createdAt: new Date('2025-05-10')
+      id: 'high-value',
+      name: 'High-Value Partners',
+      description: 'Partners with significant business opportunities',
+      type: 'filter',
+      filters: { type: 'Broker' },
+      isShared: true,
+      createdBy: 'John Smith', 
+      createdAt: new Date('2025-04-05'),
+      views: [
+        {
+          id: 'high-value-all',
+          name: 'All High-Value',
+          description: 'Default view showing all high-value partners',
+          filters: {},
+          isShared: true,
+          createdBy: 'John Smith',
+          createdAt: new Date('2025-04-05')
+        },
+        {
+          id: 'high-value-active',
+          name: 'Active High-Value',
+          description: 'Active high-value partners only',
+          filters: { status: 'active' },
+          isShared: true,
+          createdBy: 'John Smith',
+          createdAt: new Date('2025-04-10')
+        }
+      ],
+      activeViewId: 'high-value-all'
     }
   ]);
   
-  const [activeView, setActiveView] = useState<View | null>(null);
+  // Active list and view tracking
+  const [activeListId, setActiveListId] = useState<string>('partners-list');
+  const activeList = lists.find(list => list.id === activeListId) || lists[0];
+  const activeViewId = activeList.activeViewId || activeList.views[0]?.id;
+  const activeView = activeList.views.find(view => view.id === activeViewId) || null;
   const { toast } = useToast();
   
   // Calculate statistics for the dashboard
@@ -278,9 +365,16 @@ export default function PartnersViewsDemo() {
     totalOpportunities: mockPartners.reduce((sum, p) => sum + p.opportunities, 0)
   };
   
-  // Filter partners based on search text and filter selections
+  // Filter partners based on list type, selection, view, and additional filters
   const filteredPartners = mockPartners.filter(partner => {
-    // Apply active view filters if there is one
+    // For selection-type lists, only show partners that are in the members array
+    if (activeList.type === 'selection') {
+      if (!activeList.members || !activeList.members.includes(partner.id)) {
+        return false;
+      }
+    }
+    
+    // Apply view filters from the active view
     if (activeView) {
       // Check status filter
       if (activeView.filters.status && partner.status !== activeView.filters.status) {
@@ -296,22 +390,19 @@ export default function PartnersViewsDemo() {
       if (activeView.filters.type && partner.type !== activeView.filters.type) {
         return false;
       }
-    } else {
-      // Apply manual filters when no view is active
-      // Check status filter
-      if (selectedStatus && partner.status !== selectedStatus) {
-        return false;
-      }
-      
-      // Check industry filter
-      if (selectedIndustry && partner.industry !== selectedIndustry) {
-        return false;
-      }
-      
-      // Check type filter
-      if (selectedType && partner.type !== selectedType) {
-        return false;
-      }
+    }
+    
+    // Apply additional user-applied filters (these override or add to view filters)
+    if (selectedStatus && partner.status !== selectedStatus) {
+      return false;
+    }
+    
+    if (selectedIndustry && partner.industry !== selectedIndustry) {
+      return false;
+    }
+    
+    if (selectedType && partner.type !== selectedType) {
+      return false;
     }
     
     // Always apply text search
@@ -324,26 +415,65 @@ export default function PartnersViewsDemo() {
     return true;
   });
   
-  // Apply a saved view
-  const applyView = (view: View) => {
-    setActiveView(view);
-    // Set filters based on view
-    setSelectedStatus(view.filters.status || '');
-    setSelectedIndustry(view.filters.industry || '');
-    setSelectedType(view.filters.type || '');
-    setFilterText(view.filters.searchText || '');
-  };
-  
-  // Clear all filters
-  const clearFilters = () => {
+  // Switch active list
+  const switchList = (listId: string) => {
+    setActiveListId(listId);
+    // Reset manual filters when switching lists
     setFilterText('');
     setSelectedStatus('');
     setSelectedIndustry('');
     setSelectedType('');
-    setActiveView(null);
   };
   
-  // Save current filters as a new view
+  // Apply a saved view within the current list
+  const applyView = (viewId: string) => {
+    // Update the active list with the new active view ID
+    const updatedLists = lists.map(list => {
+      if (list.id === activeListId) {
+        return {
+          ...list,
+          activeViewId: viewId
+        };
+      }
+      return list;
+    });
+    
+    setLists(updatedLists);
+    
+    // Reset manual filters when switching views
+    const view = activeList.views.find(v => v.id === viewId);
+    if (view) {
+      setFilterText(view.filters.searchText || '');
+      setSelectedStatus(view.filters.status || '');
+      setSelectedIndustry(view.filters.industry || '');
+      setSelectedType(view.filters.type || '');
+    }
+  };
+  
+  // Clear additional filters (but keep the active view's filters)
+  const clearAdditionalFilters = () => {
+    if (activeView) {
+      setFilterText(activeView.filters.searchText || '');
+      setSelectedStatus(activeView.filters.status || '');
+      setSelectedIndustry(activeView.filters.industry || '');
+      setSelectedType(activeView.filters.type || '');
+    } else {
+      setFilterText('');
+      setSelectedStatus('');
+      setSelectedIndustry('');
+      setSelectedType('');
+    }
+  };
+  
+  // Reset to default view in the current list
+  const resetToDefaultView = () => {
+    const defaultViewId = activeList.views[0]?.id;
+    if (defaultViewId) {
+      applyView(defaultViewId);
+    }
+  };
+  
+  // Save current filters as a new view in the current list
   const saveAsView = () => {
     setShowSaveViewModal(true);
   };
@@ -405,21 +535,37 @@ export default function PartnersViewsDemo() {
                 </div>
               </div>
               
+              {/* List Selector */}
+              <div className="mb-4 flex items-center space-x-4">
+                <span className="text-sm font-medium">List:</span>
+                <div className="flex space-x-2">
+                  {lists.map(list => (
+                    <Button 
+                      key={list.id}
+                      variant={list.id === activeListId ? "default" : "outline"}
+                      size="sm"
+                      onClick={() => switchList(list.id)}
+                    >
+                      {list.name}
+                      {list.type === 'selection' && (
+                        <span className="ml-1 text-xs bg-indigo-100 text-indigo-800 px-1 rounded">
+                          Custom
+                        </span>
+                      )}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+
               {/* View navigation - Different options based on selected style */}
               {selectedViewStyle === 'tabs' && (
                 <div className="border-b border-gray-200">
-                  <Tabs defaultValue={activeView ? activeView.id : 'all'} onValueChange={(value) => {
-                    if (value === 'all') {
-                      clearFilters();
-                    } else {
-                      const view = views.find(v => v.id === value);
-                      if (view) applyView(view);
-                    }
+                  <Tabs defaultValue={activeViewId} onValueChange={(value) => {
+                    applyView(value);
                   }}>
                     <div className="flex justify-between items-center">
                       <TabsList>
-                        <TabsTrigger value="all">All Partners</TabsTrigger>
-                        {views.map(view => (
+                        {activeList.views.map(view => (
                           <TabsTrigger key={view.id} value={view.id}>
                             {view.name}
                           </TabsTrigger>
@@ -445,60 +591,77 @@ export default function PartnersViewsDemo() {
               
               {selectedViewStyle === 'panel' && (
                 <div className="grid grid-cols-12 gap-4">
-                  {/* Presets panel */}
+                  {/* Lists and Views panel */}
                   <div className="col-span-3 border-r pr-4">
-                    <div className="flex justify-between items-center mb-3">
-                      <h3 className="text-sm font-medium text-gray-700">Saved Views</h3>
-                      <Button 
-                        size="sm" 
-                        variant="ghost" 
-                        className="h-8 w-8 p-0" 
-                        onClick={saveAsView}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <line x1="12" y1="5" x2="12" y2="19"></line>
-                          <line x1="5" y1="12" x2="19" y2="12"></line>
-                        </svg>
-                        <span className="sr-only">New view</span>
-                      </Button>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      <div 
-                        className={`p-2 rounded-md cursor-pointer transition-colors ${!activeView ? 'bg-indigo-50 border border-indigo-100' : 'hover:bg-gray-50'}`}
-                        onClick={() => clearFilters()}
-                      >
-                        <div className="font-medium text-sm">All Partners</div>
-                        <div className="text-xs text-gray-500">No filters applied</div>
-                      </div>
-                      
-                      {views.map(view => (
+                    {/* Lists section */}
+                    <div className="mb-4">
+                      <h3 className="text-sm font-medium text-gray-700 mb-2">Lists</h3>
+                      {lists.map(list => (
                         <div 
-                          key={view.id}
-                          className={`p-2 rounded-md cursor-pointer transition-colors ${activeView?.id === view.id ? 'bg-indigo-50 border border-indigo-100' : 'hover:bg-gray-50'}`}
-                          onClick={() => applyView(view)}
+                          key={list.id}
+                          className={`p-2 rounded-md cursor-pointer transition-colors mb-1 ${list.id === activeListId ? 'bg-indigo-50 border border-indigo-100 font-medium' : 'hover:bg-gray-50'}`}
+                          onClick={() => switchList(list.id)}
                         >
-                          <div className="font-medium text-sm">{view.name}</div>
-                          <div className="text-xs text-gray-500">{view.description}</div>
-                          <div className="flex flex-wrap gap-1 mt-1">
-                            {view.filters.status && (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                                Status: {view.filters.status}
-                              </span>
-                            )}
-                            {view.filters.industry && (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                                Industry: {view.filters.industry}
-                              </span>
-                            )}
-                            {view.filters.type && (
-                              <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
-                                Type: {view.filters.type}
+                          <div className="flex items-center justify-between">
+                            <span className="text-sm">{list.name}</span>
+                            {list.type === 'selection' && (
+                              <span className="text-xs bg-indigo-100 text-indigo-800 px-1 rounded">
+                                Custom
                               </span>
                             )}
                           </div>
+                          <div className="text-xs text-gray-500">{list.description}</div>
                         </div>
                       ))}
+                    </div>
+                    
+                    {/* Views section */}
+                    <div>
+                      <div className="flex justify-between items-center mb-3">
+                        <h3 className="text-sm font-medium text-gray-700">Views in {activeList.name}</h3>
+                        <Button 
+                          size="sm" 
+                          variant="ghost" 
+                          className="h-8 w-8 p-0" 
+                          onClick={saveAsView}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                          </svg>
+                          <span className="sr-only">New view</span>
+                        </Button>
+                      </div>
+                      
+                      <div className="space-y-2">
+                        {activeList.views.map(view => (
+                          <div 
+                            key={view.id}
+                            className={`p-2 rounded-md cursor-pointer transition-colors ${view.id === activeViewId ? 'bg-indigo-50 border border-indigo-100' : 'hover:bg-gray-50'}`}
+                            onClick={() => applyView(view.id)}
+                          >
+                            <div className="font-medium text-sm">{view.name}</div>
+                            <div className="text-xs text-gray-500">{view.description}</div>
+                            <div className="flex flex-wrap gap-1 mt-1">
+                              {view.filters.status && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                  Status: {view.filters.status}
+                                </span>
+                              )}
+                              {view.filters.industry && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                  Industry: {view.filters.industry}
+                                </span>
+                              )}
+                              {view.filters.type && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                                  Type: {view.filters.type}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </div>
                   </div>
                   
@@ -510,52 +673,68 @@ export default function PartnersViewsDemo() {
                           <h3 className="font-medium text-indigo-900">{activeView.name}</h3>
                           <p className="text-sm text-indigo-700">{activeView.description}</p>
                         </div>
-                        <Button variant="ghost" size="sm" onClick={clearFilters}>
+                        <Button variant="ghost" size="sm" onClick={clearAdditionalFilters}>
                           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
                             <path d="M18 6L6 18"></path>
                             <path d="M6 6l12 12"></path>
                           </svg>
-                          Clear view
+                          Reset to view defaults
                         </Button>
                       </div>
                     )}
-                    
-                    {/* Filters UI rendered here */}
                   </div>
                 </div>
               )}
               
               {selectedViewStyle === 'combined' && (
                 <div className="mb-4">
-                  <div className="flex items-center gap-2 mb-4">
-                    <Label className="text-sm font-medium">View:</Label>
-                    <div className="relative inline-block text-left">
-                      <select
-                        className="appearance-none pl-3 pr-8 py-1.5 border border-gray-300 bg-white rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        value={activeView ? activeView.id : 'all'}
-                        onChange={(e) => {
-                          if (e.target.value === 'all') {
-                            clearFilters();
-                          } else {
-                            const view = views.find(v => v.id === e.target.value);
-                            if (view) applyView(view);
-                          }
-                        }}
-                      >
-                        <option value="all">All Partners</option>
-                        {views.map(view => (
-                          <option key={view.id} value={view.id}>{view.name}</option>
-                        ))}
-                      </select>
-                      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="6 9 12 15 18 9"></polyline>
-                        </svg>
+                  <div className="flex flex-wrap gap-3 items-center mb-4">
+                    {/* List selector */}
+                    <div className="flex items-center gap-2">
+                      <Label className="text-sm font-medium whitespace-nowrap">List:</Label>
+                      <div className="relative inline-block text-left">
+                        <select
+                          className="appearance-none pl-3 pr-8 py-1.5 border border-gray-300 bg-white rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          value={activeListId}
+                          onChange={(e) => switchList(e.target.value)}
+                        >
+                          {lists.map(list => (
+                            <option key={list.id} value={list.id}>
+                              {list.name} {list.type === 'selection' ? '(Custom)' : ''}
+                            </option>
+                          ))}
+                        </select>
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                          </svg>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* View selector */}
+                    <div className="flex items-center gap-2">
+                      <Label className="text-sm font-medium whitespace-nowrap">View:</Label>
+                      <div className="relative inline-block text-left">
+                        <select
+                          className="appearance-none pl-3 pr-8 py-1.5 border border-gray-300 bg-white rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                          value={activeViewId}
+                          onChange={(e) => applyView(e.target.value)}
+                        >
+                          {activeList.views.map(view => (
+                            <option key={view.id} value={view.id}>{view.name}</option>
+                          ))}
+                        </select>
+                        <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="6 9 12 15 18 9"></polyline>
+                          </svg>
+                        </div>
                       </div>
                     </div>
                     
                     {activeView && (
-                      <div className="text-sm text-gray-500 ml-2">
+                      <div className="text-sm text-gray-500">
                         {activeView.description}
                       </div>
                     )}
@@ -584,8 +763,23 @@ export default function PartnersViewsDemo() {
                           <button 
                             className="ml-1 text-blue-400 hover:text-blue-600"
                             onClick={() => {
-                              const newView = { ...activeView, filters: { ...activeView.filters, status: undefined } };
-                              setActiveView(newView);
+                              // Create an updated list of views
+                              const updatedLists = lists.map(list => {
+                                if (list.id === activeListId) {
+                                  const updatedViews = list.views.map(v => {
+                                    if (v.id === activeViewId) {
+                                      return {
+                                        ...v,
+                                        filters: { ...v.filters, status: undefined }
+                                      };
+                                    }
+                                    return v;
+                                  });
+                                  return { ...list, views: updatedViews };
+                                }
+                                return list;
+                              });
+                              setLists(updatedLists);
                               setSelectedStatus('');
                             }}
                           >
@@ -603,8 +797,23 @@ export default function PartnersViewsDemo() {
                           <button 
                             className="ml-1 text-green-400 hover:text-green-600"
                             onClick={() => {
-                              const newView = { ...activeView, filters: { ...activeView.filters, industry: undefined } };
-                              setActiveView(newView);
+                              // Create an updated list of views
+                              const updatedLists = lists.map(list => {
+                                if (list.id === activeListId) {
+                                  const updatedViews = list.views.map(v => {
+                                    if (v.id === activeViewId) {
+                                      return {
+                                        ...v,
+                                        filters: { ...v.filters, industry: undefined }
+                                      };
+                                    }
+                                    return v;
+                                  });
+                                  return { ...list, views: updatedViews };
+                                }
+                                return list;
+                              });
+                              setLists(updatedLists);
                               setSelectedIndustry('');
                             }}
                           >
@@ -622,8 +831,23 @@ export default function PartnersViewsDemo() {
                           <button 
                             className="ml-1 text-purple-400 hover:text-purple-600"
                             onClick={() => {
-                              const newView = { ...activeView, filters: { ...activeView.filters, type: undefined } };
-                              setActiveView(newView);
+                              // Create an updated list of views
+                              const updatedLists = lists.map(list => {
+                                if (list.id === activeListId) {
+                                  const updatedViews = list.views.map(v => {
+                                    if (v.id === activeViewId) {
+                                      return {
+                                        ...v,
+                                        filters: { ...v.filters, type: undefined }
+                                      };
+                                    }
+                                    return v;
+                                  });
+                                  return { ...list, views: updatedViews };
+                                }
+                                return list;
+                              });
+                              setLists(updatedLists);
                               setSelectedType('');
                             }}
                           >
