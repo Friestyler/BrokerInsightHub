@@ -715,6 +715,23 @@ function PartnersTable() {
             {/* Right-side action buttons */}
             <div className="flex items-center gap-2">
               
+              {/* Create Saved Filter Button */}
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="flex items-center border-[#5567E5] text-[#5567E5] hover:bg-[#eef0ff]"
+                onClick={() => {
+                  // Open create list modal and set it to create a filter-type list
+                  setShowCreateListModal(true);
+                  setSelectionListType('filter');
+                }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                </svg>
+                Create Saved Filter
+              </Button>
+              
               <Button variant="outline" size="sm" className="hidden md:flex items-center">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -1140,7 +1157,7 @@ function PartnersTable() {
                   <Label className="text-sm font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>List Type</Label>
                   
                   <div className="grid grid-cols-1 gap-3">
-                    {/* Dynamic List Option */}
+                    {/* Saved Filter Option */}
                     <div 
                       className={`relative flex items-start p-3 rounded-lg border-2 ${
                         document.getElementById('hidden-list-type-value')?.getAttribute('value') === 'filter' 
