@@ -2064,6 +2064,24 @@ export default function PartnersPage() {
     <div className="container mx-auto px-4 py-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold tracking-tight text-black">Partners</h1>
+        
+        {/* New Partner button */}
+        <button 
+          className="flex items-center rounded-md bg-[#3E4DC4] text-white px-4 py-2 hover:bg-[#313CA0] transition-colors"
+          onClick={() => {
+            // This would navigate to a partner creation form in a real implementation
+            alert('This would open the new partner creation form in the real application');
+          }}
+          style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+            <circle cx="8.5" cy="7" r="4"></circle>
+            <line x1="20" y1="8" x2="20" y2="14"></line>
+            <line x1="23" y1="11" x2="17" y2="11"></line>
+          </svg>
+          <span className="font-medium">Create new partner</span>
+        </button>
       </div>
       
       <PartnersTable />
