@@ -779,6 +779,68 @@ function PartnersTable() {
             </div>
           )}
           
+          {/* Static List Information Banner - shows when a static list is active */}
+          {activeList?.type === 'selection' && (
+            <div className="bg-emerald-50 border border-emerald-200 rounded-lg mb-4 overflow-hidden transition-all duration-300">
+              <div className="p-4 cursor-pointer flex items-center justify-between" 
+                   onClick={() => setIsGuidanceCollapsed(!isGuidanceCollapsed)}>
+                <div className="flex items-center">
+                  <div className="flex-shrink-0 bg-emerald-100 rounded-full p-1.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#047857" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                      <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                  </div>
+                  <h3 className="ml-3 text-sm font-medium text-emerald-800" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                    Static List: Only changes when you make them
+                  </h3>
+                </div>
+                <div>
+                  {isGuidanceCollapsed ? (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#047857" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="18 15 12 9 6 15"></polyline>
+                    </svg>
+                  ) : (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#047857" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="6 9 12 15 18 9"></polyline>
+                    </svg>
+                  )}
+                </div>
+              </div>
+              
+              {/* Collapsible content */}
+              {!isGuidanceCollapsed && (
+                <div className="px-4 pb-4 pt-1 ml-10">
+                  <div className="text-sm text-emerald-700">
+                    <p><strong>This list will only change when you explicitly add or remove partners.</strong></p>
+                    <ul className="list-disc pl-5 mt-2 space-y-1">
+                      <li><strong>No automatic updates:</strong> New partners will never be added automatically</li>
+                      <li><strong>Full control:</strong> You decide exactly which partners should be included</li>
+                      <li><strong>Manual management:</strong> Use the "Add Partners" button to expand your list anytime</li>
+                    </ul>
+                    <div className="flex mt-3">
+                      <button 
+                        className="flex items-center rounded-md bg-emerald-600 text-white px-3 py-1.5 text-xs hover:bg-emerald-700"
+                        onClick={() => {
+                          setPartnersToAdd([]);
+                          setShowAddPartnersModal(true);
+                        }}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                          <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                          <circle cx="8.5" cy="7" r="4"></circle>
+                          <line x1="20" y1="8" x2="20" y2="14"></line>
+                          <line x1="23" y1="11" x2="17" y2="11"></line>
+                        </svg>
+                        Add Partners
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+          
           {/* Bottom row with search and filters */}
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-3 flex-grow">
