@@ -555,7 +555,7 @@ function PartnersTable() {
                       <div className="relative">
                         <input
                           type="text"
-                          placeholder="Search views..."
+                          placeholder={activeListType === 'views' ? "Search views..." : "Search lists..."}
                           className="w-full pl-8 pr-3 py-2 text-sm rounded-md bg-transparent border border-slate-200 ring-offset-white placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
                         />
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500">
@@ -566,19 +566,31 @@ function PartnersTable() {
                     </div>
                     
                     {/* Lists with edit options - filtered by active tab type */}
-                    <div className="max-h-[300px] overflow-y-auto p-1">
+                    <div className="max-h-[300px] overflow-y-auto p-2">
+                      <div className="text-xs font-semibold text-slate-500 mb-2">
+                        {activeListType === 'views' ? 'SAVED VIEWS' : 'CUSTOM LISTS'}
+                      </div>
                       {/* "All Partners" option is always shown */}
                       <div className="relative">
                         <div
-                          className={`relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 ${!activeList ? 'bg-indigo-50 text-indigo-900' : 'text-slate-700'}`}
+                          className={`relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 ${!activeList ? 'bg-[#5567E5]/10 text-[#5567E5]' : 'text-slate-700'}`}
                           onClick={() => {
                             setActiveList(null);
                             setShowListsDropdown(false);
                           }}
                         >
                           <div className="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"></path>
+                              <circle cx="12" cy="7" r="4"></circle>
+                            </svg>
                             <span className="font-medium">All Partners</span>
                           </div>
+                          {!activeList && (
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-auto text-[#5567E5]">
+                              <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                          )}
                         </div>
                       </div>
                       
@@ -598,7 +610,7 @@ function PartnersTable() {
                           className="relative"
                         >
                           <div
-                            className={`relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 ${activeList?.id === list.id ? 'bg-indigo-50 text-indigo-900' : 'text-slate-700'}`}
+                            className={`relative flex w-full cursor-pointer select-none items-center justify-between rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 ${activeList?.id === list.id ? 'bg-[#5567E5]/10 text-[#5567E5]' : 'text-slate-700'}`}
                             onClick={() => {
                               // Special handling for "All Partners" default list
                               if (list.isDefault && list.name === "All Partners") {
