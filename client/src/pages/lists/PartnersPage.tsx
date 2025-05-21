@@ -1665,14 +1665,14 @@ function PartnersTable() {
                   name: selectionListName.trim(),
                   description: selectionListDescription.trim() || undefined,
                   type: selectionListType,
-                  // For dynamic lists, analyze the selected partners to create intelligent filters
+                  // For Saved Filters, analyze the selected partners to create intelligent filters
                   filters: selectionListType === 'filter' 
                     ? { 
                       // This is a simplified approach - in a real app you'd analyze the
                       // selected partners to determine common attributes for smarter filters
                     }
-                    : {}, // For static lists, we'll use the members array instead
-                  // For static lists, use the selection directly
+                    : {}, // For Custom Lists, we'll use the members array instead
+                  // For Custom Lists, use the selection directly
                   members: selectionListType === 'selection' ? selectedPartners : undefined, 
                   isShared: false,
                   createdBy: 'John Smith', // Hardcoded for demo
@@ -1698,16 +1698,16 @@ function PartnersTable() {
                 
                 // Show success message with guidance for next steps
                 if (selectionListType === 'selection') {
-                  // Success message for static list
+                  // Success message for Custom List
                   toast({
-                    title: "Static list created",
+                    title: "Custom List created",
                     description: `"${selectionListName}" has been created with ${selectedPartners.length} partners.`,
                   });
                 } else {
-                  // Success message with next steps guidance for dynamic list
+                  // Success message with next steps guidance for Saved Filter
                   toast({
-                    title: "Dynamic list created",
-                    description: `"${selectionListName}" is ready! Now define your filter criteria to automatically track partners matching your target profile.`,
+                    title: "Saved Filter created",
+                    description: `"${selectionListName}" is ready! Now set your filter criteria to view partners matching your requirements.`,
                   });
                   
                   // Set flag to show guidance banner
