@@ -452,7 +452,7 @@ const PartnersPage = () => {
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Any status</SelectItem>
+                  <SelectItem value="any">Any status</SelectItem>
                   <SelectItem value="active">Active</SelectItem>
                   <SelectItem value="inactive">Inactive</SelectItem>
                 </SelectContent>
@@ -465,7 +465,7 @@ const PartnersPage = () => {
                   <SelectValue placeholder="Industry" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Any industry</SelectItem>
+                  <SelectItem value="any">Any industry</SelectItem>
                   <SelectItem value="Insurance">Insurance</SelectItem>
                   <SelectItem value="Finance">Finance</SelectItem>
                 </SelectContent>
@@ -478,7 +478,7 @@ const PartnersPage = () => {
                   <SelectValue placeholder="Partner type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Any type</SelectItem>
+                  <SelectItem value="any">Any type</SelectItem>
                   <SelectItem value="Broker">Broker</SelectItem>
                   <SelectItem value="Agency">Agency</SelectItem>
                 </SelectContent>
@@ -872,7 +872,7 @@ const PartnersPage = () => {
                     <SelectValue placeholder="Any status" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Any status</SelectItem>
+                    <SelectItem value="any">Any status</SelectItem>
                     <SelectItem value="active">Active</SelectItem>
                     <SelectItem value="inactive">Inactive</SelectItem>
                   </SelectContent>
@@ -886,7 +886,7 @@ const PartnersPage = () => {
                     <SelectValue placeholder="Any industry" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Any industry</SelectItem>
+                    <SelectItem value="any">Any industry</SelectItem>
                     <SelectItem value="Insurance">Insurance</SelectItem>
                     <SelectItem value="Finance">Finance</SelectItem>
                   </SelectContent>
@@ -900,7 +900,7 @@ const PartnersPage = () => {
                     <SelectValue placeholder="Any type" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">Any type</SelectItem>
+                    <SelectItem value="any">Any type</SelectItem>
                     <SelectItem value="Broker">Broker</SelectItem>
                     <SelectItem value="Agency">Agency</SelectItem>
                   </SelectContent>
