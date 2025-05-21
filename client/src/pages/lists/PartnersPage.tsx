@@ -252,6 +252,7 @@ function PartnersTable() {
   const [showShareListModal, setShowShareListModal] = useState(false);
   const [showListsDropdown, setShowListsDropdown] = useState(false);
   const [showAddPartnersModal, setShowAddPartnersModal] = useState(false);
+  const [showCreateListModal, setShowCreateListModal] = useState(false);
   const [partnersToAdd, setPartnersToAdd] = useState<number[]>([]);
   const [showCreateFromSelectionModal, setShowCreateFromSelectionModal] = useState(false);
     
@@ -721,9 +722,15 @@ function PartnersTable() {
                 size="sm" 
                 className="flex items-center border-[#5567E5] text-[#5567E5] hover:bg-[#eef0ff]"
                 onClick={() => {
-                  // Open create list modal and set it to create a filter-type list
-                  setShowCreateListModal(true);
-                  setSelectionListType('filter');
+                  // Open Save List modal and set it to create a filter-type list
+                  setShowSaveListModal(true);
+                  // Set the value of the hidden field and the radio button
+                  setTimeout(() => {
+                    const hiddenField = document.getElementById('hidden-list-type-value');
+                    if (hiddenField) hiddenField.setAttribute('value', 'filter');
+                    const radioElement = document.getElementById('list-type-filter') as HTMLInputElement;
+                    if (radioElement) radioElement.checked = true;
+                  }, 10);
                 }}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
@@ -1201,11 +1208,13 @@ function PartnersTable() {
                               <>Define criteria and see all partners that match them, automatically</>
                             }
                             {(!filterText && !selectedStatus && !selectedIndustry && !selectedType) && (
-                              <span className="block mt-1 text-amber-600">
+                              <span className="block mt-1 text-blue-600">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block mr-1">
-                                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                                  <circle cx="12" cy="12" r="10"></circle>
+                                  <line x1="12" y1="8" x2="12" y2="16"></line>
+                                  <line x1="8" y1="12" x2="16" y2="12"></line>
                                 </svg>
-                                You don't have any filters applied right now
+                                You'll be able to set filter criteria after creating the list
                               </span>
                             )}
                           </p>
