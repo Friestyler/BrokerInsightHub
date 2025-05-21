@@ -530,6 +530,21 @@ const PartnersPage = () => {
                   className="mt-3 bg-white border-blue-200 text-blue-700 hover:bg-blue-50"
                   onClick={(e) => {
                     e.stopPropagation();
+                    
+                    // Check if any filters are active
+                    const hasActiveFilters = searchText || 
+                      (statusFilter && statusFilter !== 'any') || 
+                      (industryFilter && industryFilter !== 'any') || 
+                      (typeFilter && typeFilter !== 'any');
+                    
+                    if (!hasActiveFilters) {
+                      toast({
+                        title: "No filters applied",
+                        description: "You don't have any filters applied yet. You can still save this to get all partners in a filter that will update automatically.",
+                        duration: 5000,
+                      });
+                    }
+                    
                     setShowSearchModal(true);
                   }}
                 >
