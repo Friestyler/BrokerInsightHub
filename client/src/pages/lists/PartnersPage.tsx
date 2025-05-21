@@ -133,7 +133,7 @@ const PlusIcon = () => (
 
 // Simplified approach to partner organization
 const PartnersPage = () => {
-  const { currentEnvironment } = useEnvironment();
+  const { environments } = useEnvironment();
   
   // State for partner selection
   const [selectedPartners, setSelectedPartners] = useState<number[]>([]);
@@ -180,9 +180,9 @@ const PartnersPage = () => {
   
   // State for search and filters
   const [searchText, setSearchText] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [industryFilter, setIndustryFilter] = useState('');
-  const [typeFilter, setTypeFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('any');
+  const [industryFilter, setIndustryFilter] = useState('any');
+  const [typeFilter, setTypeFilter] = useState('any');
   
   // Modal states
   const [showSearchModal, setShowSearchModal] = useState(false);
@@ -201,9 +201,9 @@ const PartnersPage = () => {
       partner.type.toLowerCase().includes(searchText.toLowerCase());
     
     // Apply filters
-    const matchesStatus = !statusFilter || partner.status === statusFilter;
-    const matchesIndustry = !industryFilter || partner.industry === industryFilter;
-    const matchesType = !typeFilter || partner.type === typeFilter;
+    const matchesStatus = statusFilter === 'any' || partner.status === statusFilter;
+    const matchesIndustry = industryFilter === 'any' || partner.industry === industryFilter;
+    const matchesType = typeFilter === 'any' || partner.type === typeFilter;
     
     return matchesSearch && matchesStatus && matchesIndustry && matchesType;
   });
@@ -224,30 +224,28 @@ const PartnersPage = () => {
   
   // Create a new saved filter
   const createSavedSearch = (name: string) => {
-    // Only create if we have filters and there are results
-    if ((searchText || statusFilter || industryFilter || typeFilter) && filteredPartners.length > 0) {
-      const newSearch = {
-        id: Date.now().toString(),
-        name,
-        type: 'filter' as const,
-        lastUpdated: new Date(),
-        count: filteredPartners.length,
-        filters: {
-          search: searchText || undefined,
-          status: statusFilter || undefined,
-          industry: industryFilter || undefined,
-          type: typeFilter || undefined
-        }
-      };
-      
-      setSavedItems([...savedItems, newSearch]);
-      setActiveSavedItem(newSearch);
-      
-      toast({
-        title: "Saved search created",
-        description: `"${name}" will automatically show all matching partners.`,
-      });
-    }
+    // Create saved search regardless of filters
+    const newSearch = {
+      id: Date.now().toString(),
+      name,
+      type: 'filter' as const,
+      lastUpdated: new Date(),
+      count: filteredPartners.length,
+      filters: {
+        search: searchText || undefined,
+        status: statusFilter !== 'any' ? statusFilter : undefined,
+        industry: industryFilter !== 'any' ? industryFilter : undefined,
+        type: typeFilter !== 'any' ? typeFilter : undefined
+      }
+    };
+    
+    setSavedItems([...savedItems, newSearch]);
+    setActiveSavedItem(newSearch);
+    
+    toast({
+      title: "Saved search created",
+      description: `"${name}" will automatically show all matching partners.`,
+    });
   };
   
   // Create a new list from selected partners
@@ -342,9 +340,9 @@ const PartnersPage = () => {
                                 // If it's a saved search, apply those filters
                                 if (item.type === 'filter' && item.filters) {
                                   setSearchText(item.filters.search || '');
-                                  setStatusFilter(item.filters.status || '');
-                                  setIndustryFilter(item.filters.industry || '');
-                                  setTypeFilter(item.filters.type || '');
+                                  setStatusFilter(item.filters.status || 'any');
+                                  setIndustryFilter(item.filters.industry || 'any');
+                                  setTypeFilter(item.filters.type || 'any');
                                 }
                                 
                                 setShowSavedItemsDrawer(false);
@@ -393,9 +391,9 @@ const PartnersPage = () => {
                           onClick={() => {
                             setActiveSavedItem(null);
                             setSearchText('');
-                            setStatusFilter('');
-                            setIndustryFilter('');
-                            setTypeFilter('');
+                            setStatusFilter('any');
+                            setIndustryFilter('any');
+                            setTypeFilter('any');
                             setShowSavedItemsDrawer(false);
                           }}
                         >
@@ -430,83 +428,93 @@ const PartnersPage = () => {
             </div>
             
             {/* Simple search */}
-            <div className="relative">
+            <div className="relative flex items-center min-w-[200px]">
               <Input
-                type="search"
-                placeholder="Search partners..."
-                className="pl-9 w-60"
                 value={searchText}
                 onChange={(e) => setSearchText(e.target.value)}
+                placeholder="Search partners..."
+                className="pr-10"
               />
-              <div className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-gray-400">
+              <div className="absolute right-3 text-gray-400">
                 <SearchIcon />
               </div>
             </div>
           </div>
           
-          {/* Simple filters row */}
-          <div className="flex flex-wrap gap-3 mt-3">
-            <div>
-              <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Status" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="any">Any status</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+          {/* Stats row */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Card>
+              <CardContent className="p-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500">Total Partners</p>
+                    <h3 className="text-xl font-semibold">{stats.totalPartners}</h3>
+                  </div>
+                  <div className="p-2 bg-purple-50 rounded-full text-purple-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="9" cy="7" r="4"></circle>
+                      <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
             
-            <div>
-              <Select value={industryFilter} onValueChange={setIndustryFilter}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Industry" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="any">Any industry</SelectItem>
-                  <SelectItem value="Insurance">Insurance</SelectItem>
-                  <SelectItem value="Finance">Finance</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <Card>
+              <CardContent className="p-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500">Active Partners</p>
+                    <h3 className="text-xl font-semibold">{stats.activePartners}</h3>
+                  </div>
+                  <div className="p-2 bg-green-50 rounded-full text-green-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                    </svg>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
             
-            <div>
-              <Select value={typeFilter} onValueChange={setTypeFilter}>
-                <SelectTrigger className="w-[140px]">
-                  <SelectValue placeholder="Partner type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="any">Any type</SelectItem>
-                  <SelectItem value="Broker">Broker</SelectItem>
-                  <SelectItem value="Agency">Agency</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <Card>
+              <CardContent className="p-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500">Customers</p>
+                    <h3 className="text-xl font-semibold">{stats.totalCustomers}</h3>
+                  </div>
+                  <div className="p-2 bg-blue-50 rounded-full text-blue-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="9" cy="7" r="4"></circle>
+                      <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
             
-            {(searchText || statusFilter || industryFilter || typeFilter) && (
-              <Button 
-                variant="outline" 
-                size="sm"
-                className="h-10"
-                onClick={() => {
-                  setSearchText('');
-                  setStatusFilter('');
-                  setIndustryFilter('');
-                  setTypeFilter('');
-                }}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                  <path d="M18 6L6 18"></path>
-                  <path d="M6 6l12 12"></path>
-                </svg>
-                Clear all
-              </Button>
-            )}
+            <Card>
+              <CardContent className="p-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500">Opportunities</p>
+                    <h3 className="text-xl font-semibold">{stats.totalOpportunities}</h3>
+                  </div>
+                  <div className="p-2 bg-yellow-50 rounded-full text-yellow-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                    </svg>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </div>
-
-          {/* Organization options - explicit choices */}
+          
+          {/* Partner organization options */}
           <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg mt-4">
             <h3 className="font-medium text-gray-900 mb-4">How do you want to organize partners?</h3>
             
@@ -514,7 +522,23 @@ const PartnersPage = () => {
               {/* Option 1: Save filters */}
               <div 
                 className="border border-blue-200 bg-blue-50 rounded-lg p-4 cursor-pointer hover:bg-blue-100 transition-colors"
-                onClick={() => setShowSearchModal(true)}
+                onClick={() => {
+                  // Check if any filters are active
+                  const hasActiveFilters = searchText || 
+                    (statusFilter && statusFilter !== 'any') || 
+                    (industryFilter && industryFilter !== 'any') || 
+                    (typeFilter && typeFilter !== 'any');
+                  
+                  if (!hasActiveFilters) {
+                    toast({
+                      title: "No filters applied",
+                      description: "You don't have any filters applied yet. You can still save this to get all partners in a filter that will update automatically.",
+                      duration: 5000,
+                    });
+                  }
+                  
+                  setShowSearchModal(true);
+                }}
               >
                 <div className="flex items-center mb-2">
                   <div className="p-2 bg-blue-100 rounded-full mr-3">
@@ -860,170 +884,223 @@ const PartnersPage = () => {
       {/* Search & Filter Modal - a simple, intuitive search UI */}
       <Dialog open={showSearchModal} onOpenChange={setShowSearchModal}>
         <DialogContent className="sm:max-w-lg">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-semibold">Filter Partners</DialogTitle>
-            <DialogDescription>
-              Search for partners and save your filters for later use
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-3">
-              <Label htmlFor="find-partners-search">Partner Name, Industry, or Type</Label>
-              <Input
-                id="find-partners-search"
-                value={searchText}
-                onChange={(e) => setSearchText(e.target.value)}
-                placeholder="Enter keywords to search"
-                className="col-span-3"
-              />
-            </div>
-            
-            <div className="grid grid-cols-3 gap-3">
-              <div>
-                <Label htmlFor="status-filter" className="mb-1.5 block">Status</Label>
-                <Select value={statusFilter} onValueChange={setStatusFilter}>
-                  <SelectTrigger id="status-filter">
-                    <SelectValue placeholder="Any status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="any">Any status</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+          {/* Check if any filters are applied */}
+          {!searchText && statusFilter === 'any' && industryFilter === 'any' && typeFilter === 'any' ? (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-xl font-semibold">Save group of filters as a list</DialogTitle>
+                <DialogDescription>
+                  No filters applied. You don't have any filters applied yet. You can still save this list and apply a filter later.
+                </DialogDescription>
+              </DialogHeader>
               
-              <div>
-                <Label htmlFor="industry-filter" className="mb-1.5 block">Industry</Label>
-                <Select value={industryFilter} onValueChange={setIndustryFilter}>
-                  <SelectTrigger id="industry-filter">
-                    <SelectValue placeholder="Any industry" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="any">Any industry</SelectItem>
-                    <SelectItem value="Insurance">Insurance</SelectItem>
-                    <SelectItem value="Finance">Finance</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <Label htmlFor="type-filter" className="mb-1.5 block">Partner Type</Label>
-                <Select value={typeFilter} onValueChange={setTypeFilter}>
-                  <SelectTrigger id="type-filter">
-                    <SelectValue placeholder="Any type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="any">Any type</SelectItem>
-                    <SelectItem value="Broker">Broker</SelectItem>
-                    <SelectItem value="Agency">Agency</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-            
-            {/* Preview of search results */}
-            <div className="bg-gray-50 p-3 rounded-md border border-gray-200 mt-2">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium">Results Preview</span>
-                <Badge variant="outline" className="bg-blue-50 text-blue-700">
-                  {filteredPartners.length} partner{filteredPartners.length !== 1 ? 's' : ''}
-                </Badge>
-              </div>
-              
-              <div className="max-h-40 overflow-y-auto">
-                {filteredPartners.length > 0 ? (
-                  <ul className="divide-y divide-gray-200">
-                    {filteredPartners.slice(0, 5).map(partner => (
-                      <li key={partner.id} className="py-2 flex items-center text-sm">
-                        <span className="font-medium">{partner.name}</span>
-                        <span className="text-gray-500 ml-auto">{partner.industry} · {partner.type}</span>
-                      </li>
-                    ))}
-                    {filteredPartners.length > 5 && (
-                      <li className="py-2 text-center text-sm text-gray-500">
-                        + {filteredPartners.length - 5} more partners
-                      </li>
-                    )}
-                  </ul>
-                ) : (
-                  <div className="py-3 text-center text-sm text-gray-500">
-                    No partners match these criteria
-                  </div>
-                )}
-              </div>
-            </div>
-            
-            {/* Save search option */}
-            <div className="border-t border-gray-200 pt-3 mt-2">
-              <div className="flex items-center mb-2">
-                <Checkbox 
-                  id="save-search-option" 
-                  defaultChecked={true} 
-                  disabled={filteredPartners.length === 0}
-                />
-                <Label htmlFor="save-search-option" className="ml-2 text-sm">
-                  Save this search for later use
-                </Label>
-              </div>
-              
-              {filteredPartners.length > 0 && (
-                <div className="pl-6">
-                  <Input 
-                    id="saved-search-name" 
-                    placeholder="Enter a name for this search"
-                    defaultValue={
-                      `${statusFilter || ''} ${industryFilter || ''} ${typeFilter || ''} Partners`.trim() ||
-                      searchText || 
-                      'My Saved Search'
-                    }
-                    className="text-sm"
+              <div className="grid gap-4 py-4">
+                <div>
+                  <Label htmlFor="no-filter-list-name">Name (required)</Label>
+                  <Input
+                    id="no-filter-list-name"
+                    placeholder="Enter a name for your list"
+                    defaultValue="All Partners"
+                    className="mt-1"
                   />
-                  <p className="text-xs text-blue-600 mt-1.5 flex items-start">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1 mt-0.5">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <line x1="12" y1="16" x2="12" y2="12"></line>
-                      <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                    </svg>
-                    <span>
-                      This search will automatically update as partners change. Any new partners that match these criteria will appear in your results.
-                    </span>
-                  </p>
                 </div>
-              )}
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowSearchModal(false)}>
-              Cancel
-            </Button>
-            
-            <Button 
-              className="bg-[#5567E5] hover:bg-[#4151c4] text-white"
-              disabled={filteredPartners.length === 0}
-              onClick={() => {
-                const saveSearch = (document.getElementById('save-search-option') as HTMLInputElement)?.checked;
-                const searchName = (document.getElementById('saved-search-name') as HTMLInputElement)?.value || 'My Saved Search';
                 
-                if (saveSearch) {
-                  createSavedSearch(searchName);
-                }
+                <div>
+                  <Label htmlFor="no-filter-list-description">Description (optional)</Label>
+                  <Textarea
+                    id="no-filter-list-description"
+                    placeholder="Enter a description for your list"
+                    className="mt-1 resize-none"
+                    rows={3}
+                  />
+                </div>
+              </div>
+              
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowSearchModal(false)}>
+                  Cancel
+                </Button>
                 
-                setShowSearchModal(false);
+                <Button 
+                  className="bg-[#5567E5] hover:bg-[#4151c4] text-white"
+                  onClick={() => {
+                    const listName = (document.getElementById('no-filter-list-name') as HTMLInputElement)?.value || 'All Partners';
+                    createSavedSearch(listName);
+                    setShowSearchModal(false);
+                  }}
+                >
+                  Create list
+                </Button>
+              </DialogFooter>
+            </>
+          ) : (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-xl font-semibold">Filter Partners</DialogTitle>
+                <DialogDescription>
+                  Search for partners and save your filters for later use
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-3">
+                  <Label htmlFor="find-partners-search">Partner Name, Industry, or Type</Label>
+                  <Input
+                    id="find-partners-search"
+                    value={searchText}
+                    onChange={(e) => setSearchText(e.target.value)}
+                    placeholder="Enter keywords to search"
+                    className="col-span-3"
+                  />
+                </div>
                 
-                if (!saveSearch) {
-                  toast({
-                    title: "Filters applied",
-                    description: `Showing ${filteredPartners.length} matching partners.`,
-                  });
-                }
-              }}
-            >
-              Apply Filters
-            </Button>
-          </DialogFooter>
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <Label htmlFor="status-filter" className="mb-1.5 block">Status</Label>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                      <SelectTrigger id="status-filter">
+                        <SelectValue placeholder="Any status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="any">Any status</SelectItem>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="industry-filter" className="mb-1.5 block">Industry</Label>
+                    <Select value={industryFilter} onValueChange={setIndustryFilter}>
+                      <SelectTrigger id="industry-filter">
+                        <SelectValue placeholder="Any industry" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="any">Any industry</SelectItem>
+                        <SelectItem value="Insurance">Insurance</SelectItem>
+                        <SelectItem value="Finance">Finance</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="type-filter" className="mb-1.5 block">Partner Type</Label>
+                    <Select value={typeFilter} onValueChange={setTypeFilter}>
+                      <SelectTrigger id="type-filter">
+                        <SelectValue placeholder="Any type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="any">Any type</SelectItem>
+                        <SelectItem value="Broker">Broker</SelectItem>
+                        <SelectItem value="Agency">Agency</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+                
+                {/* Preview of search results */}
+                <div className="bg-gray-50 p-3 rounded-md border border-gray-200 mt-2">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">Results Preview</span>
+                    <Badge variant="outline" className="bg-blue-50 text-blue-700">
+                      {filteredPartners.length} partner{filteredPartners.length !== 1 ? 's' : ''}
+                    </Badge>
+                  </div>
+                  
+                  <div className="max-h-40 overflow-y-auto">
+                    {filteredPartners.length > 0 ? (
+                      <ul className="divide-y divide-gray-200">
+                        {filteredPartners.slice(0, 5).map(partner => (
+                          <li key={partner.id} className="py-2 flex items-center text-sm">
+                            <span className="font-medium">{partner.name}</span>
+                            <span className="text-gray-500 ml-auto">{partner.industry} · {partner.type}</span>
+                          </li>
+                        ))}
+                        {filteredPartners.length > 5 && (
+                          <li className="py-2 text-center text-sm text-gray-500">
+                            + {filteredPartners.length - 5} more partners
+                          </li>
+                        )}
+                      </ul>
+                    ) : (
+                      <div className="py-3 text-center text-sm text-gray-500">
+                        No partners match these criteria
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Save search option */}
+                <div className="border-t border-gray-200 pt-3 mt-2">
+                  <div className="flex items-center mb-2">
+                    <Checkbox 
+                      id="save-search-option" 
+                      defaultChecked={true} 
+                      disabled={filteredPartners.length === 0}
+                    />
+                    <Label htmlFor="save-search-option" className="ml-2 text-sm">
+                      Save this search for later use
+                    </Label>
+                  </div>
+                  
+                  {filteredPartners.length > 0 && (
+                    <div className="pl-6">
+                      <Input 
+                        id="saved-search-name" 
+                        placeholder="Enter a name for this search"
+                        defaultValue={
+                          `${statusFilter !== 'any' ? statusFilter : ''} ${industryFilter !== 'any' ? industryFilter : ''} ${typeFilter !== 'any' ? typeFilter : ''} Partners`.trim() ||
+                          searchText || 
+                          'My Saved Search'
+                        }
+                        className="text-sm"
+                      />
+                      <p className="text-xs text-blue-600 mt-1.5 flex items-start">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1 mt-0.5">
+                          <circle cx="12" cy="12" r="10"></circle>
+                          <line x1="12" y1="16" x2="12" y2="12"></line>
+                          <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                        </svg>
+                        <span>
+                          This search will automatically update as partners change. Any new partners that match these criteria will appear in your results.
+                        </span>
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowSearchModal(false)}>
+                  Cancel
+                </Button>
+                
+                <Button 
+                  className="bg-[#5567E5] hover:bg-[#4151c4] text-white"
+                  disabled={filteredPartners.length === 0}
+                  onClick={() => {
+                    const saveSearch = (document.getElementById('save-search-option') as HTMLInputElement)?.checked;
+                    const searchName = (document.getElementById('saved-search-name') as HTMLInputElement)?.value || 'My Saved Search';
+                    
+                    if (saveSearch) {
+                      createSavedSearch(searchName);
+                    }
+                    
+                    setShowSearchModal(false);
+                    
+                    if (!saveSearch) {
+                      toast({
+                        title: "Filters applied",
+                        description: `Showing ${filteredPartners.length} matching partners.`,
+                      });
+                    }
+                  }}
+                >
+                  Apply Filters
+                </Button>
+              </DialogFooter>
+            </>
+          )}
         </DialogContent>
       </Dialog>
       
@@ -1125,8 +1202,8 @@ const PartnersPage = () => {
                   const updatedList = {
                     ...activeSavedItem,
                     lastUpdated: new Date(),
-                    count: [...new Set([...(activeSavedItem.partners || []), ...selectedPartners])].length,
-                    partners: [...new Set([...(activeSavedItem.partners || []), ...selectedPartners])]
+                    count: Array.from(new Set([...(activeSavedItem.partners || []), ...selectedPartners])).length,
+                    partners: Array.from(new Set([...(activeSavedItem.partners || []), ...selectedPartners]))
                   };
                   
                   setSavedItems(savedItems.map(item => 
