@@ -177,11 +177,11 @@ function TemplateBadges({ industry, type }: { industry: string, type: string }) 
 }
 
 // Define interface for saved lists
-interface SavedList {
+// Types for partner lists and views
+interface ListView {
   id: string;
   name: string;
   description?: string;
-  type?: 'filter' | 'selection'; // 'filter' for Saved Filters, 'selection' for Custom Lists
   filters: {
     searchText?: string;
     status?: string;
@@ -189,12 +189,47 @@ interface SavedList {
     type?: string;
     size?: string;
   };
-  members?: number[]; // Array of partner IDs for Custom Lists
+  isDefault?: boolean; // Whether this is the default view for the list
+  createdBy: string;
+  createdAt: Date;
+}
+
+// The PartnerList type represents a collection of partners
+interface PartnerList {
+  id: string;
+  name: string;
+  description?: string;
+  type: 'custom' | 'system'; // Custom list (user-created) or system list (all partners)
+  members?: number[]; // For custom lists, store selected partner IDs
   isShared: boolean;
   sharedWith?: string[];
   createdBy: string;
   createdAt: Date;
   isDefault?: boolean; // Flag for system-generated default lists that can't be edited/deleted
+  views: ListView[];
+  activeViewId?: string; // ID of the currently selected view
+}
+
+// For backward compatibility during refactoring
+// This maintains compatibility with existing code while we transition
+interface SavedList {
+  id: string;
+  name: string;
+  description?: string;
+  type?: 'filter' | 'selection';
+  filters: {
+    searchText?: string;
+    status?: string;
+    industry?: string;
+    type?: string;
+    size?: string;
+  };
+  members?: number[];
+  isShared: boolean;
+  sharedWith?: string[];
+  createdBy: string;
+  createdAt: Date;
+  isDefault?: boolean;
 }
 
 // Main partner list component
@@ -207,44 +242,98 @@ function PartnersTable() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
   
-  // State for saved lists
-  const [savedLists, setSavedLists] = useState<SavedList[]>([
+  // State for partner lists with multiple views
+  const [partnerLists, setPartnerLists] = useState<PartnerList[]>([
+    // System list - All Partners
     {
       id: 'all-partners',
       name: 'All Partners',
-      filters: { },
-      isShared: false,
+      type: 'system',
+      isShared: true,
       createdBy: 'System',
       createdAt: new Date('2025-01-01'),
-      isDefault: true // Flag to indicate this is a default list that can't be edited/deleted
+      isDefault: true,
+      views: [
+        {
+          id: 'all-partners-default',
+          name: 'All Partners',
+          filters: { },
+          isDefault: true,
+          createdBy: 'System',
+          createdAt: new Date('2025-01-01')
+        },
+        {
+          id: 'active-partners',
+          name: 'Active Partners',
+          filters: { status: 'active' },
+          createdBy: 'John Smith',
+          createdAt: new Date('2025-05-01')
+        },
+        {
+          id: 'insurance-partners',
+          name: 'Insurance Industry',
+          filters: { industry: 'Insurance' },
+          createdBy: 'John Smith',
+          createdAt: new Date('2025-05-05')
+        }
+      ],
+      activeViewId: 'all-partners-default'
     },
+    // Custom list - Insurance Brokers
     {
-      id: '1',
-      name: 'Active Insurance Brokers',
-      filters: { status: 'active', industry: 'Insurance', type: 'Broker' },
+      id: 'insurance-brokers',
+      name: 'Insurance Brokers',
+      type: 'custom',
+      members: [1, 2, 3], // IDs of partners in this list
       isShared: true,
       sharedWith: ['team@acme.com'],
       createdBy: 'John Smith',
-      createdAt: new Date('2025-05-01')
+      createdAt: new Date('2025-05-01'),
+      views: [
+        {
+          id: 'insurance-brokers-default',
+          name: 'All Brokers',
+          filters: { },
+          isDefault: true,
+          createdBy: 'John Smith',
+          createdAt: new Date('2025-05-01')
+        },
+        {
+          id: 'active-brokers',
+          name: 'Active Brokers',
+          filters: { status: 'active' },
+          createdBy: 'John Smith',
+          createdAt: new Date('2025-05-10')
+        }
+      ],
+      activeViewId: 'insurance-brokers-default'
     },
+    // Custom list - Strategic Partners
     {
-      id: '2',
-      name: 'Consulting Partners',
-      filters: { industry: 'Consulting' },
-      isShared: false,
-      createdBy: 'John Smith',
-      createdAt: new Date('2025-05-10')
-    },
-    {
-      id: '3',
-      name: 'Enterprise Partners',
-      filters: { size: 'enterprise' },
+      id: 'strategic-partners',
+      name: 'Strategic Partners',
+      type: 'custom',
+      members: [3, 5, 9], // IDs of partners in this list
       isShared: true,
       sharedWith: ['partnerships@acme.com'],
       createdBy: 'John Smith',
-      createdAt: new Date('2025-05-15')
+      createdAt: new Date('2025-05-15'),
+      views: [
+        {
+          id: 'strategic-partners-default',
+          name: 'All Strategic Partners',
+          filters: { },
+          isDefault: true,
+          createdBy: 'John Smith',
+          createdAt: new Date('2025-05-15')
+        }
+      ],
+      activeViewId: 'strategic-partners-default'
     }
   ]);
+  
+  // For backward compatibility during refactoring
+  const [savedLists, setSavedLists] = useState<SavedList[]>([]);
   const [activeList, setActiveList] = useState<SavedList | null>(null);
   const [originalListFilters, setOriginalListFilters] = useState<SavedList['filters'] | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
