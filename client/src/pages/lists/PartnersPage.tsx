@@ -2104,11 +2104,10 @@ export default function PartnersPage() {
           style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-            <path d="M12 9v6"></path>
-            <path d="M15 12H9"></path>
-            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
           </svg>
-          <span className="font-medium">Create new partner in Qollabi</span>
+          <span className="font-medium">Create new partner</span>
         </button>
       </div>
       
