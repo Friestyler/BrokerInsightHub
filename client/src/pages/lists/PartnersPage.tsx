@@ -2047,6 +2047,33 @@ function PartnersTable() {
         </DialogContent>
       </Dialog>
       
+      {/* Selection action bar - only shown when partners are selected */}
+      {selectedPartners.length > 0 && (
+        <div className="bg-indigo-50 border border-indigo-200 p-4 mb-4 rounded-lg flex items-center justify-between">
+          <div className="flex items-center">
+            <div className="bg-indigo-100 text-indigo-800 rounded-full h-8 w-8 flex items-center justify-center mr-3">
+              {selectedPartners.length}
+            </div>
+            <div>
+              <h3 className="font-medium text-indigo-900">Partners selected</h3>
+              <p className="text-sm text-indigo-700">Create a custom list with these partners</p>
+            </div>
+          </div>
+          <Button
+            className="bg-[#5567E5] hover:bg-[#4151c4] text-white"
+            onClick={openCreateFromSelection}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+              <path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"></path>
+              <circle cx="9" cy="7" r="4"></circle>
+              <line x1="19" y1="8" x2="19" y2="14"></line>
+              <line x1="22" y1="11" x2="16" y2="11"></line>
+            </svg>
+            Create Custom List
+          </Button>
+        </div>
+      )}
+      
       {/* Table section without a border */}
       <div className="bg-white overflow-x-auto rounded-lg">
         <table className="min-w-full divide-y divide-gray-200">
