@@ -1,5 +1,82 @@
 import { useState, useEffect } from 'react';
 import { useEnvironment } from "@/contexts/EnvironmentContext";
+
+// COMMENT: The following code demonstrates the new conceptual model with List-View separation.
+// A list contains records, while a view is a saved filter configuration that can be applied to a list.
+// This conceptual model allows users to have multiple views for each list.
+
+/**
+ * A view represents a saved set of filters that can be applied to a list.
+ * Views don't contain records themselves but define how records are filtered and displayed.
+ */
+interface View {
+  id: string;
+  name: string;
+  description?: string;
+  filters: {
+    searchText?: string;
+    status?: string;
+    industry?: string;
+    type?: string;
+    size?: string;
+  };
+  isDefault?: boolean;
+  createdBy: string;
+  createdAt: Date;
+}
+
+/**
+ * A list contains actual records (partners, opportunities, etc.)
+ * Each list can have multiple views (saved filter configurations)
+ */
+interface List {
+  id: string;
+  name: string;
+  description?: string;
+  members: number[]; // The actual records (IDs) contained in this list
+  views: View[];     // Different ways to view/filter this list
+  activeViewId?: string; // Currently active view
+  isShared: boolean;
+  sharedWith?: string[];
+  createdBy: string;
+  createdAt: Date;
+  isDefault?: boolean;
+}
+
+/**
+ * Helper function for creating a new view for a list
+ */
+function createView(name: string, filters = {}, isDefault = false): View {
+  return {
+    id: Date.now().toString(),
+    name,
+    filters,
+    isDefault,
+    createdBy: 'Current User',
+    createdAt: new Date()
+  };
+}
+
+/**
+ * Helper function for creating a new list with default view
+ */
+function createList(name: string, description = '', members: number[] = []): List {
+  const defaultView = createView('Default View', {}, true);
+  
+  return {
+    id: Date.now().toString(),
+    name,
+    description,
+    members,
+    views: [defaultView],
+    activeViewId: defaultView.id,
+    isShared: false,
+    createdBy: 'Current User',
+    createdAt: new Date()
+  };
+}
+
+// COMMENT: The code below preserves the existing implementation while we transition to the new model.
 import {
   Card,
   CardContent,
