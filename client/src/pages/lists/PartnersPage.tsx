@@ -814,7 +814,7 @@ function PartnersTable() {
                     </ul>
                     <div className="flex mt-3">
                       <button 
-                        className="flex items-center rounded-md bg-indigo-600 text-white px-3 py-1.5 text-xs hover:bg-indigo-700"
+                        className="flex items-center rounded-md bg-[#5567E5] text-white px-3 py-1.5 text-xs hover:bg-[#4555CB]"
                         onClick={() => {
                           setPartnersToAdd([]);
                           setShowAddPartnersModal(true);
@@ -1031,7 +1031,7 @@ function PartnersTable() {
             <Button 
               variant="default" 
               size="sm"
-              className="bg-indigo-600 hover:bg-indigo-700 text-white"
+              className="bg-[#5567E5] hover:bg-[#4555CB] text-white"
               onClick={openCreateFromSelection}
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
@@ -2033,7 +2033,7 @@ function PartnersTable() {
                           There are no partners in this list yet! Add your first partner to get started.
                         </p>
                         <Button 
-                          className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                          className="bg-[#5567E5] hover:bg-[#4555CB] text-white"
                           onClick={() => {
                             setPartnersToAdd([]);
                             setShowAddPartnersModal(true);
@@ -2096,7 +2096,7 @@ export default function PartnersPage() {
         
         {/* New Partner button */}
         <button 
-          className="flex items-center rounded-md bg-[#3E4DC4] text-white px-4 py-2 hover:bg-[#313CA0] transition-colors"
+          className="flex items-center rounded-md bg-[#5567E5] text-white px-4 py-2 hover:bg-[#4555CB] transition-colors"
           onClick={() => {
             // This would navigate to a partner creation form in a real implementation
             alert('This would open the new partner creation form in the real application');
