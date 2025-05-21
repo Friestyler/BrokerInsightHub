@@ -255,6 +255,7 @@ function PartnersTable() {
   const [showCreateListModal, setShowCreateListModal] = useState(false);
   const [showDynamicListGuidance, setShowDynamicListGuidance] = useState(false);
   const [isGuidanceCollapsed, setIsGuidanceCollapsed] = useState(false);
+  const [activeListType, setActiveListType] = useState<'views' | 'lists'>('views');
   // State for the name and description when creating a list through the general create modal
   const [newListName, setNewListName] = useState('');
   const [newListDescription, setNewListDescription] = useState('');
