@@ -1389,9 +1389,9 @@ function PartnersTable() {
       <Dialog open={showAddPartnersModal} onOpenChange={setShowAddPartnersModal}>
         <DialogContent className="sm:max-w-3xl">
           <DialogHeader>
-            <DialogTitle className="text-[#282A3F] font-semibold text-lg" style={{ fontFamily: 'Poppins, sans-serif' }}>Add existing partners to list</DialogTitle>
+            <DialogTitle className="text-[#282A3F] font-semibold text-lg" style={{ fontFamily: 'Poppins, sans-serif' }}>Add partners to your Custom List</DialogTitle>
             <DialogDescription>
-              Select partners you want to add to "{activeList?.name}". These partners already exist in Qollabi.
+              Select partners you want to add to "{activeList?.name}". Only partners you specifically select will be included.
             </DialogDescription>
           </DialogHeader>
           
@@ -2028,7 +2028,7 @@ function PartnersTable() {
                 <td colSpan={9} className="py-10 text-center">
                   <div className="flex flex-col items-center">
                     {activeList && activeList.type === 'selection' ? (
-                      // Empty state for static lists
+                      // Empty state for Custom Lists
                       <>
                         <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 mb-3">
                           <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
@@ -2036,9 +2036,9 @@ function PartnersTable() {
                           <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
                           <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                         </svg>
-                        <h3 className="text-base font-medium text-gray-900 mb-1">No partners</h3>
+                        <h3 className="text-base font-medium text-gray-900 mb-1">Custom List is empty</h3>
                         <p className="text-sm text-gray-500 max-w-md mb-4">
-                          There are no partners in this list yet! Add your first partner to get started.
+                          Your Custom List is waiting for partners! Add your first partner to get started.
                         </p>
                         <Button 
                           className="bg-[#5567E5] hover:bg-[#4555CB] text-white"
@@ -2053,11 +2053,11 @@ function PartnersTable() {
                             <line x1="20" y1="8" x2="20" y2="14"></line>
                             <line x1="23" y1="11" x2="17" y2="11"></line>
                           </svg>
-                          Add partners to this list
+                          Add partners to Custom List
                         </Button>
                       </>
                     ) : (
-                      // Empty state for dynamic lists or regular filtered view
+                      // Empty state for Saved Filters or regular filtered view
                       <>
                         <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 mb-3">
                           <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
@@ -2065,9 +2065,9 @@ function PartnersTable() {
                           <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
                           <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                         </svg>
-                        <h3 className="text-base font-medium text-gray-900 mb-1">No partners found</h3>
+                        <h3 className="text-base font-medium text-gray-900 mb-1">No matching partners</h3>
                         <p className="text-sm text-gray-500 max-w-md mb-4">
-                          There are no partners matching your filter criteria.
+                          No partners match your current filter criteria. Try adjusting your filters.
                         </p>
                         <Button 
                           variant="outline" 
