@@ -300,15 +300,15 @@ const PartnersPage = () => {
                 >
                   {activeSavedItem ? (
                     <>
-                      {activeSavedItem.type === 'search' ? <FilterIcon /> : <ListIcon />}
+                      {activeSavedItem.type === 'filter' ? <FilterIcon /> : <ListIcon />}
                       <span>{activeSavedItem.name}</span>
                       
                       {/* Badge indicating type */}
-                      <Badge variant="outline" className={activeSavedItem.type === 'search' 
+                      <Badge variant="outline" className={activeSavedItem.type === 'filter' 
                         ? "bg-blue-50 text-blue-700 hover:bg-blue-50" 
                         : "bg-emerald-50 text-emerald-700 hover:bg-emerald-50"
                       }>
-                        {activeSavedItem.type === 'search' ? 'Search' : 'List'}
+                        {activeSavedItem.type === 'filter' ? 'Filter' : 'List'}
                       </Badge>
                     </>
                   ) : (
@@ -340,7 +340,7 @@ const PartnersPage = () => {
                                 setActiveSavedItem(item);
                                 
                                 // If it's a saved search, apply those filters
-                                if (item.type === 'search' && item.filters) {
+                                if (item.type === 'filter' && item.filters) {
                                   setSearchText(item.filters.search || '');
                                   setStatusFilter(item.filters.status || '');
                                   setIndustryFilter(item.filters.industry || '');
@@ -352,11 +352,11 @@ const PartnersPage = () => {
                             >
                               {/* Icon based on type */}
                               <div className={`p-1.5 rounded-full mr-2 ${
-                                item.type === 'search' 
+                                item.type === 'filter' 
                                   ? 'bg-blue-50 text-blue-700' 
                                   : 'bg-emerald-50 text-emerald-700'
                               }`}>
-                                {item.type === 'search' ? <FilterIcon /> : <ListIcon />}
+                                {item.type === 'filter' ? <FilterIcon /> : <ListIcon />}
                               </div>
                               
                               <div className="flex-1 min-w-0">
@@ -367,11 +367,11 @@ const PartnersPage = () => {
                               </div>
                               
                               <Badge variant="outline" className={`ml-2 ${
-                                item.type === 'search' 
+                                item.type === 'filter' 
                                   ? 'bg-blue-50 text-blue-700 hover:bg-blue-50' 
                                   : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-50'
                               }`}>
-                                {item.type === 'search' ? 'Search' : 'List'}
+                                {item.type === 'filter' ? 'Filter' : 'List'}
                               </Badge>
                             </div>
                           ))}
@@ -604,18 +604,18 @@ const PartnersPage = () => {
           {/* Display active context */}
           {activeSavedItem && (
             <div className={`p-3 rounded-lg ${
-              activeSavedItem.type === 'search' 
+              activeSavedItem.type === 'filter' 
                 ? 'bg-blue-50 border border-blue-100' 
                 : 'bg-emerald-50 border border-emerald-100'
             }`}>
               <div className="flex items-center justify-between">
                 <div className="flex items-center">
                   <div className={`p-1.5 rounded-full mr-3 ${
-                    activeSavedItem.type === 'search' 
+                    activeSavedItem.type === 'filter' 
                       ? 'bg-blue-100 text-blue-700' 
                       : 'bg-emerald-100 text-emerald-700'
                   }`}>
-                    {activeSavedItem.type === 'search' ? <FilterIcon /> : <ListIcon />}
+                    {activeSavedItem.type === 'filter' ? <FilterIcon /> : <ListIcon />}
                   </div>
                   
                   <div>
