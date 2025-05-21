@@ -1577,23 +1577,23 @@ function PartnersTable() {
                 />
               </div>
               
-              <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+              <div className="bg-[#EBEEFB] border border-[#D4D9F3] rounded-lg p-4">
                 <div className="flex items-start">
-                  <div className="mt-1 mr-3 rounded-full p-2 bg-emerald-100">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#047857" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <div className="mt-1 mr-3 rounded-full p-2 bg-[#D4D9F3]">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                       <polyline points="22 4 12 14.01 9 11.01"></polyline>
                     </svg>
                   </div>
                   <div>
                     <div className="flex items-center">
-                      <h4 className="text-base font-semibold">Static Partner List</h4>
-                      <div className="ml-2 bg-emerald-100 text-emerald-800 rounded-full px-2 py-0.5 text-xs">
+                      <h4 className="text-base font-semibold text-[#282A3F]">Static Partner List</h4>
+                      <div className="ml-2 bg-[#D4D9F3] text-[#3E4DC4] rounded-full px-2 py-0.5 text-xs">
                         {selectedPartners.length} Partner{selectedPartners.length > 1 ? 's' : ''}
                       </div>
                     </div>
-                    <p className="text-sm text-gray-700 mt-1">Your list will include <strong>only the partners you've selected</strong>.</p>
-                    <p className="text-xs text-gray-600 mt-1">You can add or remove partners from this list at any time.</p>
+                    <p className="text-sm text-[#5F6585] mt-1">Your list will include <strong>only the partners you've selected</strong>.</p>
+                    <p className="text-xs text-[#5F6585] mt-1">You can add or remove partners from this list at any time.</p>
                   </div>
                 </div>
               </div>
