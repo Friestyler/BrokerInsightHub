@@ -636,8 +636,12 @@ function PartnersTable() {
                           // Clear selected partners for a fresh start with static lists
                           setSelectedPartners([]);
                           
-                          // Open the save list modal
-                          setShowSaveListModal(true);
+                          // Open the Create List modal instead of the Save List modal
+                          // This gives users the choice between Saved Filters and Custom Lists
+                          setShowCreateListModal(true);
+                          setNewListName('');
+                          setNewListDescription('');
+                          setSelectionListType('filter'); // Default to Saved Filter
                           setShowListsDropdown(false);
                         }}
                         style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
@@ -1054,14 +1058,20 @@ function PartnersTable() {
               variant="default" 
               size="sm"
               className="bg-[#5567E5] hover:bg-[#4555CB] text-white"
-              onClick={openCreateFromSelection}
+              onClick={() => {
+                // When creating from selection, we always create a custom list
+                setShowCreateListModal(true);
+                setNewListName('');
+                setNewListDescription('');
+                setSelectionListType('selection'); // Set to Custom List type
+              }}
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
                 <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
                 <polyline points="17 21 17 13 7 13 7 21"></polyline>
                 <polyline points="7 3 7 8 15 8"></polyline>
               </svg>
-              Create List
+              Create Custom List
             </Button>
             
             <Button 
@@ -1712,7 +1722,7 @@ function PartnersTable() {
                   description: newListDescription.trim() || undefined,
                   type: selectionListType,
                   filters: selectionListType === 'filter' ? {} : {},
-                  members: selectionListType === 'selection' ? [] : undefined,
+                  members: selectionListType === 'selection' ? selectedPartners : undefined,
                   isShared: false,
                   createdBy: 'John Smith', // Hardcoded for demo
                   createdAt: new Date()
