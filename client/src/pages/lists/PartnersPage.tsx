@@ -971,7 +971,7 @@ function PartnersTable() {
                     <polyline points="17 21 17 13 7 13 7 21"></polyline>
                     <polyline points="7 3 7 8 15 8"></polyline>
                   </svg>
-                  <span className="text-[#3E4DC4] font-medium">Save this group of filters</span>
+                  <span className="text-[#3E4DC4] font-medium">Save as view</span>
                 </button>
               )}
             </div>
@@ -1100,11 +1100,11 @@ function PartnersTable() {
       <Dialog open={showSaveListModal} onOpenChange={setShowSaveListModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-[#282A3F] font-semibold text-lg" style={{ fontFamily: 'Poppins, sans-serif' }}>{activeList ? 'Update List' : 'Create a new list'}</DialogTitle>
+            <DialogTitle className="text-[#282A3F] font-semibold text-lg" style={{ fontFamily: 'Poppins, sans-serif' }}>Save as view</DialogTitle>
             <DialogDescription>
               {activeList ? 
-                'Update your list settings below.' : 
-                'Give your list a name and choose which type you want to create.'}
+                'Save your current filters as a new view for this list.' : 
+                'Save your current filters as a view. You can create multiple views for each list.'}
             </DialogDescription>
           </DialogHeader>
           
@@ -1112,146 +1112,48 @@ function PartnersTable() {
             <div className="grid gap-4">
               {/* List Name */}
               <div className="grid gap-2">
-                <Label htmlFor="listName" className="text-sm font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>List Name</Label>
+                <Label htmlFor="listName" className="text-sm font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>View Name</Label>
                 <Input 
                   id="listName" 
-                  placeholder="Enter a name for this list"
-                  defaultValue={activeList?.name || ''}
+                  placeholder="Enter a name for this view"
+                  defaultValue={''}
                 />
                 <div className="grid gap-2">
-                  <Label htmlFor="listDescription" className="text-sm font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>Description (Optional)</Label>
+                  <Label htmlFor="listDescription" className="text-sm font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>View Description (Optional)</Label>
                   <Textarea 
                     id="listDescription" 
-                    placeholder="Add a short description"
+                    placeholder="Describe what this view shows (e.g., 'Active technology partners in Europe')"
                     rows={2}
-                    defaultValue={activeList?.description || ''}
+                    defaultValue={''}
                   />
                 </div>
               </div>
               
-              {/* List Type as Radio Buttons */}
-              <div className="grid gap-2">
-                <input type="hidden" id="hidden-list-type-value" value={activeList?.type || "filter"} />
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>List Type</Label>
-                  
-                  <div className="grid grid-cols-1 gap-3">
-                    {/* Saved Filter Option */}
-                    <div 
-                      className={`relative flex items-start p-3 rounded-lg border-2 ${
-                        document.getElementById('hidden-list-type-value')?.getAttribute('value') === 'filter' 
-                        ? 'border-indigo-600 bg-indigo-50' 
-                        : 'border-gray-200 hover:border-gray-300'
-                      } cursor-pointer`}
-                      onClick={() => {
-                        document.getElementById('hidden-list-type-value')?.setAttribute('value', 'filter');
-                        const radioElement = document.getElementById('list-type-filter') as HTMLInputElement;
-                        if (radioElement) radioElement.checked = true;
-                      }}
-                    >
-                      <div className="flex items-center h-5">
-                        <input
-                          id="list-type-filter"
-                          type="radio"
-                          name="list-type"
-                          className="w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-600"
-                          defaultChecked={(filterText || selectedStatus || selectedIndustry || selectedType) ? true : false}
-                          onChange={() => {
-                            document.getElementById('hidden-list-type-value')?.setAttribute('value', 'filter');
-                          }}
-                        />
-                      </div>
-                      <div className="ml-3 flex gap-2 items-center">
-                        <div className="p-1 rounded-full bg-blue-100">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-800">
-                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+              {/* Current filters info */}
+              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                <div className="flex items-start">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-3 mt-0.5">
+                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                  </svg>
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-900">Current Filters</h4>
+                    <ul className="mt-1 text-xs text-gray-600">
+                      {filterText && <li className="mb-1">• Search: "{filterText}"</li>}
+                      {selectedStatus && <li className="mb-1">• Status: {selectedStatus}</li>}
+                      {selectedIndustry && <li className="mb-1">• Industry: {selectedIndustry}</li>}
+                      {selectedType && <li className="mb-1">• Type: {selectedType}</li>}
+                      {!filterText && !selectedStatus && !selectedIndustry && !selectedType && (
+                        <li className="text-amber-600 flex items-center">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
                           </svg>
-                        </div>
-                        <div>
-                          <Label className="font-medium text-sm">
-                            {(filterText || selectedStatus || selectedIndustry || selectedType) ? 
-                              'Save my current filters' : 
-                              'Create a Saved Filter'
-                            }
-                          </Label>
-                          <p className="text-xs text-gray-500">
-                            {(filterText || selectedStatus || selectedIndustry || selectedType) ? 
-                              <>Partners matching these criteria will <strong>automatically update</strong> as data changes</> : 
-                              <>Define criteria and see all partners that match them, automatically</>
-                            }
-                            {(!filterText && !selectedStatus && !selectedIndustry && !selectedType) && (
-                              <span className="block mt-1 text-amber-600">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block mr-1">
-                                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-                                </svg>
-                                You don't have any filters applied right now
-                              </span>
-                            )}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Static List Option */}
-                    <div 
-                      className={`relative flex items-start p-3 rounded-lg border-2 ${
-                        document.getElementById('hidden-list-type-value')?.getAttribute('value') === 'selection' 
-                        ? 'border-indigo-600 bg-indigo-50' 
-                        : 'border-gray-200 hover:border-gray-300'
-                      } cursor-pointer`}
-                      onClick={() => {
-                        document.getElementById('hidden-list-type-value')?.setAttribute('value', 'selection');
-                        const radioElement = document.getElementById('list-type-selection') as HTMLInputElement;
-                        if (radioElement) radioElement.checked = true;
-                      }}
-                    >
-                      <div className="flex items-center h-5">
-                        <input
-                          id="list-type-selection"
-                          type="radio"
-                          name="list-type"
-                          className="w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-600"
-                          // Default to selection list when partners are selected
-                          defaultChecked={selectedPartners.length > 0}
-                          onChange={() => {
-                            document.getElementById('hidden-list-type-value')?.setAttribute('value', 'selection');
-                          }}
-                        />
-                      </div>
-                      <div className="ml-3 flex gap-2 items-center">
-                        <div className="p-1 rounded-full bg-emerald-100">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-800">
-                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                          </svg>
-                        </div>
-                        <div>
-                          <Label className="font-medium text-sm">
-                            {selectedPartners.length > 0 ? 
-                              `Save selected partners as a Custom List` : 
-                              'Create a Custom List'
-                            }
-                          </Label>
-                          <p className="text-xs text-gray-500">
-                            {selectedPartners.length > 0 ? 
-                              <>Only the partners you <strong>specifically select</strong> will be included</> :
-                              <>Create a list where you manually add and remove partners as needed</>
-                            }
-                            <span className="block mt-1 text-blue-600">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block mr-1">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <line x1="12" y1="8" x2="12" y2="16"></line>
-                                <line x1="8" y1="12" x2="16" y2="12"></line>
-                              </svg>
-                              {selectedPartners.length > 0 ? 
-                                `${selectedPartners.length} partner${selectedPartners.length > 1 ? 's' : ''} will be added immediately` : 
-                                "You'll need to add partners manually after creating"
-                              }
-                            </span>
-                          </p>
-                        </div>
-                      </div>
-                    </div>
+                          No filters are currently applied
+                        </li>
+                      )}
+                    </ul>
+                    <p className="mt-2 text-xs text-gray-500">
+                      This view will automatically show partners matching these criteria as data changes.
+                    </p>
                   </div>
                 </div>
               </div>
@@ -1259,13 +1161,13 @@ function PartnersTable() {
             </div>
             
             <div className="flex p-3 rounded-lg border border-gray-200 items-center space-x-3 bg-gray-50">
-              <Checkbox id="shareList" defaultChecked={activeList?.isShared || false} />
+              <Checkbox id="shareView" defaultChecked={true} />
               <div>
-                <Label htmlFor="shareList" className="text-sm font-medium">
-                  Share this list with my team
+                <Label htmlFor="shareView" className="text-sm font-medium">
+                  Share this view with my team
                 </Label>
                 <p className="text-xs text-gray-500">
-                  Make this list visible to all collaborators in your environment
+                  Make this view available to all list members
                 </p>
               </div>
             </div>
@@ -1273,7 +1175,7 @@ function PartnersTable() {
           
           <DialogFooter className="sm:justify-between">
             <div className="text-xs text-gray-500">
-              {activeList ? 'Last updated on ' + new Date(activeList.createdAt).toLocaleDateString() : 'Applied filters will be saved with this list'}
+              {activeList ? 'This view will be added to "' + activeList.name + '"' : 'You need to create or select a list first to save a view'}
             </div>
             <div className="flex space-x-2">
               <DialogClose asChild>
@@ -1281,100 +1183,66 @@ function PartnersTable() {
               </DialogClose>
               <Button
                 onClick={() => {
-                  // Handle save/update list
-                  if (!activeList) {
-                    // Create new list
-                    const listName = (document.getElementById('listName') as HTMLInputElement).value;
-                    const listDescription = (document.getElementById('listDescription') as HTMLTextAreaElement).value;
-                    const isShared = (document.getElementById('shareList') as HTMLInputElement).checked;
-                    
-                    // Validate required fields
-                    if (!listName.trim()) {
-                      // Show error toast notification
-                      toast({
-                        title: "Missing required field",
-                        description: "Please enter a name for your list.",
-                        variant: "destructive",
-                      });
-                      return;
-                    }
-                    
-                    // Get the selected list type from our hidden input
-                    const listTypeInput = document.getElementById('hidden-list-type-value') as HTMLInputElement;
-                    const listType = (listTypeInput?.value || "filter") as "filter" | "selection";
-                    
-                    const newList: SavedList = {
-                      id: String(Date.now()),
-                      name: listName,
-                      description: listDescription || undefined,
-                      type: listType, // Set the list type (dynamic filter or static selection)
-                      filters: listType === 'selection' 
-                        ? { // Empty filters for static lists
-                            searchText: undefined,
-                            status: undefined,
-                            industry: undefined,
-                            type: undefined
-                          }
-                        : { // Apply filters only for dynamic lists
-                            searchText: filterText || undefined,
-                            status: selectedStatus || undefined,
-                            industry: selectedIndustry || undefined,
-                            type: selectedType || undefined
-                          },
-                      // For static lists, start with an empty array
-                      members: listType === 'selection' ? [] : undefined,
-                      isShared,
-                      createdBy: 'John Smith',
-                      createdAt: new Date()
-                    };
-                    
-                    // Show success toast notification - different message based on list type
-                    if (listType === 'selection') {
-                      toast({
-                        title: "Static list created",
-                        description: `"${listName}" has been created. Select partners to add them to this list.`,
-                      });
-                    } else {
-                      toast({
-                        title: "Dynamic list created",
-                        description: `"${listName}" has been created and will update automatically based on filters.`,
-                      });
-                    }
-                    
-                    setSavedLists([...savedLists, newList]);
-                    setActiveList(newList);
-                  } else {
-                    // Update existing list
-                    const listName = (document.getElementById('listName') as HTMLInputElement).value;
-                    const listDescription = (document.getElementById('listDescription') as HTMLTextAreaElement).value;
-                    const isShared = (document.getElementById('shareList') as HTMLInputElement).checked;
-                    
-                    const updatedLists = savedLists.map(list => {
-                      if (list.id === activeList.id) {
-                        return {
-                          ...list,
-                          name: listName,
-                          description: listDescription || undefined,
-                          filters: {
-                            searchText: filterText || undefined,
-                            status: selectedStatus || undefined,
-                            industry: selectedIndustry || undefined,
-                            type: selectedType || undefined
-                          },
-                          isShared
-                        };
-                      }
-                      return list;
+                  // Validate required fields
+                  const viewName = (document.getElementById('listName') as HTMLInputElement).value;
+                  const viewDescription = (document.getElementById('listDescription') as HTMLTextAreaElement).value;
+                  const isShared = (document.getElementById('shareView') as HTMLInputElement).checked;
+                  
+                  if (!viewName.trim()) {
+                    // Show error toast notification
+                    toast({
+                      title: "Missing required field",
+                      description: "Please enter a name for your view.",
+                      variant: "destructive",
                     });
-                    
-                    setSavedLists(updatedLists);
-                    setActiveList(updatedLists.find(v => v.id === activeList.id) || null);
+                    return;
                   }
                   
+                  if (!activeList) {
+                    // Show error - need an active list to create a view
+                    toast({
+                      title: "No list selected",
+                      description: "Please select or create a list first before saving a view.",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+                  
+                  // Create a view object
+                  const newView = {
+                    id: String(Date.now()),
+                    name: viewName,
+                    description: viewDescription || undefined,
+                    filters: {
+                      searchText: filterText || undefined,
+                      status: selectedStatus || undefined,
+                      industry: selectedIndustry || undefined,
+                      type: selectedType || undefined
+                    },
+                    isShared,
+                    createdBy: 'John Smith',
+                    createdAt: new Date()
+                  };
+                  
+                  // Update the active list to include this view
+                  // In a real implementation, we would store views in the list
+                  // For this demo, we'll just show a success message
+                  toast({
+                    title: "View saved",
+                    description: `"${viewName}" has been saved to "${activeList.name}" and will show partners matching your criteria.`,
+                  });
+                  
+                  // In a real implementation, we would add the view to the list:
+                  // const updatedList = {
+                  //   ...activeList,
+                  //   views: [...(activeList.views || []), newView]
+                  // };
+                  
+                  // Close the modal
                   setShowSaveListModal(false);
                 }}
               >
-                {activeList ? 'Update List' : 'Create new list'}
+                Save view
               </Button>
             </div>
           </DialogFooter>
