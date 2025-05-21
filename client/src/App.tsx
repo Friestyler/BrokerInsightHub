@@ -13,23 +13,16 @@ import PredictOpportunities from "@/pages/PredictOpportunities";
 import CrossSellCampaigns from "@/pages/CrossSellCampaigns";
 import Clients from "@/pages/Clients";
 import ClientDetail from "@/pages/ClientDetail";
-// Temporarily commenting out the problematic import to get the app running
-// import { PartnersTable as PartnersPage } from "@/pages/lists/PartnersPage";
-const PartnersPage = () => <div className="p-6"><h1 className="text-2xl font-bold">Partners List (Coming Soon)</h1></div>;
+import ListViewDemo from "@/pages/ListViewDemo";
 import PartnerDetail from "@/pages/lists/PartnerDetail";
 import CustomersPage from "@/pages/lists/CustomersPage";
 import OpportunitiesPage from "@/pages/lists/OpportunitiesPage";
 import OpportunityDetail from "@/pages/lists/OpportunityDetail";
 import MetricsPage from "@/pages/templates/MetricsPage";
 import GroupDetail from "@/pages/templates/GroupDetail";
-import ListViewDemo from "@/pages/ListViewDemo";
 
 import NotFound from "@/pages/not-found";
 import EnvironmentRouteGuard from "@/components/EnvironmentRouteGuard";
-
-// Temporary placeholder components for other list pages
-const ProjectsPage = () => <div className="p-6"><h1 className="text-2xl font-bold">Projects List (Coming Soon)</h1></div>;
-const ContactsPage = () => <div className="p-6"><h1 className="text-2xl font-bold">Contacts List (Coming Soon)</h1></div>;
 
 function Router() {
   return (
