@@ -730,6 +730,41 @@ function PartnersTable() {
             </div>
           </div>
           
+          {/* Dynamic List Guidance Banner - appears after creating a dynamic list */}
+          {showDynamicListGuidance && activeList?.type === 'filter' && (
+            <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+              <div className="flex items-start">
+                <div className="flex-shrink-0 bg-blue-100 rounded-full p-1.5 mt-0.5">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1e40af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                  </svg>
+                </div>
+                <div className="ml-3">
+                  <h3 className="text-sm font-medium text-blue-800" style={{ fontFamily: 'Poppins, sans-serif' }}>Next step: Define your partner criteria</h3>
+                  <div className="mt-1 text-sm text-blue-700">
+                    <p>Use the filters below to specify which partners should be included in this dynamic list.</p>
+                    <ul className="list-disc pl-5 mt-2 space-y-1">
+                      <li><strong>Business Value:</strong> Maintain real-time partner segments for targeted campaigns</li>
+                      <li><strong>Automation:</strong> New partners matching your criteria are added automatically</li>
+                      <li><strong>Consistency:</strong> Always up-to-date view for reporting and opportunity tracking</li>
+                    </ul>
+                    <div className="mt-3">
+                      <Button 
+                        size="sm"
+                        className="bg-blue-600 hover:bg-blue-700 text-white"
+                        onClick={() => setShowDynamicListGuidance(false)}
+                      >
+                        Got it
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+          
           {/* Bottom row with search and filters */}
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-3 flex-grow">
@@ -1576,6 +1611,9 @@ function PartnersTable() {
                     title: "Dynamic list created",
                     description: `"${selectionListName}" is ready! Now define your filter criteria to automatically track partners matching your target profile.`,
                   });
+                  
+                  // Set flag to show guidance banner
+                  setShowDynamicListGuidance(true);
                   
                   // After a brief delay, show a second toast with business value
                   setTimeout(() => {
