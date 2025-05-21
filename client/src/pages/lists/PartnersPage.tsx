@@ -1,589 +1,5 @@
 import { useState, useEffect } from 'react';
 import { useEnvironment } from "@/contexts/EnvironmentContext";
-
-// COMMENT: The following code demonstrates the new conceptual model with List-View separation.
-// A list contains records, while a view is a saved filter configuration that can be applied to a list.
-// This conceptual model allows users to have multiple views for each list.
-
-/**
- * A view represents a saved set of filters that can be applied to a list.
- * Views don't contain records themselves but define how records are filtered and displayed.
- */
-interface View {
-  id: string;
-  name: string;
-  description?: string;
-  filters: {
-    searchText?: string;
-    status?: string;
-    industry?: string;
-    type?: string;
-    size?: string;
-  };
-  isDefault?: boolean;
-  createdBy: string;
-  createdAt: Date;
-}
-
-/**
- * A list contains actual records (partners, opportunities, etc.)
- * Each list can have multiple views (saved filter configurations)
- */
-interface List {
-  id: string;
-  name: string;
-  description?: string;
-  members: number[]; // The actual records (IDs) contained in this list
-  views: View[];     // Different ways to view/filter this list
-  activeViewId?: string; // Currently active view
-  isShared: boolean;
-  sharedWith?: string[];
-  createdBy: string;
-  createdAt: Date;
-  isDefault?: boolean;
-}
-
-/**
- * Helper function for creating a new view for a list
- */
-function createView(name: string, filters = {}, isDefault = false): View {
-  return {
-    id: Date.now().toString(),
-    name,
-    filters,
-    isDefault,
-    createdBy: 'Current User',
-    createdAt: new Date()
-  };
-}
-
-/**
- * Helper function for creating a new list with default view
- */
-function createList(name: string, description = '', members: number[] = []): List {
-  const defaultView = createView('Default View', {}, true);
-  
-  return {
-    id: Date.now().toString(),
-    name,
-    description,
-    members,
-    views: [defaultView],
-    activeViewId: defaultView.id,
-    isShared: false,
-    createdBy: 'Current User',
-    createdAt: new Date()
-  };
-}
-
-// View Dialog Component for creating and editing views
-function ViewDialog({ 
-  isOpen, 
-  onClose, 
-  parentList, 
-  existingView = null,
-  onSave
-}: { 
-  isOpen: boolean;
-  onClose: () => void;
-  parentList: List;
-  existingView?: View | null;
-  onSave: (parentList: List, view: View) => void;
-}) {
-  const [viewName, setViewName] = useState(existingView?.name || '');
-  const [viewDescription, setViewDescription] = useState(existingView?.description || '');
-  
-  // Initial filter states based on existing view or empty values
-  const [filterText, setFilterText] = useState(existingView?.filters?.searchText || '');
-  const [selectedStatus, setSelectedStatus] = useState(existingView?.filters?.status || '');
-  const [selectedIndustry, setSelectedIndustry] = useState(existingView?.filters?.industry || '');
-  const [selectedType, setSelectedType] = useState(existingView?.filters?.type || '');
-  const [selectedSize, setSelectedSize] = useState(existingView?.filters?.size || '');
-
-  // Reset states when dialog opens/closes or a different view is edited
-  useEffect(() => {
-    if (isOpen) {
-      setViewName(existingView?.name || '');
-      setViewDescription(existingView?.description || '');
-      setFilterText(existingView?.filters?.searchText || '');
-      setSelectedStatus(existingView?.filters?.status || '');
-      setSelectedIndustry(existingView?.filters?.industry || '');
-      setSelectedType(existingView?.filters?.type || '');
-      setSelectedSize(existingView?.filters?.size || '');
-    }
-  }, [isOpen, existingView]);
-
-  const handleSave = () => {
-    const filters = {
-      searchText: filterText || undefined,
-      status: selectedStatus || undefined,
-      industry: selectedIndustry || undefined, 
-      type: selectedType || undefined,
-      size: selectedSize || undefined
-    };
-    
-    let view: View;
-    if (existingView) {
-      // Update existing view
-      view = {
-        ...existingView,
-        name: viewName,
-        description: viewDescription || undefined,
-        filters
-      };
-    } else {
-      // Create new view
-      view = {
-        id: Date.now().toString(),
-        name: viewName,
-        description: viewDescription || undefined,
-        filters,
-        isDefault: false,
-        createdBy: 'Current User',
-        createdAt: new Date()
-      };
-    }
-    
-    onSave(parentList, view);
-    onClose();
-  };
-
-  return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="text-[#282A3F] font-semibold text-lg" style={{ fontFamily: 'Poppins, sans-serif' }}>
-            {existingView ? 'Edit View' : 'Create New View'}
-          </DialogTitle>
-          <DialogDescription>
-            {existingView 
-              ? `Edit filter settings for "${existingView.name}"`
-              : `Create a new way to view partners in ${parentList.name}`}
-          </DialogDescription>
-        </DialogHeader>
-        
-        <div className="grid gap-4 py-4">
-          <div className="space-y-2">
-            <Label htmlFor="view-name">View Name</Label>
-            <Input 
-              id="view-name" 
-              placeholder="Enter a name for this view" 
-              value={viewName}
-              onChange={(e) => setViewName(e.target.value)}
-            />
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="view-description">Description (optional)</Label>
-            <Textarea 
-              id="view-description" 
-              placeholder="What makes this view unique?" 
-              value={viewDescription}
-              onChange={(e) => setViewDescription(e.target.value)}
-            />
-          </div>
-          
-          <div className="space-y-1">
-            <Label>Filter Settings</Label>
-            <div className="text-sm text-gray-500 mb-2">
-              Define which partners will be shown when using this view
-            </div>
-            
-            <div className="space-y-3">
-              <div>
-                <Label htmlFor="filter-status">Status</Label>
-                <Select 
-                  value={selectedStatus} 
-                  onValueChange={setSelectedStatus}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">Any Status</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <Label htmlFor="filter-industry">Industry</Label>
-                <Select 
-                  value={selectedIndustry} 
-                  onValueChange={setSelectedIndustry}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select industry" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">Any Industry</SelectItem>
-                    <SelectItem value="Insurance">Insurance</SelectItem>
-                    <SelectItem value="Finance">Finance</SelectItem>
-                    <SelectItem value="Banking">Banking</SelectItem>
-                    <SelectItem value="Consulting">Consulting</SelectItem>
-                    <SelectItem value="Technology">Technology</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <Label htmlFor="filter-type">Type</Label>
-                <Select 
-                  value={selectedType} 
-                  onValueChange={setSelectedType}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">Any Type</SelectItem>
-                    <SelectItem value="Broker">Broker</SelectItem>
-                    <SelectItem value="Agency">Agency</SelectItem>
-                    <SelectItem value="Carrier">Carrier</SelectItem>
-                    <SelectItem value="MGA">MGA</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div>
-                <Label htmlFor="filter-size">Size</Label>
-                <Select 
-                  value={selectedSize} 
-                  onValueChange={setSelectedSize}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select size" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="">Any Size</SelectItem>
-                    <SelectItem value="small">Small</SelectItem>
-                    <SelectItem value="medium">Medium</SelectItem>
-                    <SelectItem value="large">Large</SelectItem>
-                    <SelectItem value="enterprise">Enterprise</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </div>
-        </div>
-        
-        <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button 
-            onClick={handleSave}
-            disabled={!viewName.trim()}
-            className="bg-[#5567E5] hover:bg-[#4557D5]"
-          >
-            Save View
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
-  );
-}
-
-// Button component for creating a new view 
-function CreateViewButton({ list, onCreateView }: { list: List, onCreateView: (list: List) => void }) {
-  return (
-    <Button 
-      variant="ghost" 
-      size="sm" 
-      className="flex items-center gap-1.5 text-[#5567E5] hover:text-[#4557D5] hover:bg-indigo-50"
-      onClick={() => onCreateView(list)}
-    >
-      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <circle cx="12" cy="12" r="10" />
-        <path d="M12 8v8" />
-        <path d="M8 12h8" />
-      </svg>
-      <span>Create New View</span>
-    </Button>
-  );
-}
-
-// View Selector Component to switch between views
-function ViewSelector({ 
-  list, 
-  activeViewId, 
-  onSelectView,
-  onCreateView,
-  onEditView
-}: { 
-  list: List, 
-  activeViewId: string | undefined, 
-  onSelectView: (viewId: string) => void,
-  onCreateView: (list: List) => void,
-  onEditView: (list: List, view: View) => void
-}) {
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  
-  // Find the active view
-  const activeView = list.views.find(v => v.id === activeViewId) || list.views[0];
-  
-  return (
-    <div className="relative">
-      <Button
-        variant="outline"
-        size="sm"
-        className="flex items-center gap-2"
-        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-        </svg>
-        <span>{activeView?.name || "Default View"}</span>
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          width="12"
-          height="12"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          className={`transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}
-        >
-          <polyline points="6 9 12 15 18 9" />
-        </svg>
-      </Button>
-      
-      {isDropdownOpen && (
-        <div className="absolute z-50 mt-1 w-60 rounded-md border border-slate-200 bg-white shadow-md">
-          <div className="py-1 max-h-60 overflow-y-auto">
-            {list.views.map(view => (
-              <div key={view.id} className="relative group">
-                <button
-                  className={`w-full text-left px-4 py-2 text-sm flex items-center justify-between hover:bg-slate-50 ${view.id === activeViewId ? 'bg-indigo-50 text-indigo-700' : ''}`}
-                  onClick={() => {
-                    onSelectView(view.id);
-                    setIsDropdownOpen(false);
-                  }}
-                >
-                  <div className="flex items-center gap-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-                    </svg>
-                    <span>{view.name}</span>
-                  </div>
-                  
-                  {!view.isDefault && (
-                    <button
-                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-slate-200"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onEditView(list, view);
-                      }}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M12 20h9"></path>
-                        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
-                      </svg>
-                    </button>
-                  )}
-                </button>
-              </div>
-            ))}
-          </div>
-          
-          <div className="border-t border-slate-100 p-1">
-            <button
-              className="w-full text-left px-4 py-2 text-sm text-indigo-600 hover:bg-indigo-50 flex items-center gap-2 rounded-sm"
-              onClick={() => {
-                onCreateView(list);
-                setIsDropdownOpen(false);
-              }}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="12" cy="12" r="10" />
-                <path d="M12 8v8" />
-                <path d="M8 12h8" />
-              </svg>
-              <span>Create New View</span>
-            </button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-// Demo component to showcase the Lists and Views concept
-function ListViewDemoPanel() {
-  const { toast } = useToast();
-  
-  // Sample list with multiple views
-  const [demoList, setDemoList] = useState<List>(
-    createList(
-      "Key Insurance Partners", 
-      "Our most important insurance industry partners",
-      [1, 3, 6] // Sample partner IDs
-    )
-  );
-  
-  // Add some sample views
-  useEffect(() => {
-    // Only run once on initial render
-    setDemoList(prevList => {
-      if (prevList.views.length === 1) {
-        // Add sample views if we only have the default view
-        const activeView = prevList.views[0];
-        
-        const brokersView = createView("Brokers Only", { type: "Broker" });
-        const activePartnersView = createView("Active Partners", { status: "active" });
-        
-        return {
-          ...prevList,
-          views: [activeView, brokersView, activePartnersView]
-        };
-      }
-      return prevList;
-    });
-  }, []);
-  
-  // State for view dialog
-  const [viewDialogOpen, setViewDialogOpen] = useState(false);
-  const [viewToEdit, setViewToEdit] = useState<View | null>(null);
-  
-  // Handle creating a new view
-  const handleCreateView = () => {
-    setViewToEdit(null);
-    setViewDialogOpen(true);
-  };
-  
-  // Handle editing an existing view
-  const handleEditView = (view: View) => {
-    setViewToEdit(view);
-    setViewDialogOpen(true);
-  };
-  
-  // Handle saving a view (new or edited)
-  const handleSaveView = (parentList: List, view: View) => {
-    setDemoList(prevList => {
-      if (viewToEdit) {
-        // Update existing view
-        return {
-          ...prevList,
-          views: prevList.views.map(v => v.id === view.id ? view : v)
-        };
-      } else {
-        // Add new view
-        return {
-          ...prevList,
-          views: [...prevList.views, view]
-        };
-      }
-    });
-    
-    toast({
-      title: viewToEdit ? "View updated" : "New view created",
-      description: `"${view.name}" ${viewToEdit ? "has been updated" : "has been added to your list"}.`,
-    });
-  };
-  
-  // Handle selecting a view
-  const handleSelectView = (viewId: string) => {
-    setDemoList(prevList => ({
-      ...prevList,
-      activeViewId: viewId
-    }));
-    
-    const selectedView = demoList.views.find(v => v.id === viewId);
-    if (selectedView) {
-      toast({
-        title: "View applied",
-        description: `Now showing partners using the "${selectedView.name}" view.`,
-      });
-    }
-  };
-  
-  return (
-    <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
-      <div className="flex items-center justify-between mb-4">
-        <div>
-          <h2 className="text-lg font-semibold text-slate-900 mb-1">Lists and Views Demo</h2>
-          <p className="text-sm text-slate-600">This demo shows how lists can have multiple views</p>
-        </div>
-        
-        <div className="flex items-center gap-4">
-          {/* View selector dropdown */}
-          <ViewSelector 
-            list={demoList} 
-            activeViewId={demoList.activeViewId} 
-            onSelectView={handleSelectView}
-            onCreateView={() => handleCreateView()}
-            onEditView={(_, view) => handleEditView(view)}
-          />
-          
-          {/* Standalone button to create a new view */}
-          <CreateViewButton list={demoList} onCreateView={() => handleCreateView()} />
-        </div>
-      </div>
-      
-      <div className="bg-slate-50 p-4 rounded-md">
-        <div className="text-sm font-medium text-slate-700 mb-2 flex items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-            <rect width="8" height="8" x="2" y="2" rx="2" />
-            <rect width="8" height="8" x="14" y="2" rx="2" />
-            <rect width="8" height="8" x="2" y="14" rx="2" />
-            <rect width="8" height="8" x="14" y="14" rx="2" />
-          </svg>
-          List Details:
-        </div>
-        
-        <div className="bg-white p-3 rounded-md mb-3 border border-slate-200">
-          <div className="font-medium text-slate-900 mb-1">"{demoList.name}"</div>
-          <div className="text-sm text-slate-600 mb-2">{demoList.description}</div>
-          <div className="text-xs text-slate-500">Contains {demoList.members.length} partners</div>
-        </div>
-        
-        <div className="text-sm font-medium text-slate-700 mb-2 flex items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
-          </svg>
-          Active View:
-        </div>
-        
-        {/* Display current active view */}
-        {demoList.views.map(view => {
-          if (view.id === demoList.activeViewId) {
-            return (
-              <div key={view.id} className="bg-white p-3 rounded-md border border-slate-200">
-                <div className="font-medium text-slate-900 mb-1">"{view.name}"</div>
-                <div className="text-sm text-slate-600 mb-2">{view.description}</div>
-                
-                <div className="text-xs font-medium text-slate-700 mb-1">Filter settings:</div>
-                <div className="flex flex-wrap gap-2">
-                  {Object.entries(view.filters).map(([key, value]) => value && (
-                    <div key={key} className="px-2 py-1 bg-slate-100 rounded-full text-xs text-slate-700">
-                      {key === 'searchText' ? 'Search' : key}: {value}
-                    </div>
-                  ))}
-                  {!Object.values(view.filters).some(v => v) && (
-                    <div className="text-xs text-slate-500 italic">No filters defined</div>
-                  )}
-                </div>
-              </div>
-            );
-          }
-          return null;
-        })}
-      </div>
-      
-      {/* View creation/editing dialog */}
-      <ViewDialog
-        isOpen={viewDialogOpen}
-        onClose={() => setViewDialogOpen(false)}
-        parentList={demoList}
-        existingView={viewToEdit}
-        onSave={handleSaveView}
-      />
-    </div>
-  );
-}
-
-// COMMENT: The code below preserves the existing implementation while we transition to the new model.
 import {
   Card,
   CardContent,
@@ -618,7 +34,7 @@ import { useToast } from "@/hooks/use-toast";
 const mockPartners = [
   {
     id: 1,
-    name: "XYZ Insurance Group",  // Updated to match PartnerDetail.tsx
+    name: "XYZ Insurance Group",
     initials: "XY",
     industry: "Insurance",
     type: "Broker",
@@ -632,7 +48,7 @@ const mockPartners = [
   },
   {
     id: 2,
-    name: "ABC Insurance Brokers",  // This matches PartnerDetail.tsx
+    name: "ABC Insurance Brokers",
     initials: "AB",
     industry: "Insurance",
     type: "Broker",
@@ -646,7 +62,7 @@ const mockPartners = [
   },
   {
     id: 3,
-    name: "Global Insurance Partners",  // Updated to match PartnerDetail.tsx
+    name: "Global Insurance Partners",
     initials: "GI",
     industry: "Insurance",
     type: "Broker",
@@ -682,2182 +98,1143 @@ const mockPartners = [
     size: "large",
     customers: 22,
     opportunities: 15,
-    location: "San Francisco, CA",
-    contactEmail: "info@secure-financial.com",
-    primaryContact: "Jessica Brown"
-  },
-  {
-    id: 6,
-    name: "Pinnacle Risk Solutions",
-    initials: "PR",
-    industry: "Insurance",
-    type: "Broker",
-    status: "active",
-    size: "enterprise",
-    customers: 18,
-    opportunities: 9,
-    location: "Miami, FL",
-    contactEmail: "contact@pinnacle-risk.com",
-    primaryContact: "Robert Smith"
+    location: "Chicago, IL",
+    contactEmail: "info@securefinancial.org",
+    primaryContact: "Michael Brown"
   }
 ];
 
-// Calculate partner statistics
-function calculatePartnerStats(partners: typeof mockPartners) {
-  const totalPartners = partners.length;
-  const totalCustomers = partners.reduce((sum, partner) => sum + partner.customers, 0);
-  const totalOpportunities = partners.reduce((sum, partner) => sum + partner.opportunities, 0);
-  const activePartners = partners.filter(p => p.status === 'active').length;
-  
-  return {
-    totalPartners,
-    totalCustomers,
-    totalOpportunities,
-    activePartners
-  };
-}
+// Icons for convenience
+const SearchIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="11" cy="11" r="8"></circle>
+    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+  </svg>
+);
 
-// Template badges component for partners
-function TemplateBadges({ industry, type }: { industry: string, type: string }) {
-  // Mock template badges based on industry and type
-  const getBadges = (industry: string, type: string) => {
-    if (industry === 'Insurance' && type === 'Broker') {
-      return [
-        { code: 'IB', color: 'bg-blue-200 text-blue-800' },
-        { code: 'PR', color: 'bg-purple-200 text-purple-800' }
-      ];
-    } else if (industry === 'Insurance' && type === 'Agency') {
-      return [
-        { code: 'IA', color: 'bg-teal-200 text-teal-800' },
-        { code: 'SM', color: 'bg-blue-200 text-blue-800' }
-      ];
-    } else if (industry === 'Consulting') {
-      return [
-        { code: 'CO', color: 'bg-amber-200 text-amber-800' },
-        { code: 'AD', color: 'bg-purple-200 text-purple-800' }
-      ];
-    } else if (industry === 'Finance') {
-      return [
-        { code: 'FS', color: 'bg-green-200 text-green-800' }
-      ];
-    } else {
-      return [
-        { code: 'GP', color: 'bg-gray-200 text-gray-800' }
-      ];
-    }
-  };
-  
-  const badges = getBadges(industry, type);
-  
-  return (
-    <div className="flex space-x-2">
-      {badges.map((badge, index) => (
-        <div key={index} className={`${badge.color} w-8 h-8 rounded-lg flex items-center justify-center text-xs font-medium`}>
-          {badge.code}
-        </div>
-      ))}
-    </div>
-  );
-}
+const FilterIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+  </svg>
+);
 
-// Define interface for saved lists
-interface SavedList {
-  id: string;
-  name: string;
-  description?: string;
-  type?: 'filter' | 'selection'; // 'filter' for Saved Filters, 'selection' for Custom Lists
-  filters: {
-    searchText?: string;
-    status?: string;
-    industry?: string;
-    type?: string;
-    size?: string;
-  };
-  members?: number[]; // Array of partner IDs for Custom Lists
-  isShared: boolean;
-  sharedWith?: string[];
-  createdBy: string;
-  createdAt: Date;
-  isDefault?: boolean; // Flag for system-generated default lists that can't be edited/deleted
-}
+const ListIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+    <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+  </svg>
+);
 
-// Main partner list component
-function PartnersTable() {
-  const [filterText, setFilterText] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('');
-  const [selectedIndustry, setSelectedIndustry] = useState('');
-  const [selectedType, setSelectedType] = useState('');
+const PlusIcon = () => (
+  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M12 5v14M5 12h14"></path>
+  </svg>
+);
+
+// Simplified approach to partner organization
+const PartnersPage = () => {
+  const { environments } = useEnvironment();
+  
+  // State for partner selection
   const [selectedPartners, setSelectedPartners] = useState<number[]>([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [itemsPerPage, setItemsPerPage] = useState(12);
   
-  // State for partner lists with views
-  const [partnerLists, setPartnerLists] = useState<PartnerList[]>([
-    // System default list that shows all partners
+  // State for saved filters and lists
+  const [savedItems, setSavedItems] = useState<{
+    id: string;
+    name: string;
+    type: 'filter' | 'list';  // Changed from 'search' to 'filter'
+    lastUpdated: Date;
+    count: number;
+    filters?: {
+      search?: string;
+      status?: string;
+      industry?: string;
+      type?: string;
+    };
+    partners?: number[];
+  }[]>([
     {
-      id: 'all-partners',
-      name: 'All Partners',
-      description: 'System-generated list containing all partners',
-      members: [], // Empty means "all partners"
-      views: [
-        {
-          id: 'all-partners-default',
-          name: 'Default View',
-          filters: { },
-          isDefault: true,
-          createdBy: 'System',
-          createdAt: new Date('2025-01-01')
-        },
-        {
-          id: 'all-partners-active',
-          name: 'Active Partners',
-          filters: { status: 'active' },
-          createdBy: 'System',
-          createdAt: new Date('2025-01-01')
-        }
-      ],
-      activeViewId: 'all-partners-default',
-      isShared: true,
-      createdBy: 'System',
-      createdAt: new Date('2025-01-01'),
-      isDefault: true
+      id: '1',
+      name: 'Active Insurance Brokers',
+      type: 'filter',  // Changed from 'search' to 'filter'
+      lastUpdated: new Date('2025-05-01'),
+      count: 3,
+      filters: {
+        status: 'active',
+        industry: 'Insurance',
+        type: 'Broker'
+      }
     },
-    // Example of a curated list with specific members and multiple views
     {
-      id: 'key-insurance-partners',
-      name: 'Key Insurance Partners',
-      description: 'Our most important insurance industry partners',
-      members: [1, 3, 6], // Specific partner IDs
-      views: [
-        {
-          id: 'key-insurance-default',
-          name: 'Default View',
-          filters: { },
-          isDefault: true,
-          createdBy: 'John Smith',
-          createdAt: new Date('2025-04-15')
-        },
-        {
-          id: 'key-insurance-brokers',
-          name: 'Brokers Only',
-          filters: { type: 'Broker' },
-          createdBy: 'John Smith',
-          createdAt: new Date('2025-04-20')
-        },
-        {
-          id: 'key-insurance-agencies',
-          name: 'Agencies Only',
-          filters: { type: 'Agency' },
-          createdBy: 'John Smith',
-          createdAt: new Date('2025-04-25')
-        }
-      ],
-      activeViewId: 'key-insurance-default',
-      isShared: true,
-      sharedWith: ['team@acme.com'],
-      createdBy: 'John Smith',
-      createdAt: new Date('2025-04-15')
-    },
-    // Another example list
-    {
-      id: 'enterprise-partners',
-      name: 'Enterprise Partners',
-      description: 'All enterprise-level partners',
-      members: [3, 6], // Specific partner IDs
-      views: [
-        {
-          id: 'enterprise-default',
-          name: 'Default View',
-          filters: { },
-          isDefault: true,
-          createdBy: 'John Smith',
-          createdAt: new Date('2025-05-01')
-        },
-        {
-          id: 'enterprise-active',
-          name: 'Active Only',
-          filters: { status: 'active' },
-          createdBy: 'John Smith',
-          createdAt: new Date('2025-05-05')
-        }
-      ],
-      activeViewId: 'enterprise-default',
-      isShared: false,
-      createdBy: 'John Smith',
-      createdAt: new Date('2025-05-01')
+      id: '2',
+      name: 'Key Agency Partners',
+      type: 'list',
+      lastUpdated: new Date('2025-05-10'),
+      count: 1,
+      partners: [4]
     }
   ]);
   
-  // For backward compatibility during migration - convert partnerLists to savedLists
-  const [savedLists, setSavedLists] = useState<SavedList[]>(() => 
-    partnerLists.map(list => {
-      // Find active view
-      const activeView = list.views.find(v => v.id === list.activeViewId) || list.views[0];
-      
-      return {
-        id: list.id,
-        name: list.name,
-        description: list.description,
-        // If members array is empty, treat as a filter (dynamic) list, otherwise it's a selection list
-        type: list.members.length === 0 ? 'filter' : 'selection',
-        filters: activeView.filters,
-        members: list.members.length > 0 ? list.members : undefined,
-        isShared: list.isShared,
-        sharedWith: list.sharedWith,
-        createdBy: list.createdBy,
-        createdAt: list.createdAt,
-        isDefault: list.isDefault
-      };
-    })
-  );
-  // New state variables for the Lists and Views concept
-  const [activePartnerList, setActivePartnerList] = useState<PartnerList | null>(null);
-  const [activeView, setActiveView] = useState<PartnerView | null>(null);
+  // State for active saved item
+  const [activeSavedItem, setActiveSavedItem] = useState<typeof savedItems[0] | null>(null);
   
-  // For backward compatibility during migration
-  const [activeList, setActiveList] = useState<SavedList | null>(null);
-  const [originalListFilters, setOriginalListFilters] = useState<SavedList['filters'] | null>(null);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
-  const [showSaveListModal, setShowSaveListModal] = useState(false);
-  const [showShareListModal, setShowShareListModal] = useState(false);
-  const [showListsDropdown, setShowListsDropdown] = useState(false);
-  const [showAddPartnersModal, setShowAddPartnersModal] = useState(false);
-  const [partnersToAdd, setPartnersToAdd] = useState<number[]>([]);
-  const [showCreateFromSelectionModal, setShowCreateFromSelectionModal] = useState(false);
-    
-  // Filter partners based on search text, filter selections, and list type
-  const displayedPartners = mockPartners.filter(partner => {
-    // If we have an active static list, only show partners that were explicitly selected for that list
-    if (activeList && activeList.type === 'selection') {
-      // First check if the partner is in the selection list
-      const isInSelectionList = activeList.members?.includes(partner.id) || false;
-      
-      if (!isInSelectionList) {
-        return false; // Skip partners not in selection list
-      }
-      
-      // Then apply filters only to the selected partners
-      const matchesText = !filterText || 
-        partner.name.toLowerCase().includes(filterText.toLowerCase()) ||
-        partner.industry.toLowerCase().includes(filterText.toLowerCase()) ||
-        partner.type.toLowerCase().includes(filterText.toLowerCase());
-        
-      const matchesStatus = !selectedStatus || partner.status === selectedStatus;
-      const matchesIndustry = !selectedIndustry || partner.industry === selectedIndustry;
-      const matchesType = !selectedType || partner.type === selectedType;
-      
-      return matchesText && matchesStatus && matchesIndustry && matchesType;
-    } else {
-      // For dynamic lists or no list, apply filters to all partners
-      const matchesText = !filterText || 
-        partner.name.toLowerCase().includes(filterText.toLowerCase()) ||
-        partner.industry.toLowerCase().includes(filterText.toLowerCase()) ||
-        partner.type.toLowerCase().includes(filterText.toLowerCase());
-        
-      const matchesStatus = !selectedStatus || partner.status === selectedStatus;
-      const matchesIndustry = !selectedIndustry || partner.industry === selectedIndustry;
-      const matchesType = !selectedType || partner.type === selectedType;
-      
-      return matchesText && matchesStatus && matchesIndustry && matchesType;
-    }
-  });
+  // State for search and filters
+  const [searchText, setSearchText] = useState('');
+  const [statusFilter, setStatusFilter] = useState('any');
+  const [industryFilter, setIndustryFilter] = useState('any');
+  const [typeFilter, setTypeFilter] = useState('any');
   
-  // Check if current filters differ from original list filters to detect unsaved changes
-  useEffect(() => {
-    if (activeList && originalListFilters) {
-      const currentFilters = {
-        searchText: filterText || undefined,
-        status: selectedStatus || undefined,
-        industry: selectedIndustry || undefined,
-        type: selectedType || undefined,
-        size: originalListFilters.size // Preserve size filter if it exists
-      };
-      
-      // Compare current filters with original list filters
-      const hasChanges = 
-        currentFilters.searchText !== originalListFilters.searchText ||
-        currentFilters.status !== originalListFilters.status ||
-        currentFilters.industry !== originalListFilters.industry ||
-        currentFilters.type !== originalListFilters.type;
-      
-      setHasUnsavedChanges(hasChanges);
-    } else {
-      setHasUnsavedChanges(false);
-    }
-  }, [filterText, selectedStatus, selectedIndustry, selectedType, activeList, originalListFilters]);
+  // Modal states
+  const [showSearchModal, setShowSearchModal] = useState(false);
+  const [showListModal, setShowListModal] = useState(false);
+  const [showSavedItemsDrawer, setShowSavedItemsDrawer] = useState(false);
   
-  // Function to revert changes to the original list filters
-  const revertChanges = () => {
-    if (activeList && originalListFilters) {
-      setFilterText(originalListFilters.searchText || '');
-      setSelectedStatus(originalListFilters.status || '');
-      setSelectedIndustry(originalListFilters.industry || '');
-      setSelectedType(originalListFilters.type || '');
-      setHasUnsavedChanges(false);
-    }
-  };
-  
-  // State for list creation from selection
-  const [selectionListName, setSelectionListName] = useState('');
-  const [selectionListDescription, setSelectionListDescription] = useState('');
-  const [selectionListType, setSelectionListType] = useState<'filter' | 'selection'>('filter');
-  
-  // State to track if a dynamic list was just created (to show guidance)
-  const [showDynamicListGuidance, setShowDynamicListGuidance] = useState(false);
-  
-  // State to track if guidance is collapsed
-  const [isGuidanceCollapsed, setIsGuidanceCollapsed] = useState(false);
-  
-  // Initialize toast
+  // Get toast
   const { toast } = useToast();
   
-  // Function to open list creation from selection
-  const openCreateFromSelection = () => {
-    if (selectedPartners.length > 0) {
-      // When creating from selection, we always create a static list
-      setSelectionListType('selection'); // Force static selection type
-      setSelectionListName('');
-      setSelectionListDescription('');
-      // Clear any existing filters to prevent them from carrying over to the new static list
-      setShowCreateFromSelectionModal(true);
+  // Filter partners based on current criteria
+  const filteredPartners = mockPartners.filter(partner => {
+    // Apply text search
+    const matchesSearch = !searchText || 
+      partner.name.toLowerCase().includes(searchText.toLowerCase()) ||
+      partner.industry.toLowerCase().includes(searchText.toLowerCase()) ||
+      partner.type.toLowerCase().includes(searchText.toLowerCase());
+    
+    // Apply filters
+    const matchesStatus = statusFilter === 'any' || partner.status === statusFilter;
+    const matchesIndustry = industryFilter === 'any' || partner.industry === industryFilter;
+    const matchesType = typeFilter === 'any' || partner.type === typeFilter;
+    
+    return matchesSearch && matchesStatus && matchesIndustry && matchesType;
+  });
+  
+  // If we have an active list, only show partners in that list
+  const displayedPartners = activeSavedItem?.type === 'list'
+    ? filteredPartners.filter(partner => activeSavedItem.partners?.includes(partner.id))
+    : filteredPartners;
+  
+  // Toggle partner selection
+  const togglePartnerSelection = (partnerId: number) => {
+    if (selectedPartners.includes(partnerId)) {
+      setSelectedPartners(selectedPartners.filter(id => id !== partnerId));
     } else {
-      toast({
-        title: "No partners selected",
-        description: "Please select at least one partner to create a list.",
-        variant: "destructive"
-      });
+      setSelectedPartners([...selectedPartners, partnerId]);
     }
   };
-
-  // Function to save changes to the current list
-  const saveChanges = () => {
-    if (activeList && !activeList.isDefault) {
-      const updatedList = {
-        ...activeList,
-        filters: {
-          searchText: filterText || undefined,
-          status: selectedStatus || undefined,
-          industry: selectedIndustry || undefined,
-          type: selectedType || undefined,
-          size: originalListFilters?.size // Preserve size filter if it exists
-        },
-        createdAt: new Date() // Update the timestamp
+  
+  // Create a new saved filter
+  const createSavedSearch = (name: string) => {
+    // Create saved search regardless of filters
+    const newSearch = {
+      id: Date.now().toString(),
+      name,
+      type: 'filter' as const,
+      lastUpdated: new Date(),
+      count: filteredPartners.length,
+      filters: {
+        search: searchText || undefined,
+        status: statusFilter !== 'any' ? statusFilter : undefined,
+        industry: industryFilter !== 'any' ? industryFilter : undefined,
+        type: typeFilter !== 'any' ? typeFilter : undefined
+      }
+    };
+    
+    setSavedItems([...savedItems, newSearch]);
+    setActiveSavedItem(newSearch);
+    
+    toast({
+      title: "Saved search created",
+      description: `"${name}" will automatically show all matching partners.`,
+    });
+  };
+  
+  // Create a new list from selected partners
+  const createList = (name: string) => {
+    if (selectedPartners.length > 0) {
+      const newList = {
+        id: Date.now().toString(),
+        name,
+        type: 'list' as const,
+        lastUpdated: new Date(),
+        count: selectedPartners.length,
+        partners: selectedPartners
       };
       
-      // Update the list in the savedLists array
-      const updatedLists = savedLists.map(list => 
-        list.id === activeList.id ? updatedList : list
-      );
+      setSavedItems([...savedItems, newList]);
+      setActiveSavedItem(newList);
+      setSelectedPartners([]); // Clear selection after creating list
       
-      setSavedLists(updatedLists);
-      setActiveList(updatedList);
-      setOriginalListFilters(updatedList.filters);
-      setHasUnsavedChanges(false);
-      
-      // Show toast notification for successful save
       toast({
-        title: "List Saved",
-        description: "Your changes have been saved successfully"
+        title: "Partner list created",
+        description: `"${name}" with ${selectedPartners.length} partners has been created.`,
       });
     }
   };
-
-  // Calculate stats based on filtered partners
-  const stats = calculatePartnerStats(displayedPartners);
   
-  // Function to toggle partner selection
-  const toggleSelectPartner = (id: number) => {
-    if (selectedPartners.includes(id)) {
-      setSelectedPartners(selectedPartners.filter(partnerId => partnerId !== id));
-      
-      // If we have an active static list, update its members and mark as having unsaved changes
-      if (activeList && activeList.type === 'selection') {
-        // Update the activeList temporarily but don't save to savedLists yet
-        const updatedList: SavedList = {
-          ...activeList,
-          members: activeList.members?.filter((memberId: number) => memberId !== id) || []
-        };
-        setActiveList(updatedList);
-        setHasUnsavedChanges(true);
-      }
-    } else {
-      setSelectedPartners([...selectedPartners, id]);
-      
-      // If we have an active static list, update its members and mark as having unsaved changes
-      if (activeList && activeList.type === 'selection') {
-        // Update the activeList temporarily but don't save to savedLists yet
-        const updatedList: SavedList = {
-          ...activeList,
-          members: [...(activeList.members || []), id]
-        };
-        setActiveList(updatedList);
-        setHasUnsavedChanges(true);
-      }
-    }
-  };
-  
-  // Function to toggle select/deselect all partners
-  const toggleSelectAll = () => {
-    if (selectedPartners.length === displayedPartners.length) {
-      setSelectedPartners([]);
-    } else {
-      setSelectedPartners(displayedPartners.map(partner => partner.id));
-    }
+  // Calculate stats
+  const stats = {
+    totalPartners: mockPartners.length,
+    activePartners: mockPartners.filter(p => p.status === 'active').length,
+    totalCustomers: mockPartners.reduce((sum, p) => sum + p.customers, 0),
+    totalOpportunities: mockPartners.reduce((sum, p) => sum + p.opportunities, 0)
   };
   
   return (
     <div className="space-y-4">
-      {/* Unified toolbar with more emphasis on saved lists */}
+      {/* Main header with organization tools */}
       <div className="bg-white p-4 rounded-lg shadow-sm">
-        <div className="flex flex-col gap-4">
-          {/* Top row with saved lists and action buttons */}
+        <div className="flex flex-col gap-3">
+          {/* Top row with actions */}
           <div className="flex flex-wrap items-center justify-between">
-            {/* Left side - Saved Lists with actions */}
-            <div className="flex items-center gap-3">
-              {/* Saved Lists dropdown - redesigned to match provided image */}
+            <div className="flex items-center gap-2">
+              <h1 className="text-xl font-semibold text-gray-900 mr-2">Partners</h1>
+              
+              {/* Dropdown for saved searches and lists */}
               <div className="relative">
-                <button 
-                  className="flex items-center space-x-2 px-4 py-2.5 border rounded-md text-sm font-medium shadow-sm bg-white hover:bg-gray-50"
-                  onClick={() => setShowListsDropdown(!showListsDropdown)}
+                <Button 
+                  variant="outline" 
+                  className="flex items-center gap-2"
+                  onClick={() => setShowSavedItemsDrawer(!showSavedItemsDrawer)}
                 >
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-indigo-600">
-                    <path d="M5.25 1.5V4.25H12.6875V2C12.6875 1.725 12.4906 1.5 12.25 1.5H5.25ZM3.9375 1.5H1.75C1.50937 1.5 1.3125 1.725 1.3125 2V4.25H3.9375V1.5ZM1.3125 5.75V8.25H3.9375V5.75H1.3125ZM1.3125 9.75V12C1.3125 12.275 1.50937 12.5 1.75 12.5H3.9375V9.75H1.3125ZM5.25 12.5H12.25C12.4906 12.5 12.6875 12.275 12.6875 12V9.75H5.25V12.5ZM12.6875 8.25V5.75H5.25V8.25H12.6875ZM0 2C0 0.896875 0.784766 0 1.75 0H12.25C13.2152 0 14 0.896875 14 2V12C14 13.1031 13.2152 14 12.25 14H1.75C0.784766 14 0 13.1031 0 12V2Z" fill="#3E4DC4"/>
-                  </svg>
-                  <div className="flex items-center">
-                    <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
-                      {activeList ? activeList.name : "My Lists"}
-                    </span>
-                    
-                    {/* Dynamic List Type Indicator */}
-                    {activeList && (
-                      <div className="group relative ml-2">
-                        {activeList.type === 'selection' ? (
-                          <div className="flex items-center">
-                            <div className="bg-emerald-100 text-emerald-800 rounded-full px-2 py-0.5 text-xs">
-                              <div className="flex items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                                </svg>
-                                <span>Custom List</span>
-                              </div>
-                            </div>
-                            <div className="opacity-0 absolute -top-9 left-0 px-2 py-1 rounded bg-gray-800 text-white text-xs whitespace-nowrap transition-opacity group-hover:opacity-100 z-10">
-                              Only includes partners you manually add
-                            </div>
-                          </div>
-                        ) : (
-                          <div className="flex items-center">
-                            <div className="bg-blue-100 text-blue-800 rounded-full px-2 py-0.5 text-xs">
-                              <div className="flex items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                                </svg>
-                                <span>Saved Filter</span>
-                              </div>
-                            </div>
-                            <div className="opacity-0 absolute -top-9 left-0 px-2 py-1 rounded bg-gray-800 text-white text-xs whitespace-nowrap transition-opacity group-hover:opacity-100 z-10">
-                              Shows all partners that match your saved criteria
-                            </div>
-                          </div>
-                        )}
-                      </div>
-                    )}
-                  </div>
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    width="14" 
-                    height="14" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    className={`transition-transform ${showListsDropdown ? 'rotate-180' : ''}`}
-                  >
-                    <polyline points="6 9 12 15 18 9" />
-                  </svg>
-                </button>
+                  {activeSavedItem ? (
+                    <>
+                      {activeSavedItem.type === 'filter' ? <FilterIcon /> : <ListIcon />}
+                      <span>{activeSavedItem.name}</span>
+                      
+                      {/* Badge indicating type */}
+                      <Badge variant="outline" className={activeSavedItem.type === 'filter' 
+                        ? "bg-blue-50 text-blue-700 hover:bg-blue-50" 
+                        : "bg-emerald-50 text-emerald-700 hover:bg-emerald-50"
+                      }>
+                        {activeSavedItem.type === 'filter' ? 'Filter' : 'List'}
+                      </Badge>
+                    </>
+                  ) : (
+                    <>
+                      <ListIcon />
+                      <span>All Partners</span>
+                    </>
+                  )}
+                </Button>
                 
-                {/* Partner Lists and Views dropdown menu */}
-                {showListsDropdown && (
-                  <div className="absolute z-50 mt-1.5 w-96 rounded-md border border-slate-200 bg-white text-slate-950 shadow-md animate-in fade-in-80 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2">
-                    {/* Search section */}
-                    <div className="p-3 border-b border-slate-100">
-                      <div className="text-base font-medium mb-1 text-slate-800">Partner Lists</div>
-                      <div className="relative mt-2">
-                        <input
-                          type="text"
-                          placeholder="Search lists or views..."
-                          className="w-full pl-8 pr-3 py-2 text-sm rounded-md bg-transparent border border-slate-200 ring-offset-white placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
-                        />
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500">
-                          <circle cx="11" cy="11" r="8"></circle>
-                          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                        </svg>
-                      </div>
+                {/* Dropdown menu for saved items */}
+                {showSavedItemsDrawer && (
+                  <div className="absolute z-10 mt-1 w-80 bg-white rounded-md shadow-lg border border-gray-200">
+                    <div className="p-2 border-b border-gray-100">
+                      <h4 className="text-sm font-medium text-gray-700">Saved Searches & Lists</h4>
                     </div>
                     
-                    {/* Lists with their views */}
-                    <div className="max-h-[400px] overflow-y-auto py-2">
-                      {partnerLists.map(list => (
-                        <div key={list.id} className="relative mb-1">
-                          {/* List header */}
-                          <div
-                            className={`relative flex w-full cursor-pointer select-none items-center rounded-sm px-3 py-2 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 ${activePartnerList?.id === list.id ? 'bg-indigo-50 text-indigo-900' : 'text-slate-700'}`}
-                            onClick={() => {
-                              // Select this list and set its default view
-                              const defaultView = list.views.find(v => v.id === list.activeViewId) || 
-                                               list.views.find(v => v.isDefault) || 
-                                               list.views[0];
-                              setActivePartnerList(list);
-                              setActiveView(defaultView);
-                              
-                              // For backward compatibility
-                              const compatList: SavedList = {
-                                id: list.id,
-                                name: list.name,
-                                description: list.description,
-                                type: list.members.length === 0 ? 'filter' : 'selection',
-                                filters: defaultView.filters,
-                                members: list.members.length > 0 ? list.members : undefined,
-                                isShared: list.isShared,
-                                sharedWith: list.sharedWith,
-                                createdBy: list.createdBy,
-                                createdAt: list.createdAt,
-                                isDefault: list.isDefault
-                              };
-                              
-                              setActiveList(compatList);
-                              setOriginalListFilters(defaultView.filters);
-                              
-                              // Apply filter settings
-                              setFilterText(defaultView.filters.searchText || '');
-                              setSelectedStatus(defaultView.filters.status || '');
-                              setSelectedIndustry(defaultView.filters.industry || '');
-                              setSelectedType(defaultView.filters.type || '');
-                              setHasUnsavedChanges(false);
-                            }}
-                          >
-                            <div className="flex items-center justify-between w-full">
-                              <div className="flex items-center gap-2">
-                                {/* List folder icon */}
-                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`${activePartnerList?.id === list.id ? 'text-indigo-600' : 'text-slate-500'}`}>
-                                  <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z" />
-                                </svg>
+                    {/* Saved items list */}
+                    <div className="max-h-80 overflow-y-auto">
+                      {savedItems.length > 0 ? (
+                        <div className="p-1">
+                          {savedItems.map(item => (
+                            <div 
+                              key={item.id}
+                              className={`flex items-center p-2 rounded-md cursor-pointer hover:bg-gray-50 ${
+                                activeSavedItem?.id === item.id ? 'bg-gray-50' : ''
+                              }`}
+                              onClick={() => {
+                                setActiveSavedItem(item);
                                 
-                                <div>
-                                  <div className="text-sm font-medium">{list.name}</div>
-                                  {list.isShared && (
-                                    <div className="text-xs text-slate-500">Shared with team</div>
-                                  )}
-                                </div>
+                                // If it's a saved search, apply those filters
+                                if (item.type === 'filter' && item.filters) {
+                                  setSearchText(item.filters.search || '');
+                                  setStatusFilter(item.filters.status || 'any');
+                                  setIndustryFilter(item.filters.industry || 'any');
+                                  setTypeFilter(item.filters.type || 'any');
+                                }
+                                
+                                setShowSavedItemsDrawer(false);
+                              }}
+                            >
+                              {/* Icon based on type */}
+                              <div className={`p-1.5 rounded-full mr-2 ${
+                                item.type === 'filter' 
+                                  ? 'bg-blue-50 text-blue-700' 
+                                  : 'bg-emerald-50 text-emerald-700'
+                              }`}>
+                                {item.type === 'filter' ? <FilterIcon /> : <ListIcon />}
                               </div>
                               
-                              {/* Record count and list actions */}
-                              <div className="flex items-center gap-2">
-                                {/* Badge with partner count */}
-                                {list.members.length > 0 && (
-                                  <span className="px-1.5 py-0.5 bg-slate-100 text-slate-700 rounded-full text-xs">
-                                    {list.members.length}
-                                  </span>
-                                )}
-                            }}
-                          >
-                            <div className="flex flex-1 items-center">
-                              <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>{list.name}</span>
-                              {list.isShared && (
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2 text-indigo-500">
-                                  <circle cx="18" cy="5" r="3"></circle>
-                                  <circle cx="6" cy="12" r="3"></circle>
-                                  <circle cx="18" cy="19" r="3"></circle>
-                                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                                </svg>
-                              )}
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm font-medium text-gray-900 truncate">{item.name}</p>
+                                <p className="text-xs text-gray-500">
+                                  {item.count} partner{item.count !== 1 ? 's' : ''}
+                                </p>
+                              </div>
+                              
+                              <Badge variant="outline" className={`ml-2 ${
+                                item.type === 'filter' 
+                                  ? 'bg-blue-50 text-blue-700 hover:bg-blue-50' 
+                                  : 'bg-emerald-50 text-emerald-700 hover:bg-emerald-50'
+                              }`}>
+                                {item.type === 'filter' ? 'Filter' : 'List'}
+                              </Badge>
                             </div>
-                            
-                            {/* Three dots menu - only shown for non-default lists */}
-                            {!list.isDefault && (
-                              <div className="group ml-auto relative">
-                                <div 
-                                  className="rounded-full p-1 hover:bg-slate-200 text-slate-500 focus:outline-none cursor-pointer"
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    // This would toggle the edit menu in a real implementation
-                                  }}
-                                >
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <circle cx="12" cy="12" r="1"></circle>
-                                    <circle cx="12" cy="5" r="1"></circle>
-                                    <circle cx="12" cy="19" r="1"></circle>
-                                  </svg>
-                                </div>
-                                
-                                {/* Edit menu - shown on hover */}
-                                <div className="absolute right-0 mt-1 w-36 rounded-md border border-slate-200 bg-white p-1 shadow-md hidden group-hover:block z-50">
-                                  <div className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 w-full text-left text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
-                                    Rename
-                                  </div>
-                                  <div className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 w-full text-left text-red-600" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
-                                    Delete
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                            
-                            {/* Visual indicator for default list */}
-                            {list.isDefault && (
-                              <div className="ml-auto">
-                                <span className="text-xs text-[#282A3F] italic" style={{ fontFamily: 'Poppins, sans-serif' }}>Default</span>
-                              </div>
-                            )}
-                          </div>
+                          ))}
                         </div>
-                      ))}
+                      ) : (
+                        <div className="p-4 text-center text-gray-500 text-sm">
+                          No saved searches or lists yet
+                        </div>
+                      )}
                     </div>
                     
-                    {/* Separator */}
-                    <div className="mx-1 my-1 h-px bg-slate-100"></div>
-                    
-                    {/* Create new list button */}
-                    <div className="p-1">
-                      <div
-                        className="relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm font-medium outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 text-indigo-600"
-                        onClick={() => {
-                          // Clear everything for a fresh start
-                          setActiveList(null);
-                          setFilterText('');
-                          setSelectedStatus('');
-                          setSelectedIndustry('');
-                          setSelectedType('');
-                          
-                          // Clear selected partners for a fresh start with static lists
-                          setSelectedPartners([]);
-                          
-                          // Open the save list modal
-                          setShowSaveListModal(true);
-                          setShowListsDropdown(false);
-                        }}
-                        style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                          <path d="M5 12h14"></path>
-                          <path d="M12 5v14"></path>
-                        </svg>
-                        Create new list
+                    {/* Actions */}
+                    <div className="p-2 border-t border-gray-100">
+                      <div className="flex items-center justify-between">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          className="text-gray-600"
+                          onClick={() => {
+                            setActiveSavedItem(null);
+                            setSearchText('');
+                            setStatusFilter('any');
+                            setIndustryFilter('any');
+                            setTypeFilter('any');
+                            setShowSavedItemsDrawer(false);
+                          }}
+                        >
+                          View all partners
+                        </Button>
+                        
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          className="text-red-600"
+                          onClick={() => {
+                            if (activeSavedItem) {
+                              setSavedItems(savedItems.filter(item => item.id !== activeSavedItem.id));
+                              setActiveSavedItem(null);
+                              setShowSavedItemsDrawer(false);
+                              
+                              toast({
+                                title: "Item deleted",
+                                description: `"${activeSavedItem.name}" has been removed.`,
+                              });
+                            }
+                          }}
+                          disabled={!activeSavedItem}
+                        >
+                          Delete
+                        </Button>
                       </div>
                     </div>
                   </div>
                 )}
               </div>
-              
-              {/* List actions - Share/Clear when a list is active */}
-              {activeList && (
-                <div className="flex items-center gap-2">
-                  
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="text-indigo-600"
-                    onClick={() => setShowShareListModal(true)}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                      <circle cx="18" cy="5" r="3"></circle>
-                      <circle cx="6" cy="12" r="3"></circle>
-                      <circle cx="18" cy="19" r="3"></circle>
-                      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                    </svg>
-                    Share
-                  </Button>
-                  
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    className="text-indigo-600"
-                    onClick={() => {
-                      // Show campaign options modal
-                      // This would be implemented with a proper modal in the final version
-                      alert('This list can be added to a campaign in the Campaigns section');
-                    }}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                      <path d="M22 2 11 13" />
-                      <path d="M22 2 15 22 11 13 2 9 22 2z" />
-                    </svg>
-                    Add to Campaign
-                  </Button>
-                  
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    className="text-gray-600"
-                    onClick={() => {
-                      setActiveList(null);
-                      setOriginalListFilters(null);
-                      setFilterText('');
-                      setSelectedStatus('');
-                      setSelectedIndustry('');
-                      setSelectedType('');
-                      setHasUnsavedChanges(false);
-                    }}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                      <path d="M18 6 6 18"></path>
-                      <path d="m6 6 12 12"></path>
-                    </svg>
-                    Return to all partners
-                  </Button>
-                </div>
-              )}
             </div>
             
-            {/* Right-side action buttons */}
-            <div className="flex items-center gap-2">
-              
-              <Button variant="outline" size="sm" className="hidden md:flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                  <polyline points="7 10 12 15 17 10"></polyline>
-                  <line x1="12" y1="15" x2="12" y2="3"></line>
-                </svg>
-                Export
-              </Button>
-              
-
+            {/* Simple search */}
+            <div className="relative flex items-center min-w-[200px]">
+              <Input
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+                placeholder="Search partners..."
+                className="pr-10"
+              />
+              <div className="absolute right-3 text-gray-400">
+                <SearchIcon />
+              </div>
             </div>
           </div>
           
-          {/* Saved Filter Guidance Banner - appears after creating a filter-based list */}
-          {showDynamicListGuidance && activeList?.type === 'filter' && (
-            <div className="bg-blue-50 border border-blue-200 rounded-lg mb-4 overflow-hidden transition-all duration-300">
-              <div className="p-4 cursor-pointer flex items-center justify-between" 
-                   onClick={() => setIsGuidanceCollapsed(!isGuidanceCollapsed)}>
-                <div className="flex items-center">
-                  <div className="flex-shrink-0 bg-blue-100 rounded-full p-1.5">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1e40af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <line x1="12" y1="16" x2="12" y2="12"></line>
-                      <line x1="12" y1="8" x2="12.01" y2="8"></line>
+          {/* Stats row */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <Card>
+              <CardContent className="p-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500">Total Partners</p>
+                    <h3 className="text-xl font-semibold">{stats.totalPartners}</h3>
+                  </div>
+                  <div className="p-2 bg-purple-50 rounded-full text-purple-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="9" cy="7" r="4"></circle>
+                      <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                     </svg>
                   </div>
-                  <h3 className="ml-3 text-sm font-medium text-blue-800" style={{ fontFamily: 'Poppins, sans-serif' }}>
-                    Next step: Set your filter criteria
-                  </h3>
                 </div>
-                <div>
-                  {isGuidanceCollapsed ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1e40af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="18 15 12 9 6 15"></polyline>
-                    </svg>
-                  ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1e40af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="6 9 12 15 18 9"></polyline>
-                    </svg>
-                  )}
-                </div>
-              </div>
-              
-              {/* Collapsible content */}
-              {!isGuidanceCollapsed && (
-                <div className="px-4 pb-4 pt-1 ml-10">
-                  <div className="text-sm text-blue-700">
-                    <p>Use the filters below to specify which partners should be included in this dynamic list.</p>
-                    <ul className="list-disc pl-5 mt-2 space-y-1">
-                      <li><strong>Business Value:</strong> Maintain real-time partner segments for targeted campaigns</li>
-                      <li><strong>Automation:</strong> New partners matching your criteria are added automatically</li>
-                      <li><strong>Consistency:</strong> Always up-to-date view for reporting and opportunity tracking</li>
-                    </ul>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-          
-          {/* Static List Information Banner - shows when a static list is active */}
-          {activeList?.type === 'selection' && (
-            <div className="bg-[#EBEEFB] border border-[#D4D9F3] rounded-lg mb-4 overflow-hidden transition-all duration-300">
-              <div className="p-4 cursor-pointer flex items-center justify-between" 
-                   onClick={() => setIsGuidanceCollapsed(!isGuidanceCollapsed)}>
-                <div className="flex items-center">
-                  <div className="flex-shrink-0 bg-[#D4D9F3] rounded-full p-1.5">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                      <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                    </svg>
-                  </div>
-                  <h3 className="ml-3 text-sm font-medium text-[#3E4DC4]" style={{ fontFamily: 'Poppins, sans-serif' }}>
-                    Static List: Only changes when you make them
-                  </h3>
-                </div>
-                <div>
-                  {isGuidanceCollapsed ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="18 15 12 9 6 15"></polyline>
-                    </svg>
-                  ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="6 9 12 15 18 9"></polyline>
-                    </svg>
-                  )}
-                </div>
-              </div>
-              
-              {/* Collapsible content */}
-              {!isGuidanceCollapsed && (
-                <div className="px-4 pb-4 pt-1 ml-10">
-                  <div className="text-sm text-[#5F6585]">
-                    <p><strong>This list will only change when you explicitly add or remove partners.</strong></p>
-                    <ul className="list-disc pl-5 mt-2 space-y-1">
-                      <li><strong>No automatic updates:</strong> New partners will never be added automatically</li>
-                      <li><strong>Full control:</strong> You decide exactly which partners should be included</li>
-                      <li><strong>Manual management:</strong> Use the "Add Partners" button to expand your list anytime</li>
-                    </ul>
-                    <div className="flex mt-3">
-                      <button 
-                        className="flex items-center rounded-md bg-[#5567E5] text-white px-3 py-1.5 text-xs hover:bg-[#4555CB]"
-                        onClick={() => {
-                          setPartnersToAdd([]);
-                          setShowAddPartnersModal(true);
-                        }}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                          <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                          <circle cx="8.5" cy="7" r="4"></circle>
-                          <line x1="20" y1="8" x2="20" y2="14"></line>
-                          <line x1="23" y1="11" x2="17" y2="11"></line>
-                        </svg>
-                        Add partners to this list
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-          )}
-          
-          {/* Bottom row with search and filters */}
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex flex-wrap items-center gap-3 flex-grow">
-              {/* Search field - moved to second row */}
-              <div className="relative w-60">
-                <input
-                  type="text"
-                  placeholder="Search by name, industry..."
-                  value={filterText}
-                  onChange={(e) => setFilterText(e.target.value)}
-                  className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
-                />
-                <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                  </svg>
-                </button>
-              </div>
-              
-              {/* Filters - placed alongside search */}
-              <div className="flex gap-2 flex-wrap">
-                <button 
-                  className={`flex items-center space-x-1 px-3 py-2 border rounded-md text-sm ${selectedStatus ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
-                  onClick={() => setSelectedStatus(selectedStatus ? '' : 'active')}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={selectedStatus ? 'text-indigo-500' : 'text-gray-500'}>
-                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                  </svg>
-                  <span>Status{selectedStatus ? ': Active' : ''}</span>
-                  {selectedStatus && (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                      <path d="M18 6 6 18"></path>
-                      <path d="m6 6 12 12"></path>
-                    </svg>
-                  )}
-                </button>
-                
-                <button 
-                  className={`flex items-center space-x-1 px-3 py-2 border rounded-md text-sm ${selectedIndustry ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
-                  onClick={() => setSelectedIndustry(selectedIndustry ? '' : 'Insurance')}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={selectedIndustry ? 'text-indigo-500' : 'text-gray-500'}>
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
-                  </svg>
-                  <span>Industry{selectedIndustry ? `: ${selectedIndustry}` : ''}</span>
-                  {selectedIndustry && (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                      <path d="M18 6 6 18"></path>
-                      <path d="m6 6 12 12"></path>
-                    </svg>
-                  )}
-                </button>
-                
-                <button 
-                  className={`flex items-center space-x-1 px-3 py-2 border rounded-md text-sm ${selectedType ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
-                  onClick={() => setSelectedType(selectedType ? '' : 'Broker')}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={selectedType ? 'text-indigo-500' : 'text-gray-500'}>
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="9" cy="7" r="4"></circle>
-                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                  </svg>
-                  <span>Type{selectedType ? `: ${selectedType}` : ''}</span>
-                  {selectedType && (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                      <path d="M18 6 6 18"></path>
-                      <path d="m6 6 12 12"></path>
-                    </svg>
-                  )}
-                </button>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
             
-            <div className="flex items-center gap-2">
-              {/* Add Partners button - only shown for static lists */}
-              {activeList && activeList.type === 'selection' && (
-                <button 
-                  className="flex items-center rounded-md bg-[#EBEEFB] border border-[#D4D9F3] text-[#3E4DC4] px-4 py-2 hover:bg-[#D4D9F3]"
-                  onClick={() => {
-                    setPartnersToAdd([]);
-                    setShowAddPartnersModal(true);
-                  }}
-                  style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="9" cy="7" r="4"></circle>
-                    <path d="M22 11h-6"></path>
-                    <path d="M19 8v6"></path>
-                  </svg>
-                  <span className="font-medium">Add existing partners to this list</span>
-                </button>
-              )}
-
-              {/* Revert button - only shown for non-default lists with unsaved changes */}
-              {hasUnsavedChanges && activeList && !activeList.isDefault && (
-                <button 
-                  className="flex items-center rounded-md px-4 py-2 text-gray-600 hover:bg-gray-100"
-                  onClick={revertChanges}
-                  style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5F6585" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                    <path d="M3 7v6h6"></path>
-                    <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
-                  </svg>
-                  <span className="text-[#5F6585]">Revert changes</span>
-                </button>
-              )}
-              
-              {/* Save button for existing non-default lists with unsaved changes */}
-              {activeList && !activeList.isDefault && hasUnsavedChanges && (
-                <button 
-                  className="flex items-center rounded-md bg-[#EBEEFB] px-4 py-2 hover:bg-[#E3E6F7]"
-                  onClick={saveChanges}
-                  style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                    <polyline points="7 3 7 8 15 8"></polyline>
-                  </svg>
-                  <span className="text-[#3E4DC4] font-medium">Save</span>
-                </button>
-              )}
-              
-              {/* Save as new list button - shown when filters are applied or for non-default lists with unsaved changes */}
-              {(
-                // Show for default lists or no active list when filters are applied
-                ((filterText || selectedStatus || selectedIndustry || selectedType) && (activeList?.isDefault || !activeList)) || 
-                // OR show for non-default lists with unsaved changes
-                (activeList && !activeList.isDefault && hasUnsavedChanges)
-              ) && (
-                <button 
-                  className="flex items-center rounded-md bg-[#EBEEFB] px-4 py-2 hover:bg-[#E3E6F7]"
-                  onClick={() => setShowSaveListModal(true)}
-                  style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                    <polyline points="7 3 7 8 15 8"></polyline>
-                  </svg>
-                  <span className="text-[#3E4DC4] font-medium">Save this group of filters</span>
-                </button>
-              )}
-            </div>
+            <Card>
+              <CardContent className="p-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500">Active Partners</p>
+                    <h3 className="text-xl font-semibold">{stats.activePartners}</h3>
+                  </div>
+                  <div className="p-2 bg-green-50 rounded-full text-green-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline>
+                    </svg>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
             
-            {/* Clear filters button - only shown when at least one filter is applied */}
-            {(filterText || selectedStatus || selectedIndustry || selectedType) && (
-              <button 
+            <Card>
+              <CardContent className="p-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500">Customers</p>
+                    <h3 className="text-xl font-semibold">{stats.totalCustomers}</h3>
+                  </div>
+                  <div className="p-2 bg-blue-50 rounded-full text-blue-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="9" cy="7" r="4"></circle>
+                      <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            <Card>
+              <CardContent className="p-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm text-gray-500">Opportunities</p>
+                    <h3 className="text-xl font-semibold">{stats.totalOpportunities}</h3>
+                  </div>
+                  <div className="p-2 bg-yellow-50 rounded-full text-yellow-600">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                    </svg>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+          
+          {/* Partner organization options */}
+          <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg mt-4">
+            <h3 className="font-medium text-gray-900 mb-4">How do you want to organize partners?</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Option 1: Save filters */}
+              <div 
+                className="border border-blue-200 bg-blue-50 rounded-lg p-4 cursor-pointer hover:bg-blue-100 transition-colors"
                 onClick={() => {
-                  setFilterText('');
-                  setSelectedStatus('');
-                  setSelectedIndustry('');
-                  setSelectedType('');
-                  if (activeList) setActiveList(null);
+                  // Check if any filters are active
+                  const hasActiveFilters = searchText || 
+                    (statusFilter && statusFilter !== 'any') || 
+                    (industryFilter && industryFilter !== 'any') || 
+                    (typeFilter && typeFilter !== 'any');
+                  
+                  if (!hasActiveFilters) {
+                    toast({
+                      title: "No filters applied",
+                      description: "You don't have any filters applied yet. You can still save this to get all partners in a filter that will update automatically.",
+                      duration: 5000,
+                    });
+                  }
+                  
+                  setShowSearchModal(true);
                 }}
-                className="text-xs text-gray-500 hover:text-gray-700 flex items-center px-2 py-1 hover:bg-gray-50 rounded-md transition-colors"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                  <path d="M18 6L6 18"></path>
-                  <path d="M6 6l12 12"></path>
-                </svg>
-                Clear filters
-              </button>
-            )}
+                <div className="flex items-center mb-2">
+                  <div className="p-2 bg-blue-100 rounded-full mr-3">
+                    <FilterIcon />
+                  </div>
+                  <h4 className="font-medium text-blue-800">Save a group of filters</h4>
+                </div>
+                <p className="text-sm text-blue-700">
+                  I want to save my filter settings so that my list automatically updates when partners match my criteria.
+                </p>
+                <Button 
+                  variant="outline" 
+                  className="mt-3 bg-white border-blue-200 text-blue-700 hover:bg-blue-50"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    
+                    // Check if any filters are active
+                    const hasActiveFilters = searchText || 
+                      (statusFilter && statusFilter !== 'any') || 
+                      (industryFilter && industryFilter !== 'any') || 
+                      (typeFilter && typeFilter !== 'any');
+                    
+                    if (!hasActiveFilters) {
+                      toast({
+                        title: "No filters applied",
+                        description: "You don't have any filters applied yet. You can still save this to get all partners in a filter that will update automatically.",
+                        duration: 5000,
+                      });
+                    }
+                    
+                    setShowSearchModal(true);
+                  }}
+                >
+                  Save filters
+                </Button>
+              </div>
+              
+              {/* Option 2: Save selected partners */}
+              <div 
+                className={`border rounded-lg p-4 cursor-pointer transition-colors ${
+                  selectedPartners.length > 0 
+                    ? "border-emerald-200 bg-emerald-50 hover:bg-emerald-100" 
+                    : "border-gray-200 bg-gray-100 opacity-60"
+                }`}
+                onClick={() => {
+                  if (selectedPartners.length > 0) {
+                    setShowListModal(true);
+                  } else {
+                    toast({
+                      title: "No partners selected",
+                      description: "Select partners using the checkboxes in the table first, then create a list.",
+                    });
+                  }
+                }}
+              >
+                <div className="flex items-center mb-2">
+                  <div className={`p-2 rounded-full mr-3 ${
+                    selectedPartners.length > 0 ? "bg-emerald-100" : "bg-gray-200"
+                  }`}>
+                    <ListIcon />
+                  </div>
+                  <h4 className={`font-medium ${
+                    selectedPartners.length > 0 ? "text-emerald-800" : "text-gray-600"
+                  }`}>
+                    Save the selected partners
+                  </h4>
+                </div>
+                <p className={`text-sm ${
+                  selectedPartners.length > 0 ? "text-emerald-700" : "text-gray-500"
+                }`}>
+                  I want to save just the {selectedPartners.length > 0 ? selectedPartners.length : ""} partners I've selected. 
+                  This list won't change unless I change it manually.
+                </p>
+                <Button 
+                  variant="outline" 
+                  className={`mt-3 ${
+                    selectedPartners.length > 0 
+                      ? "bg-white border-emerald-200 text-emerald-700 hover:bg-emerald-50" 
+                      : "bg-gray-100 border-gray-300 text-gray-500"
+                  }`}
+                  disabled={selectedPartners.length === 0}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (selectedPartners.length > 0) {
+                      setShowListModal(true);
+                    } else {
+                      toast({
+                        title: "No partners selected",
+                        description: "Select partners using the checkboxes in the table first.",
+                      });
+                    }
+                  }}
+                >
+                  {selectedPartners.length > 0 
+                    ? `Save ${selectedPartners.length} partners` 
+                    : "Select partners first"}
+                </Button>
+              </div>
+            </div>
           </div>
+          
+          {/* Display active context */}
+          {activeSavedItem && (
+            <div className={`p-3 rounded-lg ${
+              activeSavedItem.type === 'filter' 
+                ? 'bg-blue-50 border border-blue-100' 
+                : 'bg-emerald-50 border border-emerald-100'
+            }`}>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center">
+                  <div className={`p-1.5 rounded-full mr-3 ${
+                    activeSavedItem.type === 'filter' 
+                      ? 'bg-blue-100 text-blue-700' 
+                      : 'bg-emerald-100 text-emerald-700'
+                  }`}>
+                    {activeSavedItem.type === 'filter' ? <FilterIcon /> : <ListIcon />}
+                  </div>
+                  
+                  <div>
+                    <h3 className={`text-sm font-medium ${
+                      activeSavedItem.type === 'filter' ? 'text-blue-700' : 'text-emerald-700'
+                    }`}>
+                      {activeSavedItem.type === 'filter' ? 'Filter: ' : 'List: '}
+                      {activeSavedItem.name}
+                    </h3>
+                    
+                    <p className="text-xs text-gray-600 mt-0.5">
+                      {displayedPartners.length} partner{displayedPartners.length !== 1 ? 's' : ''} 
+                      {activeSavedItem.type === 'filter' 
+                        ? ' match your filter criteria' 
+                        : ' in this list'}
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  {activeSavedItem.type === 'filter' ? (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="border-blue-200 text-blue-700 hover:bg-blue-50"
+                      onClick={() => setShowSearchModal(true)}
+                    >
+                      Edit Search
+                    </Button>
+                  ) : (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="border-emerald-200 text-emerald-700 hover:bg-emerald-50"
+                      onClick={() => {
+                        // Add partners button - for lists only
+                        setShowListModal(true);
+                      }}
+                    >
+                      <PlusIcon />
+                      <span className="ml-1">Add Partners</span>
+                    </Button>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
       
-      {/* Selection actions bar - visible when items are selected */}
+      {/* Selection bar - appears when partners are selected */}
       {selectedPartners.length > 0 && (
-        <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between mb-4">
+        <div className="bg-indigo-50 border border-indigo-100 p-3 rounded-lg flex items-center justify-between">
           <div className="flex items-center">
-            <span className="text-indigo-700 font-medium mr-2">{selectedPartners.length} partners selected</span>
-            <Button 
-              variant="ghost" 
-              size="sm"
-              className="text-gray-600"
-              onClick={() => setSelectedPartners([])}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                <path d="M18 6 6 18"></path>
-                <path d="m6 6 12 12"></path>
-              </svg>
-              Clear selection
-            </Button>
+            <div className="bg-indigo-600 text-white rounded-full h-6 w-6 flex items-center justify-center mr-2">
+              <span className="text-xs font-medium">{selectedPartners.length}</span>
+            </div>
+            <span className="text-sm font-medium text-indigo-800">
+              {selectedPartners.length} partner{selectedPartners.length !== 1 ? 's' : ''} selected
+            </span>
           </div>
           
-          <div className="flex items-center gap-2 flex-wrap">
-            <Button 
-              variant="default" 
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
               size="sm"
-              className="bg-[#5567E5] hover:bg-[#4555CB] text-white"
-              onClick={openCreateFromSelection}
+              className="border-indigo-200 text-indigo-700 hover:bg-indigo-100"
+              onClick={() => setSelectedPartners([])}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                <polyline points="7 3 7 8 15 8"></polyline>
-              </svg>
-              Create List
+              Clear Selection
             </Button>
             
-            <Button 
-              variant="outline" 
+            <Button
               size="sm"
-              className="text-indigo-600"
-              onClick={() => {
-                // TODO: Implement campaign creation
-                alert('Selected partners can be added to a campaign. This will be available in the Campaigns section');
-              }}
+              className="bg-indigo-600 hover:bg-indigo-700 text-white"
+              onClick={() => setShowListModal(true)}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                <path d="M22 2 11 13" />
-                <path d="M22 2 15 22 11 13 2 9 22 2z" />
-              </svg>
-              Add to Campaign
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => {
-                // TODO: Implement template assignment
-                alert('Assign template functionality will be implemented in future');
-              }}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                <polyline points="22 4 12 14.01 9 11.01"></polyline>
-              </svg>
-              Assign Template
+              <ListIcon />
+              <span className="ml-1.5">Create List</span>
             </Button>
           </div>
         </div>
       )}
-
-      {/* Statistics overview */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white p-4 rounded-md border border-gray-200">
-          <div className="text-xl font-semibold">{stats.totalPartners}</div>
-          <div className="text-sm text-gray-500">Total Partners</div>
-        </div>
-        
-        <div className="bg-white p-4 rounded-md border border-gray-200">
-          <div className="text-xl font-semibold">{stats.activePartners}</div>
-          <div className="text-sm text-gray-500">Active Partners</div>
-        </div>
-        
-        <div className="bg-white p-4 rounded-md border border-gray-200">
-          <div className="text-xl font-semibold">{stats.totalCustomers}</div>
-          <div className="text-sm text-gray-500">Total Customers</div>
-        </div>
-        
-        <div className="bg-white p-4 rounded-md border border-gray-200">
-          <div className="text-xl font-semibold">{stats.totalOpportunities}</div>
-          <div className="text-sm text-gray-500">Total Opportunities</div>
+      
+      {/* Partners grid/table */}
+      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="min-w-full divide-y divide-gray-200">
+            <thead>
+              <tr>
+                <th scope="col" className="py-3.5 pl-4 pr-3 w-12">
+                  <Checkbox 
+                    checked={selectedPartners.length > 0 && selectedPartners.length === displayedPartners.length} 
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setSelectedPartners(displayedPartners.map(p => p.id));
+                      } else {
+                        setSelectedPartners([]);
+                      }
+                    }}
+                    className="ml-1"
+                  />
+                </th>
+                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                  Partner
+                </th>
+                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                  Industry
+                </th>
+                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                  Type
+                </th>
+                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                  Size
+                </th>
+                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                  Status
+                </th>
+                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                  Customers
+                </th>
+                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                  Opportunities
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-200">
+              {displayedPartners.length > 0 ? (
+                displayedPartners.map(partner => (
+                  <tr 
+                    key={partner.id}
+                    className={`hover:bg-gray-50 ${selectedPartners.includes(partner.id) ? 'bg-gray-50' : ''}`}
+                  >
+                    <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm">
+                      <Checkbox 
+                        checked={selectedPartners.includes(partner.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            if (!selectedPartners.includes(partner.id)) {
+                              setSelectedPartners([...selectedPartners, partner.id]);
+                            }
+                          } else {
+                            setSelectedPartners(selectedPartners.filter(id => id !== partner.id));
+                          }
+                        }}
+                      />
+                    </td>
+                    <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm font-medium">
+                      <div className="flex items-center">
+                        <Avatar className="h-8 w-8 mr-3 bg-indigo-100 text-indigo-600">
+                          <AvatarFallback>{partner.initials}</AvatarFallback>
+                        </Avatar>
+                        <Link 
+                          href={`/lists/partners/${partner.id}`} 
+                          className="text-blue-600 hover:text-blue-800 font-medium"
+                        >
+                          {partner.name}
+                        </Link>
+                      </div>
+                    </td>
+                    <td className="whitespace-nowrap py-4 px-3 text-sm text-gray-700">{partner.industry}</td>
+                    <td className="whitespace-nowrap py-4 px-3 text-sm text-gray-700">{partner.type}</td>
+                    <td className="whitespace-nowrap py-4 px-3 text-sm text-gray-700 capitalize">{partner.size}</td>
+                    <td className="whitespace-nowrap py-4 px-3 text-sm">
+                      <Badge variant={partner.status === 'active' ? 'outline' : 'secondary'} className="capitalize">
+                        {partner.status}
+                      </Badge>
+                    </td>
+                    <td className="whitespace-nowrap py-4 px-3 text-sm text-gray-700">{partner.customers}</td>
+                    <td className="whitespace-nowrap py-4 px-3 text-sm text-gray-700">{partner.opportunities}</td>
+                  </tr>
+                ))
+              ) : (
+                <tr>
+                  <td colSpan={8} className="py-10 text-center">
+                    <div className="flex flex-col items-center">
+                      <div className="p-3 bg-gray-100 rounded-full text-gray-500 mb-3">
+                        {activeSavedItem?.type === 'filter' ? <FilterIcon /> : <ListIcon />}
+                      </div>
+                      
+                      <h3 className="text-base font-medium text-gray-900 mb-1">
+                        {activeSavedItem
+                          ? activeSavedItem.type === 'filter'
+                            ? 'No partners match your filters'
+                            : 'This list is empty'
+                          : 'No partners match your filters'
+                        }
+                      </h3>
+                      
+                      <p className="text-sm text-gray-500 max-w-md mb-4">
+                        {activeSavedItem
+                          ? activeSavedItem.type === 'filter'
+                            ? 'Try adjusting your filter criteria to find partners.'
+                            : 'Add partners to this list using the "Add Partners" button.'
+                          : 'Try removing some filters to see more partners.'
+                        }
+                      </p>
+                      
+                      {activeSavedItem?.type === 'filter' && (
+                        <Button
+                          variant="outline"
+                          onClick={() => setShowSearchModal(true)}
+                        >
+                          <FilterIcon />
+                          <span className="ml-2">Adjust Search</span>
+                        </Button>
+                      )}
+                      
+                      {activeSavedItem?.type === 'list' && (
+                        <Button
+                          className="bg-[#5567E5] hover:bg-[#4151c4] text-white"
+                          onClick={() => setShowListModal(true)}
+                        >
+                          <PlusIcon />
+                          <span className="ml-2">Add Partners</span>
+                        </Button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
         </div>
       </div>
       
-      {/* Save List Modal */}
-      <Dialog open={showSaveListModal} onOpenChange={setShowSaveListModal}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-[#282A3F] font-semibold text-lg" style={{ fontFamily: 'Poppins, sans-serif' }}>{activeList ? 'Update List' : 'Create a new list'}</DialogTitle>
-            <DialogDescription>
-              {activeList ? 
-                'Update your list settings below.' : 
-                'Give your list a name and choose which type you want to create.'}
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-4">
-              {/* List Name */}
-              <div className="grid gap-2">
-                <Label htmlFor="listName" className="text-sm font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>List Name</Label>
-                <Input 
-                  id="listName" 
-                  placeholder="Enter a name for this list"
-                  defaultValue={activeList?.name || ''}
-                />
-                <div className="grid gap-2">
-                  <Label htmlFor="listDescription" className="text-sm font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>Description (Optional)</Label>
-                  <Textarea 
-                    id="listDescription" 
-                    placeholder="Add a short description"
-                    rows={2}
-                    defaultValue={activeList?.description || ''}
+      {/* Search & Filter Modal - a simple, intuitive search UI */}
+      <Dialog open={showSearchModal} onOpenChange={setShowSearchModal}>
+        <DialogContent className="sm:max-w-lg">
+          {/* Check if any filters are applied */}
+          {!searchText && statusFilter === 'any' && industryFilter === 'any' && typeFilter === 'any' ? (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-xl font-semibold">Save group of filters as a list</DialogTitle>
+                <DialogDescription>
+                  No filters applied. You don't have any filters applied yet. You can still save this list and apply a filter later.
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="grid gap-4 py-4">
+                <div>
+                  <Label htmlFor="no-filter-list-name">Name (required)</Label>
+                  <Input
+                    id="no-filter-list-name"
+                    placeholder="Enter a name for your list"
+                    defaultValue="All Partners"
+                    className="mt-1"
+                  />
+                </div>
+                
+                <div>
+                  <Label htmlFor="no-filter-list-description">Description (optional)</Label>
+                  <Textarea
+                    id="no-filter-list-description"
+                    placeholder="Enter a description for your list"
+                    className="mt-1 resize-none"
+                    rows={3}
                   />
                 </div>
               </div>
               
-              {/* List Type as Radio Buttons */}
-              <div className="grid gap-2">
-                <input type="hidden" id="hidden-list-type-value" value={activeList?.type || "filter"} />
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>List Type</Label>
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowSearchModal(false)}>
+                  Cancel
+                </Button>
+                
+                <Button 
+                  className="bg-[#5567E5] hover:bg-[#4151c4] text-white"
+                  onClick={() => {
+                    const listName = (document.getElementById('no-filter-list-name') as HTMLInputElement)?.value || 'All Partners';
+                    createSavedSearch(listName);
+                    setShowSearchModal(false);
+                  }}
+                >
+                  Create list
+                </Button>
+              </DialogFooter>
+            </>
+          ) : (
+            <>
+              <DialogHeader>
+                <DialogTitle className="text-xl font-semibold">Filter Partners</DialogTitle>
+                <DialogDescription>
+                  Search for partners and save your filters for later use
+                </DialogDescription>
+              </DialogHeader>
+              
+              <div className="grid gap-4 py-4">
+                <div className="grid gap-3">
+                  <Label htmlFor="find-partners-search">Partner Name, Industry, or Type</Label>
+                  <Input
+                    id="find-partners-search"
+                    value={searchText}
+                    onChange={(e) => setSearchText(e.target.value)}
+                    placeholder="Enter keywords to search"
+                    className="col-span-3"
+                  />
+                </div>
+                
+                <div className="grid grid-cols-3 gap-3">
+                  <div>
+                    <Label htmlFor="status-filter" className="mb-1.5 block">Status</Label>
+                    <Select value={statusFilter} onValueChange={setStatusFilter}>
+                      <SelectTrigger id="status-filter">
+                        <SelectValue placeholder="Any status" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="any">Any status</SelectItem>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
                   
-                  <div className="grid grid-cols-1 gap-3">
-                    {/* Dynamic List Option */}
-                    <div 
-                      className={`relative flex items-start p-3 rounded-lg border-2 ${
-                        document.getElementById('hidden-list-type-value')?.getAttribute('value') === 'filter' 
-                        ? 'border-indigo-600 bg-indigo-50' 
-                        : 'border-gray-200 hover:border-gray-300'
-                      } cursor-pointer`}
-                      onClick={() => {
-                        document.getElementById('hidden-list-type-value')?.setAttribute('value', 'filter');
-                        const radioElement = document.getElementById('list-type-filter') as HTMLInputElement;
-                        if (radioElement) radioElement.checked = true;
-                      }}
-                    >
-                      <div className="flex items-center h-5">
-                        <input
-                          id="list-type-filter"
-                          type="radio"
-                          name="list-type"
-                          className="w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-600"
-                          defaultChecked={(filterText || selectedStatus || selectedIndustry || selectedType) ? true : false}
-                          onChange={() => {
-                            document.getElementById('hidden-list-type-value')?.setAttribute('value', 'filter');
-                          }}
-                        />
-                      </div>
-                      <div className="ml-3 flex gap-2 items-center">
-                        <div className="p-1 rounded-full bg-blue-100">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-800">
-                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                          </svg>
-                        </div>
-                        <div>
-                          <Label className="font-medium text-sm">
-                            {(filterText || selectedStatus || selectedIndustry || selectedType) ? 
-                              'Save my current filters' : 
-                              'Create a Saved Filter'
-                            }
-                          </Label>
-                          <p className="text-xs text-gray-500">
-                            {(filterText || selectedStatus || selectedIndustry || selectedType) ? 
-                              <>Partners matching these criteria will <strong>automatically update</strong> as data changes</> : 
-                              <>Define criteria and see all partners that match them, automatically</>
-                            }
-                            {(!filterText && !selectedStatus && !selectedIndustry && !selectedType) && (
-                              <span className="block mt-1 text-amber-600">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block mr-1">
-                                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-                                </svg>
-                                You don't have any filters applied right now
-                              </span>
-                            )}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Static List Option */}
-                    <div 
-                      className={`relative flex items-start p-3 rounded-lg border-2 ${
-                        document.getElementById('hidden-list-type-value')?.getAttribute('value') === 'selection' 
-                        ? 'border-indigo-600 bg-indigo-50' 
-                        : 'border-gray-200 hover:border-gray-300'
-                      } cursor-pointer`}
-                      onClick={() => {
-                        document.getElementById('hidden-list-type-value')?.setAttribute('value', 'selection');
-                        const radioElement = document.getElementById('list-type-selection') as HTMLInputElement;
-                        if (radioElement) radioElement.checked = true;
-                      }}
-                    >
-                      <div className="flex items-center h-5">
-                        <input
-                          id="list-type-selection"
-                          type="radio"
-                          name="list-type"
-                          className="w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-600"
-                          // Default to selection list when partners are selected
-                          defaultChecked={selectedPartners.length > 0}
-                          onChange={() => {
-                            document.getElementById('hidden-list-type-value')?.setAttribute('value', 'selection');
-                          }}
-                        />
-                      </div>
-                      <div className="ml-3 flex gap-2 items-center">
-                        <div className="p-1 rounded-full bg-emerald-100">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-800">
-                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                          </svg>
-                        </div>
-                        <div>
-                          <Label className="font-medium text-sm">
-                            {selectedPartners.length > 0 ? 
-                              `Save selected partners as a Custom List` : 
-                              'Create a Custom List'
-                            }
-                          </Label>
-                          <p className="text-xs text-gray-500">
-                            {selectedPartners.length > 0 ? 
-                              <>Only the partners you <strong>specifically select</strong> will be included</> :
-                              <>Create a list where you manually add and remove partners as needed</>
-                            }
-                            <span className="block mt-1 text-blue-600">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block mr-1">
-                                <circle cx="12" cy="12" r="10"></circle>
-                                <line x1="12" y1="8" x2="12" y2="16"></line>
-                                <line x1="8" y1="12" x2="16" y2="12"></line>
-                              </svg>
-                              {selectedPartners.length > 0 ? 
-                                `${selectedPartners.length} partner${selectedPartners.length > 1 ? 's' : ''} will be added immediately` : 
-                                "You'll need to add partners manually after creating"
-                              }
-                            </span>
-                          </p>
-                        </div>
-                      </div>
-                    </div>
+                  <div>
+                    <Label htmlFor="industry-filter" className="mb-1.5 block">Industry</Label>
+                    <Select value={industryFilter} onValueChange={setIndustryFilter}>
+                      <SelectTrigger id="industry-filter">
+                        <SelectValue placeholder="Any industry" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="any">Any industry</SelectItem>
+                        <SelectItem value="Insurance">Insurance</SelectItem>
+                        <SelectItem value="Finance">Finance</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="type-filter" className="mb-1.5 block">Partner Type</Label>
+                    <Select value={typeFilter} onValueChange={setTypeFilter}>
+                      <SelectTrigger id="type-filter">
+                        <SelectValue placeholder="Any type" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="any">Any type</SelectItem>
+                        <SelectItem value="Broker">Broker</SelectItem>
+                        <SelectItem value="Agency">Agency</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
-              </div>
-
-            </div>
-            
-            <div className="flex p-3 rounded-lg border border-gray-200 items-center space-x-3 bg-gray-50">
-              <Checkbox id="shareList" defaultChecked={activeList?.isShared || false} />
-              <div>
-                <Label htmlFor="shareList" className="text-sm font-medium">
-                  Share this list with my team
-                </Label>
-                <p className="text-xs text-gray-500">
-                  Make this list visible to all collaborators in your environment
-                </p>
-              </div>
-            </div>
-          </div>
-          
-          <DialogFooter className="sm:justify-between">
-            <div className="text-xs text-gray-500">
-              {activeList ? 'Last updated on ' + new Date(activeList.createdAt).toLocaleDateString() : 'Applied filters will be saved with this list'}
-            </div>
-            <div className="flex space-x-2">
-              <DialogClose asChild>
-                <Button variant="outline">Cancel</Button>
-              </DialogClose>
-              <Button
-                onClick={() => {
-                  // Handle save/update list
-                  if (!activeList) {
-                    // Create new list
-                    const listName = (document.getElementById('listName') as HTMLInputElement).value;
-                    const listDescription = (document.getElementById('listDescription') as HTMLTextAreaElement).value;
-                    const isShared = (document.getElementById('shareList') as HTMLInputElement).checked;
-                    
-                    // Validate required fields
-                    if (!listName.trim()) {
-                      // Show error toast notification
-                      toast({
-                        title: "Missing required field",
-                        description: "Please enter a name for your list.",
-                        variant: "destructive",
-                      });
-                      return;
-                    }
-                    
-                    // Get the selected list type from our hidden input
-                    const listTypeInput = document.getElementById('hidden-list-type-value') as HTMLInputElement;
-                    const listType = (listTypeInput?.value || "filter") as "filter" | "selection";
-                    
-                    const newList: SavedList = {
-                      id: String(Date.now()),
-                      name: listName,
-                      description: listDescription || undefined,
-                      type: listType, // Set the list type (dynamic filter or static selection)
-                      filters: listType === 'selection' 
-                        ? { // Empty filters for static lists
-                            searchText: undefined,
-                            status: undefined,
-                            industry: undefined,
-                            type: undefined
-                          }
-                        : { // Apply filters only for dynamic lists
-                            searchText: filterText || undefined,
-                            status: selectedStatus || undefined,
-                            industry: selectedIndustry || undefined,
-                            type: selectedType || undefined
-                          },
-                      // For static lists, start with an empty array
-                      members: listType === 'selection' ? [] : undefined,
-                      isShared,
-                      createdBy: 'John Smith',
-                      createdAt: new Date()
-                    };
-                    
-                    // Show success toast notification - different message based on list type
-                    if (listType === 'selection') {
-                      toast({
-                        title: "Static list created",
-                        description: `"${listName}" has been created. Select partners to add them to this list.`,
-                      });
-                    } else {
-                      toast({
-                        title: "Dynamic list created",
-                        description: `"${listName}" has been created and will update automatically based on filters.`,
-                      });
-                    }
-                    
-                    setSavedLists([...savedLists, newList]);
-                    setActiveList(newList);
-                  } else {
-                    // Update existing list
-                    const listName = (document.getElementById('listName') as HTMLInputElement).value;
-                    const listDescription = (document.getElementById('listDescription') as HTMLTextAreaElement).value;
-                    const isShared = (document.getElementById('shareList') as HTMLInputElement).checked;
-                    
-                    const updatedLists = savedLists.map(list => {
-                      if (list.id === activeList.id) {
-                        return {
-                          ...list,
-                          name: listName,
-                          description: listDescription || undefined,
-                          filters: {
-                            searchText: filterText || undefined,
-                            status: selectedStatus || undefined,
-                            industry: selectedIndustry || undefined,
-                            type: selectedType || undefined
-                          },
-                          isShared
-                        };
-                      }
-                      return list;
-                    });
-                    
-                    setSavedLists(updatedLists);
-                    setActiveList(updatedLists.find(v => v.id === activeList.id) || null);
-                  }
+                
+                {/* Preview of search results */}
+                <div className="bg-gray-50 p-3 rounded-md border border-gray-200 mt-2">
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-sm font-medium">Results Preview</span>
+                    <Badge variant="outline" className="bg-blue-50 text-blue-700">
+                      {filteredPartners.length} partner{filteredPartners.length !== 1 ? 's' : ''}
+                    </Badge>
+                  </div>
                   
-                  setShowSaveListModal(false);
-                }}
-              >
-                {activeList ? 'Update List' : 'Create new list'}
-              </Button>
-            </div>
-          </DialogFooter>
+                  <div className="max-h-40 overflow-y-auto">
+                    {filteredPartners.length > 0 ? (
+                      <ul className="divide-y divide-gray-200">
+                        {filteredPartners.slice(0, 5).map(partner => (
+                          <li key={partner.id} className="py-2 flex items-center text-sm">
+                            <span className="font-medium">{partner.name}</span>
+                            <span className="text-gray-500 ml-auto">{partner.industry} · {partner.type}</span>
+                          </li>
+                        ))}
+                        {filteredPartners.length > 5 && (
+                          <li className="py-2 text-center text-sm text-gray-500">
+                            + {filteredPartners.length - 5} more partners
+                          </li>
+                        )}
+                      </ul>
+                    ) : (
+                      <div className="py-3 text-center text-sm text-gray-500">
+                        No partners match these criteria
+                      </div>
+                    )}
+                  </div>
+                </div>
+                
+                {/* Save search option */}
+                <div className="border-t border-gray-200 pt-3 mt-2">
+                  <div className="flex items-center mb-2">
+                    <Checkbox 
+                      id="save-search-option" 
+                      defaultChecked={true} 
+                      disabled={filteredPartners.length === 0}
+                    />
+                    <Label htmlFor="save-search-option" className="ml-2 text-sm">
+                      Save this search for later use
+                    </Label>
+                  </div>
+                  
+                  {filteredPartners.length > 0 && (
+                    <div className="pl-6">
+                      <Input 
+                        id="saved-search-name" 
+                        placeholder="Enter a name for this search"
+                        defaultValue={
+                          `${statusFilter !== 'any' ? statusFilter : ''} ${industryFilter !== 'any' ? industryFilter : ''} ${typeFilter !== 'any' ? typeFilter : ''} Partners`.trim() ||
+                          searchText || 
+                          'My Saved Search'
+                        }
+                        className="text-sm"
+                      />
+                      <p className="text-xs text-blue-600 mt-1.5 flex items-start">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1 mt-0.5">
+                          <circle cx="12" cy="12" r="10"></circle>
+                          <line x1="12" y1="16" x2="12" y2="12"></line>
+                          <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                        </svg>
+                        <span>
+                          This search will automatically update as partners change. Any new partners that match these criteria will appear in your results.
+                        </span>
+                      </p>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              <DialogFooter>
+                <Button variant="outline" onClick={() => setShowSearchModal(false)}>
+                  Cancel
+                </Button>
+                
+                <Button 
+                  className="bg-[#5567E5] hover:bg-[#4151c4] text-white"
+                  disabled={filteredPartners.length === 0}
+                  onClick={() => {
+                    const saveSearch = (document.getElementById('save-search-option') as HTMLInputElement)?.checked;
+                    const searchName = (document.getElementById('saved-search-name') as HTMLInputElement)?.value || 'My Saved Search';
+                    
+                    if (saveSearch) {
+                      createSavedSearch(searchName);
+                    }
+                    
+                    setShowSearchModal(false);
+                    
+                    if (!saveSearch) {
+                      toast({
+                        title: "Filters applied",
+                        description: `Showing ${filteredPartners.length} matching partners.`,
+                      });
+                    }
+                  }}
+                >
+                  Apply Filters
+                </Button>
+              </DialogFooter>
+            </>
+          )}
         </DialogContent>
       </Dialog>
       
-      {/* Add Partners Modal */}
-      <Dialog open={showAddPartnersModal} onOpenChange={setShowAddPartnersModal}>
-        <DialogContent className="sm:max-w-3xl">
+      {/* Create List Modal - a simple way to create a manual list */}
+      <Dialog open={showListModal} onOpenChange={setShowListModal}>
+        <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-[#282A3F] font-semibold text-lg" style={{ fontFamily: 'Poppins, sans-serif' }}>Add partners to your Custom List</DialogTitle>
+            <DialogTitle className="text-xl font-semibold">
+              {activeSavedItem?.type === 'list' 
+                ? `Add Partners to "${activeSavedItem.name}"` 
+                : 'Create Partner List'}
+            </DialogTitle>
             <DialogDescription>
-              Select partners you want to add to "{activeList?.name}". Only partners you specifically select will be included.
+              {activeSavedItem?.type === 'list'
+                ? 'Select partners to add to your existing list'
+                : 'Create a list containing your selected partners'}
             </DialogDescription>
           </DialogHeader>
           
           <div className="py-4">
-            {/* Help text banner */}
-            <div className="bg-gray-50 border-l-4 border-[#3E4DC4] p-3 mb-4 rounded-r-md">
-              <div className="flex items-start">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 mt-0.5">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <line x1="12" y1="16" x2="12" y2="12"></line>
-                  <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                </svg>
+            {(!activeSavedItem || activeSavedItem.type !== 'list') && (
+              <div className="grid gap-4 mb-4">
                 <div>
-                  <p className="text-sm text-gray-700">
-                    <strong>Can't find the partner you're looking for?</strong>
-                  </p>
-                  <a 
-                    href="#" 
-                    className="text-sm text-[#3E4DC4] hover:underline flex items-center mt-1"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setShowAddPartnersModal(false);
-                      // This would navigate to partner creation in a real implementation
-                      setTimeout(() => {
-                        alert('This would open the new partner creation form in the real application');
-                      }, 100);
-                    }}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                      <path d="M12 9v6"></path>
-                      <path d="M15 12H9"></path>
-                      <circle cx="12" cy="12" r="10"></circle>
-                    </svg>
-                    Create a new partner in Qollabi first
-                  </a>
+                  <Label htmlFor="list-name">List Name</Label>
+                  <Input
+                    id="list-name"
+                    placeholder="Enter a name for your list"
+                    defaultValue={`Selected Partners (${selectedPartners.length})`}
+                    className="mt-1"
+                  />
                 </div>
               </div>
-            </div>
-
-            {/* Search and filter */}
-            <div className="mb-4">
-              <Input 
-                placeholder="Search existing partners..." 
-                className="mb-2"
-              />
-              
-              <div className="flex gap-2 flex-wrap">
-                <Button variant="outline" size="sm">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                  </svg>
-                  Status
-                </Button>
-                
-                <Button variant="outline" size="sm">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
-                  </svg>
-                  Industry
-                </Button>
-                
-                <Button variant="outline" size="sm">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="9" cy="7" r="4"></circle>
-                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                  </svg>
-                  Type
-                </Button>
-              </div>
-            </div>
+            )}
             
-            {/* Partners list */}
-            <div className="border rounded-md mb-4 overflow-hidden max-h-96 overflow-y-auto">
-              {/* Filter out partners already in the list */}
-              <div className="divide-y divide-gray-200">
-                {mockPartners
-                  .filter(p => !activeList?.members?.includes(p.id))
-                  .map(partner => (
-                    <div 
-                      key={partner.id}
-                      className={`flex items-center p-3 hover:bg-gray-50 ${partnersToAdd.includes(partner.id) ? 'bg-blue-50' : ''}`}
-                    >
-                      <Checkbox 
-                        checked={partnersToAdd.includes(partner.id)}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setPartnersToAdd([...partnersToAdd, partner.id]);
-                          } else {
-                            setPartnersToAdd(partnersToAdd.filter(id => id !== partner.id));
-                          }
-                        }}
-                        className="mr-3"
-                      />
-                      <div className="flex items-center grow">
-                        <Avatar className="h-8 w-8 mr-3 bg-indigo-100 text-indigo-600">
-                          <AvatarFallback>{partner.initials}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex flex-col">
+            <div className="bg-gray-50 p-3 rounded-md border border-gray-200">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium">Selected Partners</span>
+                <Badge variant="outline" className="bg-emerald-50 text-emerald-700">
+                  {selectedPartners.length} partner{selectedPartners.length !== 1 ? 's' : ''}
+                </Badge>
+              </div>
+              
+              <div className="max-h-40 overflow-y-auto">
+                {selectedPartners.length > 0 ? (
+                  <ul className="divide-y divide-gray-200">
+                    {mockPartners
+                      .filter(partner => selectedPartners.includes(partner.id))
+                      .map(partner => (
+                        <li key={partner.id} className="py-2 flex items-center justify-between text-sm">
                           <span className="font-medium">{partner.name}</span>
-                          <div className="flex text-xs text-gray-500 mt-1 space-x-3">
-                            <span>{partner.industry}</span>
-                            <span>•</span>
-                            <span>{partner.type}</span>
-                            <span>•</span>
-                            <Badge variant={partner.status === 'active' ? 'outline' : 'secondary'} className="capitalize text-xs">
-                              {partner.status}
-                            </Badge>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                ))}
-                {mockPartners.filter(p => !activeList?.members?.includes(p.id)).length === 0 && (
-                  <div className="p-8 text-center">
-                    <p className="text-gray-500">All partners have already been added to this list.</p>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 text-red-500"
+                            onClick={() => setSelectedPartners(selectedPartners.filter(id => id !== partner.id))}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M18 6L6 18"></path>
+                              <path d="M6 6l12 12"></path>
+                            </svg>
+                          </Button>
+                        </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <div className="py-3 text-center text-sm text-gray-500">
+                    No partners selected
                   </div>
                 )}
               </div>
             </div>
             
-            {/* Selected count */}
-            <div className="flex justify-between items-center">
-              <div className="text-sm text-gray-500">
-                {partnersToAdd.length} partners selected
-              </div>
+            {/* Explanation box */}
+            <div className="mt-4 bg-blue-50 p-3 rounded-md border border-blue-100 text-sm text-blue-700 flex items-start">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 mt-0.5 flex-shrink-0">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="12" y1="16" x2="12" y2="12"></line>
+                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+              </svg>
+              <span>
+                {activeSavedItem?.type === 'list'
+                  ? 'Partners will be added to your existing list. This list will only include partners you specifically select.'
+                  : 'Unlike saved searches, this list will only include the specific partners you select. Changes to partners will not automatically update this list.'}
+              </span>
             </div>
           </div>
           
           <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowAddPartnersModal(false)}
-            >
+            <Button variant="outline" onClick={() => setShowListModal(false)}>
               Cancel
             </Button>
-            <Button
+            
+            <Button 
+              className="bg-[#5567E5] hover:bg-[#4151c4] text-white"
+              disabled={selectedPartners.length === 0}
               onClick={() => {
-                if (activeList && activeList.type === 'selection') {
-                  // Get current list members and add new selected partners
-                  const currentMembers = activeList.members || [];
-                  const updatedMembers = [...currentMembers];
-                  
-                  // Add each selected partner if not already in the list
-                  partnersToAdd.forEach(id => {
-                    if (!updatedMembers.includes(id)) {
-                      updatedMembers.push(id);
-                    }
-                  });
-                  
-                  // Update the active list
+                if (activeSavedItem?.type === 'list') {
+                  // Add partners to existing list
                   const updatedList = {
-                    ...activeList,
-                    members: updatedMembers
+                    ...activeSavedItem,
+                    lastUpdated: new Date(),
+                    count: Array.from(new Set([...(activeSavedItem.partners || []), ...selectedPartners])).length,
+                    partners: Array.from(new Set([...(activeSavedItem.partners || []), ...selectedPartners]))
                   };
                   
-                  // Update active list state
-                  setActiveList(updatedList);
+                  setSavedItems(savedItems.map(item => 
+                    item.id === activeSavedItem.id ? updatedList : item
+                  ));
                   
-                  // Mark as having unsaved changes
-                  setHasUnsavedChanges(true);
+                  setActiveSavedItem(updatedList);
+                  setSelectedPartners([]);
                   
-                  // Update the saved lists
-                  const updatedLists = savedLists.map(list => 
-                    list.id === activeList.id ? updatedList : list
-                  );
-                  setSavedLists(updatedLists);
-                  
-                  // Display success message
                   toast({
                     title: "Partners added",
-                    description: `${partnersToAdd.length} partners have been added to "${activeList.name}"`,
-                  });
-                  
-                  // Close the modal
-                  setShowAddPartnersModal(false);
-                }
-              }}
-              disabled={partnersToAdd.length === 0}
-            >
-              Add to List
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      {/* Create List from Selection Modal - with extremely clear distinction between list types */}
-      <Dialog open={showCreateFromSelectionModal} onOpenChange={setShowCreateFromSelectionModal}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-[#282A3F] font-semibold text-lg" style={{ fontFamily: 'Poppins, sans-serif' }}>Create list with {selectedPartners.length} selected partner{selectedPartners.length > 1 ? 's' : ''}</DialogTitle>
-            <DialogDescription>
-              This will create a static list containing only the partners you've selected.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="py-4">
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="selection-list-name" className="text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif' }}>List name</Label>
-                <Input 
-                  id="selection-list-name" 
-                  value={selectionListName} 
-                  onChange={(e) => setSelectionListName(e.target.value)} 
-                  placeholder="Enter list name" 
-                  className="mt-1.5"
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="selection-list-description" className="text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif' }}>Description (optional)</Label>
-                <Textarea 
-                  id="selection-list-description" 
-                  value={selectionListDescription} 
-                  onChange={(e) => setSelectionListDescription(e.target.value)} 
-                  placeholder="Enter list description" 
-                  className="mt-1.5"
-                />
-              </div>
-              
-              <div className="bg-[#EBEEFB] border border-[#D4D9F3] rounded-lg p-4">
-                <div className="flex items-start">
-                  <div className="mt-1 mr-3 rounded-full p-2 bg-[#D4D9F3]">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                      <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                    </svg>
-                  </div>
-                  <div>
-                    <div className="flex items-center">
-                      <h4 className="text-base font-semibold text-[#282A3F]">Static Partner List</h4>
-                      <div className="ml-2 bg-[#D4D9F3] text-[#3E4DC4] rounded-full px-2 py-0.5 text-xs">
-                        {selectedPartners.length} Partner{selectedPartners.length > 1 ? 's' : ''}
-                      </div>
-                    </div>
-                    <p className="text-sm text-[#5F6585] mt-1">Your list will include <strong>only the partners you've selected</strong>.</p>
-                    <p className="text-xs text-[#5F6585] mt-1">You can add or remove partners from this list at any time.</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowCreateFromSelectionModal(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={() => {
-                // Check if list name is provided
-                if (!selectionListName.trim()) {
-                  toast({
-                    title: "List name required",
-                    description: "Please enter a name for your list.",
-                    variant: "destructive",
-                  });
-                  return;
-                }
-                
-                // Generate a new ID
-                const newId = Date.now().toString();
-                
-                // Create the new list based on type
-                const newList: SavedList = {
-                  id: newId,
-                  name: selectionListName.trim(),
-                  description: selectionListDescription.trim() || undefined,
-                  type: selectionListType,
-                  // For Saved Filters, analyze the selected partners to create intelligent filters
-                  filters: selectionListType === 'filter' 
-                    ? { 
-                      // This is a simplified approach - in a real app you'd analyze the
-                      // selected partners to determine common attributes for smarter filters
-                    }
-                    : {}, // For Custom Lists, we'll use the members array instead
-                  // For Custom Lists, use the selection directly
-                  members: selectionListType === 'selection' ? selectedPartners : undefined, 
-                  isShared: false,
-                  createdBy: 'John Smith', // Hardcoded for demo
-                  createdAt: new Date()
-                };
-                
-                // Add to saved lists
-                setSavedLists([...savedLists, newList]);
-                
-                // Set as active list
-                setActiveList(newList);
-                setOriginalListFilters(newList.filters);
-                
-                // Close the modal
-                setShowCreateFromSelectionModal(false);
-                
-                // Reset form fields
-                setSelectionListName('');
-                setSelectionListDescription('');
-                
-                // Clear selection after creating the list
-                setSelectedPartners([]);
-                
-                // Show success message with guidance for next steps
-                if (selectionListType === 'selection') {
-                  // Success message for Custom List
-                  toast({
-                    title: "Custom List created",
-                    description: `"${selectionListName}" has been created with ${selectedPartners.length} partners.`,
+                    description: `${selectedPartners.length} partners added to "${activeSavedItem.name}".`,
                   });
                 } else {
-                  // Success message with next steps guidance for Saved Filter
-                  toast({
-                    title: "Saved Filter created",
-                    description: `"${selectionListName}" is ready! Now set your filter criteria to view partners matching your requirements.`,
-                  });
+                  // Create new list
+                  const listName = (document.getElementById('list-name') as HTMLInputElement)?.value || 
+                    `Selected Partners (${selectedPartners.length})`;
                   
-                  // Set flag to show guidance banner
-                  setShowDynamicListGuidance(true);
-                  
-                  // After a brief delay, show a second toast with business value
-                  setTimeout(() => {
-                    toast({
-                      title: "💡 Pro Tip",
-                      description: "Fine-tune your filters to maintain up-to-date partner segments for campaigns, reporting, and opportunity tracking.",
-                    });
-                  }, 2000);
+                  createList(listName);
                 }
-              }}
-              disabled={!selectionListName.trim()}
-            >
-              Create List
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      {/* Share List Modal with Extended Options */}
-      <Dialog open={showShareListModal} onOpenChange={setShowShareListModal}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Share List: {activeList?.name}</DialogTitle>
-            <DialogDescription>
-              Share this list with partners, teams, or individuals.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="grid gap-4 py-4">
-            {/* Tabs for different sharing options */}
-            <div className="flex border-b">
-              <button className="px-3 py-2 text-sm font-medium text-indigo-600 border-b-2 border-indigo-600">
-                Partners
-              </button>
-              <button className="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700">
-                Teams
-              </button>
-              <button className="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700">
-                Individuals
-              </button>
-            </div>
-            
-            {/* Partners Section */}
-            <div className="grid gap-3">
-              <Label>Select Partner</Label>
-              <div className="relative">
-                <select className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm appearance-none">
-                  <option value="">Select a partner...</option>
-                  {mockPartners.map(partner => (
-                    <option key={partner.id} value={partner.id}>{partner.name}</option>
-                  ))}
-                </select>
-                <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                    <polyline points="6 9 12 15 18 9"></polyline>
-                  </svg>
-                </div>
-              </div>
-              
-              <Label className="mt-2">Partner Contacts</Label>
-              <div className="border border-gray-200 rounded-md max-h-36 overflow-y-auto">
-                <div className="p-2 border-b hover:bg-gray-50">
-                  <div className="flex items-center">
-                    <Checkbox id="contact-1" className="mr-2" />
-                    <Label htmlFor="contact-1" className="text-sm font-normal cursor-pointer flex-grow">
-                      Sarah Johnson <span className="text-xs text-gray-500 ml-1">(sjohnson@abc-insurance.com)</span>
-                    </Label>
-                  </div>
-                </div>
-                <div className="p-2 border-b hover:bg-gray-50">
-                  <div className="flex items-center">
-                    <Checkbox id="contact-2" className="mr-2" />
-                    <Label htmlFor="contact-2" className="text-sm font-normal cursor-pointer flex-grow">
-                      Michael Chen <span className="text-xs text-gray-500 ml-1">(mchen@abc-insurance.com)</span>
-                    </Label>
-                  </div>
-                </div>
-                <div className="p-2 hover:bg-gray-50">
-                  <div className="flex items-center">
-                    <Checkbox id="contact-3" className="mr-2" />
-                    <Label htmlFor="contact-3" className="text-sm font-normal cursor-pointer flex-grow">
-                      All Contacts <span className="text-xs text-gray-500 ml-1">(3 people)</span>
-                    </Label>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Permission Settings</Label>
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="canView" defaultChecked />
-                  <Label htmlFor="canView" className="text-sm font-normal">
-                    Can view this saved list
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="canEdit" />
-                  <Label htmlFor="canEdit" className="text-sm font-normal">
-                    Can edit this saved list
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="canShare" />
-                  <Label htmlFor="canShare" className="text-sm font-normal">
-                    Can share this list with others
-                  </Label>
-                </div>
-              </div>
-            </div>
-            
-            <div className="grid gap-2">
-              <Label htmlFor="shareMessage">Add a Message (Optional)</Label>
-              <Textarea 
-                id="shareMessage" 
-                placeholder="Include a note to the recipients"
-                rows={2}
-              />
-            </div>
-            
-            {/* Copy Link Section */}
-            <div className="bg-gray-50 p-3 rounded-md">
-              <div className="flex justify-between items-center mb-2">
-                <div className="text-xs font-medium">Direct Link</div>
-                <div className="text-xs text-gray-500">Only accessible by people with permissions</div>
-              </div>
-              <div className="flex">
-                <Input 
-                  id="shareLink" 
-                  value={`https://qollabi.com/share/list/${activeList?.id}`}
-                  readOnly
-                  className="text-xs"
-                />
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="ml-2"
-                  onClick={() => {
-                    navigator.clipboard.writeText(`https://qollabi.com/share/list/${activeList?.id}`);
-                  }}
-                >
-                  Copy
-                </Button>
-              </div>
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
-            </DialogClose>
-            <Button onClick={() => {
-              // Handle sharing logic
-              const partners = document.querySelectorAll('input[type="checkbox"]:checked');
-              const canEdit = (document.getElementById('canEdit') as HTMLInputElement).checked;
-              const canShare = (document.getElementById('canShare') as HTMLInputElement).checked;
-              const message = (document.getElementById('shareMessage') as HTMLTextAreaElement).value;
-              
-              // Extract recipients from selected partners and contacts
-              const selectedPartnerIds = Array.from(partners).map(el => el.id.split('-')[1]);
-              
-              // Just for demonstration, we'll use hardcoded emails
-              const recipientEmails = ['sjohnson@abc-insurance.com', 'mchen@abc-insurance.com'];
-              
-              // Update the active list's sharing settings
-              if (activeList) {
-                const updatedLists = savedLists.map(list => {
-                  if (list.id === activeList.id) {
-                    return {
-                      ...list,
-                      isShared: true,
-                      sharedWith: recipientEmails
-                    };
-                  }
-                  return list;
-                });
                 
-                setSavedLists(updatedLists);
-                setActiveList(updatedLists.find(v => v.id === activeList.id) || null);
-              }
-              
-              setShowShareListModal(false);
-            }}>
-              Share List
+                setShowListModal(false);
+              }}
+            >
+              {activeSavedItem?.type === 'list' ? 'Add to List' : 'Create List'}
             </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
-      {/* Table section without a border */}
-      <div className="bg-white overflow-x-auto rounded-lg">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
-            <tr>
-              <th scope="col" className="relative px-3 py-3.5 w-10">
-                <input
-                  type="checkbox"
-                  className="absolute h-4 w-4 rounded border-gray-300"
-                  checked={selectedPartners.length === displayedPartners.length && displayedPartners.length > 0}
-                  onChange={toggleSelectAll}
-                />
-              </th>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[250px]">
-                <div className="flex items-center">
-                  Partner
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                    <path d="M8 9l4-4 4 4"></path>
-                    <path d="M16 15l-4 4-4-4"></path>
-                  </svg>
-                </div>
-              </th>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                <div className="flex items-center">
-                  Industry
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                    <path d="M8 9l4-4 4 4"></path>
-                    <path d="M16 15l-4 4-4-4"></path>
-                  </svg>
-                </div>
-              </th>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                <div className="flex items-center">
-                  Type
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                    <path d="M8 9l4-4 4 4"></path>
-                    <path d="M16 15l-4 4-4-4"></path>
-                  </svg>
-                </div>
-              </th>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                <div className="flex items-center">
-                  Size
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                    <path d="M8 9l4-4 4 4"></path>
-                    <path d="M16 15l-4 4-4-4"></path>
-                  </svg>
-                </div>
-              </th>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                <div className="flex items-center">
-                  Status
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                    <path d="M8 9l4-4 4 4"></path>
-                    <path d="M16 15l-4 4-4-4"></path>
-                  </svg>
-                </div>
-              </th>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                <div className="flex items-center">
-                  Customers
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                    <path d="M8 9l4-4 4 4"></path>
-                    <path d="M16 15l-4 4-4-4"></path>
-                  </svg>
-                </div>
-              </th>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                <div className="flex items-center">
-                  Opportunities
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                    <path d="M8 9l4-4 4 4"></path>
-                    <path d="M16 15l-4 4-4-4"></path>
-                  </svg>
-                </div>
-              </th>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                <div className="flex items-center">
-                  Template
-                </div>
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-100 bg-white">
-            {displayedPartners.map((partner) => (
-              <tr 
-                key={partner.id} 
-                className={`hover:bg-gray-50 group ${selectedPartners.includes(partner.id) ? 'bg-blue-50' : ''}`}
-              >
-                <td className="relative whitespace-nowrap py-4 pl-3 pr-3 text-sm w-10">
-                  <input
-                    type="checkbox"
-                    className={`h-4 w-4 rounded border-gray-300 ${selectedPartners.includes(partner.id) ? 'visible' : 'invisible group-hover:visible'}`}
-                    checked={selectedPartners.includes(partner.id)}
-                    onChange={() => toggleSelectPartner(partner.id)}
-                  />
-                </td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm font-medium">
-                  <div className="flex items-center">
-                    <Avatar className="h-9 w-9 mr-3 bg-indigo-100 text-indigo-600">
-                      <AvatarFallback>{partner.initials}</AvatarFallback>
-                    </Avatar>
-                    <Link href={`/lists/partners/${partner.id}`} className="font-medium text-gray-900 hover:text-indigo-700">{partner.name}</Link>
-                  </div>
-                </td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{partner.industry}</td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{partner.type}</td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm capitalize">{partner.size}</td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
-                  <Badge variant={partner.status === 'active' ? 'outline' : 'secondary'} className="capitalize">
-                    {partner.status}
-                  </Badge>
-                </td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{partner.customers}</td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{partner.opportunities}</td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
-                  <TemplateBadges industry={partner.industry} type={partner.type} />
-                </td>
-              </tr>
-            ))}
-            
-            {displayedPartners.length === 0 && (
-              <tr>
-                <td colSpan={9} className="py-10 text-center">
-                  <div className="flex flex-col items-center">
-                    {activeList && activeList.type === 'selection' ? (
-                      // Empty state for Custom Lists
-                      <>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 mb-3">
-                          <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                          <circle cx="9" cy="7" r="4"></circle>
-                          <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                        </svg>
-                        <h3 className="text-base font-medium text-gray-900 mb-1">Custom List is empty</h3>
-                        <p className="text-sm text-gray-500 max-w-md mb-4">
-                          Your Custom List is waiting for partners! Add your first partner to get started.
-                        </p>
-                        <Button 
-                          className="bg-[#5567E5] hover:bg-[#4555CB] text-white"
-                          onClick={() => {
-                            setPartnersToAdd([]);
-                            setShowAddPartnersModal(true);
-                          }}
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="8.5" cy="7" r="4"></circle>
-                            <line x1="20" y1="8" x2="20" y2="14"></line>
-                            <line x1="23" y1="11" x2="17" y2="11"></line>
-                          </svg>
-                          Add partners to Custom List
-                        </Button>
-                      </>
-                    ) : (
-                      // Empty state for Saved Filters or regular filtered view
-                      <>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 mb-3">
-                          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                          <circle cx="9" cy="7" r="4"></circle>
-                          <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                          <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                        </svg>
-                        <h3 className="text-base font-medium text-gray-900 mb-1">No matching partners</h3>
-                        <p className="text-sm text-gray-500 max-w-md mb-4">
-                          No partners match your current filter criteria. Try adjusting your filters.
-                        </p>
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
-                          onClick={() => {
-                            setFilterText('');
-                            setSelectedStatus('');
-                            setSelectedIndustry('');
-                            setSelectedType('');
-                          }}
-                        >
-                          Clear Filters
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
     </div>
   );
-}
+};
 
-export default function PartnersPage() {
-  const { environment } = useEnvironment();
-  
-  return (
-    <div className="container mx-auto px-4 py-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold tracking-tight text-black">Partners</h1>
-        
-        {/* New Partner button */}
-        <button 
-          className="flex items-center rounded-md bg-[#5567E5] text-white px-4 py-2 hover:bg-[#4555CB] transition-colors"
-          onClick={() => {
-            // This would navigate to a partner creation form in a real implementation
-            alert('This would open the new partner creation form in the real application');
-          }}
-          style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
-          <span className="font-medium">Create new partner</span>
-        </button>
-      </div>
-      
-      <PartnersTable />
-    </div>
-  );
-}
-
-// Helper component to guide users on dynamic list usage
-function DynamicListGuidance({ isNewList }: { isNewList: boolean }) {
-  return (
-    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
-      <div className="flex items-start">
-        <div className="flex-shrink-0 bg-blue-100 rounded-full p-1.5 mt-0.5">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1e40af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10"></circle>
-            <line x1="12" y1="16" x2="12" y2="12"></line>
-            <line x1="12" y1="8" x2="12.01" y2="8"></line>
-          </svg>
-        </div>
-        <div className="ml-3">
-          <h3 className="text-sm font-medium text-blue-800" style={{ fontFamily: 'Poppins, sans-serif' }}>
-            {isNewList ? 'Define your filter criteria' : 'About this Saved Filter'}
-          </h3>
-          <div className="mt-1 text-sm text-blue-700">
-            <p>Set up filters below to define which partners should be shown in this view. This helps you:</p>
-            <ul className="list-disc pl-5 mt-1 space-y-1">
-              <li>Quickly access specific partner segments (e.g., active insurance brokers)</li>
-              <li>See an always up-to-date view for targeted campaigns and reporting</li>
-              <li>Find all partners that match your specific business criteria</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/* IMPORTANT NOTE: 
-   - Dynamic lists automatically include ALL partners matching the criteria, even new ones added in the future
-   - Static lists only include the specific partners that are manually selected
-   This distinction needs to be extremely clear to users in the UI
-*/
+export default PartnersPage;
