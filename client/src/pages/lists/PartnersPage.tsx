@@ -240,44 +240,130 @@ function PartnersTable() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
   
-  // State for saved lists
-  const [savedLists, setSavedLists] = useState<SavedList[]>([
+  // State for partner lists with views
+  const [partnerLists, setPartnerLists] = useState<PartnerList[]>([
+    // System default list that shows all partners
     {
       id: 'all-partners',
       name: 'All Partners',
-      filters: { },
-      isShared: false,
+      description: 'System-generated list containing all partners',
+      members: [], // Empty means "all partners"
+      views: [
+        {
+          id: 'all-partners-default',
+          name: 'Default View',
+          filters: { },
+          isDefault: true,
+          createdBy: 'System',
+          createdAt: new Date('2025-01-01')
+        },
+        {
+          id: 'all-partners-active',
+          name: 'Active Partners',
+          filters: { status: 'active' },
+          createdBy: 'System',
+          createdAt: new Date('2025-01-01')
+        }
+      ],
+      activeViewId: 'all-partners-default',
+      isShared: true,
       createdBy: 'System',
       createdAt: new Date('2025-01-01'),
-      isDefault: true // Flag to indicate this is a default list that can't be edited/deleted
+      isDefault: true
     },
+    // Example of a curated list with specific members and multiple views
     {
-      id: '1',
-      name: 'Active Insurance Brokers',
-      filters: { status: 'active', industry: 'Insurance', type: 'Broker' },
+      id: 'key-insurance-partners',
+      name: 'Key Insurance Partners',
+      description: 'Our most important insurance industry partners',
+      members: [1, 3, 6], // Specific partner IDs
+      views: [
+        {
+          id: 'key-insurance-default',
+          name: 'Default View',
+          filters: { },
+          isDefault: true,
+          createdBy: 'John Smith',
+          createdAt: new Date('2025-04-15')
+        },
+        {
+          id: 'key-insurance-brokers',
+          name: 'Brokers Only',
+          filters: { type: 'Broker' },
+          createdBy: 'John Smith',
+          createdAt: new Date('2025-04-20')
+        },
+        {
+          id: 'key-insurance-agencies',
+          name: 'Agencies Only',
+          filters: { type: 'Agency' },
+          createdBy: 'John Smith',
+          createdAt: new Date('2025-04-25')
+        }
+      ],
+      activeViewId: 'key-insurance-default',
       isShared: true,
       sharedWith: ['team@acme.com'],
       createdBy: 'John Smith',
-      createdAt: new Date('2025-05-01')
+      createdAt: new Date('2025-04-15')
     },
+    // Another example list
     {
-      id: '2',
-      name: 'Consulting Partners',
-      filters: { industry: 'Consulting' },
+      id: 'enterprise-partners',
+      name: 'Enterprise Partners',
+      description: 'All enterprise-level partners',
+      members: [3, 6], // Specific partner IDs
+      views: [
+        {
+          id: 'enterprise-default',
+          name: 'Default View',
+          filters: { },
+          isDefault: true,
+          createdBy: 'John Smith',
+          createdAt: new Date('2025-05-01')
+        },
+        {
+          id: 'enterprise-active',
+          name: 'Active Only',
+          filters: { status: 'active' },
+          createdBy: 'John Smith',
+          createdAt: new Date('2025-05-05')
+        }
+      ],
+      activeViewId: 'enterprise-default',
       isShared: false,
       createdBy: 'John Smith',
-      createdAt: new Date('2025-05-10')
-    },
-    {
-      id: '3',
-      name: 'Enterprise Partners',
-      filters: { size: 'enterprise' },
-      isShared: true,
-      sharedWith: ['partnerships@acme.com'],
-      createdBy: 'John Smith',
-      createdAt: new Date('2025-05-15')
+      createdAt: new Date('2025-05-01')
     }
   ]);
+  
+  // For backward compatibility during migration - convert partnerLists to savedLists
+  const [savedLists, setSavedLists] = useState<SavedList[]>(() => 
+    partnerLists.map(list => {
+      // Find active view
+      const activeView = list.views.find(v => v.id === list.activeViewId) || list.views[0];
+      
+      return {
+        id: list.id,
+        name: list.name,
+        description: list.description,
+        // If members array is empty, treat as a filter (dynamic) list, otherwise it's a selection list
+        type: list.members.length === 0 ? 'filter' : 'selection',
+        filters: activeView.filters,
+        members: list.members.length > 0 ? list.members : undefined,
+        isShared: list.isShared,
+        sharedWith: list.sharedWith,
+        createdBy: list.createdBy,
+        createdAt: list.createdAt,
+        isDefault: list.isDefault
+      };
+    })
+  );
+  // New state variables for the Lists and Views concept
+  const [activePartnerList, setActivePartnerList] = useState<PartnerList | null>(null);
+  const [activeView, setActiveView] = useState<PartnerView | null>(null);
+  
+  // For backward compatibility during migration
   const [activeList, setActiveList] = useState<SavedList | null>(null);
   const [originalListFilters, setOriginalListFilters] = useState<SavedList['filters'] | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
