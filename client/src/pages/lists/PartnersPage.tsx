@@ -76,6 +76,339 @@ function createList(name: string, description = '', members: number[] = []): Lis
   };
 }
 
+// View Dialog Component for creating and editing views
+function ViewDialog({ 
+  isOpen, 
+  onClose, 
+  parentList, 
+  existingView = null,
+  onSave
+}: { 
+  isOpen: boolean;
+  onClose: () => void;
+  parentList: List;
+  existingView?: View | null;
+  onSave: (parentList: List, view: View) => void;
+}) {
+  const [viewName, setViewName] = useState(existingView?.name || '');
+  const [viewDescription, setViewDescription] = useState(existingView?.description || '');
+  
+  // Initial filter states based on existing view or empty values
+  const [filterText, setFilterText] = useState(existingView?.filters?.searchText || '');
+  const [selectedStatus, setSelectedStatus] = useState(existingView?.filters?.status || '');
+  const [selectedIndustry, setSelectedIndustry] = useState(existingView?.filters?.industry || '');
+  const [selectedType, setSelectedType] = useState(existingView?.filters?.type || '');
+  const [selectedSize, setSelectedSize] = useState(existingView?.filters?.size || '');
+
+  // Reset states when dialog opens/closes or a different view is edited
+  useEffect(() => {
+    if (isOpen) {
+      setViewName(existingView?.name || '');
+      setViewDescription(existingView?.description || '');
+      setFilterText(existingView?.filters?.searchText || '');
+      setSelectedStatus(existingView?.filters?.status || '');
+      setSelectedIndustry(existingView?.filters?.industry || '');
+      setSelectedType(existingView?.filters?.type || '');
+      setSelectedSize(existingView?.filters?.size || '');
+    }
+  }, [isOpen, existingView]);
+
+  const handleSave = () => {
+    const filters = {
+      searchText: filterText || undefined,
+      status: selectedStatus || undefined,
+      industry: selectedIndustry || undefined, 
+      type: selectedType || undefined,
+      size: selectedSize || undefined
+    };
+    
+    let view: View;
+    if (existingView) {
+      // Update existing view
+      view = {
+        ...existingView,
+        name: viewName,
+        description: viewDescription || undefined,
+        filters
+      };
+    } else {
+      // Create new view
+      view = {
+        id: Date.now().toString(),
+        name: viewName,
+        description: viewDescription || undefined,
+        filters,
+        isDefault: false,
+        createdBy: 'Current User',
+        createdAt: new Date()
+      };
+    }
+    
+    onSave(parentList, view);
+    onClose();
+  };
+
+  return (
+    <Dialog open={isOpen} onOpenChange={onClose}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="text-[#282A3F] font-semibold text-lg" style={{ fontFamily: 'Poppins, sans-serif' }}>
+            {existingView ? 'Edit View' : 'Create New View'}
+          </DialogTitle>
+          <DialogDescription>
+            {existingView 
+              ? `Edit filter settings for "${existingView.name}"`
+              : `Create a new way to view partners in ${parentList.name}`}
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="grid gap-4 py-4">
+          <div className="space-y-2">
+            <Label htmlFor="view-name">View Name</Label>
+            <Input 
+              id="view-name" 
+              placeholder="Enter a name for this view" 
+              value={viewName}
+              onChange={(e) => setViewName(e.target.value)}
+            />
+          </div>
+          
+          <div className="space-y-2">
+            <Label htmlFor="view-description">Description (optional)</Label>
+            <Textarea 
+              id="view-description" 
+              placeholder="What makes this view unique?" 
+              value={viewDescription}
+              onChange={(e) => setViewDescription(e.target.value)}
+            />
+          </div>
+          
+          <div className="space-y-1">
+            <Label>Filter Settings</Label>
+            <div className="text-sm text-gray-500 mb-2">
+              Define which partners will be shown when using this view
+            </div>
+            
+            <div className="space-y-3">
+              <div>
+                <Label htmlFor="filter-status">Status</Label>
+                <Select 
+                  value={selectedStatus} 
+                  onValueChange={setSelectedStatus}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select status" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Any Status</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label htmlFor="filter-industry">Industry</Label>
+                <Select 
+                  value={selectedIndustry} 
+                  onValueChange={setSelectedIndustry}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select industry" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Any Industry</SelectItem>
+                    <SelectItem value="Insurance">Insurance</SelectItem>
+                    <SelectItem value="Finance">Finance</SelectItem>
+                    <SelectItem value="Banking">Banking</SelectItem>
+                    <SelectItem value="Consulting">Consulting</SelectItem>
+                    <SelectItem value="Technology">Technology</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label htmlFor="filter-type">Type</Label>
+                <Select 
+                  value={selectedType} 
+                  onValueChange={setSelectedType}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Any Type</SelectItem>
+                    <SelectItem value="Broker">Broker</SelectItem>
+                    <SelectItem value="Agency">Agency</SelectItem>
+                    <SelectItem value="Carrier">Carrier</SelectItem>
+                    <SelectItem value="MGA">MGA</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <Label htmlFor="filter-size">Size</Label>
+                <Select 
+                  value={selectedSize} 
+                  onValueChange={setSelectedSize}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select size" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="">Any Size</SelectItem>
+                    <SelectItem value="small">Small</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="large">Large</SelectItem>
+                    <SelectItem value="enterprise">Enterprise</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button 
+            onClick={handleSave}
+            disabled={!viewName.trim()}
+            className="bg-[#5567E5] hover:bg-[#4557D5]"
+          >
+            Save View
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// Button component for creating a new view 
+function CreateViewButton({ list, onCreateView }: { list: List, onCreateView: (list: List) => void }) {
+  return (
+    <Button 
+      variant="ghost" 
+      size="sm" 
+      className="flex items-center gap-1.5 text-[#5567E5] hover:text-[#4557D5] hover:bg-indigo-50"
+      onClick={() => onCreateView(list)}
+    >
+      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <circle cx="12" cy="12" r="10" />
+        <path d="M12 8v8" />
+        <path d="M8 12h8" />
+      </svg>
+      <span>Create New View</span>
+    </Button>
+  );
+}
+
+// View Selector Component to switch between views
+function ViewSelector({ 
+  list, 
+  activeViewId, 
+  onSelectView,
+  onCreateView,
+  onEditView
+}: { 
+  list: List, 
+  activeViewId: string | undefined, 
+  onSelectView: (viewId: string) => void,
+  onCreateView: (list: List) => void,
+  onEditView: (list: List, view: View) => void
+}) {
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  
+  // Find the active view
+  const activeView = list.views.find(v => v.id === activeViewId) || list.views[0];
+  
+  return (
+    <div className="relative">
+      <Button
+        variant="outline"
+        size="sm"
+        className="flex items-center gap-2"
+        onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+        </svg>
+        <span>{activeView?.name || "Default View"}</span>
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          className={`transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`}
+        >
+          <polyline points="6 9 12 15 18 9" />
+        </svg>
+      </Button>
+      
+      {isDropdownOpen && (
+        <div className="absolute z-50 mt-1 w-60 rounded-md border border-slate-200 bg-white shadow-md">
+          <div className="py-1 max-h-60 overflow-y-auto">
+            {list.views.map(view => (
+              <div key={view.id} className="relative group">
+                <button
+                  className={`w-full text-left px-4 py-2 text-sm flex items-center justify-between hover:bg-slate-50 ${view.id === activeViewId ? 'bg-indigo-50 text-indigo-700' : ''}`}
+                  onClick={() => {
+                    onSelectView(view.id);
+                    setIsDropdownOpen(false);
+                  }}
+                >
+                  <div className="flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+                    </svg>
+                    <span>{view.name}</span>
+                  </div>
+                  
+                  {!view.isDefault && (
+                    <button
+                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded-full hover:bg-slate-200"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        onEditView(list, view);
+                      }}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 20h9"></path>
+                        <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path>
+                      </svg>
+                    </button>
+                  )}
+                </button>
+              </div>
+            ))}
+          </div>
+          
+          <div className="border-t border-slate-100 p-1">
+            <button
+              className="w-full text-left px-4 py-2 text-sm text-indigo-600 hover:bg-indigo-50 flex items-center gap-2 rounded-sm"
+              onClick={() => {
+                onCreateView(list);
+                setIsDropdownOpen(false);
+              }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" />
+                <path d="M12 8v8" />
+                <path d="M8 12h8" />
+              </svg>
+              <span>Create New View</span>
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // COMMENT: The code below preserves the existing implementation while we transition to the new model.
 import {
   Card,
