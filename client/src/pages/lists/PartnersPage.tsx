@@ -343,14 +343,13 @@ function PartnersTable() {
   // Initialize toast
   const { toast } = useToast();
   
-  // Function to open list creation from selection
+  // Function to open list creation from selection - this is now the only way to create lists
   const openCreateFromSelection = () => {
     if (selectedPartners.length > 0) {
-      // When creating from selection, we always create a static list
-      setSelectionListType('selection'); // Force static selection type
+      // We only create custom lists from selections
+      setSelectionListType('selection');
       setSelectionListName('');
       setSelectionListDescription('');
-      // Clear any existing filters to prevent them from carrying over to the new static list
       setShowCreateFromSelectionModal(true);
     } else {
       toast({
@@ -452,12 +451,14 @@ function PartnersTable() {
                   className="flex items-center space-x-2 px-4 py-2.5 border rounded-md text-sm font-medium shadow-sm bg-white hover:bg-gray-50"
                   onClick={() => setShowListsDropdown(!showListsDropdown)}
                 >
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-indigo-600">
-                    <path d="M5.25 1.5V4.25H12.6875V2C12.6875 1.725 12.4906 1.5 12.25 1.5H5.25ZM3.9375 1.5H1.75C1.50937 1.5 1.3125 1.725 1.3125 2V4.25H3.9375V1.5ZM1.3125 5.75V8.25H3.9375V5.75H1.3125ZM1.3125 9.75V12C1.3125 12.275 1.50937 12.5 1.75 12.5H3.9375V9.75H1.3125ZM5.25 12.5H12.25C12.4906 12.5 12.6875 12.275 12.6875 12V9.75H5.25V12.5ZM12.6875 8.25V5.75H5.25V8.25H12.6875ZM0 2C0 0.896875 0.784766 0 1.75 0H12.25C13.2152 0 14 0.896875 14 2V12C14 13.1031 13.2152 14 12.25 14H1.75C0.784766 14 0 13.1031 0 12V2Z" fill="#3E4DC4"/>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    <line x1="3" y1="9" x2="21" y2="9"></line>
+                    <line x1="9" y1="21" x2="9" y2="9"></line>
                   </svg>
                   <div className="flex items-center">
                     <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
-                      {activeList ? activeList.name : "My Lists"}
+                      {activeList ? activeList.name : "Views"}
                     </span>
                     
                     {/* Dynamic List Type Indicator */}
@@ -512,7 +513,7 @@ function PartnersTable() {
                   </svg>
                 </button>
                 
-                {/* Saved Lists dropdown menu - shadcn/ui style with Qollabi colors */}
+                {/* Views dropdown menu */}
                 {showListsDropdown && (
                   <div className="absolute z-50 mt-1.5 w-80 rounded-md border border-slate-200 bg-white text-slate-950 shadow-md animate-in fade-in-80 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2">
                     {/* Search section */}
@@ -520,7 +521,7 @@ function PartnersTable() {
                       <div className="relative">
                         <input
                           type="text"
-                          placeholder="Search lists..."
+                          placeholder="Search views..."
                           className="w-full pl-8 pr-3 py-2 text-sm rounded-md bg-transparent border border-slate-200 ring-offset-white placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
                         />
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500">
@@ -567,6 +568,12 @@ function PartnersTable() {
                           >
                             <div className="flex flex-1 items-center">
                               <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>{list.name}</span>
+                              {list.type === 'filter' && (
+                                <span className="ml-2 px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded-sm text-[10px] uppercase font-medium">View</span>
+                              )}
+                              {list.type === 'selection' && (
+                                <span className="ml-2 px-1.5 py-0.5 bg-emerald-100 text-emerald-700 rounded-sm text-[10px] uppercase font-medium">List</span>
+                              )}
                               {list.isShared && (
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2 text-indigo-500">
                                   <circle cx="18" cy="5" r="3"></circle>
@@ -621,32 +628,15 @@ function PartnersTable() {
                     {/* Separator */}
                     <div className="mx-1 my-1 h-px bg-slate-100"></div>
                     
-                    {/* Create new list button */}
-                    <div className="p-1">
-                      <div
-                        className="relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm font-medium outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 text-indigo-600"
-                        onClick={() => {
-                          // Clear everything for a fresh start
-                          setActiveList(null);
-                          setFilterText('');
-                          setSelectedStatus('');
-                          setSelectedIndustry('');
-                          setSelectedType('');
-                          
-                          // Clear selected partners for a fresh start with static lists
-                          setSelectedPartners([]);
-                          
-                          // Open the save list modal
-                          setShowSaveListModal(true);
-                          setShowListsDropdown(false);
-                        }}
-                        style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                          <path d="M5 12h14"></path>
-                          <path d="M12 5v14"></path>
+                    {/* Note about list creation */}
+                    <div className="p-3 text-xs text-slate-500 italic border-t border-slate-100">
+                      <div className="flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 text-slate-400">
+                          <circle cx="12" cy="12" r="10"></circle>
+                          <line x1="12" y1="16" x2="12" y2="12"></line>
+                          <line x1="12" y1="8" x2="12.01" y2="8"></line>
                         </svg>
-                        Create new list
+                        Select partners from the table first to create a custom list
                       </div>
                     </div>
                   </div>
@@ -717,24 +707,7 @@ function PartnersTable() {
             {/* Right-side action buttons */}
             <div className="flex items-center gap-2">
               
-              {/* Create Saved Filter Button */}
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="flex items-center border-[#5567E5] text-[#5567E5] hover:bg-[#eef0ff]"
-                onClick={() => {
-                  // Open create list modal and set it to create a filter-type list
-                  setShowCreateListModal(true);
-                  setNewListName('');
-                  setNewListDescription('');
-                  setSelectionListType('filter');
-                }}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                </svg>
-                Create Saved Filter
-              </Button>
+              {/* No standalone create filter button - users must select from table */}
               
               <Button variant="outline" size="sm" className="hidden md:flex items-center">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
@@ -1756,9 +1729,9 @@ function PartnersTable() {
       <Dialog open={showCreateFromSelectionModal} onOpenChange={setShowCreateFromSelectionModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-[#282A3F] font-semibold text-lg" style={{ fontFamily: 'Poppins, sans-serif' }}>Create list with {selectedPartners.length} selected partner{selectedPartners.length > 1 ? 's' : ''}</DialogTitle>
+            <DialogTitle className="text-[#282A3F] font-semibold text-lg" style={{ fontFamily: 'Poppins, sans-serif' }}>Create custom list with {selectedPartners.length} selected partner{selectedPartners.length > 1 ? 's' : ''}</DialogTitle>
             <DialogDescription>
-              This will create a static list containing only the partners you've selected.
+              This list will only contain the specific partners you've selected and won't update automatically.
             </DialogDescription>
           </DialogHeader>
           
