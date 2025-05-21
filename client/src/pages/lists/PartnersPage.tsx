@@ -222,14 +222,14 @@ const PartnersPage = () => {
     }
   };
   
-  // Create a new saved search
+  // Create a new saved filter
   const createSavedSearch = (name: string) => {
     // Only create if we have filters and there are results
     if ((searchText || statusFilter || industryFilter || typeFilter) && filteredPartners.length > 0) {
       const newSearch = {
         id: Date.now().toString(),
         name,
-        type: 'search' as const,
+        type: 'filter' as const,
         lastUpdated: new Date(),
         count: filteredPartners.length,
         filters: {
@@ -429,52 +429,174 @@ const PartnersPage = () => {
               </div>
             </div>
             
-            {/* Right side actions */}
-            <div className="flex items-center gap-3">
-              {/* Organization options */}
-              <div className="flex items-center">
-                <div className="flex border border-gray-200 rounded-lg overflow-hidden">
-                  <Button
-                    variant="ghost"
-                    className="rounded-none border-r border-gray-200 px-3 flex items-center gap-1.5 h-9"
-                    onClick={() => setShowSearchModal(true)}
-                  >
+            {/* Simple search */}
+            <div className="relative">
+              <Input
+                type="search"
+                placeholder="Search partners..."
+                className="pl-9 w-60"
+                value={searchText}
+                onChange={(e) => setSearchText(e.target.value)}
+              />
+              <div className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-gray-400">
+                <SearchIcon />
+              </div>
+            </div>
+          </div>
+          
+          {/* Simple filters row */}
+          <div className="flex flex-wrap gap-3 mt-3">
+            <div>
+              <Select value={statusFilter} onValueChange={setStatusFilter}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="Status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Any status</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <Select value={industryFilter} onValueChange={setIndustryFilter}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="Industry" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Any industry</SelectItem>
+                  <SelectItem value="Insurance">Insurance</SelectItem>
+                  <SelectItem value="Finance">Finance</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <Select value={typeFilter} onValueChange={setTypeFilter}>
+                <SelectTrigger className="w-[140px]">
+                  <SelectValue placeholder="Partner type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">Any type</SelectItem>
+                  <SelectItem value="Broker">Broker</SelectItem>
+                  <SelectItem value="Agency">Agency</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            {(searchText || statusFilter || industryFilter || typeFilter) && (
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="h-10"
+                onClick={() => {
+                  setSearchText('');
+                  setStatusFilter('');
+                  setIndustryFilter('');
+                  setTypeFilter('');
+                }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                  <path d="M18 6L6 18"></path>
+                  <path d="M6 6l12 12"></path>
+                </svg>
+                Clear all
+              </Button>
+            )}
+          </div>
+
+          {/* Organization options - explicit choices */}
+          <div className="bg-gray-50 border border-gray-200 p-4 rounded-lg mt-4">
+            <h3 className="font-medium text-gray-900 mb-4">How do you want to organize partners?</h3>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Option 1: Save filters */}
+              <div 
+                className="border border-blue-200 bg-blue-50 rounded-lg p-4 cursor-pointer hover:bg-blue-100 transition-colors"
+                onClick={() => setShowSearchModal(true)}
+              >
+                <div className="flex items-center mb-2">
+                  <div className="p-2 bg-blue-100 rounded-full mr-3">
                     <FilterIcon />
-                    <span className="text-sm font-medium">Filter & Save</span>
-                  </Button>
-                  
-                  <Button
-                    variant="ghost"
-                    className="rounded-none px-3 flex items-center gap-1.5 h-9"
-                    onClick={() => {
-                      if (selectedPartners.length > 0) {
-                        setShowListModal(true);
-                      } else {
-                        toast({
-                          title: "No partners selected",
-                          description: "Select partners using the checkboxes first, then create a list.",
-                        });
-                      }
-                    }}
-                  >
-                    <ListIcon />
-                    <span className="text-sm font-medium">Create List</span>
-                  </Button>
+                  </div>
+                  <h4 className="font-medium text-blue-800">Save a group of filters</h4>
                 </div>
+                <p className="text-sm text-blue-700">
+                  I want to save my filter settings so that my list automatically updates when partners match my criteria.
+                </p>
+                <Button 
+                  variant="outline" 
+                  className="mt-3 bg-white border-blue-200 text-blue-700 hover:bg-blue-50"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setShowSearchModal(true);
+                  }}
+                >
+                  Save filters
+                </Button>
               </div>
               
-              {/* Simple search */}
-              <div className="relative">
-                <Input
-                  type="search"
-                  placeholder="Search partners..."
-                  className="pl-9 w-60"
-                  value={searchText}
-                  onChange={(e) => setSearchText(e.target.value)}
-                />
-                <div className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-gray-400">
-                  <SearchIcon />
+              {/* Option 2: Save selected partners */}
+              <div 
+                className={`border rounded-lg p-4 cursor-pointer transition-colors ${
+                  selectedPartners.length > 0 
+                    ? "border-emerald-200 bg-emerald-50 hover:bg-emerald-100" 
+                    : "border-gray-200 bg-gray-100 opacity-60"
+                }`}
+                onClick={() => {
+                  if (selectedPartners.length > 0) {
+                    setShowListModal(true);
+                  } else {
+                    toast({
+                      title: "No partners selected",
+                      description: "Select partners using the checkboxes in the table first, then create a list.",
+                    });
+                  }
+                }}
+              >
+                <div className="flex items-center mb-2">
+                  <div className={`p-2 rounded-full mr-3 ${
+                    selectedPartners.length > 0 ? "bg-emerald-100" : "bg-gray-200"
+                  }`}>
+                    <ListIcon />
+                  </div>
+                  <h4 className={`font-medium ${
+                    selectedPartners.length > 0 ? "text-emerald-800" : "text-gray-600"
+                  }`}>
+                    Save the selected partners
+                  </h4>
                 </div>
+                <p className={`text-sm ${
+                  selectedPartners.length > 0 ? "text-emerald-700" : "text-gray-500"
+                }`}>
+                  I want to save just the {selectedPartners.length > 0 ? selectedPartners.length : ""} partners I've selected. 
+                  This list won't change unless I change it manually.
+                </p>
+                <Button 
+                  variant="outline" 
+                  className={`mt-3 ${
+                    selectedPartners.length > 0 
+                      ? "bg-white border-emerald-200 text-emerald-700 hover:bg-emerald-50" 
+                      : "bg-gray-100 border-gray-300 text-gray-500"
+                  }`}
+                  disabled={selectedPartners.length === 0}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    if (selectedPartners.length > 0) {
+                      setShowListModal(true);
+                    } else {
+                      toast({
+                        title: "No partners selected",
+                        description: "Select partners using the checkboxes in the table first.",
+                      });
+                    }
+                  }}
+                >
+                  {selectedPartners.length > 0 
+                    ? `Save ${selectedPartners.length} partners` 
+                    : "Select partners first"}
+                </Button>
               </div>
             </div>
           </div>
