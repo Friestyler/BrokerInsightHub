@@ -176,7 +176,39 @@ function TemplateBadges({ industry, type }: { industry: string, type: string }) 
   );
 }
 
-// Define interface for saved lists
+// Define interfaces for the new model: Lists and Views
+interface PartnerView {
+  id: string;
+  name: string;
+  description?: string;
+  filters: {
+    searchText?: string;
+    status?: string;
+    industry?: string;
+    type?: string;
+    size?: string;
+    [key: string]: any;
+  };
+  isDefault?: boolean;
+  createdBy: string;
+  createdAt: Date;
+}
+
+interface PartnerList {
+  id: string;
+  name: string;
+  description?: string;
+  members: number[]; // Array of partner IDs contained in this list
+  views: PartnerView[]; // A list can have multiple views (saved filter configurations)
+  activeViewId?: string; // Currently selected view
+  isShared: boolean;
+  sharedWith?: string[];
+  createdBy: string;
+  createdAt: Date;
+  isDefault?: boolean; // Flag for system-generated default lists that can't be edited/deleted
+}
+
+// For backward compatibility during migration
 interface SavedList {
   id: string;
   name: string;
@@ -188,13 +220,14 @@ interface SavedList {
     industry?: string;
     type?: string;
     size?: string;
+    [key: string]: any;
   };
   members?: number[]; // Array of partner IDs for Custom Lists
   isShared: boolean;
   sharedWith?: string[];
   createdBy: string;
   createdAt: Date;
-  isDefault?: boolean; // Flag for system-generated default lists that can't be edited/deleted
+  isDefault?: boolean; 
 }
 
 // Main partner list component
