@@ -344,8 +344,8 @@ function PartnersTable() {
   // Function to open list creation from selection
   const openCreateFromSelection = () => {
     if (selectedPartners.length > 0) {
-      // Default to dynamic list for convenience
-      setSelectionListType('filter');
+      // Default to static selection list when creating from selected partners
+      setSelectionListType('selection');
       setSelectionListName('');
       setSelectionListDescription('');
       setShowCreateFromSelectionModal(true);
