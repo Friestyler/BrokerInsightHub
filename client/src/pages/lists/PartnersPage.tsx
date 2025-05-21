@@ -781,27 +781,27 @@ function PartnersTable() {
           
           {/* Static List Information Banner - shows when a static list is active */}
           {activeList?.type === 'selection' && (
-            <div className="bg-emerald-50 border border-emerald-200 rounded-lg mb-4 overflow-hidden transition-all duration-300">
+            <div className="bg-[#EBEEFB] border border-[#D4D9F3] rounded-lg mb-4 overflow-hidden transition-all duration-300">
               <div className="p-4 cursor-pointer flex items-center justify-between" 
                    onClick={() => setIsGuidanceCollapsed(!isGuidanceCollapsed)}>
                 <div className="flex items-center">
-                  <div className="flex-shrink-0 bg-emerald-100 rounded-full p-1.5">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#047857" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <div className="flex-shrink-0 bg-[#D4D9F3] rounded-full p-1.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                       <polyline points="22 4 12 14.01 9 11.01"></polyline>
                     </svg>
                   </div>
-                  <h3 className="ml-3 text-sm font-medium text-emerald-800" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                  <h3 className="ml-3 text-sm font-medium text-[#3E4DC4]" style={{ fontFamily: 'Poppins, sans-serif' }}>
                     Static List: Only changes when you make them
                   </h3>
                 </div>
                 <div>
                   {isGuidanceCollapsed ? (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#047857" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="18 15 12 9 6 15"></polyline>
                     </svg>
                   ) : (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#047857" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="6 9 12 15 18 9"></polyline>
                     </svg>
                   )}
@@ -811,7 +811,7 @@ function PartnersTable() {
               {/* Collapsible content */}
               {!isGuidanceCollapsed && (
                 <div className="px-4 pb-4 pt-1 ml-10">
-                  <div className="text-sm text-emerald-700">
+                  <div className="text-sm text-[#5F6585]">
                     <p><strong>This list will only change when you explicitly add or remove partners.</strong></p>
                     <ul className="list-disc pl-5 mt-2 space-y-1">
                       <li><strong>No automatic updates:</strong> New partners will never be added automatically</li>
@@ -820,7 +820,7 @@ function PartnersTable() {
                     </ul>
                     <div className="flex mt-3">
                       <button 
-                        className="flex items-center rounded-md bg-emerald-600 text-white px-3 py-1.5 text-xs hover:bg-emerald-700"
+                        className="flex items-center rounded-md bg-indigo-600 text-white px-3 py-1.5 text-xs hover:bg-indigo-700"
                         onClick={() => {
                           setPartnersToAdd([]);
                           setShowAddPartnersModal(true);
