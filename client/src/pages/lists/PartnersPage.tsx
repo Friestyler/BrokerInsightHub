@@ -1312,12 +1312,19 @@ function PartnersTable() {
                       name: listName,
                       description: listDescription || undefined,
                       type: listType, // Set the list type (dynamic filter or static selection)
-                      filters: {
-                        searchText: filterText || undefined,
-                        status: selectedStatus || undefined,
-                        industry: selectedIndustry || undefined,
-                        type: selectedType || undefined
-                      },
+                      filters: listType === 'selection' 
+                        ? { // Empty filters for static lists
+                            searchText: undefined,
+                            status: undefined,
+                            industry: undefined,
+                            type: undefined
+                          }
+                        : { // Apply filters only for dynamic lists
+                            searchText: filterText || undefined,
+                            status: selectedStatus || undefined,
+                            industry: selectedIndustry || undefined,
+                            type: selectedType || undefined
+                          },
                       // For static lists, start with an empty array
                       members: listType === 'selection' ? [] : undefined,
                       isShared,
