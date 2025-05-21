@@ -686,24 +686,7 @@ function PartnersTable() {
             {/* Right-side action buttons */}
             <div className="flex items-center gap-2">
               
-              {/* Create Saved Filter Button */}
-              <Button 
-                variant="outline" 
-                size="sm" 
-                className="flex items-center border-[#5567E5] text-[#5567E5] hover:bg-[#eef0ff]"
-                onClick={() => {
-                  // Open create list modal and set it to create a filter-type list
-                  setShowCreateListModal(true);
-                  setNewListName('');
-                  setNewListDescription('');
-                  setSelectionListType('filter');
-                }}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                </svg>
-                Create Saved Filter
-              </Button>
+
               
               <Button variant="outline" size="sm" className="hidden md:flex items-center">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
