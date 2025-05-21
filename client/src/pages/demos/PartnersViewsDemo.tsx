@@ -1197,7 +1197,7 @@ export default function PartnersViewsDemo() {
                   }
                   
                   // Create a new view object
-                  const newView = {
+                  const newView: View = {
                     id: String(Date.now()),
                     name: viewName,
                     description: viewDescription || undefined,
@@ -1212,16 +1212,25 @@ export default function PartnersViewsDemo() {
                     createdAt: new Date()
                   };
                   
-                  // Add the view to the list of views
-                  setViews([...views, newView]);
+                  // Add the view to the active list and set it as the active view
+                  const updatedLists = lists.map(list => {
+                    if (list.id === activeListId) {
+                      return {
+                        ...list,
+                        views: [...list.views, newView],
+                        activeViewId: newView.id
+                      };
+                    }
+                    return list;
+                  });
                   
-                  // Set the new view as active
-                  setActiveView(newView);
+                  // Update the lists state
+                  setLists(updatedLists);
                   
                   // Show success message
                   toast({
                     title: "View saved",
-                    description: `"${viewName}" has been saved and will show partners matching your criteria.`,
+                    description: `"${viewName}" has been saved to the "${activeList.name}" list and will show partners matching your criteria.`,
                   });
                   
                   // Close the modal
