@@ -814,7 +814,7 @@ const PartnersPage = () => {
                         }
                       </p>
                       
-                      {activeSavedItem?.type === 'search' && (
+                      {activeSavedItem?.type === 'filter' && (
                         <Button
                           variant="outline"
                           onClick={() => setShowSearchModal(true)}
@@ -1029,7 +1029,7 @@ const PartnersPage = () => {
           </DialogHeader>
           
           <div className="py-4">
-            {!activeSavedItem?.type === 'list' && (
+            {(!activeSavedItem || activeSavedItem.type !== 'list') && (
               <div className="grid gap-4 mb-4">
                 <div>
                   <Label htmlFor="list-name">List Name</Label>
