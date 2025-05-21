@@ -344,8 +344,8 @@ function PartnersTable() {
   // Function to open list creation from selection
   const openCreateFromSelection = () => {
     if (selectedPartners.length > 0) {
-      // Default to static selection list when creating from selected partners
-      setSelectionListType('selection');
+      // When creating from selection, we always create a static list
+      setSelectionListType('selection'); // Force static selection type
       setSelectionListName('');
       setSelectionListDescription('');
       setShowCreateFromSelectionModal(true);
@@ -1102,10 +1102,7 @@ function PartnersTable() {
                           type="radio"
                           name="list-type"
                           className="w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-600"
-                          defaultChecked={
-                            // Default to dynamic list when filters are applied but no partners are selected
-                            (filterText || selectedStatus || selectedIndustry || selectedType) && selectedPartners.length === 0
-                          }
+                          defaultChecked={(filterText || selectedStatus || selectedIndustry || selectedType) ? true : false}
                           onChange={() => {
                             document.getElementById('hidden-list-type-value')?.setAttribute('value', 'filter');
                           }}
@@ -1488,9 +1485,9 @@ function PartnersTable() {
       <Dialog open={showCreateFromSelectionModal} onOpenChange={setShowCreateFromSelectionModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-[#282A3F] font-semibold text-lg" style={{ fontFamily: 'Poppins, sans-serif' }}>Create list from selection</DialogTitle>
+            <DialogTitle className="text-[#282A3F] font-semibold text-lg" style={{ fontFamily: 'Poppins, sans-serif' }}>Create list with {selectedPartners.length} selected partner{selectedPartners.length > 1 ? 's' : ''}</DialogTitle>
             <DialogDescription>
-              Create a new list with {selectedPartners.length} selected partners.
+              This will create a static list containing only the partners you've selected.
             </DialogDescription>
           </DialogHeader>
           
@@ -1518,58 +1515,23 @@ function PartnersTable() {
                 />
               </div>
               
-              <div>
-                <Label className="text-[#282A3F] block mb-3" style={{ fontFamily: 'Poppins, sans-serif' }}>Choose list type</Label>
-                
-                {/* Visual comparison cards with clear icons and minimal text */}
-                <div className="grid grid-cols-1 gap-4 mt-2">
-                  {/* Static list option - visually clear and simple */}
-                  <div 
-                    className={`border rounded-lg p-4 cursor-pointer transition-all ${selectionListType === 'selection' ? 'border-emerald-600 bg-emerald-50 ring-2 ring-emerald-200' : 'border-gray-200 hover:border-emerald-300'}`}
-                    onClick={() => setSelectionListType('selection')}
-                  >
-                    <div className="flex items-start">
-                      <div className={`mt-1 mr-3 rounded-full p-2 ${selectionListType === 'selection' ? 'bg-emerald-100' : 'bg-gray-100'}`}>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={selectionListType === 'selection' ? '#047857' : '#64748b'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                          <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                        </svg>
-                      </div>
-                      <div>
-                        <div className="flex items-center">
-                          <h4 className="text-base font-semibold">{selectionListType === 'selection' && "✓"} Static List</h4>
-                          <div className="ml-2 bg-emerald-100 text-emerald-800 rounded-full px-2 py-0.5 text-xs">
-                            Fixed Selection
-                          </div>
-                        </div>
-                        <p className="text-sm text-gray-500 mt-1"><strong>Only these {selectedPartners.length} partners</strong> you've selected.</p>
-                        <p className="text-xs text-gray-500 mt-1">No automatic additions of new partners.</p>
-                      </div>
-                    </div>
+              <div className="bg-emerald-50 border border-emerald-200 rounded-lg p-4">
+                <div className="flex items-start">
+                  <div className="mt-1 mr-3 rounded-full p-2 bg-emerald-100">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#047857" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                      <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
                   </div>
-                  
-                  {/* Dynamic list option - visually clear and simple */}
-                  <div 
-                    className={`border rounded-lg p-4 cursor-pointer transition-all ${selectionListType === 'filter' ? 'border-blue-600 bg-blue-50 ring-2 ring-blue-200' : 'border-gray-200 hover:border-blue-300'}`}
-                    onClick={() => setSelectionListType('filter')}
-                  >
-                    <div className="flex items-start">
-                      <div className={`mt-1 mr-3 rounded-full p-2 ${selectionListType === 'filter' ? 'bg-blue-100' : 'bg-gray-100'}`}>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={selectionListType === 'filter' ? '#1e40af' : '#64748b'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
-                        </svg>
-                      </div>
-                      <div>
-                        <div className="flex items-center">
-                          <h4 className="text-base font-semibold">{selectionListType === 'filter' && "✓"} Dynamic List</h4>
-                          <div className="ml-2 bg-blue-100 text-blue-800 rounded-full px-2 py-0.5 text-xs">
-                            Auto-Updating
-                          </div>
-                        </div>
-                        <p className="text-sm text-gray-500 mt-1"><strong>All partners matching your filters</strong> (both current and future).</p>
-                        <p className="text-xs text-gray-500 mt-1">You'll define filter criteria in the next step.</p>
+                  <div>
+                    <div className="flex items-center">
+                      <h4 className="text-base font-semibold">Static Partner List</h4>
+                      <div className="ml-2 bg-emerald-100 text-emerald-800 rounded-full px-2 py-0.5 text-xs">
+                        {selectedPartners.length} Partner{selectedPartners.length > 1 ? 's' : ''}
                       </div>
                     </div>
+                    <p className="text-sm text-gray-700 mt-1">Your list will include <strong>only the partners you've selected</strong>.</p>
+                    <p className="text-xs text-gray-600 mt-1">You can add or remove partners from this list at any time.</p>
                   </div>
                 </div>
               </div>
