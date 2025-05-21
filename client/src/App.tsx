@@ -20,6 +20,7 @@ import OpportunitiesPage from "@/pages/lists/OpportunitiesPage";
 import OpportunityDetail from "@/pages/lists/OpportunityDetail";
 import MetricsPage from "@/pages/templates/MetricsPage";
 import GroupDetail from "@/pages/templates/GroupDetail";
+import ListViewDemo from "@/pages/ListViewDemo";
 
 import NotFound from "@/pages/not-found";
 import EnvironmentRouteGuard from "@/components/EnvironmentRouteGuard";
@@ -45,6 +46,7 @@ function Router() {
         <Route path="/lists/opportunities/:id" component={OpportunityDetail} />
         <Route path="/lists/projects" component={ProjectsPage} />
         <Route path="/lists/contacts" component={ContactsPage} />
+        <Route path="/lists/demo" component={ListViewDemo} />
         
         {/* Prevent access to Campaigns page in ACME environment */}
         <Route path="/campaigns">

@@ -409,6 +409,180 @@ function ViewSelector({
   );
 }
 
+// Demo component to showcase the Lists and Views concept
+function ListViewDemoPanel() {
+  const { toast } = useToast();
+  
+  // Sample list with multiple views
+  const [demoList, setDemoList] = useState<List>(
+    createList(
+      "Key Insurance Partners", 
+      "Our most important insurance industry partners",
+      [1, 3, 6] // Sample partner IDs
+    )
+  );
+  
+  // Add some sample views
+  useEffect(() => {
+    // Only run once on initial render
+    setDemoList(prevList => {
+      if (prevList.views.length === 1) {
+        // Add sample views if we only have the default view
+        const activeView = prevList.views[0];
+        
+        const brokersView = createView("Brokers Only", { type: "Broker" });
+        const activePartnersView = createView("Active Partners", { status: "active" });
+        
+        return {
+          ...prevList,
+          views: [activeView, brokersView, activePartnersView]
+        };
+      }
+      return prevList;
+    });
+  }, []);
+  
+  // State for view dialog
+  const [viewDialogOpen, setViewDialogOpen] = useState(false);
+  const [viewToEdit, setViewToEdit] = useState<View | null>(null);
+  
+  // Handle creating a new view
+  const handleCreateView = () => {
+    setViewToEdit(null);
+    setViewDialogOpen(true);
+  };
+  
+  // Handle editing an existing view
+  const handleEditView = (view: View) => {
+    setViewToEdit(view);
+    setViewDialogOpen(true);
+  };
+  
+  // Handle saving a view (new or edited)
+  const handleSaveView = (parentList: List, view: View) => {
+    setDemoList(prevList => {
+      if (viewToEdit) {
+        // Update existing view
+        return {
+          ...prevList,
+          views: prevList.views.map(v => v.id === view.id ? view : v)
+        };
+      } else {
+        // Add new view
+        return {
+          ...prevList,
+          views: [...prevList.views, view]
+        };
+      }
+    });
+    
+    toast({
+      title: viewToEdit ? "View updated" : "New view created",
+      description: `"${view.name}" ${viewToEdit ? "has been updated" : "has been added to your list"}.`,
+    });
+  };
+  
+  // Handle selecting a view
+  const handleSelectView = (viewId: string) => {
+    setDemoList(prevList => ({
+      ...prevList,
+      activeViewId: viewId
+    }));
+    
+    const selectedView = demoList.views.find(v => v.id === viewId);
+    if (selectedView) {
+      toast({
+        title: "View applied",
+        description: `Now showing partners using the "${selectedView.name}" view.`,
+      });
+    }
+  };
+  
+  return (
+    <div className="bg-white rounded-lg shadow-sm p-6 mb-8">
+      <div className="flex items-center justify-between mb-4">
+        <div>
+          <h2 className="text-lg font-semibold text-slate-900 mb-1">Lists and Views Demo</h2>
+          <p className="text-sm text-slate-600">This demo shows how lists can have multiple views</p>
+        </div>
+        
+        <div className="flex items-center gap-4">
+          {/* View selector dropdown */}
+          <ViewSelector 
+            list={demoList} 
+            activeViewId={demoList.activeViewId} 
+            onSelectView={handleSelectView}
+            onCreateView={() => handleCreateView()}
+            onEditView={(_, view) => handleEditView(view)}
+          />
+          
+          {/* Standalone button to create a new view */}
+          <CreateViewButton list={demoList} onCreateView={() => handleCreateView()} />
+        </div>
+      </div>
+      
+      <div className="bg-slate-50 p-4 rounded-md">
+        <div className="text-sm font-medium text-slate-700 mb-2 flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+            <rect width="8" height="8" x="2" y="2" rx="2" />
+            <rect width="8" height="8" x="14" y="2" rx="2" />
+            <rect width="8" height="8" x="2" y="14" rx="2" />
+            <rect width="8" height="8" x="14" y="14" rx="2" />
+          </svg>
+          List Details:
+        </div>
+        
+        <div className="bg-white p-3 rounded-md mb-3 border border-slate-200">
+          <div className="font-medium text-slate-900 mb-1">"{demoList.name}"</div>
+          <div className="text-sm text-slate-600 mb-2">{demoList.description}</div>
+          <div className="text-xs text-slate-500">Contains {demoList.members.length} partners</div>
+        </div>
+        
+        <div className="text-sm font-medium text-slate-700 mb-2 flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3" />
+          </svg>
+          Active View:
+        </div>
+        
+        {/* Display current active view */}
+        {demoList.views.map(view => {
+          if (view.id === demoList.activeViewId) {
+            return (
+              <div key={view.id} className="bg-white p-3 rounded-md border border-slate-200">
+                <div className="font-medium text-slate-900 mb-1">"{view.name}"</div>
+                <div className="text-sm text-slate-600 mb-2">{view.description}</div>
+                
+                <div className="text-xs font-medium text-slate-700 mb-1">Filter settings:</div>
+                <div className="flex flex-wrap gap-2">
+                  {Object.entries(view.filters).map(([key, value]) => value && (
+                    <div key={key} className="px-2 py-1 bg-slate-100 rounded-full text-xs text-slate-700">
+                      {key === 'searchText' ? 'Search' : key}: {value}
+                    </div>
+                  ))}
+                  {!Object.values(view.filters).some(v => v) && (
+                    <div className="text-xs text-slate-500 italic">No filters defined</div>
+                  )}
+                </div>
+              </div>
+            );
+          }
+          return null;
+        })}
+      </div>
+      
+      {/* View creation/editing dialog */}
+      <ViewDialog
+        isOpen={viewDialogOpen}
+        onClose={() => setViewDialogOpen(false)}
+        parentList={demoList}
+        existingView={viewToEdit}
+        onSave={handleSaveView}
+      />
+    </div>
+  );
+}
+
 // COMMENT: The code below preserves the existing implementation while we transition to the new model.
 import {
   Card,
