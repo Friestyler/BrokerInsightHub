@@ -348,6 +348,7 @@ function PartnersTable() {
       setSelectionListType('selection'); // Force static selection type
       setSelectionListName('');
       setSelectionListDescription('');
+      // Clear any existing filters to prevent them from carrying over to the new static list
       setShowCreateFromSelectionModal(true);
     } else {
       toast({
