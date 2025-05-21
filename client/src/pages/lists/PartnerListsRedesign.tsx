@@ -463,20 +463,17 @@ function PartnerListsRedesign() {
       }
     }
     
-    // Apply view filters
-    if (activeView) {
-      if (activeView.filters.status && partner.status !== activeView.filters.status) {
-        return false;
-      }
-      if (activeView.filters.industry && partner.industry !== activeView.filters.industry) {
-        return false;
-      }
-      if (activeView.filters.type && partner.type !== activeView.filters.type) {
-        return false;
-      }
-      if (activeView.filters.size && partner.size !== activeView.filters.size) {
-        return false;
-      }
+    // Apply manual filters (these override view filters)
+    if (selectedStatus && selectedStatus !== 'all' && partner.status !== selectedStatus) {
+      return false;
+    }
+    
+    if (selectedIndustry && selectedIndustry !== 'all' && partner.industry !== selectedIndustry) {
+      return false;
+    }
+    
+    if (selectedType && selectedType !== 'all' && partner.type !== selectedType) {
+      return false;
     }
     
     // Apply manual search 
@@ -626,7 +623,13 @@ function PartnerListsRedesign() {
     const updatedLists = partnerLists.map(list => {
       if (list.id === activeListId) {
         const currentMembers = list.members || [];
-        const newMembers = [...new Set([...currentMembers, ...partnersToAdd])];
+        // Make a unique array of members without using Set
+        const newMembers = [...currentMembers];
+        partnersToAdd.forEach(id => {
+          if (!newMembers.includes(id)) {
+            newMembers.push(id);
+          }
+        });
         
         return {
           ...list,
@@ -1015,7 +1018,7 @@ function PartnerListsRedesign() {
                 <SelectValue placeholder="Status Filter" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Statuses</SelectItem>
+                <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="active">Active</SelectItem>
                 <SelectItem value="inactive">Inactive</SelectItem>
               </SelectContent>
@@ -1029,7 +1032,7 @@ function PartnerListsRedesign() {
                 <SelectValue placeholder="Industry Filter" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Industries</SelectItem>
+                <SelectItem value="all">All Industries</SelectItem>
                 <SelectItem value="Insurance">Insurance</SelectItem>
                 <SelectItem value="Finance">Finance</SelectItem>
                 <SelectItem value="Consulting">Consulting</SelectItem>
@@ -1044,7 +1047,7 @@ function PartnerListsRedesign() {
                 <SelectValue placeholder="Type Filter" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Types</SelectItem>
+                <SelectItem value="all">All Types</SelectItem>
                 <SelectItem value="Broker">Broker</SelectItem>
                 <SelectItem value="Agency">Agency</SelectItem>
               </SelectContent>
