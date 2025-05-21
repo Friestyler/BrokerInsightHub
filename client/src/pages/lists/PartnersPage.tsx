@@ -1409,6 +1409,172 @@ function PartnersTable() {
         </DialogContent>
       </Dialog>
       
+      {/* Create List from Selection Modal - with extremely clear distinction between list types */}
+      <Dialog open={showCreateFromSelectionModal} onOpenChange={setShowCreateFromSelectionModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-[#282A3F] font-semibold text-lg" style={{ fontFamily: 'Poppins, sans-serif' }}>Create list from selection</DialogTitle>
+            <DialogDescription>
+              Create a new list with {selectedPartners.length} selected partners.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="selection-list-name" className="text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif' }}>List name</Label>
+                <Input 
+                  id="selection-list-name" 
+                  value={selectionListName} 
+                  onChange={(e) => setSelectionListName(e.target.value)} 
+                  placeholder="Enter list name" 
+                  className="mt-1.5"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="selection-list-description" className="text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif' }}>Description (optional)</Label>
+                <Textarea 
+                  id="selection-list-description" 
+                  value={selectionListDescription} 
+                  onChange={(e) => setSelectionListDescription(e.target.value)} 
+                  placeholder="Enter list description" 
+                  className="mt-1.5"
+                />
+              </div>
+              
+              <div>
+                <Label className="text-[#282A3F] block mb-3" style={{ fontFamily: 'Poppins, sans-serif' }}>Choose list type</Label>
+                
+                {/* Visual comparison cards with clear icons and minimal text */}
+                <div className="grid grid-cols-1 gap-4 mt-2">
+                  {/* Static list option - visually clear and simple */}
+                  <div 
+                    className={`border rounded-lg p-4 cursor-pointer transition-all ${selectionListType === 'selection' ? 'border-emerald-600 bg-emerald-50 ring-2 ring-emerald-200' : 'border-gray-200 hover:border-emerald-300'}`}
+                    onClick={() => setSelectionListType('selection')}
+                  >
+                    <div className="flex items-start">
+                      <div className={`mt-1 mr-3 rounded-full p-2 ${selectionListType === 'selection' ? 'bg-emerald-100' : 'bg-gray-100'}`}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={selectionListType === 'selection' ? '#047857' : '#64748b'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                          <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                        </svg>
+                      </div>
+                      <div>
+                        <div className="flex items-center">
+                          <h4 className="text-base font-semibold">{selectionListType === 'selection' && "✓"} Static List</h4>
+                          <div className="ml-2 bg-emerald-100 text-emerald-800 rounded-full px-2 py-0.5 text-xs">
+                            Fixed Selection
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-500 mt-1"><strong>Only these {selectedPartners.length} partners</strong> you've selected.</p>
+                        <p className="text-xs text-gray-500 mt-1">No automatic additions of new partners.</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Dynamic list option - visually clear and simple */}
+                  <div 
+                    className={`border rounded-lg p-4 cursor-pointer transition-all ${selectionListType === 'filter' ? 'border-blue-600 bg-blue-50 ring-2 ring-blue-200' : 'border-gray-200 hover:border-blue-300'}`}
+                    onClick={() => setSelectionListType('filter')}
+                  >
+                    <div className="flex items-start">
+                      <div className={`mt-1 mr-3 rounded-full p-2 ${selectionListType === 'filter' ? 'bg-blue-100' : 'bg-gray-100'}`}>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke={selectionListType === 'filter' ? '#1e40af' : '#64748b'} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                        </svg>
+                      </div>
+                      <div>
+                        <div className="flex items-center">
+                          <h4 className="text-base font-semibold">{selectionListType === 'filter' && "✓"} Dynamic List</h4>
+                          <div className="ml-2 bg-blue-100 text-blue-800 rounded-full px-2 py-0.5 text-xs">
+                            Auto-Updating
+                          </div>
+                        </div>
+                        <p className="text-sm text-gray-500 mt-1"><strong>All partners in Qollabi</strong> with similar attributes.</p>
+                        <p className="text-xs text-gray-500 mt-1">New partners will be added automatically.</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setShowCreateFromSelectionModal(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={() => {
+                // Check if list name is provided
+                if (!selectionListName.trim()) {
+                  toast({
+                    title: "List name required",
+                    description: "Please enter a name for your list.",
+                    variant: "destructive",
+                  });
+                  return;
+                }
+                
+                // Generate a new ID
+                const newId = Date.now().toString();
+                
+                // Create the new list based on type
+                const newList: SavedList = {
+                  id: newId,
+                  name: selectionListName.trim(),
+                  description: selectionListDescription.trim() || undefined,
+                  type: selectionListType,
+                  // For dynamic lists, analyze the selected partners to create intelligent filters
+                  filters: selectionListType === 'filter' 
+                    ? { 
+                      // This is a simplified approach - in a real app you'd analyze the
+                      // selected partners to determine common attributes for smarter filters
+                    }
+                    : {}, // For static lists, we'll use the members array instead
+                  // For static lists, use the selection directly
+                  members: selectionListType === 'selection' ? selectedPartners : undefined, 
+                  isShared: false,
+                  createdBy: 'John Smith', // Hardcoded for demo
+                  createdAt: new Date()
+                };
+                
+                // Add to saved lists
+                setSavedLists([...savedLists, newList]);
+                
+                // Set as active list
+                setActiveList(newList);
+                setOriginalListFilters(newList.filters);
+                
+                // Close the modal
+                setShowCreateFromSelectionModal(false);
+                
+                // Reset form fields
+                setSelectionListName('');
+                setSelectionListDescription('');
+                
+                // Clear selection after creating the list
+                setSelectedPartners([]);
+                
+                // Show success message
+                const listTypeText = selectionListType === 'selection' ? 'static' : 'dynamic';
+                toast({
+                  title: `${listTypeText.charAt(0).toUpperCase() + listTypeText.slice(1)} list created`,
+                  description: `"${selectionListName}" has been created successfully${selectionListType === 'selection' ? ' with ' + selectedPartners.length + ' partners' : ''}.`,
+                });
+              }}
+              disabled={!selectionListName.trim()}
+            >
+              Create List
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
       {/* Share List Modal with Extended Options */}
       <Dialog open={showShareListModal} onOpenChange={setShowShareListModal}>
         <DialogContent className="sm:max-w-md">
@@ -1786,3 +1952,9 @@ export default function PartnersPage() {
     </div>
   );
 }
+
+/* IMPORTANT NOTE: 
+   - Dynamic lists automatically include ALL partners matching the criteria, even new ones added in the future
+   - Static lists only include the specific partners that are manually selected
+   This distinction needs to be extremely clear to users in the UI
+*/
