@@ -176,39 +176,7 @@ function TemplateBadges({ industry, type }: { industry: string, type: string }) 
   );
 }
 
-// Define interfaces for the new model: Lists and Views
-interface PartnerView {
-  id: string;
-  name: string;
-  description?: string;
-  filters: {
-    searchText?: string;
-    status?: string;
-    industry?: string;
-    type?: string;
-    size?: string;
-    [key: string]: any;
-  };
-  isDefault?: boolean;
-  createdBy: string;
-  createdAt: Date;
-}
-
-interface PartnerList {
-  id: string;
-  name: string;
-  description?: string;
-  members: number[]; // Array of partner IDs contained in this list
-  views: PartnerView[]; // A list can have multiple views (saved filter configurations)
-  activeViewId?: string; // Currently selected view
-  isShared: boolean;
-  sharedWith?: string[];
-  createdBy: string;
-  createdAt: Date;
-  isDefault?: boolean; // Flag for system-generated default lists that can't be edited/deleted
-}
-
-// For backward compatibility during migration
+// Define interface for saved lists
 interface SavedList {
   id: string;
   name: string;
@@ -220,14 +188,13 @@ interface SavedList {
     industry?: string;
     type?: string;
     size?: string;
-    [key: string]: any;
   };
   members?: number[]; // Array of partner IDs for Custom Lists
   isShared: boolean;
   sharedWith?: string[];
   createdBy: string;
   createdAt: Date;
-  isDefault?: boolean; 
+  isDefault?: boolean; // Flag for system-generated default lists that can't be edited/deleted
 }
 
 // Main partner list component
@@ -629,15 +596,16 @@ function PartnersTable() {
                   </svg>
                 </button>
                 
-                {/* Saved Lists dropdown menu - shadcn/ui style with Qollabi colors */}
+                {/* Partner Lists and Views dropdown menu */}
                 {showListsDropdown && (
-                  <div className="absolute z-50 mt-1.5 w-80 rounded-md border border-slate-200 bg-white text-slate-950 shadow-md animate-in fade-in-80 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2">
+                  <div className="absolute z-50 mt-1.5 w-96 rounded-md border border-slate-200 bg-white text-slate-950 shadow-md animate-in fade-in-80 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2">
                     {/* Search section */}
-                    <div className="p-2 border-b border-slate-100">
-                      <div className="relative">
+                    <div className="p-3 border-b border-slate-100">
+                      <div className="text-base font-medium mb-1 text-slate-800">Partner Lists</div>
+                      <div className="relative mt-2">
                         <input
                           type="text"
-                          placeholder="Search lists..."
+                          placeholder="Search lists or views..."
                           className="w-full pl-8 pr-3 py-2 text-sm rounded-md bg-transparent border border-slate-200 ring-offset-white placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
                         />
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500">
@@ -647,39 +615,70 @@ function PartnersTable() {
                       </div>
                     </div>
                     
-                    {/* Lists with edit options */}
-                    <div className="max-h-[300px] overflow-y-auto p-1">
-                      {savedLists.map(list => (
-                        <div 
-                          key={list.id}
-                          className="relative"
-                        >
+                    {/* Lists with their views */}
+                    <div className="max-h-[400px] overflow-y-auto py-2">
+                      {partnerLists.map(list => (
+                        <div key={list.id} className="relative mb-1">
+                          {/* List header */}
                           <div
-                            className={`relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 ${activeList?.id === list.id ? 'bg-indigo-50 text-indigo-900' : 'text-slate-700'}`}
+                            className={`relative flex w-full cursor-pointer select-none items-center rounded-sm px-3 py-2 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 ${activePartnerList?.id === list.id ? 'bg-indigo-50 text-indigo-900' : 'text-slate-700'}`}
                             onClick={() => {
-                              // Special handling for "All Partners" default list
-                              if (list.isDefault && list.name === "All Partners") {
-                                // Clear filters and active list (same behavior as "Return to all partners" button)
-                                setActiveList(null);
-                                setOriginalListFilters(null);
-                                setFilterText('');
-                                setSelectedStatus('');
-                                setSelectedIndustry('');
-                                setSelectedType('');
-                                setHasUnsavedChanges(false);
-                              } else {
-                                // Normal behavior for other lists
-                                setActiveList(list);
-                                // Store the original filters to enable reverting changes
-                                setOriginalListFilters(list.filters);
-                                // Apply filter settings
-                                setFilterText(list.filters.searchText || '');
-                                setSelectedStatus(list.filters.status || '');
-                                setSelectedIndustry(list.filters.industry || '');
-                                setSelectedType(list.filters.type || '');
-                                setHasUnsavedChanges(false);
-                              }
-                              setShowListsDropdown(false);
+                              // Select this list and set its default view
+                              const defaultView = list.views.find(v => v.id === list.activeViewId) || 
+                                               list.views.find(v => v.isDefault) || 
+                                               list.views[0];
+                              setActivePartnerList(list);
+                              setActiveView(defaultView);
+                              
+                              // For backward compatibility
+                              const compatList: SavedList = {
+                                id: list.id,
+                                name: list.name,
+                                description: list.description,
+                                type: list.members.length === 0 ? 'filter' : 'selection',
+                                filters: defaultView.filters,
+                                members: list.members.length > 0 ? list.members : undefined,
+                                isShared: list.isShared,
+                                sharedWith: list.sharedWith,
+                                createdBy: list.createdBy,
+                                createdAt: list.createdAt,
+                                isDefault: list.isDefault
+                              };
+                              
+                              setActiveList(compatList);
+                              setOriginalListFilters(defaultView.filters);
+                              
+                              // Apply filter settings
+                              setFilterText(defaultView.filters.searchText || '');
+                              setSelectedStatus(defaultView.filters.status || '');
+                              setSelectedIndustry(defaultView.filters.industry || '');
+                              setSelectedType(defaultView.filters.type || '');
+                              setHasUnsavedChanges(false);
+                            }}
+                          >
+                            <div className="flex items-center justify-between w-full">
+                              <div className="flex items-center gap-2">
+                                {/* List folder icon */}
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={`${activePartnerList?.id === list.id ? 'text-indigo-600' : 'text-slate-500'}`}>
+                                  <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z" />
+                                </svg>
+                                
+                                <div>
+                                  <div className="text-sm font-medium">{list.name}</div>
+                                  {list.isShared && (
+                                    <div className="text-xs text-slate-500">Shared with team</div>
+                                  )}
+                                </div>
+                              </div>
+                              
+                              {/* Record count and list actions */}
+                              <div className="flex items-center gap-2">
+                                {/* Badge with partner count */}
+                                {list.members.length > 0 && (
+                                  <span className="px-1.5 py-0.5 bg-slate-100 text-slate-700 rounded-full text-xs">
+                                    {list.members.length}
+                                  </span>
+                                )}
                             }}
                           >
                             <div className="flex flex-1 items-center">
