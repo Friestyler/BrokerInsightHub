@@ -252,6 +252,12 @@ function PartnersTable() {
   const [showShareListModal, setShowShareListModal] = useState(false);
   const [showListsDropdown, setShowListsDropdown] = useState(false);
   const [showAddPartnersModal, setShowAddPartnersModal] = useState(false);
+  const [showCreateListModal, setShowCreateListModal] = useState(false);
+  // State for the name and description when creating a list through the general create modal
+  const [newListName, setNewListName] = useState('');
+  const [newListDescription, setNewListDescription] = useState('');
+  const [showDynamicListGuidance, setShowDynamicListGuidance] = useState(false);
+  const [isGuidanceCollapsed, setIsGuidanceCollapsed] = useState(false);
   const [partnersToAdd, setPartnersToAdd] = useState<number[]>([]);
   const [showCreateFromSelectionModal, setShowCreateFromSelectionModal] = useState(false);
     
@@ -723,6 +729,8 @@ function PartnersTable() {
                 onClick={() => {
                   // Open create list modal and set it to create a filter-type list
                   setShowCreateListModal(true);
+                  setNewListName('');
+                  setNewListDescription('');
                   setSelectionListType('filter');
                 }}
               >
@@ -1592,6 +1600,157 @@ function PartnersTable() {
               disabled={partnersToAdd.length === 0}
             >
               Add to List
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Create List Modal - used for creating both Saved Filters and Custom Lists */}
+      <Dialog open={showCreateListModal} onOpenChange={setShowCreateListModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-[#282A3F] font-semibold text-lg" style={{ fontFamily: 'Poppins, sans-serif' }}>
+              {selectionListType === 'filter' ? 'Create a Saved Filter' : 'Create a Custom List'}
+            </DialogTitle>
+            <DialogDescription>
+              {selectionListType === 'filter' 
+                ? 'Define a filter that will automatically show partners matching your criteria.' 
+                : 'Create a list where you manually add and remove partners.'}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="new-list-name" className="text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif' }}>List name</Label>
+                <Input 
+                  id="new-list-name" 
+                  value={newListName} 
+                  onChange={(e) => setNewListName(e.target.value)} 
+                  placeholder="Enter list name" 
+                  className="mt-1.5"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="new-list-description" className="text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif' }}>Description (optional)</Label>
+                <Textarea 
+                  id="new-list-description" 
+                  value={newListDescription} 
+                  onChange={(e) => setNewListDescription(e.target.value)} 
+                  placeholder="Enter list description" 
+                  className="mt-1.5"
+                />
+              </div>
+              
+              {selectionListType === 'filter' && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-start">
+                    <div className="mt-1 mr-3 rounded-full p-2 bg-blue-100">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#1e40af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 className="text-base font-semibold text-[#282A3F]">Saved Filter</h4>
+                      <p className="text-sm text-gray-700 mt-1">
+                        This will create a list that automatically updates to show partners matching your filter criteria.
+                      </p>
+                      <p className="text-xs text-gray-600 mt-1">
+                        After creating this filter, you'll be able to set filter criteria to determine which partners are included.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {selectionListType === 'selection' && (
+                <div className="bg-[#EBEEFB] border border-[#D4D9F3] rounded-lg p-4">
+                  <div className="flex items-start">
+                    <div className="mt-1 mr-3 rounded-full p-2 bg-[#D4D9F3]">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                        <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                      </svg>
+                    </div>
+                    <div>
+                      <h4 className="text-base font-semibold text-[#282A3F]">Custom List</h4>
+                      <p className="text-sm text-[#5F6585] mt-1">
+                        Your list will start empty and you'll manually add partners to it.
+                      </p>
+                      <p className="text-xs text-[#5F6585] mt-1">
+                        Only partners you specifically add will be included in this list.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">
+                Cancel
+              </Button>
+            </DialogClose>
+            <Button
+              onClick={() => {
+                // Check if list name is provided
+                if (!newListName.trim()) {
+                  toast({
+                    title: "List name required",
+                    description: "Please enter a name for your list.",
+                    variant: "destructive",
+                  });
+                  return;
+                }
+                
+                // Generate a new ID
+                const newId = Date.now().toString();
+                
+                // Create the new list
+                const newList: SavedList = {
+                  id: newId,
+                  name: newListName.trim(),
+                  description: newListDescription.trim() || undefined,
+                  type: selectionListType,
+                  filters: selectionListType === 'filter' ? {} : {},
+                  members: selectionListType === 'selection' ? [] : undefined,
+                  isShared: false,
+                  createdBy: 'John Smith', // Hardcoded for demo
+                  createdAt: new Date()
+                };
+                
+                // Add the new list to saved lists
+                const updatedLists = [...savedLists, newList];
+                setSavedLists(updatedLists);
+                
+                // Set the new list as active
+                setActiveList(newList);
+                
+                // Show appropriate success message
+                if (selectionListType === 'selection') {
+                  toast({
+                    title: "Custom List created",
+                    description: `"${newListName}" has been created. You can now add partners to it.`,
+                  });
+                } else {
+                  toast({
+                    title: "Saved Filter created",
+                    description: `"${newListName}" is ready! Now set your filter criteria to view partners matching your requirements.`,
+                  });
+                  
+                  // Set flag to show guidance banner for Saved Filters
+                  setShowDynamicListGuidance(true);
+                }
+                
+                // Close the modal
+                setShowCreateListModal(false);
+              }}
+              className="bg-[#5567E5] hover:bg-[#4151c4] text-white"
+            >
+              Create List
             </Button>
           </DialogFooter>
         </DialogContent>
