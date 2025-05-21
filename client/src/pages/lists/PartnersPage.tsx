@@ -253,11 +253,11 @@ function PartnersTable() {
   const [showListsDropdown, setShowListsDropdown] = useState(false);
   const [showAddPartnersModal, setShowAddPartnersModal] = useState(false);
   const [showCreateListModal, setShowCreateListModal] = useState(false);
+  const [showDynamicListGuidance, setShowDynamicListGuidance] = useState(false);
+  const [isGuidanceCollapsed, setIsGuidanceCollapsed] = useState(false);
   // State for the name and description when creating a list through the general create modal
   const [newListName, setNewListName] = useState('');
   const [newListDescription, setNewListDescription] = useState('');
-  const [showDynamicListGuidance, setShowDynamicListGuidance] = useState(false);
-  const [isGuidanceCollapsed, setIsGuidanceCollapsed] = useState(false);
   const [partnersToAdd, setPartnersToAdd] = useState<number[]>([]);
   const [showCreateFromSelectionModal, setShowCreateFromSelectionModal] = useState(false);
     
@@ -338,11 +338,7 @@ function PartnersTable() {
   const [selectionListDescription, setSelectionListDescription] = useState('');
   const [selectionListType, setSelectionListType] = useState<'filter' | 'selection'>('filter');
   
-  // State to track if a dynamic list was just created (to show guidance)
-  const [showDynamicListGuidance, setShowDynamicListGuidance] = useState(false);
-  
-  // State to track if guidance is collapsed
-  const [isGuidanceCollapsed, setIsGuidanceCollapsed] = useState(false);
+  // We're now using the state defined earlier in the component
   
   // Initialize toast
   const { toast } = useToast();
