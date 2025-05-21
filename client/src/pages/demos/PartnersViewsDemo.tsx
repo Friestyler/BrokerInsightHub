@@ -260,7 +260,7 @@ export default function PartnersViewsDemo() {
       id: '3',
       name: 'Enterprise Customers',
       description: 'All enterprise-sized partners',
-      filters: { size: 'enterprise' },
+      filters: { industry: 'Insurance', type: 'Broker' },
       isShared: false,
       createdBy: 'John Smith',
       createdAt: new Date('2025-05-10')

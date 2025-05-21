@@ -240,6 +240,29 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
             OKR Metrics
           </button>
         </div>
+        
+        {/* Demo Section */}
+        <div className="mt-4 mb-2 px-4">
+          <h2 className={`text-xs font-semibold text-gray-500 uppercase tracking-wider ${collapsed ? "hidden" : "hidden md:block"}`}>
+            Demo Pages
+          </h2>
+        </div>
+        
+        <button 
+          onClick={() => navigateTo('/demos/partners-views')}
+          className={`flex items-center py-2.5 px-4 rounded-md w-full text-left ${location.startsWith("/demos/partners-views") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-center" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 9V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v14c0 1.1.9 2 2 2h4" />
+            <path d="M16 4v2M9 4v2" />
+            <path d="M20 13v4a2 2 0 0 1-2 2h-1" />
+            <path d="M13.9 17.25A2 2 0 1 0 15 19" />
+            <ellipse cx="9" cy="17" rx="2" ry="3" />
+          </svg>
+          <span className={`ml-3 text-sm ${collapsed ? "hidden" : "hidden md:inline-block"}`}>
+            Partners (Views Demo)
+          </span>
+        </button>
       </div>
       <div className="mt-auto mb-4 flex-shrink-0">
         <button 
