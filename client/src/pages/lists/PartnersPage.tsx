@@ -446,8 +446,41 @@ function PartnersTable() {
           <div className="flex flex-wrap items-center justify-between">
             {/* Left side - Saved Lists with actions */}
             <div className="flex items-center gap-3">
-              {/* Saved Lists dropdown - redesigned to match provided image */}
-              <div className="relative">
+              {/* Navigation with tabs for Views and Lists */}
+              <div className="relative flex flex-col">
+                {/* Tabs for switching between Views and Lists */}
+                <div className="mb-3 border-b border-gray-200">
+                  <nav className="-mb-px flex space-x-6" aria-label="Tabs">
+                    <button
+                      className={`whitespace-nowrap pb-3 px-1 text-sm font-medium border-b-2 ${activeListType === 'views' ? 'border-[#5567E5] text-[#5567E5]' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+                      onClick={() => setActiveListType('views')}
+                    >
+                      <div className="flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                          <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" />
+                          <circle cx="12" cy="12" r="3" />
+                        </svg>
+                        Views
+                      </div>
+                    </button>
+                    <button
+                      className={`whitespace-nowrap pb-3 px-1 text-sm font-medium border-b-2 ${activeListType === 'lists' ? 'border-[#5567E5] text-[#5567E5]' : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'}`}
+                      onClick={() => setActiveListType('lists')}
+                    >
+                      <div className="flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                          <path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"></path>
+                          <circle cx="9" cy="7" r="4"></circle>
+                          <line x1="19" y1="8" x2="19" y2="14"></line>
+                          <line x1="22" y1="11" x2="16" y2="11"></line>
+                        </svg>
+                        Lists
+                      </div>
+                    </button>
+                  </nav>
+                </div>
+                
+                {/* Dropdown button for selection */}
                 <button 
                   className="flex items-center space-x-2 px-4 py-2.5 border rounded-md text-sm font-medium shadow-sm bg-white hover:bg-gray-50"
                   onClick={() => setShowListsDropdown(!showListsDropdown)}
@@ -532,9 +565,34 @@ function PartnersTable() {
                       </div>
                     </div>
                     
-                    {/* Lists with edit options */}
+                    {/* Lists with edit options - filtered by active tab type */}
                     <div className="max-h-[300px] overflow-y-auto p-1">
-                      {savedLists.map(list => (
+                      {/* "All Partners" option is always shown */}
+                      <div className="relative">
+                        <div
+                          className={`relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 ${!activeList ? 'bg-indigo-50 text-indigo-900' : 'text-slate-700'}`}
+                          onClick={() => {
+                            setActiveList(null);
+                            setShowListsDropdown(false);
+                          }}
+                        >
+                          <div className="flex items-center">
+                            <span className="font-medium">All Partners</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Filter lists based on active tab type */}
+                      {savedLists
+                        .filter(list => {
+                          // When "Views" tab is active, show items with type 'filter' or undefined
+                          if (activeListType === 'views') {
+                            return list.type === 'filter' || !list.type;
+                          }
+                          // When "Lists" tab is active, show items with type 'selection'
+                          return list.type === 'selection';
+                        })
+                        .map(list => (
                         <div 
                           key={list.id}
                           className="relative"
