@@ -723,20 +723,7 @@ function PartnersTable() {
                 Export
               </Button>
               
-              <Button 
-                size="sm" 
-                className="flex items-center bg-[#3E4DC4] hover:bg-[#313CA0]"
-                onClick={() => {
-                  // This would open a dropdown menu with options in a real implementation
-                  alert('This would show options like "New List", "New Campaign", etc.');
-                }}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                  <line x1="12" y1="5" x2="12" y2="19"></line>
-                  <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
-                New List
-              </Button>
+
             </div>
           </div>
           
