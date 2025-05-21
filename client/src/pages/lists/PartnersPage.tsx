@@ -327,8 +327,30 @@ function PartnersTable() {
     }
   };
   
+  // State for list creation from selection
+  const [selectionListName, setSelectionListName] = useState('');
+  const [selectionListDescription, setSelectionListDescription] = useState('');
+  const [selectionListType, setSelectionListType] = useState<'filter' | 'selection'>('filter');
+  
   // Initialize toast
   const { toast } = useToast();
+  
+  // Function to open list creation from selection
+  const openCreateFromSelection = () => {
+    if (selectedPartners.length > 0) {
+      // Default to dynamic list for convenience
+      setSelectionListType('filter');
+      setSelectionListName('');
+      setSelectionListDescription('');
+      setShowCreateFromSelectionModal(true);
+    } else {
+      toast({
+        title: "No partners selected",
+        description: "Please select at least one partner to create a list.",
+        variant: "destructive"
+      });
+    }
+  };
 
   // Function to save changes to the current list
   const saveChanges = () => {
@@ -902,7 +924,7 @@ function PartnersTable() {
               variant="outline" 
               size="sm"
               className="text-indigo-600"
-              onClick={() => setShowSaveListModal(true)}
+              onClick={openCreateFromSelection}
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
                 <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
