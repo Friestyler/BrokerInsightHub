@@ -177,11 +177,11 @@ function TemplateBadges({ industry, type }: { industry: string, type: string }) 
 }
 
 // Define interface for saved lists
-// Types for partner lists and views
-interface ListView {
+interface SavedList {
   id: string;
   name: string;
   description?: string;
+  type?: 'filter' | 'selection'; // 'filter' for Saved Filters, 'selection' for Custom Lists
   filters: {
     searchText?: string;
     status?: string;
@@ -189,47 +189,12 @@ interface ListView {
     type?: string;
     size?: string;
   };
-  isDefault?: boolean; // Whether this is the default view for the list
-  createdBy: string;
-  createdAt: Date;
-}
-
-// The PartnerList type represents a collection of partners
-interface PartnerList {
-  id: string;
-  name: string;
-  description?: string;
-  type: 'custom' | 'system'; // Custom list (user-created) or system list (all partners)
-  members?: number[]; // For custom lists, store selected partner IDs
+  members?: number[]; // Array of partner IDs for Custom Lists
   isShared: boolean;
   sharedWith?: string[];
   createdBy: string;
   createdAt: Date;
   isDefault?: boolean; // Flag for system-generated default lists that can't be edited/deleted
-  views: ListView[];
-  activeViewId?: string; // ID of the currently selected view
-}
-
-// For backward compatibility during refactoring
-// This maintains compatibility with existing code while we transition
-interface SavedList {
-  id: string;
-  name: string;
-  description?: string;
-  type?: 'filter' | 'selection';
-  filters: {
-    searchText?: string;
-    status?: string;
-    industry?: string;
-    type?: string;
-    size?: string;
-  };
-  members?: number[];
-  isShared: boolean;
-  sharedWith?: string[];
-  createdBy: string;
-  createdAt: Date;
-  isDefault?: boolean;
 }
 
 // Main partner list component
@@ -242,98 +207,44 @@ function PartnersTable() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
   
-  // State for partner lists with multiple views
-  const [partnerLists, setPartnerLists] = useState<PartnerList[]>([
-    // System list - All Partners
+  // State for saved lists
+  const [savedLists, setSavedLists] = useState<SavedList[]>([
     {
       id: 'all-partners',
       name: 'All Partners',
-      type: 'system',
-      isShared: true,
+      filters: { },
+      isShared: false,
       createdBy: 'System',
       createdAt: new Date('2025-01-01'),
-      isDefault: true,
-      views: [
-        {
-          id: 'all-partners-default',
-          name: 'All Partners',
-          filters: { },
-          isDefault: true,
-          createdBy: 'System',
-          createdAt: new Date('2025-01-01')
-        },
-        {
-          id: 'active-partners',
-          name: 'Active Partners',
-          filters: { status: 'active' },
-          createdBy: 'John Smith',
-          createdAt: new Date('2025-05-01')
-        },
-        {
-          id: 'insurance-partners',
-          name: 'Insurance Industry',
-          filters: { industry: 'Insurance' },
-          createdBy: 'John Smith',
-          createdAt: new Date('2025-05-05')
-        }
-      ],
-      activeViewId: 'all-partners-default'
+      isDefault: true // Flag to indicate this is a default list that can't be edited/deleted
     },
-    // Custom list - Insurance Brokers
     {
-      id: 'insurance-brokers',
-      name: 'Insurance Brokers',
-      type: 'custom',
-      members: [1, 2, 3], // IDs of partners in this list
+      id: '1',
+      name: 'Active Insurance Brokers',
+      filters: { status: 'active', industry: 'Insurance', type: 'Broker' },
       isShared: true,
       sharedWith: ['team@acme.com'],
       createdBy: 'John Smith',
-      createdAt: new Date('2025-05-01'),
-      views: [
-        {
-          id: 'insurance-brokers-default',
-          name: 'All Brokers',
-          filters: { },
-          isDefault: true,
-          createdBy: 'John Smith',
-          createdAt: new Date('2025-05-01')
-        },
-        {
-          id: 'active-brokers',
-          name: 'Active Brokers',
-          filters: { status: 'active' },
-          createdBy: 'John Smith',
-          createdAt: new Date('2025-05-10')
-        }
-      ],
-      activeViewId: 'insurance-brokers-default'
+      createdAt: new Date('2025-05-01')
     },
-    // Custom list - Strategic Partners
     {
-      id: 'strategic-partners',
-      name: 'Strategic Partners',
-      type: 'custom',
-      members: [3, 5, 9], // IDs of partners in this list
+      id: '2',
+      name: 'Consulting Partners',
+      filters: { industry: 'Consulting' },
+      isShared: false,
+      createdBy: 'John Smith',
+      createdAt: new Date('2025-05-10')
+    },
+    {
+      id: '3',
+      name: 'Enterprise Partners',
+      filters: { size: 'enterprise' },
       isShared: true,
       sharedWith: ['partnerships@acme.com'],
       createdBy: 'John Smith',
-      createdAt: new Date('2025-05-15'),
-      views: [
-        {
-          id: 'strategic-partners-default',
-          name: 'All Strategic Partners',
-          filters: { },
-          isDefault: true,
-          createdBy: 'John Smith',
-          createdAt: new Date('2025-05-15')
-        }
-      ],
-      activeViewId: 'strategic-partners-default'
+      createdAt: new Date('2025-05-15')
     }
   ]);
-  
-  // For backward compatibility during refactoring
-  const [savedLists, setSavedLists] = useState<SavedList[]>([]);
   const [activeList, setActiveList] = useState<SavedList | null>(null);
   const [originalListFilters, setOriginalListFilters] = useState<SavedList['filters'] | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
@@ -341,7 +252,6 @@ function PartnersTable() {
   const [showShareListModal, setShowShareListModal] = useState(false);
   const [showListsDropdown, setShowListsDropdown] = useState(false);
   const [showAddPartnersModal, setShowAddPartnersModal] = useState(false);
-  const [showCreateListModal, setShowCreateListModal] = useState(false);
   const [partnersToAdd, setPartnersToAdd] = useState<number[]>([]);
   const [showCreateFromSelectionModal, setShowCreateFromSelectionModal] = useState(false);
     
@@ -811,15 +721,9 @@ function PartnersTable() {
                 size="sm" 
                 className="flex items-center border-[#5567E5] text-[#5567E5] hover:bg-[#eef0ff]"
                 onClick={() => {
-                  // Open Save List modal and set it to create a filter-type list
-                  setShowSaveListModal(true);
-                  // Set the value of the hidden field and the radio button
-                  setTimeout(() => {
-                    const hiddenField = document.getElementById('hidden-list-type-value');
-                    if (hiddenField) hiddenField.setAttribute('value', 'filter');
-                    const radioElement = document.getElementById('list-type-filter') as HTMLInputElement;
-                    if (radioElement) radioElement.checked = true;
-                  }, 10);
+                  // Open create list modal and set it to create a filter-type list
+                  setShowCreateListModal(true);
+                  setSelectionListType('filter');
                 }}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
@@ -1297,13 +1201,11 @@ function PartnersTable() {
                               <>Define criteria and see all partners that match them, automatically</>
                             }
                             {(!filterText && !selectedStatus && !selectedIndustry && !selectedType) && (
-                              <span className="block mt-1 text-blue-600">
+                              <span className="block mt-1 text-amber-600">
                                 <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block mr-1">
-                                  <circle cx="12" cy="12" r="10"></circle>
-                                  <line x1="12" y1="8" x2="12" y2="16"></line>
-                                  <line x1="8" y1="12" x2="16" y2="12"></line>
+                                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
                                 </svg>
-                                You'll be able to set filter criteria after creating the list
+                                You don't have any filters applied right now
                               </span>
                             )}
                           </p>
