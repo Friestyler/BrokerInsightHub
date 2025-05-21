@@ -1491,8 +1491,8 @@ function PartnersTable() {
                             Auto-Updating
                           </div>
                         </div>
-                        <p className="text-sm text-gray-500 mt-1"><strong>All partners in Qollabi</strong> with similar attributes.</p>
-                        <p className="text-xs text-gray-500 mt-1">New partners will be added automatically.</p>
+                        <p className="text-sm text-gray-500 mt-1"><strong>All partners matching your filters</strong> (both current and future).</p>
+                        <p className="text-xs text-gray-500 mt-1">You'll define filter criteria in the next step.</p>
                       </div>
                     </div>
                   </div>
