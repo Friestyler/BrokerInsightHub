@@ -620,23 +620,23 @@ const PartnersPage = () => {
                   
                   <div>
                     <h3 className={`text-sm font-medium ${
-                      activeSavedItem.type === 'search' ? 'text-blue-700' : 'text-emerald-700'
+                      activeSavedItem.type === 'filter' ? 'text-blue-700' : 'text-emerald-700'
                     }`}>
-                      {activeSavedItem.type === 'search' ? 'Search: ' : 'List: '}
+                      {activeSavedItem.type === 'filter' ? 'Filter: ' : 'List: '}
                       {activeSavedItem.name}
                     </h3>
                     
                     <p className="text-xs text-gray-600 mt-0.5">
                       {displayedPartners.length} partner{displayedPartners.length !== 1 ? 's' : ''} 
-                      {activeSavedItem.type === 'search' 
-                        ? ' match your search criteria' 
+                      {activeSavedItem.type === 'filter' 
+                        ? ' match your filter criteria' 
                         : ' in this list'}
                     </p>
                   </div>
                 </div>
                 
                 <div className="flex items-center gap-2">
-                  {activeSavedItem.type === 'search' ? (
+                  {activeSavedItem.type === 'filter' ? (
                     <Button 
                       variant="outline" 
                       size="sm"
@@ -793,13 +793,13 @@ const PartnersPage = () => {
                   <td colSpan={8} className="py-10 text-center">
                     <div className="flex flex-col items-center">
                       <div className="p-3 bg-gray-100 rounded-full text-gray-500 mb-3">
-                        {activeSavedItem?.type === 'search' ? <FilterIcon /> : <ListIcon />}
+                        {activeSavedItem?.type === 'filter' ? <FilterIcon /> : <ListIcon />}
                       </div>
                       
                       <h3 className="text-base font-medium text-gray-900 mb-1">
                         {activeSavedItem
-                          ? activeSavedItem.type === 'search'
-                            ? 'No partners match your search'
+                          ? activeSavedItem.type === 'filter'
+                            ? 'No partners match your filters'
                             : 'This list is empty'
                           : 'No partners match your filters'
                         }
@@ -807,8 +807,8 @@ const PartnersPage = () => {
                       
                       <p className="text-sm text-gray-500 max-w-md mb-4">
                         {activeSavedItem
-                          ? activeSavedItem.type === 'search'
-                            ? 'Try adjusting your search criteria to find partners.'
+                          ? activeSavedItem.type === 'filter'
+                            ? 'Try adjusting your filter criteria to find partners.'
                             : 'Add partners to this list using the "Add Partners" button.'
                           : 'Try removing some filters to see more partners.'
                         }
