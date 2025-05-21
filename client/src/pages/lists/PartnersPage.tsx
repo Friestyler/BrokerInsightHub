@@ -138,11 +138,11 @@ const PartnersPage = () => {
   // State for partner selection
   const [selectedPartners, setSelectedPartners] = useState<number[]>([]);
   
-  // State for saved lists/searches
+  // State for saved filters and lists
   const [savedItems, setSavedItems] = useState<{
     id: string;
     name: string;
-    type: 'search' | 'list';
+    type: 'filter' | 'list';  // Changed from 'search' to 'filter'
     lastUpdated: Date;
     count: number;
     filters?: {
@@ -156,7 +156,7 @@ const PartnersPage = () => {
     {
       id: '1',
       name: 'Active Insurance Brokers',
-      type: 'search',
+      type: 'filter',  // Changed from 'search' to 'filter'
       lastUpdated: new Date('2025-05-01'),
       count: 3,
       filters: {
@@ -440,7 +440,7 @@ const PartnersPage = () => {
                     onClick={() => setShowSearchModal(true)}
                   >
                     <FilterIcon />
-                    <span className="text-sm font-medium">Find Partners</span>
+                    <span className="text-sm font-medium">Filter & Save</span>
                   </Button>
                   
                   <Button
@@ -720,13 +720,13 @@ const PartnersPage = () => {
         </div>
       </div>
       
-      {/* Find Partners Modal - a simple, intuitive search UI */}
+      {/* Search & Filter Modal - a simple, intuitive search UI */}
       <Dialog open={showSearchModal} onOpenChange={setShowSearchModal}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle className="text-xl font-semibold">Find Partners</DialogTitle>
+            <DialogTitle className="text-xl font-semibold">Filter Partners</DialogTitle>
             <DialogDescription>
-              Search for partners that match specific criteria
+              Search for partners and save your filters for later use
             </DialogDescription>
           </DialogHeader>
           
