@@ -1036,38 +1036,52 @@ function PartnersTable() {
                 </button>
               )}
 
-              {/* Revert button - only shown for non-default lists with unsaved changes */}
-              {hasUnsavedChanges && activeList && !activeList.isDefault && (
-                <button 
-                  className="flex items-center rounded-md px-4 py-2 text-gray-600 hover:bg-gray-100"
-                  onClick={revertChanges}
-                  style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5F6585" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                    <path d="M3 7v6h6"></path>
-                    <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
-                  </svg>
-                  <span className="text-[#5F6585]">Revert changes</span>
-                </button>
+              {/* CASE 1: No view is active but filters are applied (on a list or all partners) */}
+              {(filterText || selectedStatus || selectedIndustry || selectedType) && !activeView && (
+                <div className="flex items-center gap-2">
+                  {/* Revert changes button - always shown when filters are applied without a view */}
+                  <button 
+                    className="flex items-center rounded-md px-4 py-2 text-gray-600 hover:bg-gray-100"
+                    onClick={() => {
+                      // Clear all filters
+                      setFilterText('');
+                      setSelectedStatus('');
+                      setSelectedIndustry('');
+                      setSelectedType('');
+                    }}
+                    style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5F6585" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                      <path d="M3 7v6h6"></path>
+                      <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
+                    </svg>
+                    <span className="text-[#5F6585]">Revert changes</span>
+                  </button>
+                
+                  {/* Save as view button */}
+                  <div className="group relative">
+                    <button 
+                      className="flex items-center rounded-md bg-[#EBEEFB] px-4 py-2 hover:bg-[#E3E6F7]"
+                      onClick={() => setShowSaveListModal(true)}
+                      style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                        <polyline points="7 3 7 8 15 8"></polyline>
+                      </svg>
+                      <span className="text-[#3E4DC4] font-medium">Save filters as new view</span>
+                    </button>
+                    
+                    {/* Tooltip */}
+                    <div className="opacity-0 absolute -top-12 left-1/2 transform -translate-x-1/2 px-3 py-2 rounded bg-gray-800 text-white text-xs whitespace-nowrap transition-opacity group-hover:opacity-100 z-10">
+                      Save your selected filters as a view for quick access later
+                    </div>
+                  </div>
+                </div>
               )}
               
-              {/* Save button for existing non-default lists with unsaved changes */}
-              {activeList && !activeList.isDefault && hasUnsavedChanges && (
-                <button 
-                  className="flex items-center rounded-md bg-[#EBEEFB] px-4 py-2 hover:bg-[#E3E6F7]"
-                  onClick={saveChanges}
-                  style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                    <polyline points="7 3 7 8 15 8"></polyline>
-                  </svg>
-                  <span className="text-[#3E4DC4] font-medium">Save</span>
-                </button>
-              )}
-              
-              {/* View manipulation buttons - shown when we have an active view with filter changes */}
+              {/* CASE 2: View is active with unsaved changes */}
               {activeView && hasUnsavedChanges && (
                 <div className="flex items-center gap-2">
                   {/* Revert changes button */}
@@ -1143,51 +1157,6 @@ function PartnersTable() {
                       </svg>
                       <span className="text-[#3E4DC4] font-medium">Save</span>
                     </button>
-                  </div>
-                </div>
-              )}
-              
-              {/* Filter management buttons when filters are applied but no view is active */}
-              {(filterText || selectedStatus || selectedIndustry || selectedType) && !activeView && (
-                <div className="flex items-center gap-2">
-                  {/* Revert changes button - always shown when filters are applied */}
-                  <button 
-                    className="flex items-center rounded-md px-4 py-2 text-gray-600 hover:bg-gray-100"
-                    onClick={() => {
-                      // Clear all filters
-                      setFilterText('');
-                      setSelectedStatus('');
-                      setSelectedIndustry('');
-                      setSelectedType('');
-                    }}
-                    style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5F6585" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                      <path d="M3 7v6h6"></path>
-                      <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
-                    </svg>
-                    <span className="text-[#5F6585]">Revert changes</span>
-                  </button>
-                
-                  {/* Save as view button */}
-                  <div className="group relative">
-                    <button 
-                      className="flex items-center rounded-md bg-[#EBEEFB] px-4 py-2 hover:bg-[#E3E6F7]"
-                      onClick={() => setShowSaveListModal(true)}
-                      style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                        <polyline points="7 3 7 8 15 8"></polyline>
-                      </svg>
-                      <span className="text-[#3E4DC4] font-medium">Save filters as new view</span>
-                    </button>
-                    
-                    {/* Tooltip */}
-                    <div className="opacity-0 absolute -top-12 left-1/2 transform -translate-x-1/2 px-3 py-2 rounded bg-gray-800 text-white text-xs whitespace-nowrap transition-opacity group-hover:opacity-100 z-10">
-                      Save your selected filters as a view for quick access later
-                    </div>
                   </div>
                 </div>
               )}
