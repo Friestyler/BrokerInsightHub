@@ -797,13 +797,13 @@ function PartnersTable() {
   const partnerStats = calculatePartnerStats(displayedPartners);
   
   // Get current environment name
-  const { currentEnvironment } = useEnvironment();
+  const { environment } = useEnvironment();
   
   // Return the JSX for the component
   return (
     <div className="space-y-6">
       {/* Environment banner */}
-      {currentEnvironment !== 'myqollabi' && (
+      {environment !== 'myqollabi' && (
         <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
           <div className="flex">
             <div className="flex-shrink-0">
@@ -813,7 +813,7 @@ function PartnersTable() {
             </div>
             <div className="ml-3">
               <p className="text-sm text-blue-700">
-                You are viewing data for the <span className="font-medium">{currentEnvironment}</span> environment.
+                You are viewing data for the <span className="font-medium">{environment}</span> environment.
               </p>
             </div>
           </div>
