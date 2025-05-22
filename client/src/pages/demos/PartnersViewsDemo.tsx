@@ -612,16 +612,7 @@ export default function PartnersViewsDemo() {
                       </Button>
                     </div>
                   </div>
-                  <div className="p-6 border border-dashed rounded-lg flex items-center justify-center text-gray-500">
-                    <div className="flex flex-col items-center gap-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M12 3c.53 0 1.039.21 1.414.586.375.375.586.884.586 1.414s-.21 1.039-.586 1.414c-.375.375-.884.586-1.414.586-.53 0-1.039-.21-1.414-.586C10.21 6.04 10 5.53 10 5s.21-1.039.586-1.414C10.96 3.21 11.47 3 12 3Z" />
-                        <path d="M12 13c.53 0 1.039.21 1.414.586.375.375.586.884.586 1.414s-.21 1.039-.586 1.414c-.375.375-.884.586-1.414.586-.53 0-1.039-.21-1.414-.586-.375-.375-.586-.884-.586-1.414s.21-1.039.586-1.414c.375-.375.884-.586 1.414-.586Z" />
-                        <path d="M12 21a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" />
-                      </svg>
-                      <p>Click the button above or press <kbd className="px-1.5 py-0.5 text-xs rounded border bg-gray-50">⌘K</kbd> to open the quick switcher</p>
-                    </div>
-                  </div>
+
                 </div>
               )}
               
