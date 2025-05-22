@@ -890,9 +890,12 @@ function PartnersTable() {
                     }
                   }}
                 >
-                  <SelectTrigger className="w-full flex items-center">
+                  <SelectTrigger 
+                    className="w-full flex items-center border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50"
+                    style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px', fontWeight: 500 }}
+                  >
                     <div className="flex items-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 text-gray-500">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5F6585" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
                         <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
                         <line x1="6" y1="9" x2="18" y2="9"></line>
                         <polyline points="12 13 12 17"></polyline>
