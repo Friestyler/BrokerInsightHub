@@ -1036,7 +1036,7 @@ function PartnersTable() {
                 </button>
               )}
 
-              {/* CASE 1: No view is active but filters are applied (on a list or all partners) */}
+              {/* CASE 1: No view is active but filters are applied (on any list including All Partners) */}
               {(filterText || selectedStatus || selectedIndustry || selectedType) && !activeView && (
                 <div className="flex items-center gap-2">
                   {/* Revert changes button - always shown when filters are applied without a view */}
