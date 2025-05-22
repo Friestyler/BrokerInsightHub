@@ -29,7 +29,7 @@ import {
 } from 'lucide-react';
 import { useEnvironment } from '@/contexts/EnvironmentContext';
 
-interface PartnerPilotSliderProps {
+interface PartnerCopilotSliderProps {
   variant?: 'default' | 'ghost';
 }
 
@@ -42,7 +42,7 @@ type Suggestion = {
   link?: string;
 };
 
-const PartnerPilotSlider = ({ variant = 'default' }: PartnerPilotSliderProps) => {
+const PartnerCopilotSlider = ({ variant = 'default' }: PartnerCopilotSliderProps) => {
   const [location] = useLocation();
   const { environment } = useEnvironment();
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
@@ -160,8 +160,8 @@ const PartnerPilotSlider = ({ variant = 'default' }: PartnerPilotSliderProps) =>
       }
     ];
 
-    // Partner Pilot (home) suggestions
-    const partnerPilotSuggestions: Suggestion[] = [
+    // Partner Copilot (home) suggestions
+    const partnerCopilotSuggestions: Suggestion[] = [
       {
         id: 'smart-recommendations',
         title: 'Get smart recommendations',
@@ -268,7 +268,7 @@ const PartnerPilotSlider = ({ variant = 'default' }: PartnerPilotSliderProps) =>
     } else if (location.startsWith('/lists/partners/')) {
       setSuggestions([...partnerSuggestions, ...defaultSuggestions]);
     } else if (location === '/') {
-      setSuggestions([...partnerPilotSuggestions, ...defaultSuggestions]);
+      setSuggestions([...partnerCopilotSuggestions, ...defaultSuggestions]);
     } else if (location.startsWith('/templates')) {
       setSuggestions([...templateSuggestions, ...defaultSuggestions]);
     } else if (location.startsWith('/data-upload')) {
@@ -373,7 +373,7 @@ const PartnerPilotSlider = ({ variant = 'default' }: PartnerPilotSliderProps) =>
           <SheetHeader className="px-6 pt-6 pb-4 border-b">
             <SheetTitle className="flex items-center text-indigo-600">
               <Sparkles className="h-5 w-5 mr-2" />
-              {environment.id === 'myqollabi' ? 'Broker Copilot' : 'Partner Pilot'}
+              {environment.id === 'myqollabi' ? 'Broker Copilot' : 'Partner Copilot'}
             </SheetTitle>
           </SheetHeader>
           
@@ -450,7 +450,7 @@ const PartnerPilotSlider = ({ variant = 'default' }: PartnerPilotSliderProps) =>
             <div className="p-4 border-t">
               <div className="flex space-x-2">
                 <Input
-                  placeholder="Message Partner Pilot..."
+                  placeholder="Message Partner Copilot..."
                   value={userInput}
                   onChange={(e) => setUserInput(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && handleSend()}
@@ -473,4 +473,4 @@ const PartnerPilotSlider = ({ variant = 'default' }: PartnerPilotSliderProps) =>
   );
 };
 
-export default PartnerPilotSlider;
+export default PartnerCopilotSlider;

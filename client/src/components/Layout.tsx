@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { useLocation } from "wouter";
 import { Menu } from "lucide-react";
-import PartnerPilotSlider from "./PartnerPilotSlider";
+import PartnerCopilotSlider from "./PartnerCopilotSlider";
 
 interface LayoutProps {
   children: ReactNode;
@@ -63,7 +63,7 @@ export default function Layout({ children }: LayoutProps) {
           </div>
           
           <div className="flex items-center space-x-3">
-            <PartnerPilotSlider variant="ghost" />
+            <PartnerCopilotSlider variant="ghost" />
             <button className="text-neutral-600 hover:text-indigo-600 p-1.5 rounded-md hover:bg-indigo-50">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
