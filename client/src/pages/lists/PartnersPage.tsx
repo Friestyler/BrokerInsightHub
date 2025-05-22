@@ -1146,13 +1146,7 @@ function PartnersTable() {
               </div>
             )}
             
-            {/* Share option */}
-            <div className="flex items-center space-x-2">
-              <Checkbox id="shareView" defaultChecked={true} />
-              <Label htmlFor="shareView" className="text-sm">
-                Share with my team
-              </Label>
-            </div>
+
           </div>
           
           <DialogFooter>
@@ -1164,7 +1158,6 @@ function PartnersTable() {
                 onClick={() => {
                   // Validate required fields
                   const viewName = (document.getElementById('viewName') as HTMLInputElement).value;
-                  const isShared = (document.getElementById('shareView') as HTMLInputElement).checked;
                   
                   if (!viewName.trim()) {
                     toast({
@@ -1186,7 +1179,6 @@ function PartnersTable() {
                       industry: selectedIndustry || '',
                       type: selectedType || ''
                     },
-                    isShared,
                     createdBy: 'John Smith',
                     createdAt: new Date()
                   };
