@@ -566,33 +566,35 @@ export default function PartnersViewsDemo() {
                 </div>
               </div>
               
-              {/* List Selector */}
-              <div className="mb-4 flex items-center space-x-4">
-                <span className="text-sm font-medium">List:</span>
-                <div className="flex space-x-2">
-                  {lists.map(list => (
-                    <Button 
-                      key={list.id}
-                      variant={list.id === activeListId ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => switchList(list.id)}
-                    >
-                      {list.name}
-                      {list.type === 'selection' && (
-                        <span className="ml-1 text-xs bg-indigo-100 text-indigo-800 px-1 rounded">
-                          Custom
-                        </span>
-                      )}
-                    </Button>
-                  ))}
+              {/* List Selector - only show if not in quickswitcher mode */}
+              {selectedViewStyle !== 'quickswitcher' && (
+                <div className="mb-4 flex items-center space-x-4">
+                  <span className="text-sm font-medium">List:</span>
+                  <div className="flex space-x-2">
+                    {lists.map(list => (
+                      <Button 
+                        key={list.id}
+                        variant={list.id === activeListId ? "default" : "outline"}
+                        size="sm"
+                        onClick={() => switchList(list.id)}
+                      >
+                        {list.name}
+                        {list.type === 'selection' && (
+                          <span className="ml-1 text-xs bg-indigo-100 text-indigo-800 px-1 rounded">
+                            Custom
+                          </span>
+                        )}
+                      </Button>
+                    ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Quick Switcher Demo UI */}
               {selectedViewStyle === 'quickswitcher' && (
                 <div className="mb-4">
                   <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-sm font-medium">Quick Switcher Demo</h3>
+                    <h3 className="text-sm font-medium">Current Selection</h3>
                     <div>
                       <Button 
                         variant="outline" 
@@ -612,7 +614,6 @@ export default function PartnersViewsDemo() {
                       </Button>
                     </div>
                   </div>
-
                 </div>
               )}
               
