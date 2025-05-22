@@ -511,25 +511,7 @@ function PartnersTable() {
                       {activeList ? activeList.name : "My Lists"}
                     </span>
                     
-                    {/* Dynamic List Type Indicator */}
-                    {activeList && (
-                      <div className="group relative ml-2">
-                        <div className="flex items-center">
-                          <div className="bg-emerald-100 text-emerald-800 rounded-full px-2 py-0.5 text-xs">
-                            <div className="flex items-center">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                              </svg>
-                              <span>Custom List</span>
-                            </div>
-                          </div>
-                          <div className="opacity-0 absolute -top-9 left-0 px-2 py-1 rounded bg-gray-800 text-white text-xs whitespace-nowrap transition-opacity group-hover:opacity-100 z-10">
-                            Only includes partners you manually add
-                          </div>
-                        </div>
-                      </div>
-                    )}
+                    {/* No list type indicator shown - removed as requested */}
                   </div>
                   <svg 
                     xmlns="http://www.w3.org/2000/svg" 
