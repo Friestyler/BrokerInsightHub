@@ -1096,7 +1096,7 @@ function PartnersTable() {
                 </div>
               )}
               
-              {/* CASE 2: View is active with unsaved changes */}
+              {/* CASE 2: View is active with unsaved changes - only show buttons when filters have changed */}
               {activeView && hasUnsavedChanges && (
                 <div className="flex items-center gap-2">
                   {/* Revert changes button */}
