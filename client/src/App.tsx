@@ -14,7 +14,8 @@ import PredictOpportunities from "@/pages/PredictOpportunities";
 import CampaignsPage from "@/pages/Campaigns/CampaignsPage";
 import CampaignBuilder from "@/pages/Campaigns/CampaignBuilder";
 import CampaignDetail from "@/pages/Campaigns/CampaignDetail";
-import BrioUploadFlow from "@/pages/Campaigns/BrioUploadFlow";
+import DataUploadOptions from "@/pages/DataUpload/DataUploadOptions";
+import BrioUploadFlow from "@/pages/DataUpload/BrioUploadFlow";
 import Clients from "@/pages/Clients";
 import ClientDetail from "@/pages/ClientDetail";
 import PartnersPage from "@/pages/lists/PartnersPage";
@@ -71,19 +72,30 @@ function Router() {
             />
           )}
         </Route>
-        <Route path="/campaigns/upload/brio/step1">
-          {() => (
-            <EnvironmentRouteGuard
-              component={BrioUploadFlow} 
-              excludedEnvironments={["acme"]} 
-            />
-          )}
-        </Route>
+
         <Route path="/campaigns/:id">
           {() => (
             <EnvironmentRouteGuard
               component={CampaignDetail} 
               excludedEnvironments={["acme"]} 
+            />
+          )}
+        </Route>
+        
+        {/* Data Upload routes */}
+        <Route path="/data-upload">
+          {() => (
+            <EnvironmentRouteGuard
+              component={DataUploadOptions} 
+              excludedEnvironments={[]} 
+            />
+          )}
+        </Route>
+        <Route path="/data-upload/brio">
+          {() => (
+            <EnvironmentRouteGuard
+              component={BrioUploadFlow} 
+              excludedEnvironments={[]} 
             />
           )}
         </Route>

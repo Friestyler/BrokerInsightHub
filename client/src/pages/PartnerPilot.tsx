@@ -181,7 +181,7 @@ export default function PartnerPilot() {
         </Button>
         <Button 
           variant="ghost"
-          onClick={() => setLocation("/campaigns/upload/brio/step1")}
+          onClick={() => setLocation("/data-upload")}
         >
           <Upload className="h-4 w-4 mr-2" />
           Data Upload
