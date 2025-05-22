@@ -240,7 +240,9 @@ export default function PartnersViewsDemo() {
   const [selectedType, setSelectedType] = useState('');
   const [selectedPartners, setSelectedPartners] = useState<number[]>([]);
   const [selectedViewStyle, setSelectedViewStyle] = useState('tabs');
+  const [quickSwitcherOpen, setQuickSwitcherOpen] = useState(false);
   const [showSaveViewModal, setShowSaveViewModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   
   // Demo lists with views
   const [lists, setLists] = useState<ListWithViews[]>([
@@ -477,18 +479,41 @@ export default function PartnersViewsDemo() {
   const saveAsView = () => {
     setShowSaveViewModal(true);
   };
+
+  // Filter lists and views for the quick switcher search
+  const filteredListsAndViews = searchQuery.trim() === '' 
+    ? lists 
+    : lists.map(list => {
+        // Check if list name matches search
+        const listMatches = list.name.toLowerCase().includes(searchQuery.toLowerCase());
+        
+        // Filter views that match search
+        const matchingViews = list.views.filter(view => 
+          view.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          (view.description && view.description.toLowerCase().includes(searchQuery.toLowerCase()))
+        );
+        
+        // Include list if either the list name matches or it has matching views
+        if (listMatches || matchingViews.length > 0) {
+          return {
+            ...list,
+            views: matchingViews
+          };
+        }
+        return null;
+      }).filter(Boolean) as ListWithViews[];
   
   return (
     <div className="container py-6">
       <div className="mb-6">
         <h1 className="text-2xl font-bold mb-2">Partners (Views Demo)</h1>
-        <p className="text-gray-500">This page demonstrates three different approaches for navigating between views in a list.</p>
+        <p className="text-gray-500">This page demonstrates four different approaches for navigating between views in a list.</p>
       </div>
       
       {/* View style selector */}
       <div className="mb-6">
         <h2 className="text-lg font-semibold mb-3">View Style</h2>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button 
             variant={selectedViewStyle === 'tabs' ? 'default' : 'outline'} 
             onClick={() => setSelectedViewStyle('tabs')}
@@ -506,6 +531,12 @@ export default function PartnersViewsDemo() {
             onClick={() => setSelectedViewStyle('combined')}
           >
             Combined View/Filter Interface
+          </Button>
+          <Button 
+            variant={selectedViewStyle === 'quickswitcher' ? 'default' : 'outline'} 
+            onClick={() => setSelectedViewStyle('quickswitcher')}
+          >
+            Quick Switcher Menu
           </Button>
         </div>
       </div>
@@ -557,7 +588,44 @@ export default function PartnersViewsDemo() {
                 </div>
               </div>
 
-              {/* View navigation - Different options based on selected style */}
+              {/* Quick Switcher Demo UI */}
+              {selectedViewStyle === 'quickswitcher' && (
+                <div className="mb-4">
+                  <div className="flex justify-between items-center mb-4">
+                    <h3 className="text-sm font-medium">Quick Switcher Demo</h3>
+                    <div>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="flex items-center gap-2"
+                        onClick={() => setQuickSwitcherOpen(true)}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="m15 18-6-6 6-6" />
+                        </svg>
+                        <span>
+                          {activeList.name}: <span className="font-medium">{activeView?.name}</span>
+                        </span>
+                        <kbd className="ml-2 inline-flex items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
+                          <span className="text-xs">⌘</span>K
+                        </kbd>
+                      </Button>
+                    </div>
+                  </div>
+                  <div className="p-6 border border-dashed rounded-lg flex items-center justify-center text-gray-500">
+                    <div className="flex flex-col items-center gap-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 3c.53 0 1.039.21 1.414.586.375.375.586.884.586 1.414s-.21 1.039-.586 1.414c-.375.375-.884.586-1.414.586-.53 0-1.039-.21-1.414-.586C10.21 6.04 10 5.53 10 5s.21-1.039.586-1.414C10.96 3.21 11.47 3 12 3Z" />
+                        <path d="M12 13c.53 0 1.039.21 1.414.586.375.375.586.884.586 1.414s-.21 1.039-.586 1.414c-.375.375-.884.586-1.414.586-.53 0-1.039-.21-1.414-.586-.375-.375-.586-.884-.586-1.414s.21-1.039.586-1.414c.375-.375.884-.586 1.414-.586Z" />
+                        <path d="M12 21a2 2 0 1 0 0-4 2 2 0 0 0 0 4Z" />
+                      </svg>
+                      <p>Click the button above or press <kbd className="px-1.5 py-0.5 text-xs rounded border bg-gray-50">⌘K</kbd> to open the quick switcher</p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Tabs Interface */}
               {selectedViewStyle === 'tabs' && (
                 <div className="border-b border-gray-200">
                   <Tabs defaultValue={activeViewId} onValueChange={(value) => {
@@ -589,6 +657,7 @@ export default function PartnersViewsDemo() {
                 </div>
               )}
               
+              {/* Panel Interface */}
               {selectedViewStyle === 'panel' && (
                 <div className="grid grid-cols-12 gap-4">
                   {/* Lists and Views panel */}
@@ -686,6 +755,7 @@ export default function PartnersViewsDemo() {
                 </div>
               )}
               
+              {/* Combined Interface */}
               {selectedViewStyle === 'combined' && (
                 <div className="mb-4">
                   <div className="flex flex-wrap gap-3 items-center mb-4">
@@ -862,241 +932,343 @@ export default function PartnersViewsDemo() {
                   )}
                 </div>
               )}
-              
-              {/* Bottom row with search and filters */}
-              <div className="flex flex-wrap items-center justify-between gap-3">
-                <div className="flex flex-wrap items-center gap-3 flex-grow">
-                  <div className="relative w-60">
-                    <input
-                      type="text"
-                      placeholder="Search by name, industry..."
-                      value={filterText}
-                      onChange={(e) => setFilterText(e.target.value)}
-                      className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
-                    />
-                    <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                      </svg>
-                    </button>
-                  </div>
-                  
-                  <div className="flex gap-2 flex-wrap">
-                    <button 
-                      className={`flex items-center space-x-1 px-3 py-2 border rounded-md text-sm ${selectedStatus ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
-                      onClick={() => setSelectedStatus(selectedStatus ? '' : 'active')}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={selectedStatus ? 'text-indigo-500' : 'text-gray-500'}>
-                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                      </svg>
-                      <span>Status{selectedStatus ? ': Active' : ''}</span>
-                      {selectedStatus && (
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                          <path d="M18 6 6 18"></path>
-                          <path d="m6 6 12 12"></path>
-                        </svg>
-                      )}
-                    </button>
-                    
-                    <button 
-                      className={`flex items-center space-x-1 px-3 py-2 border rounded-md text-sm ${selectedIndustry ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
-                      onClick={() => setSelectedIndustry(selectedIndustry ? '' : 'Insurance')}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={selectedIndustry ? 'text-indigo-500' : 'text-gray-500'}>
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
-                      </svg>
-                      <span>Industry{selectedIndustry ? `: ${selectedIndustry}` : ''}</span>
-                      {selectedIndustry && (
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                          <path d="M18 6 6 18"></path>
-                          <path d="m6 6 12 12"></path>
-                        </svg>
-                      )}
-                    </button>
-                    
-                    <button 
-                      className={`flex items-center space-x-1 px-3 py-2 border rounded-md text-sm ${selectedType ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
-                      onClick={() => setSelectedType(selectedType ? '' : 'Broker')}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={selectedType ? 'text-indigo-500' : 'text-gray-500'}>
-                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                        <circle cx="9" cy="7" r="4"></circle>
-                        <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                      </svg>
-                      <span>Type{selectedType ? `: ${selectedType}` : ''}</span>
-                      {selectedType && (
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                          <path d="M18 6 6 18"></path>
-                          <path d="m6 6 12 12"></path>
-                        </svg>
-                      )}
-                    </button>
-                  </div>
+
+              {/* Filter section */}
+              <div className="mb-4 flex flex-wrap gap-4">
+                <div className="flex items-center gap-2 flex-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                  </svg>
+                  <Input 
+                    type="text" 
+                    value={filterText}
+                    onChange={(e) => setFilterText(e.target.value)}
+                    placeholder="Search partners..." 
+                    className="flex-1 h-9 text-sm" 
+                  />
                 </div>
                 
-                <div className="flex items-center gap-2">
-                  {/* Save as view button */}
-                  {(
-                    (filterText || selectedStatus || selectedIndustry || selectedType)
-                  ) && (
+                <div className="flex-1 flex flex-wrap gap-2 min-w-[200px]">
+                  <select 
+                    className="h-9 border-gray-300 rounded-md text-sm"
+                    value={selectedStatus}
+                    onChange={(e) => setSelectedStatus(e.target.value)}
+                  >
+                    <option value="">All Statuses</option>
+                    <option value="active">Active</option>
+                    <option value="inactive">Inactive</option>
+                  </select>
+                  
+                  <select 
+                    className="h-9 border-gray-300 rounded-md text-sm"
+                    value={selectedIndustry}
+                    onChange={(e) => setSelectedIndustry(e.target.value)}
+                  >
+                    <option value="">All Industries</option>
+                    <option value="Insurance">Insurance</option>
+                    <option value="Finance">Finance</option>
+                    <option value="Consulting">Consulting</option>
+                    <option value="Risk Management">Risk Management</option>
+                  </select>
+                  
+                  <select 
+                    className="h-9 border-gray-300 rounded-md text-sm"
+                    value={selectedType}
+                    onChange={(e) => setSelectedType(e.target.value)}
+                  >
+                    <option value="">All Types</option>
+                    <option value="Broker">Broker</option>
+                    <option value="Agency">Agency</option>
+                    <option value="Partner">Partner</option>
+                  </select>
+                  
+                  {/* Clear filters button */}
+                  {(filterText || selectedStatus || selectedIndustry || selectedType) && (
                     <button 
-                      className="flex items-center rounded-md bg-[#EBEEFB] px-4 py-2 hover:bg-[#E3E6F7]"
-                      onClick={saveAsView}
-                      style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
+                      onClick={clearAdditionalFilters}
+                      className="text-xs text-gray-500 hover:text-gray-700 flex items-center px-2 py-1 hover:bg-gray-50 rounded-md transition-colors"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                        <polyline points="7 3 7 8 15 8"></polyline>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                        <path d="M18 6L6 18"></path>
+                        <path d="M6 6l12 12"></path>
                       </svg>
-                      <span className="text-[#3E4DC4] font-medium">Save as view</span>
+                      Reset filters
                     </button>
                   )}
                 </div>
-                
-                {/* Clear filters button */}
-                {(filterText || selectedStatus || selectedIndustry || selectedType) && (
-                  <button 
-                    onClick={clearAdditionalFilters}
-                    className="text-xs text-gray-500 hover:text-gray-700 flex items-center px-2 py-1 hover:bg-gray-50 rounded-md transition-colors"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                      <path d="M18 6L6 18"></path>
-                      <path d="M6 6l12 12"></path>
-                    </svg>
-                    Reset filters
-                  </button>
-                )}
+              </div>
+              
+              {/* Statistics overview */}
+              <div className="grid grid-cols-4 gap-4 mb-6">
+                <div className="bg-white rounded-lg p-4 border border-gray-200">
+                  <div className="text-sm text-gray-500">Total Partners</div>
+                  <div className="text-2xl font-bold mt-1">{stats.totalPartners}</div>
+                </div>
+                <div className="bg-white rounded-lg p-4 border border-gray-200">
+                  <div className="text-sm text-gray-500">Active Partners</div>
+                  <div className="text-2xl font-bold mt-1">{stats.activePartners}</div>
+                </div>
+                <div className="bg-white rounded-lg p-4 border border-gray-200">
+                  <div className="text-sm text-gray-500">Total Customers</div>
+                  <div className="text-2xl font-bold mt-1">{stats.totalCustomers}</div>
+                </div>
+                <div className="bg-white rounded-lg p-4 border border-gray-200">
+                  <div className="text-sm text-gray-500">Total Opportunities</div>
+                  <div className="text-2xl font-bold mt-1">{stats.totalOpportunities}</div>
+                </div>
               </div>
             </div>
             
-            {/* Statistics overview */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-white p-4 rounded-md border border-gray-200">
-                <div className="text-xl font-semibold">{stats.totalPartners}</div>
-                <div className="text-sm text-gray-500">Total Partners</div>
-              </div>
-              
-              <div className="bg-white p-4 rounded-md border border-gray-200">
-                <div className="text-xl font-semibold">{stats.activePartners}</div>
-                <div className="text-sm text-gray-500">Active Partners</div>
-              </div>
-              
-              <div className="bg-white p-4 rounded-md border border-gray-200">
-                <div className="text-xl font-semibold">{stats.totalCustomers}</div>
-                <div className="text-sm text-gray-500">Total Customers</div>
-              </div>
-              
-              <div className="bg-white p-4 rounded-md border border-gray-200">
-                <div className="text-xl font-semibold">{stats.totalOpportunities}</div>
-                <div className="text-sm text-gray-500">Total Opportunities</div>
-              </div>
-            </div>
-            
-            {/* Partners list */}
-            <div className="bg-white border border-gray-200 rounded-md overflow-hidden">
-              <div className="px-4 py-3 border-b border-gray-200 bg-gray-50 text-sm font-medium text-gray-500 flex justify-between items-center">
-                <div>
-                  {filteredPartners.length} {filteredPartners.length === 1 ? 'partner' : 'partners'} 
-                  {activeView ? ` in "${activeView.name}" view` : ''}
-                </div>
-                
-                <div className="flex items-center space-x-2">
-                  <Button variant="ghost" size="sm" onClick={() => setSelectedPartners([])}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                      <path d="M21 11H6.83l3.58-3.59L9 6l-6 6 6 6 1.41-1.41L6.83 13H21v-2z"></path>
-                    </svg>
-                    Sort
-                  </Button>
-                </div>
-              </div>
-              
-              <div className="divide-y divide-gray-200">
-                {filteredPartners.length === 0 ? (
-                  <div className="py-8 text-center">
-                    <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-gray-100">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                      </svg>
-                    </div>
-                    <h3 className="mt-2 text-sm font-medium text-gray-900">No partners found</h3>
-                    <p className="mt-1 text-sm text-gray-500">
-                      Try adjusting your search or filter criteria.
-                    </p>
-                    <div className="mt-6">
-                      <button
-                        type="button"
-                        className="inline-flex items-center px-4 py-2 border border-gray-300 shadow-sm text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
-                        onClick={clearAdditionalFilters}
-                      >
-                        Clear all filters
-                      </button>
-                    </div>
-                  </div>
-                ) : (
-                  filteredPartners.map(partner => (
-                    <div key={partner.id} className="flex items-center p-4 hover:bg-gray-50">
-                      <div className="mr-4">
-                        <input
-                          type="checkbox"
-                          className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
-                          checked={selectedPartners.includes(partner.id)}
-                          onChange={() => {
-                            if (selectedPartners.includes(partner.id)) {
-                              setSelectedPartners(selectedPartners.filter(id => id !== partner.id));
-                            } else {
-                              setSelectedPartners([...selectedPartners, partner.id]);
-                            }
-                          }}
-                        />
-                      </div>
-                      
-                      <div className="min-w-0 flex-1 sm:flex sm:items-center sm:justify-between">
+            {/* Partners table */}
+            <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 rounded-lg">
+              <table className="min-w-full divide-y divide-gray-300">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th scope="col" className="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6 flex items-center">
+                      <input
+                        type="checkbox"
+                        className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mr-2"
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedPartners(filteredPartners.map(p => p.id));
+                          } else {
+                            setSelectedPartners([]);
+                          }
+                        }}
+                        checked={selectedPartners.length === filteredPartners.length && filteredPartners.length > 0}
+                      />
+                      Partner
+                    </th>
+                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Type</th>
+                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Status</th>
+                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Location</th>
+                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Customers</th>
+                    <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Opportunities</th>
+                    <th scope="col" className="relative py-3.5 pl-3 pr-4 sm:pr-6">
+                      <span className="sr-only">Actions</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200 bg-white">
+                  {filteredPartners.map((partner) => (
+                    <tr key={partner.id} className={selectedPartners.includes(partner.id) ? "bg-indigo-50" : ""}>
+                      <td className="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
                         <div className="flex items-center">
-                          <Avatar className="h-10 w-10 rounded-md bg-indigo-100 text-indigo-800 mr-4">
-                            <AvatarFallback>{partner.initials}</AvatarFallback>
-                          </Avatar>
-                          
-                          <div>
-                            <div className="flex items-center">
-                              <Link href={`/lists/partners/${partner.id}`} className="text-sm font-medium text-indigo-600 hover:text-indigo-800 hover:underline">
-                                {partner.name}
-                              </Link>
-                              <Badge className={`ml-2 ${partner.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}`}>
-                                {partner.status}
-                              </Badge>
-                            </div>
-                            <div className="mt-1 text-sm text-gray-500 flex items-center">
-                              <span>{partner.industry}</span>
-                              <span className="mx-2">•</span>
-                              <span>{partner.type}</span>
-                              <span className="mx-2">•</span>
-                              <span>{partner.location}</span>
-                            </div>
+                          <input
+                            type="checkbox"
+                            className="h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500 mr-2"
+                            checked={selectedPartners.includes(partner.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedPartners([...selectedPartners, partner.id]);
+                              } else {
+                                setSelectedPartners(selectedPartners.filter(id => id !== partner.id));
+                              }
+                            }}
+                          />
+                          <div className="flex-shrink-0">
+                            <Avatar>
+                              <AvatarFallback className="bg-indigo-100 text-indigo-800">
+                                {partner.initials}
+                              </AvatarFallback>
+                            </Avatar>
+                          </div>
+                          <div className="ml-4">
+                            <div className="font-medium text-gray-900">{partner.name}</div>
+                            <div className="text-gray-500">{partner.contactEmail}</div>
                           </div>
                         </div>
-                        
-                        <div className="mt-2 sm:mt-0 sm:ml-6 flex items-center space-x-3">
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                        <div className="flex items-center space-x-2">
                           <PartnerTypeBadges industry={partner.industry} type={partner.type} />
-                          
-                          <div className="flex flex-col items-end text-sm">
-                            <div className="text-gray-900 font-medium">{partner.customers} customers</div>
-                            <div className="text-gray-500">{partner.opportunities} opportunities</div>
+                          <div>
+                            <div>{partner.industry}</div>
+                            <div className="text-xs">{partner.type}</div>
                           </div>
                         </div>
-                      </div>
-                    </div>
-                  ))
-                )}
-              </div>
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                        <Badge variant={partner.status === 'active' ? 'default' : 'secondary'}>
+                          {partner.status === 'active' ? 'Active' : 'Inactive'}
+                        </Badge>
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                        {partner.location}
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                        {partner.customers}
+                      </td>
+                      <td className="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
+                        {partner.opportunities}
+                      </td>
+                      <td className="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6">
+                        <Link to={`/lists/partners/${partner.id}`} className="text-indigo-600 hover:text-indigo-900">
+                          Details
+                        </Link>
+                      </td>
+                    </tr>
+                  ))}
+                  {filteredPartners.length === 0 && (
+                    <tr>
+                      <td colSpan={7} className="px-6 py-10 text-center text-sm text-gray-500">
+                        <div className="flex flex-col items-center">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-10 w-10 text-gray-400 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                          <p className="text-gray-500 mb-1">No partners match your current filters</p>
+                          <button 
+                            className="text-indigo-600 hover:text-indigo-800 text-sm font-medium"
+                            onClick={clearAdditionalFilters}
+                          >
+                            Clear filters
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
             </div>
           </div>
         </CardContent>
       </Card>
+      
+      {/* Quick Switcher Dialog */}
+      <Dialog open={quickSwitcherOpen} onOpenChange={setQuickSwitcherOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-left text-lg font-semibold">Quick Switcher</DialogTitle>
+            <DialogDescription className="text-left">
+              Quickly switch between lists and views
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="mt-2">
+            <div className="relative">
+              <svg xmlns="http://www.w3.org/2000/svg" className="absolute top-3 left-3 h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+              <Input 
+                className="pl-10" 
+                placeholder="Search lists and views..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                autoFocus
+              />
+            </div>
+            
+            <div className="mt-4 max-h-[300px] overflow-y-auto">
+              <div className="space-y-4">
+                {/* Recently Used Section */}
+                {searchQuery.trim() === '' && (
+                  <div>
+                    <h4 className="text-xs font-medium text-gray-500 uppercase mb-2 px-1">Recently Used</h4>
+                    <div className="space-y-1">
+                      <button 
+                        className="w-full text-left flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-100"
+                        onClick={() => {
+                          switchList('strategic-partners');
+                          applyView('strategic-insurance');
+                          setQuickSwitcherOpen(false);
+                        }}
+                      >
+                        <div className="flex items-center justify-center w-5 h-5 text-xs font-medium rounded-full bg-indigo-100 text-indigo-800">R</div>
+                        <div>
+                          <div className="font-medium">Insurance Strategic Partners</div>
+                          <div className="text-xs text-gray-500">in Strategic Partners list</div>
+                        </div>
+                      </button>
+                      <button 
+                        className="w-full text-left flex items-center gap-3 px-3 py-2 rounded-md hover:bg-gray-100"
+                        onClick={() => {
+                          switchList('partners-list');
+                          applyView('partners-active-brokers');
+                          setQuickSwitcherOpen(false);
+                        }}
+                      >
+                        <div className="flex items-center justify-center w-5 h-5 text-xs font-medium rounded-full bg-purple-100 text-purple-800">R</div>
+                        <div>
+                          <div className="font-medium">Active Brokers</div>
+                          <div className="text-xs text-gray-500">in All Partners list</div>
+                        </div>
+                      </button>
+                    </div>
+                  </div>
+                )}
+                
+                {/* All Lists and Views */}
+                <div>
+                  <h4 className="text-xs font-medium text-gray-500 uppercase mb-2 px-1">
+                    {searchQuery.trim() !== '' ? "Search Results" : "All Lists"}
+                  </h4>
+                  <div className="space-y-3">
+                    {filteredListsAndViews.map(list => (
+                      <div key={list.id} className="space-y-1">
+                        <div className="flex items-center px-2 py-1">
+                          <div className="font-medium text-sm">
+                            {list.name}
+                            {list.type === 'selection' && (
+                              <span className="ml-2 text-xs bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full">
+                                Custom
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="pl-3 space-y-1 border-l-2 border-gray-200 ml-2">
+                          {list.views.map(view => (
+                            <button 
+                              key={view.id}
+                              className="w-full text-left flex items-center gap-2 px-3 py-1.5 rounded-md hover:bg-gray-100"
+                              onClick={() => {
+                                switchList(list.id);
+                                applyView(view.id);
+                                setQuickSwitcherOpen(false);
+                              }}
+                            >
+                              <div className="text-sm">
+                                {view.name}
+                              </div>
+                              {list.id === activeListId && view.id === activeViewId && (
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-indigo-600 ml-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <polyline points="20 6 9 17 4 12" />
+                                </svg>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                    
+                    {searchQuery.trim() !== '' && filteredListsAndViews.length === 0 && (
+                      <div className="px-3 py-2 text-center text-sm text-gray-500">
+                        No results found for "{searchQuery}"
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div className="mt-4 flex justify-between items-center text-xs text-gray-500">
+            <div className="flex gap-2">
+              <kbd className="px-1.5 py-0.5 rounded border bg-gray-50">↑</kbd>
+              <kbd className="px-1.5 py-0.5 rounded border bg-gray-50">↓</kbd>
+              <span>to navigate</span>
+            </div>
+            <div className="flex gap-2">
+              <kbd className="px-1.5 py-0.5 rounded border bg-gray-50">Enter</kbd>
+              <span>to select</span>
+            </div>
+            <div className="flex gap-2">
+              <kbd className="px-1.5 py-0.5 rounded border bg-gray-50">Esc</kbd>
+              <span>to close</span>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
       
       {/* Save view modal */}
       <Dialog open={showSaveViewModal} onOpenChange={setShowSaveViewModal}>
@@ -1198,21 +1370,21 @@ export default function PartnersViewsDemo() {
                   
                   // Create a new view object
                   const newView: View = {
-                    id: String(Date.now()),
-                    name: viewName,
-                    description: viewDescription || undefined,
+                    id: `view_${Date.now()}`,
+                    name: viewName.trim(),
+                    description: viewDescription.trim() || undefined,
                     filters: {
                       searchText: filterText || undefined,
                       status: selectedStatus || undefined,
                       industry: selectedIndustry || undefined,
                       type: selectedType || undefined
                     },
-                    isShared,
+                    isShared: isShared,
                     createdBy: 'John Smith',
                     createdAt: new Date()
                   };
                   
-                  // Add the view to the active list and set it as the active view
+                  // Add to the active list's views
                   const updatedLists = lists.map(list => {
                     if (list.id === activeListId) {
                       return {
@@ -1224,17 +1396,17 @@ export default function PartnersViewsDemo() {
                     return list;
                   });
                   
-                  // Update the lists state
+                  // Update lists state
                   setLists(updatedLists);
                   
-                  // Show success message
+                  // Close modal
+                  setShowSaveViewModal(false);
+                  
+                  // Show confirmation
                   toast({
                     title: "View saved",
-                    description: `"${viewName}" has been saved to the "${activeList.name}" list and will show partners matching your criteria.`,
+                    description: `"${viewName.trim()}" view is now available in your "${activeList.name}" list.`,
                   });
-                  
-                  // Close the modal
-                  setShowSaveViewModal(false);
                 }}
               >
                 Save view
@@ -1248,7 +1420,7 @@ export default function PartnersViewsDemo() {
       <div className="mt-8 p-6 bg-gray-50 border border-gray-200 rounded-lg">
         <h2 className="text-xl font-bold mb-4">Comparison of View Navigation Approaches</h2>
         
-        <div className="grid md:grid-cols-3 gap-6">
+        <div className="grid md:grid-cols-4 gap-6">
           <div className="bg-white p-4 rounded-lg border border-gray-200">
             <h3 className="text-lg font-semibold mb-2 text-indigo-600">Tabs Interface</h3>
             <div className="space-y-2 text-sm">
@@ -1302,6 +1474,27 @@ export default function PartnersViewsDemo() {
                 <li>Limited visibility of available views</li>
                 <li>Requires an extra click to see all views</li>
                 <li>May be less discoverable for new users</li>
+              </ul>
+            </div>
+          </div>
+
+          <div className="bg-white p-4 rounded-lg border border-gray-200">
+            <h3 className="text-lg font-semibold mb-2 text-amber-600">Quick Switcher Menu</h3>
+            <div className="space-y-2 text-sm">
+              <p><strong>Pros:</strong></p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>Saves screen space - no dedicated UI required</li>
+                <li>Global access from anywhere in the interface</li>
+                <li>Search capability makes it scalable for many lists/views</li>
+                <li>Great for keyboard-driven workflows</li>
+                <li>Shows hierarchical relationship clearly</li>
+              </ul>
+              <p><strong>Cons:</strong></p>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>Lower discoverability - requires learning a shortcut</li>
+                <li>Two-step process to access views</li>
+                <li>No visual preview of filter contents</li>
+                <li>Not ideal for touch interfaces</li>
               </ul>
             </div>
           </div>
