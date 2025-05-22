@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQuery } from "@tanstack/react-query";
-import { Send, Users, Sparkles, Plus } from "lucide-react";
+import { Send, Users, Sparkles, Plus, Home as HomeIcon, PlusCircle as PlusCircleIcon, Heart as HeartIcon } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 
@@ -26,6 +26,7 @@ type TemplateCard = {
   id: string;
   name: string;
   category: string;
+  description?: string;
   isSponsored: boolean;
   sponsor?: string;
   icon: React.ReactNode;
@@ -48,6 +49,39 @@ export default function CampaignsPage() {
 
   // Demo campaign templates
   const templates: TemplateCard[] = [
+    // Mortgage Campaigns
+    {
+      id: "hvl-mortgage",
+      name: "HVL – Hypotheek & Verduurzamingslening",
+      description: "Voor campagnes waarbij een verduurzamingslening of energiebespaarlening gekoppeld wordt aan een (nieuwe of bestaande) hypotheek.",
+      category: "Mortgages",
+      isSponsored: true,
+      sponsor: "Rabobank",
+      icon: <HomeIcon className="h-8 w-8 text-green-500" />
+    },
+    {
+      id: "hvl24-mortgage",
+      name: "HVL24 – Hypotheek & Verduurzaming Lening, 2025-actie",
+      category: "Mortgages",
+      isSponsored: false,
+      icon: <HomeIcon className="h-8 w-8 text-indigo-500" />
+    },
+    {
+      id: "xsell-mortgage",
+      name: "XSELL+ – Cross- en Upsell Aanvullende Producten",
+      category: "Mortgages",
+      isSponsored: true,
+      sponsor: "Rabobank",
+      icon: <PlusCircleIcon className="h-8 w-8 text-green-500" />
+    },
+    {
+      id: "life360-mortgage",
+      name: "LIFE360 – Levensmomenten Proactief Benaderingsplan",
+      category: "Mortgages",
+      isSponsored: false,
+      icon: <HeartIcon className="h-8 w-8 text-indigo-500" />
+    },
+    // Regular Campaigns
     {
       id: "life-pension",
       name: "Life + Pension",
@@ -98,7 +132,15 @@ export default function CampaignsPage() {
   const getFilteredTemplates = () => {
     switch (activeFilter) {
       case "popular":
-        return templates;
+        // Popular includes Mortgages that are sponsored and some cross-sell campaigns
+        return templates.filter(t => 
+          (t.category === "Mortgages" && t.isSponsored) || 
+          (t.category === "Cross-Sell" && t.id !== "personal-liability-pets") || 
+          t.id === "hvl-mortgage" || 
+          t.id === "xsell-mortgage"
+        );
+      case "mortgages":
+        return templates.filter(t => t.category === "Mortgages");
       case "partner":
         return templates.filter(t => t.isSponsored);
       case "cross-sell":
@@ -231,6 +273,13 @@ export default function CampaignsPage() {
                 Most Popular
               </Badge>
               <Badge
+                variant={activeFilter === "mortgages" ? "default" : "outline"}
+                className="cursor-pointer"
+                onClick={() => setActiveFilter("mortgages")}
+              >
+                Mortgages
+              </Badge>
+              <Badge
                 variant={activeFilter === "partner" ? "default" : "outline"}
                 className="cursor-pointer"
                 onClick={() => setActiveFilter("partner")}
@@ -266,12 +315,12 @@ export default function CampaignsPage() {
                       {template.isSponsored && (
                         <Badge 
                           variant="outline" 
-                          className={template.sponsor === "Arag" 
+                          className={template.sponsor === "Rabobank" || template.sponsor === "Arag"
                             ? "bg-green-50 text-green-700 border-green-200"
                             : "bg-yellow-50 text-yellow-700 border-yellow-200"
                           }
                         >
-                          {template.sponsor === "Arag" ? "Created for you" : "Sponsored"}
+                          {template.sponsor === "Rabobank" || template.sponsor === "Arag" ? "Created for you" : "Sponsored"}
                         </Badge>
                       )}
                     </div>
@@ -279,6 +328,11 @@ export default function CampaignsPage() {
                     <CardDescription>
                       {template.isSponsored ? `By ${template.sponsor}` : template.category}
                     </CardDescription>
+                    {template.description && (
+                      <p className="text-sm text-gray-600 mt-2">
+                        {template.description}
+                      </p>
+                    )}
                   </CardHeader>
                   <CardFooter>
                     <Button 
