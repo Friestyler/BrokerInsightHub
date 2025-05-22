@@ -171,7 +171,10 @@ export default function PartnerPilot() {
           <BarChart2 className="h-4 w-4 mr-2" />
           Predict
         </Button>
-        <Button variant="ghost">
+        <Button 
+          variant="ghost"
+          onClick={() => setLocation("/reports")}
+        >
           <FileText className="h-4 w-4 mr-2" />
           Reports
         </Button>
