@@ -573,6 +573,8 @@ function PartnersTable() {
                             setSelectedStatus('');
                             setSelectedIndustry('');
                             setSelectedType('');
+                            // Clear any active view when returning to All Partners
+                            setActiveView(null);
                             setHasUnsavedChanges(false);
                             setShowListsDropdown(false);
                           }}
@@ -717,6 +719,8 @@ function PartnersTable() {
                       setSelectedStatus('');
                       setSelectedIndustry('');
                       setSelectedType('');
+                      // Clear any active view when returning to All Partners
+                      setActiveView(null);
                       setHasUnsavedChanges(false);
                     }}
                   >
