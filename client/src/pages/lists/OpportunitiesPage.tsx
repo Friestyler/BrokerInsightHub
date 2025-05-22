@@ -599,26 +599,7 @@ function OpportunitiesTable() {
                       ))}
                     </div>
                     
-                    {/* Create new list option */}
-                    <div className="p-2 border-t border-slate-100">
-                      <button
-                        className="w-full flex items-center rounded-sm px-2 py-1.5 text-sm text-[#3E4DC4] hover:bg-slate-100"
-                        onClick={() => {
-                          setActiveList(null);
-                          setFilterText('');
-                          setSelectedStatus('');
-                          setSelectedType('');
-                          setShowSaveListModal(true);
-                          setShowListsDropdown(false);
-                        }}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                          <line x1="12" y1="5" x2="12" y2="19"></line>
-                          <line x1="5" y1="12" x2="19" y2="12"></line>
-                        </svg>
-                        Create New List
-                      </button>
-                    </div>
+
                   </div>
                 )}
               </div>
