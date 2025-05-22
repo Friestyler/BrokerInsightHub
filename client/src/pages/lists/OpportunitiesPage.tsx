@@ -31,7 +31,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 
 // Sample data for opportunities
-const mockOpportunities = [
+export const mockOpportunities = [
   {
     id: 1,
     title: "Property Insurance Renewal",

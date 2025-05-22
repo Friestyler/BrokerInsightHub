@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useParams, Link } from "wouter";
+import { useState, useEffect } from "react";
+import { useParams, Link, useLocation } from "wouter";
 import { 
   Table, 
   TableBody, 
@@ -14,37 +14,7 @@ import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { ChevronLeft } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
-
-// Mock opportunity data
-const opportunity = {
-  id: 1,
-  name: "Product B - SARP Groupe",
-  description: "Objective to install B to help SARP Group with XYZ",
-  amount: 2120000,
-  probability: 60,
-  stage: "Discovery",
-  customer: {
-    id: 1,
-    name: "SARP Groupe",
-    link: "/lists/customers/1"
-  },
-  partners: [
-    {
-      id: 1,
-      name: "Computacenter",
-      link: "/lists/partners/1"
-    },
-    {
-      id: 2,
-      name: "Deloitte",
-      link: "/lists/partners/2"
-    }
-  ],
-  owner: {
-    name: "Lenny K.",
-    initials: "LK"
-  }
-};
+import { mockOpportunities } from "./OpportunitiesPage";
 
 // Mock metrics data for this opportunity
 const metrics = [
@@ -174,6 +144,25 @@ export default function OpportunityDetail() {
   const { id } = useParams();
   const { environment } = useEnvironment();
   const [selectedMetrics, setSelectedMetrics] = useState<number[]>([]);
+  const [, setLocation] = useLocation();
+  
+  // Find the opportunity from the mock data source shared with the list
+  const opportunity = mockOpportunities.find(opp => opp.id === Number(id));
+  
+  // If opportunity not found, render a not found message
+  if (!opportunity) {
+    return (
+      <div className="container mx-auto px-4 py-6">
+        <div className="flex flex-col items-center justify-center py-12">
+          <h1 className="text-2xl font-bold mb-4">Opportunity Not Found</h1>
+          <p className="text-gray-600 mb-6">The opportunity you're looking for doesn't exist or has been removed.</p>
+          <Button onClick={() => setLocation("/lists/opportunities")}>
+            Return to Opportunities
+          </Button>
+        </div>
+      </div>
+    );
+  }
   
   // Toggle selection of a metric
   const toggleMetricSelection = (id: number) => {
@@ -204,31 +193,50 @@ export default function OpportunityDetail() {
         
         <div className="flex justify-between items-center">
           <div className="flex items-center">
-            <h1 className="text-2xl font-bold tracking-tight">{opportunity.name}</h1>
+            <h1 className="text-2xl font-bold tracking-tight">{opportunity.title}</h1>
             <div className="ml-4 flex items-center">
               <Avatar className="h-8 w-8">
                 <AvatarFallback className="bg-indigo-100 text-indigo-600">
-                  {opportunity.owner.initials}
+                  {opportunity.ownerInitials}
                 </AvatarFallback>
               </Avatar>
-              <span className="ml-2 text-gray-600">{opportunity.owner.name}</span>
+              <span className="ml-2 text-gray-600">{opportunity.owner}</span>
             </div>
           </div>
           
           <div className="flex space-x-3">
-            <Button variant="outline">Edit</Button>
+            <Button 
+              variant="outline"
+              onClick={() => {
+                // Here you could implement the edit functionality
+                // For now, we'll just show how it would update the name
+                const newName = prompt("Enter new opportunity name:", opportunity.title);
+                if (newName && newName.trim() !== "") {
+                  // In a real application, this would update the data in a database
+                  // For our prototype, we'll update it directly in the array
+                  const index = mockOpportunities.findIndex(opp => opp.id === opportunity.id);
+                  if (index !== -1) {
+                    mockOpportunities[index].title = newName;
+                    // Force refresh the page to show the updated name
+                    window.location.reload();
+                  }
+                }
+              }}
+            >
+              Edit
+            </Button>
             <Button className="bg-indigo-600 hover:bg-indigo-700">Actions</Button>
           </div>
         </div>
         
-        <p className="text-gray-600 mt-2">{opportunity.description}</p>
+        <p className="text-gray-600 mt-2">Details for {opportunity.title}</p>
       </div>
       
       {/* Key metrics section - similar to screenshot */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-6 mb-6">
         <div className="border-r border-gray-200 pr-6">
           <span className="text-sm text-gray-500 block">Amount</span>
-          <span className="text-xl font-bold">€ {(opportunity.amount / 1000).toFixed(0)}.000</span>
+          <span className="text-xl font-bold">€ {(opportunity.value / 1000).toFixed(0)}.000</span>
         </div>
         
         <div className="border-r border-gray-200 px-6">
@@ -238,8 +246,8 @@ export default function OpportunityDetail() {
         
         <div className="pl-6">
           <span className="text-sm text-gray-500 block">Stage</span>
-          <span className={`px-2.5 py-1 rounded-full text-xs ${getStatusBadgeVariant(opportunity.stage)}`}>
-            {opportunity.stage}
+          <span className={`px-2.5 py-1 rounded-full text-xs ${getStatusBadgeVariant(opportunity.status)}`}>
+            {opportunity.status}
           </span>
         </div>
       </div>
@@ -251,19 +259,17 @@ export default function OpportunityDetail() {
           <div className="flex flex-wrap gap-x-8 gap-y-2">
             <div>
               <span className="text-sm text-gray-500 mr-2">Customer:</span>
-              <Link href={opportunity.customer.link} className="text-indigo-600 hover:underline">
-                {opportunity.customer.name}
+              <Link href={`/lists/customers/${opportunity.customerId}`} className="text-indigo-600 hover:underline">
+                {opportunity.customerName}
               </Link>
             </div>
             
-            {opportunity.partners.map((partner, index) => (
-              <div key={partner.id}>
-                <span className="text-sm text-gray-500 mr-2">Partner{opportunity.partners.length > 1 ? ` ${index + 1}` : ''}:</span>
-                <Link href={partner.link} className="text-indigo-600 hover:underline">
-                  {partner.name}
-                </Link>
-              </div>
-            ))}
+            <div>
+              <span className="text-sm text-gray-500 mr-2">Partner:</span>
+              <Link href={`/lists/partners/${opportunity.partnerId}`} className="text-indigo-600 hover:underline">
+                {opportunity.partnerName}
+              </Link>
+            </div>
           </div>
         </div>
       </div>
