@@ -283,13 +283,16 @@ function PartnersTable() {
   const [newViewName, setNewViewName] = useState('');
   const [newViewDescription, setNewViewDescription] = useState('');
   
-  // State for saved lists
+  // State for saved lists - Note: Lists now only contain members, not filters
   const [savedLists, setSavedLists] = useState<SavedList[]>([
     // "All Partners" is not in the list as it's the default state when no list is selected
     {
       id: '1',
       name: 'Active Insurance Brokers',
-      filters: { status: 'active', industry: 'Insurance', type: 'Broker' },
+      description: 'Manually selected active insurance brokers',
+      type: 'selection',
+      filters: {}, // Lists don't have filters anymore
+      members: [1, 2, 4, 6], // Only member IDs are stored in lists
       isShared: true,
       sharedWith: ['team@acme.com'],
       createdBy: 'John Smith',
@@ -298,7 +301,10 @@ function PartnersTable() {
     {
       id: '2',
       name: 'Consulting Partners',
-      filters: { industry: 'Consulting' },
+      description: 'Consulting partners we work with',
+      type: 'selection',
+      filters: {}, // Lists don't have filters anymore
+      members: [3, 5], // Only member IDs are stored in lists
       isShared: false,
       createdBy: 'John Smith',
       createdAt: new Date('2025-05-10')
@@ -306,7 +312,10 @@ function PartnersTable() {
     {
       id: '3',
       name: 'Enterprise Partners',
-      filters: { size: 'enterprise' },
+      description: 'Our enterprise-level partners',
+      type: 'selection',
+      filters: {}, // Lists don't have filters anymore
+      members: [2, 4, 6], // Only member IDs are stored in lists
       isShared: true,
       sharedWith: ['partnerships@acme.com'],
       createdBy: 'John Smith',
@@ -332,28 +341,13 @@ function PartnersTable() {
     
   // Filter partners based on search text, filter selections, and list type
   const displayedPartners = mockPartners.filter(partner => {
-    // If we have an active static list, only show partners that were explicitly selected for that list
-    if (activeList && activeList.type === 'selection') {
-      // First check if the partner is in the selection list
-      const isInSelectionList = activeList.members?.includes(partner.id) || false;
-      
-      if (!isInSelectionList) {
-        return false; // Skip partners not in selection list
-      }
-      
-      // Then apply filters only to the selected partners
-      const matchesText = !filterText || 
-        partner.name.toLowerCase().includes(filterText.toLowerCase()) ||
-        partner.industry.toLowerCase().includes(filterText.toLowerCase()) ||
-        partner.type.toLowerCase().includes(filterText.toLowerCase());
-        
-      const matchesStatus = !selectedStatus || partner.status === selectedStatus;
-      const matchesIndustry = !selectedIndustry || partner.industry === selectedIndustry;
-      const matchesType = !selectedType || partner.type === selectedType;
-      
-      return matchesText && matchesStatus && matchesIndustry && matchesType;
+    // If we have an active list, only show partners that are members of that list
+    // Lists should only be about membership, not filters
+    if (activeList) {
+      // For lists, only check membership - no automatic filters  
+      return activeList.members?.includes(partner.id) || false;
     } else {
-      // For dynamic lists or no list, apply filters to all partners
+      // When no list is selected (All Partners or using Views), apply the current filters
       const matchesText = !filterText || 
         partner.name.toLowerCase().includes(filterText.toLowerCase()) ||
         partner.industry.toLowerCase().includes(filterText.toLowerCase()) ||
