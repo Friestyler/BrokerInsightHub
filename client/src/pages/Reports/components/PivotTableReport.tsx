@@ -2,9 +2,6 @@ import { useState } from 'react';
 import PivotTableUI from 'react-pivottable/PivotTableUI';
 import 'react-pivottable/pivottable.css';
 
-// Import required CSS
-import 'react-pivottable/pivottable.css';
-
 // Sample data for the pivot table
 const sampleOpportunityData = [
   // Partner/Customer data

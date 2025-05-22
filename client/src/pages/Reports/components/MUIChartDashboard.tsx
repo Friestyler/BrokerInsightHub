@@ -138,7 +138,7 @@ export default function MUIChartDashboard() {
                   height={50}
                   margin={{ top: 5, bottom: 5, left: 5, right: 5 }}
                   slotProps={{
-                    legend: { hidden: true },
+                    legend: { display: false } as any,
                   }}
                 />
               </div>
@@ -200,9 +200,8 @@ export default function MUIChartDashboard() {
                 height={300}
                 slotProps={{
                   legend: {
-                    direction: 'column',
-                    position: { vertical: 'middle', horizontal: 'right' },
-                    padding: 0,
+                    direction: 'row' as any,
+                    position: { vertical: 'bottom', horizontal: 'middle' } as any,
                   },
                 }}
               />
