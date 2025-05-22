@@ -16,34 +16,134 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
 
 // Mock opportunity data
-const opportunity = {
-  id: 1,
-  name: "Product B - SARP Groupe",
-  description: "Objective to install B to help SARP Group with XYZ",
-  amount: 2120000,
-  probability: 60,
-  stage: "Discovery",
-  customer: {
+const opportunities = {
+  "1": {
     id: 1,
-    name: "SARP Groupe",
-    link: "/lists/customers/1"
-  },
-  partners: [
-    {
+    name: "Koppelen van hypotheek aan verduurzamingslening",
+    description: "Combinatie van hypotheek met verduurzamingslening voor energiebesparende maatregelen",
+    amount: 250000,
+    probability: 80,
+    stage: "Proposal",
+    customer: {
       id: 1,
-      name: "Computacenter",
-      link: "/lists/partners/1"
+      name: "Van Dijk Familie",
+      link: "/lists/customers/1"
     },
-    {
-      id: 2,
-      name: "Deloitte",
-      link: "/lists/partners/2"
+    partners: [
+      {
+        id: 1,
+        name: "Jeroen Hypotheek Advies",
+        link: "/lists/partners/1"
+      }
+    ],
+    owner: {
+      name: "Maarten V.",
+      initials: "MV"
     }
-  ],
-  owner: {
-    name: "Lenny K.",
-    initials: "LK"
+  },
+  "2": {
+    id: 2,
+    name: "Verduurzamingslening",
+    description: "Financiering voor zonnepanelen en isolatie van de woning",
+    amount: 35000,
+    probability: 60,
+    stage: "Discovery",
+    customer: {
+      id: 2,
+      name: "Jansen Gezin",
+      link: "/lists/customers/2"
+    },
+    partners: [
+      {
+        id: 1,
+        name: "Jeroen Hypotheek Advies",
+        link: "/lists/partners/1"
+      }
+    ],
+    owner: {
+      name: "Sophie J.",
+      initials: "SJ"
+    }
+  },
+  "3": {
+    id: 3,
+    name: "Verkoop van aanvullende producten",
+    description: "Overlijdensrisicoverzekering en woonlastenverzekering bij hypotheek",
+    amount: 42000,
+    probability: 75,
+    stage: "Negotiation",
+    customer: {
+      id: 3,
+      name: "De Groot BV",
+      link: "/lists/customers/3"
+    },
+    partners: [
+      {
+        id: 1,
+        name: "Jeroen Hypotheek Advies",
+        link: "/lists/partners/1"
+      }
+    ],
+    owner: {
+      name: "Maarten V.",
+      initials: "MV"
+    }
+  },
+  "4": {
+    id: 4,
+    name: "Proactief contact bij levensgebeurtenissen",
+    description: "Contact met klanten bij verhuizing, gezinsuitbreiding of scheiding",
+    amount: 28000,
+    probability: 100,
+    stage: "Closed Won",
+    customer: {
+      id: 4,
+      name: "Visser Familie",
+      link: "/lists/customers/4"
+    },
+    partners: [
+      {
+        id: 1,
+        name: "Jeroen Hypotheek Advies",
+        link: "/lists/partners/1"
+      }
+    ],
+    owner: {
+      name: "Sophie J.",
+      initials: "SJ"
+    }
   }
+};
+
+// Define type for opportunity
+type Opportunity = {
+  id: number;
+  name: string;
+  description: string;
+  amount: number;
+  probability: number;
+  stage: string;
+  customer: {
+    id: number;
+    name: string;
+    link: string;
+  };
+  partners: {
+    id: number;
+    name: string;
+    link: string;
+  }[];
+  owner: {
+    name: string;
+    initials: string;
+  };
+};
+
+// Get the current opportunity based on ID
+const getOpportunity = (id?: string): Opportunity => {
+  return id && opportunities[id as keyof typeof opportunities] 
+    ? opportunities[id as keyof typeof opportunities] 
+    : opportunities["1"];
 };
 
 // Mock metrics data for this opportunity
@@ -175,6 +275,9 @@ export default function OpportunityDetail() {
   const { environment } = useEnvironment();
   const [selectedMetrics, setSelectedMetrics] = useState<number[]>([]);
   
+  // Get the current opportunity based on the ID parameter
+  const opportunity = getOpportunity(id);
+  
   // Toggle selection of a metric
   const toggleMetricSelection = (id: number) => {
     if (selectedMetrics.includes(id)) {
@@ -256,7 +359,7 @@ export default function OpportunityDetail() {
               </Link>
             </div>
             
-            {opportunity.partners.map((partner, index) => (
+            {opportunity.partners.map((partner: {id: number, name: string, link: string}, index: number) => (
               <div key={partner.id}>
                 <span className="text-sm text-gray-500 mr-2">Partner{opportunity.partners.length > 1 ? ` ${index + 1}` : ''}:</span>
                 <Link href={partner.link} className="text-indigo-600 hover:underline">
