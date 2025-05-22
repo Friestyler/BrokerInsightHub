@@ -594,7 +594,6 @@ export default function PartnersViewsDemo() {
               {selectedViewStyle === 'quickswitcher' && (
                 <div className="mb-4">
                   <div className="flex justify-between items-center mb-4">
-                    <h3 className="text-sm font-medium">Current Selection</h3>
                     <div>
                       <Button 
                         variant="outline" 
@@ -603,7 +602,10 @@ export default function PartnersViewsDemo() {
                         onClick={() => setQuickSwitcherOpen(true)}
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="m15 18-6-6 6-6" />
+                          <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                          <line x1="8" y1="12" x2="16" y2="12" />
+                          <line x1="8" y1="8" x2="16" y2="8" />
+                          <line x1="8" y1="16" x2="12" y2="16" />
                         </svg>
                         <span>
                           {activeList.name}: <span className="font-medium">{activeView?.name}</span>
@@ -613,6 +615,7 @@ export default function PartnersViewsDemo() {
                         </kbd>
                       </Button>
                     </div>
+                    <h3 className="text-sm font-medium">Current Selection</h3>
                   </div>
                 </div>
               )}
