@@ -876,42 +876,42 @@ export default function PartnerDetail() {
                     <TableCell>
                       <Link href={`/lists/opportunities/1?from=partner/${id}`} className="inline-block">
                         <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
-                          Property Insurance Renewal
+                          Koppelen van hypotheek aan verduurzamingslening
                         </span>
                       </Link>
                     </TableCell>
                     <TableCell>
                       <Link href={`/lists/clients/1`} className="inline-block">
                         <span className="text-indigo-600 hover:underline cursor-pointer">
-                          Acme Corporation
+                          Van Dijk Familie
                         </span>
                       </Link>
                     </TableCell>
                     <TableCell>
-                      <Link href={`/lists/partners/2`} className="inline-block">
+                      <Link href={`/lists/partners/1`} className="inline-block">
                         <span className="text-indigo-600 hover:underline cursor-pointer">
-                          ABC Insurance Brokers
+                          Jeroen Hypotheek Advies
                         </span>
                       </Link>
                     </TableCell>
                     <TableCell>
-                      Renewal
+                      New Business
                     </TableCell>
                     <TableCell>
                       <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
-                        In Progress
+                        Proposal
                       </span>
                     </TableCell>
                     <TableCell>
-                      €125,000
+                      €250,000
                     </TableCell>
                     <TableCell>
-                      15/06/2025
+                      15/07/2025
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-1">
                         <div className="h-6 w-6 rounded-full bg-indigo-100 text-indigo-700 text-xs flex items-center justify-center">
-                          RN
+                          VL
                         </div>
                       </div>
                     </TableCell>
@@ -924,21 +924,21 @@ export default function PartnerDetail() {
                     <TableCell>
                       <Link href={`/lists/opportunities/2?from=partner/${id}`} className="inline-block">
                         <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
-                          Cyber Security Coverage
+                          Verduurzamingslening
                         </span>
                       </Link>
                     </TableCell>
                     <TableCell>
-                      <Link href={`/lists/clients/1`} className="inline-block">
+                      <Link href={`/lists/clients/2`} className="inline-block">
                         <span className="text-indigo-600 hover:underline cursor-pointer">
-                          Acme Corporation
+                          Jansen Gezin
                         </span>
                       </Link>
                     </TableCell>
                     <TableCell>
-                      <Link href={`/lists/partners/2`} className="inline-block">
+                      <Link href={`/lists/partners/1`} className="inline-block">
                         <span className="text-indigo-600 hover:underline cursor-pointer">
-                          ABC Insurance Brokers
+                          Jeroen Hypotheek Advies
                         </span>
                       </Link>
                     </TableCell>
@@ -947,19 +947,19 @@ export default function PartnerDetail() {
                     </TableCell>
                     <TableCell>
                       <span className="px-2 py-1 rounded-full text-xs bg-purple-100 text-purple-800">
-                        Qualification
+                        Discovery
                       </span>
                     </TableCell>
                     <TableCell>
-                      €75,000
+                      €35,000
                     </TableCell>
                     <TableCell>
-                      30/07/2025
+                      30/06/2025
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-1">
                         <div className="h-6 w-6 rounded-full bg-green-100 text-green-700 text-xs flex items-center justify-center">
-                          NB
+                          VL
                         </div>
                       </div>
                     </TableCell>
@@ -970,44 +970,92 @@ export default function PartnerDetail() {
                       <Checkbox />
                     </TableCell>
                     <TableCell>
-                      <Link href={`/lists/opportunities/5?from=partner/${id}`} className="inline-block">
+                      <Link href={`/lists/opportunities/3?from=partner/${id}`} className="inline-block">
                         <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
-                          Workers Compensation
+                          Verkoop van aanvullende producten
                         </span>
                       </Link>
                     </TableCell>
                     <TableCell>
                       <Link href={`/lists/clients/3`} className="inline-block">
                         <span className="text-indigo-600 hover:underline cursor-pointer">
-                          Umbrella Corporation
+                          De Groot BV
                         </span>
                       </Link>
                     </TableCell>
                     <TableCell>
-                      <Link href={`/lists/partners/2`} className="inline-block">
+                      <Link href={`/lists/partners/1`} className="inline-block">
                         <span className="text-indigo-600 hover:underline cursor-pointer">
-                          ABC Insurance Brokers
+                          Jeroen Hypotheek Advies
                         </span>
                       </Link>
                     </TableCell>
                     <TableCell>
-                      Cross-sell
+                      Upsell
                     </TableCell>
                     <TableCell>
-                      <span className="px-2 py-1 rounded-full text-xs bg-red-100 text-red-800">
-                        Closed Lost
+                      <span className="px-2 py-1 rounded-full text-xs bg-amber-100 text-amber-800">
+                        Negotiation
                       </span>
                     </TableCell>
                     <TableCell>
-                      €80,000
+                      €42,000
                     </TableCell>
                     <TableCell>
-                      15/05/2025
+                      10/08/2025
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-1">
                         <div className="h-6 w-6 rounded-full bg-cyan-100 text-cyan-700 text-xs flex items-center justify-center">
-                          CS
+                          AP
+                        </div>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                  
+                  <TableRow>
+                    <TableCell>
+                      <Checkbox />
+                    </TableCell>
+                    <TableCell>
+                      <Link href={`/lists/opportunities/4?from=partner/${id}`} className="inline-block">
+                        <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
+                          Proactief contact bij levensgebeurtenissen
+                        </span>
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      <Link href={`/lists/clients/4`} className="inline-block">
+                        <span className="text-indigo-600 hover:underline cursor-pointer">
+                          Visser Familie
+                        </span>
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      <Link href={`/lists/partners/1`} className="inline-block">
+                        <span className="text-indigo-600 hover:underline cursor-pointer">
+                          Jeroen Hypotheek Advies
+                        </span>
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      Renewal
+                    </TableCell>
+                    <TableCell>
+                      <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
+                        Closed Won
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      €28,000
+                    </TableCell>
+                    <TableCell>
+                      05/05/2025
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex space-x-1">
+                        <div className="h-6 w-6 rounded-full bg-purple-100 text-purple-700 text-xs flex items-center justify-center">
+                          PC
                         </div>
                       </div>
                     </TableCell>
