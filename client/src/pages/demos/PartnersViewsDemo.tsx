@@ -559,6 +559,11 @@ export default function PartnersViewsDemo() {
   const saveAsView = () => {
     setShowSaveViewModal(true);
   };
+  
+  // Save current filters as a new global view
+  const saveAsGlobalView = () => {
+    setShowSaveGlobalViewModal(true);
+  };
 
   // Filter lists and views for the quick switcher search
   const filteredListsAndViews = searchQuery.trim() === '' 
@@ -826,6 +831,247 @@ export default function PartnersViewsDemo() {
                       </Button>
                     </div>
                   </Tabs>
+                </div>
+              )}
+              
+              {/* Global Views Interface */}
+              {selectedViewStyle === 'global' && (
+                <div className="mb-4">
+                  <div className="bg-white border border-gray-200 rounded-md mb-4">
+                    <div className="bg-gray-50 p-3 border-b border-gray-200 flex flex-wrap justify-between items-center gap-y-2">
+                      <div className="flex items-center gap-4">
+                        <div className="relative">
+                          <select
+                            className="appearance-none bg-white pl-3 pr-8 py-2 text-sm font-medium border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-w-[200px]"
+                            value={activeListId}
+                            onChange={(e) => switchList(e.target.value)}
+                          >
+                            {lists.map(list => (
+                              <option key={list.id} value={list.id}>
+                                {list.name} {list.type === 'selection' ? '(Custom)' : ''}
+                              </option>
+                            ))}
+                          </select>
+                          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="6 9 12 15 18 9"></polyline>
+                            </svg>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="ml-auto flex items-center gap-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="border-gray-300"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                            <polyline points="7 3 7 8 15 8"></polyline>
+                          </svg>
+                          New List
+                        </Button>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex mb-4">
+                    <div className="w-64 bg-white border border-gray-200 rounded-md mr-4 p-4 shrink-0">
+                      <h3 className="font-medium text-base mb-3 flex justify-between items-center">
+                        <span>Global Views</span>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-7 w-7 p-0 rounded-full"
+                          onClick={() => setShowSaveGlobalViewModal(true)}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                          </svg>
+                          <span className="sr-only">Add view</span>
+                        </Button>
+                      </h3>
+                      
+                      <div className="space-y-1">
+                        {globalViews.map(view => (
+                          <Button
+                            key={view.id}
+                            variant={activeGlobalViewId === view.id ? "default" : "ghost"}
+                            size="sm"
+                            className={`w-full justify-start ${activeGlobalViewId === view.id ? "" : "text-gray-700"}`}
+                            onClick={() => {
+                              setActiveGlobalViewId(view.id);
+                              // Apply the view's filters
+                              const selectedView = globalViews.find(v => v.id === view.id);
+                              if (selectedView) {
+                                setSelectedStatus(selectedView.filters.status || '');
+                                setSelectedIndustry(selectedView.filters.industry || '');
+                                setSelectedType(selectedView.filters.type || '');
+                                setFilterText('');
+                              }
+                            }}
+                          >
+                            <div className="flex items-center">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                              </svg>
+                              <span>{view.name}</span>
+                            </div>
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div className="flex-1">
+                      <div className="bg-white border border-gray-200 rounded-md p-4 mb-4">
+                        <div className="flex items-center justify-between mb-4">
+                          <h3 className="font-medium text-base">
+                            {activeList.name}{' '}
+                            <span className="text-gray-500 text-sm">with {globalViews.find(v => v.id === activeGlobalViewId)?.name} view</span>
+                          </h3>
+                          
+                          <div className="flex gap-2">
+                            <Button 
+                              size="sm" 
+                              variant="outline" 
+                              className="border-blue-500 text-blue-600 hover:bg-blue-50"
+                              onClick={saveAsGlobalView}
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                <polyline points="7 3 7 8 15 8"></polyline>
+                              </svg>
+                              Save Current View
+                            </Button>
+                          </div>
+                        </div>
+                        
+                        {/* Active filters summary */}
+                        <div className="flex flex-wrap items-center text-sm">
+                          <div className="text-gray-500 mr-2">Showing:</div>
+                          {(selectedStatus || selectedIndustry || selectedType) ? (
+                            <div className="flex flex-wrap gap-2">
+                              {selectedStatus && (
+                                <FilterPill 
+                                  label="Status" 
+                                  value={selectedStatus} 
+                                  color="blue"
+                                  onRemove={() => setSelectedStatus('')}
+                                />
+                              )}
+                              
+                              {selectedIndustry && (
+                                <FilterPill 
+                                  label="Industry" 
+                                  value={selectedIndustry} 
+                                  color="green"
+                                  onRemove={() => setSelectedIndustry('')}
+                                />
+                              )}
+                              
+                              {selectedType && (
+                                <FilterPill 
+                                  label="Type" 
+                                  value={selectedType} 
+                                  color="purple"
+                                  onRemove={() => setSelectedType('')}
+                                />
+                              )}
+                            </div>
+                          ) : (
+                            <div className="text-gray-700">All partners</div>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {/* Additional filter bar with search (for global views) */}
+                      <div className="flex flex-wrap gap-4 mb-4">
+                        <div className="relative w-[300px]">
+                          <input
+                            type="text" 
+                            value={filterText}
+                            onChange={(e) => setFilterText(e.target.value)}
+                            placeholder="Search by name, industry..." 
+                            className="w-full h-10 pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm focus:outline-none" 
+                          />
+                          <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <circle cx="11" cy="11" r="8"></circle>
+                              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                            </svg>
+                          </div>
+                        </div>
+                        
+                        <div className="flex gap-3">
+                          <div className="relative">
+                            <div className="flex items-center gap-2 h-10 px-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                              </svg>
+                              <span>Status</span>
+                            </div>
+                            <select 
+                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                              value={selectedStatus}
+                              onChange={(e) => setSelectedStatus(e.target.value)}
+                            >
+                              <option value="">All Statuses</option>
+                              <option value="active">Active</option>
+                              <option value="inactive">Inactive</option>
+                            </select>
+                          </div>
+                          
+                          <div className="relative">
+                            <div className="flex items-center gap-2 h-10 px-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+                              </svg>
+                              <span>Industry</span>
+                            </div>
+                            <select 
+                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                              value={selectedIndustry}
+                              onChange={(e) => setSelectedIndustry(e.target.value)}
+                            >
+                              <option value="">All Industries</option>
+                              <option value="Insurance">Insurance</option>
+                              <option value="Finance">Finance</option>
+                              <option value="Consulting">Consulting</option>
+                              <option value="Risk Management">Risk Management</option>
+                            </select>
+                          </div>
+                          
+                          <div className="relative">
+                            <div className="flex items-center gap-2 h-10 px-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                                <circle cx="9" cy="7" r="4"></circle>
+                                <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                              </svg>
+                              <span>Type</span>
+                            </div>
+                            <select 
+                              className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                              value={selectedType}
+                              onChange={(e) => setSelectedType(e.target.value)}
+                            >
+                              <option value="">All Types</option>
+                              <option value="Broker">Broker</option>
+                              <option value="Agency">Agency</option>
+                              <option value="Partner">Partner</option>
+                              <option value="Consultant">Consultant</option>
+                            </select>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
                 </div>
               )}
               
