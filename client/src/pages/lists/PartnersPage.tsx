@@ -310,6 +310,10 @@ function PartnersTable() {
   const [showListsDropdown, setShowListsDropdown] = useState(false);
   const [showAddPartnersModal, setShowAddPartnersModal] = useState(false);
   const [showCreateListModal, setShowCreateListModal] = useState(false);
+  const [showAddToListModal, setShowAddToListModal] = useState(false);
+  const [listToAddTo, setListToAddTo] = useState<string>('new'); // 'new' or list ID
+  const [showAddToListModal, setShowAddToListModal] = useState(false);
+  const [listToAddTo, setListToAddTo] = useState<string>('new'); // 'new' or a list ID
   const [showDynamicListGuidance, setShowDynamicListGuidance] = useState(false);
   const [isGuidanceCollapsed, setIsGuidanceCollapsed] = useState(false);
   // State for the name and description when creating a list through the general create modal
@@ -1210,11 +1214,11 @@ function PartnersTable() {
               size="sm"
               className="bg-[#5567E5] hover:bg-[#4555CB] text-white"
               onClick={() => {
-                // When creating from selection, we always create a custom list
-                setShowCreateListModal(true);
+                // Open add to list dialog
+                setShowAddToListModal(true);
                 setNewListName('');
                 setNewListDescription('');
-                setSelectionListType('selection'); // Set to Custom List type
+                setListToAddTo('new'); // Default to creating a new list
               }}
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
@@ -1222,7 +1226,7 @@ function PartnersTable() {
                 <polyline points="17 21 17 13 7 13 7 21"></polyline>
                 <polyline points="7 3 7 8 15 8"></polyline>
               </svg>
-              Create Custom List
+              Add to list
             </Button>
             
             <Button 
@@ -1598,6 +1602,192 @@ function PartnersTable() {
               disabled={partnersToAdd.length === 0}
             >
               Add to List
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Add to List Modal - allows creating a new list or adding to existing list */}
+      <Dialog open={showAddToListModal} onOpenChange={setShowAddToListModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-[#282A3F] font-semibold text-lg" style={{ fontFamily: 'Poppins, sans-serif' }}>
+              Add partners to list
+            </DialogTitle>
+            <DialogDescription>
+              Add selected partners to an existing list or create a new list.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="py-4">
+            <div className="space-y-4">
+              {/* List selection */}
+              <div>
+                <Label htmlFor="list-selection" className="text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                  Select an option
+                </Label>
+                <Select 
+                  value={listToAddTo} 
+                  onValueChange={setListToAddTo}
+                >
+                  <SelectTrigger id="list-selection" className="mt-1.5">
+                    <SelectValue placeholder="Select an option" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="new">Create a new list</SelectItem>
+                    {savedLists.map(list => (
+                      <SelectItem key={list.id} value={list.id}>{list.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              {/* New list fields - only shown when creating a new list */}
+              {listToAddTo === 'new' && (
+                <>
+                  <div>
+                    <Label htmlFor="new-list-name" className="text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                      List name*
+                    </Label>
+                    <Input 
+                      id="new-list-name" 
+                      value={newListName} 
+                      onChange={(e) => setNewListName(e.target.value)} 
+                      placeholder="Enter list name" 
+                      className="mt-1.5"
+                      required
+                    />
+                  </div>
+                  
+                  <div>
+                    <Label htmlFor="new-list-description" className="text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                      Description (optional)
+                    </Label>
+                    <Textarea 
+                      id="new-list-description" 
+                      value={newListDescription} 
+                      onChange={(e) => setNewListDescription(e.target.value)} 
+                      placeholder="Enter list description" 
+                      className="mt-1.5"
+                    />
+                  </div>
+                </>
+              )}
+              
+              {/* Selected partners count */}
+              <div className="bg-[#EBEEFB] border border-[#D4D9F3] rounded-lg p-4">
+                <div className="flex items-start">
+                  <div className="mt-1 mr-3 rounded-full p-2 bg-[#D4D9F3]">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                      <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 className="text-base font-semibold text-[#282A3F]">{selectedPartners.length} partners selected</h4>
+                    <p className="text-sm text-[#5F6585] mt-1">
+                      These partners will be added to your list.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">
+                Cancel
+              </Button>
+            </DialogClose>
+            <Button
+              onClick={() => {
+                if (listToAddTo === 'new') {
+                  // Create a new list
+                  if (!newListName.trim()) {
+                    toast({
+                      title: "List name required",
+                      description: "Please enter a name for your list.",
+                      variant: "destructive",
+                    });
+                    return;
+                  }
+                  
+                  // Create a new list with the selected partners
+                  const newList: SavedList = {
+                    id: `list-${Date.now()}`,
+                    name: newListName,
+                    description: newListDescription,
+                    type: 'selection',
+                    filters: {},
+                    members: selectedPartners,
+                    isShared: false,
+                    createdBy: 'John Smith',
+                    createdAt: new Date()
+                  };
+                  
+                  // Add the new list to saved lists
+                  setSavedLists([...savedLists, newList]);
+                  
+                  // Set as active list
+                  setActiveList(newList);
+                  
+                  // Reset selected partners
+                  setSelectedPartners([]);
+                  
+                  toast({
+                    title: "List created successfully",
+                    description: `"${newListName}" has been created with ${selectedPartners.length} partners.`,
+                  });
+                } else {
+                  // Add to existing list
+                  const existingList = savedLists.find(list => list.id === listToAddTo);
+                  
+                  if (existingList) {
+                    // Get current list members
+                    const currentMembers = existingList.members || [];
+                    const updatedMembers = [...currentMembers];
+                    
+                    // Add each selected partner if not already in the list
+                    selectedPartners.forEach(id => {
+                      if (!updatedMembers.includes(id)) {
+                        updatedMembers.push(id);
+                      }
+                    });
+                    
+                    // Update the list
+                    const updatedList = {
+                      ...existingList,
+                      members: updatedMembers
+                    };
+                    
+                    // Update saved lists
+                    const updatedLists = savedLists.map(list => 
+                      list.id === existingList.id ? updatedList : list
+                    );
+                    
+                    setSavedLists(updatedLists);
+                    
+                    if (activeList && activeList.id === existingList.id) {
+                      setActiveList(updatedList);
+                    }
+                    
+                    // Reset selected partners
+                    setSelectedPartners([]);
+                    
+                    toast({
+                      title: "Partners added to list",
+                      description: `${selectedPartners.length} partners have been added to "${existingList.name}".`,
+                    });
+                  }
+                }
+                
+                // Close the modal
+                setShowAddToListModal(false);
+              }}
+              disabled={selectedPartners.length === 0}
+            >
+              {listToAddTo === 'new' ? 'Create list' : 'Add to list'}
             </Button>
           </DialogFooter>
         </DialogContent>
