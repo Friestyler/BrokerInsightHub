@@ -295,8 +295,6 @@ function OpportunitiesTable() {
   const [showCreateListModal, setShowCreateListModal] = useState(false);
   const [showAddToListModal, setShowAddToListModal] = useState(false);
   const [listToAddTo, setListToAddTo] = useState<string>('new'); // 'new' or list ID
-  const [showDynamicListGuidance, setShowDynamicListGuidance] = useState(false);
-  const [isGuidanceCollapsed, setIsGuidanceCollapsed] = useState(false);
   // State for the name and description when creating a list through the general create modal
   const [newListName, setNewListName] = useState('');
   const [newListDescription, setNewListDescription] = useState('');

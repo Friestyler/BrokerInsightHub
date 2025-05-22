@@ -2428,8 +2428,10 @@ export default function PartnersPage() {
 
 // Helper component to guide users on dynamic list usage
 function DynamicListGuidance({ isNewList }: { isNewList: boolean }) {
+  const [isCollapsed, setIsCollapsed] = useState(false);
+
   return (
-    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4 overflow-hidden transition-all duration-300" style={{ maxHeight: isCollapsed ? '60px' : '1000px' }}>
       <div className="flex items-start">
         <div className="flex-shrink-0 bg-blue-100 rounded-full p-1.5 mt-0.5">
           <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#1e40af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -2438,11 +2440,27 @@ function DynamicListGuidance({ isNewList }: { isNewList: boolean }) {
             <line x1="12" y1="8" x2="12.01" y2="8"></line>
           </svg>
         </div>
-        <div className="ml-3">
-          <h3 className="text-sm font-medium text-blue-800" style={{ fontFamily: 'Poppins, sans-serif' }}>
-            {isNewList ? 'Define your filter criteria' : 'About this Saved Filter'}
-          </h3>
-          <div className="mt-1 text-sm text-blue-700">
+        <div className="ml-3 flex-grow">
+          <div className="flex justify-between">
+            <h3 className="text-sm font-medium text-blue-800" style={{ fontFamily: 'Poppins, sans-serif' }}>
+              {isNewList ? 'Define your filter criteria' : 'About this Saved Filter'}
+            </h3>
+            <button 
+              onClick={() => setIsCollapsed(!isCollapsed)}
+              className="text-blue-600 hover:text-blue-800"
+            >
+              {isCollapsed ? (
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="18 15 12 9 6 15"></polyline>
+                </svg>
+              ) : (
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              )}
+            </button>
+          </div>
+          <div className={`mt-1 text-sm text-blue-700 ${isCollapsed ? 'hidden' : 'block'}`}>
             <p>Set up filters below to define which partners should be shown in this view. This helps you:</p>
             <ul className="list-disc pl-5 mt-1 space-y-1">
               <li>Quickly access specific partner segments (e.g., active insurance brokers)</li>
