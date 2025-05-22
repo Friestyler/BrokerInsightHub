@@ -982,7 +982,7 @@ function PartnersTable() {
                   
                   {/* Tooltip */}
                   <div className="opacity-0 absolute -top-12 left-1/2 transform -translate-x-1/2 px-3 py-2 rounded bg-gray-800 text-white text-xs whitespace-nowrap transition-opacity group-hover:opacity-100 z-10">
-                    Save your active filters as a named view for quick access later
+                    Save your selected filters as a view for quick access later
                   </div>
                 </div>
               )}
