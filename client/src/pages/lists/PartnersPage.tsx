@@ -224,9 +224,10 @@ function PartnersTable() {
            currentFilters.type !== (activeView.filters.type || '');
   };
   
-  // Additional useEffect to track changes to filters when a view is active
+  // Track changes to filters when a view is active
   useEffect(() => {
     if (activeView) {
+      const viewFilters = activeView.filters;
       const currentFilters = {
         searchText: filterText || '',
         status: selectedStatus || '',
@@ -236,10 +237,10 @@ function PartnersTable() {
       
       // Check if filters differ from view's filters
       const hasChanges = 
-        currentFilters.searchText !== (activeView.filters.searchText || '') ||
-        currentFilters.status !== (activeView.filters.status || '') ||
-        currentFilters.industry !== (activeView.filters.industry || '') ||
-        currentFilters.type !== (activeView.filters.type || '');
+        currentFilters.searchText !== (viewFilters.searchText || '') ||
+        currentFilters.status !== (viewFilters.status || '') ||
+        currentFilters.industry !== (viewFilters.industry || '') ||
+        currentFilters.type !== (viewFilters.type || '');
       
       setHasUnsavedChanges(hasChanges);
     }
