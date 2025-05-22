@@ -276,10 +276,53 @@ export default function PartnersViewsDemo() {
   const [selectedIndustry, setSelectedIndustry] = useState('');
   const [selectedType, setSelectedType] = useState('');
   const [selectedPartners, setSelectedPartners] = useState<number[]>([]);
-  const [selectedViewStyle, setSelectedViewStyle] = useState('salesforce');
+  const [selectedViewStyle, setSelectedViewStyle] = useState('global');
   const [quickSwitcherOpen, setQuickSwitcherOpen] = useState(false);
   const [showSaveViewModal, setShowSaveViewModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  
+  // Global views (decoupled from lists)
+  const [globalViews, setGlobalViews] = useState<View[]>([
+    {
+      id: 'global-all',
+      name: 'All Records',
+      description: 'Shows all records without filtering',
+      filters: {},
+      isShared: true,
+      createdBy: 'System',
+      createdAt: new Date('2025-01-01')
+    },
+    {
+      id: 'global-active',
+      name: 'Active Only',
+      description: 'Shows only active partners',
+      filters: { status: 'active' },
+      isShared: true,
+      createdBy: 'System',
+      createdAt: new Date('2025-01-02')
+    },
+    {
+      id: 'global-insurance',
+      name: 'Insurance Industry',
+      description: 'Partners in the insurance industry',
+      filters: { industry: 'Insurance' },
+      isShared: true,
+      createdBy: 'System',
+      createdAt: new Date('2025-01-03')
+    },
+    {
+      id: 'global-brokers',
+      name: 'Brokers Only',
+      description: 'Shows only broker-type partners',
+      filters: { type: 'Broker' },
+      isShared: false,
+      createdBy: 'John Smith',
+      createdAt: new Date('2025-01-15')
+    }
+  ]);
+  const [activeGlobalViewId, setActiveGlobalViewId] = useState('global-all');
+  const [newGlobalViewName, setNewGlobalViewName] = useState('');
+  const [showSaveGlobalViewModal, setShowSaveGlobalViewModal] = useState(false);
   
   // Demo lists with views
   const [lists, setLists] = useState<ListWithViews[]>([
@@ -580,6 +623,12 @@ export default function PartnersViewsDemo() {
             onClick={() => setSelectedViewStyle('salesforce')}
           >
             Salesforce-Style
+          </Button>
+          <Button 
+            variant={selectedViewStyle === 'global' ? 'default' : 'outline'} 
+            onClick={() => setSelectedViewStyle('global')}
+          >
+            Global Views
           </Button>
         </div>
       </div>
