@@ -208,7 +208,7 @@ function PartnersTable() {
   const [itemsPerPage, setItemsPerPage] = useState(12);
   
   // Function to determine if current filters differ from active view
-  const haveFiltersChanged = () => {
+  const haveViewFiltersChanged = () => {
     if (!activeView) return false;
     
     const currentFilters = {
@@ -223,6 +223,13 @@ function PartnersTable() {
            currentFilters.industry !== (activeView.filters.industry || '') ||
            currentFilters.type !== (activeView.filters.type || '');
   };
+  
+  // Use the function to check if filters have changed
+  useEffect(() => {
+    if (activeView) {
+      setHasUnsavedChanges(haveViewFiltersChanged());
+    }
+  }, [filterText, selectedStatus, selectedIndustry, selectedType, activeView]);
   
   // Function to clear the active view and reset filters
   const clearActiveView = () => {
