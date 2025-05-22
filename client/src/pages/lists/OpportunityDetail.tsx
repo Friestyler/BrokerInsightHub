@@ -15,6 +15,36 @@ import { ChevronLeft } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { mockOpportunities } from "./OpportunitiesPage";
+// Define type for opportunity
+type Opportunity = {
+  id: number;
+  name: string;
+  description: string;
+  amount: number;
+  probability: number;
+  stage: string;
+  customer: {
+    id: number;
+    name: string;
+    link: string;
+  };
+  partners: {
+    id: number;
+    name: string;
+    link: string;
+  }[];
+  owner: {
+    name: string;
+    initials: string;
+  };
+};
+
+// Get the current opportunity based on ID
+const getOpportunity = (id?: string): Opportunity => {
+  return id && opportunities[id as keyof typeof opportunities] 
+    ? opportunities[id as keyof typeof opportunities] 
+    : opportunities["1"];
+};
 
 // Mock metrics data for this opportunity
 const metrics = [
@@ -164,6 +194,9 @@ export default function OpportunityDetail() {
     );
   }
   
+  // Get the current opportunity based on the ID parameter
+  const opportunity = getOpportunity(id);
+  
   // Toggle selection of a metric
   const toggleMetricSelection = (id: number) => {
     if (selectedMetrics.includes(id)) {
@@ -263,7 +296,6 @@ export default function OpportunityDetail() {
                 {opportunity.customerName}
               </Link>
             </div>
-            
             <div>
               <span className="text-sm text-gray-500 mr-2">Partner:</span>
               <Link href={`/lists/partners/${opportunity.partnerId}`} className="text-indigo-600 hover:underline">

@@ -34,17 +34,17 @@ import { useToast } from "@/hooks/use-toast";
 export const mockPartners = [
   {
     id: 1,
-    name: "XYZ Insurance Group",  // Updated to match PartnerDetail.tsx
-    initials: "XY",
-    industry: "Insurance",
-    type: "Broker",
+    name: "Jeroen Hypotheek Advies", 
+    initials: "JH",
+    industry: "Finance",
+    type: "Advisor",
     status: "active",
-    size: "enterprise",
+    size: "medium",
     customers: 3,
-    opportunities: 3,
-    location: "New York, NY",
-    contactEmail: "contact@xyz-insurance.com",
-    primaryContact: "John Doe"
+    opportunities: 4,
+    location: "Amsterdam, NL",
+    contactEmail: "contact@jeroen-hypotheek.nl",
+    primaryContact: "Jeroen de Vries"
   },
   {
     id: 2,
@@ -197,6 +197,22 @@ interface SavedList {
   isDefault?: boolean; // Flag for system-generated default lists that can't be edited/deleted
 }
 
+// Define interface for saved views (filter combinations)
+interface SavedView {
+  id: string;
+  name: string;
+  description?: string;
+  filters: {
+    searchText?: string;
+    status?: string;
+    industry?: string;
+    type?: string;
+    size?: string;
+  };
+  createdBy: string;
+  createdAt: Date;
+}
+
 // Main partner list component
 function PartnersTable() {
   const [filterText, setFilterText] = useState('');
@@ -318,8 +334,7 @@ function PartnersTable() {
   const [newListName, setNewListName] = useState('');
   const [newListDescription, setNewListDescription] = useState('');
   // Add Partners functionality removed
-  const [showCreateFromSelectionModal, setShowCreateFromSelectionModal] = useState(false);
-    
+  const [showCreateFromSelectionModal, setShowCreateFromSelectionModal] = useState(false);   
   // Filter partners based on search text, filter selections, and list type
   const displayedPartners = mockPartners.filter(partner => {
     // If we have an active list, only show partners that are members of that list
@@ -785,7 +800,6 @@ function PartnersTable() {
                   </svg>
                 </button>
               </div>
-              
               {/* Views dropdown - moved after search bar with icon */}
               <div className="relative w-60">
                 <Select 
@@ -860,6 +874,7 @@ function PartnersTable() {
                     )}
                   </SelectContent>
                 </Select>
+
               </div>
               
               {/* Filters - placed alongside search */}
@@ -933,6 +948,21 @@ function PartnersTable() {
                     </svg>
                   )}
                 </button>
+                
+                {/* Save View Button - only shown when filters are applied and no view is active or filters don't match active view */}
+                {(filterText || selectedStatus || selectedIndustry || selectedType) && (
+                  <button 
+                    className="flex items-center space-x-1 px-3 py-2 border border-indigo-200 rounded-md text-sm bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
+                    onClick={() => setShowSaveViewModal(true)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-500">
+                      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                      <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                      <polyline points="7 3 7 8 15 8"></polyline>
+                    </svg>
+                    <span>Save View</span>
+                  </button>
+                )}
               </div>
             </div>
             
@@ -1324,7 +1354,6 @@ function PartnersTable() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
       {/* Add Partners Modal - Removed */}
       
       {/* Add to List Modal - allows creating a new list or adding to existing list */}
@@ -1410,10 +1439,69 @@ function PartnersTable() {
                     </p>
                   </div>
                 </div>
+      {/* Save View Modal */}
+      <Dialog open={showSaveViewModal} onOpenChange={setShowSaveViewModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>{activeView ? 'Update Saved View' : 'Save Current View'}</DialogTitle>
+            <DialogDescription>
+              Save your current filter settings as a view that you can easily access later.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="viewName">View Name</Label>
+              <Input 
+                id="viewName" 
+                placeholder="Enter a name for this view"
+                defaultValue={activeView?.name || ''}
+              />
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="viewDescription">Description (Optional)</Label>
+              <Textarea 
+                id="viewDescription" 
+                placeholder="Add a short description to help remember what this view shows"
+                rows={2}
+                defaultValue={activeView?.description || ''}
+              />
+            </div>
+            
+            <div className="bg-gray-50 p-3 rounded-md">
+              <div className="text-xs font-medium mb-2">Current Filters</div>
+              <div className="space-y-1">
+                {selectedStatus && (
+                  <div className="flex items-center text-xs">
+                    <span className="font-medium w-20">Status:</span>
+                    <span className="text-gray-700">{selectedStatus}</span>
+                  </div>
+                )}
+                {selectedIndustry && (
+                  <div className="flex items-center text-xs">
+                    <span className="font-medium w-20">Industry:</span>
+                    <span className="text-gray-700">{selectedIndustry}</span>
+                  </div>
+                )}
+                {selectedType && (
+                  <div className="flex items-center text-xs">
+                    <span className="font-medium w-20">Type:</span>
+                    <span className="text-gray-700">{selectedType}</span>
+                  </div>
+                )}
+                {filterText && (
+                  <div className="flex items-center text-xs">
+                    <span className="font-medium w-20">Search:</span>
+                    <span className="text-gray-700">{filterText}</span>
+                  </div>
+                )}
+                {!selectedStatus && !selectedIndustry && !selectedType && !filterText && (
+                  <div className="text-xs text-gray-500">No filters currently applied</div>
+                )}
               </div>
             </div>
           </div>
-          
           <DialogFooter>
             <DialogClose asChild>
               <Button variant="outline">
@@ -1613,7 +1701,6 @@ function PartnersTable() {
                   });
                   return;
                 }
-                
                 // Generate a new ID
                 const newId = Date.now().toString();
                 
