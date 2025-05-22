@@ -207,6 +207,16 @@ function PartnersTable() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
   
+  // Function to clear the active view and reset filters
+  const clearActiveView = () => {
+    setActiveView(null);
+    setFilterText('');
+    setSelectedStatus('');
+    setSelectedIndustry('');
+    setSelectedType('');
+    setHasUnsavedChanges(false);
+  };
+
   // State for views
   const [views, setViews] = useState<{
     id: string;
@@ -859,7 +869,7 @@ function PartnersTable() {
               {/* Views dropdown - moved after search bar with icon */}
               <div className="relative w-60">
                 <Select 
-                  value={activeView ? activeView.id : "default"} 
+                  value={activeView ? activeView.id : ""} 
                   onValueChange={(value) => {
                     // If we have unsaved changes, ask for confirmation
                     if (hasUnsavedChanges) {
@@ -868,25 +878,15 @@ function PartnersTable() {
                       }
                     }
                     
-                    if (value === "default") {
-                      // Clear active view
-                      setActiveView(null);
-                      setFilterText('');
-                      setSelectedStatus('');
-                      setSelectedIndustry('');
-                      setSelectedType('');
+                    // Set active view
+                    const view = views.find(v => v.id === value);
+                    if (view) {
+                      setActiveView(view);
+                      setFilterText(view.filters.searchText || '');
+                      setSelectedStatus(view.filters.status || '');
+                      setSelectedIndustry(view.filters.industry || '');
+                      setSelectedType(view.filters.type || '');
                       setHasUnsavedChanges(false);
-                    } else {
-                      // Set active view
-                      const view = views.find(v => v.id === value);
-                      if (view) {
-                        setActiveView(view);
-                        setFilterText(view.filters.searchText || '');
-                        setSelectedStatus(view.filters.status || '');
-                        setSelectedIndustry(view.filters.industry || '');
-                        setSelectedType(view.filters.type || '');
-                        setHasUnsavedChanges(false);
-                      }
                     }
                   }}
                 >
@@ -901,14 +901,37 @@ function PartnersTable() {
                         <polyline points="12 13 12 17"></polyline>
                         <line x1="10" y1="15" x2="14" y2="15"></line>
                       </svg>
-                      <SelectValue placeholder="Select view" />
+                      <SelectValue placeholder={activeView ? activeView.name : "Select a view"} />
                     </div>
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="default">All Partners</SelectItem>
-                    {views.map(view => (
-                      <SelectItem key={view.id} value={view.id}>{view.name}</SelectItem>
-                    ))}
+                    {views.length > 0 ? (
+                      <>
+                        {views.map(view => (
+                          <SelectItem key={view.id} value={view.id}>{view.name}</SelectItem>
+                        ))}
+                        {activeView && (
+                          <div className="pt-2 mt-1 border-t border-gray-200">
+                            <div 
+                              className="py-1.5 px-2 flex items-center text-sm text-gray-700 hover:bg-gray-100 cursor-pointer rounded"
+                              onClick={() => {
+                                clearActiveView();
+                              }}
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                                <path d="M18 6 6 18"></path>
+                                <path d="m6 6 12 12"></path>
+                              </svg>
+                              Clear view
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <div className="py-2 px-2 text-sm text-gray-500 italic">
+                        No saved views
+                      </div>
+                    )}
                   </SelectContent>
                 </Select>
               </div>
