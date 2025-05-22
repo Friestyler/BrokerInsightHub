@@ -771,7 +771,13 @@ function OpportunitiesTable() {
               <div className="flex gap-2 flex-wrap">
                 <button 
                   className={`flex items-center space-x-1 px-3 py-2 border rounded-md text-sm ${selectedStatus ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
-                  onClick={() => setSelectedStatus(selectedStatus ? '' : 'In Progress')}
+                  onClick={() => {
+                    setSelectedStatus(selectedStatus ? '' : 'In Progress');
+                    // If we have an active view, mark as having unsaved changes
+                    if (activeView) {
+                      setHasUnsavedChanges(true);
+                    }
+                  }}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={selectedStatus ? 'text-indigo-500' : 'text-gray-500'}>
                     <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
@@ -787,7 +793,13 @@ function OpportunitiesTable() {
                 
                 <button 
                   className={`flex items-center space-x-1 px-3 py-2 border rounded-md text-sm ${selectedType ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
-                  onClick={() => setSelectedType(selectedType ? '' : 'Renewal')}
+                  onClick={() => {
+                    setSelectedType(selectedType ? '' : 'Renewal');
+                    // If we have an active view, mark as having unsaved changes
+                    if (activeView) {
+                      setHasUnsavedChanges(true);
+                    }
+                  }}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={selectedType ? 'text-indigo-500' : 'text-gray-500'}>
                     <path d="m2 2 20 20"></path>
