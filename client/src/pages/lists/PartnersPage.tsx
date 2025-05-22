@@ -1026,7 +1026,7 @@ function PartnersTable() {
                     <path d="M22 11h-6"></path>
                     <path d="M19 8v6"></path>
                   </svg>
-                  <span className="font-medium">Add existing partners to this list</span>
+                  <span className="font-medium">Add partners to this list</span>
                 </button>
               )}
 
