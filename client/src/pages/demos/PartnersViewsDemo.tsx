@@ -837,7 +837,6 @@ export default function PartnersViewsDemo() {
               {/* Global Views Interface */}
               {selectedViewStyle === 'global' && (
                 <div className="mb-4">
-                  
                   <div className="bg-white border border-gray-200 rounded-md p-4 mb-4">
                     <div className="flex items-center justify-between mb-4">
                       <h3 className="font-medium text-base">
@@ -897,7 +896,109 @@ export default function PartnersViewsDemo() {
                       ) : (
                         <div className="text-gray-700">All partners</div>
                       )}
+                    </div>
+                  </div>
+                  
+                  <div className="flex gap-3 mb-4">
+                    <div className="flex-1 flex gap-3">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 h-10 px-4 py-2 border border-gray-300 rounded-md text-sm">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                          </svg>
+                          <span>Status</span>
+                          <select 
+                            className="ml-auto bg-transparent border-none outline-none"
+                            value={selectedStatus}
+                            onChange={(e) => setSelectedStatus(e.target.value)}
+                          >
+                            <option value="">All</option>
+                            <option value="active">Active</option>
+                            <option value="inactive">Inactive</option>
+                          </select>
                         </div>
+                      </div>
+                      
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 h-10 px-4 py-2 border border-gray-300 rounded-md text-sm">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+                          </svg>
+                          <span>Industry</span>
+                          <select 
+                            className="ml-auto bg-transparent border-none outline-none"
+                            value={selectedIndustry}
+                            onChange={(e) => setSelectedIndustry(e.target.value)}
+                          >
+                            <option value="">All</option>
+                            <option value="Insurance">Insurance</option>
+                            <option value="Finance">Finance</option>
+                            <option value="Consulting">Consulting</option>
+                            <option value="Risk Management">Risk Management</option>
+                          </select>
+                        </div>
+                      </div>
+                      
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 h-10 px-4 py-2 border border-gray-300 rounded-md text-sm">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                            <circle cx="9" cy="7" r="4"></circle>
+                            <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                            <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                          </svg>
+                          <span>Type</span>
+                          <select 
+                            className="ml-auto bg-transparent border-none outline-none"
+                            value={selectedType}
+                            onChange={(e) => setSelectedType(e.target.value)}
+                          >
+                            <option value="">All</option>
+                            <option value="Broker">Broker</option>
+                            <option value="Agency">Agency</option>
+                            <option value="Partner">Partner</option>
+                            <option value="Consultant">Consultant</option>
+                          </select>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Global Views panel - moved next to the Type filter */}
+                    <div className="w-64 flex-shrink-0">
+                      <div className="bg-white border border-gray-300 rounded-md p-2 h-10 flex items-center gap-2">
+                        <span className="text-sm font-medium">Global Views:</span>
+                        <select 
+                          className="flex-1 bg-transparent border-none outline-none"
+                          value={activeGlobalViewId}
+                          onChange={(e) => {
+                            const viewId = e.target.value;
+                            setActiveGlobalViewId(viewId);
+                            const selectedView = globalViews.find(v => v.id === viewId);
+                            if (selectedView) {
+                              setSelectedStatus(selectedView.filters.status || '');
+                              setSelectedIndustry(selectedView.filters.industry || '');
+                              setSelectedType(selectedView.filters.type || '');
+                              setFilterText('');
+                            }
+                          }}
+                        >
+                          {globalViews.map(view => (
+                            <option key={view.id} value={view.id}>{view.name}</option>
+                          ))}
+                        </select>
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="h-6 w-6 p-0 rounded-full"
+                          onClick={saveAsGlobalView}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="12" y1="5" x2="12" y2="19"></line>
+                            <line x1="5" y1="12" x2="19" y2="12"></line>
+                          </svg>
+                          <span className="sr-only">Add view</span>
+                        </Button>
                       </div>
                     </div>
                   </div>
