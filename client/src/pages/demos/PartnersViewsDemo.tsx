@@ -592,7 +592,7 @@ export default function PartnersViewsDemo() {
 
               {/* Quick Switcher Demo UI */}
               {selectedViewStyle === 'quickswitcher' && (
-                <div className="mb-4">
+                <div className="mb-4 space-y-3">
                   <Button 
                     variant="outline" 
                     size="sm" 
@@ -612,6 +612,114 @@ export default function PartnersViewsDemo() {
                       <span className="text-xs">⌘</span>K
                     </kbd>
                   </Button>
+
+                  {/* Show active filters */}
+                  {activeView && (
+                    <div className="flex flex-wrap gap-2">
+                      {activeView.filters.status && (
+                        <div className="bg-blue-50 px-2 py-1 rounded-full text-xs font-medium text-blue-700 flex items-center">
+                          <span>Status: {activeView.filters.status}</span>
+                          <button 
+                            className="ml-1 text-blue-400 hover:text-blue-600"
+                            onClick={() => {
+                              const updatedLists = lists.map(list => {
+                                if (list.id === activeListId) {
+                                  const updatedViews = list.views.map(v => {
+                                    if (v.id === activeViewId) {
+                                      return {
+                                        ...v,
+                                        filters: { ...v.filters, status: undefined }
+                                      };
+                                    }
+                                    return v;
+                                  });
+                                  return { ...list, views: updatedViews };
+                                }
+                                return list;
+                              });
+                              setLists(updatedLists);
+                              setSelectedStatus('');
+                            }}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M18 6L6 18"></path>
+                              <path d="M6 6l12 12"></path>
+                            </svg>
+                          </button>
+                        </div>
+                      )}
+                      
+                      {activeView.filters.industry && (
+                        <div className="bg-green-50 px-2 py-1 rounded-full text-xs font-medium text-green-700 flex items-center">
+                          <span>Industry: {activeView.filters.industry}</span>
+                          <button 
+                            className="ml-1 text-green-400 hover:text-green-600"
+                            onClick={() => {
+                              const updatedLists = lists.map(list => {
+                                if (list.id === activeListId) {
+                                  const updatedViews = list.views.map(v => {
+                                    if (v.id === activeViewId) {
+                                      return {
+                                        ...v,
+                                        filters: { ...v.filters, industry: undefined }
+                                      };
+                                    }
+                                    return v;
+                                  });
+                                  return { ...list, views: updatedViews };
+                                }
+                                return list;
+                              });
+                              setLists(updatedLists);
+                              setSelectedIndustry('');
+                            }}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M18 6L6 18"></path>
+                              <path d="M6 6l12 12"></path>
+                            </svg>
+                          </button>
+                        </div>
+                      )}
+                      
+                      {activeView.filters.type && (
+                        <div className="bg-purple-50 px-2 py-1 rounded-full text-xs font-medium text-purple-700 flex items-center">
+                          <span>Type: {activeView.filters.type}</span>
+                          <button 
+                            className="ml-1 text-purple-400 hover:text-purple-600"
+                            onClick={() => {
+                              const updatedLists = lists.map(list => {
+                                if (list.id === activeListId) {
+                                  const updatedViews = list.views.map(v => {
+                                    if (v.id === activeViewId) {
+                                      return {
+                                        ...v,
+                                        filters: { ...v.filters, type: undefined }
+                                      };
+                                    }
+                                    return v;
+                                  });
+                                  return { ...list, views: updatedViews };
+                                }
+                                return list;
+                              });
+                              setLists(updatedLists);
+                              setSelectedType('');
+                            }}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M18 6L6 18"></path>
+                              <path d="M6 6l12 12"></path>
+                            </svg>
+                          </button>
+                        </div>
+                      )}
+                      
+                      {!activeView.filters.status && !activeView.filters.industry && !activeView.filters.type && (
+                        <div className="text-xs text-gray-500 italic">No filters applied</div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
               
