@@ -14,7 +14,6 @@ import CrossSellCampaigns from "@/pages/CrossSellCampaigns";
 import Clients from "@/pages/Clients";
 import ClientDetail from "@/pages/ClientDetail";
 import PartnersPage from "@/pages/lists/PartnersPage";
-import PartnersViewsDemo from "@/pages/demos/PartnersViewsDemo";
 import PartnerDetail from "@/pages/lists/PartnerDetail";
 import CustomersPage from "@/pages/lists/CustomersPage";
 import OpportunitiesPage from "@/pages/lists/OpportunitiesPage";
@@ -47,8 +46,7 @@ function Router() {
         <Route path="/lists/projects" component={ProjectsPage} />
         <Route path="/lists/contacts" component={ContactsPage} />
         
-        {/* Demo section routes */}
-        <Route path="/demos/partners-views" component={PartnersViewsDemo} />
+        {/* Demo section routes - removed */}
         
         {/* Prevent access to Campaigns page in ACME environment */}
         <Route path="/campaigns">
