@@ -1176,22 +1176,9 @@ function PartnersTable() {
               </div>
             </div>
             
-            {/* Lists section - where to save the view */}
+            {/* Sharing section */}
             <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-              <h4 className="text-sm font-medium text-gray-900 mb-2">Where to save this view</h4>
               <div className="space-y-3">
-                <div className="flex items-start">
-                  <Checkbox id="saveGlobally" defaultChecked={true} />
-                  <div className="ml-3">
-                    <Label htmlFor="saveGlobally" className="text-sm font-medium">
-                      Save as global view
-                    </Label>
-                    <p className="text-xs text-gray-600">
-                      This view will be available across all partner lists
-                    </p>
-                  </div>
-                </div>
-                
                 <div className="flex items-start">
                   <Checkbox id="shareView" defaultChecked={true} />
                   <div className="ml-3">
@@ -1221,7 +1208,6 @@ function PartnersTable() {
                   const viewName = (document.getElementById('viewName') as HTMLInputElement).value;
                   const viewDescription = (document.getElementById('viewDescription') as HTMLTextAreaElement).value;
                   const isShared = (document.getElementById('shareView') as HTMLInputElement).checked;
-                  const saveGlobally = (document.getElementById('saveGlobally') as HTMLInputElement).checked;
                   
                   if (!viewName.trim()) {
                     // Show error toast notification
@@ -1244,7 +1230,6 @@ function PartnersTable() {
                       industry: selectedIndustry || '',
                       type: selectedType || ''
                     },
-                    isGlobal: saveGlobally,
                     isShared,
                     createdBy: 'John Smith',
                     createdAt: new Date()
