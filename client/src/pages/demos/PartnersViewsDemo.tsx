@@ -1127,53 +1127,83 @@ export default function PartnersViewsDemo() {
 
               {/* Filter section */}
               <div className="mb-4 flex flex-wrap gap-4">
-                <div className="flex items-center gap-2 flex-1">
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                  </svg>
-                  <Input 
+                <div className="relative w-[300px]">
+                  <input
                     type="text" 
                     value={filterText}
                     onChange={(e) => setFilterText(e.target.value)}
-                    placeholder="Search partners..." 
-                    className="flex-1 h-9 text-sm" 
+                    placeholder="Search by name, industry..." 
+                    className="w-full h-10 pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm focus:outline-none" 
                   />
+                  <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="11" cy="11" r="8"></circle>
+                      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                  </div>
                 </div>
                 
-                <div className="flex-1 flex flex-wrap gap-2 min-w-[200px]">
-                  <select 
-                    className="h-9 border-gray-300 rounded-md text-sm"
-                    value={selectedStatus}
-                    onChange={(e) => setSelectedStatus(e.target.value)}
-                  >
-                    <option value="">All Statuses</option>
-                    <option value="active">Active</option>
-                    <option value="inactive">Inactive</option>
-                  </select>
+                <div className="flex gap-3">
+                  <div className="relative">
+                    <div className="flex items-center gap-2 h-10 px-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                      </svg>
+                      <span>Status</span>
+                    </div>
+                    <select 
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      value={selectedStatus}
+                      onChange={(e) => setSelectedStatus(e.target.value)}
+                    >
+                      <option value="">All Statuses</option>
+                      <option value="active">Active</option>
+                      <option value="inactive">Inactive</option>
+                    </select>
+                  </div>
                   
-                  <select 
-                    className="h-9 border-gray-300 rounded-md text-sm"
-                    value={selectedIndustry}
-                    onChange={(e) => setSelectedIndustry(e.target.value)}
-                  >
-                    <option value="">All Industries</option>
-                    <option value="Insurance">Insurance</option>
-                    <option value="Finance">Finance</option>
-                    <option value="Consulting">Consulting</option>
-                    <option value="Risk Management">Risk Management</option>
-                  </select>
+                  <div className="relative">
+                    <div className="flex items-center gap-2 h-10 px-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+                      </svg>
+                      <span>Industry</span>
+                    </div>
+                    <select 
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      value={selectedIndustry}
+                      onChange={(e) => setSelectedIndustry(e.target.value)}
+                    >
+                      <option value="">All Industries</option>
+                      <option value="Insurance">Insurance</option>
+                      <option value="Finance">Finance</option>
+                      <option value="Consulting">Consulting</option>
+                      <option value="Risk Management">Risk Management</option>
+                    </select>
+                  </div>
                   
-                  <select 
-                    className="h-9 border-gray-300 rounded-md text-sm"
-                    value={selectedType}
-                    onChange={(e) => setSelectedType(e.target.value)}
-                  >
-                    <option value="">All Types</option>
-                    <option value="Broker">Broker</option>
-                    <option value="Agency">Agency</option>
-                    <option value="Partner">Partner</option>
-                  </select>
+                  <div className="relative">
+                    <div className="flex items-center gap-2 h-10 px-4 py-2 border border-gray-300 rounded-md text-sm focus:outline-none">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                        <circle cx="9" cy="7" r="4"></circle>
+                        <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                        <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                      </svg>
+                      <span>Type</span>
+                    </div>
+                    <select 
+                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      value={selectedType}
+                      onChange={(e) => setSelectedType(e.target.value)}
+                    >
+                      <option value="">All Types</option>
+                      <option value="Broker">Broker</option>
+                      <option value="Agency">Agency</option>
+                      <option value="Partner">Partner</option>
+                    </select>
+                  </div>
                   
                   {/* Clear filters button */}
                   {(filterText || selectedStatus || selectedIndustry || selectedType) && (
