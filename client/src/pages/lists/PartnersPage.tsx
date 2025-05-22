@@ -308,7 +308,7 @@ function PartnersTable() {
   const [showSaveListModal, setShowSaveListModal] = useState(false);
   const [showShareListModal, setShowShareListModal] = useState(false);
   const [showListsDropdown, setShowListsDropdown] = useState(false);
-  const [showAddPartnersModal, setShowAddPartnersModal] = useState(false);
+  // Add Partners Modal state removed
   const [showCreateListModal, setShowCreateListModal] = useState(false);
   const [showAddToListModal, setShowAddToListModal] = useState(false);
   const [listToAddTo, setListToAddTo] = useState<string>('new'); // 'new' or list ID
@@ -317,7 +317,7 @@ function PartnersTable() {
   // State for the name and description when creating a list through the general create modal
   const [newListName, setNewListName] = useState('');
   const [newListDescription, setNewListDescription] = useState('');
-  const [partnersToAdd, setPartnersToAdd] = useState<number[]>([]);
+  // Add Partners functionality removed
   const [showCreateFromSelectionModal, setShowCreateFromSelectionModal] = useState(false);
     
   // Filter partners based on search text, filter selections, and list type
@@ -1332,200 +1332,7 @@ function PartnersTable() {
         </DialogContent>
       </Dialog>
       
-      {/* Add Partners Modal */}
-      <Dialog open={showAddPartnersModal} onOpenChange={setShowAddPartnersModal}>
-        <DialogContent className="sm:max-w-3xl">
-          <DialogHeader>
-            <DialogTitle className="text-[#282A3F] font-semibold text-lg" style={{ fontFamily: 'Poppins, sans-serif' }}>Add partners to your Custom List</DialogTitle>
-            <DialogDescription>
-              Select partners you want to add to "{activeList?.name}". Only partners you specifically select will be included.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="py-4">
-            {/* Help text banner */}
-            <div className="bg-gray-50 border-l-4 border-[#3E4DC4] p-3 mb-4 rounded-r-md">
-              <div className="flex items-start">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 mt-0.5">
-                  <circle cx="12" cy="12" r="10"></circle>
-                  <line x1="12" y1="16" x2="12" y2="12"></line>
-                  <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                </svg>
-                <div>
-                  <p className="text-sm text-gray-700">
-                    <strong>Can't find the partner you're looking for?</strong>
-                  </p>
-                  <a 
-                    href="#" 
-                    className="text-sm text-[#3E4DC4] hover:underline flex items-center mt-1"
-                    onClick={(e) => {
-                      e.preventDefault();
-                      setShowAddPartnersModal(false);
-                      // This would navigate to partner creation in a real implementation
-                      setTimeout(() => {
-                        alert('This would open the new partner creation form in the real application');
-                      }, 100);
-                    }}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                      <path d="M12 9v6"></path>
-                      <path d="M15 12H9"></path>
-                      <circle cx="12" cy="12" r="10"></circle>
-                    </svg>
-                    Create a new partner in Qollabi first
-                  </a>
-                </div>
-              </div>
-            </div>
-
-            {/* Search and filter */}
-            <div className="mb-4">
-              <Input 
-                placeholder="Search existing partners..." 
-                className="mb-2"
-              />
-              
-              <div className="flex gap-2 flex-wrap">
-                <Button variant="outline" size="sm">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                  </svg>
-                  Status
-                </Button>
-                
-                <Button variant="outline" size="sm">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
-                  </svg>
-                  Industry
-                </Button>
-                
-                <Button variant="outline" size="sm">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="9" cy="7" r="4"></circle>
-                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                  </svg>
-                  Type
-                </Button>
-              </div>
-            </div>
-            
-            {/* Partners list */}
-            <div className="border rounded-md mb-4 overflow-hidden max-h-96 overflow-y-auto">
-              {/* Filter out partners already in the list */}
-              <div className="divide-y divide-gray-200">
-                {mockPartners
-                  .filter(p => !activeList?.members?.includes(p.id))
-                  .map(partner => (
-                    <div 
-                      key={partner.id}
-                      className={`flex items-center p-3 hover:bg-gray-50 ${partnersToAdd.includes(partner.id) ? 'bg-blue-50' : ''}`}
-                    >
-                      <Checkbox 
-                        checked={partnersToAdd.includes(partner.id)}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setPartnersToAdd([...partnersToAdd, partner.id]);
-                          } else {
-                            setPartnersToAdd(partnersToAdd.filter(id => id !== partner.id));
-                          }
-                        }}
-                        className="mr-3"
-                      />
-                      <div className="flex items-center grow">
-                        <Avatar className="h-8 w-8 mr-3 bg-indigo-100 text-indigo-600">
-                          <AvatarFallback>{partner.initials}</AvatarFallback>
-                        </Avatar>
-                        <div className="flex flex-col">
-                          <span className="font-medium">{partner.name}</span>
-                          <div className="flex text-xs text-gray-500 mt-1 space-x-3">
-                            <span>{partner.industry}</span>
-                            <span>•</span>
-                            <span>{partner.type}</span>
-                            <span>•</span>
-                            <Badge variant={partner.status === 'active' ? 'outline' : 'secondary'} className="capitalize text-xs">
-                              {partner.status}
-                            </Badge>
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                ))}
-                {mockPartners.filter(p => !activeList?.members?.includes(p.id)).length === 0 && (
-                  <div className="p-8 text-center">
-                    <p className="text-gray-500">All partners have already been added to this list.</p>
-                  </div>
-                )}
-              </div>
-            </div>
-            
-            {/* Selected count */}
-            <div className="flex justify-between items-center">
-              <div className="text-sm text-gray-500">
-                {partnersToAdd.length} partners selected
-              </div>
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <Button
-              variant="outline"
-              onClick={() => setShowAddPartnersModal(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              onClick={() => {
-                if (activeList && activeList.type === 'selection') {
-                  // Get current list members and add new selected partners
-                  const currentMembers = activeList.members || [];
-                  const updatedMembers = [...currentMembers];
-                  
-                  // Add each selected partner if not already in the list
-                  partnersToAdd.forEach(id => {
-                    if (!updatedMembers.includes(id)) {
-                      updatedMembers.push(id);
-                    }
-                  });
-                  
-                  // Update the active list
-                  const updatedList = {
-                    ...activeList,
-                    members: updatedMembers
-                  };
-                  
-                  // Update active list state
-                  setActiveList(updatedList);
-                  
-                  // Mark as having unsaved changes
-                  setHasUnsavedChanges(true);
-                  
-                  // Update the saved lists
-                  const updatedLists = savedLists.map(list => 
-                    list.id === activeList.id ? updatedList : list
-                  );
-                  setSavedLists(updatedLists);
-                  
-                  // Display success message
-                  toast({
-                    title: "Partners added",
-                    description: `${partnersToAdd.length} partners have been added to "${activeList.name}"`,
-                  });
-                  
-                  // Close the modal
-                  setShowAddPartnersModal(false);
-                }
-              }}
-              disabled={partnersToAdd.length === 0}
-            >
-              Add to List
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      {/* Add Partners Modal - Removed */}
       
       {/* Add to List Modal - allows creating a new list or adding to existing list */}
       <Dialog open={showAddToListModal} onOpenChange={setShowAddToListModal}>
@@ -2324,21 +2131,7 @@ function PartnersTable() {
                         <p className="text-sm text-gray-500 max-w-md mb-4">
                           Your Custom List is waiting for partners! Add your first partner to get started.
                         </p>
-                        <Button 
-                          className="bg-[#5567E5] hover:bg-[#4555CB] text-white"
-                          onClick={() => {
-                            setPartnersToAdd([]);
-                            setShowAddPartnersModal(true);
-                          }}
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                            <circle cx="8.5" cy="7" r="4"></circle>
-                            <line x1="20" y1="8" x2="20" y2="14"></line>
-                            <line x1="23" y1="11" x2="17" y2="11"></line>
-                          </svg>
-                          Add partners to Custom List
-                        </Button>
+                        {/* Add partners button removed */}
                       </>
                     ) : (
                       // Empty state for Saved Filters or regular filtered view
