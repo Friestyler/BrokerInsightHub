@@ -690,75 +690,102 @@ function OpportunitiesTable() {
                 </button>
               </div>
               
-              {/* Views dropdown */}
-              <div className="relative">
-                <button 
-                  className={`flex items-center space-x-2 px-3 py-2 border rounded-md text-sm font-medium ${activeView ? 'bg-[#EBEEFB] border-[#D4D9F3] text-[#3E4DC4]' : 'border-gray-300 hover:border-gray-400'}`}
-                  onClick={() => {
-                    if (views.length === 0) {
-                      // No views exist yet, show the save view modal
-                      setNewViewName('');
-                      setNewViewDescription('');
-                      setShowSaveViewModal(true);
-                    } else {
-                      // Show a simple selection dialog for now
-                      const viewOptions = views.map((view, index) => 
-                        `${index + 1}. ${view.name}`
-                      ).join('\n');
-                      
-                      const selection = prompt(`Select a view:\n${viewOptions}\n\nOr type 'clear' to clear the active view.`);
-                      
-                      if (selection === null) {
+              {/* Views dropdown - moved after search bar with icon */}
+              <div className="relative w-60">
+                <Select 
+                  value={activeView ? activeView.id : ""} 
+                  onValueChange={(value) => {
+                    // If we have unsaved changes, ask for confirmation
+                    if (hasUnsavedChanges) {
+                      if (!confirm("You have unsaved changes. Are you sure you want to switch views?")) {
                         return;
                       }
-                      
-                      if (selection.toLowerCase() === 'clear') {
-                        setActiveView(null);
-                        setFilterText('');
-                        setSelectedStatus('');
-                        setSelectedType('');
-                        return;
-                      }
-                      
-                      const viewIndex = parseInt(selection) - 1;
-                      if (viewIndex >= 0 && viewIndex < views.length) {
-                        const selectedView = views[viewIndex];
-                        setActiveView(selectedView);
-                        
-                        // Apply the view's filters
-                        setFilterText(selectedView.filters.searchText || '');
-                        setSelectedStatus(selectedView.filters.status || '');
-                        setSelectedType(selectedView.filters.type || '');
-                        setHasUnsavedChanges(false);
-                      }
+                    }
+                    
+                    // Set active view
+                    const view = views.find(v => v.id === value);
+                    if (view) {
+                      setActiveView(view);
+                      setFilterText(view.filters.searchText || '');
+                      setSelectedStatus(view.filters.status || '');
+                      setSelectedType(view.filters.type || '');
+                      setHasUnsavedChanges(false);
                     }
                   }}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={activeView ? 'text-[#3E4DC4]' : 'text-gray-500'}>
-                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
-                    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
-                  </svg>
-                  <span className="max-w-[120px] truncate">{activeView ? activeView.name : views.length === 0 ? 'Save a view' : 'Select a view'}</span>
-                </button>
-                
-                {activeView && (
-                  <button 
-                    className="ml-1 p-1 text-gray-400 hover:text-gray-600 rounded-full"
-                    onClick={() => {
-                      setActiveView(null);
-                      setFilterText('');
-                      setSelectedStatus('');
-                      setSelectedType('');
-                      setHasUnsavedChanges(false);
-                    }}
+                  <SelectTrigger 
+                    className="w-full flex items-center border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50"
+                    style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px', fontWeight: 500 }}
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                    <span className="sr-only">Clear view</span>
-                  </button>
-                )}
+                    <div className="flex items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                        <line x1="6" y1="9" x2="18" y2="9"></line>
+                        <polyline points="12 13 12 17"></polyline>
+                        <line x1="10" y1="15" x2="14" y2="15"></line>
+                      </svg>
+                      <SelectValue placeholder={activeView ? activeView.name : "Select a view"} />
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {views.length > 0 ? (
+                      <>
+                        {views.map(view => (
+                          <SelectItem key={view.id} value={view.id}>{view.name}</SelectItem>
+                        ))}
+                        {activeView && (
+                          <div className="pt-2 mt-1 border-t border-gray-200">
+                            <div 
+                              className="py-1.5 px-2 flex items-center text-sm text-gray-700 hover:bg-gray-100 cursor-pointer rounded"
+                              onClick={() => {
+                                // Clear active view and reset filters
+                                setActiveView(null);
+                                setFilterText('');
+                                setSelectedStatus('');
+                                setSelectedType('');
+                                setHasUnsavedChanges(false);
+                              }}
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 text-gray-500">
+                                <path d="M18 6L6 18"></path>
+                                <path d="M6 6L18 18"></path>
+                              </svg>
+                              Clear view
+                            </div>
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <div className="py-2 px-2 text-sm text-gray-500 italic">
+                        No saved views. Apply filters and save them as a view.
+                      </div>
+                    )}
+                    
+                    <div className="pt-2 mt-1 border-t border-gray-200">
+                      <div 
+                        className="py-1.5 px-2 flex items-center text-sm text-indigo-600 hover:bg-gray-100 cursor-pointer rounded"
+                        onClick={() => {
+                          // Setup and show the save view modal
+                          if (activeView) {
+                            setNewViewName(activeView.name);
+                            setNewViewDescription(activeView.description || '');
+                          } else {
+                            setNewViewName('');
+                            setNewViewDescription('');
+                          }
+                          setShowSaveViewModal(true);
+                        }}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 text-indigo-600">
+                          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                          <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                          <polyline points="7 3 7 8 15 8"></polyline>
+                        </svg>
+                        {activeView ? 'Save as new view' : 'Save current filters as view'}
+                      </div>
+                    </div>
+                  </SelectContent>
+                </Select>
               </div>
               
               {/* Filters - placed alongside search */}
