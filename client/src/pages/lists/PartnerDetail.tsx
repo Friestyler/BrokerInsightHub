@@ -52,22 +52,22 @@ interface PartnerData {
 const partnerDataMap: Record<string, PartnerData> = {
   "1": {
     id: 1,
-    name: "XYZ Insurance Group",
-    description: "Strategic partnership focused on market expansion in Europe",
-    segment: "broker",
-    address: "123 Main St, New York, NY",
+    name: "Jeroen Hypotheek Advies",
+    description: "Specialized mortgage advisor with focus on sustainable home financing",
+    segment: "advisor",
+    address: "Keizersgracht 123, Amsterdam, NL",
     customers: 3,
-    opportunities: 3,
-    initials: "XY",
+    opportunities: 4,
+    initials: "JH",
     owner: {
       id: 1,
-      name: "John Doe",
-      initials: "JD",
+      name: "Maarten de Vries",
+      initials: "MV",
       avatar: "",
     },
     team: [
-      { id: 1, name: "John Doe", initials: "JD", avatar: "" },
-      { id: 2, name: "Alice Cooper", initials: "AC", avatar: "" },
+      { id: 1, name: "Maarten de Vries", initials: "MV", avatar: "" },
+      { id: 2, name: "Sophie Jansen", initials: "SJ", avatar: "" },
     ],
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -297,33 +297,33 @@ const mockCustomers = [
   }
 ];
 
-// Mock opportunities data - only opportunities related to ABC Insurance Brokers
+// Mock opportunities data - for Jeroen Hypotheek Advies
 const mockOpportunities = [
   {
     id: 1,
-    title: "Property Insurance Renewal",
-    customerName: "Acme Corporation",
+    title: "Koppelen van hypotheek aan verduurzamingslening",
+    customerName: "Van Dijk Familie",
     customerId: 1,
-    estimatedValue: 125000,
-    probability: 75,
+    estimatedValue: 250000,
+    probability: 80,
     status: "in_progress",
-    closingDate: new Date("2025-06-15"),
-    owner: { id: 1, name: "John Doe", initials: "JD", avatar: "" },
-    type: "renewal",
-    partner: "ABC Insurance Brokers"
+    closingDate: new Date("2025-07-15"),
+    owner: { id: 1, name: "Maarten de Vries", initials: "MV", avatar: "" },
+    type: "new_business",
+    partner: "Jeroen Hypotheek Advies"
   },
   {
     id: 2,
-    title: "Cyber Security Coverage",
-    customerName: "Acme Corporation",
-    customerId: 1,
-    estimatedValue: 75000,
+    title: "Verduurzamingslening",
+    customerName: "Jansen Gezin",
+    customerId: 2,
+    estimatedValue: 35000,
     probability: 60,
     status: "qualification",
-    closingDate: new Date("2025-07-30"),
-    owner: { id: 2, name: "Alice Cooper", initials: "AC", avatar: "" },
+    closingDate: new Date("2025-06-30"),
+    owner: { id: 2, name: "Sophie Jansen", initials: "SJ", avatar: "" },
     type: "new_business",
-    partner: "ABC Insurance Brokers"
+    partner: "Jeroen Hypotheek Advies"
   },
   {
     id: 5,

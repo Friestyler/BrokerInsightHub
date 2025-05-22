@@ -27,17 +27,17 @@ import { useToast } from "@/hooks/use-toast";
 const mockPartners = [
   {
     id: 1,
-    name: "XYZ Insurance Group",  // Updated to match PartnerDetail.tsx
-    initials: "XY",
-    industry: "Insurance",
-    type: "Broker",
+    name: "Jeroen Hypotheek Advies", 
+    initials: "JH",
+    industry: "Finance",
+    type: "Advisor",
     status: "active",
-    size: "enterprise",
+    size: "medium",
     customers: 3,
-    opportunities: 3,
-    location: "New York, NY",
-    contactEmail: "contact@xyz-insurance.com",
-    primaryContact: "John Doe"
+    opportunities: 4,
+    location: "Amsterdam, NL",
+    contactEmail: "contact@jeroen-hypotheek.nl",
+    primaryContact: "Jeroen de Vries"
   },
   {
     id: 2,
