@@ -1322,52 +1322,184 @@ function OpportunitiesTable() {
             
             {/* Partners Section */}
             <div className="grid gap-3">
-              <Label>Select Partner</Label>
-              <div className="relative">
-                <select className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm appearance-none">
-                  <option value="">Select a partner...</option>
+              <div className="flex justify-between items-center">
+                <Label>Select Partners</Label>
+                <button 
+                  type="button" 
+                  className="text-xs text-indigo-600 hover:text-indigo-800"
+                  onClick={() => {
+                    // Get all unique partner IDs from opportunities
+                    const allPartnerIds = mockOpportunities.reduce((partners, opp) => {
+                      if (!partners.includes(opp.partnerId.toString())) {
+                        partners.push(opp.partnerId.toString());
+                      }
+                      return partners;
+                    }, [] as string[]);
+                    
+                    // Toggle all based on current state
+                    if (selectedPartners.length === allPartnerIds.length) {
+                      setSelectedPartners([]);
+                    } else {
+                      setSelectedPartners(allPartnerIds);
+                    }
+                  }}
+                >
                   {mockOpportunities.reduce((partners, opp) => {
-                    if (!partners.some(p => p.id === opp.partnerId)) {
-                      partners.push({ id: opp.partnerId, name: opp.partnerName });
+                    if (!partners.includes(opp.partnerId.toString())) {
+                      partners.push(opp.partnerId.toString());
                     }
                     return partners;
-                  }, [] as { id: number, name: string }[]).map(partner => (
-                    <option key={partner.id} value={partner.id}>{partner.name}</option>
-                  ))}
-                </select>
-                <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                    <polyline points="6 9 12 15 18 9"></polyline>
-                  </svg>
-                </div>
+                  }, [] as string[]).length === selectedPartners.length && selectedPartners.length > 0 
+                    ? 'Deselect All' : 'Select All'}
+                </button>
               </div>
               
-              <Label className="mt-2">Partner Contacts</Label>
-              <div className="border border-gray-200 rounded-md max-h-36 overflow-y-auto">
-                <div className="p-2 border-b hover:bg-gray-50">
-                  <div className="flex items-center">
-                    <Checkbox id="contact-1" className="mr-2" />
-                    <Label htmlFor="contact-1" className="text-sm font-normal cursor-pointer flex-grow">
-                      Sarah Johnson <span className="text-xs text-gray-500 ml-1">(sjohnson@abc-insurance.com)</span>
-                    </Label>
+              {/* Partners Checklist */}
+              <div className="border border-gray-200 rounded-md max-h-48 overflow-y-auto">
+                {mockOpportunities.reduce((partners, opp) => {
+                  if (!partners.some(p => p.id === opp.partnerId)) {
+                    partners.push({ id: opp.partnerId, name: opp.partnerName });
+                  }
+                  return partners;
+                }, [] as { id: number, name: string }[]).map((partner, index) => (
+                  <div key={partner.id} className={`p-3 ${index !== 0 ? 'border-t border-gray-200' : ''} hover:bg-gray-50`}>
+                    <div className="flex items-center">
+                      <Checkbox 
+                        id={`partner-checkbox-${partner.id}`} 
+                        className="mr-3" 
+                        checked={selectedPartners.includes(partner.id.toString())}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedPartners(prev => [...prev, partner.id.toString()]);
+                          } else {
+                            setSelectedPartners(prev => prev.filter(id => id !== partner.id.toString()));
+                          }
+                        }}
+                        value={partner.id.toString()}
+                      />
+                      <Label 
+                        htmlFor={`partner-checkbox-${partner.id}`} 
+                        className="font-medium text-gray-800 cursor-pointer flex-grow"
+                      >
+                        {partner.name}
+                      </Label>
+                      
+                      {/* Quick toggle for related contacts */}
+                      <button
+                        type="button"
+                        className="text-xs text-indigo-600 hover:text-indigo-800 ml-2"
+                        onClick={() => {
+                          // Toggle display of contacts for this partner
+                          const contactsEl = document.getElementById(`partner-contacts-${partner.id}`);
+                          if (contactsEl) {
+                            contactsEl.classList.toggle('hidden');
+                            // Change button text based on visibility
+                            const button = contactsEl.previousElementSibling as HTMLButtonElement;
+                            if (button) {
+                              button.innerText = contactsEl.classList.contains('hidden') ? 'Show Contacts' : 'Hide Contacts';
+                            }
+                          }
+                        }}
+                      >
+                        Show Contacts
+                      </button>
+                    </div>
+                    
+                    {/* Partner Contacts - Initially Hidden */}
+                    <div id={`partner-contacts-${partner.id}`} className="hidden mt-2 ml-8 pl-2 border-l-2 border-gray-200">
+                      <div className="space-y-2">
+                        {/* Generate a few sample contacts for demo */}
+                        {Array.from({ length: 2 }).map((_, i) => (
+                          <div key={i} className="flex items-center">
+                            <Checkbox 
+                              id={`contact-${partner.id}-${i}`} 
+                              className="mr-2" 
+                            />
+                            <Label 
+                              htmlFor={`contact-${partner.id}-${i}`} 
+                              className="text-sm font-normal cursor-pointer flex-grow"
+                            >
+                              {i === 0 ? 'Primary Contact' : 'Secondary Contact'}
+                              <span className="text-xs text-gray-500 ml-1">
+                                ({i === 0 ? 'contact' : 'sales'}@{partner.name.toLowerCase().replace(/\s+/g, '-')}.com)
+                              </span>
+                            </Label>
+                          </div>
+                        ))}
+                        <div className="flex items-center pt-1">
+                          <Checkbox 
+                            id={`contact-${partner.id}-all`} 
+                            className="mr-2" 
+                          />
+                          <Label 
+                            htmlFor={`contact-${partner.id}-all`} 
+                            className="text-sm font-medium cursor-pointer flex-grow text-indigo-600"
+                          >
+                            All Contacts <span className="text-xs text-gray-500 ml-1">(3)</span>
+                          </Label>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
-                <div className="p-2 border-b hover:bg-gray-50">
-                  <div className="flex items-center">
-                    <Checkbox id="contact-2" className="mr-2" />
-                    <Label htmlFor="contact-2" className="text-sm font-normal cursor-pointer flex-grow">
-                      Michael Chen <span className="text-xs text-gray-500 ml-1">(mchen@abc-insurance.com)</span>
-                    </Label>
+                ))}
+                
+                {/* Empty state */}
+                {mockOpportunities.reduce((partners, opp) => {
+                  if (!partners.some(p => p.id === opp.partnerId)) {
+                    partners.push({ id: opp.partnerId, name: opp.partnerName });
+                  }
+                  return partners;
+                }, [] as { id: number, name: string }[]).length === 0 && (
+                  <div className="p-4 text-center text-gray-500">
+                    No partners available for this list
                   </div>
-                </div>
-                <div className="p-2 hover:bg-gray-50">
-                  <div className="flex items-center">
-                    <Checkbox id="contact-3" className="mr-2" />
-                    <Label htmlFor="contact-3" className="text-sm font-normal cursor-pointer flex-grow">
-                      All Contacts <span className="text-xs text-gray-500 ml-1">(3 people)</span>
-                    </Label>
-                  </div>
-                </div>
+                )}
+              </div>
+              
+              {/* Selection summary */}
+              <div className="text-sm text-gray-600">
+                <span id="selected-partners-count">0</span> partners selected
+              </div>
+              
+              {/* Filter partners input */}
+              <div className="relative mt-2">
+                <Input
+                  placeholder="Search partners..."
+                  className="pl-8"
+                  onChange={(e) => {
+                    const searchTerm = e.target.value.toLowerCase();
+                    const partnerItems = document.querySelectorAll('[id^="partner-checkbox-"]');
+                    partnerItems.forEach(item => {
+                      const parentDiv = item.closest('div[class*="p-3"]');
+                      if (parentDiv) {
+                        const label = parentDiv.querySelector('label');
+                        if (label) {
+                          const partnerName = label.textContent?.toLowerCase() || '';
+                          if (partnerName.includes(searchTerm)) {
+                            (parentDiv as HTMLElement).style.display = '';
+                          } else {
+                            (parentDiv as HTMLElement).style.display = 'none';
+                          }
+                        }
+                      }
+                    });
+                  }}
+                />
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  width="16" 
+                  height="16" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-gray-400"
+                >
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
               </div>
             </div>
             
@@ -1436,26 +1568,76 @@ function OpportunitiesTable() {
               <Button variant="outline">Cancel</Button>
             </DialogClose>
             <Button onClick={() => {
-              // Handle sharing logic
-              const partners = document.querySelectorAll('input[type="checkbox"]:checked');
+              // Get all selected partner checkboxes
+              const partnerCheckboxes = document.querySelectorAll('input[id^="partner-checkbox-"]:checked');
+              
+              // Get permissions
               const canEdit = (document.getElementById('canEdit') as HTMLInputElement).checked;
               const canShare = (document.getElementById('canShare') as HTMLInputElement).checked;
               const message = (document.getElementById('shareMessage') as HTMLTextAreaElement).value;
               
-              // Extract recipients from selected partners and contacts
-              const selectedPartnerIds = Array.from(partners).map(el => el.id.split('-')[1]);
+              // Extract selected partner IDs
+              const selectedPartnerIds = Array.from(partnerCheckboxes).map(checkbox => 
+                (checkbox as HTMLInputElement).value
+              );
               
-              // Just for demonstration, we'll use hardcoded emails
-              const recipientEmails = ['sjohnson@abc-insurance.com', 'mchen@abc-insurance.com'];
+              // Update selected partners count display (for future checkbox changes)
+              const selectedCountElement = document.getElementById('selected-partners-count');
+              if (selectedCountElement) {
+                selectedCountElement.textContent = selectedPartnerIds.length.toString();
+              }
               
-              // Update the active list's sharing settings
+              if (selectedPartnerIds.length === 0) {
+                toast({
+                  title: "No partners selected",
+                  description: "Please select at least one partner to share this list with.",
+                  variant: "destructive",
+                });
+                return;
+              }
+              
               if (activeList) {
+                // Original list's opportunities
+                const opportunities = displayedOpportunities;
+                
+                // For each selected partner, create a partner-specific list
+                selectedPartnerIds.forEach(partnerId => {
+                  // Find the partner name
+                  const partnerName = mockOpportunities.find(opp => opp.partnerId.toString() === partnerId)?.partnerName || "Unknown Partner";
+                  
+                  // Filter opportunities relevant to this partner only
+                  const partnerOpportunities = opportunities
+                    .filter(opp => opp.partnerId.toString() === partnerId)
+                    .map(opp => opp.id);
+                  
+                  // Create a new list specific to this partner
+                  const newList: SavedList = {
+                    id: `list-partner-${partnerId}-${Date.now()}`,
+                    name: `${activeList.name} - ${partnerName}`,
+                    description: activeList.description ? 
+                      `${activeList.description} (Shared from original list: ${activeList.name})` : 
+                      `Shared from original list: ${activeList.name}`,
+                    type: 'selection', // Always create selection-based lists for partners
+                    filters: {}, // No filters applied
+                    members: partnerOpportunities,
+                    isShared: true,
+                    sharedWith: [`partner-${partnerId}`], // Track that this was shared with this partner
+                    createdBy: 'Current User',
+                    createdAt: new Date()
+                  };
+                  
+                  // Add this new list to saved lists
+                  setSavedLists(prevLists => [...prevLists, newList]);
+                });
+                
+                // Mark the original list as shared
                 const updatedLists = savedLists.map(list => {
                   if (list.id === activeList.id) {
                     return {
                       ...list,
                       isShared: true,
-                      sharedWith: recipientEmails
+                      // Store which partners the list was shared with
+                      sharedWith: [...(list.sharedWith || []), ...selectedPartnerIds.map(id => `partner-${id}`)]
                     };
                   }
                   return list;
@@ -1463,6 +1645,12 @@ function OpportunitiesTable() {
                 
                 setSavedLists(updatedLists);
                 setActiveList(updatedLists.find(v => v.id === activeList.id) || null);
+                
+                // Show success toast
+                toast({
+                  title: "List shared successfully",
+                  description: `Created ${selectedPartnerIds.length} partner-specific ${selectedPartnerIds.length === 1 ? 'list' : 'lists'}.`,
+                });
               }
               
               setShowShareListModal(false);
