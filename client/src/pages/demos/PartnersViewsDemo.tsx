@@ -838,114 +838,65 @@ export default function PartnersViewsDemo() {
               {selectedViewStyle === 'global' && (
                 <div className="mb-4">
                   
-                  <div className="flex mb-4">
-                    <div className="w-64 bg-white border border-gray-200 rounded-md mr-4 p-4 shrink-0">
-                      <h3 className="font-medium text-base mb-3 flex justify-between items-center">
-                        <span>Global Views</span>
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          className="h-7 w-7 p-0 rounded-full"
-                          onClick={() => setShowSaveGlobalViewModal(true)}
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <line x1="12" y1="5" x2="12" y2="19"></line>
-                            <line x1="5" y1="12" x2="19" y2="12"></line>
-                          </svg>
-                          <span className="sr-only">Add view</span>
-                        </Button>
+                  <div className="bg-white border border-gray-200 rounded-md p-4 mb-4">
+                    <div className="flex items-center justify-between mb-4">
+                      <h3 className="font-medium text-base">
+                        {activeList.name}{' '}
+                        <span className="text-gray-500 text-sm">with {globalViews.find(v => v.id === activeGlobalViewId)?.name} view</span>
                       </h3>
                       
-                      <div className="space-y-1">
-                        {globalViews.map(view => (
-                          <Button
-                            key={view.id}
-                            variant={activeGlobalViewId === view.id ? "default" : "ghost"}
-                            size="sm"
-                            className={`w-full justify-start ${activeGlobalViewId === view.id ? "" : "text-gray-700"}`}
-                            onClick={() => {
-                              setActiveGlobalViewId(view.id);
-                              // Apply the view's filters
-                              const selectedView = globalViews.find(v => v.id === view.id);
-                              if (selectedView) {
-                                setSelectedStatus(selectedView.filters.status || '');
-                                setSelectedIndustry(selectedView.filters.industry || '');
-                                setSelectedType(selectedView.filters.type || '');
-                                setFilterText('');
-                              }
-                            }}
-                          >
-                            <div className="flex items-center">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                                <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                              </svg>
-                              <span>{view.name}</span>
-                            </div>
-                          </Button>
-                        ))}
+                      <div className="flex gap-2">
+                        <Button 
+                          size="sm" 
+                          variant="outline" 
+                          className="border-blue-500 text-blue-600 hover:bg-blue-50"
+                          onClick={saveAsGlobalView}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                            <polyline points="7 3 7 8 15 8"></polyline>
+                          </svg>
+                          Save Current View
+                        </Button>
                       </div>
                     </div>
                     
-                    <div className="flex-1">
-                      <div className="bg-white border border-gray-200 rounded-md p-4 mb-4">
-                        <div className="flex items-center justify-between mb-4">
-                          <h3 className="font-medium text-base">
-                            {activeList.name}{' '}
-                            <span className="text-gray-500 text-sm">with {globalViews.find(v => v.id === activeGlobalViewId)?.name} view</span>
-                          </h3>
-                          
-                          <div className="flex gap-2">
-                            <Button 
-                              size="sm" 
-                              variant="outline" 
-                              className="border-blue-500 text-blue-600 hover:bg-blue-50"
-                              onClick={saveAsGlobalView}
-                            >
-                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                                <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                                <polyline points="7 3 7 8 15 8"></polyline>
-                              </svg>
-                              Save Current View
-                            </Button>
-                          </div>
-                        </div>
-                        
-                        {/* Active filters summary */}
-                        <div className="flex flex-wrap items-center text-sm">
-                          <div className="text-gray-500 mr-2">Showing:</div>
-                          {(selectedStatus || selectedIndustry || selectedType) ? (
-                            <div className="flex flex-wrap gap-2">
-                              {selectedStatus && (
-                                <FilterPill 
-                                  label="Status" 
-                                  value={selectedStatus} 
-                                  color="blue"
-                                  onRemove={() => setSelectedStatus('')}
-                                />
-                              )}
-                              
-                              {selectedIndustry && (
-                                <FilterPill 
-                                  label="Industry" 
-                                  value={selectedIndustry} 
-                                  color="green"
-                                  onRemove={() => setSelectedIndustry('')}
-                                />
-                              )}
-                              
-                              {selectedType && (
-                                <FilterPill 
-                                  label="Type" 
-                                  value={selectedType} 
-                                  color="purple"
-                                  onRemove={() => setSelectedType('')}
-                                />
-                              )}
-                            </div>
-                          ) : (
-                            <div className="text-gray-700">All partners</div>
+                    {/* Active filters summary */}
+                    <div className="flex flex-wrap items-center text-sm">
+                      <div className="text-gray-500 mr-2">Showing:</div>
+                      {(selectedStatus || selectedIndustry || selectedType) ? (
+                        <div className="flex flex-wrap gap-2">
+                          {selectedStatus && (
+                            <FilterPill 
+                              label="Status" 
+                              value={selectedStatus} 
+                              color="blue"
+                              onRemove={() => setSelectedStatus('')}
+                            />
                           )}
+                          
+                          {selectedIndustry && (
+                            <FilterPill 
+                              label="Industry" 
+                              value={selectedIndustry} 
+                              color="green"
+                              onRemove={() => setSelectedIndustry('')}
+                            />
+                          )}
+                          
+                          {selectedType && (
+                            <FilterPill 
+                              label="Type" 
+                              value={selectedType} 
+                              color="purple"
+                              onRemove={() => setSelectedType('')}
+                            />
+                          )}
+                        </div>
+                      ) : (
+                        <div className="text-gray-700">All partners</div>
+                      )}
                         </div>
                       </div>
                     </div>
