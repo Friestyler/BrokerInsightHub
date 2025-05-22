@@ -1114,7 +1114,7 @@ function PartnersTable() {
           <DialogHeader>
             <DialogTitle className="text-[#282A3F] font-semibold text-lg" style={{ fontFamily: 'Poppins, sans-serif' }}>Save View</DialogTitle>
             <DialogDescription>
-              Name and save your current filter settings for quick access later.
+              Save your current filter settings as a view. You can quickly access this view later from any list, and it will apply the filters you saved.
             </DialogDescription>
           </DialogHeader>
           
@@ -1125,7 +1125,7 @@ function PartnersTable() {
               <Input 
                 id="viewName" 
                 placeholder="Enter a name (e.g., Active Insurance Brokers)"
-                value={(filterText || selectedStatus || selectedIndustry || selectedType) ? 
+                defaultValue={(filterText || selectedStatus || selectedIndustry || selectedType) ? 
                   `${selectedStatus ? 'Active ' : ''}${selectedIndustry || ''} ${selectedType || ''}`.trim() : 
                   ''
                 }
