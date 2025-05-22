@@ -284,27 +284,102 @@ function OpportunitiesTable() {
     }
   ]);
   const [activeList, setActiveList] = useState<SavedList | null>(null);
+  const [originalListFilters, setOriginalListFilters] = useState<SavedList['filters'] | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showSaveListModal, setShowSaveListModal] = useState(false);
   const [showShareListModal, setShowShareListModal] = useState(false);
   const [showListsDropdown, setShowListsDropdown] = useState(false);
+  const [showAddPartnersModal, setShowAddPartnersModal] = useState(false);
+  const [showCreateListModal, setShowCreateListModal] = useState(false);
+  const [showAddToListModal, setShowAddToListModal] = useState(false);
+  const [listToAddTo, setListToAddTo] = useState<string>('new'); // 'new' or list ID
+  const [showDynamicListGuidance, setShowDynamicListGuidance] = useState(false);
+  const [isGuidanceCollapsed, setIsGuidanceCollapsed] = useState(false);
+  // State for the name and description when creating a list through the general create modal
+  const [newListName, setNewListName] = useState('');
+  const [newListDescription, setNewListDescription] = useState('');
+  const [opportunitiesToAdd, setOpportunitiesToAdd] = useState<number[]>([]);
+  const [showCreateFromSelectionModal, setShowCreateFromSelectionModal] = useState(false);
+  const [selectionListName, setSelectionListName] = useState('');
+  const [selectionListDescription, setSelectionListDescription] = useState('');
+  const [selectionListType, setSelectionListType] = useState<'filter' | 'selection'>('filter');
   
-  // Filter opportunities based on search text and filter selections
+  // State for views
+  const [views, setViews] = useState<{
+    id: string;
+    name: string;
+    description?: string;
+    filters: {
+      searchText?: string;
+      status?: string;
+      type?: string;
+      customerId?: string;
+      partnerId?: string;
+    };
+    isShared: boolean;
+    createdBy: string;
+    createdAt: Date;
+  }[]>([
+    {
+      id: 'active-opportunities',
+      name: 'Active Opportunities',
+      description: 'Shows only opportunities in progress',
+      filters: { status: 'In Progress' },
+      isShared: true,
+      createdBy: 'System',
+      createdAt: new Date('2025-01-01')
+    },
+    {
+      id: 'new-business',
+      name: 'New Business',
+      description: 'All new business opportunities',
+      filters: { type: 'New Business' },
+      isShared: true,
+      createdBy: 'System',
+      createdAt: new Date('2025-01-01')
+    },
+    {
+      id: 'renewals',
+      name: 'Renewals',
+      description: 'All renewal opportunities',
+      filters: { type: 'Renewal' },
+      isShared: true,
+      createdBy: 'System',
+      createdAt: new Date('2025-01-01')
+    }
+  ]);
+  
+  const [activeView, setActiveView] = useState<typeof views[0] | null>(null);
+  const [showSaveViewModal, setShowSaveViewModal] = useState(false);
+  const [newViewName, setNewViewName] = useState('');
+  const [newViewDescription, setNewViewDescription] = useState('');
+  
+  // Filter opportunities based on search text, filter selections, and list type
   const displayedOpportunities = mockOpportunities.filter(opportunity => {
-    const matchesText = !filterText || 
-      opportunity.title.toLowerCase().includes(filterText.toLowerCase()) ||
-      opportunity.customerName.toLowerCase().includes(filterText.toLowerCase()) ||
-      opportunity.partnerName.toLowerCase().includes(filterText.toLowerCase());
+    // If we have an active list, only show opportunities that are members of that list
+    // Lists should only be about membership, not filters
+    if (activeList && activeList.type === 'selection') {
+      // For selection lists, only check membership
+      return activeList.members?.includes(opportunity.id) || false;
+    } else {
+      // When no list is selected or using a filter list, apply the current filters
+      const matchesText = !filterText || 
+        opportunity.title.toLowerCase().includes(filterText.toLowerCase()) ||
+        opportunity.customerName.toLowerCase().includes(filterText.toLowerCase()) ||
+        opportunity.partnerName.toLowerCase().includes(filterText.toLowerCase());
+        
+      const matchesStatus = !selectedStatus || opportunity.status === selectedStatus;
+      const matchesType = !selectedType || opportunity.type === selectedType;
       
-    const matchesStatus = !selectedStatus || opportunity.status === selectedStatus;
-    const matchesType = !selectedType || opportunity.type === selectedType;
-    
-    // Handle filters from active list
-    const matchesCustomerId = !activeList?.filters.customerId || 
-      String(opportunity.customerId) === activeList.filters.customerId;
-    const matchesPartnerId = !activeList?.filters.partnerId || 
-      String(opportunity.partnerId) === activeList.filters.partnerId;
-    
-    return matchesText && matchesStatus && matchesType && matchesCustomerId && matchesPartnerId;
+      // Handle filters from active list or active view
+      const matchesCustomerId = !(activeList?.filters.customerId || activeView?.filters.customerId) || 
+        (String(opportunity.customerId) === activeList?.filters.customerId || String(opportunity.customerId) === activeView?.filters.customerId);
+        
+      const matchesPartnerId = !(activeList?.filters.partnerId || activeView?.filters.partnerId) || 
+        (String(opportunity.partnerId) === activeList?.filters.partnerId || String(opportunity.partnerId) === activeView?.filters.partnerId);
+      
+      return matchesText && matchesStatus && matchesType && matchesCustomerId && matchesPartnerId;
+    }
   });
   
   // Calculate stats based on filtered opportunities
