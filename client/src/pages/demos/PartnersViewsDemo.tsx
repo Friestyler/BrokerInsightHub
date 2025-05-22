@@ -2080,6 +2080,99 @@ export default function PartnersViewsDemo() {
         </DialogContent>
       </Dialog>
       
+      {/* Save Global View modal */}
+      <Dialog open={showSaveGlobalViewModal} onOpenChange={setShowSaveGlobalViewModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-[#282A3F] font-semibold text-lg" style={{ fontFamily: 'Poppins, sans-serif' }}>Save as global view</DialogTitle>
+            <DialogDescription>
+              Save your current filters as a global view that can be applied to any list.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="global-view-name">View name</Label>
+              <Input
+                id="global-view-name"
+                placeholder="e.g., Active Insurance Partners"
+                value={newGlobalViewName}
+                onChange={(e) => setNewGlobalViewName(e.target.value)}
+                autoFocus
+              />
+            </div>
+            
+            <div className="bg-blue-50 p-3 rounded-md border border-blue-100 text-sm">
+              <div className="flex items-start gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5">
+                  <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                  <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                </svg>
+                <div>
+                  <p className="font-medium mb-1 text-blue-800">Global views can be applied to any list</p>
+                  <p className="text-blue-700">Unlike regular views that are tied to specific lists, global views can be applied across all lists, reducing redundancy and improving consistency.</p>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-[#F8F9FB] text-[#6E7591] rounded-md p-3 text-sm">
+              <div className="flex items-start gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mt-0.5">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <line x1="12" y1="16" x2="12" y2="12"></line>
+                  <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                </svg>
+                This global view will include the following filters:
+              </div>
+              
+              <div className="mt-2 pl-5">
+                <ul className="list-disc space-y-1 ml-2 text-xs">
+                  {selectedStatus && (
+                    <li>Status: <span className="font-medium">{selectedStatus}</span></li>
+                  )}
+                  {selectedIndustry && (
+                    <li>Industry: <span className="font-medium">{selectedIndustry}</span></li>
+                  )}
+                  {selectedType && (
+                    <li>Type: <span className="font-medium">{selectedType}</span></li>
+                  )}
+                  {!selectedStatus && !selectedIndustry && !selectedType && (
+                    <li className="text-gray-500 italic">No filters applied</li>
+                  )}
+                </ul>
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowSaveGlobalViewModal(false)}>Cancel</Button>
+            <Button onClick={() => {
+              if (newGlobalViewName.trim() === '') return;
+              
+              const newGlobalView: View = {
+                id: `global-${Date.now()}`,
+                name: newGlobalViewName,
+                description: '',
+                filters: {
+                  status: selectedStatus || undefined,
+                  industry: selectedIndustry || undefined,
+                  type: selectedType || undefined,
+                  searchText: filterText || undefined
+                },
+                isShared: false,
+                createdBy: 'John Smith',
+                createdAt: new Date()
+              };
+              
+              setGlobalViews([...globalViews, newGlobalView]);
+              setActiveGlobalViewId(newGlobalView.id);
+              setNewGlobalViewName('');
+              setShowSaveGlobalViewModal(false);
+            }} disabled={!newGlobalViewName.trim()}>Save Global View</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
       {/* Save view modal */}
       <Dialog open={showSaveViewModal} onOpenChange={setShowSaveViewModal}>
         <DialogContent className="sm:max-w-md">
