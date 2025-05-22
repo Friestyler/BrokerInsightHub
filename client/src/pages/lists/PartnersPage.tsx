@@ -836,13 +836,62 @@ function PartnersTable() {
           {/* Bottom row with search and filters */}
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-3 flex-grow">
+              {/* Views dropdown */}
+              <div className="relative w-60">
+                <Select 
+                  value={activeView ? activeView.id : "default"} 
+                  onValueChange={(value) => {
+                    // If we have unsaved changes, ask for confirmation
+                    if (hasUnsavedChanges) {
+                      if (!confirm("You have unsaved changes. Are you sure you want to switch views?")) {
+                        return;
+                      }
+                    }
+                    
+                    if (value === "default") {
+                      // Clear active view
+                      setActiveView(null);
+                      setFilterText('');
+                      setSelectedStatus('');
+                      setSelectedIndustry('');
+                      setSelectedType('');
+                      setHasUnsavedChanges(false);
+                    } else {
+                      // Set active view
+                      const view = views.find(v => v.id === value);
+                      if (view) {
+                        setActiveView(view);
+                        setFilterText(view.filters.searchText || '');
+                        setSelectedStatus(view.filters.status || '');
+                        setSelectedIndustry(view.filters.industry || '');
+                        setSelectedType(view.filters.type || '');
+                        setHasUnsavedChanges(false);
+                      }
+                    }
+                  }}
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder="Select view" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="default">All Partners</SelectItem>
+                    {views.map(view => (
+                      <SelectItem key={view.id} value={view.id}>{view.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
               {/* Search field - moved to second row */}
               <div className="relative w-60">
                 <input
                   type="text"
                   placeholder="Search by name, industry..."
                   value={filterText}
-                  onChange={(e) => setFilterText(e.target.value)}
+                  onChange={(e) => {
+                    setFilterText(e.target.value);
+                    setHasUnsavedChanges(true);
+                  }}
                   className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
                 />
                 <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
@@ -857,7 +906,10 @@ function PartnersTable() {
               <div className="flex gap-2 flex-wrap">
                 <button 
                   className={`flex items-center space-x-1 px-3 py-2 border rounded-md text-sm ${selectedStatus ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
-                  onClick={() => setSelectedStatus(selectedStatus ? '' : 'active')}
+                  onClick={() => {
+                    setSelectedStatus(selectedStatus ? '' : 'active');
+                    if (activeView) setHasUnsavedChanges(true);
+                  }}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={selectedStatus ? 'text-indigo-500' : 'text-gray-500'}>
                     <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
@@ -873,7 +925,10 @@ function PartnersTable() {
                 
                 <button 
                   className={`flex items-center space-x-1 px-3 py-2 border rounded-md text-sm ${selectedIndustry ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
-                  onClick={() => setSelectedIndustry(selectedIndustry ? '' : 'Insurance')}
+                  onClick={() => {
+                    setSelectedIndustry(selectedIndustry ? '' : 'Insurance');
+                    if (activeView) setHasUnsavedChanges(true);
+                  }}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={selectedIndustry ? 'text-indigo-500' : 'text-gray-500'}>
                     <circle cx="12" cy="12" r="10"></circle>
@@ -890,7 +945,10 @@ function PartnersTable() {
                 
                 <button 
                   className={`flex items-center space-x-1 px-3 py-2 border rounded-md text-sm ${selectedType ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
-                  onClick={() => setSelectedType(selectedType ? '' : 'Broker')}
+                  onClick={() => {
+                    setSelectedType(selectedType ? '' : 'Broker');
+                    if (activeView) setHasUnsavedChanges(true);
+                  }}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={selectedType ? 'text-indigo-500' : 'text-gray-500'}>
                     <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
@@ -961,8 +1019,51 @@ function PartnersTable() {
                 </button>
               )}
               
-              {/* Save as view button - shown whenever filters are applied, regardless of list type */}
-              {(filterText || selectedStatus || selectedIndustry || selectedType) && (
+              {/* Save button - shown when we have an active view with changes */}
+              {activeView && hasUnsavedChanges && (
+                <div className="group relative">
+                  <button 
+                    className="flex items-center rounded-md bg-[#EBEEFB] px-4 py-2 hover:bg-[#E3E6F7]"
+                    onClick={() => {
+                      // Save changes to active view
+                      const updatedView = {
+                        ...activeView,
+                        filters: {
+                          searchText: filterText || '',
+                          status: selectedStatus || '',
+                          industry: selectedIndustry || '',
+                          type: selectedType || ''
+                        }
+                      };
+                      
+                      // Update the view in the views array
+                      const updatedViews = views.map(view => 
+                        view.id === activeView.id ? updatedView : view
+                      );
+                      
+                      setViews(updatedViews);
+                      setActiveView(updatedView);
+                      setHasUnsavedChanges(false);
+                      
+                      toast({
+                        title: "View saved",
+                        description: `"${activeView.name}" has been updated with your current filter settings.`
+                      });
+                    }}
+                    style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                      <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                      <polyline points="7 3 7 8 15 8"></polyline>
+                    </svg>
+                    <span className="text-[#3E4DC4] font-medium">Save</span>
+                  </button>
+                </div>
+              )}
+              
+              {/* Save as view button - shown when filters are applied but not in a view context */}
+              {(filterText || selectedStatus || selectedIndustry || selectedType) && !activeView && (
                 <div className="group relative">
                   <button 
                     className="flex items-center rounded-md bg-[#EBEEFB] px-4 py-2 hover:bg-[#E3E6F7]"
@@ -1201,11 +1302,20 @@ function PartnersTable() {
                       industry: selectedIndustry || '',
                       type: selectedType || ''
                     },
+                    isShared: false,
                     createdBy: 'John Smith',
                     createdAt: new Date()
                   };
                   
-                  // In a real implementation, we would store the view
+                  // Add the new view to the views array
+                  setViews([...views, newView]);
+                  
+                  // Set as active view
+                  setActiveView(newView);
+                  
+                  // Reset hasUnsavedChanges
+                  setHasUnsavedChanges(false);
+                  
                   toast({
                     title: "View saved successfully",
                     description: `"${viewName}" has been saved and is now available in the views dropdown.`,
