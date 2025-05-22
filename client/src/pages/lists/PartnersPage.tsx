@@ -689,28 +689,7 @@ function PartnersTable() {
                     Add to Campaign
                   </Button>
                   
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    className="text-gray-600"
-                    onClick={() => {
-                      setActiveList(null);
-                      setOriginalListFilters(null);
-                      setFilterText('');
-                      setSelectedStatus('');
-                      setSelectedIndustry('');
-                      setSelectedType('');
-                      // Clear any active view when returning to All Partners
-                      setActiveView(null);
-                      setHasUnsavedChanges(false);
-                    }}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                      <path d="M18 6 6 18"></path>
-                      <path d="m6 6 12 12"></path>
-                    </svg>
-                    Return to all partners
-                  </Button>
+                  {/* Return to all partners button removed */}
                 </div>
               )}
             </div>
