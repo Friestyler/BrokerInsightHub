@@ -14,6 +14,7 @@ import PredictOpportunities from "@/pages/PredictOpportunities";
 import CampaignsPage from "@/pages/Campaigns/CampaignsPage";
 import CampaignBuilder from "@/pages/Campaigns/CampaignBuilder";
 import CampaignDetail from "@/pages/Campaigns/CampaignDetail";
+import BrioUploadFlow from "@/pages/Campaigns/BrioUploadFlow";
 import Clients from "@/pages/Clients";
 import ClientDetail from "@/pages/ClientDetail";
 import PartnersPage from "@/pages/lists/PartnersPage";
@@ -66,6 +67,14 @@ function Router() {
           {() => (
             <EnvironmentRouteGuard
               component={CampaignBuilder} 
+              excludedEnvironments={["acme"]} 
+            />
+          )}
+        </Route>
+        <Route path="/campaigns/upload/brio/step1">
+          {() => (
+            <EnvironmentRouteGuard
+              component={BrioUploadFlow} 
               excludedEnvironments={["acme"]} 
             />
           )}

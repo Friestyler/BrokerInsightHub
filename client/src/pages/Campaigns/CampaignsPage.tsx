@@ -4,7 +4,19 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQuery } from "@tanstack/react-query";
-import { Send, Users, Sparkles, Plus, Home as HomeIcon, PlusCircle as PlusCircleIcon, Heart as HeartIcon } from "lucide-react";
+import { 
+  Send, 
+  Users, 
+  Sparkles, 
+  Plus, 
+  Home as HomeIcon, 
+  PlusCircle as PlusCircleIcon, 
+  Heart as HeartIcon,
+  FileUp,
+  Cloud,
+  Database,
+  RefreshCw
+} from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 
@@ -198,10 +210,11 @@ export default function CampaignsPage() {
       <h1 className="text-2xl font-bold mb-6">Campaigns</h1>
 
       <Tabs defaultValue="new" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="my">My Campaigns</TabsTrigger>
           <TabsTrigger value="shared">Shared Campaigns</TabsTrigger>
           <TabsTrigger value="new">New Campaign</TabsTrigger>
+          <TabsTrigger value="upload">Data Upload</TabsTrigger>
         </TabsList>
 
         <TabsContent value="my" className="space-y-4">
@@ -351,6 +364,111 @@ export default function CampaignsPage() {
                 <Plus className="h-5 w-5 mr-2" />
                 Start from Scratch
               </Button>
+            </div>
+          </div>
+        </TabsContent>
+        
+        <TabsContent value="upload" className="space-y-4">
+          <div>
+            <h2 className="text-xl font-semibold mb-4">Import your data to create targeted campaigns</h2>
+            <p className="text-gray-600 mb-6">Choose your data source to get started with intelligent campaign creation</p>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              <Card 
+                className="hover:shadow-md transition-shadow cursor-pointer border-2 border-indigo-100"
+                onClick={() => setLocation("/campaigns/upload/brio/step1")}
+              >
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                      <FileUp className="h-5 w-5 text-indigo-600" />
+                    </div>
+                  </div>
+                  <CardTitle className="text-lg mt-2">Upload from Brio</CardTitle>
+                  <CardDescription>
+                    Import your customer data directly from Brio
+                  </CardDescription>
+                </CardHeader>
+                <CardFooter>
+                  <Button 
+                    className="w-full bg-indigo-600 hover:bg-indigo-700"
+                  >
+                    Start Import
+                  </Button>
+                </CardFooter>
+              </Card>
+              
+              <Card 
+                className="hover:shadow-md transition-shadow cursor-pointer"
+              >
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                      <Cloud className="h-5 w-5 text-blue-600" />
+                    </div>
+                  </div>
+                  <CardTitle className="text-lg mt-2">Upload from Broker Cloud</CardTitle>
+                  <CardDescription>
+                    Import data from your Broker Cloud account
+                  </CardDescription>
+                </CardHeader>
+                <CardFooter>
+                  <Button 
+                    variant="outline" 
+                    className="w-full border-gray-200"
+                  >
+                    Connect
+                  </Button>
+                </CardFooter>
+              </Card>
+              
+              <Card 
+                className="hover:shadow-md transition-shadow cursor-pointer"
+              >
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
+                      <Database className="h-5 w-5 text-green-600" />
+                    </div>
+                  </div>
+                  <CardTitle className="text-lg mt-2">Upload from other CRM or portal</CardTitle>
+                  <CardDescription>
+                    Import from any other third-party system
+                  </CardDescription>
+                </CardHeader>
+                <CardFooter>
+                  <Button 
+                    variant="outline" 
+                    className="w-full border-gray-200"
+                  >
+                    Select Source
+                  </Button>
+                </CardFooter>
+              </Card>
+              
+              <Card 
+                className="hover:shadow-md transition-shadow cursor-pointer"
+              >
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
+                      <RefreshCw className="h-5 w-5 text-purple-600" />
+                    </div>
+                  </div>
+                  <CardTitle className="text-lg mt-2">Sync with your CRM</CardTitle>
+                  <CardDescription>
+                    Set up automatic data synchronization
+                  </CardDescription>
+                </CardHeader>
+                <CardFooter>
+                  <Button 
+                    variant="outline" 
+                    className="w-full border-gray-200"
+                  >
+                    Set Up Sync
+                  </Button>
+                </CardFooter>
+              </Card>
             </div>
           </div>
         </TabsContent>
