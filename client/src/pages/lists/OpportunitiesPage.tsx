@@ -1381,6 +1381,166 @@ function OpportunitiesTable() {
         </DialogContent>
       </Dialog>
       
+      {/* Save View Modal */}
+      <Dialog open={showSaveViewModal} onOpenChange={setShowSaveViewModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-[#282A3F] font-semibold text-lg" style={{ fontFamily: 'Poppins, sans-serif' }}>
+              Save as view
+            </DialogTitle>
+            <DialogDescription>
+              Save your current filter settings as a view. You can quickly access this view later from any list, and it will apply the filters you saved.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            {/* View name and description fields */}
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="view-name" className="text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                  View name*
+                </Label>
+                <Input 
+                  id="view-name" 
+                  value={newViewName} 
+                  onChange={(e) => setNewViewName(e.target.value)} 
+                  placeholder="Enter view name" 
+                  className="mt-1.5"
+                  required
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="view-description" className="text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                  Description (optional)
+                </Label>
+                <Textarea 
+                  id="view-description" 
+                  value={newViewDescription} 
+                  onChange={(e) => setNewViewDescription(e.target.value)} 
+                  placeholder="Enter view description" 
+                  className="mt-1.5"
+                />
+              </div>
+              
+              {/* Current filters summary */}
+              <div>
+                <h4 className="text-sm font-medium mb-2 text-[#282A3F]">Filters saved in this view</h4>
+                <div className="bg-[#EBEEFB] border border-[#D4D9F3] rounded-lg p-3 text-sm">
+                  <ul className="space-y-1 text-[#3E4DC4]">
+                    {filterText && (
+                      <li className="flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                          <circle cx="11" cy="11" r="8"></circle>
+                          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                        Search: "{filterText}"
+                      </li>
+                    )}
+                    {selectedStatus && (
+                      <li className="flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                          <path d="M20 6H4"></path>
+                          <path d="M20 12H4"></path>
+                          <path d="M20 18H4"></path>
+                        </svg>
+                        Status: {selectedStatus}
+                      </li>
+                    )}
+                    {selectedType && (
+                      <li className="flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                          <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"></path>
+                        </svg>
+                        Type: {selectedType}
+                      </li>
+                    )}
+                    {!filterText && !selectedStatus && !selectedType && (
+                      <li className="text-gray-500 italic">No filters applied</li>
+                    )}
+                  </ul>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">
+                Cancel
+              </Button>
+            </DialogClose>
+            <Button 
+              className="bg-[#5567E5] hover:bg-[#4555CB] text-white"
+              onClick={() => {
+                if (!newViewName.trim()) {
+                  toast({
+                    title: "View name required",
+                    description: "Please enter a name for your view.",
+                    variant: "destructive",
+                  });
+                  return;
+                }
+                
+                // Determine if we're updating an existing view or creating a new one
+                if (activeView && views.some(v => v.id === activeView.id)) {
+                  // Update existing view
+                  const updatedViews = views.map(view => 
+                    view.id === activeView.id 
+                      ? {
+                          ...view,
+                          name: newViewName,
+                          description: newViewDescription,
+                          filters: {
+                            searchText: filterText || undefined,
+                            status: selectedStatus || undefined,
+                            type: selectedType || undefined,
+                          }
+                        }
+                      : view
+                  );
+                  
+                  setViews(updatedViews);
+                  setActiveView(updatedViews.find(v => v.id === activeView.id) || null);
+                  
+                  toast({
+                    title: "View updated",
+                    description: `"${newViewName}" has been updated with your current filters.`,
+                  });
+                } else {
+                  // Create a new view
+                  const newView = {
+                    id: `view-${Date.now()}`,
+                    name: newViewName,
+                    description: newViewDescription,
+                    filters: {
+                      searchText: filterText || undefined,
+                      status: selectedStatus || undefined,
+                      type: selectedType || undefined,
+                    },
+                    isShared: false,
+                    createdBy: 'John Smith',
+                    createdAt: new Date()
+                  };
+                  
+                  setViews([...views, newView]);
+                  setActiveView(newView);
+                  
+                  toast({
+                    title: "View created",
+                    description: `"${newViewName}" has been created with your current filters.`,
+                  });
+                }
+                
+                setShowSaveViewModal(false);
+              }}
+            >
+              {activeView && views.some(v => v.id === activeView.id) ? 'Update view' : 'Save view'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
       {/* Add to List Modal */}
       <Dialog open={showAddToListModal} onOpenChange={setShowAddToListModal}>
         <DialogContent className="sm:max-w-md">
