@@ -326,17 +326,30 @@ const mockOpportunities = [
     partner: "Jeroen Hypotheek Advies"
   },
   {
-    id: 5,
-    title: "Workers Compensation",
-    customerName: "Umbrella Corporation",
+    id: 3,
+    title: "Verkoop van aanvullende producten",
+    customerName: "De Groot BV",
+    customerId: 3,
+    estimatedValue: 42000,
+    probability: 75,
+    status: "proposal_sent",
+    closingDate: new Date("2025-08-10"),
+    owner: { id: 1, name: "Maarten de Vries", initials: "MV", avatar: "" },
+    type: "upsell",
+    partner: "Jeroen Hypotheek Advies"
+  },
+  {
+    id: 4,
+    title: "Proactief contact bij levensgebeurtenissen",
+    customerName: "Visser Familie",
     customerId: 4,
-    estimatedValue: 80000,
-    probability: 0,
-    status: "closed_lost",
-    closingDate: new Date("2025-05-15"),
-    owner: { id: 1, name: "John Doe", initials: "JD", avatar: "" },
-    type: "cross-sell",
-    partner: "ABC Insurance Brokers"
+    estimatedValue: 28000,
+    probability: 100,
+    status: "closed_won",
+    closingDate: new Date("2025-05-05"),
+    owner: { id: 2, name: "Sophie Jansen", initials: "SJ", avatar: "" },
+    type: "renewal",
+    partner: "Jeroen Hypotheek Advies"
   }
 ];
 
