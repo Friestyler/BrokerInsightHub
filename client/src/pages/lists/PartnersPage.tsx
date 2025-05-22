@@ -1140,7 +1140,7 @@ function PartnersTable() {
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
                     <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
                   </svg>
-                  Active filters
+                  Filters saved in this view
                 </div>
                 <div className="space-y-1.5 text-[#5F6585]">
                   {filterText && (
