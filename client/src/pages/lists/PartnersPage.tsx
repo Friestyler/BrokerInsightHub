@@ -224,6 +224,27 @@ function PartnersTable() {
            currentFilters.type !== (activeView.filters.type || '');
   };
   
+  // Additional useEffect to track changes to filters when a view is active
+  useEffect(() => {
+    if (activeView) {
+      const currentFilters = {
+        searchText: filterText || '',
+        status: selectedStatus || '',
+        industry: selectedIndustry || '',
+        type: selectedType || ''
+      };
+      
+      // Check if filters differ from view's filters
+      const hasChanges = 
+        currentFilters.searchText !== (activeView.filters.searchText || '') ||
+        currentFilters.status !== (activeView.filters.status || '') ||
+        currentFilters.industry !== (activeView.filters.industry || '') ||
+        currentFilters.type !== (activeView.filters.type || '');
+      
+      setHasUnsavedChanges(hasChanges);
+    }
+  }, [activeView, filterText, selectedStatus, selectedIndustry, selectedType]);
+  
   // Function to clear the active view and reset filters
   const clearActiveView = () => {
     setActiveView(null);
