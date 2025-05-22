@@ -207,54 +207,11 @@ function PartnersTable() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
   
-  // Function to determine if current filters differ from active view
-  const haveFiltersChanged = () => {
-    if (!activeView) return false;
-    
-    const currentFilters = {
-      searchText: filterText || '',
-      status: selectedStatus || '',
-      industry: selectedIndustry || '',
-      type: selectedType || ''
-    };
-    
-    return currentFilters.searchText !== (activeView.filters.searchText || '') ||
-           currentFilters.status !== (activeView.filters.status || '') ||
-           currentFilters.industry !== (activeView.filters.industry || '') ||
-           currentFilters.type !== (activeView.filters.type || '');
-  };
+  // This function will be defined in the main component instead
   
-  // Track changes to filters when a view is active
-  useEffect(() => {
-    if (activeView) {
-      const viewFilters = activeView.filters;
-      const currentFilters = {
-        searchText: filterText || '',
-        status: selectedStatus || '',
-        industry: selectedIndustry || '',
-        type: selectedType || ''
-      };
-      
-      // Check if filters differ from view's filters
-      const hasChanges = 
-        currentFilters.searchText !== (viewFilters.searchText || '') ||
-        currentFilters.status !== (viewFilters.status || '') ||
-        currentFilters.industry !== (viewFilters.industry || '') ||
-        currentFilters.type !== (viewFilters.type || '');
-      
-      setHasUnsavedChanges(hasChanges);
-    }
-  }, [activeView, filterText, selectedStatus, selectedIndustry, selectedType]);
+  // Track changes code has been moved to the main component
   
-  // Function to clear the active view and reset filters
-  const clearActiveView = () => {
-    setActiveView(null);
-    setFilterText('');
-    setSelectedStatus('');
-    setSelectedIndustry('');
-    setSelectedType('');
-    setHasUnsavedChanges(false);
-  };
+  // This function will be defined in the main component
 
   // State for views
   const [views, setViews] = useState<{
