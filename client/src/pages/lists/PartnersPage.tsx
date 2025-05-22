@@ -606,6 +606,8 @@ function PartnersTable() {
                               setSelectedStatus(list.filters.status || '');
                               setSelectedIndustry(list.filters.industry || '');
                               setSelectedType(list.filters.type || '');
+                              // Clear any active view when switching lists
+                              setActiveView(null);
                               setHasUnsavedChanges(false);
                               setShowListsDropdown(false);
                             }}
