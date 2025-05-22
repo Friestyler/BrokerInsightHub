@@ -837,45 +837,6 @@ export default function PartnersViewsDemo() {
               {/* Global Views Interface */}
               {selectedViewStyle === 'global' && (
                 <div className="mb-4">
-                  <div className="bg-white border border-gray-200 rounded-md mb-4">
-                    <div className="bg-gray-50 p-3 border-b border-gray-200 flex flex-wrap justify-between items-center gap-y-2">
-                      <div className="flex items-center gap-4">
-                        <div className="relative">
-                          <select
-                            className="appearance-none bg-white pl-3 pr-8 py-2 text-sm font-medium border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 min-w-[200px]"
-                            value={activeListId}
-                            onChange={(e) => switchList(e.target.value)}
-                          >
-                            {lists.map(list => (
-                              <option key={list.id} value={list.id}>
-                                {list.name} {list.type === 'selection' ? '(Custom)' : ''}
-                              </option>
-                            ))}
-                          </select>
-                          <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <polyline points="6 9 12 15 18 9"></polyline>
-                            </svg>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      <div className="ml-auto flex items-center gap-2">
-                        <Button 
-                          size="sm" 
-                          variant="outline" 
-                          className="border-gray-300"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                            <polyline points="7 3 7 8 15 8"></polyline>
-                          </svg>
-                          New List
-                        </Button>
-                      </div>
-                    </div>
-                  </div>
                   
                   <div className="flex mb-4">
                     <div className="w-64 bg-white border border-gray-200 rounded-md mr-4 p-4 shrink-0">
