@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useLocation } from "wouter";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +19,7 @@ import {
   Bell,
   CheckSquare,
   ListFilter,
+  Upload,
   AlertCircle,
   Users,
   Timer,
@@ -43,6 +45,7 @@ type ActivityItem = {
 };
 
 export default function PartnerPilot() {
+  const [, setLocation] = useLocation();
   const { environment } = useEnvironment();
   const [inputValue, setInputValue] = useState("");
   const [isLoading, setIsLoading] = useState(false);
@@ -175,6 +178,13 @@ export default function PartnerPilot() {
         <Button variant="ghost">
           <SlidersHorizontal className="h-4 w-4 mr-2" />
           Presentations
+        </Button>
+        <Button 
+          variant="ghost"
+          onClick={() => setLocation("/campaigns/upload/brio/step1")}
+        >
+          <Upload className="h-4 w-4 mr-2" />
+          Data Upload
         </Button>
       </div>
 

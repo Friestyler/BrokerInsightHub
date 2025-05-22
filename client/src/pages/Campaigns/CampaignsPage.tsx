@@ -210,11 +210,10 @@ export default function CampaignsPage() {
       <h1 className="text-2xl font-bold mb-6">Campaigns</h1>
 
       <Tabs defaultValue="new" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="my">My Campaigns</TabsTrigger>
           <TabsTrigger value="shared">Shared Campaigns</TabsTrigger>
           <TabsTrigger value="new">New Campaign</TabsTrigger>
-          <TabsTrigger value="upload">Data Upload</TabsTrigger>
         </TabsList>
 
         <TabsContent value="my" className="space-y-4">
