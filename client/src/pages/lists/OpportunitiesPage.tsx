@@ -1102,17 +1102,6 @@ function OpportunitiesTable() {
                         </div>
                         <div>
                           <Label className="font-medium text-sm">Save my current filters</Label>
-                          <p className="text-xs text-gray-500">
-                            The list will automatically update when opportunities match your filters
-                            {(!filterText && !selectedStatus && !selectedType) && (
-                              <span className="block mt-1 text-amber-600">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block mr-1">
-                                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-                                </svg>
-                                You don't have any filters active right now
-                              </span>
-                            )}
-                          </p>
                         </div>
                       </div>
                     </div>
@@ -1151,26 +1140,6 @@ function OpportunitiesTable() {
                         </div>
                         <div>
                           <Label className="font-medium text-sm">Save my selected opportunities</Label>
-                          <p className="text-xs text-gray-500">
-                            Only your specifically selected opportunities will be in this list
-                            {selectedOpportunities.length === 0 && (
-                              <span className="block mt-1 text-amber-600">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block mr-1">
-                                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-                                </svg>
-                                You haven't selected any opportunities yet
-                              </span>
-                            )}
-                            {selectedOpportunities.length > 0 && (
-                              <span className="block mt-1 text-emerald-600">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline-block mr-1">
-                                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                                </svg>
-                                {selectedOpportunities.length} opportunities selected
-                              </span>
-                            )}
-                          </p>
                         </div>
                       </div>
                     </div>
