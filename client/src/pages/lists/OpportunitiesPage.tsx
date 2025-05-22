@@ -721,7 +721,13 @@ function OpportunitiesTable() {
                   type="text"
                   placeholder="Search opportunities..."
                   value={filterText}
-                  onChange={(e) => setFilterText(e.target.value)}
+                  onChange={(e) => {
+                    setFilterText(e.target.value);
+                    // If we have an active view, mark as having unsaved changes
+                    if (activeView) {
+                      setHasUnsavedChanges(true);
+                    }
+                  }}
                   className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
                 />
                 <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
@@ -737,15 +743,50 @@ function OpportunitiesTable() {
                 <button 
                   className={`flex items-center space-x-2 px-3 py-2 border rounded-md text-sm font-medium ${activeView ? 'bg-[#EBEEFB] border-[#D4D9F3] text-[#3E4DC4]' : 'border-gray-300 hover:border-gray-400'}`}
                   onClick={() => {
-                    // Show view selection dialog
-                    setShowSaveViewModal(true);
+                    if (views.length === 0) {
+                      // No views exist yet, show the save view modal
+                      setNewViewName('');
+                      setNewViewDescription('');
+                      setShowSaveViewModal(true);
+                    } else {
+                      // Show a simple selection dialog for now
+                      const viewOptions = views.map((view, index) => 
+                        `${index + 1}. ${view.name}`
+                      ).join('\n');
+                      
+                      const selection = prompt(`Select a view:\n${viewOptions}\n\nOr type 'clear' to clear the active view.`);
+                      
+                      if (selection === null) {
+                        return;
+                      }
+                      
+                      if (selection.toLowerCase() === 'clear') {
+                        setActiveView(null);
+                        setFilterText('');
+                        setSelectedStatus('');
+                        setSelectedType('');
+                        return;
+                      }
+                      
+                      const viewIndex = parseInt(selection) - 1;
+                      if (viewIndex >= 0 && viewIndex < views.length) {
+                        const selectedView = views[viewIndex];
+                        setActiveView(selectedView);
+                        
+                        // Apply the view's filters
+                        setFilterText(selectedView.filters.searchText || '');
+                        setSelectedStatus(selectedView.filters.status || '');
+                        setSelectedType(selectedView.filters.type || '');
+                        setHasUnsavedChanges(false);
+                      }
+                    }
                   }}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={activeView ? 'text-[#3E4DC4]' : 'text-gray-500'}>
                     <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
                     <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
                   </svg>
-                  <span className="max-w-[120px] truncate">{activeView ? activeView.name : 'Select a view'}</span>
+                  <span className="max-w-[120px] truncate">{activeView ? activeView.name : views.length === 0 ? 'Save a view' : 'Select a view'}</span>
                 </button>
                 
                 {activeView && (
@@ -756,6 +797,7 @@ function OpportunitiesTable() {
                       setFilterText('');
                       setSelectedStatus('');
                       setSelectedType('');
+                      setHasUnsavedChanges(false);
                     }}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -815,11 +857,70 @@ function OpportunitiesTable() {
                     </svg>
                   )}
                 </button>
+                
+                {/* Filter action buttons - only shown when filters have been modified */}
+                {(hasUnsavedChanges || (!activeView && (filterText || selectedStatus || selectedType))) && (
+                  <div className="ml-auto flex gap-2">
+                    {/* Revert Changes Button */}
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => {
+                        // Revert to the original filters
+                        if (activeView) {
+                          // Reset to active view's filters
+                          setFilterText(activeView.filters.searchText || '');
+                          setSelectedStatus(activeView.filters.status || '');
+                          setSelectedType(activeView.filters.type || '');
+                          setHasUnsavedChanges(false);
+                        } else {
+                          // Clear all filters
+                          setFilterText('');
+                          setSelectedStatus('');
+                          setSelectedType('');
+                        }
+                      }}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                        <path d="M3 2v6h6"></path>
+                        <path d="M3 13a9 9 0 1 0 3-7.7L3 8"></path>
+                      </svg>
+                      Revert changes
+                    </Button>
+                    
+                    {/* Save as View Button */}
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="text-[#3E4DC4]"
+                      onClick={() => {
+                        // Set up the view modal with existing view details if editing
+                        if (activeView) {
+                          setNewViewName(activeView.name);
+                          setNewViewDescription(activeView.description || '');
+                        } else {
+                          setNewViewName('');
+                          setNewViewDescription('');
+                        }
+                        
+                        // Show the save view modal
+                        setShowSaveViewModal(true);
+                      }}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                        <polyline points="7 3 7 8 15 8"></polyline>
+                      </svg>
+                      {activeView ? 'Save view' : 'Save as new view'}
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
             
             {/* Clear filters button - only shown when at least one filter is applied */}
-            {(filterText || selectedStatus || selectedType) && (
+            {(filterText || selectedStatus || selectedType) && !hasUnsavedChanges && !activeView && (
               <button 
                 onClick={() => {
                   setFilterText('');
