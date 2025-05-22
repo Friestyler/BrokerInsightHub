@@ -540,6 +540,35 @@ function PartnersTable() {
                     
                     {/* Lists with edit options */}
                     <div className="max-h-[300px] overflow-y-auto p-1">
+                      {/* All Partners default option at the top */}
+                      <div className="relative">
+                        <div
+                          className={`relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 ${activeList === null ? 'bg-indigo-50 text-indigo-900' : 'text-slate-700'}`}
+                          onClick={() => {
+                            // Clear filters and active list (same behavior as "Return to all partners" button)
+                            setActiveList(null);
+                            setOriginalListFilters(null);
+                            setFilterText('');
+                            setSelectedStatus('');
+                            setSelectedIndustry('');
+                            setSelectedType('');
+                            setHasUnsavedChanges(false);
+                            setShowListsDropdown(false);
+                          }}
+                        >
+                          <div className="flex flex-1 items-center">
+                            <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>All Partners</span>
+                          </div>
+                          <div className="ml-auto">
+                            <span className="text-xs text-[#282A3F] italic" style={{ fontFamily: 'Poppins, sans-serif' }}>Default</span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Divider between default and custom lists */}
+                      <div className="my-1 border-t border-slate-200"></div>
+                      
+                      {/* Other saved lists */}
                       {savedLists.map(list => (
                         <div 
                           key={list.id}
@@ -548,28 +577,16 @@ function PartnersTable() {
                           <div
                             className={`relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 ${activeList?.id === list.id ? 'bg-indigo-50 text-indigo-900' : 'text-slate-700'}`}
                             onClick={() => {
-                              // Special handling for "All Partners" default list
-                              if (list.isDefault && list.name === "All Partners") {
-                                // Clear filters and active list (same behavior as "Return to all partners" button)
-                                setActiveList(null);
-                                setOriginalListFilters(null);
-                                setFilterText('');
-                                setSelectedStatus('');
-                                setSelectedIndustry('');
-                                setSelectedType('');
-                                setHasUnsavedChanges(false);
-                              } else {
-                                // Normal behavior for other lists
-                                setActiveList(list);
-                                // Store the original filters to enable reverting changes
-                                setOriginalListFilters(list.filters);
-                                // Apply filter settings
-                                setFilterText(list.filters.searchText || '');
-                                setSelectedStatus(list.filters.status || '');
-                                setSelectedIndustry(list.filters.industry || '');
-                                setSelectedType(list.filters.type || '');
-                                setHasUnsavedChanges(false);
-                              }
+                              // Normal behavior for other lists
+                              setActiveList(list);
+                              // Store the original filters to enable reverting changes
+                              setOriginalListFilters(list.filters);
+                              // Apply filter settings
+                              setFilterText(list.filters.searchText || '');
+                              setSelectedStatus(list.filters.status || '');
+                              setSelectedIndustry(list.filters.industry || '');
+                              setSelectedType(list.filters.type || '');
+                              setHasUnsavedChanges(false);
                               setShowListsDropdown(false);
                             }}
                           >
