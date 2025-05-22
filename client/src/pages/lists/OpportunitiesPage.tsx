@@ -658,44 +658,6 @@ function OpportunitiesTable() {
             
             {/* Right-side action buttons */}
             <div className="flex items-center gap-2">
-              {/* Save button - only shown when filters are applied */}
-              {(filterText || selectedStatus || selectedType) && (
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="text-indigo-600"
-                  onClick={() => setShowSaveListModal(true)}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                    <polyline points="7 3 7 8 15 8"></polyline>
-                  </svg>
-                  {activeList ? 'Update' : 'Save'}
-                </Button>
-              )}
-              
-              <Button 
-                variant="default" 
-                size="sm"
-                className="bg-[#5567E5] hover:bg-[#4555CB] text-white"
-                disabled={selectedOpportunities.length === 0}
-                onClick={() => {
-                  // Open add to list dialog
-                  setShowAddToListModal(true);
-                  setNewListName('');
-                  setNewListDescription('');
-                  setListToAddTo('new'); // Default to creating a new list
-                }}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                  <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                  <polyline points="7 3 7 8 15 8"></polyline>
-                </svg>
-                Add to list
-              </Button>
-              
               <Button variant="outline" size="sm" className="hidden md:flex items-center">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -703,14 +665,6 @@ function OpportunitiesTable() {
                   <line x1="12" y1="15" x2="12" y2="3"></line>
                 </svg>
                 Export
-              </Button>
-              
-              <Button size="sm" className="flex items-center bg-indigo-600 hover:bg-indigo-700">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                  <line x1="12" y1="5" x2="12" y2="19"></line>
-                  <line x1="5" y1="12" x2="19" y2="12"></line>
-                </svg>
-                New
               </Button>
             </div>
           </div>
