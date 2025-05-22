@@ -258,15 +258,7 @@ function PartnersTable() {
   
   // State for saved lists
   const [savedLists, setSavedLists] = useState<SavedList[]>([
-    {
-      id: 'all-partners',
-      name: 'All Partners',
-      filters: { },
-      isShared: false,
-      createdBy: 'System',
-      createdAt: new Date('2025-01-01'),
-      isDefault: true // Flag to indicate this is a default list that can't be edited/deleted
-    },
+    // "All Partners" is not in the list as it's the default state when no list is selected
     {
       id: '1',
       name: 'Active Insurance Brokers',
@@ -294,9 +286,8 @@ function PartnersTable() {
       createdAt: new Date('2025-05-15')
     }
   ]);
-  const [activeList, setActiveList] = useState<SavedList | null>(
-    savedLists.find(list => list.id === 'all-partners' && list.isDefault) || null
-  );
+  // Start with no active list since "All Partners" is the default state, not a separate list
+  const [activeList, setActiveList] = useState<SavedList | null>(null);
   const [originalListFilters, setOriginalListFilters] = useState<SavedList['filters'] | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showSaveListModal, setShowSaveListModal] = useState(false);
@@ -508,7 +499,7 @@ function PartnersTable() {
                   </svg>
                   <div className="flex items-center">
                     <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
-                      {activeList ? activeList.name : "My Lists"}
+                      {activeList ? activeList.name : "All Partners"}
                     </span>
                     
                     {/* No list type indicator shown - removed as requested */}
@@ -639,8 +630,8 @@ function PartnersTable() {
                 )}
               </div>
               
-              {/* List actions - Share/Clear when a list is active */}
-              {activeList && (
+              {/* List actions - Share/Clear when a list is active and it's not the default "All Partners" list */}
+              {activeList && !(activeList.isDefault && activeList.name === "All Partners") && (
                 <div className="flex items-center gap-2">
                   
                   <Button 
