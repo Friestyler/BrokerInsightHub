@@ -956,7 +956,10 @@ function PartnersTable() {
                   className={`flex items-center space-x-1 px-3 py-2 border rounded-md text-sm ${selectedStatus ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
                   onClick={() => {
                     setSelectedStatus(selectedStatus ? '' : 'active');
-                    if (activeView) setHasUnsavedChanges(true);
+                    // If we have an active view, mark as having unsaved changes
+                    if (activeView) {
+                      setHasUnsavedChanges(true);
+                    }
                   }}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={selectedStatus ? 'text-indigo-500' : 'text-gray-500'}>
@@ -975,7 +978,10 @@ function PartnersTable() {
                   className={`flex items-center space-x-1 px-3 py-2 border rounded-md text-sm ${selectedIndustry ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
                   onClick={() => {
                     setSelectedIndustry(selectedIndustry ? '' : 'Insurance');
-                    if (activeView) setHasUnsavedChanges(true);
+                    // If we have an active view, mark as having unsaved changes
+                    if (activeView) {
+                      setHasUnsavedChanges(true);
+                    }
                   }}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={selectedIndustry ? 'text-indigo-500' : 'text-gray-500'}>
@@ -995,7 +1001,10 @@ function PartnersTable() {
                   className={`flex items-center space-x-1 px-3 py-2 border rounded-md text-sm ${selectedType ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
                   onClick={() => {
                     setSelectedType(selectedType ? '' : 'Broker');
-                    if (activeView) setHasUnsavedChanges(true);
+                    // If we have an active view, mark as having unsaved changes
+                    if (activeView) {
+                      setHasUnsavedChanges(true);
+                    }
                   }}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={selectedType ? 'text-indigo-500' : 'text-gray-500'}>
