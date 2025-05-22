@@ -294,7 +294,9 @@ function PartnersTable() {
       createdAt: new Date('2025-05-15')
     }
   ]);
-  const [activeList, setActiveList] = useState<SavedList | null>(null);
+  const [activeList, setActiveList] = useState<SavedList | null>(
+    savedLists.find(list => list.id === 'all-partners' && list.isDefault) || null
+  );
   const [originalListFilters, setOriginalListFilters] = useState<SavedList['filters'] | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showSaveListModal, setShowSaveListModal] = useState(false);
