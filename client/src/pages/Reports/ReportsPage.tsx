@@ -7,21 +7,21 @@ import { Separator } from "@/components/ui/separator";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { 
-  BarChart2, Download, FileSpreadsheet, SlidersHorizontal, Table, 
-  Layers, Save, Star, Target, ListChecks, TrendingUp, AtSign,
-  LineChart, Layout
-} from "lucide-react";
+import { BarChart2, Download, FileSpreadsheet, SlidersHorizontal, Table, Layers, Save, Star, Target, ListChecks, TrendingUp, AtSign } from "lucide-react";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 
 // Import different reporting components
 import PivotTableReport from "./components/PivotTableReport";
-import MetabaseDashboard from "./components/MetabaseDashboard";
+import OkrDashboard from "./components/OkrDashboard";
+import MetricsPerformance from "./components/MetricsPerformance";
+import TaskMetrics from "./components/TaskMetrics";
+import OpportunityStatus from "./components/OpportunityStatus";
+import CampaignEngagement from "./components/CampaignEngagement";
 
 export default function ReportsPage() {
   const [, setLocation] = useLocation();
   const { environment } = useEnvironment();
-  const [activeTab, setActiveTab] = useState("metabase");
+  const [activeTab, setActiveTab] = useState("okr-dashboard");
   const [currentView, setCurrentView] = useState("default");
   const [timeFrame, setTimeFrame] = useState("all");
   const [filterRegion, setFilterRegion] = useState("all");
@@ -137,30 +137,82 @@ export default function ReportsPage() {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList className="grid grid-cols-3 w-full">
-          <TabsTrigger value="metabase" className="flex items-center">
-            <Layout className="h-4 w-4 mr-2" />
-            Metabase Dashboard
+        <TabsList className="grid grid-cols-6 w-full">
+          <TabsTrigger value="okr-dashboard" className="flex items-center">
+            <Target className="h-4 w-4 mr-2" />
+            OKR Dashboard
+          </TabsTrigger>
+          <TabsTrigger value="metrics-performance" className="flex items-center">
+            <TrendingUp className="h-4 w-4 mr-2" />
+            Metrics Performance
+          </TabsTrigger>
+          <TabsTrigger value="task-metrics" className="flex items-center">
+            <ListChecks className="h-4 w-4 mr-2" />
+            Task Metrics
+          </TabsTrigger>
+          <TabsTrigger value="opportunity-status" className="flex items-center">
+            <Star className="h-4 w-4 mr-2" />
+            Opportunity Status
+          </TabsTrigger>
+          <TabsTrigger value="campaign-engagement" className="flex items-center">
+            <AtSign className="h-4 w-4 mr-2" />
+            Campaign Engagement
           </TabsTrigger>
           <TabsTrigger value="pivot" className="flex items-center">
             <Layers className="h-4 w-4 mr-2" />
             Custom Reports
           </TabsTrigger>
-          <TabsTrigger value="charts" className="flex items-center">
-            <BarChart2 className="h-4 w-4 mr-2" />
-            Chart Builder
-          </TabsTrigger>
         </TabsList>
         
         <div className="border rounded-md p-4">
-          <TabsContent value="metabase" className="mt-0">
+          <TabsContent value="okr-dashboard" className="mt-0">
             <div className="flex justify-between items-center mb-4">
               <div>
-                <h2 className="text-xl font-semibold">Interactive Dashboards</h2>
-                <p className="text-sm text-gray-500">Comprehensive view of OKRs, metrics, and business performance</p>
+                <h2 className="text-xl font-semibold">OKR Progress Dashboard</h2>
+                <p className="text-sm text-gray-500">Track partner progress on assigned objectives and key results</p>
               </div>
             </div>
-            <MetabaseDashboard timeFrame={timeFrame} region={filterRegion} />
+            <OkrDashboard timeFrame={timeFrame} region={filterRegion} />
+          </TabsContent>
+          
+          <TabsContent value="metrics-performance" className="mt-0">
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h2 className="text-xl font-semibold">Metrics Performance</h2>
+                <p className="text-sm text-gray-500">Performance analysis by metric, tag, or group</p>
+              </div>
+            </div>
+            <MetricsPerformance timeFrame={timeFrame} region={filterRegion} />
+          </TabsContent>
+          
+          <TabsContent value="task-metrics" className="mt-0">
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h2 className="text-xl font-semibold">Open Task Metrics</h2>
+                <p className="text-sm text-gray-500">Overview of incomplete tasks and activities</p>
+              </div>
+            </div>
+            <TaskMetrics timeFrame={timeFrame} region={filterRegion} />
+          </TabsContent>
+          
+          <TabsContent value="opportunity-status" className="mt-0">
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h2 className="text-xl font-semibold">Opportunity Status</h2>
+                <p className="text-sm text-gray-500">Overview of current opportunities by stage and value</p>
+              </div>
+            </div>
+            <OpportunityStatus timeFrame={timeFrame} region={filterRegion} />
+          </TabsContent>
+          
+          <TabsContent value="campaign-engagement" className="mt-0">
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h2 className="text-xl font-semibold">Campaign Engagement</h2>
+                <p className="text-sm text-gray-500">Analysis of campaign performance and partner engagement</p>
+              </div>
+            </div>
+            <CampaignEngagement timeFrame={timeFrame} region={filterRegion} />
           </TabsContent>
 
           <TabsContent value="pivot" className="mt-0">
@@ -171,24 +223,6 @@ export default function ReportsPage() {
               </div>
             </div>
             <PivotTableReport timeFrame={timeFrame} region={filterRegion} />
-          </TabsContent>
-          
-          <TabsContent value="charts" className="mt-0">
-            <div className="flex justify-between items-center mb-4">
-              <div>
-                <h2 className="text-xl font-semibold">Chart Builder</h2>
-                <p className="text-sm text-gray-500">Create custom charts for your presentations and analysis</p>
-              </div>
-            </div>
-            <div className="bg-white p-8 text-center rounded-lg border border-dashed border-gray-300">
-              <LineChart className="h-16 w-16 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium mb-2">Chart Builder</h3>
-              <p className="text-gray-500 max-w-md mx-auto mb-4">
-                Build custom charts by selecting data sources, chart types, and visualization options.
-                This feature will be available in the next phase.
-              </p>
-              <Button variant="outline">Coming Soon</Button>
-            </div>
           </TabsContent>
         </div>
       </Tabs>
