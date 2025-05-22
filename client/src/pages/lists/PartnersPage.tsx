@@ -958,25 +958,7 @@ function PartnersTable() {
             </div>
             
             <div className="flex items-center gap-2">
-              {/* Add Partners button - only shown for static lists */}
-              {activeList && activeList.type === 'selection' && (
-                <button 
-                  className="flex items-center rounded-md bg-[#EBEEFB] border border-[#D4D9F3] text-[#3E4DC4] px-4 py-2 hover:bg-[#D4D9F3]"
-                  onClick={() => {
-                    setPartnersToAdd([]);
-                    setShowAddPartnersModal(true);
-                  }}
-                  style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                    <path d="M17 21v-2a4 4 0 0 0-4-4H7a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="9" cy="7" r="4"></circle>
-                    <path d="M22 11h-6"></path>
-                    <path d="M19 8v6"></path>
-                  </svg>
-                  <span className="font-medium">Add partners to this list</span>
-                </button>
-              )}
+              {/* Add Partners button removed */}
 
               {/* CASE 1: No view is active but filters are applied (on any list including All Partners) */}
               {(filterText || selectedStatus || selectedIndustry || selectedType) && !activeView && (
