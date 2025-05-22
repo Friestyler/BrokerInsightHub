@@ -961,11 +961,8 @@ function PartnersTable() {
                 </button>
               )}
               
-              {/* Save as view button */}
-              {(
-                ((filterText || selectedStatus || selectedIndustry || selectedType) && (activeList?.isDefault || !activeList)) || 
-                (activeList && !activeList.isDefault && hasUnsavedChanges)
-              ) && (
+              {/* Save as view button - shown whenever filters are applied, regardless of list type */}
+              {(filterText || selectedStatus || selectedIndustry || selectedType) && (
                 <div className="group relative">
                   <button 
                     className="flex items-center rounded-md bg-[#EBEEFB] px-4 py-2 hover:bg-[#E3E6F7]"
