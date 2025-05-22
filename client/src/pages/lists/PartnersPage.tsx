@@ -34,7 +34,7 @@ import { useToast } from "@/hooks/use-toast";
 const mockPartners = [
   {
     id: 1,
-    name: "XYZ Insurance Group",
+    name: "XYZ Insurance Group",  // Updated to match PartnerDetail.tsx
     initials: "XY",
     industry: "Insurance",
     type: "Broker",
@@ -48,7 +48,7 @@ const mockPartners = [
   },
   {
     id: 2,
-    name: "ABC Insurance Brokers",
+    name: "ABC Insurance Brokers",  // This matches PartnerDetail.tsx
     initials: "AB",
     industry: "Insurance",
     type: "Broker",
@@ -62,7 +62,7 @@ const mockPartners = [
   },
   {
     id: 3,
-    name: "Global Insurance Partners",
+    name: "Global Insurance Partners",  // Updated to match PartnerDetail.tsx
     initials: "GI",
     industry: "Insurance",
     type: "Broker",
@@ -197,79 +197,9 @@ interface SavedList {
   isDefault?: boolean; // Flag for system-generated default lists that can't be edited/deleted
 }
 
-// Guide component for dynamic lists
-function DynamicListGuidance({ isNewList }: { isNewList: boolean }) {
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  
-  return (
-    <div className="bg-blue-50 border border-blue-200 rounded-md overflow-hidden">
-      <div className="p-4">
-        <div className="flex justify-between items-start">
-          <div className="flex items-start">
-            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-500 mt-0.5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-            <div>
-              <h3 className="font-medium text-blue-800">Working with Views and Lists</h3>
-              {!isCollapsed && (
-                <>
-                  <p className="mt-1 text-sm text-blue-700">
-                    {isNewList 
-                      ? "Lists and views help you organize your partners for efficient management."
-                      : "This is your current list view. You can modify the filters and save changes."}
-                  </p>
-                  
-                  <div className="mt-3 space-y-2">
-                    <div className="flex items-start">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-blue-600 mt-0.5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                      <p className="text-sm text-blue-700"><strong>Views</strong>: Save your filter settings to quickly find partners matching specific criteria later.</p>
-                    </div>
-                    
-                    <div className="flex items-start">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-blue-600 mt-0.5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                      <p className="text-sm text-blue-700"><strong>Lists</strong>: Select specific partners to create curated groups for campaigns or reports.</p>
-                    </div>
-                    
-                    <div className="flex items-start">
-                      <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-blue-600 mt-0.5 mr-2" viewBox="0 0 20 20" fill="currentColor">
-                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                      </svg>
-                      <p className="text-sm text-blue-700">To create a list, select partners using the checkboxes and click "Create List" button.</p>
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-          <Button 
-            variant="ghost" 
-            size="sm" 
-            className="text-blue-700 hover:bg-blue-100 ml-2"
-            onClick={() => setIsCollapsed(!isCollapsed)}
-          >
-            {isCollapsed ? (
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-              </svg>
-            ) : (
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-              </svg>
-            )}
-          </Button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 // Main partner list component
 function PartnersTable() {
-  // Filter state
+  const { environment } = useEnvironment();
   const [filterText, setFilterText] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedIndustry, setSelectedIndustry] = useState('');
@@ -279,29 +209,6 @@ function PartnersTable() {
   const [itemsPerPage, setItemsPerPage] = useState(12);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   
-  // UI state
-  const [filterMenuOpen, setFilterMenuOpen] = useState(false);
-  const [showSaveViewModal, setShowSaveViewModal] = useState(false);
-  const [showSaveListModal, setShowSaveListModal] = useState(false);
-  const [showShareListModal, setShowShareListModal] = useState(false);
-  const [showListsDropdown, setShowListsDropdown] = useState(false);
-  const [showAddPartnersModal, setShowAddPartnersModal] = useState(false);
-  const [showCreateListModal, setShowCreateListModal] = useState(false);
-  const [showDynamicListGuidance, setShowDynamicListGuidance] = useState(false);
-  const [isGuidanceCollapsed, setIsGuidanceCollapsed] = useState(false);
-  const [showCreateFromSelectionModal, setShowCreateFromSelectionModal] = useState(false);
-  
-  // Form state
-  const [newViewName, setNewViewName] = useState('');
-  const [newViewDescription, setNewViewDescription] = useState('');
-  const [newListName, setNewListName] = useState('');
-  const [newListDescription, setNewListDescription] = useState('');
-  const [selectionListName, setSelectionListName] = useState('');
-  const [selectionListDescription, setSelectionListDescription] = useState('');
-  const [selectionListType, setSelectionListType] = useState<'filter' | 'selection'>('filter');
-  const [partnersToAdd, setPartnersToAdd] = useState<number[]>([]);
-  
-  // State for views
   const [views, setViews] = useState<{
     id: string;
     name: string;
@@ -347,7 +254,46 @@ function PartnersTable() {
   
   const [activeView, setActiveView] = useState<typeof views[0] | null>(null);
   
-  // State for lists
+  // Function to determine if current filters differ from active view
+  const haveViewFiltersChanged = () => {
+    if (!activeView) return false;
+    
+    const currentFilters = {
+      searchText: filterText || '',
+      status: selectedStatus || '',
+      industry: selectedIndustry || '',
+      type: selectedType || ''
+    };
+    
+    return currentFilters.searchText !== (activeView.filters.searchText || '') ||
+           currentFilters.status !== (activeView.filters.status || '') ||
+           currentFilters.industry !== (activeView.filters.industry || '') ||
+           currentFilters.type !== (activeView.filters.type || '');
+  };
+  
+  // Effect to check for unsaved changes when filters change
+  useEffect(() => {
+    if (activeView) {
+      setHasUnsavedChanges(haveViewFiltersChanged());
+    }
+  }, [filterText, selectedStatus, selectedIndustry, selectedType, activeView]);
+  
+  // Function to clear the active view and reset filters
+  const clearActiveView = () => {
+    setActiveView(null);
+    setFilterText('');
+    setSelectedStatus('');
+    setSelectedIndustry('');
+    setSelectedType('');
+    setHasUnsavedChanges(false);
+  };
+  
+  const [filterMenuOpen, setFilterMenuOpen] = useState(false);
+  const [showSaveViewModal, setShowSaveViewModal] = useState(false);
+  const [newViewName, setNewViewName] = useState('');
+  const [newViewDescription, setNewViewDescription] = useState('');
+  
+  // State for saved lists
   const [savedLists, setSavedLists] = useState<SavedList[]>([
     // "All Partners" is not in the list as it's the default state when no list is selected
     {
@@ -378,45 +324,59 @@ function PartnersTable() {
     }
   ]);
   
+  // Start with no active list since "All Partners" is the default state, not a separate list
   const [activeList, setActiveList] = useState<SavedList | null>(null);
   const [originalListFilters, setOriginalListFilters] = useState<SavedList['filters'] | null>(null);
+  const [showSaveListModal, setShowSaveListModal] = useState(false);
+  const [showShareListModal, setShowShareListModal] = useState(false);
+  const [showListsDropdown, setShowListsDropdown] = useState(false);
+  const [showAddPartnersModal, setShowAddPartnersModal] = useState(false);
+  const [showCreateListModal, setShowCreateListModal] = useState(false);
+  const [showDynamicListGuidance, setShowDynamicListGuidance] = useState(false);
+  const [isGuidanceCollapsed, setIsGuidanceCollapsed] = useState(false);
   
-  // Toast notifications
-  const { toast } = useToast();
-  
-  // Function to determine if current filters differ from active view
-  const haveViewFiltersChanged = () => {
-    if (!activeView) return false;
+  // State for the name and description when creating a list through the general create modal
+  const [newListName, setNewListName] = useState('');
+  const [newListDescription, setNewListDescription] = useState('');
+  const [partnersToAdd, setPartnersToAdd] = useState<number[]>([]);
+  const [showCreateFromSelectionModal, setShowCreateFromSelectionModal] = useState(false);
     
-    const currentFilters = {
-      searchText: filterText || '',
-      status: selectedStatus || '',
-      industry: selectedIndustry || '',
-      type: selectedType || ''
-    };
-    
-    return currentFilters.searchText !== (activeView.filters.searchText || '') ||
-           currentFilters.status !== (activeView.filters.status || '') ||
-           currentFilters.industry !== (activeView.filters.industry || '') ||
-           currentFilters.type !== (activeView.filters.type || '');
-  };
-  
-  // Use effect to track filter changes
-  useEffect(() => {
-    if (activeView) {
-      setHasUnsavedChanges(haveViewFiltersChanged());
+  // Filter partners based on search text, filter selections, and list type
+  const displayedPartners = mockPartners.filter(partner => {
+    // If we have an active static list, only show partners that were explicitly selected for that list
+    if (activeList && activeList.type === 'selection') {
+      // First check if the partner is in the selection list
+      const isInSelectionList = activeList.members?.includes(partner.id) || false;
+      
+      if (!isInSelectionList) {
+        return false; // Skip partners not in selection list
+      }
+      
+      // Then apply filters only to the selected partners
+      const matchesText = !filterText || 
+        partner.name.toLowerCase().includes(filterText.toLowerCase()) ||
+        partner.industry.toLowerCase().includes(filterText.toLowerCase()) ||
+        partner.type.toLowerCase().includes(filterText.toLowerCase());
+        
+      const matchesStatus = !selectedStatus || selectedStatus === 'all' || partner.status === selectedStatus;
+      const matchesIndustry = !selectedIndustry || selectedIndustry === 'all' || partner.industry === selectedIndustry;
+      const matchesType = !selectedType || partner.type === selectedType;
+      
+      return matchesText && matchesStatus && matchesIndustry && matchesType;
+    } else {
+      // For dynamic lists or no list, apply filters to all partners
+      const matchesText = !filterText || 
+        partner.name.toLowerCase().includes(filterText.toLowerCase()) ||
+        partner.industry.toLowerCase().includes(filterText.toLowerCase()) ||
+        partner.type.toLowerCase().includes(filterText.toLowerCase());
+        
+      const matchesStatus = !selectedStatus || selectedStatus === 'all' || partner.status === selectedStatus;
+      const matchesIndustry = !selectedIndustry || selectedIndustry === 'all' || partner.industry === selectedIndustry;
+      const matchesType = !selectedType || partner.type === selectedType;
+      
+      return matchesText && matchesStatus && matchesIndustry && matchesType;
     }
-  }, [filterText, selectedStatus, selectedIndustry, selectedType, activeView]);
-  
-  // Function to clear the active view and reset filters
-  const clearActiveView = () => {
-    setActiveView(null);
-    setFilterText('');
-    setSelectedStatus('');
-    setSelectedIndustry('');
-    setSelectedType('');
-    setHasUnsavedChanges(false);
-  };
+  });
   
   // Check if current filters differ from original list filters to detect unsaved changes
   useEffect(() => {
@@ -438,12 +398,9 @@ function PartnersTable() {
       
       setHasUnsavedChanges(hasChanges);
     } else {
-      // If we're not dealing with list filters, check for view filter changes
-      if (!activeView) {
-        setHasUnsavedChanges(false);
-      }
+      setHasUnsavedChanges(false);
     }
-  }, [filterText, selectedStatus, selectedIndustry, selectedType, activeList, originalListFilters, activeView]);
+  }, [filterText, selectedStatus, selectedIndustry, selectedType, activeList, originalListFilters]);
   
   // Function to revert changes to the original list filters
   const revertChanges = () => {
@@ -455,6 +412,14 @@ function PartnersTable() {
       setHasUnsavedChanges(false);
     }
   };
+  
+  // State for list creation from selection
+  const [selectionListName, setSelectionListName] = useState('');
+  const [selectionListDescription, setSelectionListDescription] = useState('');
+  const [selectionListType, setSelectionListType] = useState<'filter' | 'selection'>('filter');
+  
+  // Initialize toast
+  const { toast } = useToast();
   
   // Function to open list creation from selection
   const openCreateFromSelection = () => {
@@ -473,7 +438,7 @@ function PartnersTable() {
       });
     }
   };
-  
+
   // Function to save the current view - handles both updating existing views and creating new ones
   const saveView = () => {
     if (!activeView) {
@@ -724,43 +689,6 @@ function PartnersTable() {
     }
   };
   
-  // Filter partners based on search text, filter selections, and list type
-  const displayedPartners = mockPartners.filter(partner => {
-    // If we have an active static list, only show partners that were explicitly selected for that list
-    if (activeList && activeList.type === 'selection') {
-      // First check if the partner is in the selection list
-      const isInSelectionList = activeList.members?.includes(partner.id) || false;
-      
-      if (!isInSelectionList) {
-        return false; // Skip partners not in selection list
-      }
-      
-      // Then apply filters only to the selected partners
-      const matchesText = !filterText || 
-        partner.name.toLowerCase().includes(filterText.toLowerCase()) ||
-        partner.industry.toLowerCase().includes(filterText.toLowerCase()) ||
-        partner.type.toLowerCase().includes(filterText.toLowerCase());
-        
-      const matchesStatus = !selectedStatus || selectedStatus === 'all' || partner.status === selectedStatus;
-      const matchesIndustry = !selectedIndustry || selectedIndustry === 'all' || partner.industry === selectedIndustry;
-      const matchesType = !selectedType || partner.type === selectedType;
-      
-      return matchesText && matchesStatus && matchesIndustry && matchesType;
-    } else {
-      // For dynamic lists or no list, apply filters to all partners
-      const matchesText = !filterText || 
-        partner.name.toLowerCase().includes(filterText.toLowerCase()) ||
-        partner.industry.toLowerCase().includes(filterText.toLowerCase()) ||
-        partner.type.toLowerCase().includes(filterText.toLowerCase());
-        
-      const matchesStatus = !selectedStatus || selectedStatus === 'all' || partner.status === selectedStatus;
-      const matchesIndustry = !selectedIndustry || selectedIndustry === 'all' || partner.industry === selectedIndustry;
-      const matchesType = !selectedType || partner.type === selectedType;
-      
-      return matchesText && matchesStatus && matchesIndustry && matchesType;
-    }
-  });
-  
   // Pagination logic
   const totalPages = Math.ceil(displayedPartners.length / itemsPerPage);
   const paginatedPartners = displayedPartners.slice(
@@ -795,9 +723,6 @@ function PartnersTable() {
   
   // Get partner stats for display
   const partnerStats = calculatePartnerStats(displayedPartners);
-  
-  // Get current environment name
-  const { environment } = useEnvironment();
   
   // Return the JSX for the component
   return (
@@ -887,7 +812,68 @@ function PartnersTable() {
       
       {/* Dynamic list guidance */}
       {showDynamicListGuidance && (
-        <DynamicListGuidance isNewList={!activeList} />
+        <div className="bg-blue-50 border border-blue-200 rounded-md overflow-hidden">
+          <div className="p-4">
+            <div className="flex justify-between items-start">
+              <div className="flex items-start">
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-blue-500 mt-0.5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <div>
+                  <h3 className="font-medium text-blue-800">Working with Views and Lists</h3>
+                  {!isGuidanceCollapsed && (
+                    <>
+                      <p className="mt-1 text-sm text-blue-700">
+                        {!activeList 
+                          ? "Lists and views help you organize your partners for efficient management."
+                          : "This is your current list view. You can modify the filters and save changes."}
+                      </p>
+                      
+                      <div className="mt-3 space-y-2">
+                        <div className="flex items-start">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-blue-600 mt-0.5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                          <p className="text-sm text-blue-700"><strong>Views</strong>: Save your filter settings to quickly find partners matching specific criteria later.</p>
+                        </div>
+                        
+                        <div className="flex items-start">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-blue-600 mt-0.5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                          <p className="text-sm text-blue-700"><strong>Lists</strong>: Select specific partners to create curated groups for campaigns or reports.</p>
+                        </div>
+                        
+                        <div className="flex items-start">
+                          <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-blue-600 mt-0.5 mr-2" viewBox="0 0 20 20" fill="currentColor">
+                            <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                          </svg>
+                          <p className="text-sm text-blue-700">To create a list, select partners using the checkboxes and click "Create List" button.</p>
+                        </div>
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                className="text-blue-700 hover:bg-blue-100 ml-2"
+                onClick={() => setIsGuidanceCollapsed(!isGuidanceCollapsed)}
+              >
+                {isGuidanceCollapsed ? (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                ) : (
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                  </svg>
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
       
       {/* Filter and search section */}
