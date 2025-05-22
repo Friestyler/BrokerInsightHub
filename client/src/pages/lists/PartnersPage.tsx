@@ -1114,7 +1114,7 @@ function PartnersTable() {
           <DialogHeader>
             <DialogTitle className="text-[#282A3F] font-semibold text-lg" style={{ fontFamily: 'Poppins, sans-serif' }}>Save Filter Combination as View</DialogTitle>
             <DialogDescription>
-              Save your current filter settings as a named view. You can quickly access this view later to apply the same filters.
+              Save your current filter settings as a view. You can quickly access this view later from any list, and it will apply the filters you saved.
             </DialogDescription>
           </DialogHeader>
           
