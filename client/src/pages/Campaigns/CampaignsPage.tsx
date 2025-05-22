@@ -328,11 +328,6 @@ export default function CampaignsPage() {
                     <CardDescription>
                       {template.isSponsored ? `By ${template.sponsor}` : template.category}
                     </CardDescription>
-                    {template.description && (
-                      <p className="text-sm text-gray-600 mt-2">
-                        {template.description}
-                      </p>
-                    )}
                   </CardHeader>
                   <CardFooter>
                     <Button 
