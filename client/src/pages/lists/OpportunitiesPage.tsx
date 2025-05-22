@@ -239,6 +239,8 @@ function OpportunitiesTable() {
   const [bulkStatusValue, setBulkStatusValue] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
+  // State for share dialog - selected partners
+  const [selectedPartners, setSelectedPartners] = useState<string[]>([]);
   
   // State for saved lists
   const [savedLists, setSavedLists] = useState<SavedList[]>([
@@ -1336,20 +1338,22 @@ function OpportunitiesTable() {
                       return partners;
                     }, [] as string[]);
                     
-                    // Toggle all based on current state
-                    if (selectedPartners.length === allPartnerIds.length) {
-                      setSelectedPartners([]);
-                    } else {
-                      setSelectedPartners(allPartnerIds);
-                    }
+                    const currentSelectedPartners = document.querySelectorAll('input[id^="partner-checkbox-"]:checked');
+                    const isAllSelected = currentSelectedPartners.length === allPartnerIds.length;
+                    
+                    // Toggle checkboxes based on current state
+                    document.querySelectorAll('input[id^="partner-checkbox-"]').forEach(checkbox => {
+                      (checkbox as HTMLInputElement).checked = !isAllSelected;
+                    });
                   }}
                 >
-                  {mockOpportunities.reduce((partners, opp) => {
-                    if (!partners.includes(opp.partnerId.toString())) {
-                      partners.push(opp.partnerId.toString());
-                    }
-                    return partners;
-                  }, [] as string[]).length === selectedPartners.length && selectedPartners.length > 0 
+                  {document.querySelectorAll('input[id^="partner-checkbox-"]:checked').length === 
+                   mockOpportunities.reduce((partners, opp) => {
+                     if (!partners.includes(opp.partnerId.toString())) {
+                       partners.push(opp.partnerId.toString());
+                     }
+                     return partners;
+                   }, [] as string[]).length 
                     ? 'Deselect All' : 'Select All'}
                 </button>
               </div>
@@ -1367,14 +1371,6 @@ function OpportunitiesTable() {
                       <Checkbox 
                         id={`partner-checkbox-${partner.id}`} 
                         className="mr-3" 
-                        checked={selectedPartners.includes(partner.id.toString())}
-                        onCheckedChange={(checked) => {
-                          if (checked) {
-                            setSelectedPartners(prev => [...prev, partner.id.toString()]);
-                          } else {
-                            setSelectedPartners(prev => prev.filter(id => id !== partner.id.toString()));
-                          }
-                        }}
                         value={partner.id.toString()}
                       />
                       <Label 
@@ -1581,7 +1577,7 @@ function OpportunitiesTable() {
                 (checkbox as HTMLInputElement).value
               );
               
-              // Update selected partners count display (for future checkbox changes)
+              // Update selected partners count display
               const selectedCountElement = document.getElementById('selected-partners-count');
               if (selectedCountElement) {
                 selectedCountElement.textContent = selectedPartnerIds.length.toString();
@@ -1600,6 +1596,9 @@ function OpportunitiesTable() {
                 // Original list's opportunities
                 const opportunities = displayedOpportunities;
                 
+                // Track created lists
+                const createdListNames: string[] = [];
+                
                 // For each selected partner, create a partner-specific list
                 selectedPartnerIds.forEach(partnerId => {
                   // Find the partner name
@@ -1610,10 +1609,18 @@ function OpportunitiesTable() {
                     .filter(opp => opp.partnerId.toString() === partnerId)
                     .map(opp => opp.id);
                   
+                  // Skip if no relevant opportunities for this partner
+                  if (partnerOpportunities.length === 0) {
+                    return;
+                  }
+                  
                   // Create a new list specific to this partner
+                  const newListName = `${activeList.name} - ${partnerName}`;
+                  createdListNames.push(newListName);
+                  
                   const newList: SavedList = {
                     id: `list-partner-${partnerId}-${Date.now()}`,
-                    name: `${activeList.name} - ${partnerName}`,
+                    name: newListName,
                     description: activeList.description ? 
                       `${activeList.description} (Shared from original list: ${activeList.name})` : 
                       `Shared from original list: ${activeList.name}`,
@@ -1646,12 +1653,26 @@ function OpportunitiesTable() {
                 setSavedLists(updatedLists);
                 setActiveList(updatedLists.find(v => v.id === activeList.id) || null);
                 
-                // Show success toast
-                toast({
-                  title: "List shared successfully",
-                  description: `Created ${selectedPartnerIds.length} partner-specific ${selectedPartnerIds.length === 1 ? 'list' : 'lists'}.`,
-                });
+                if (createdListNames.length > 0) {
+                  // Show success toast
+                  toast({
+                    title: "Lists shared successfully",
+                    description: `Created ${createdListNames.length} partner-specific ${createdListNames.length === 1 ? 'list' : 'lists'}.`,
+                  });
+                } else {
+                  // No lists were created (no partner had relevant opportunities)
+                  toast({
+                    title: "No lists created",
+                    description: "No lists were created because selected partners don't have relevant opportunities in this list.",
+                    variant: "destructive",
+                  });
+                }
               }
+              
+              // Clear selections and close modal
+              document.querySelectorAll('input[id^="partner-checkbox-"]').forEach(checkbox => {
+                (checkbox as HTMLInputElement).checked = false;
+              });
               
               setShowShareListModal(false);
             }}>
