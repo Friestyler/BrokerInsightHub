@@ -31,7 +31,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 
 // Sample data for partners - updated to match the detail page data
-const mockPartners = [
+export const mockPartners = [
   {
     id: 1,
     name: "XYZ Insurance Group",  // Updated to match PartnerDetail.tsx

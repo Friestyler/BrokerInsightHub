@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
+import { mockPartners } from './PartnersPage';
 
 
 // Partner data interface
@@ -410,9 +411,37 @@ function ProgressBar({ progress, type = "default" }: { progress: number, type?: 
 
 export default function PartnerDetail() {
   const { id } = useParams();
+  const [, setLocation] = useLocation();
   
-  // Get the partner data based on ID from URL
-  const partner = partnerDataMap[id as keyof typeof partnerDataMap] || partnerDataMap["1"];
+  // Find the partner from the shared mockPartners array from PartnersPage
+  const sharedPartner = mockPartners.find(p => p.id === Number(id));
+  
+  // If partner not found in the shared data, show not found message
+  if (!sharedPartner) {
+    return (
+      <div className="container mx-auto px-4 py-6">
+        <div className="flex flex-col items-center justify-center py-12">
+          <h1 className="text-2xl font-bold mb-4">Partner Not Found</h1>
+          <p className="text-gray-600 mb-6">The partner you're looking for doesn't exist or has been removed.</p>
+          <Button onClick={() => setLocation("/lists/partners")}>
+            Return to Partners
+          </Button>
+        </div>
+      </div>
+    );
+  }
+  
+  // Get the partner data from partnerDataMap for additional details
+  const partnerDetails = partnerDataMap[id as keyof typeof partnerDataMap];
+  
+  // Combine the shared data with detailed data
+  const partner = {
+    ...partnerDetails || partnerDataMap["1"],
+    // Override with the shared values from mockPartners to keep in sync
+    id: sharedPartner.id,
+    name: sharedPartner.name,
+    initials: sharedPartner.initials
+  };
   
   // State for partner description editing
   const [isEditingDescription, setIsEditingDescription] = useState(false);
@@ -548,10 +577,23 @@ export default function PartnerDetail() {
                 </h1>
                 <Button 
                   variant="outline" 
-                  size="sm" 
+                  size="sm"
                   className="h-6 px-2 py-0 rounded-md flex items-center justify-center border-gray-200 text-xs text-indigo-600"
+                  onClick={() => {
+                    // Prompt for a new partner name
+                    const newName = prompt("Enter new partner name:", partner.name);
+                    if (newName && newName.trim() !== "") {
+                      // Find and update the partner in the shared mockPartners array
+                      const index = mockPartners.findIndex(p => p.id === partner.id);
+                      if (index !== -1) {
+                        mockPartners[index].name = newName;
+                        // Force refresh to show the updated name
+                        window.location.reload();
+                      }
+                    }
+                  }}
                 >
-                  Details
+                  Edit Name
                 </Button>
                 <Badge variant="outline" className="capitalize">
                   {partner.segment}
