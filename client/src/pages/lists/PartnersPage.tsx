@@ -207,6 +207,23 @@ function PartnersTable() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
   
+  // Function to determine if current filters differ from active view
+  const haveFiltersChanged = () => {
+    if (!activeView) return false;
+    
+    const currentFilters = {
+      searchText: filterText || '',
+      status: selectedStatus || '',
+      industry: selectedIndustry || '',
+      type: selectedType || ''
+    };
+    
+    return currentFilters.searchText !== (activeView.filters.searchText || '') ||
+           currentFilters.status !== (activeView.filters.status || '') ||
+           currentFilters.industry !== (activeView.filters.industry || '') ||
+           currentFilters.type !== (activeView.filters.type || '');
+  };
+  
   // Function to clear the active view and reset filters
   const clearActiveView = () => {
     setActiveView(null);
@@ -854,7 +871,10 @@ function PartnersTable() {
                   value={filterText}
                   onChange={(e) => {
                     setFilterText(e.target.value);
-                    setHasUnsavedChanges(true);
+                    // Only set hasUnsavedChanges if we have an active view
+                    if (activeView) {
+                      setHasUnsavedChanges(true);
+                    }
                   }}
                   className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
                 />
