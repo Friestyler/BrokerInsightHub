@@ -20,7 +20,7 @@ export default function Layout({ children }: LayoutProps) {
   // Calculate the current page title based on the location
   useEffect(() => {
     if (location === "/") {
-      setCurrentPageTitle(environment.id === 'myqollabi' ? 'Broker Copilot' : 'Partner Copilot');
+      setCurrentPageTitle('Partner Copilot');
     } else if (location === "/opportunities") {
       setCurrentPageTitle("Opportunities");
     } else if (location === "/partners") {
@@ -32,7 +32,7 @@ export default function Layout({ children }: LayoutProps) {
     } else if (location === "/campaigns") {
       setCurrentPageTitle("Campaigns");
     } else {
-      setCurrentPageTitle(environment.id === 'myqollabi' ? 'Broker Copilot' : 'Partner Copilot');
+      setCurrentPageTitle('Partner Copilot');
     }
   }, [location, environment]);
   

@@ -294,7 +294,7 @@ const PartnerCopilotSlider = ({ variant = 'default' }: PartnerCopilotSliderProps
         response = "I can help you create a new campaign or analyze your existing campaigns. What would you like to do?";
       } else if (userInput.toLowerCase().includes('report') || userInput.toLowerCase().includes('data')) {
         response = "I can help you generate reports or analyze your data. Would you like me to create a specific report for you?";
-      } else if (userInput.toLowerCase().includes('partner') || userInput.toLowerCase().includes('broker')) {
+      } else if (userInput.toLowerCase().includes('partner')) {
         response = "I can help you find insights about your partners or suggest opportunities for collaboration. What information are you looking for?";
       } else if (userInput.toLowerCase().includes('metric') || userInput.toLowerCase().includes('performance')) {
         response = "I can help you track metrics and performance indicators. Would you like to see current performance or set up new metrics?";
@@ -365,7 +365,7 @@ const PartnerCopilotSlider = ({ variant = 'default' }: PartnerCopilotSliderProps
           className={`rounded-full ${variant === 'ghost' ? 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-medium' : 'bg-indigo-600 hover:bg-indigo-700 text-white'}`}
         >
           <Sparkles className="mr-1.5 h-4 w-4" />
-          {environment.id === 'myqollabi' ? 'Ask broker copilot' : 'Ask partner copilot'}
+          Ask partner copilot
         </Button>
       </SheetTrigger>
       <SheetContent className="w-[400px] sm:w-[540px] p-0 border-l">
@@ -373,7 +373,7 @@ const PartnerCopilotSlider = ({ variant = 'default' }: PartnerCopilotSliderProps
           <SheetHeader className="px-6 pt-6 pb-4 border-b">
             <SheetTitle className="flex items-center text-indigo-600">
               <Sparkles className="h-5 w-5 mr-2" />
-              {environment.id === 'myqollabi' ? 'Broker Copilot' : 'Partner Copilot'}
+              Partner Copilot
             </SheetTitle>
           </SheetHeader>
           
