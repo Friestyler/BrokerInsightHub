@@ -836,7 +836,27 @@ function PartnersTable() {
           {/* Bottom row with search and filters */}
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-3 flex-grow">
-              {/* Views dropdown */}
+              {/* Search field - first position */}
+              <div className="relative w-60">
+                <input
+                  type="text"
+                  placeholder="Search by name, industry..."
+                  value={filterText}
+                  onChange={(e) => {
+                    setFilterText(e.target.value);
+                    setHasUnsavedChanges(true);
+                  }}
+                  className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
+                />
+                <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                  </svg>
+                </button>
+              </div>
+              
+              {/* Views dropdown - moved after search bar with icon */}
               <div className="relative w-60">
                 <Select 
                   value={activeView ? activeView.id : "default"} 
@@ -870,8 +890,16 @@ function PartnersTable() {
                     }
                   }}
                 >
-                  <SelectTrigger className="w-full">
-                    <SelectValue placeholder="Select view" />
+                  <SelectTrigger className="w-full flex items-center">
+                    <div className="flex items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 text-gray-500">
+                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                        <line x1="6" y1="9" x2="18" y2="9"></line>
+                        <polyline points="12 13 12 17"></polyline>
+                        <line x1="10" y1="15" x2="14" y2="15"></line>
+                      </svg>
+                      <SelectValue placeholder="Select view" />
+                    </div>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="default">All Partners</SelectItem>
@@ -880,26 +908,6 @@ function PartnersTable() {
                     ))}
                   </SelectContent>
                 </Select>
-              </div>
-
-              {/* Search field - moved to second row */}
-              <div className="relative w-60">
-                <input
-                  type="text"
-                  placeholder="Search by name, industry..."
-                  value={filterText}
-                  onChange={(e) => {
-                    setFilterText(e.target.value);
-                    setHasUnsavedChanges(true);
-                  }}
-                  className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
-                />
-                <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                  </svg>
-                </button>
               </div>
               
               {/* Filters - placed alongside search */}
