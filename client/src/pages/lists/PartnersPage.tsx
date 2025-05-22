@@ -514,36 +514,20 @@ function PartnersTable() {
                     {/* Dynamic List Type Indicator */}
                     {activeList && (
                       <div className="group relative ml-2">
-                        {activeList.type === 'selection' ? (
-                          <div className="flex items-center">
-                            <div className="bg-emerald-100 text-emerald-800 rounded-full px-2 py-0.5 text-xs">
-                              <div className="flex items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                                </svg>
-                                <span>Custom List</span>
-                              </div>
-                            </div>
-                            <div className="opacity-0 absolute -top-9 left-0 px-2 py-1 rounded bg-gray-800 text-white text-xs whitespace-nowrap transition-opacity group-hover:opacity-100 z-10">
-                              Only includes partners you manually add
+                        <div className="flex items-center">
+                          <div className="bg-emerald-100 text-emerald-800 rounded-full px-2 py-0.5 text-xs">
+                            <div className="flex items-center">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                              </svg>
+                              <span>Custom List</span>
                             </div>
                           </div>
-                        ) : (
-                          <div className="flex items-center">
-                            <div className="bg-blue-100 text-blue-800 rounded-full px-2 py-0.5 text-xs">
-                              <div className="flex items-center">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                                </svg>
-                                <span>Saved Filter</span>
-                              </div>
-                            </div>
-                            <div className="opacity-0 absolute -top-9 left-0 px-2 py-1 rounded bg-gray-800 text-white text-xs whitespace-nowrap transition-opacity group-hover:opacity-100 z-10">
-                              Shows all partners that match your saved criteria
-                            </div>
+                          <div className="opacity-0 absolute -top-9 left-0 px-2 py-1 rounded bg-gray-800 text-white text-xs whitespace-nowrap transition-opacity group-hover:opacity-100 z-10">
+                            Only includes partners you manually add
                           </div>
-                        )}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -752,8 +736,8 @@ function PartnersTable() {
             </div>
           </div>
           
-          {/* Saved Filter Guidance Banner - appears after creating a filter-based list */}
-          {showDynamicListGuidance && activeList?.type === 'filter' && (
+          {/* View Management Guidance - appears when creating or using Views */}
+          {showDynamicListGuidance && (
             <div className="bg-blue-50 border border-blue-200 rounded-lg mb-4 overflow-hidden transition-all duration-300">
               <div className="p-4 cursor-pointer flex items-center justify-between" 
                    onClick={() => setIsGuidanceCollapsed(!isGuidanceCollapsed)}>
@@ -766,7 +750,7 @@ function PartnersTable() {
                     </svg>
                   </div>
                   <h3 className="ml-3 text-sm font-medium text-blue-800" style={{ fontFamily: 'Poppins, sans-serif' }}>
-                    Next step: Set your filter criteria
+                    Use Views to save and apply filter combinations
                   </h3>
                 </div>
                 <div>
@@ -786,11 +770,11 @@ function PartnersTable() {
               {!isGuidanceCollapsed && (
                 <div className="px-4 pb-4 pt-1 ml-10">
                   <div className="text-sm text-blue-700">
-                    <p>Use the filters below to specify which partners should be included in this dynamic list.</p>
+                    <p>Apply filters and save them as named views for quick access later.</p>
                     <ul className="list-disc pl-5 mt-2 space-y-1">
-                      <li><strong>Business Value:</strong> Maintain real-time partner segments for targeted campaigns</li>
-                      <li><strong>Automation:</strong> New partners matching your criteria are added automatically</li>
-                      <li><strong>Consistency:</strong> Always up-to-date view for reporting and opportunity tracking</li>
+                      <li><strong>Save Time:</strong> Create reusable filter combinations for common partner segments</li>
+                      <li><strong>Quick Access:</strong> Instantly apply complex filter combinations with a single click</li>
+                      <li><strong>Global Views:</strong> Use your saved views across all your partner lists</li>
                     </ul>
                   </div>
                 </div>
