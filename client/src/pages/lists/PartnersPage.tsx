@@ -741,8 +741,8 @@ function PartnersTable() {
         partner.industry.toLowerCase().includes(filterText.toLowerCase()) ||
         partner.type.toLowerCase().includes(filterText.toLowerCase());
         
-      const matchesStatus = !selectedStatus || partner.status === selectedStatus;
-      const matchesIndustry = !selectedIndustry || partner.industry === selectedIndustry;
+      const matchesStatus = !selectedStatus || selectedStatus === 'all' || partner.status === selectedStatus;
+      const matchesIndustry = !selectedIndustry || selectedIndustry === 'all' || partner.industry === selectedIndustry;
       const matchesType = !selectedType || partner.type === selectedType;
       
       return matchesText && matchesStatus && matchesIndustry && matchesType;
@@ -753,8 +753,8 @@ function PartnersTable() {
         partner.industry.toLowerCase().includes(filterText.toLowerCase()) ||
         partner.type.toLowerCase().includes(filterText.toLowerCase());
         
-      const matchesStatus = !selectedStatus || partner.status === selectedStatus;
-      const matchesIndustry = !selectedIndustry || partner.industry === selectedIndustry;
+      const matchesStatus = !selectedStatus || selectedStatus === 'all' || partner.status === selectedStatus;
+      const matchesIndustry = !selectedIndustry || selectedIndustry === 'all' || partner.industry === selectedIndustry;
       const matchesType = !selectedType || partner.type === selectedType;
       
       return matchesText && matchesStatus && matchesIndustry && matchesType;
@@ -803,7 +803,7 @@ function PartnersTable() {
   return (
     <div className="space-y-6">
       {/* Environment banner */}
-      {environment !== 'myqollabi' && (
+      {environment.id !== 'myqollabi' && (
         <div className="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
           <div className="flex">
             <div className="flex-shrink-0">
@@ -813,7 +813,7 @@ function PartnersTable() {
             </div>
             <div className="ml-3">
               <p className="text-sm text-blue-700">
-                You are viewing data for the <span className="font-medium">{environment}</span> environment.
+                You are viewing data for the <span className="font-medium">{environment.name}</span> environment.
               </p>
             </div>
           </div>
@@ -917,7 +917,7 @@ function PartnersTable() {
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Statuses</SelectItem>
+              <SelectItem value="all">All Statuses</SelectItem>
               <SelectItem value="active">Active</SelectItem>
               <SelectItem value="inactive">Inactive</SelectItem>
             </SelectContent>
@@ -930,7 +930,7 @@ function PartnersTable() {
               <SelectValue placeholder="Industry" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Industries</SelectItem>
+              <SelectItem value="all">All Industries</SelectItem>
               <SelectItem value="Insurance">Insurance</SelectItem>
               <SelectItem value="Finance">Finance</SelectItem>
               <SelectItem value="Consulting">Consulting</SelectItem>
