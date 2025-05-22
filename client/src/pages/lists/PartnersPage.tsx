@@ -565,8 +565,7 @@ function PartnersTable() {
                         </div>
                       </div>
                       
-                      {/* Divider between default and custom lists */}
-                      <div className="my-1 border-t border-slate-200"></div>
+                      {/* No divider between lists */}
                       
                       {/* Other saved lists */}
                       {savedLists.map(list => (
