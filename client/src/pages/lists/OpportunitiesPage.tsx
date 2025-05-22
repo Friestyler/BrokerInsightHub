@@ -1577,119 +1577,77 @@ function OpportunitiesTable() {
               <Button variant="outline">Cancel</Button>
             </DialogClose>
             <Button onClick={() => {
-              // Get permissions
-              const canEdit = (document.getElementById('canEdit') as HTMLInputElement)?.checked || false;
-              const canShare = (document.getElementById('canShare') as HTMLInputElement)?.checked || false;
-              const message = (document.getElementById('shareMessage') as HTMLTextAreaElement)?.value || '';
-              
-              // For demonstration purposes, simply use all partner IDs
-              // In a real implementation, we would use the checked state of the checkboxes
-              const selectedPartnerIds = mockOpportunities.reduce((partners, opp) => {
-                if (!partners.includes(opp.partnerId.toString())) {
-                  partners.push(opp.partnerId.toString());
-                }
-                return partners;
-              }, [] as string[]);
-              
-              console.log("Selected partners:", selectedPartnerIds.length);
-              
-              // Update selected partners count display
-              const selectedCountElement = document.getElementById('selected-partners-count');
-              if (selectedCountElement) {
-                selectedCountElement.textContent = selectedPartnerIds.length.toString();
-              }
-              
-              if (selectedPartnerIds.length === 0) {
-                toast({
-                  title: "No partners selected",
-                  description: "Please select at least one partner to share this list with.",
-                  variant: "destructive",
-                });
-                return;
-              }
-              
               if (activeList) {
-                // Original list's opportunities
-                const opportunities = displayedOpportunities;
+                // For demo purposes, we'll use all partner IDs from the opportunities
+                const uniquePartnerIds = Array.from(new Set(mockOpportunities.map(opp => opp.partnerId.toString())));
                 
-                // Track created lists
-                const createdListNames: string[] = [];
+                // Create partner-specific lists
+                let createdCount = 0;
                 
-                // For each selected partner, create a partner-specific list
-                selectedPartnerIds.forEach(partnerId => {
-                  // Find the partner name
-                  const partnerName = mockOpportunities.find(opp => opp.partnerId.toString() === partnerId)?.partnerName || "Unknown Partner";
+                uniquePartnerIds.forEach(partnerId => {
+                  // Get partner name
+                  const partnerName = mockOpportunities.find(opp => 
+                    opp.partnerId.toString() === partnerId
+                  )?.partnerName || "Unknown Partner";
                   
-                  // Filter opportunities relevant to this partner only
-                  const partnerOpportunities = opportunities
-                    .filter(opp => opp.partnerId.toString() === partnerId)
-                    .map(opp => opp.id);
+                  // Get opportunities relevant to this partner
+                  const relevantOpportunities = displayedOpportunities.filter(opp => 
+                    opp.partnerId.toString() === partnerId
+                  );
                   
-                  // Skip if no relevant opportunities for this partner
-                  if (partnerOpportunities.length === 0) {
+                  // Skip if no relevant opportunities
+                  if (relevantOpportunities.length === 0) {
                     return;
                   }
                   
-                  // Create a new list specific to this partner
-                  const newListName = `${activeList.name} - ${partnerName}`;
-                  createdListNames.push(newListName);
-                  
-                  const newList: SavedList = {
-                    id: `list-partner-${partnerId}-${Date.now()}`,
-                    name: newListName,
-                    description: activeList.description ? 
-                      `${activeList.description} (Shared from original list: ${activeList.name})` : 
-                      `Shared from original list: ${activeList.name}`,
-                    type: 'selection', // Always create selection-based lists for partners
-                    filters: {}, // No filters applied
-                    members: partnerOpportunities,
+                  // Create a partner-specific list
+                  const partnerList: SavedList = {
+                    id: `list-${Date.now()}-${partnerId}`,
+                    name: `${activeList.name} - ${partnerName}`,
+                    description: `Shared from ${activeList.name}`,
+                    type: 'selection',
+                    filters: {},
+                    members: relevantOpportunities.map(opp => opp.id),
                     isShared: true,
-                    sharedWith: [`partner-${partnerId}`], // Track that this was shared with this partner
+                    sharedWith: [`partner-${partnerId}`],
                     createdBy: 'Current User',
                     createdAt: new Date()
                   };
                   
-                  // Add this new list to saved lists
-                  setSavedLists(prevLists => [...prevLists, newList]);
+                  // Add to saved lists
+                  setSavedLists(prev => [...prev, partnerList]);
+                  createdCount++;
                 });
                 
-                // Mark the original list as shared
-                const updatedLists = savedLists.map(list => {
-                  if (list.id === activeList.id) {
-                    return {
-                      ...list,
-                      isShared: true,
-                      // Store which partners the list was shared with
-                      sharedWith: [...(list.sharedWith || []), ...selectedPartnerIds.map(id => `partner-${id}`)]
-                    };
-                  }
-                  return list;
-                });
-                
-                setSavedLists(updatedLists);
-                setActiveList(updatedLists.find(v => v.id === activeList.id) || null);
-                
-                if (createdListNames.length > 0) {
-                  // Show success toast
+                // Show success message
+                if (createdCount > 0) {
                   toast({
                     title: "Lists shared successfully",
-                    description: `Created ${createdListNames.length} partner-specific ${createdListNames.length === 1 ? 'list' : 'lists'}.`,
+                    description: `Created ${createdCount} partner-specific ${createdCount === 1 ? 'list' : 'lists'}.`
                   });
                 } else {
-                  // No lists were created (no partner had relevant opportunities)
                   toast({
                     title: "No lists created",
-                    description: "No lists were created because selected partners don't have relevant opportunities in this list.",
-                    variant: "destructive",
+                    description: "No partners had relevant opportunities in this list.",
+                    variant: "destructive"
                   });
                 }
+                
+                // Mark original list as shared
+                setSavedLists(prev => 
+                  prev.map(list => 
+                    list.id === activeList.id 
+                    ? {
+                        ...list,
+                        isShared: true,
+                        sharedWith: [...(list.sharedWith || []), ...uniquePartnerIds.map(id => `partner-${id}`)]
+                      } 
+                    : list
+                  )
+                );
               }
               
-              // Clear selections and close modal
-              document.querySelectorAll('input[id^="partner-checkbox-"]').forEach(checkbox => {
-                (checkbox as HTMLInputElement).checked = false;
-              });
-              
+              // Close the modal
               setShowShareListModal(false);
             }}>
               Share List
