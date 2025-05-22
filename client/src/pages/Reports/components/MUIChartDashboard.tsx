@@ -7,7 +7,6 @@ import {
   BarChart, 
   PieChart, 
   LineChart,
-  AreaChart,
   ScatterChart
 } from '@mui/x-charts';
 

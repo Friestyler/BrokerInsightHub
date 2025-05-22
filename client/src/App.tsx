@@ -16,6 +16,7 @@ import CampaignBuilder from "@/pages/Campaigns/CampaignBuilder";
 import CampaignDetail from "@/pages/Campaigns/CampaignDetail";
 import DataUploadOptions from "@/pages/DataUpload/DataUploadOptions";
 import BrioUploadFlow from "@/pages/DataUpload/BrioUploadFlow";
+import ReportsPage from "@/pages/Reports/ReportsPage";
 import Clients from "@/pages/Clients";
 import ClientDetail from "@/pages/ClientDetail";
 import PartnersPage from "@/pages/lists/PartnersPage";
@@ -99,6 +100,9 @@ function Router() {
             />
           )}
         </Route>
+        
+        {/* Reports section route */}
+        <Route path="/reports" component={ReportsPage} />
         
         {/* Templates section routes */}
         <Route path="/templates/metrics" component={MetricsPage} />

@@ -53,8 +53,7 @@ export default function PivotTableReport() {
       
       <div className="overflow-auto">
         <PivotTableUI
-          data={pivotState.data}
-          onChange={s => setPivotState(s)}
+          onChange={(s: any) => setPivotState(s)}
           {...pivotState}
           renderers={Object.assign({}, 
             PivotTableUI.defaultProps.renderers
