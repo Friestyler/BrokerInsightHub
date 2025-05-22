@@ -1133,15 +1133,40 @@ function PartnersTable() {
               />
             </div>
             
-            {/* Compact filter summary */}
+            {/* Elegant filter summary */}
             {(filterText || selectedStatus || selectedIndustry || selectedType) && (
-              <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded border border-gray-200">
-                <div className="font-medium mb-1">Filters being saved:</div>
-                <div className="space-y-0.5">
-                  {filterText && <div>• Search: "{filterText}"</div>}
-                  {selectedStatus && <div>• Status: {selectedStatus}</div>}
-                  {selectedIndustry && <div>• Industry: {selectedIndustry}</div>}
-                  {selectedType && <div>• Type: {selectedType}</div>}
+              <div className="bg-[#EBEEFB] border border-[#D4D9F3] rounded-lg p-3 text-sm">
+                <div className="flex items-center text-[#282A3F] font-medium mb-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                  </svg>
+                  Active filters
+                </div>
+                <div className="space-y-1.5 text-[#5F6585]">
+                  {filterText && (
+                    <div className="flex items-center">
+                      <div className="w-1.5 h-1.5 rounded-full bg-[#3E4DC4] mr-2"></div>
+                      <span className="font-medium">Search:</span> <span className="ml-1">"{filterText}"</span>
+                    </div>
+                  )}
+                  {selectedStatus && (
+                    <div className="flex items-center">
+                      <div className="w-1.5 h-1.5 rounded-full bg-[#3E4DC4] mr-2"></div>
+                      <span className="font-medium">Status:</span> <span className="ml-1">{selectedStatus}</span>
+                    </div>
+                  )}
+                  {selectedIndustry && (
+                    <div className="flex items-center">
+                      <div className="w-1.5 h-1.5 rounded-full bg-[#3E4DC4] mr-2"></div>
+                      <span className="font-medium">Industry:</span> <span className="ml-1">{selectedIndustry}</span>
+                    </div>
+                  )}
+                  {selectedType && (
+                    <div className="flex items-center">
+                      <div className="w-1.5 h-1.5 rounded-full bg-[#3E4DC4] mr-2"></div>
+                      <span className="font-medium">Type:</span> <span className="ml-1">{selectedType}</span>
+                    </div>
+                  )}
                 </div>
               </div>
             )}
