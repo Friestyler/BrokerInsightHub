@@ -6,17 +6,11 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { EnvironmentProvider } from "./contexts/EnvironmentContext";
 
 import Layout from "@/components/Layout";
-import PartnerPilot from "@/pages/PartnerPilot";
 import Dashboard from "@/pages/Dashboard";
 import InsuranceNews from "@/pages/InsuranceNews";
 import CompareFiles from "@/pages/CompareFiles";
 import PredictOpportunities from "@/pages/PredictOpportunities";
-import CampaignsPage from "@/pages/Campaigns/CampaignsPage";
-import CampaignBuilder from "@/pages/Campaigns/CampaignBuilder";
-import CampaignDetail from "@/pages/Campaigns/CampaignDetail";
-import DataUploadOptions from "@/pages/DataUpload/DataUploadOptions";
-import BrioUploadFlow from "@/pages/DataUpload/BrioUploadFlow";
-import ReportsPage from "@/pages/Reports/ReportsPage";
+import CrossSellCampaigns from "@/pages/CrossSellCampaigns";
 import Clients from "@/pages/Clients";
 import ClientDetail from "@/pages/ClientDetail";
 import PartnersPage from "@/pages/lists/PartnersPage";
@@ -24,8 +18,6 @@ import PartnerDetail from "@/pages/lists/PartnerDetail";
 import CustomersPage from "@/pages/lists/CustomersPage";
 import OpportunitiesPage from "@/pages/lists/OpportunitiesPage";
 import OpportunityDetail from "@/pages/lists/OpportunityDetail";
-import VendorsPage from "@/pages/lists/VendorsPage";
-import ProductsPage from "@/pages/lists/ProductsPage";
 import MetricsPage from "@/pages/templates/MetricsPage";
 import GroupDetail from "@/pages/templates/GroupDetail";
 
@@ -40,7 +32,7 @@ function Router() {
   return (
     <Layout>
       <Switch>
-        <Route path="/" component={PartnerPilot} />
+        <Route path="/" component={Dashboard} />
         <Route path="/news" component={InsuranceNews} />
         <Route path="/compare" component={CompareFiles} />
         <Route path="/predict" component={PredictOpportunities} />
@@ -53,54 +45,18 @@ function Router() {
         <Route path="/lists/opportunities/:id" component={OpportunityDetail} />
         <Route path="/lists/projects" component={ProjectsPage} />
         <Route path="/lists/contacts" component={ContactsPage} />
-        <Route path="/lists/vendors" component={VendorsPage} />
-        <Route path="/lists/products" component={ProductsPage} />
+        
+        {/* Demo section routes - removed */}
+        
+        {/* Prevent access to Campaigns page in ACME environment */}
         <Route path="/campaigns">
           {() => (
             <EnvironmentRouteGuard
-              component={CampaignsPage} 
+              component={CrossSellCampaigns} 
               excludedEnvironments={["acme"]} 
             />
           )}
         </Route>
-        <Route path="/campaigns/new">
-          {() => (
-            <EnvironmentRouteGuard
-              component={CampaignBuilder} 
-              excludedEnvironments={["acme"]} 
-            />
-          )}
-        </Route>
-
-        <Route path="/campaigns/:id">
-          {() => (
-            <EnvironmentRouteGuard
-              component={CampaignDetail} 
-              excludedEnvironments={["acme"]} 
-            />
-          )}
-        </Route>
-        
-        {/* Data Upload routes */}
-        <Route path="/data-upload">
-          {() => (
-            <EnvironmentRouteGuard
-              component={DataUploadOptions} 
-              excludedEnvironments={[]} 
-            />
-          )}
-        </Route>
-        <Route path="/data-upload/brio">
-          {() => (
-            <EnvironmentRouteGuard
-              component={BrioUploadFlow} 
-              excludedEnvironments={[]} 
-            />
-          )}
-        </Route>
-        
-        {/* Reports section route */}
-        <Route path="/reports" component={ReportsPage} />
         
         {/* Templates section routes */}
         <Route path="/templates/metrics" component={MetricsPage} />

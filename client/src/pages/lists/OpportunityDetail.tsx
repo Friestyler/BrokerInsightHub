@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link, useLocation } from "wouter";
 import { 
   Table, 
@@ -16,67 +16,128 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
 import { mockOpportunities } from "./OpportunitiesPage";
 
-// Helper function to get status badge styling
-const getStatusBadgeVariant = (status: string) => {
-  switch (status?.toLowerCase()) {
-    case 'new':
-      return 'bg-blue-100 text-blue-800';
-    case 'in progress':
-      return 'bg-yellow-100 text-yellow-800';
-    case 'qualified':
-      return 'bg-green-100 text-green-800';
-    case 'closed won':
-      return 'bg-green-100 text-green-800';
-    case 'closed lost':
-      return 'bg-red-100 text-red-800';
-    default:
-      return 'bg-gray-100 text-gray-800';
-  }
-};
-
 // Mock metrics data for this opportunity
 const metrics = [
   {
     id: 1,
-    name: "Customer Satisfaction",
-    type: "NPS",
-    owner: "Customer Success",
-    target: 90,
-    current: 82,
-    status: "on-track",
-    lastUpdated: "2025-05-10",
+    title: "New contracts signed",
+    status: "on_track",
+    progress: 75,
+    dueDate: new Date("2025-06-30"),
+    targetValue: 1,
+    realizedValue: 0,
+    unit: "contracts",
+    tags: ["Sales", "Contract"]
   },
   {
     id: 2,
-    name: "Revenue Growth",
-    type: "Percentage",
-    owner: "Finance",
-    target: 20,
-    current: 12,
-    status: "at-risk",
-    lastUpdated: "2025-05-15",
+    title: "Client meetings conducted",
+    status: "on_track",
+    progress: 100,
+    dueDate: new Date("2025-05-15"),
+    targetValue: 3,
+    realizedValue: 3,
+    unit: "meetings",
+    tags: ["Client", "Meeting"]
   },
   {
     id: 3,
-    name: "API Adoption",
-    type: "Active Users",
-    owner: "Product",
-    target: 1000,
-    current: 875,
-    status: "on-track",
-    lastUpdated: "2025-05-12",
+    title: "Requirements documentation completion",
+    status: "at_risk",
+    progress: 60,
+    dueDate: new Date("2025-05-20"),
+    targetValue: 100,
+    realizedValue: 60,
+    unit: "%",
+    tags: ["Documentation", "Requirements"]
   },
   {
     id: 4,
-    name: "Cost Reduction",
-    type: "Percentage",
-    owner: "Operations",
-    target: 15,
-    current: 8,
-    status: "at-risk", 
-    lastUpdated: "2025-05-14",
+    title: "Technical proposal submission",
+    status: "not_started",
+    progress: 0,
+    dueDate: new Date("2025-06-10"),
+    targetValue: 1,
+    realizedValue: 0,
+    unit: "proposals",
+    tags: ["Proposal", "Technical"]
+  },
+  {
+    id: 5,
+    title: "Budget approval",
+    status: "not_started",
+    progress: 0,
+    dueDate: new Date("2025-06-20"),
+    targetValue: 1,
+    realizedValue: 0,
+    unit: "approvals",
+    tags: ["Budget", "Approval"]
   }
 ];
+
+// Status badge variant helper
+function getStatusBadgeVariant(status: string): string {
+  const statusClasses: {[key: string]: string} = {
+    "on_track": "bg-green-100 text-green-800",
+    "at_risk": "bg-amber-100 text-amber-800",
+    "off_track": "bg-red-100 text-red-800",
+    "not_started": "bg-gray-100 text-gray-800",
+    "completed": "bg-blue-100 text-blue-800",
+    "Discovery": "bg-indigo-100 text-indigo-800",
+    "Qualification": "bg-purple-100 text-purple-800",
+    "Proposal": "bg-amber-100 text-amber-800",
+    "Negotiation": "bg-blue-100 text-blue-800",
+    "Closed Won": "bg-green-100 text-green-800",
+    "Closed Lost": "bg-red-100 text-red-800"
+  };
+  
+  return statusClasses[status] || "bg-gray-100 text-gray-800";
+}
+
+// Tag badge component
+const TagBadge = ({ tag }: { tag: string }) => {
+  // Get a consistent color for each tag
+  const getTagColor = (tag: string) => {
+    const tagColors: {[key: string]: string} = {
+      "Financial": "bg-emerald-100 text-emerald-800",
+      "Revenue": "bg-green-100 text-green-800",
+      "Partner": "bg-blue-100 text-blue-800",
+      "Pipeline": "bg-amber-100 text-amber-800",
+      "Sales": "bg-orange-100 text-orange-800",
+      "Training": "bg-indigo-100 text-indigo-800",
+      "Certification": "bg-violet-100 text-violet-800",
+      "People": "bg-pink-100 text-pink-800",
+      "Marketing": "bg-purple-100 text-purple-800",
+      "Budget": "bg-lime-100 text-lime-800",
+      "Digital": "bg-sky-100 text-sky-800",
+      "Contract": "bg-cyan-100 text-cyan-800",
+      "Proposal": "bg-amber-100 text-amber-800",
+      "Technical": "bg-blue-100 text-blue-800",
+      "Client": "bg-teal-100 text-teal-800",
+      "Meeting": "bg-slate-100 text-slate-800",
+      "Documentation": "bg-gray-100 text-gray-800",
+      "Requirements": "bg-yellow-100 text-yellow-800",
+      "Approval": "bg-red-100 text-red-800"
+    };
+    
+    return tagColors[tag] || "bg-gray-100 text-gray-800";
+  };
+  
+  return (
+    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mr-2 ${getTagColor(tag)}`}>
+      {tag}
+    </span>
+  );
+};
+
+// Date formatter
+const formatDate = (date: Date) => {
+  return new Intl.DateTimeFormat('en-US', { 
+    day: 'numeric', 
+    month: 'short', 
+    year: 'numeric' 
+  }).format(new Date(date));
+};
 
 // Main opportunity component
 export default function OpportunityDetail() {
@@ -86,10 +147,10 @@ export default function OpportunityDetail() {
   const [, setLocation] = useLocation();
   
   // Find the opportunity from the mock data source shared with the list
-  const opportunityData = mockOpportunities.find(opp => opp.id === Number(id));
+  const opportunity = mockOpportunities.find(opp => opp.id === Number(id));
   
   // If opportunity not found, render a not found message
-  if (!opportunityData) {
+  if (!opportunity) {
     return (
       <div className="container mx-auto px-4 py-6">
         <div className="flex flex-col items-center justify-center py-12">
@@ -132,14 +193,14 @@ export default function OpportunityDetail() {
         
         <div className="flex justify-between items-center">
           <div className="flex items-center">
-            <h1 className="text-2xl font-bold tracking-tight">{opportunityData.title || "Opportunity"}</h1>
+            <h1 className="text-2xl font-bold tracking-tight">{opportunity.title}</h1>
             <div className="ml-4 flex items-center">
               <Avatar className="h-8 w-8">
                 <AvatarFallback className="bg-indigo-100 text-indigo-600">
-                  {opportunityData.ownerInitials || "OI"}
+                  {opportunity.ownerInitials}
                 </AvatarFallback>
               </Avatar>
-              <span className="ml-2 text-gray-600">{opportunityData.owner || "Owner"}</span>
+              <span className="ml-2 text-gray-600">{opportunity.owner}</span>
             </div>
           </div>
           
@@ -149,11 +210,11 @@ export default function OpportunityDetail() {
               onClick={() => {
                 // Here you could implement the edit functionality
                 // For now, we'll just show how it would update the name
-                const newName = prompt("Enter new opportunity name:", opportunityData.title);
+                const newName = prompt("Enter new opportunity name:", opportunity.title);
                 if (newName && newName.trim() !== "") {
                   // In a real application, this would update the data in a database
                   // For our prototype, we'll update it directly in the array
-                  const index = mockOpportunities.findIndex(opp => opp.id === opportunityData.id);
+                  const index = mockOpportunities.findIndex(opp => opp.id === opportunity.id);
                   if (index !== -1) {
                     mockOpportunities[index].title = newName;
                     // Force refresh the page to show the updated name
@@ -168,25 +229,25 @@ export default function OpportunityDetail() {
           </div>
         </div>
         
-        <p className="text-gray-600 mt-2">Details for {opportunityData.title || "Opportunity"}</p>
+        <p className="text-gray-600 mt-2">Details for {opportunity.title}</p>
       </div>
       
       {/* Key metrics section - similar to screenshot */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-6 mb-6">
         <div className="border-r border-gray-200 pr-6">
           <span className="text-sm text-gray-500 block">Amount</span>
-          <span className="text-xl font-bold">€ {((opportunityData.value || 0) / 1000).toFixed(0)}.000</span>
+          <span className="text-xl font-bold">€ {(opportunity.value / 1000).toFixed(0)}.000</span>
         </div>
         
         <div className="border-r border-gray-200 px-6">
           <span className="text-sm text-gray-500 block">Probability</span>
-          <span className="text-xl font-bold">{opportunityData.probability || 0}%</span>
+          <span className="text-xl font-bold">{opportunity.probability}%</span>
         </div>
         
         <div className="pl-6">
           <span className="text-sm text-gray-500 block">Stage</span>
-          <span className={`px-2.5 py-1 rounded-full text-xs ${getStatusBadgeVariant(opportunityData.status || "")}`}>
-            {opportunityData.status || "Unknown"}
+          <span className={`px-2.5 py-1 rounded-full text-xs ${getStatusBadgeVariant(opportunity.status)}`}>
+            {opportunity.status}
           </span>
         </div>
       </div>
@@ -198,14 +259,15 @@ export default function OpportunityDetail() {
           <div className="flex flex-wrap gap-x-8 gap-y-2">
             <div>
               <span className="text-sm text-gray-500 mr-2">Customer:</span>
-              <Link href={`/lists/customers/${opportunityData.customerId || 0}`} className="text-indigo-600 hover:underline">
-                {opportunityData.customerName || "Customer"}
+              <Link href={`/lists/customers/${opportunity.customerId}`} className="text-indigo-600 hover:underline">
+                {opportunity.customerName}
               </Link>
             </div>
+            
             <div>
               <span className="text-sm text-gray-500 mr-2">Partner:</span>
-              <Link href={`/lists/partners/${opportunityData.partnerId || 0}`} className="text-indigo-600 hover:underline">
-                {opportunityData.partnerName || "Partner"}
+              <Link href={`/lists/partners/${opportunity.partnerId}`} className="text-indigo-600 hover:underline">
+                {opportunity.partnerName}
               </Link>
             </div>
           </div>
@@ -237,71 +299,84 @@ export default function OpportunityDetail() {
             </div>
             
             <div className="flex gap-2">
-              <Button variant="outline" size="sm">Export Selected</Button>
-              <Button 
-                variant="destructive" 
-                size="sm"
-                className="bg-red-600 hover:bg-red-700 text-white"
-              >
-                Remove Selected
+              <Button variant="ghost" size="sm" className="text-indigo-700">
+                Assign
+              </Button>
+              
+              <Button variant="ghost" size="sm" className="text-indigo-700">
+                Change Status
               </Button>
             </div>
           </div>
         )}
         
-        <div className="bg-white border border-gray-200 rounded-md overflow-hidden">
+        <div className="border rounded-md overflow-hidden">
           <Table>
             <TableHeader>
-              <TableRow className="bg-gray-50">
-                <TableCell className="w-10 px-4 py-2">
+              <TableRow>
+                <TableHead className="w-[40px]">
                   <Checkbox 
-                    checked={metrics.length > 0 && selectedMetrics.length === metrics.length}
+                    checked={selectedMetrics.length === metrics.length && metrics.length > 0}
                     onCheckedChange={toggleAllMetrics}
                   />
-                </TableCell>
-                <TableCell className="font-medium px-4 py-2">Metric Name</TableCell>
-                <TableCell className="font-medium px-4 py-2">Type</TableCell>
-                <TableCell className="font-medium px-4 py-2">Owner</TableCell>
-                <TableCell className="font-medium px-4 py-2">Target</TableCell>
-                <TableCell className="font-medium px-4 py-2">Current</TableCell>
-                <TableCell className="font-medium px-4 py-2">Progress</TableCell>
-                <TableCell className="font-medium px-4 py-2 text-right">Status</TableCell>
+                </TableHead>
+                <TableHead>Metric</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Progress</TableHead>
+                <TableHead>Target</TableHead>
+                <TableHead>Current</TableHead>
+                <TableHead>Due Date</TableHead>
+                <TableHead>Tags</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {metrics.map(metric => (
-                <TableRow key={metric.id} className="hover:bg-gray-50">
-                  <TableCell className="px-4 py-2">
+              {metrics.map((metric) => (
+                <TableRow key={metric.id}>
+                  <TableCell>
                     <Checkbox 
                       checked={selectedMetrics.includes(metric.id)}
                       onCheckedChange={() => toggleMetricSelection(metric.id)}
                     />
                   </TableCell>
-                  <TableCell className="font-medium px-4 py-2">{metric.name}</TableCell>
-                  <TableCell className="px-4 py-2">{metric.type}</TableCell>
-                  <TableCell className="px-4 py-2">{metric.owner}</TableCell>
-                  <TableCell className="px-4 py-2">{metric.type === 'Percentage' ? `${metric.target}%` : metric.target}</TableCell>
-                  <TableCell className="px-4 py-2">{metric.type === 'Percentage' ? `${metric.current}%` : metric.current}</TableCell>
-                  <TableCell className="px-4 py-2 w-32">
-                    <div className="flex items-center gap-2">
-                      <Progress 
-                        value={(metric.current / metric.target) * 100} 
-                        className={`h-2 ${metric.status === 'on-track' ? 'bg-green-100' : 'bg-orange-100'}`} 
-                      />
-                      <span className="text-xs text-gray-500">{Math.round((metric.current / metric.target) * 100)}%</span>
+                  <TableCell className="font-medium">{metric.title}</TableCell>
+                  <TableCell>
+                    <span className={`px-2.5 py-1 rounded-full text-xs ${getStatusBadgeVariant(metric.status)}`}>
+                      {metric.status.replace('_', ' ')}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <div className="w-[100px]">
+                      <Progress value={metric.progress} className="h-2" />
+                      <div className="text-xs text-right mt-1">{metric.progress}%</div>
                     </div>
                   </TableCell>
-                  <TableCell className="px-4 py-2 text-right">
-                    <span 
-                      className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
-                        metric.status === 'on-track' ? 'bg-green-100 text-green-800' : 'bg-orange-100 text-orange-800'
-                      }`}
-                    >
-                      {metric.status === 'on-track' ? 'On Track' : 'At Risk'}
-                    </span>
+                  <TableCell>
+                    {metric.targetValue} {metric.unit}
+                  </TableCell>
+                  <TableCell>
+                    {metric.realizedValue} {metric.unit}
+                  </TableCell>
+                  <TableCell>{formatDate(metric.dueDate)}</TableCell>
+                  <TableCell>
+                    <div className="flex flex-wrap">
+                      {metric.tags.map((tag, i) => (
+                        <TagBadge key={i} tag={tag} />
+                      ))}
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
+              
+              {metrics.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={8} className="text-center py-8">
+                    <p className="text-gray-500">No metrics assigned to this opportunity</p>
+                    <Button className="mt-4 bg-indigo-600 hover:bg-indigo-700">
+                      Assign Metrics
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              )}
             </TableBody>
           </Table>
         </div>
