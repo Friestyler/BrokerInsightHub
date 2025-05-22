@@ -527,11 +527,11 @@ function OpportunitiesTable() {
                         <div
                           className={`relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 ${activeList === null ? 'bg-indigo-50 text-indigo-900' : 'text-slate-700'}`}
                           onClick={() => {
-                            // Clear filters and active list
+                            // Only clear active list without affecting filters
                             setActiveList(null);
-                            setFilterText('');
-                            setSelectedStatus('');
-                            setSelectedType('');
+                            // Clear selections
+                            setSelectedOpportunities([]);
+                            // Leave filters unchanged since they're linked to views, not lists
                             // Clear any active view when returning to All Opportunities
                             setActiveView(null);
                             setHasUnsavedChanges(false);
@@ -556,25 +556,20 @@ function OpportunitiesTable() {
                           <div
                             className={`relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 ${activeList?.id === list.id ? 'bg-indigo-50 text-indigo-900' : 'text-slate-700'}`}
                             onClick={() => {
-                              // Normal behavior for other lists
+                              // Set active list but don't apply any filters
+                              // Filters should only be applied from views, not lists
                               setActiveList(list);
                               
-                              // Handle different list types differently
-                              if (list.type === 'filter') {
-                                // For filter lists, apply the saved filters
-                                if (list.filters.searchText) setFilterText(list.filters.searchText);
-                                if (list.filters.status) setSelectedStatus(list.filters.status);
-                                if (list.filters.type) setSelectedType(list.filters.type);
-                                // Clear selections when switching to a filter list
-                                setSelectedOpportunities([]);
-                              } else if (list.type === 'selection' && list.members) {
+                              // Only handle selection lists
+                              if (list.type === 'selection' && list.members) {
                                 // For selection lists, select the specific opportunities
                                 setSelectedOpportunities(list.members);
-                                // Clear filters when switching to a selection list
-                                setFilterText('');
-                                setSelectedStatus('');
-                                setSelectedType('');
+                              } else {
+                                // Clear selections for other list types
+                                setSelectedOpportunities([]);
                               }
+                              
+                              // Don't modify filters when switching lists
                               
                               // Clear any active view when switching lists
                               setActiveView(null);
