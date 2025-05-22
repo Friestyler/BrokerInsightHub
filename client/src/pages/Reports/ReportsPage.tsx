@@ -7,20 +7,24 @@ import { Separator } from "@/components/ui/separator";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { BarChart2, Download, FileSpreadsheet, SlidersHorizontal, Table, Layers, Save } from "lucide-react";
+import { BarChart2, Download, FileSpreadsheet, SlidersHorizontal, Table, Layers, Save, Star, Target, ListChecks, TrendingUp, AtSign } from "lucide-react";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 
 // Import different reporting components
 import PivotTableReport from "./components/PivotTableReport";
-import TremorDashboard from "./components/TremorDashboard";
-import RechartsReport from "./components/RechartsReport";
-import MUIChartDashboard from "./components/MUIChartDashboard";
+import OkrDashboard from "./components/OkrDashboard";
+import MetricsPerformance from "./components/MetricsPerformance";
+import TaskMetrics from "./components/TaskMetrics";
+import OpportunityStatus from "./components/OpportunityStatus";
+import CampaignEngagement from "./components/CampaignEngagement";
 
 export default function ReportsPage() {
   const [, setLocation] = useLocation();
   const { environment } = useEnvironment();
-  const [activeTab, setActiveTab] = useState("pivot");
+  const [activeTab, setActiveTab] = useState("okr-dashboard");
   const [currentView, setCurrentView] = useState("default");
+  const [timeFrame, setTimeFrame] = useState("all");
+  const [filterRegion, setFilterRegion] = useState("all");
 
   // Save current view setup
   const handleSaveView = () => {
@@ -59,18 +63,43 @@ export default function ReportsPage() {
       <div className="flex justify-between items-center mb-6">
         <div>
           <h1 className="text-2xl font-bold">Reports & Analytics</h1>
-          <p className="text-gray-500">Create and customize reports for your business insights</p>
+          <p className="text-gray-500">Monitor performance and track progress across your OKRs</p>
         </div>
         <div className="flex items-center space-x-2">
+          <Select value={timeFrame} onValueChange={setTimeFrame}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Time Period" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Time</SelectItem>
+              <SelectItem value="2025">Year 2025</SelectItem>
+              <SelectItem value="q2-2025">Q2 2025</SelectItem>
+              <SelectItem value="may-2025">May 2025</SelectItem>
+            </SelectContent>
+          </Select>
+          
+          <Select value={filterRegion} onValueChange={setFilterRegion}>
+            <SelectTrigger className="w-[140px]">
+              <SelectValue placeholder="Region" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">All Regions</SelectItem>
+              <SelectItem value="north">North</SelectItem>
+              <SelectItem value="south">South</SelectItem>
+              <SelectItem value="east">East</SelectItem>
+              <SelectItem value="west">West</SelectItem>
+            </SelectContent>
+          </Select>
+          
           <Select value={currentView} onValueChange={handleViewChange}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Select a view" />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="default">Default View</SelectItem>
-              <SelectItem value="opportunities">Opportunity Analysis</SelectItem>
-              <SelectItem value="partners">Partner Performance</SelectItem>
-              <SelectItem value="products">Product Distribution</SelectItem>
+              <SelectItem value="commercial">Commercial Team View</SelectItem>
+              <SelectItem value="performance">Performance (KPIs)</SelectItem>
+              <SelectItem value="actionplan">Action Plan View</SelectItem>
             </SelectContent>
           </Select>
           
@@ -104,73 +133,96 @@ export default function ReportsPage() {
               </SelectItem>
             </SelectContent>
           </Select>
-          
-          <Button>
-            <SlidersHorizontal className="h-4 w-4 mr-2" />
-            Customize
-          </Button>
         </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
-        <TabsList>
+        <TabsList className="grid grid-cols-6 w-full">
+          <TabsTrigger value="okr-dashboard" className="flex items-center">
+            <Target className="h-4 w-4 mr-2" />
+            OKR Dashboard
+          </TabsTrigger>
+          <TabsTrigger value="metrics-performance" className="flex items-center">
+            <TrendingUp className="h-4 w-4 mr-2" />
+            Metrics Performance
+          </TabsTrigger>
+          <TabsTrigger value="task-metrics" className="flex items-center">
+            <ListChecks className="h-4 w-4 mr-2" />
+            Task Metrics
+          </TabsTrigger>
+          <TabsTrigger value="opportunity-status" className="flex items-center">
+            <Star className="h-4 w-4 mr-2" />
+            Opportunity Status
+          </TabsTrigger>
+          <TabsTrigger value="campaign-engagement" className="flex items-center">
+            <AtSign className="h-4 w-4 mr-2" />
+            Campaign Engagement
+          </TabsTrigger>
           <TabsTrigger value="pivot" className="flex items-center">
             <Layers className="h-4 w-4 mr-2" />
-            Pivot Table
-          </TabsTrigger>
-          <TabsTrigger value="tremor" className="flex items-center">
-            <BarChart2 className="h-4 w-4 mr-2" />
-            Tremor Dashboard
-          </TabsTrigger>
-          <TabsTrigger value="recharts" className="flex items-center">
-            <BarChart2 className="h-4 w-4 mr-2" />
-            Recharts Dashboard
-          </TabsTrigger>
-          <TabsTrigger value="mui" className="flex items-center">
-            <BarChart2 className="h-4 w-4 mr-2" />
-            MUI Charts
+            Custom Reports
           </TabsTrigger>
         </TabsList>
         
         <div className="border rounded-md p-4">
+          <TabsContent value="okr-dashboard" className="mt-0">
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h2 className="text-xl font-semibold">OKR Progress Dashboard</h2>
+                <p className="text-sm text-gray-500">Track partner progress on assigned objectives and key results</p>
+              </div>
+            </div>
+            <OkrDashboard timeFrame={timeFrame} region={filterRegion} />
+          </TabsContent>
+          
+          <TabsContent value="metrics-performance" className="mt-0">
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h2 className="text-xl font-semibold">Metrics Performance</h2>
+                <p className="text-sm text-gray-500">Performance analysis by metric, tag, or group</p>
+              </div>
+            </div>
+            <MetricsPerformance timeFrame={timeFrame} region={filterRegion} />
+          </TabsContent>
+          
+          <TabsContent value="task-metrics" className="mt-0">
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h2 className="text-xl font-semibold">Open Task Metrics</h2>
+                <p className="text-sm text-gray-500">Overview of incomplete tasks and activities</p>
+              </div>
+            </div>
+            <TaskMetrics timeFrame={timeFrame} region={filterRegion} />
+          </TabsContent>
+          
+          <TabsContent value="opportunity-status" className="mt-0">
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h2 className="text-xl font-semibold">Opportunity Status</h2>
+                <p className="text-sm text-gray-500">Overview of current opportunities by stage and value</p>
+              </div>
+            </div>
+            <OpportunityStatus timeFrame={timeFrame} region={filterRegion} />
+          </TabsContent>
+          
+          <TabsContent value="campaign-engagement" className="mt-0">
+            <div className="flex justify-between items-center mb-4">
+              <div>
+                <h2 className="text-xl font-semibold">Campaign Engagement</h2>
+                <p className="text-sm text-gray-500">Analysis of campaign performance and partner engagement</p>
+              </div>
+            </div>
+            <CampaignEngagement timeFrame={timeFrame} region={filterRegion} />
+          </TabsContent>
+
           <TabsContent value="pivot" className="mt-0">
             <div className="flex justify-between items-center mb-4">
               <div>
-                <h2 className="text-xl font-semibold">Interactive Pivot Table</h2>
-                <p className="text-sm text-gray-500">Drag and drop fields to analyze your data from different angles</p>
+                <h2 className="text-xl font-semibold">Custom Report Builder</h2>
+                <p className="text-sm text-gray-500">Create your own reports with our flexible pivot table</p>
               </div>
             </div>
-            <PivotTableReport />
-          </TabsContent>
-
-          <TabsContent value="tremor" className="mt-0">
-            <div className="flex justify-between items-center mb-4">
-              <div>
-                <h2 className="text-xl font-semibold">Tremor Dashboard</h2>
-                <p className="text-sm text-gray-500">Interactive dashboard with customizable charts and metrics</p>
-              </div>
-            </div>
-            <TremorDashboard />
-          </TabsContent>
-
-          <TabsContent value="recharts" className="mt-0">
-            <div className="flex justify-between items-center mb-4">
-              <div>
-                <h2 className="text-xl font-semibold">Recharts Dashboard</h2>
-                <p className="text-sm text-gray-500">Highly customizable chart components based on D3</p>
-              </div>
-            </div>
-            <RechartsReport />
-          </TabsContent>
-
-          <TabsContent value="mui" className="mt-0">
-            <div className="flex justify-between items-center mb-4">
-              <div>
-                <h2 className="text-xl font-semibold">MUI X Charts</h2>
-                <p className="text-sm text-gray-500">Material Design charts with a clean, modern look</p>
-              </div>
-            </div>
-            <MUIChartDashboard />
+            <PivotTableReport timeFrame={timeFrame} region={filterRegion} />
           </TabsContent>
         </div>
       </Tabs>
