@@ -207,6 +207,52 @@ function PartnersTable() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
   
+  // State for views
+  const [views, setViews] = useState<{
+    id: string;
+    name: string;
+    description?: string;
+    filters: {
+      searchText?: string;
+      status?: string;
+      industry?: string;
+      type?: string;
+    };
+    isShared: boolean;
+    createdBy: string;
+    createdAt: Date;
+  }[]>([
+    {
+      id: 'active-partners',
+      name: 'Active Partners',
+      description: 'Shows only active partners',
+      filters: { status: 'active' },
+      isShared: true,
+      createdBy: 'System',
+      createdAt: new Date('2025-01-01')
+    },
+    {
+      id: 'insurance-partners',
+      name: 'Insurance Partners',
+      description: 'Partners in the insurance industry',
+      filters: { industry: 'Insurance' },
+      isShared: true,
+      createdBy: 'System',
+      createdAt: new Date('2025-01-01')
+    },
+    {
+      id: 'active-brokers',
+      name: 'Active Brokers',
+      description: 'Active insurance brokers',
+      filters: { status: 'active', type: 'Broker' },
+      isShared: true,
+      createdBy: 'System',
+      createdAt: new Date('2025-01-01')
+    }
+  ]);
+  
+  const [activeView, setActiveView] = useState<typeof views[0] | null>(null);
+  
   // Function to determine if current filters differ from active view
   const haveViewFiltersChanged = () => {
     if (!activeView) return false;
@@ -224,12 +270,7 @@ function PartnersTable() {
            currentFilters.type !== (activeView.filters.type || '');
   };
   
-  // Use the function to check if filters have changed
-  useEffect(() => {
-    if (activeView) {
-      setHasUnsavedChanges(haveViewFiltersChanged());
-    }
-  }, [filterText, selectedStatus, selectedIndustry, selectedType, activeView]);
+
   
   // Function to clear the active view and reset filters
   const clearActiveView = () => {
