@@ -276,7 +276,7 @@ export default function PartnersViewsDemo() {
   const [selectedIndustry, setSelectedIndustry] = useState('');
   const [selectedType, setSelectedType] = useState('');
   const [selectedPartners, setSelectedPartners] = useState<number[]>([]);
-  const [selectedViewStyle, setSelectedViewStyle] = useState('tabs');
+  const [selectedViewStyle, setSelectedViewStyle] = useState('salesforce');
   const [quickSwitcherOpen, setQuickSwitcherOpen] = useState(false);
   const [showSaveViewModal, setShowSaveViewModal] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
@@ -574,6 +574,12 @@ export default function PartnersViewsDemo() {
             onClick={() => setSelectedViewStyle('quickswitcher')}
           >
             Quick Switcher Menu
+          </Button>
+          <Button 
+            variant={selectedViewStyle === 'salesforce' ? 'default' : 'outline'} 
+            onClick={() => setSelectedViewStyle('salesforce')}
+          >
+            Salesforce-Style
           </Button>
         </div>
       </div>
