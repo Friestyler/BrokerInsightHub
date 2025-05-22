@@ -207,6 +207,55 @@ function PartnersTable() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
   
+  // State for views
+  const [views, setViews] = useState<{
+    id: string;
+    name: string;
+    description?: string;
+    filters: {
+      searchText?: string;
+      status?: string;
+      industry?: string;
+      type?: string;
+    };
+    isShared: boolean;
+    createdBy: string;
+    createdAt: Date;
+  }[]>([
+    {
+      id: 'active-partners',
+      name: 'Active Partners',
+      description: 'Shows only active partners',
+      filters: { status: 'active' },
+      isShared: true,
+      createdBy: 'System',
+      createdAt: new Date('2025-01-01')
+    },
+    {
+      id: 'insurance-partners',
+      name: 'Insurance Partners',
+      description: 'Partners in the insurance industry',
+      filters: { industry: 'Insurance' },
+      isShared: true,
+      createdBy: 'System',
+      createdAt: new Date('2025-01-01')
+    },
+    {
+      id: 'active-brokers',
+      name: 'Active Brokers',
+      description: 'Active insurance brokers',
+      filters: { status: 'active', type: 'Broker' },
+      isShared: true,
+      createdBy: 'System',
+      createdAt: new Date('2025-01-01')
+    }
+  ]);
+  
+  const [activeView, setActiveView] = useState<typeof views[0] | null>(null);
+  const [showSaveViewModal, setShowSaveViewModal] = useState(false);
+  const [newViewName, setNewViewName] = useState('');
+  const [newViewDescription, setNewViewDescription] = useState('');
+  
   // State for saved lists
   const [savedLists, setSavedLists] = useState<SavedList[]>([
     {
@@ -882,6 +931,20 @@ function PartnersTable() {
                     </svg>
                   )}
                 </button>
+                
+                {/* Save view button - visible when filters are applied */}
+                {(filterText || selectedStatus || selectedIndustry || selectedType) && (
+                  <button 
+                    className="flex items-center space-x-1 px-3 py-2 border border-dashed border-indigo-300 rounded-md text-sm text-indigo-600 hover:bg-indigo-50"
+                    onClick={() => setShowSaveListModal(true)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-500">
+                      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                      <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                    </svg>
+                    <span>Save as view</span>
+                  </button>
+                )}
               </div>
             </div>
             
@@ -1081,11 +1144,9 @@ function PartnersTable() {
       <Dialog open={showSaveListModal} onOpenChange={setShowSaveListModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-[#282A3F] font-semibold text-lg" style={{ fontFamily: 'Poppins, sans-serif' }}>Save as view</DialogTitle>
+            <DialogTitle className="text-[#282A3F] font-semibold text-lg" style={{ fontFamily: 'Poppins, sans-serif' }}>Save Filter Combination as View</DialogTitle>
             <DialogDescription>
-              {activeList ? 
-                'Save your current filters as a new view for this list.' : 
-                'Save your current filters as a view. You can create multiple views for each list.'}
+              Save your current filter settings as a named view. You can quickly access this view later to apply the same filters.
             </DialogDescription>
           </DialogHeader>
           
@@ -1093,19 +1154,25 @@ function PartnersTable() {
             <div className="grid gap-4">
               {/* View Name */}
               <div className="grid gap-2">
-                <Label htmlFor="listName" className="text-sm font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>View Name</Label>
+                <Label htmlFor="viewName" className="text-sm font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>View Name</Label>
                 <Input 
-                  id="listName" 
-                  placeholder="Enter a name for this view"
-                  defaultValue={''}
+                  id="viewName" 
+                  placeholder="Enter a descriptive name (e.g., Active Insurance Brokers)"
+                  value={(filterText || selectedStatus || selectedIndustry || selectedType) ? 
+                    `${selectedStatus ? 'Active ' : ''}${selectedIndustry || ''} ${selectedType || ''}`.trim() : 
+                    ''
+                  }
+                  onChange={(e) => {
+                    // In a real implementation, we would update state here
+                    // For simplicity, we'll just use the input's value directly
+                  }}
                 />
                 <div className="grid gap-2">
-                  <Label htmlFor="listDescription" className="text-sm font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>View Description (Optional)</Label>
+                  <Label htmlFor="viewDescription" className="text-sm font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>View Description (Optional)</Label>
                   <Textarea 
-                    id="listDescription" 
-                    placeholder="Describe what this view shows (e.g., 'Active technology partners in Europe')"
+                    id="viewDescription" 
+                    placeholder="Describe what this view shows (e.g., 'Active broker partners in the insurance industry')"
                     rows={2}
-                    defaultValue={''}
                   />
                 </div>
               </div>
@@ -1117,7 +1184,7 @@ function PartnersTable() {
                     <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
                   </svg>
                   <div>
-                    <h4 className="text-sm font-medium text-gray-900">Current Filters</h4>
+                    <h4 className="text-sm font-medium text-gray-900">Filters to be saved in this view</h4>
                     <ul className="mt-1 text-xs text-gray-600">
                       {filterText && <li className="mb-1">• Search: "{filterText}"</li>}
                       {selectedStatus && <li className="mb-1">• Status: {selectedStatus}</li>}
@@ -1133,29 +1200,48 @@ function PartnersTable() {
                       )}
                     </ul>
                     <p className="mt-2 text-xs text-gray-500">
-                      This view will automatically show partners matching these criteria as data changes.
+                      When you select this view later, these filters will be applied automatically. 
+                      This view will dynamically update to show all partners matching these criteria.
                     </p>
                   </div>
                 </div>
               </div>
             </div>
             
-            <div className="flex p-3 rounded-lg border border-gray-200 items-center space-x-3 bg-gray-50">
-              <Checkbox id="shareView" defaultChecked={true} />
-              <div>
-                <Label htmlFor="shareView" className="text-sm font-medium">
-                  Share this view with my team
-                </Label>
-                <p className="text-xs text-gray-500">
-                  Make this view available to all list members
-                </p>
+            {/* Lists section - where to save the view */}
+            <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+              <h4 className="text-sm font-medium text-gray-900 mb-2">Where to save this view</h4>
+              <div className="space-y-3">
+                <div className="flex items-start">
+                  <Checkbox id="saveGlobally" defaultChecked={true} />
+                  <div className="ml-3">
+                    <Label htmlFor="saveGlobally" className="text-sm font-medium">
+                      Save as global view
+                    </Label>
+                    <p className="text-xs text-gray-600">
+                      This view will be available across all partner lists
+                    </p>
+                  </div>
+                </div>
+                
+                <div className="flex items-start">
+                  <Checkbox id="shareView" defaultChecked={true} />
+                  <div className="ml-3">
+                    <Label htmlFor="shareView" className="text-sm font-medium">
+                      Share with my team
+                    </Label>
+                    <p className="text-xs text-gray-600">
+                      Make this view available to all team members
+                    </p>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
           
           <DialogFooter className="sm:justify-between">
             <div className="text-xs text-gray-500">
-              {activeList ? 'This view will be added to "' + activeList.name + '"' : 'You need to create or select a list first to save a view'}
+              You can manage your saved views in the "Views" dropdown
             </div>
             <div className="flex space-x-2">
               <DialogClose asChild>
@@ -1164,9 +1250,10 @@ function PartnersTable() {
               <Button
                 onClick={() => {
                   // Validate required fields
-                  const viewName = (document.getElementById('listName') as HTMLInputElement).value;
-                  const viewDescription = (document.getElementById('listDescription') as HTMLTextAreaElement).value;
+                  const viewName = (document.getElementById('viewName') as HTMLInputElement).value;
+                  const viewDescription = (document.getElementById('viewDescription') as HTMLTextAreaElement).value;
                   const isShared = (document.getElementById('shareView') as HTMLInputElement).checked;
+                  const saveGlobally = (document.getElementById('saveGlobally') as HTMLInputElement).checked;
                   
                   if (!viewName.trim()) {
                     // Show error toast notification
@@ -1178,51 +1265,34 @@ function PartnersTable() {
                     return;
                   }
                   
-                  if (!activeList) {
-                    // Show error - need an active list to create a view
-                    toast({
-                      title: "No list selected",
-                      description: "Please select or create a list first before saving a view.",
-                      variant: "destructive",
-                    });
-                    return;
-                  }
-                  
-                  // Create a view object
+                  // Create a view object with current filters
                   const newView = {
-                    id: String(Date.now()),
+                    id: `view-${Date.now()}`,
                     name: viewName,
-                    description: viewDescription || undefined,
+                    description: viewDescription || '',
                     filters: {
-                      searchText: filterText || undefined,
-                      status: selectedStatus || undefined,
-                      industry: selectedIndustry || undefined,
-                      type: selectedType || undefined
+                      searchText: filterText || '',
+                      status: selectedStatus || '',
+                      industry: selectedIndustry || '',
+                      type: selectedType || ''
                     },
+                    isGlobal: saveGlobally,
                     isShared,
                     createdBy: 'John Smith',
                     createdAt: new Date()
                   };
                   
-                  // Update the active list to include this view
-                  // In a real implementation, we would store views in the list
-                  // For this demo, we'll just show a success message
+                  // In a real implementation, we would store the view
                   toast({
-                    title: "View saved",
-                    description: `"${viewName}" has been saved to "${activeList.name}" and will show partners matching your criteria.`,
+                    title: "View saved successfully",
+                    description: `"${viewName}" has been saved and is now available in the filters dropdown.`,
                   });
-                  
-                  // In a real implementation, we would add the view to the list:
-                  // const updatedList = {
-                  //   ...activeList,
-                  //   views: [...(activeList.views || []), newView]
-                  // };
                   
                   // Close the modal
                   setShowSaveListModal(false);
                 }}
               >
-                Save view
+                Save View
               </Button>
             </div>
           </DialogFooter>
