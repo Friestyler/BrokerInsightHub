@@ -1197,17 +1197,24 @@ export default function PartnersViewsDemo() {
                   <div className="space-y-3">
                     {filteredListsAndViews.map(list => (
                       <div key={list.id} className="space-y-1">
-                        <div className="flex items-center px-2 py-1">
-                          <div className="font-medium text-sm">
-                            {list.name}
-                            {list.type === 'selection' && (
-                              <span className="ml-2 text-xs bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full">
-                                Custom
-                              </span>
-                            )}
+                        <div className="flex items-center px-2 py-1 bg-gray-50 rounded-md mb-1">
+                          <div className="flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500">
+                              <path d="M3 6h18"></path>
+                              <path d="M3 12h18"></path>
+                              <path d="M3 18h18"></path>
+                            </svg>
+                            <div className="font-medium text-sm">
+                              <span className="text-xs uppercase text-gray-500 mr-1">List:</span> {list.name}
+                              {list.type === 'selection' && (
+                                <span className="ml-2 text-xs bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full">
+                                  Custom
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
-                        <div className="pl-3 space-y-1 border-l-2 border-gray-200 ml-2">
+                        <div className="pl-3 space-y-1 border-l-2 border-indigo-200 ml-2">
                           {list.views.map(view => (
                             <button 
                               key={view.id}
@@ -1218,8 +1225,12 @@ export default function PartnersViewsDemo() {
                                 setQuickSwitcherOpen(false);
                               }}
                             >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-400">
+                                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"></path>
+                                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"></path>
+                              </svg>
                               <div className="text-sm">
-                                {view.name}
+                                <span className="text-xs uppercase text-gray-500 mr-1">View:</span> {view.name}
                               </div>
                               {list.id === activeListId && view.id === activeViewId && (
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-indigo-600 ml-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
