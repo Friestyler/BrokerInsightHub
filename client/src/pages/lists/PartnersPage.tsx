@@ -1112,92 +1112,50 @@ function PartnersTable() {
       <Dialog open={showSaveListModal} onOpenChange={setShowSaveListModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-[#282A3F] font-semibold text-lg" style={{ fontFamily: 'Poppins, sans-serif' }}>Save Filter Combination as View</DialogTitle>
+            <DialogTitle className="text-[#282A3F] font-semibold text-lg" style={{ fontFamily: 'Poppins, sans-serif' }}>Save View</DialogTitle>
             <DialogDescription>
-              Save your current filter settings as a view. You can quickly access this view later from any list, and it will apply the filters you saved.
+              Name and save your current filter settings for quick access later.
             </DialogDescription>
           </DialogHeader>
           
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-4">
-              {/* View Name */}
-              <div className="grid gap-2">
-                <Label htmlFor="viewName" className="text-sm font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>View Name</Label>
-                <Input 
-                  id="viewName" 
-                  placeholder="Enter a descriptive name (e.g., Active Insurance Brokers)"
-                  value={(filterText || selectedStatus || selectedIndustry || selectedType) ? 
-                    `${selectedStatus ? 'Active ' : ''}${selectedIndustry || ''} ${selectedType || ''}`.trim() : 
-                    ''
-                  }
-                  onChange={(e) => {
-                    // In a real implementation, we would update state here
-                    // For simplicity, we'll just use the input's value directly
-                  }}
-                />
-                <div className="grid gap-2">
-                  <Label htmlFor="viewDescription" className="text-sm font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>View Description (Optional)</Label>
-                  <Textarea 
-                    id="viewDescription" 
-                    placeholder="Describe what this view shows (e.g., 'Active broker partners in the insurance industry')"
-                    rows={2}
-                  />
-                </div>
-              </div>
-              
-              {/* Current filters info */}
-              <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
-                <div className="flex items-start">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-3 mt-0.5">
-                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                  </svg>
-                  <div>
-                    <h4 className="text-sm font-medium text-gray-900">Filters to be saved in this view</h4>
-                    <ul className="mt-1 text-xs text-gray-600">
-                      {filterText && <li className="mb-1">• Search: "{filterText}"</li>}
-                      {selectedStatus && <li className="mb-1">• Status: {selectedStatus}</li>}
-                      {selectedIndustry && <li className="mb-1">• Industry: {selectedIndustry}</li>}
-                      {selectedType && <li className="mb-1">• Type: {selectedType}</li>}
-                      {!filterText && !selectedStatus && !selectedIndustry && !selectedType && (
-                        <li className="text-amber-600 flex items-center">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-                          </svg>
-                          No filters are currently applied
-                        </li>
-                      )}
-                    </ul>
-                    <p className="mt-2 text-xs text-gray-500">
-                      When you select this view later, these filters will be applied automatically. 
-                      This view will dynamically update to show all partners matching these criteria.
-                    </p>
-                  </div>
-                </div>
-              </div>
+          <div className="py-4 space-y-4">
+            {/* View Name */}
+            <div>
+              <Label htmlFor="viewName" className="text-sm font-medium text-[#282A3F]">View Name</Label>
+              <Input 
+                id="viewName" 
+                placeholder="Enter a name (e.g., Active Insurance Brokers)"
+                value={(filterText || selectedStatus || selectedIndustry || selectedType) ? 
+                  `${selectedStatus ? 'Active ' : ''}${selectedIndustry || ''} ${selectedType || ''}`.trim() : 
+                  ''
+                }
+                className="mt-1.5"
+              />
             </div>
             
-            {/* Sharing section */}
-            <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-              <div className="space-y-3">
-                <div className="flex items-start">
-                  <Checkbox id="shareView" defaultChecked={true} />
-                  <div className="ml-3">
-                    <Label htmlFor="shareView" className="text-sm font-medium">
-                      Share with my team
-                    </Label>
-                    <p className="text-xs text-gray-600">
-                      Make this view available to all team members
-                    </p>
-                  </div>
+            {/* Compact filter summary */}
+            {(filterText || selectedStatus || selectedIndustry || selectedType) && (
+              <div className="text-xs text-gray-500 bg-gray-50 p-2 rounded border border-gray-200">
+                <div className="font-medium mb-1">Filters being saved:</div>
+                <div className="space-y-0.5">
+                  {filterText && <div>• Search: "{filterText}"</div>}
+                  {selectedStatus && <div>• Status: {selectedStatus}</div>}
+                  {selectedIndustry && <div>• Industry: {selectedIndustry}</div>}
+                  {selectedType && <div>• Type: {selectedType}</div>}
                 </div>
               </div>
+            )}
+            
+            {/* Share option */}
+            <div className="flex items-center space-x-2">
+              <Checkbox id="shareView" defaultChecked={true} />
+              <Label htmlFor="shareView" className="text-sm">
+                Share with my team
+              </Label>
             </div>
           </div>
           
-          <DialogFooter className="sm:justify-between">
-            <div className="text-xs text-gray-500">
-              You can manage your saved views in the "Views" dropdown
-            </div>
+          <DialogFooter>
             <div className="flex space-x-2">
               <DialogClose asChild>
                 <Button variant="outline">Cancel</Button>
@@ -1206,11 +1164,9 @@ function PartnersTable() {
                 onClick={() => {
                   // Validate required fields
                   const viewName = (document.getElementById('viewName') as HTMLInputElement).value;
-                  const viewDescription = (document.getElementById('viewDescription') as HTMLTextAreaElement).value;
                   const isShared = (document.getElementById('shareView') as HTMLInputElement).checked;
                   
                   if (!viewName.trim()) {
-                    // Show error toast notification
                     toast({
                       title: "Missing required field",
                       description: "Please enter a name for your view.",
@@ -1223,7 +1179,7 @@ function PartnersTable() {
                   const newView = {
                     id: `view-${Date.now()}`,
                     name: viewName,
-                    description: viewDescription || '',
+                    description: '',
                     filters: {
                       searchText: filterText || '',
                       status: selectedStatus || '',
@@ -1238,7 +1194,7 @@ function PartnersTable() {
                   // In a real implementation, we would store the view
                   toast({
                     title: "View saved successfully",
-                    description: `"${viewName}" has been saved and is now available in the filters dropdown.`,
+                    description: `"${viewName}" has been saved and is now available in the views dropdown.`,
                   });
                   
                   // Close the modal
