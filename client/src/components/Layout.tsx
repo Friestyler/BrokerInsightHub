@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { useLocation } from "wouter";
 import { Menu } from "lucide-react";
+import PartnerPilotSlider from "./PartnerPilotSlider";
 
 interface LayoutProps {
   children: ReactNode;
@@ -62,18 +63,7 @@ export default function Layout({ children }: LayoutProps) {
           </div>
           
           <div className="flex items-center space-x-3">
-            <Button 
-              variant="ghost" 
-              size="sm"
-              className="rounded-full bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-medium"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="mr-1.5 h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z" />
-                <path d="M12 9v4" />
-                <path d="M12 17h.01" />
-              </svg>
-              {environment.id === 'myqollabi' ? 'Ask broker copilot' : 'Ask partner copilot'}
-            </Button>
+            <PartnerPilotSlider variant="ghost" />
             <button className="text-neutral-600 hover:text-indigo-600 p-1.5 rounded-md hover:bg-indigo-50">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9" />
