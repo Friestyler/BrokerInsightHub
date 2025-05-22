@@ -410,10 +410,7 @@ const OkrDashboard: React.FC<OkrDashboardProps> = ({ timeFrame, region }) => {
                             metric.progress >= 70 ? 'bg-green-100' : 
                             metric.progress >= 40 ? 'bg-orange-100' : 'bg-red-100'
                           }`} 
-                          // Remove indicatorClassName and use custom styling
-                          style={{
-                            "--progress-background": getStatusColor(metric.status)
-                          } as React.CSSProperties}
+                          indicatorColor={getStatusColor(metric.status)}
                         />
                         <div className="text-right text-xs mt-1">{metric.progress}%</div>
                       </div>

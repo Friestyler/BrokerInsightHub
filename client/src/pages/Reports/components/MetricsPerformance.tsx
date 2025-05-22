@@ -311,9 +311,7 @@ const MetricsPerformance: React.FC<MetricsPerformanceProps> = ({ timeFrame, regi
                 <Progress 
                   value={metric.progress} 
                   className="h-2" 
-                  style={{
-                    "--progress-background": getProgressColor(metric.progress)
-                  } as React.CSSProperties}
+                  indicatorColor={getProgressColor(metric.progress)}
                 />
               </div>
             </div>
