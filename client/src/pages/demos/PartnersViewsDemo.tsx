@@ -145,6 +145,43 @@ const mockPartners = [
   }
 ];
 
+// Reusable filter pill component
+function FilterPill({ 
+  label, 
+  value, 
+  color = 'indigo', 
+  onRemove 
+}: { 
+  label: string; 
+  value: string; 
+  color?: 'indigo' | 'blue' | 'green' | 'purple'; 
+  onRemove?: () => void;
+}) {
+  const colorClasses = {
+    indigo: 'bg-indigo-50 text-indigo-700 border-indigo-200',
+    blue: 'bg-blue-50 text-blue-700 border-blue-200',
+    green: 'bg-green-50 text-green-700 border-green-200',
+    purple: 'bg-purple-50 text-purple-700 border-purple-200'
+  };
+  
+  return (
+    <div className={`px-2.5 py-1 rounded-full text-xs font-medium flex items-center border ${colorClasses[color]}`}>
+      <span>{label}: {value}</span>
+      {onRemove && (
+        <button 
+          className="ml-1.5 hover:bg-white/50 rounded-full p-0.5"
+          onClick={onRemove}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 6L6 18"></path>
+            <path d="M6 6l12 12"></path>
+          </svg>
+        </button>
+      )}
+    </div>
+  );
+}
+
 // Component for industry/type badges
 function PartnerTypeBadges({ industry, type }: { industry: string, type: string }) {
   const getBadges = (industry: string, type: string) => {
@@ -617,102 +654,84 @@ export default function PartnersViewsDemo() {
                   {activeView && (
                     <div className="flex flex-wrap gap-2">
                       {activeView.filters.status && (
-                        <div className="bg-blue-50 px-2 py-1 rounded-full text-xs font-medium text-blue-700 flex items-center">
-                          <span>Status: {activeView.filters.status}</span>
-                          <button 
-                            className="ml-1 text-blue-400 hover:text-blue-600"
-                            onClick={() => {
-                              const updatedLists = lists.map(list => {
-                                if (list.id === activeListId) {
-                                  const updatedViews = list.views.map(v => {
-                                    if (v.id === activeViewId) {
-                                      return {
-                                        ...v,
-                                        filters: { ...v.filters, status: undefined }
-                                      };
-                                    }
-                                    return v;
-                                  });
-                                  return { ...list, views: updatedViews };
-                                }
-                                return list;
-                              });
-                              setLists(updatedLists);
-                              setSelectedStatus('');
-                            }}
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M18 6L6 18"></path>
-                              <path d="M6 6l12 12"></path>
-                            </svg>
-                          </button>
-                        </div>
+                        <FilterPill 
+                          label="Status" 
+                          value={activeView.filters.status} 
+                          color="blue"
+                          onRemove={() => {
+                            const updatedLists = lists.map(list => {
+                              if (list.id === activeListId) {
+                                const updatedViews = list.views.map(v => {
+                                  if (v.id === activeViewId) {
+                                    return {
+                                      ...v,
+                                      filters: { ...v.filters, status: undefined }
+                                    };
+                                  }
+                                  return v;
+                                });
+                                return { ...list, views: updatedViews };
+                              }
+                              return list;
+                            });
+                            setLists(updatedLists);
+                            setSelectedStatus('');
+                          }}
+                        />
                       )}
                       
                       {activeView.filters.industry && (
-                        <div className="bg-green-50 px-2 py-1 rounded-full text-xs font-medium text-green-700 flex items-center">
-                          <span>Industry: {activeView.filters.industry}</span>
-                          <button 
-                            className="ml-1 text-green-400 hover:text-green-600"
-                            onClick={() => {
-                              const updatedLists = lists.map(list => {
-                                if (list.id === activeListId) {
-                                  const updatedViews = list.views.map(v => {
-                                    if (v.id === activeViewId) {
-                                      return {
-                                        ...v,
-                                        filters: { ...v.filters, industry: undefined }
-                                      };
-                                    }
-                                    return v;
-                                  });
-                                  return { ...list, views: updatedViews };
-                                }
-                                return list;
-                              });
-                              setLists(updatedLists);
-                              setSelectedIndustry('');
-                            }}
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M18 6L6 18"></path>
-                              <path d="M6 6l12 12"></path>
-                            </svg>
-                          </button>
-                        </div>
+                        <FilterPill 
+                          label="Industry" 
+                          value={activeView.filters.industry} 
+                          color="green"
+                          onRemove={() => {
+                            const updatedLists = lists.map(list => {
+                              if (list.id === activeListId) {
+                                const updatedViews = list.views.map(v => {
+                                  if (v.id === activeViewId) {
+                                    return {
+                                      ...v,
+                                      filters: { ...v.filters, industry: undefined }
+                                    };
+                                  }
+                                  return v;
+                                });
+                                return { ...list, views: updatedViews };
+                              }
+                              return list;
+                            });
+                            setLists(updatedLists);
+                            setSelectedIndustry('');
+                          }}
+                        />
                       )}
                       
                       {activeView.filters.type && (
-                        <div className="bg-purple-50 px-2 py-1 rounded-full text-xs font-medium text-purple-700 flex items-center">
-                          <span>Type: {activeView.filters.type}</span>
-                          <button 
-                            className="ml-1 text-purple-400 hover:text-purple-600"
-                            onClick={() => {
-                              const updatedLists = lists.map(list => {
-                                if (list.id === activeListId) {
-                                  const updatedViews = list.views.map(v => {
-                                    if (v.id === activeViewId) {
-                                      return {
-                                        ...v,
-                                        filters: { ...v.filters, type: undefined }
-                                      };
-                                    }
-                                    return v;
-                                  });
-                                  return { ...list, views: updatedViews };
-                                }
-                                return list;
-                              });
-                              setLists(updatedLists);
-                              setSelectedType('');
-                            }}
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M18 6L6 18"></path>
-                              <path d="M6 6l12 12"></path>
-                            </svg>
-                          </button>
-                        </div>
+                        <FilterPill 
+                          label="Type" 
+                          value={activeView.filters.type} 
+                          color="purple"
+                          onRemove={() => {
+                            const updatedLists = lists.map(list => {
+                              if (list.id === activeListId) {
+                                const updatedViews = list.views.map(v => {
+                                  if (v.id === activeViewId) {
+                                    return {
+                                      ...v,
+                                      filters: { ...v.filters, type: undefined }
+                                    };
+                                  }
+                                  return v;
+                                });
+                                return { ...list, views: updatedViews };
+                              }
+                              return list;
+                            });
+                            setLists(updatedLists);
+                            setSelectedType('');
+                          }}
+                        />
                       )}
                       
                       {!activeView.filters.status && !activeView.filters.industry && !activeView.filters.type && (
@@ -811,19 +830,25 @@ export default function PartnersViewsDemo() {
                             <div className="text-xs text-gray-500">{view.description}</div>
                             <div className="flex flex-wrap gap-1 mt-1">
                               {view.filters.status && (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
-                                  Status: {view.filters.status}
-                                </span>
+                                <FilterPill
+                                  label="Status"
+                                  value={view.filters.status}
+                                  color="blue"
+                                />
                               )}
                               {view.filters.industry && (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                                  Industry: {view.filters.industry}
-                                </span>
+                                <FilterPill
+                                  label="Industry"
+                                  value={view.filters.industry}
+                                  color="green"
+                                />
                               )}
                               {view.filters.type && (
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
-                                  Type: {view.filters.type}
-                                </span>
+                                <FilterPill
+                                  label="Type"
+                                  value={view.filters.type}
+                                  color="purple"
+                                />
                               )}
                             </div>
                           </div>
@@ -835,18 +860,108 @@ export default function PartnersViewsDemo() {
                   {/* Main content area */}
                   <div className="col-span-9">
                     {activeView && (
-                      <div className="mb-4 flex justify-between items-center bg-indigo-50 p-3 rounded-md">
-                        <div>
-                          <h3 className="font-medium text-indigo-900">{activeView.name}</h3>
-                          <p className="text-sm text-indigo-700">{activeView.description}</p>
+                      <div className="mb-4 space-y-3">
+                        <div className="flex justify-between items-center bg-indigo-50 p-3 rounded-md">
+                          <div>
+                            <h3 className="font-medium text-indigo-900">{activeView.name}</h3>
+                            <p className="text-sm text-indigo-700">{activeView.description}</p>
+                          </div>
+                          <Button variant="ghost" size="sm" onClick={clearAdditionalFilters}>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                              <path d="M18 6L6 18"></path>
+                              <path d="M6 6l12 12"></path>
+                            </svg>
+                            Reset to view defaults
+                          </Button>
                         </div>
-                        <Button variant="ghost" size="sm" onClick={clearAdditionalFilters}>
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                            <path d="M18 6L6 18"></path>
-                            <path d="M6 6l12 12"></path>
-                          </svg>
-                          Reset to view defaults
-                        </Button>
+                        
+                        {/* Show active filters */}
+                        <div className="flex flex-wrap gap-2">
+                          {activeView.filters.status && (
+                            <FilterPill 
+                              label="Status" 
+                              value={activeView.filters.status} 
+                              color="blue"
+                              onRemove={() => {
+                                const updatedLists = lists.map(list => {
+                                  if (list.id === activeListId) {
+                                    const updatedViews = list.views.map(v => {
+                                      if (v.id === activeViewId) {
+                                        return {
+                                          ...v,
+                                          filters: { ...v.filters, status: undefined }
+                                        };
+                                      }
+                                      return v;
+                                    });
+                                    return { ...list, views: updatedViews };
+                                  }
+                                  return list;
+                                });
+                                setLists(updatedLists);
+                                setSelectedStatus('');
+                              }}
+                            />
+                          )}
+                          
+                          {activeView.filters.industry && (
+                            <FilterPill 
+                              label="Industry" 
+                              value={activeView.filters.industry} 
+                              color="green"
+                              onRemove={() => {
+                                const updatedLists = lists.map(list => {
+                                  if (list.id === activeListId) {
+                                    const updatedViews = list.views.map(v => {
+                                      if (v.id === activeViewId) {
+                                        return {
+                                          ...v,
+                                          filters: { ...v.filters, industry: undefined }
+                                        };
+                                      }
+                                      return v;
+                                    });
+                                    return { ...list, views: updatedViews };
+                                  }
+                                  return list;
+                                });
+                                setLists(updatedLists);
+                                setSelectedIndustry('');
+                              }}
+                            />
+                          )}
+                          
+                          {activeView.filters.type && (
+                            <FilterPill 
+                              label="Type" 
+                              value={activeView.filters.type} 
+                              color="purple"
+                              onRemove={() => {
+                                const updatedLists = lists.map(list => {
+                                  if (list.id === activeListId) {
+                                    const updatedViews = list.views.map(v => {
+                                      if (v.id === activeViewId) {
+                                        return {
+                                          ...v,
+                                          filters: { ...v.filters, type: undefined }
+                                        };
+                                      }
+                                      return v;
+                                    });
+                                    return { ...list, views: updatedViews };
+                                  }
+                                  return list;
+                                });
+                                setLists(updatedLists);
+                                setSelectedType('');
+                              }}
+                            />
+                          )}
+                          
+                          {!activeView.filters.status && !activeView.filters.industry && !activeView.filters.type && (
+                            <div className="text-xs text-gray-500 italic">No filters applied</div>
+                          )}
+                        </div>
                       </div>
                     )}
                   </div>
@@ -926,105 +1041,84 @@ export default function PartnersViewsDemo() {
                   {activeView && (
                     <div className="mb-3 flex flex-wrap gap-2">
                       {activeView.filters.status && (
-                        <div className="bg-blue-50 px-2 py-1 rounded-full text-xs font-medium text-blue-700 flex items-center">
-                          <span>Status: {activeView.filters.status}</span>
-                          <button 
-                            className="ml-1 text-blue-400 hover:text-blue-600"
-                            onClick={() => {
-                              // Create an updated list of views
-                              const updatedLists = lists.map(list => {
-                                if (list.id === activeListId) {
-                                  const updatedViews = list.views.map(v => {
-                                    if (v.id === activeViewId) {
-                                      return {
-                                        ...v,
-                                        filters: { ...v.filters, status: undefined }
-                                      };
-                                    }
-                                    return v;
-                                  });
-                                  return { ...list, views: updatedViews };
-                                }
-                                return list;
-                              });
-                              setLists(updatedLists);
-                              setSelectedStatus('');
-                            }}
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M18 6L6 18"></path>
-                              <path d="M6 6l12 12"></path>
-                            </svg>
-                          </button>
-                        </div>
+                        <FilterPill 
+                          label="Status" 
+                          value={activeView.filters.status} 
+                          color="blue"
+                          onRemove={() => {
+                            const updatedLists = lists.map(list => {
+                              if (list.id === activeListId) {
+                                const updatedViews = list.views.map(v => {
+                                  if (v.id === activeViewId) {
+                                    return {
+                                      ...v,
+                                      filters: { ...v.filters, status: undefined }
+                                    };
+                                  }
+                                  return v;
+                                });
+                                return { ...list, views: updatedViews };
+                              }
+                              return list;
+                            });
+                            setLists(updatedLists);
+                            setSelectedStatus('');
+                          }}
+                        />
                       )}
                       
                       {activeView.filters.industry && (
-                        <div className="bg-green-50 px-2 py-1 rounded-full text-xs font-medium text-green-700 flex items-center">
-                          <span>Industry: {activeView.filters.industry}</span>
-                          <button 
-                            className="ml-1 text-green-400 hover:text-green-600"
-                            onClick={() => {
-                              // Create an updated list of views
-                              const updatedLists = lists.map(list => {
-                                if (list.id === activeListId) {
-                                  const updatedViews = list.views.map(v => {
-                                    if (v.id === activeViewId) {
-                                      return {
-                                        ...v,
-                                        filters: { ...v.filters, industry: undefined }
-                                      };
-                                    }
-                                    return v;
-                                  });
-                                  return { ...list, views: updatedViews };
-                                }
-                                return list;
-                              });
-                              setLists(updatedLists);
-                              setSelectedIndustry('');
-                            }}
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M18 6L6 18"></path>
-                              <path d="M6 6l12 12"></path>
-                            </svg>
-                          </button>
-                        </div>
+                        <FilterPill 
+                          label="Industry" 
+                          value={activeView.filters.industry} 
+                          color="green"
+                          onRemove={() => {
+                            const updatedLists = lists.map(list => {
+                              if (list.id === activeListId) {
+                                const updatedViews = list.views.map(v => {
+                                  if (v.id === activeViewId) {
+                                    return {
+                                      ...v,
+                                      filters: { ...v.filters, industry: undefined }
+                                    };
+                                  }
+                                  return v;
+                                });
+                                return { ...list, views: updatedViews };
+                              }
+                              return list;
+                            });
+                            setLists(updatedLists);
+                            setSelectedIndustry('');
+                          }}
+                        />
                       )}
                       
                       {activeView.filters.type && (
-                        <div className="bg-purple-50 px-2 py-1 rounded-full text-xs font-medium text-purple-700 flex items-center">
-                          <span>Type: {activeView.filters.type}</span>
-                          <button 
-                            className="ml-1 text-purple-400 hover:text-purple-600"
-                            onClick={() => {
-                              // Create an updated list of views
-                              const updatedLists = lists.map(list => {
-                                if (list.id === activeListId) {
-                                  const updatedViews = list.views.map(v => {
-                                    if (v.id === activeViewId) {
-                                      return {
-                                        ...v,
-                                        filters: { ...v.filters, type: undefined }
-                                      };
-                                    }
-                                    return v;
-                                  });
-                                  return { ...list, views: updatedViews };
-                                }
-                                return list;
-                              });
-                              setLists(updatedLists);
-                              setSelectedType('');
-                            }}
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M18 6L6 18"></path>
-                              <path d="M6 6l12 12"></path>
-                            </svg>
-                          </button>
-                        </div>
+                        <FilterPill 
+                          label="Type" 
+                          value={activeView.filters.type} 
+                          color="purple"
+                          onRemove={() => {
+                            const updatedLists = lists.map(list => {
+                              if (list.id === activeListId) {
+                                const updatedViews = list.views.map(v => {
+                                  if (v.id === activeViewId) {
+                                    return {
+                                      ...v,
+                                      filters: { ...v.filters, type: undefined }
+                                    };
+                                  }
+                                  return v;
+                                });
+                                return { ...list, views: updatedViews };
+                              }
+                              return list;
+                            });
+                            setLists(updatedLists);
+                            setSelectedType('');
+                          }}
+                        />
                       )}
                     </div>
                   )}
