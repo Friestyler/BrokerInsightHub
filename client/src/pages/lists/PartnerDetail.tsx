@@ -53,22 +53,22 @@ interface PartnerData {
 const partnerDataMap: Record<string, PartnerData> = {
   "1": {
     id: 1,
-    name: "XYZ Insurance Group",
-    description: "Strategic partnership focused on market expansion in Europe",
-    segment: "broker",
-    address: "123 Main St, New York, NY",
+    name: "Jeroen Hypotheek Advies",
+    description: "Specialized mortgage advisor with focus on sustainable home financing",
+    segment: "advisor",
+    address: "Keizersgracht 123, Amsterdam, NL",
     customers: 3,
-    opportunities: 3,
-    initials: "XY",
+    opportunities: 4,
+    initials: "JH",
     owner: {
       id: 1,
-      name: "John Doe",
-      initials: "JD",
+      name: "Maarten de Vries",
+      initials: "MV",
       avatar: "",
     },
     team: [
-      { id: 1, name: "John Doe", initials: "JD", avatar: "" },
-      { id: 2, name: "Alice Cooper", initials: "AC", avatar: "" },
+      { id: 1, name: "Maarten de Vries", initials: "MV", avatar: "" },
+      { id: 2, name: "Sophie Jansen", initials: "SJ", avatar: "" },
     ],
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -298,46 +298,59 @@ const mockCustomers = [
   }
 ];
 
-// Mock opportunities data - only opportunities related to ABC Insurance Brokers
+// Mock opportunities data - for Jeroen Hypotheek Advies
 const mockOpportunities = [
   {
     id: 1,
-    title: "Property Insurance Renewal",
-    customerName: "Acme Corporation",
+    title: "Koppelen van hypotheek aan verduurzamingslening",
+    customerName: "Van Dijk Familie",
     customerId: 1,
-    estimatedValue: 125000,
-    probability: 75,
+    estimatedValue: 250000,
+    probability: 80,
     status: "in_progress",
-    closingDate: new Date("2025-06-15"),
-    owner: { id: 1, name: "John Doe", initials: "JD", avatar: "" },
-    type: "renewal",
-    partner: "ABC Insurance Brokers"
+    closingDate: new Date("2025-07-15"),
+    owner: { id: 1, name: "Maarten de Vries", initials: "MV", avatar: "" },
+    type: "new_business",
+    partner: "Jeroen Hypotheek Advies"
   },
   {
     id: 2,
-    title: "Cyber Security Coverage",
-    customerName: "Acme Corporation",
-    customerId: 1,
-    estimatedValue: 75000,
+    title: "Verduurzamingslening",
+    customerName: "Jansen Gezin",
+    customerId: 2,
+    estimatedValue: 35000,
     probability: 60,
     status: "qualification",
-    closingDate: new Date("2025-07-30"),
-    owner: { id: 2, name: "Alice Cooper", initials: "AC", avatar: "" },
+    closingDate: new Date("2025-06-30"),
+    owner: { id: 2, name: "Sophie Jansen", initials: "SJ", avatar: "" },
     type: "new_business",
-    partner: "ABC Insurance Brokers"
+    partner: "Jeroen Hypotheek Advies"
   },
   {
-    id: 5,
-    title: "Workers Compensation",
-    customerName: "Umbrella Corporation",
+    id: 3,
+    title: "Verkoop van aanvullende producten",
+    customerName: "De Groot BV",
+    customerId: 3,
+    estimatedValue: 42000,
+    probability: 75,
+    status: "proposal_sent",
+    closingDate: new Date("2025-08-10"),
+    owner: { id: 1, name: "Maarten de Vries", initials: "MV", avatar: "" },
+    type: "upsell",
+    partner: "Jeroen Hypotheek Advies"
+  },
+  {
+    id: 4,
+    title: "Proactief contact bij levensgebeurtenissen",
+    customerName: "Visser Familie",
     customerId: 4,
-    estimatedValue: 80000,
-    probability: 0,
-    status: "closed_lost",
-    closingDate: new Date("2025-05-15"),
-    owner: { id: 1, name: "John Doe", initials: "JD", avatar: "" },
-    type: "cross-sell",
-    partner: "ABC Insurance Brokers"
+    estimatedValue: 28000,
+    probability: 100,
+    status: "closed_won",
+    closingDate: new Date("2025-05-05"),
+    owner: { id: 2, name: "Sophie Jansen", initials: "SJ", avatar: "" },
+    type: "renewal",
+    partner: "Jeroen Hypotheek Advies"
   }
 ];
 
@@ -562,7 +575,7 @@ export default function PartnerDetail() {
   };
   
   return (
-    <div className="container mx-auto px-4 py-6 pl-8">
+    <div className="container mx-auto px-4 py-6">
       {/* Partner header */}
       <div className="mb-8">
         <div className="flex justify-between items-start">
@@ -905,42 +918,42 @@ export default function PartnerDetail() {
                     <TableCell>
                       <Link href={`/lists/opportunities/1?from=partner/${id}`} className="inline-block">
                         <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
-                          Property Insurance Renewal
+                          Koppelen van hypotheek aan verduurzamingslening
                         </span>
                       </Link>
                     </TableCell>
                     <TableCell>
                       <Link href={`/lists/clients/1`} className="inline-block">
                         <span className="text-indigo-600 hover:underline cursor-pointer">
-                          Acme Corporation
+                          Van Dijk Familie
                         </span>
                       </Link>
                     </TableCell>
                     <TableCell>
-                      <Link href={`/lists/partners/2`} className="inline-block">
+                      <Link href={`/lists/partners/1`} className="inline-block">
                         <span className="text-indigo-600 hover:underline cursor-pointer">
-                          ABC Insurance Brokers
+                          Jeroen Hypotheek Advies
                         </span>
                       </Link>
                     </TableCell>
                     <TableCell>
-                      Renewal
+                      New Business
                     </TableCell>
                     <TableCell>
                       <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
-                        In Progress
+                        Proposal
                       </span>
                     </TableCell>
                     <TableCell>
-                      €125,000
+                      €250,000
                     </TableCell>
                     <TableCell>
-                      15/06/2025
+                      15/07/2025
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-1">
                         <div className="h-6 w-6 rounded-full bg-indigo-100 text-indigo-700 text-xs flex items-center justify-center">
-                          RN
+                          VL
                         </div>
                       </div>
                     </TableCell>
@@ -953,21 +966,21 @@ export default function PartnerDetail() {
                     <TableCell>
                       <Link href={`/lists/opportunities/2?from=partner/${id}`} className="inline-block">
                         <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
-                          Cyber Security Coverage
+                          Verduurzamingslening
                         </span>
                       </Link>
                     </TableCell>
                     <TableCell>
-                      <Link href={`/lists/clients/1`} className="inline-block">
+                      <Link href={`/lists/clients/2`} className="inline-block">
                         <span className="text-indigo-600 hover:underline cursor-pointer">
-                          Acme Corporation
+                          Jansen Gezin
                         </span>
                       </Link>
                     </TableCell>
                     <TableCell>
-                      <Link href={`/lists/partners/2`} className="inline-block">
+                      <Link href={`/lists/partners/1`} className="inline-block">
                         <span className="text-indigo-600 hover:underline cursor-pointer">
-                          ABC Insurance Brokers
+                          Jeroen Hypotheek Advies
                         </span>
                       </Link>
                     </TableCell>
@@ -976,19 +989,19 @@ export default function PartnerDetail() {
                     </TableCell>
                     <TableCell>
                       <span className="px-2 py-1 rounded-full text-xs bg-purple-100 text-purple-800">
-                        Qualification
+                        Discovery
                       </span>
                     </TableCell>
                     <TableCell>
-                      €75,000
+                      €35,000
                     </TableCell>
                     <TableCell>
-                      30/07/2025
+                      30/06/2025
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-1">
                         <div className="h-6 w-6 rounded-full bg-green-100 text-green-700 text-xs flex items-center justify-center">
-                          NB
+                          VL
                         </div>
                       </div>
                     </TableCell>
@@ -999,44 +1012,92 @@ export default function PartnerDetail() {
                       <Checkbox />
                     </TableCell>
                     <TableCell>
-                      <Link href={`/lists/opportunities/5?from=partner/${id}`} className="inline-block">
+                      <Link href={`/lists/opportunities/3?from=partner/${id}`} className="inline-block">
                         <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
-                          Workers Compensation
+                          Verkoop van aanvullende producten
                         </span>
                       </Link>
                     </TableCell>
                     <TableCell>
                       <Link href={`/lists/clients/3`} className="inline-block">
                         <span className="text-indigo-600 hover:underline cursor-pointer">
-                          Umbrella Corporation
+                          De Groot BV
                         </span>
                       </Link>
                     </TableCell>
                     <TableCell>
-                      <Link href={`/lists/partners/2`} className="inline-block">
+                      <Link href={`/lists/partners/1`} className="inline-block">
                         <span className="text-indigo-600 hover:underline cursor-pointer">
-                          ABC Insurance Brokers
+                          Jeroen Hypotheek Advies
                         </span>
                       </Link>
                     </TableCell>
                     <TableCell>
-                      Cross-sell
+                      Upsell
                     </TableCell>
                     <TableCell>
-                      <span className="px-2 py-1 rounded-full text-xs bg-red-100 text-red-800">
-                        Closed Lost
+                      <span className="px-2 py-1 rounded-full text-xs bg-amber-100 text-amber-800">
+                        Negotiation
                       </span>
                     </TableCell>
                     <TableCell>
-                      €80,000
+                      €42,000
                     </TableCell>
                     <TableCell>
-                      15/05/2025
+                      10/08/2025
                     </TableCell>
                     <TableCell>
                       <div className="flex space-x-1">
                         <div className="h-6 w-6 rounded-full bg-cyan-100 text-cyan-700 text-xs flex items-center justify-center">
-                          CS
+                          AP
+                        </div>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                  
+                  <TableRow>
+                    <TableCell>
+                      <Checkbox />
+                    </TableCell>
+                    <TableCell>
+                      <Link href={`/lists/opportunities/4?from=partner/${id}`} className="inline-block">
+                        <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
+                          Proactief contact bij levensgebeurtenissen
+                        </span>
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      <Link href={`/lists/clients/4`} className="inline-block">
+                        <span className="text-indigo-600 hover:underline cursor-pointer">
+                          Visser Familie
+                        </span>
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      <Link href={`/lists/partners/1`} className="inline-block">
+                        <span className="text-indigo-600 hover:underline cursor-pointer">
+                          Jeroen Hypotheek Advies
+                        </span>
+                      </Link>
+                    </TableCell>
+                    <TableCell>
+                      Renewal
+                    </TableCell>
+                    <TableCell>
+                      <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
+                        Closed Won
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      €28,000
+                    </TableCell>
+                    <TableCell>
+                      05/05/2025
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex space-x-1">
+                        <div className="h-6 w-6 rounded-full bg-purple-100 text-purple-700 text-xs flex items-center justify-center">
+                          PC
                         </div>
                       </div>
                     </TableCell>
