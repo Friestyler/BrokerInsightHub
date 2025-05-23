@@ -519,13 +519,13 @@ function PartnersTable({
             {/* Left side - Saved Lists with actions */}
             <div className="flex items-center gap-3">
               {/* Lists heading on the left of dropdown */}
-              <h3 className="font-semibold text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
+              <h3 className="font-semibold text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '15px' }}>
                 Lists
               </h3>
               {/* Saved Lists dropdown - redesigned to match provided image */}
               <div className="relative">
                 <button 
-                  className="flex items-center space-x-2 px-4 py-2.5 border rounded-md text-sm font-medium shadow-sm bg-white hover:bg-gray-50 border-gray-200"
+                  className="flex items-center space-x-2 px-4 py-2.5 border rounded-md text-sm font-medium shadow-sm bg-white hover:bg-gray-50 border-gray-200 min-w-[180px]"
                   onClick={() => setShowListsDropdown(!showListsDropdown)}
                 >
                   <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-indigo-600">
