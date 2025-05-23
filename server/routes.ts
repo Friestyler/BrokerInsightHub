@@ -172,12 +172,125 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Insurance Products Endpoints
-  app.get('/api/products', async (req, res) => {
+  app.get('/api/insurance-products', async (req, res) => {
     try {
       const products = await storage.getAllInsuranceProducts();
       res.json(products);
     } catch (error) {
       res.status(500).json({ message: 'Failed to fetch insurance products' });
+    }
+  });
+  
+  // Vendor Endpoints
+  app.get('/api/vendors', async (req, res) => {
+    try {
+      const vendors = await storage.getAllVendors();
+      res.json(vendors);
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to fetch vendors' });
+    }
+  });
+  
+  app.get('/api/vendors/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const vendor = await storage.getVendor(id);
+      
+      if (!vendor) {
+        return res.status(404).json({ message: 'Vendor not found' });
+      }
+      
+      res.json(vendor);
+    } catch (error) {
+      console.error('Error fetching vendor details:', error);
+      res.status(500).json({ message: 'Failed to fetch vendor details' });
+    }
+  });
+  
+  app.post('/api/vendors', async (req, res) => {
+    try {
+      // Validate the request body
+      const { name, description, contactName, contactEmail, contactPhone, ownerId } = req.body;
+      
+      if (!name || !description) {
+        return res.status(400).json({ message: 'Name and description are required' });
+      }
+      
+      const vendor = await storage.createVendor({
+        name,
+        description,
+        contactName,
+        contactEmail,
+        contactPhone,
+        ownerId: ownerId || null
+      });
+      
+      res.status(201).json(vendor);
+    } catch (error) {
+      console.error('Error creating vendor:', error);
+      res.status(500).json({ message: 'Failed to create vendor' });
+    }
+  });
+  
+  // Product Endpoints
+  app.get('/api/products', async (req, res) => {
+    try {
+      const products = await storage.getAllProducts();
+      res.json(products);
+    } catch (error) {
+      res.status(500).json({ message: 'Failed to fetch products' });
+    }
+  });
+  
+  app.get('/api/products/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const product = await storage.getProduct(id);
+      
+      if (!product) {
+        return res.status(404).json({ message: 'Product not found' });
+      }
+      
+      res.json(product);
+    } catch (error) {
+      console.error('Error fetching product details:', error);
+      res.status(500).json({ message: 'Failed to fetch product details' });
+    }
+  });
+  
+  app.post('/api/products', async (req, res) => {
+    try {
+      // Validate the request body
+      const { name, description, category, sku, price, vendorId } = req.body;
+      
+      if (!name || !description || !category || !vendorId) {
+        return res.status(400).json({ message: 'Name, description, category, and vendorId are required' });
+      }
+      
+      const product = await storage.createProduct({
+        name,
+        description,
+        category,
+        sku,
+        price,
+        vendorId
+      });
+      
+      res.status(201).json(product);
+    } catch (error) {
+      console.error('Error creating product:', error);
+      res.status(500).json({ message: 'Failed to create product' });
+    }
+  });
+  
+  app.get('/api/vendors/:id/products', async (req, res) => {
+    try {
+      const vendorId = parseInt(req.params.id);
+      const products = await storage.getVendorProducts(vendorId);
+      res.json(products);
+    } catch (error) {
+      console.error('Error fetching vendor products:', error);
+      res.status(500).json({ message: 'Failed to fetch vendor products' });
     }
   });
 
