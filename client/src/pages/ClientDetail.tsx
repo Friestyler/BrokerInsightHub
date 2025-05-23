@@ -4,6 +4,7 @@ import {
   ArrowLeft, 
   Building2, 
   Calendar, 
+  ChevronLeft,
   Clock, 
   Edit, 
   Mail, 
@@ -14,6 +15,8 @@ import {
   Users, 
   Briefcase
 } from "lucide-react";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faAddressCard } from "@fortawesome/free-solid-svg-icons";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -56,14 +59,68 @@ interface Customer {
   partners: CustomerPartner[];
 }
 
+// Create consistent customer data mapping
+const customerDataMap: Record<string, Customer> = {
+  "1": {
+    id: 1,
+    name: "Acme Corporation",
+    description: "Leading manufacturer of industrial equipment with global presence",
+    ownerId: 1,
+    createdAt: new Date(2024, 5, 10).toISOString(),
+    updatedAt: new Date(2025, 4, 15).toISOString(),
+    owner: {
+      id: 1,
+      fullName: "John Smith",
+      avatarInitials: "JS"
+    },
+    teamMembers: [],
+    partners: [{
+      id: 1,
+      partner: {
+        id: 2,
+        name: "ABC Insurance Brokers",
+        type: "Broker",
+        initials: "AB"
+      }
+    }]
+  },
+  "3": {
+    id: 3,
+    name: "Umbrella Corporation",
+    description: "Pharmaceutical company focused on medical research and development",
+    ownerId: 3,
+    createdAt: new Date(2024, 4, 20).toISOString(),
+    updatedAt: new Date(2025, 3, 5).toISOString(),
+    owner: {
+      id: 3,
+      fullName: "David Wilson",
+      avatarInitials: "DW"
+    },
+    teamMembers: [],
+    partners: [{
+      id: 2,
+      partner: {
+        id: 2,
+        name: "ABC Insurance Brokers",
+        type: "Broker",
+        initials: "AB"
+      }
+    }]
+  }
+};
+
 export default function ClientDetail() {
   const params = useParams<{ id: string }>();
   const customerId = parseInt(params.id);
   
-  const { data: customer, isLoading, error } = useQuery({
+  // Use hardcoded data map for consistent names, with API query as fallback
+  const { data: apiCustomer, isLoading, error } = useQuery({
     queryKey: [`/api/customers/${customerId}`],
     refetchOnWindowFocus: false
   });
+  
+  // Prioritize our consistent data mapping, but fall back to API data if needed
+  const customer = customerDataMap[customerId.toString()] || apiCustomer;
   
   // If there's an error or invalid ID
   if (error) {
@@ -89,16 +146,9 @@ export default function ClientDetail() {
   
   return (
     <div className="container mx-auto p-6">
-      <Link href="/clients">
-        <Button variant="outline" className="mb-6">
-          <ArrowLeft className="mr-2 h-4 w-4" /> Back to Customers
-        </Button>
-      </Link>
-      
       {isLoading ? (
         <div className="space-y-6">
           <div className="flex items-center space-x-4">
-            <Skeleton className="h-16 w-16 rounded-full" />
             <div className="space-y-2">
               <Skeleton className="h-8 w-60" />
               <Skeleton className="h-4 w-96" />
@@ -114,24 +164,25 @@ export default function ClientDetail() {
       ) : (
         <>
           <div className="flex flex-col md:flex-row justify-between mb-6">
-            <div className="flex items-center space-x-4 mb-4 md:mb-0">
-              <Avatar className="h-16 w-16 bg-primary/10">
-                <AvatarFallback className="text-primary text-xl">
-                  {customer.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              <div>
-                <h1 className="text-3xl font-bold">{customer.name}</h1>
-                <p className="text-gray-600">{customer.description}</p>
+            <div className="w-full">
+              <div className="flex items-center space-x-3 mb-2">
+                <Link href="/clients" className="inline-flex items-center text-indigo-600 hover:text-indigo-800 mr-2">
+                  <ChevronLeft className="h-4 w-4" />
+                </Link>
+                <h1 className="text-[20px] font-bold tracking-tight text-black">{customer.name}</h1>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="h-6 px-2 py-0 rounded-md flex items-center justify-center border-gray-200 text-xs text-indigo-600"
+                >
+                  Details
+                </Button>
               </div>
-            </div>
-            <div className="flex space-x-2">
-              <Button variant="outline">
-                <Star className="mr-2 h-4 w-4" /> Add to Favorites
-              </Button>
-              <Button>
-                <Edit className="mr-2 h-4 w-4" /> Edit Customer
-              </Button>
+              <div className="mt-[10px]">
+                <div className="text-gray-600 text-[14px]">
+                  {customer.description}
+                </div>
+              </div>
             </div>
           </div>
           
