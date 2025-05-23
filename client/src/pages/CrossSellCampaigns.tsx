@@ -1042,7 +1042,7 @@ export default function CrossSellCampaigns() {
   };
 
   return (
-    <div className="container mx-auto py-8 pl-8">
+    <div className="container mx-auto py-8">
       <div className="mb-8">
         <div className="space-y-1 mb-4">
           <h2 className="text-3xl font-bold">Import Client Data</h2>

@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useParams, Link, useLocation } from "wouter";
+import { useState } from "react";
+import { useParams, Link } from "wouter";
 import { 
   Table, 
   TableBody, 
@@ -14,7 +14,137 @@ import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { ChevronLeft } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
-import { mockOpportunities } from "./OpportunitiesPage";
+
+// Mock opportunity data
+const opportunities = {
+  "1": {
+    id: 1,
+    name: "Koppelen van hypotheek aan verduurzamingslening",
+    description: "Combinatie van hypotheek met verduurzamingslening voor energiebesparende maatregelen",
+    amount: 250000,
+    probability: 80,
+    stage: "Proposal",
+    customer: {
+      id: 1,
+      name: "Van Dijk Familie",
+      link: "/lists/customers/1"
+    },
+    partners: [
+      {
+        id: 1,
+        name: "Jeroen Hypotheek Advies",
+        link: "/lists/partners/1"
+      }
+    ],
+    owner: {
+      name: "Maarten V.",
+      initials: "MV"
+    }
+  },
+  "2": {
+    id: 2,
+    name: "Verduurzamingslening",
+    description: "Financiering voor zonnepanelen en isolatie van de woning",
+    amount: 35000,
+    probability: 60,
+    stage: "Discovery",
+    customer: {
+      id: 2,
+      name: "Jansen Gezin",
+      link: "/lists/customers/2"
+    },
+    partners: [
+      {
+        id: 1,
+        name: "Jeroen Hypotheek Advies",
+        link: "/lists/partners/1"
+      }
+    ],
+    owner: {
+      name: "Sophie J.",
+      initials: "SJ"
+    }
+  },
+  "3": {
+    id: 3,
+    name: "Verkoop van aanvullende producten",
+    description: "Overlijdensrisicoverzekering en woonlastenverzekering bij hypotheek",
+    amount: 42000,
+    probability: 75,
+    stage: "Negotiation",
+    customer: {
+      id: 3,
+      name: "De Groot BV",
+      link: "/lists/customers/3"
+    },
+    partners: [
+      {
+        id: 1,
+        name: "Jeroen Hypotheek Advies",
+        link: "/lists/partners/1"
+      }
+    ],
+    owner: {
+      name: "Maarten V.",
+      initials: "MV"
+    }
+  },
+  "4": {
+    id: 4,
+    name: "Proactief contact bij levensgebeurtenissen",
+    description: "Contact met klanten bij verhuizing, gezinsuitbreiding of scheiding",
+    amount: 28000,
+    probability: 100,
+    stage: "Closed Won",
+    customer: {
+      id: 4,
+      name: "Visser Familie",
+      link: "/lists/customers/4"
+    },
+    partners: [
+      {
+        id: 1,
+        name: "Jeroen Hypotheek Advies",
+        link: "/lists/partners/1"
+      }
+    ],
+    owner: {
+      name: "Sophie J.",
+      initials: "SJ"
+    }
+  }
+};
+
+// Define type for opportunity
+type Opportunity = {
+  id: number;
+  name: string;
+  description: string;
+  amount: number;
+  probability: number;
+  stage: string;
+  customer: {
+    id: number;
+    name: string;
+    link: string;
+  };
+  partners: {
+    id: number;
+    name: string;
+    link: string;
+  }[];
+  owner: {
+    name: string;
+    initials: string;
+  };
+};
+
+// Get the current opportunity based on ID
+const getOpportunity = (id?: string): Opportunity => {
+  return id && opportunities[id as keyof typeof opportunities] 
+    ? opportunities[id as keyof typeof opportunities] 
+    : opportunities["1"];
+};
 
 // Mock metrics data for this opportunity
 const metrics = [
@@ -144,25 +274,9 @@ export default function OpportunityDetail() {
   const { id } = useParams();
   const { environment } = useEnvironment();
   const [selectedMetrics, setSelectedMetrics] = useState<number[]>([]);
-  const [, setLocation] = useLocation();
   
-  // Find the opportunity from the mock data source shared with the list
-  const opportunity = mockOpportunities.find(opp => opp.id === Number(id));
-  
-  // If opportunity not found, render a not found message
-  if (!opportunity) {
-    return (
-      <div className="container mx-auto px-4 py-6">
-        <div className="flex flex-col items-center justify-center py-12">
-          <h1 className="text-2xl font-bold mb-4">Opportunity Not Found</h1>
-          <p className="text-gray-600 mb-6">The opportunity you're looking for doesn't exist or has been removed.</p>
-          <Button onClick={() => setLocation("/lists/opportunities")}>
-            Return to Opportunities
-          </Button>
-        </div>
-      </div>
-    );
-  }
+  // Get the current opportunity based on the ID parameter
+  const opportunity = getOpportunity(id);
   
   // Toggle selection of a metric
   const toggleMetricSelection = (id: number) => {
@@ -183,7 +297,7 @@ export default function OpportunityDetail() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-6 pl-8">
+    <div className="container mx-auto px-4 py-6">
       {/* Header with back navigation */}
       <div className="mb-6">
         <Link href="/lists/opportunities" className="inline-flex items-center text-indigo-600 hover:text-indigo-800 mb-4">
@@ -193,50 +307,31 @@ export default function OpportunityDetail() {
         
         <div className="flex justify-between items-center">
           <div className="flex items-center">
-            <h1 className="text-2xl font-bold tracking-tight">{opportunity.title}</h1>
+            <h1 className="text-2xl font-bold tracking-tight">{opportunity.name}</h1>
             <div className="ml-4 flex items-center">
               <Avatar className="h-8 w-8">
                 <AvatarFallback className="bg-indigo-100 text-indigo-600">
-                  {opportunity.ownerInitials}
+                  {opportunity.owner.initials}
                 </AvatarFallback>
               </Avatar>
-              <span className="ml-2 text-gray-600">{opportunity.owner}</span>
+              <span className="ml-2 text-gray-600">{opportunity.owner.name}</span>
             </div>
           </div>
           
           <div className="flex space-x-3">
-            <Button 
-              variant="outline"
-              onClick={() => {
-                // Here you could implement the edit functionality
-                // For now, we'll just show how it would update the name
-                const newName = prompt("Enter new opportunity name:", opportunity.title);
-                if (newName && newName.trim() !== "") {
-                  // In a real application, this would update the data in a database
-                  // For our prototype, we'll update it directly in the array
-                  const index = mockOpportunities.findIndex(opp => opp.id === opportunity.id);
-                  if (index !== -1) {
-                    mockOpportunities[index].title = newName;
-                    // Force refresh the page to show the updated name
-                    window.location.reload();
-                  }
-                }
-              }}
-            >
-              Edit
-            </Button>
+            <Button variant="outline">Edit</Button>
             <Button className="bg-indigo-600 hover:bg-indigo-700">Actions</Button>
           </div>
         </div>
         
-        <p className="text-gray-600 mt-2">Details for {opportunity.title}</p>
+        <p className="text-gray-600 mt-2">{opportunity.description}</p>
       </div>
       
       {/* Key metrics section - similar to screenshot */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-6 mb-6">
         <div className="border-r border-gray-200 pr-6">
           <span className="text-sm text-gray-500 block">Amount</span>
-          <span className="text-xl font-bold">€ {(opportunity.value / 1000).toFixed(0)}.000</span>
+          <span className="text-xl font-bold">€ {(opportunity.amount / 1000).toFixed(0)}.000</span>
         </div>
         
         <div className="border-r border-gray-200 px-6">
@@ -246,8 +341,8 @@ export default function OpportunityDetail() {
         
         <div className="pl-6">
           <span className="text-sm text-gray-500 block">Stage</span>
-          <span className={`px-2.5 py-1 rounded-full text-xs ${getStatusBadgeVariant(opportunity.status)}`}>
-            {opportunity.status}
+          <span className={`px-2.5 py-1 rounded-full text-xs ${getStatusBadgeVariant(opportunity.stage)}`}>
+            {opportunity.stage}
           </span>
         </div>
       </div>
@@ -259,17 +354,19 @@ export default function OpportunityDetail() {
           <div className="flex flex-wrap gap-x-8 gap-y-2">
             <div>
               <span className="text-sm text-gray-500 mr-2">Customer:</span>
-              <Link href={`/lists/customers/${opportunity.customerId}`} className="text-indigo-600 hover:underline">
-                {opportunity.customerName}
+              <Link href={opportunity.customer.link} className="text-indigo-600 hover:underline">
+                {opportunity.customer.name}
               </Link>
             </div>
             
-            <div>
-              <span className="text-sm text-gray-500 mr-2">Partner:</span>
-              <Link href={`/lists/partners/${opportunity.partnerId}`} className="text-indigo-600 hover:underline">
-                {opportunity.partnerName}
-              </Link>
-            </div>
+            {opportunity.partners.map((partner: {id: number, name: string, link: string}, index: number) => (
+              <div key={partner.id}>
+                <span className="text-sm text-gray-500 mr-2">Partner{opportunity.partners.length > 1 ? ` ${index + 1}` : ''}:</span>
+                <Link href={partner.link} className="text-indigo-600 hover:underline">
+                  {partner.name}
+                </Link>
+              </div>
+            ))}
           </div>
         </div>
       </div>
