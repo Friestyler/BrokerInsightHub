@@ -145,7 +145,7 @@ export default function ClientDetail() {
   }
   
   return (
-    <div className="container mx-auto p-6">
+    <div className="container mx-auto p-6 pl-8">
       {isLoading ? (
         <div className="space-y-6">
           <div className="flex items-center space-x-4">
