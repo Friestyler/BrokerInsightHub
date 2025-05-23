@@ -624,10 +624,10 @@ function PartnersTable({
                               // Store the original filters to enable reverting changes
                               setOriginalListFilters(list.filters);
                               // Apply filter settings
-                              setFilterText(list.filters.searchText || '');
-                              setSelectedStatus(list.filters.status || '');
-                              setSelectedIndustry(list.filters.industry || '');
-                              setSelectedType(list.filters.type || '');
+                              setFilterText?.(list.filters.searchText || '');
+                              setSelectedStatus?.(list.filters.status || '');
+                              setSelectedIndustry?.(list.filters.industry || '');
+                              setSelectedType?.(list.filters.type || '');
                               // Clear any active view when switching lists
                               setActiveView(null);
                               setHasUnsavedChanges(false);
@@ -809,7 +809,7 @@ function PartnersTable({
                   placeholder="Search by name, industry..."
                   value={filterText}
                   onChange={(e) => {
-                    setFilterText(e.target.value);
+                    setFilterText?.(e.target.value);
                     // Only set hasUnsavedChanges if we have an active view
                     if (activeView) {
                       setHasUnsavedChanges(true);
@@ -841,10 +841,10 @@ function PartnersTable({
                     const view = views.find(v => v.id === value);
                     if (view) {
                       setActiveView(view);
-                      setFilterText(view.filters.searchText || '');
-                      setSelectedStatus(view.filters.status || '');
-                      setSelectedIndustry(view.filters.industry || '');
-                      setSelectedType(view.filters.type || '');
+                      setFilterText?.(view.filters.searchText || '');
+                      setSelectedStatus?.(view.filters.status || '');
+                      setSelectedIndustry?.(view.filters.industry || '');
+                      setSelectedType?.(view.filters.type || '');
                       setHasUnsavedChanges(false);
                     }
                   }}
@@ -885,10 +885,10 @@ function PartnersTable({
                               onClick={() => {
                                 // Clear active view and reset filters
                                 setActiveView(null);
-                                setFilterText('');
-                                setSelectedStatus('');
-                                setSelectedIndustry('');
-                                setSelectedType('');
+                                setFilterText?.('');
+                                setSelectedStatus?.('');
+                                setSelectedIndustry?.('');
+                                setSelectedType?.('');
                                 setHasUnsavedChanges(false);
                               }}
                             >
@@ -998,10 +998,10 @@ function PartnersTable({
                     className="flex items-center rounded-md px-4 py-2 text-gray-600 hover:bg-gray-100"
                     onClick={() => {
                       // Clear all filters
-                      setFilterText('');
-                      setSelectedStatus('');
-                      setSelectedIndustry('');
-                      setSelectedType('');
+                      setFilterText?.('');
+                      setSelectedStatus?.('');
+                      setSelectedIndustry?.('');
+                      setSelectedType?.('');
                     }}
                     style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
                   >
@@ -1055,10 +1055,10 @@ function PartnersTable({
                         className="flex items-center rounded-md px-4 py-2 text-gray-600 hover:bg-gray-100"
                         onClick={() => {
                           // Revert to the original view filters
-                          setFilterText(activeView.filters.searchText || '');
-                          setSelectedStatus(activeView.filters.status || '');
-                          setSelectedIndustry(activeView.filters.industry || '');
-                          setSelectedType(activeView.filters.type || '');
+                          setFilterText?.(activeView.filters.searchText || '');
+                          setSelectedStatus?.(activeView.filters.status || '');
+                          setSelectedIndustry?.(activeView.filters.industry || '');
+                          setSelectedType?.(activeView.filters.type || '');
                           setHasUnsavedChanges(false);
                         }}
                         style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
@@ -1134,10 +1134,10 @@ function PartnersTable({
             {(filterText || selectedStatus || selectedIndustry || selectedType) && (
               <button 
                 onClick={() => {
-                  setFilterText('');
-                  setSelectedStatus('');
-                  setSelectedIndustry('');
-                  setSelectedType('');
+                  setFilterText?.('');
+                  setSelectedStatus?.('');
+                  setSelectedIndustry?.('');
+                  setSelectedType?.('');
                   if (activeList) setActiveList(null);
                 }}
                 className="text-xs text-gray-500 hover:text-gray-700 flex items-center px-2 py-1 hover:bg-gray-50 rounded-md transition-colors"
