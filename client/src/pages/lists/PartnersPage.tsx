@@ -199,10 +199,13 @@ interface SavedList {
 
 // Main partner list component
 function PartnersTable() {
-  const [filterText, setFilterText] = useState('');
-  const [selectedStatus, setSelectedStatus] = useState('');
-  const [selectedIndustry, setSelectedIndustry] = useState('');
-  const [selectedType, setSelectedType] = useState('');
+  // Use the filters from the parent component
+  const filterTextContext = useContext(FilterContext);
+  const filterText = filterTextContext?.filterText || '';
+  const selectedStatus = filterTextContext?.selectedStatus || '';
+  const selectedIndustry = filterTextContext?.selectedIndustry || '';
+  const selectedType = filterTextContext?.selectedType || '';
+  
   const [selectedPartners, setSelectedPartners] = useState<number[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
