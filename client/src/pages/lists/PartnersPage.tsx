@@ -2232,46 +2232,6 @@ export default function PartnersPage() {
         </button>
       </div>
       
-      {/* Debug filter state */}
-      <div className="mb-4 p-3 bg-gray-100 border rounded-md">
-        <h3 className="text-sm font-semibold mb-2">Filter Test Panel</h3>
-        <div className="flex gap-3 flex-wrap">
-          <input 
-            type="text" 
-            placeholder="Search text" 
-            value={filterText}
-            onChange={e => setFilterText(e.target.value)}
-            className="px-3 py-1 border rounded"
-          />
-          <select 
-            value={selectedStatus} 
-            onChange={e => setSelectedStatus(e.target.value)}
-            className="px-3 py-1 border rounded"
-          >
-            <option value="">All Status</option>
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
-          <select 
-            value={selectedIndustry} 
-            onChange={e => setSelectedIndustry(e.target.value)}
-            className="px-3 py-1 border rounded"
-          >
-            <option value="">All Industries</option>
-            <option value="Insurance">Insurance</option>
-            <option value="Finance">Finance</option>
-          </select>
-          <select 
-            value={selectedType} 
-            onChange={e => setSelectedType(e.target.value)}
-            className="px-3 py-1 border rounded"
-          >
-            <option value="">All Types</option>
-            <option value="Broker">Broker</option>
-            <option value="Agency">Agency</option>
-          </select>
-        </div>
-      </div>
       
       <PartnersTable 
         filterText={filterText}
