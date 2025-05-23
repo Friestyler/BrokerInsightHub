@@ -220,40 +220,18 @@ function PartnersTable({
   setSelectedIndustry,
   setSelectedType
 }: PartnersTableProps) {
+  // List editing states
+  const [isEditingList, setIsEditingList] = useState(false);
+  const [isSavingList, setIsSavingList] = useState(false);
+  const [editedListMembers, setEditedListMembers] = useState<number[]>([]);
   // Component state
   const [selectedPartners, setSelectedPartners] = useState<number[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
   
-  // Initialize edited list members when entering edit mode
-  useEffect(() => {
-    if (isEditingList && activeList) {
-      setEditedListMembers(activeList.members || []);
-    }
-  }, [isEditingList, activeList]);
+  // We'll initialize edited list members in a different way that doesn't have dependency issues
   
-  // Add a visual indicator at the top of the table when in edit mode
-  const EditModeIndicator = () => {
-    if (!isEditingList) return null;
-    
-    return (
-      <div className="bg-indigo-50 border border-indigo-200 rounded-md p-4 mb-4">
-        <div className="flex items-center">
-          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-3">
-            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-          </svg>
-          <div>
-            <h3 className="font-medium text-indigo-900">Edit List Mode</h3>
-            <p className="text-sm text-indigo-700">
-              Select or deselect partners to add or remove them from this list. 
-              Click "Save" to apply your changes.
-            </p>
-          </div>
-        </div>
-      </div>
-    );
-  };
+  // We'll handle visual indicators directly in the component render
   
   // This function will be defined in the main component
 
@@ -358,10 +336,7 @@ function PartnersTable({
   const [listToAddTo, setListToAddTo] = useState<string>('new'); // 'new' or list ID
   const [showDynamicListGuidance, setShowDynamicListGuidance] = useState(false);
   const [isGuidanceCollapsed, setIsGuidanceCollapsed] = useState(false);
-  // List editing state
-  const [isEditingList, setIsEditingList] = useState(false);
-  const [isSavingList, setIsSavingList] = useState(false);
-  const [editedListMembers, setEditedListMembers] = useState<number[]>([]);
+  // Add state variables for list editing right at the top level
   // State for the name and description when creating a list through the general create modal
   const [newListName, setNewListName] = useState('');
   const [newListDescription, setNewListDescription] = useState('');
