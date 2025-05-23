@@ -2346,9 +2346,6 @@ export default function PartnersPage() {
   const [selectedType, setSelectedType] = useState('');
   
   // List editing state
-  const [isEditing, setIsEditing] = useState(false);
-  
-  // List editing state
   const [isEditingList, setIsEditingList] = useState(false);
   const [isSavingList, setIsSavingList] = useState(false);
   const [editedListMembers, setEditedListMembers] = useState<number[]>([]);
