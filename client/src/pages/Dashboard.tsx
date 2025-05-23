@@ -8,7 +8,7 @@ import { useEnvironment } from "@/contexts/EnvironmentContext";
 // New Partner Copilot Dashboard for My Qollabi environment
 function MyQollabiDashboard() {
   return (
-    <div className="p-5 bg-white">
+    <div className="p-5 pl-8 bg-white">
       <div className="max-w-7xl mx-auto">
         <div className="mb-8">
           <h1 className="text-2xl font-bold text-gray-900">Partner Copilot</h1>
@@ -196,7 +196,7 @@ function MyQollabiDashboard() {
 // Dashboard for ACME environment - NO news section
 function ACMEDashboard() {
   return (
-    <div className="p-5 bg-white">
+    <div className="p-5 pl-8 bg-white">
       <div className="max-w-7xl mx-auto">
         <div className="mb-6">
           <p className="text-gray-600 mt-1 text-sm">Access intelligent tools to enhance your brokerage efficiency</p>
