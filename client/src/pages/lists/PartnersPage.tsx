@@ -198,8 +198,16 @@ interface SavedList {
 }
 
 // Main partner list component
-function PartnersTable() {
-  // Define state for filters
+// Define props type for the PartnersTable
+interface PartnersTableProps {
+  filterText: string;
+  selectedStatus: string;
+  selectedIndustry: string;
+  selectedType: string;
+}
+
+function PartnersTable({ filterText, selectedStatus, selectedIndustry, selectedType }: PartnersTableProps) {
+  // Component state
   const [selectedPartners, setSelectedPartners] = useState<number[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
@@ -318,14 +326,9 @@ function PartnersTable() {
   const [showCreateFromSelectionModal, setShowCreateFromSelectionModal] = useState(false);
     
   // Filter partners based on search text, filter selections, and list type
-  const displayedPartners = mockPartners.filter(partner => {
-    // If we have an active list, only show partners that are members of that list
-    // Lists should only be about membership, not filters
-    if (activeList) {
-      // For lists, only check membership - no automatic filters  
-      return activeList.members?.includes(partner.id) || false;
-    } else {
-      // When no list is selected (All Partners or using Views), apply the current filters
+  // This function applies all current filters to the partner list
+  const applyFilters = (partners: typeof mockPartners) => {
+    return partners.filter(partner => {
       const matchesText = !filterText || 
         partner.name.toLowerCase().includes(filterText.toLowerCase()) ||
         partner.industry.toLowerCase().includes(filterText.toLowerCase()) ||
@@ -336,8 +339,23 @@ function PartnersTable() {
       const matchesType = !selectedType || partner.type === selectedType;
       
       return matchesText && matchesStatus && matchesIndustry && matchesType;
+    });
+  };
+  
+  // First filter by list membership, then apply filters
+  const displayedPartners = (() => {
+    // First restrict to list members if a list is active
+    let filteredPartners = mockPartners;
+    
+    if (activeList) {
+      filteredPartners = mockPartners.filter(partner => 
+        activeList.members?.includes(partner.id) || false
+      );
     }
-  });
+    
+    // Then apply all other filters
+    return applyFilters(filteredPartners);
+  })();
   
   // Check if current filters differ from original list filters to detect unsaved changes
   useEffect(() => {
@@ -2186,6 +2204,11 @@ function PartnersTable() {
 
 export default function PartnersPage() {
   const { environment } = useEnvironment();
+  // Define filter state at the top-level component
+  const [filterText, setFilterText] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('');
+  const [selectedIndustry, setSelectedIndustry] = useState('');
+  const [selectedType, setSelectedType] = useState('');
   
   return (
     <div className="container mx-auto px-4 py-6">
@@ -2209,7 +2232,53 @@ export default function PartnersPage() {
         </button>
       </div>
       
-      <PartnersTable />
+      {/* Debug filter state */}
+      <div className="mb-4 p-3 bg-gray-100 border rounded-md">
+        <h3 className="text-sm font-semibold mb-2">Filter Test Panel</h3>
+        <div className="flex gap-3 flex-wrap">
+          <input 
+            type="text" 
+            placeholder="Search text" 
+            value={filterText}
+            onChange={e => setFilterText(e.target.value)}
+            className="px-3 py-1 border rounded"
+          />
+          <select 
+            value={selectedStatus} 
+            onChange={e => setSelectedStatus(e.target.value)}
+            className="px-3 py-1 border rounded"
+          >
+            <option value="">All Status</option>
+            <option value="active">Active</option>
+            <option value="inactive">Inactive</option>
+          </select>
+          <select 
+            value={selectedIndustry} 
+            onChange={e => setSelectedIndustry(e.target.value)}
+            className="px-3 py-1 border rounded"
+          >
+            <option value="">All Industries</option>
+            <option value="Insurance">Insurance</option>
+            <option value="Finance">Finance</option>
+          </select>
+          <select 
+            value={selectedType} 
+            onChange={e => setSelectedType(e.target.value)}
+            className="px-3 py-1 border rounded"
+          >
+            <option value="">All Types</option>
+            <option value="Broker">Broker</option>
+            <option value="Agency">Agency</option>
+          </select>
+        </div>
+      </div>
+      
+      <PartnersTable 
+        filterText={filterText}
+        selectedStatus={selectedStatus}
+        selectedIndustry={selectedIndustry}
+        selectedType={selectedType}
+      />
     </div>
   );
 }
