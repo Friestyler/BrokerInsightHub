@@ -14,7 +14,6 @@ import CrossSellCampaigns from "@/pages/CrossSellCampaigns";
 import Clients from "@/pages/Clients";
 import ClientDetail from "@/pages/ClientDetail";
 import PartnersPage from "@/pages/lists/PartnersPage";
-import SimplePartnersList from "@/pages/lists/SimplePartnersList";
 import PartnerDetail from "@/pages/lists/PartnerDetail";
 import CustomersPage from "@/pages/lists/CustomersPage";
 import OpportunitiesPage from "@/pages/lists/OpportunitiesPage";
@@ -39,7 +38,7 @@ function Router() {
         <Route path="/predict" component={PredictOpportunities} />
         
         {/* Lists section routes */}
-        <Route path="/lists/partners" component={SimplePartnersList} />
+        <Route path="/lists/partners" component={PartnersPage} />
         <Route path="/lists/partners/:id" component={PartnerDetail} />
         <Route path="/lists/customers" component={CustomersPage} />
         <Route path="/lists/opportunities" component={OpportunitiesPage} />
