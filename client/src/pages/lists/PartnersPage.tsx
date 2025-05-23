@@ -2224,8 +2224,8 @@ export default function PartnersPage() {
   const [selectedType, setSelectedType] = useState('');
   
   return (
-    <div className="container mx-auto px-4 py-6">
-      <div className="flex justify-between items-center mb-2">
+    <div className="max-w-full py-6 pl-8">
+      <div className="flex justify-between items-center mb-2 px-4">
         <h1 className="text-2xl font-bold tracking-tight text-black">Partners</h1>
         
         {/* New Partner button */}
