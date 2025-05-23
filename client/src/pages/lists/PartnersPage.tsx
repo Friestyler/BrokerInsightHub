@@ -542,6 +542,13 @@ function PartnersTable() {
                     
                     {/* Lists with edit options */}
                     <div className="max-h-[300px] overflow-y-auto p-1">
+                      {/* Section header for default view */}
+                      <div className="px-2 pt-2 pb-1">
+                        <h4 className="text-xs font-semibold text-[#5F6585] uppercase tracking-wider" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                          System
+                        </h4>
+                      </div>
+                    
                       {/* All Partners default option at the top */}
                       <div className="relative">
                         <div
@@ -567,6 +574,13 @@ function PartnersTable() {
                             <span className="text-xs text-[#282A3F] italic" style={{ fontFamily: 'Poppins, sans-serif' }}>Default</span>
                           </div>
                         </div>
+                      </div>
+
+                      {/* Section header for my lists */}
+                      <div className="px-2 pt-3 pb-1">
+                        <h4 className="text-xs font-semibold text-[#5F6585] uppercase tracking-wider" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                          My Lists
+                        </h4>
                       </div>
                       
                       {/* No divider between lists */}
@@ -827,8 +841,22 @@ function PartnersTable() {
                   <SelectContent>
                     {views.length > 0 ? (
                       <>
+                        {/* Header for My Views section */}
+                        <div className="px-2 pt-2 pb-1">
+                          <h4 className="text-xs font-semibold text-[#5F6585] uppercase tracking-wider" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                            My Saved Views
+                          </h4>
+                        </div>
+                        
                         {views.map(view => (
-                          <SelectItem key={view.id} value={view.id}>{view.name}</SelectItem>
+                          <SelectItem key={view.id} value={view.id}>
+                            <div className="flex items-center justify-between w-full">
+                              <span>{view.name}</span>
+                              <span className="text-xs text-[#5F6585]">
+                                {new Date(view.createdAt).toLocaleDateString()}
+                              </span>
+                            </div>
+                          </SelectItem>
                         ))}
                         {activeView && (
                           <div className="pt-2 mt-1 border-t border-gray-200">
@@ -854,8 +882,15 @@ function PartnersTable() {
                         )}
                       </>
                     ) : (
-                      <div className="py-2 px-2 text-sm text-gray-500 italic">
-                        No saved views
+                      <div className="py-4 px-3 text-sm text-gray-500 flex flex-col items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#8891B9" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mb-2">
+                          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
+                          <line x1="6" y1="9" x2="18" y2="9"></line>
+                          <polyline points="12 13 12 17"></polyline>
+                          <line x1="10" y1="15" x2="14" y2="15"></line>
+                        </svg>
+                        <span className="text-center">You haven't created any views yet</span>
+                        <span className="text-xs text-center mt-1">Apply filters and click "Save as new view"</span>
                       </div>
                     )}
                   </SelectContent>
