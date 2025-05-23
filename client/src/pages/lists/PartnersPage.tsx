@@ -227,10 +227,33 @@ function PartnersTable({
   
   // Initialize edited list members when entering edit mode
   useEffect(() => {
-    if (isEditingList && activeList && setEditedListMembers) {
+    if (isEditingList && activeList) {
       setEditedListMembers(activeList.members || []);
     }
-  }, [isEditingList, activeList, setEditedListMembers]);
+  }, [isEditingList, activeList]);
+  
+  // Add a visual indicator at the top of the table when in edit mode
+  const EditModeIndicator = () => {
+    if (!isEditingList) return null;
+    
+    return (
+      <div className="bg-indigo-50 border border-indigo-200 rounded-md p-4 mb-4">
+        <div className="flex items-center">
+          <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-3">
+            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+          </svg>
+          <div>
+            <h3 className="font-medium text-indigo-900">Edit List Mode</h3>
+            <p className="text-sm text-indigo-700">
+              Select or deselect partners to add or remove them from this list. 
+              Click "Save" to apply your changes.
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  };
   
   // This function will be defined in the main component
 
@@ -2104,6 +2127,24 @@ function PartnersTable({
         </DialogContent>
       </Dialog>
       
+      {/* Edit Mode Indicator */}
+      {isEditingList && (
+        <div className="bg-indigo-50 border border-indigo-200 rounded-lg mb-4 p-4">
+          <div className="flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-3">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+            <div>
+              <h3 className="text-base font-medium text-indigo-900">Editing "{activeList?.name}" List</h3>
+              <p className="text-sm text-indigo-700 mt-1">
+                Use the checkboxes to select or deselect partners. All selected partners will be included in this list when you save.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Table section without a border */}
       <div className="bg-white overflow-x-auto rounded-lg">
         <table className="min-w-full divide-y divide-gray-200">
@@ -2191,7 +2232,13 @@ function PartnersTable({
             {displayedPartners.map((partner) => (
               <tr 
                 key={partner.id} 
-                className={`hover:bg-gray-50 group ${selectedPartners.includes(partner.id) ? 'bg-blue-50' : ''}`}
+                className={`hover:bg-gray-50 group ${
+                  // When in edit mode, highlight based on editedListMembers
+                  // Otherwise use normal selectedPartners
+                  isEditingList
+                    ? (editedListMembers.includes(partner.id) ? 'bg-blue-50' : '')
+                    : (selectedPartners.includes(partner.id) ? 'bg-blue-50' : '')
+                }`}
               >
                 <td className="relative whitespace-nowrap py-4 pl-3 pr-3 text-sm w-10">
                   <input
