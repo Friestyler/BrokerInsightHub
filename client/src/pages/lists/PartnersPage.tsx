@@ -204,9 +204,22 @@ interface PartnersTableProps {
   selectedStatus: string;
   selectedIndustry: string;
   selectedType: string;
+  setFilterText?: (text: string) => void;
+  setSelectedStatus?: (status: string) => void;
+  setSelectedIndustry?: (industry: string) => void;
+  setSelectedType?: (type: string) => void;
 }
 
-function PartnersTable({ filterText, selectedStatus, selectedIndustry, selectedType }: PartnersTableProps) {
+function PartnersTable({ 
+  filterText, 
+  selectedStatus, 
+  selectedIndustry, 
+  selectedType, 
+  setFilterText,
+  setSelectedStatus,
+  setSelectedIndustry,
+  setSelectedType
+}: PartnersTableProps) {
   // Component state
   const [selectedPartners, setSelectedPartners] = useState<number[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -384,10 +397,10 @@ function PartnersTable({ filterText, selectedStatus, selectedIndustry, selectedT
   // Function to revert changes to the original list filters
   const revertChanges = () => {
     if (activeList && originalListFilters) {
-      setFilterText(originalListFilters.searchText || '');
-      setSelectedStatus(originalListFilters.status || '');
-      setSelectedIndustry(originalListFilters.industry || '');
-      setSelectedType(originalListFilters.type || '');
+      setFilterText?.(originalListFilters.searchText || '');
+      setSelectedStatus?.(originalListFilters.status || '');
+      setSelectedIndustry?.(originalListFilters.industry || '');
+      setSelectedType?.(originalListFilters.type || '');
       setHasUnsavedChanges(false);
     }
   };
@@ -576,10 +589,10 @@ function PartnersTable({ filterText, selectedStatus, selectedIndustry, selectedT
                             // Clear filters and active list (same behavior as "Return to all partners" button)
                             setActiveList(null);
                             setOriginalListFilters(null);
-                            setFilterText('');
-                            setSelectedStatus('');
-                            setSelectedIndustry('');
-                            setSelectedType('');
+                            setFilterText?.('');
+                            setSelectedStatus?.('');
+                            setSelectedIndustry?.('');
+                            setSelectedType?.('');
                             // Clear any active view when returning to All Partners
                             setActiveView(null);
                             setHasUnsavedChanges(false);
@@ -2181,10 +2194,10 @@ function PartnersTable({ filterText, selectedStatus, selectedIndustry, selectedT
                           variant="outline" 
                           size="sm" 
                           onClick={() => {
-                            setFilterText('');
-                            setSelectedStatus('');
-                            setSelectedIndustry('');
-                            setSelectedType('');
+                            setFilterText?.('');
+                            setSelectedStatus?.('');
+                            setSelectedIndustry?.('');
+                            setSelectedType?.('');
                           }}
                         >
                           Clear Filters
@@ -2238,6 +2251,10 @@ export default function PartnersPage() {
         selectedStatus={selectedStatus}
         selectedIndustry={selectedIndustry}
         selectedType={selectedType}
+        setFilterText={setFilterText}
+        setSelectedStatus={setSelectedStatus}
+        setSelectedIndustry={setSelectedIndustry}
+        setSelectedType={setSelectedType}
       />
     </div>
   );
