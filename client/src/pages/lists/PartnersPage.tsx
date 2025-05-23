@@ -800,7 +800,7 @@ function PartnersTable({
           {/* No explanation blocks anymore */}
           
           {/* Bottom row with search and filters */}
-          <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-3 mt-6">
             <div className="flex flex-wrap items-center gap-3 flex-grow">
               {/* Search field - first position */}
               <div className="relative w-60">
