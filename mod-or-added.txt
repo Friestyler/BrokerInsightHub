@@ -1,0 +1,35 @@
+A	attached_assets/Screenshot 2025-05-22 at 10.04.21.png
+A	attached_assets/Screenshot 2025-05-22 at 10.28.58.png
+A	attached_assets/Screenshot 2025-05-22 at 11.06.54.png
+A	attached_assets/Screenshot 2025-05-22 at 15.06.22.png
+A	attached_assets/Screenshot 2025-05-23 at 09.39.21.png
+A	attached_assets/image_1747819271081.png
+A	attached_assets/image_1747902780384.png
+A	attached_assets/targeted_element_1747983944240.png
+A	attached_assets/targeted_element_1747988876771.png
+M	client/src/App.tsx
+M	client/src/components/Breadcrumbs.tsx
+M	client/src/components/Layout.tsx
+M	client/src/components/Sidebar.tsx
+M	client/src/components/ui/progress.tsx
+M	client/src/components/ui/scroll-area.tsx
+M	client/src/components/ui/sheet.tsx
+M	client/src/pages/ClientDetail.tsx
+M	client/src/pages/CrossSellCampaigns.tsx
+M	client/src/pages/Dashboard.tsx
+M	client/src/pages/PredictOpportunities.tsx
+A	client/src/pages/demos/PartnersViewsDemo.tsx.bak
+M	client/src/pages/lists/CustomersPage.tsx
+M	client/src/pages/lists/OpportunitiesPage.tsx
+M	client/src/pages/lists/OpportunityDetail.tsx
+M	client/src/pages/lists/PartnerDetail.tsx
+M	client/src/pages/lists/PartnersPage.tsx
+M	client/src/pages/templates/MetricsPage.tsx
+M	client/src/pages/templates/MetricsPageClean.tsx
+M	client/src/pages/templates/MetricsPageFixed.tsx
+M	client/src/pages/templates/MetricsPageTemp.tsx
+M	package-lock.json
+M	package.json
+M	server/routes.ts
+M	server/storage.ts
+M	shared/schema.ts

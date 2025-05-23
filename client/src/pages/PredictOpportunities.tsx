@@ -203,7 +203,7 @@ export default function PredictOpportunities() {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-6 pl-8">
       <div className="max-w-7xl mx-auto">
         <Card className="bg-white rounded-xl p-6 border border-neutral-200">
           <ToolHeader 
