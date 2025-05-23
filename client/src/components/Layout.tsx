@@ -57,8 +57,10 @@ export default function Layout({ children }: LayoutProps) {
             >
               <Menu size={18} />
             </button>
-
-            <Breadcrumbs />
+            
+            <div className="ml-4">
+              <Breadcrumbs />
+            </div>
           </div>
           
           <div className="flex items-center space-x-3">
