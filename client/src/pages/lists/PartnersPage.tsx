@@ -922,7 +922,7 @@ function PartnersTable({
                 <button 
                   className={`flex items-center space-x-1 px-3 py-2 border rounded-md text-sm ${selectedStatus ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
                   onClick={() => {
-                    setSelectedStatus(selectedStatus ? '' : 'active');
+                    setSelectedStatus?.(selectedStatus ? '' : 'active');
                     // If we have an active view, mark as having unsaved changes
                     if (activeView) {
                       setHasUnsavedChanges(true);
@@ -944,7 +944,7 @@ function PartnersTable({
                 <button 
                   className={`flex items-center space-x-1 px-3 py-2 border rounded-md text-sm ${selectedIndustry ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
                   onClick={() => {
-                    setSelectedIndustry(selectedIndustry ? '' : 'Insurance');
+                    setSelectedIndustry?.(selectedIndustry ? '' : 'Insurance');
                     // If we have an active view, mark as having unsaved changes
                     if (activeView) {
                       setHasUnsavedChanges(true);
@@ -966,7 +966,7 @@ function PartnersTable({
                 <button 
                   className={`flex items-center space-x-1 px-3 py-2 border rounded-md text-sm ${selectedType ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
                   onClick={() => {
-                    setSelectedType(selectedType ? '' : 'Broker');
+                    setSelectedType?.(selectedType ? '' : 'Broker');
                     // If we have an active view, mark as having unsaved changes
                     if (activeView) {
                       setHasUnsavedChanges(true);
