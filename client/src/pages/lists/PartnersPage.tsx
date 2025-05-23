@@ -542,10 +542,10 @@ function PartnersTable() {
                     
                     {/* Lists with edit options */}
                     <div className="max-h-[300px] overflow-y-auto p-1">
-                      {/* Section header for default view */}
-                      <div className="px-2 pt-2 pb-1">
-                        <h4 className="text-xs font-semibold text-[#5F6585] uppercase tracking-wider" style={{ fontFamily: 'Poppins, sans-serif' }}>
-                          System
+                      {/* Lists title */}
+                      <div className="px-2 pt-2 pb-3 flex items-center justify-between">
+                        <h4 className="text-sm font-semibold text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                          Lists
                         </h4>
                       </div>
                     
@@ -574,13 +574,6 @@ function PartnersTable() {
                             <span className="text-xs text-[#282A3F] italic" style={{ fontFamily: 'Poppins, sans-serif' }}>Default</span>
                           </div>
                         </div>
-                      </div>
-
-                      {/* Section header for my lists */}
-                      <div className="px-2 pt-3 pb-1">
-                        <h4 className="text-xs font-semibold text-[#5F6585] uppercase tracking-wider" style={{ fontFamily: 'Poppins, sans-serif' }}>
-                          My Lists
-                        </h4>
                       </div>
                       
                       {/* No divider between lists */}
@@ -841,21 +834,16 @@ function PartnersTable() {
                   <SelectContent>
                     {views.length > 0 ? (
                       <>
-                        {/* Header for My Views section */}
-                        <div className="px-2 pt-2 pb-1">
-                          <h4 className="text-xs font-semibold text-[#5F6585] uppercase tracking-wider" style={{ fontFamily: 'Poppins, sans-serif' }}>
-                            My Saved Views
+                        {/* Simple title for Views section */}
+                        <div className="px-2 pt-2 pb-3 flex items-center justify-between">
+                          <h4 className="text-sm font-semibold text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                            Views
                           </h4>
                         </div>
                         
                         {views.map(view => (
                           <SelectItem key={view.id} value={view.id}>
-                            <div className="flex items-center justify-between w-full">
-                              <span>{view.name}</span>
-                              <span className="text-xs text-[#5F6585]">
-                                {new Date(view.createdAt).toLocaleDateString()}
-                              </span>
-                            </div>
+                            <span>{view.name}</span>
                           </SelectItem>
                         ))}
                         {activeView && (
