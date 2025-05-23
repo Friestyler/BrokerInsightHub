@@ -228,7 +228,7 @@ function GlobexDashboard() {
   };
   
   return (
-    <div className="p-5 bg-white">
+    <div className="p-5 pl-8 bg-white">
       <div className="max-w-7xl mx-auto">
         <div className="mb-6">
           <p className="text-gray-600 mt-1 text-sm">Access intelligent tools to enhance your brokerage efficiency</p>
