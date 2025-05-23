@@ -93,7 +93,7 @@ export default function Layout({ children }: LayoutProps) {
         </div>
         
         {/* Main content area - scrollable */}
-        <div className="flex-1 overflow-y-auto">
+        <div className={`flex-1 overflow-y-auto ${sidebarCollapsed ? 'pl-8' : ''}`}>
           {children}
         </div>
       </div>
