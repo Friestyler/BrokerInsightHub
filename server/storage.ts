@@ -11,13 +11,7 @@ import {
   fileComparisons, type FileComparison, type InsertFileComparison,
   customers, type Customer, type InsertCustomer,
   customerTeamMembers, type CustomerTeamMember, type InsertCustomerTeamMember,
-  customerPartners, type CustomerPartner, type InsertCustomerPartner,
-  // New entity tables
-  vendors, type Vendor, type InsertVendor,
-  products, type Product, type InsertProduct,
-  // OKR templates and metrics
-  okrTemplates, type OkrTemplate, type InsertOkrTemplate,
-  okrMetrics, type OkrMetric, type InsertOkrMetric
+  customerPartners, type CustomerPartner, type InsertCustomerPartner
 } from "@shared/schema";
 import { db, getEnvironmentDb } from './db';
 import { eq, and } from 'drizzle-orm';
@@ -82,17 +76,6 @@ export interface IStorage {
   getCustomerPartners(customerId: number): Promise<CustomerPartner[]>;
   addCustomerPartner(data: InsertCustomerPartner): Promise<CustomerPartner>;
   
-  // Vendor operations
-  getAllVendors(): Promise<Vendor[]>;
-  getVendor(id: number): Promise<Vendor | undefined>;
-  createVendor(vendor: InsertVendor): Promise<Vendor>;
-  
-  // Product operations
-  getAllProducts(): Promise<Product[]>;
-  getProduct(id: number): Promise<Product | undefined>;
-  createProduct(product: InsertProduct): Promise<Product>;
-  getVendorProducts(vendorId: number): Promise<Product[]>;
-  
   // OKR Templates operations
   getAllOkrTemplates(): Promise<OkrTemplate[]>;
   getOkrTemplate(id: number): Promise<OkrTemplate | undefined>;
@@ -118,8 +101,6 @@ export class MemStorage implements IStorage {
   private customers: Map<number, Customer>;
   private customerTeamMembers: Map<number, CustomerTeamMember>;
   private customerPartners: Map<number, CustomerPartner>;
-  private vendors: Map<number, Vendor>;
-  private products: Map<number, Product>;
   private okrTemplates: Map<number, any>;
   private okrMetrics: Map<number, any>;
   
@@ -134,8 +115,6 @@ export class MemStorage implements IStorage {
   currentCustomerId: number;
   currentCustomerTeamMemberId: number;
   currentCustomerPartnerId: number;
-  currentVendorId: number;
-  currentProductId: number;
   currentOkrTemplateId: number;
   currentOkrMetricId: number;
 
@@ -151,8 +130,6 @@ export class MemStorage implements IStorage {
     this.customers = new Map();
     this.customerTeamMembers = new Map();
     this.customerPartners = new Map();
-    this.vendors = new Map();
-    this.products = new Map();
     this.okrTemplates = new Map();
     this.okrMetrics = new Map();
     
@@ -167,8 +144,6 @@ export class MemStorage implements IStorage {
     this.currentCustomerId = 1;
     this.currentCustomerTeamMemberId = 1;
     this.currentCustomerPartnerId = 1;
-    this.currentVendorId = 1;
-    this.currentProductId = 1;
     this.currentOkrTemplateId = 1;
     this.currentOkrMetricId = 1;
     
@@ -391,53 +366,6 @@ export class MemStorage implements IStorage {
     const partner: CustomerPartner = { ...data, id };
     this.customerPartners.set(id, partner);
     return partner;
-  }
-  
-  // Vendor operations
-  async getAllVendors(): Promise<Vendor[]> {
-    return Array.from(this.vendors.values());
-  }
-  
-  async getVendor(id: number): Promise<Vendor | undefined> {
-    return this.vendors.get(id);
-  }
-  
-  async createVendor(vendor: InsertVendor): Promise<Vendor> {
-    const id = this.currentVendorId++;
-    const newVendor: Vendor = { 
-      ...vendor, 
-      id, 
-      createdAt: new Date(), 
-      updatedAt: new Date() 
-    };
-    this.vendors.set(id, newVendor);
-    return newVendor;
-  }
-  
-  // Product operations
-  async getAllProducts(): Promise<Product[]> {
-    return Array.from(this.products.values());
-  }
-  
-  async getProduct(id: number): Promise<Product | undefined> {
-    return this.products.get(id);
-  }
-  
-  async createProduct(product: InsertProduct): Promise<Product> {
-    const id = this.currentProductId++;
-    const newProduct: Product = { 
-      ...product, 
-      id, 
-      createdAt: new Date(), 
-      updatedAt: new Date() 
-    };
-    this.products.set(id, newProduct);
-    return newProduct;
-  }
-  
-  async getVendorProducts(vendorId: number): Promise<Product[]> {
-    return Array.from(this.products.values())
-      .filter(product => product.vendorId === vendorId);
   }
   
   // Initialize sample data

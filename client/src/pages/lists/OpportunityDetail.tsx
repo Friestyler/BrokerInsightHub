@@ -8,6 +8,8 @@ import {
   TableHeader, 
   TableRow 
 } from "@/components/ui/table";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent } from "@/components/ui/card";
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
@@ -16,134 +18,34 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
 
 // Mock opportunity data
-const opportunities = {
-  "1": {
-    id: 1,
-    name: "Koppelen van hypotheek aan verduurzamingslening",
-    description: "Combinatie van hypotheek met verduurzamingslening voor energiebesparende maatregelen",
-    amount: 250000,
-    probability: 80,
-    stage: "Proposal",
-    customer: {
-      id: 1,
-      name: "Van Dijk Familie",
-      link: "/lists/customers/1"
-    },
-    partners: [
-      {
-        id: 1,
-        name: "Jeroen Hypotheek Advies",
-        link: "/lists/partners/1"
-      }
-    ],
-    owner: {
-      name: "Maarten V.",
-      initials: "MV"
-    }
-  },
-  "2": {
-    id: 2,
-    name: "Verduurzamingslening",
-    description: "Financiering voor zonnepanelen en isolatie van de woning",
-    amount: 35000,
-    probability: 60,
-    stage: "Discovery",
-    customer: {
-      id: 2,
-      name: "Jansen Gezin",
-      link: "/lists/customers/2"
-    },
-    partners: [
-      {
-        id: 1,
-        name: "Jeroen Hypotheek Advies",
-        link: "/lists/partners/1"
-      }
-    ],
-    owner: {
-      name: "Sophie J.",
-      initials: "SJ"
-    }
-  },
-  "3": {
-    id: 3,
-    name: "Verkoop van aanvullende producten",
-    description: "Overlijdensrisicoverzekering en woonlastenverzekering bij hypotheek",
-    amount: 42000,
-    probability: 75,
-    stage: "Negotiation",
-    customer: {
-      id: 3,
-      name: "De Groot BV",
-      link: "/lists/customers/3"
-    },
-    partners: [
-      {
-        id: 1,
-        name: "Jeroen Hypotheek Advies",
-        link: "/lists/partners/1"
-      }
-    ],
-    owner: {
-      name: "Maarten V.",
-      initials: "MV"
-    }
-  },
-  "4": {
-    id: 4,
-    name: "Proactief contact bij levensgebeurtenissen",
-    description: "Contact met klanten bij verhuizing, gezinsuitbreiding of scheiding",
-    amount: 28000,
-    probability: 100,
-    stage: "Closed Won",
-    customer: {
-      id: 4,
-      name: "Visser Familie",
-      link: "/lists/customers/4"
-    },
-    partners: [
-      {
-        id: 1,
-        name: "Jeroen Hypotheek Advies",
-        link: "/lists/partners/1"
-      }
-    ],
-    owner: {
-      name: "Sophie J.",
-      initials: "SJ"
-    }
-  }
-};
-
-// Define type for opportunity
-type Opportunity = {
-  id: number;
-  name: string;
-  description: string;
-  amount: number;
-  probability: number;
-  stage: string;
+const opportunity = {
+  id: 1,
+  name: "Property Insurance Renewal",
+  description: "Objective to renew property insurance for Acme Corporation's main facilities",
+  amount: 2120000,
+  probability: 60,
+  stage: "Discovery",
   customer: {
-    id: number;
-    name: string;
-    link: string;
-  };
-  partners: {
-    id: number;
-    name: string;
-    link: string;
-  }[];
+    id: 1,
+    name: "Acme Corporation",
+    link: "/lists/customers/1"
+  },
+  partners: [
+    {
+      id: 1,
+      name: "ABC Insurance Brokers",
+      link: "/lists/partners/1"
+    },
+    {
+      id: 2,
+      name: "XYZ Consulting",
+      link: "/lists/partners/2"
+    }
+  ],
   owner: {
-    name: string;
-    initials: string;
-  };
-};
-
-// Get the current opportunity based on ID
-const getOpportunity = (id?: string): Opportunity => {
-  return id && opportunities[id as keyof typeof opportunities] 
-    ? opportunities[id as keyof typeof opportunities] 
-    : opportunities["1"];
+    name: "Lenny K.",
+    initials: "LK"
+  }
 };
 
 // Mock metrics data for this opportunity
@@ -205,9 +107,18 @@ const metrics = [
   }
 ];
 
+// Format currency
+function formatCurrency(value: number): string {
+  return new Intl.NumberFormat('en-US', { 
+    style: 'currency', 
+    currency: 'EUR',
+    maximumFractionDigits: 0
+  }).format(value);
+}
+
 // Status badge variant helper
 function getStatusBadgeVariant(status: string): string {
-  const statusClasses: {[key: string]: string} = {
+  const statusClasses = {
     "on_track": "bg-green-100 text-green-800",
     "at_risk": "bg-amber-100 text-amber-800",
     "off_track": "bg-red-100 text-red-800",
@@ -221,36 +132,36 @@ function getStatusBadgeVariant(status: string): string {
     "Closed Lost": "bg-red-100 text-red-800"
   };
   
-  return statusClasses[status] || "bg-gray-100 text-gray-800";
+  return statusClasses[status as keyof typeof statusClasses] || "bg-gray-100 text-gray-800";
 }
 
 // Tag badge component
 const TagBadge = ({ tag }: { tag: string }) => {
   // Get a consistent color for each tag
   const getTagColor = (tag: string) => {
-    const tagColors: {[key: string]: string} = {
-      "Financial": "bg-emerald-100 text-emerald-800",
-      "Revenue": "bg-green-100 text-green-800",
-      "Partner": "bg-blue-100 text-blue-800",
-      "Pipeline": "bg-amber-100 text-amber-800",
-      "Sales": "bg-orange-100 text-orange-800",
-      "Training": "bg-indigo-100 text-indigo-800",
-      "Certification": "bg-violet-100 text-violet-800",
-      "People": "bg-pink-100 text-pink-800",
-      "Marketing": "bg-purple-100 text-purple-800",
-      "Budget": "bg-lime-100 text-lime-800",
-      "Digital": "bg-sky-100 text-sky-800",
-      "Contract": "bg-cyan-100 text-cyan-800",
-      "Proposal": "bg-amber-100 text-amber-800",
-      "Technical": "bg-blue-100 text-blue-800",
-      "Client": "bg-teal-100 text-teal-800",
-      "Meeting": "bg-slate-100 text-slate-800",
-      "Documentation": "bg-gray-100 text-gray-800",
-      "Requirements": "bg-yellow-100 text-yellow-800",
-      "Approval": "bg-red-100 text-red-800"
+    const tagColors: Record<string, string> = {
+      "Financial": "bg-emerald-100 text-emerald-800 border-emerald-200",
+      "Revenue": "bg-green-100 text-green-800 border-green-200",
+      "Partner": "bg-blue-100 text-blue-800 border-blue-200",
+      "Pipeline": "bg-amber-100 text-amber-800 border-amber-200",
+      "Sales": "bg-orange-100 text-orange-800 border-orange-200",
+      "Training": "bg-indigo-100 text-indigo-800 border-indigo-200",
+      "Certification": "bg-violet-100 text-violet-800 border-violet-200",
+      "People": "bg-pink-100 text-pink-800 border-pink-200",
+      "Marketing": "bg-purple-100 text-purple-800 border-purple-200",
+      "Budget": "bg-lime-100 text-lime-800 border-lime-200",
+      "Digital": "bg-sky-100 text-sky-800 border-sky-200",
+      "Contract": "bg-cyan-100 text-cyan-800 border-cyan-200",
+      "Proposal": "bg-amber-100 text-amber-800 border-amber-200",
+      "Technical": "bg-blue-100 text-blue-800 border-blue-200",
+      "Client": "bg-teal-100 text-teal-800 border-teal-200",
+      "Meeting": "bg-slate-100 text-slate-800 border-slate-200",
+      "Documentation": "bg-gray-100 text-gray-800 border-gray-200",
+      "Requirements": "bg-yellow-100 text-yellow-800 border-yellow-200",
+      "Approval": "bg-red-100 text-red-800 border-red-200",
     };
     
-    return tagColors[tag] || "bg-gray-100 text-gray-800";
+    return tagColors[tag] || "bg-gray-100 text-gray-800 border-gray-200";
   };
   
   return (
@@ -274,9 +185,6 @@ export default function OpportunityDetail() {
   const { id } = useParams();
   const { environment } = useEnvironment();
   const [selectedMetrics, setSelectedMetrics] = useState<number[]>([]);
-  
-  // Get the current opportunity based on the ID parameter
-  const opportunity = getOpportunity(id);
   
   // Toggle selection of a metric
   const toggleMetricSelection = (id: number) => {
@@ -359,7 +267,7 @@ export default function OpportunityDetail() {
               </Link>
             </div>
             
-            {opportunity.partners.map((partner: {id: number, name: string, link: string}, index: number) => (
+            {opportunity.partners.map((partner, index) => (
               <div key={partner.id}>
                 <span className="text-sm text-gray-500 mr-2">Partner{opportunity.partners.length > 1 ? ` ${index + 1}` : ''}:</span>
                 <Link href={partner.link} className="text-indigo-600 hover:underline">
