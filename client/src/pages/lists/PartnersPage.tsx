@@ -1035,8 +1035,8 @@ function PartnersTable({
                 </div>
               )}
               
-              {/* CASE 2: View is active with unsaved changes - only show buttons when filters have changed */}
-              {activeView && hasUnsavedChanges && (
+              {/* CASE 2: View is active with potential changes - check if filters are different from view's stored values */}
+              {activeView && (
                 /* Now we'll compare the actual current filter values with the view's filter values
                    to ensure we only show these buttons when there have been real changes */
                 (() => {
