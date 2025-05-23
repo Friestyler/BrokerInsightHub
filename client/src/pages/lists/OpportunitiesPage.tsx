@@ -31,7 +31,7 @@ import {
 import { useToast } from "@/hooks/use-toast";
 
 // Sample data for opportunities
-export const mockOpportunities = [
+const mockOpportunities = [
   {
     id: 1,
     title: "Property Insurance Renewal",
@@ -211,9 +211,6 @@ interface SavedList {
   id: string;
   name: string;
   description?: string;
-  // Add the list type to indicate if it's a filter-based or selection-based list
-  type: 'filter' | 'selection';
-  // Filter criteria for dynamic lists
   filters: {
     searchText?: string;
     status?: string;
@@ -221,8 +218,6 @@ interface SavedList {
     customerId?: string;
     partnerId?: string;
   };
-  // Selected opportunity IDs for static lists
-  members?: number[];
   isShared: boolean;
   sharedWith?: string[];
   createdBy: string;
@@ -239,15 +234,12 @@ function OpportunitiesTable() {
   const [bulkStatusValue, setBulkStatusValue] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
-  // State for share dialog - selected partners
-  const [selectedPartners, setSelectedPartners] = useState<string[]>([]);
   
   // State for saved lists
   const [savedLists, setSavedLists] = useState<SavedList[]>([
     {
       id: '1',
       name: 'High Value Renewals',
-      type: 'filter',
       filters: { status: 'In Progress', type: 'Renewal' },
       isShared: true,
       sharedWith: ['team@acme.com'],
@@ -257,7 +249,6 @@ function OpportunitiesTable() {
     {
       id: '2',
       name: 'New Business Pipeline',
-      type: 'filter',
       filters: { type: 'New Business' },
       isShared: false,
       createdBy: 'John Smith',
@@ -266,120 +257,35 @@ function OpportunitiesTable() {
     {
       id: '3',
       name: 'Acme Corporation Opportunities',
-      type: 'filter',
       filters: { customerId: "1" },
       isShared: true,
       sharedWith: ['team@acme.com'],
       createdBy: 'John Smith',
       createdAt: new Date('2025-05-15')
-    },
-    {
-      id: '4',
-      name: 'Strategic Accounts',
-      type: 'selection',
-      filters: {},
-      members: [1, 3, 6],
-      isShared: true,
-      sharedWith: ['team@acme.com'],
-      createdBy: 'John Smith',
-      createdAt: new Date('2025-05-18')
     }
   ]);
   const [activeList, setActiveList] = useState<SavedList | null>(null);
-  const [originalListFilters, setOriginalListFilters] = useState<SavedList['filters'] | null>(null);
-  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
   const [showSaveListModal, setShowSaveListModal] = useState(false);
   const [showShareListModal, setShowShareListModal] = useState(false);
   const [showListsDropdown, setShowListsDropdown] = useState(false);
-  const [showAddPartnersModal, setShowAddPartnersModal] = useState(false);
-  const [showCreateListModal, setShowCreateListModal] = useState(false);
-  const [showAddToListModal, setShowAddToListModal] = useState(false);
-  const [listToAddTo, setListToAddTo] = useState<string>('new'); // 'new' or list ID
-  // State for the name and description when creating a list through the general create modal
-  const [newListName, setNewListName] = useState('');
-  const [newListDescription, setNewListDescription] = useState('');
-  const [opportunitiesToAdd, setOpportunitiesToAdd] = useState<number[]>([]);
-  const [showCreateFromSelectionModal, setShowCreateFromSelectionModal] = useState(false);
-  const [selectionListName, setSelectionListName] = useState('');
-  const [selectionListDescription, setSelectionListDescription] = useState('');
-  const [selectionListType, setSelectionListType] = useState<'filter' | 'selection'>('filter');
   
-  // State for views
-  const [views, setViews] = useState<{
-    id: string;
-    name: string;
-    description?: string;
-    filters: {
-      searchText?: string;
-      status?: string;
-      type?: string;
-      customerId?: string;
-      partnerId?: string;
-    };
-    isShared: boolean;
-    createdBy: string;
-    createdAt: Date;
-  }[]>([
-    {
-      id: 'active-opportunities',
-      name: 'Active Opportunities',
-      description: 'Shows only opportunities in progress',
-      filters: { status: 'In Progress' },
-      isShared: true,
-      createdBy: 'System',
-      createdAt: new Date('2025-01-01')
-    },
-    {
-      id: 'new-business',
-      name: 'New Business',
-      description: 'All new business opportunities',
-      filters: { type: 'New Business' },
-      isShared: true,
-      createdBy: 'System',
-      createdAt: new Date('2025-01-01')
-    },
-    {
-      id: 'renewals',
-      name: 'Renewals',
-      description: 'All renewal opportunities',
-      filters: { type: 'Renewal' },
-      isShared: true,
-      createdBy: 'System',
-      createdAt: new Date('2025-01-01')
-    }
-  ]);
-  
-  const [activeView, setActiveView] = useState<typeof views[0] | null>(null);
-  const [showSaveViewModal, setShowSaveViewModal] = useState(false);
-  const [newViewName, setNewViewName] = useState('');
-  const [newViewDescription, setNewViewDescription] = useState('');
-  
-  // Filter opportunities based on search text, filter selections, and list type
+  // Filter opportunities based on search text and filter selections
   const displayedOpportunities = mockOpportunities.filter(opportunity => {
-    // If we have an active list, only show opportunities that are members of that list
-    // Lists should only be about membership, not filters
-    if (activeList && activeList.type === 'selection') {
-      // For selection lists, only check membership
-      return activeList.members?.includes(opportunity.id) || false;
-    } else {
-      // When no list is selected or using a filter list, apply the current filters
-      const matchesText = !filterText || 
-        opportunity.title.toLowerCase().includes(filterText.toLowerCase()) ||
-        opportunity.customerName.toLowerCase().includes(filterText.toLowerCase()) ||
-        opportunity.partnerName.toLowerCase().includes(filterText.toLowerCase());
-        
-      const matchesStatus = !selectedStatus || opportunity.status === selectedStatus;
-      const matchesType = !selectedType || opportunity.type === selectedType;
+    const matchesText = !filterText || 
+      opportunity.title.toLowerCase().includes(filterText.toLowerCase()) ||
+      opportunity.customerName.toLowerCase().includes(filterText.toLowerCase()) ||
+      opportunity.partnerName.toLowerCase().includes(filterText.toLowerCase());
       
-      // Handle filters from active list or active view
-      const matchesCustomerId = !(activeList?.filters.customerId || activeView?.filters.customerId) || 
-        (String(opportunity.customerId) === activeList?.filters.customerId || String(opportunity.customerId) === activeView?.filters.customerId);
-        
-      const matchesPartnerId = !(activeList?.filters.partnerId || activeView?.filters.partnerId) || 
-        (String(opportunity.partnerId) === activeList?.filters.partnerId || String(opportunity.partnerId) === activeView?.filters.partnerId);
-      
-      return matchesText && matchesStatus && matchesType && matchesCustomerId && matchesPartnerId;
-    }
+    const matchesStatus = !selectedStatus || opportunity.status === selectedStatus;
+    const matchesType = !selectedType || opportunity.type === selectedType;
+    
+    // Handle filters from active list
+    const matchesCustomerId = !activeList?.filters.customerId || 
+      String(opportunity.customerId) === activeList.filters.customerId;
+    const matchesPartnerId = !activeList?.filters.partnerId || 
+      String(opportunity.partnerId) === activeList.filters.partnerId;
+    
+    return matchesText && matchesStatus && matchesType && matchesCustomerId && matchesPartnerId;
   });
   
   // Calculate stats based on filtered opportunities
@@ -472,20 +378,16 @@ function OpportunitiesTable() {
           <div className="flex flex-wrap items-center justify-between">
             {/* Left side - Saved Lists with actions */}
             <div className="flex items-center gap-3">
-              {/* Saved Lists dropdown - redesigned to match Partners page */}
+              {/* Saved Lists dropdown - now more prominent */}
               <div className="relative">
                 <button 
-                  className="flex items-center space-x-2 px-4 py-2.5 border rounded-md text-sm font-medium shadow-sm bg-white hover:bg-gray-50"
+                  className={`flex items-center space-x-2 px-4 py-2.5 border-2 rounded-md text-sm font-medium ${activeList ? 'bg-indigo-50 border-indigo-400 text-indigo-700' : 'border-gray-300 hover:border-gray-400'}`}
                   onClick={() => setShowListsDropdown(!showListsDropdown)}
                 >
-                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-indigo-600">
-                    <path d="M5.25 1.5V4.25H12.6875V2C12.6875 1.725 12.4906 1.5 12.25 1.5H5.25ZM3.9375 1.5H1.75C1.50937 1.5 1.3125 1.725 1.3125 2V4.25H3.9375V1.5ZM1.3125 5.75V8.25H3.9375V5.75H1.3125ZM1.3125 9.75V12C1.3125 12.275 1.50937 12.5 1.75 12.5H3.9375V9.75H1.3125ZM5.25 12.5H12.25C12.4906 12.5 12.6875 12.275 12.6875 12V9.75H5.25V12.5ZM12.6875 8.25V5.75H5.25V8.25H12.6875ZM0 2C0 0.896875 0.784766 0 1.75 0H12.25C13.2152 0 14 0.896875 14 2V12C14 13.1031 13.2152 14 12.25 14H1.75C0.784766 14 0 13.1031 0 12V2Z" fill="#3E4DC4"/>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={activeList ? 'text-indigo-600' : 'text-gray-500'}>
+                    <path d="M19 21l-7-4-7 4V5a2 2 0 012-2h10a2 2 0 012 2v16z"/>
                   </svg>
-                  <div className="flex items-center">
-                    <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
-                      {activeList ? activeList.name : "All Opportunities"}
-                    </span>
-                  </div>
+                  <span className="max-w-[180px] truncate font-medium">{activeList ? activeList.name : 'Saved Lists'}</span>
                   <svg 
                     xmlns="http://www.w3.org/2000/svg" 
                     width="14" 
@@ -502,99 +404,78 @@ function OpportunitiesTable() {
                   </svg>
                 </button>
                 
-                {/* Saved Lists dropdown menu - shadcn/ui style with Qollabi colors */}
+                {/* Saved Lists dropdown menu */}
                 {showListsDropdown && (
-                  <div className="absolute z-50 mt-1.5 w-80 rounded-md border border-slate-200 bg-white text-slate-950 shadow-md animate-in fade-in-80 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2">
-                    {/* Search section */}
-                    <div className="p-2 border-b border-slate-100">
+                  <div className="absolute z-40 mt-1 w-80 bg-white rounded-md shadow-lg border border-gray-200 overflow-hidden">
+                    <div className="p-2 border-b">
+                      <div className="text-sm font-medium mb-1">Saved Lists</div>
                       <div className="relative">
                         <input
                           type="text"
-                          placeholder="Search lists..."
-                          className="w-full pl-8 pr-3 py-2 text-sm rounded-md bg-transparent border border-slate-200 ring-offset-white placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-2"
+                          placeholder="Search saved lists..."
+                          className="w-full pl-3 pr-10 py-1.5 text-xs border border-gray-300 rounded-md"
                         />
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-500">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
                           <circle cx="11" cy="11" r="8"></circle>
                           <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                         </svg>
                       </div>
                     </div>
                     
-                    {/* Lists with edit options */}
-                    <div className="max-h-[300px] overflow-y-auto p-1">
-                      {/* All Opportunities default option at the top */}
-                      <div className="relative">
-                        <div
-                          className={`relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 ${activeList === null ? 'bg-indigo-50 text-indigo-900' : 'text-slate-700'}`}
+                    <div className="max-h-60 overflow-y-auto">
+                      {savedLists.map(list => (
+                        <button
+                          key={list.id}
+                          className={`w-full text-left py-2 px-3 hover:bg-gray-50 flex items-center justify-between ${activeList?.id === list.id ? 'bg-indigo-50' : ''}`}
                           onClick={() => {
-                            // Only clear active list without affecting filters
-                            setActiveList(null);
-                            // Clear selections
-                            setSelectedOpportunities([]);
-                            // Leave filters unchanged since they're linked to views, not lists
-                            // Clear any active view when returning to All Opportunities
-                            setActiveView(null);
-                            setHasUnsavedChanges(false);
+                            setActiveList(list);
+                            if (list.filters.searchText) setFilterText(list.filters.searchText);
+                            if (list.filters.status) setSelectedStatus(list.filters.status);
+                            if (list.filters.type) setSelectedType(list.filters.type);
                             setShowListsDropdown(false);
                           }}
                         >
-                          <div className="flex flex-1 items-center">
-                            <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>All Opportunities</span>
-                          </div>
-                          <div className="ml-auto">
-                            <span className="text-xs text-[#282A3F] italic" style={{ fontFamily: 'Poppins, sans-serif' }}>Default</span>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {/* Other saved lists */}
-                      {savedLists.map(list => (
-                        <div 
-                          key={list.id}
-                          className="relative"
-                        >
-                          <div
-                            className={`relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 ${activeList?.id === list.id ? 'bg-indigo-50 text-indigo-900' : 'text-slate-700'}`}
-                            onClick={() => {
-                              // Set active list but don't apply any filters
-                              // Filters should only be applied from views, not lists
-                              setActiveList(list);
-                              
-                              // Only handle selection lists
-                              if (list.type === 'selection' && list.members) {
-                                // For selection lists, select the specific opportunities
-                                setSelectedOpportunities(list.members);
-                              } else {
-                                // Clear selections for other list types
-                                setSelectedOpportunities([]);
-                              }
-                              
-                              // Don't modify filters when switching lists
-                              
-                              // Clear any active view when switching lists
-                              setActiveView(null);
-                              setHasUnsavedChanges(false);
-                              setShowListsDropdown(false);
-                            }}
-                          >
-                            <div className="flex flex-1 items-center">
-                              <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>{list.name}</span>
-                              {list.isShared && (
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2 text-indigo-500">
-                                  <circle cx="18" cy="5" r="3"></circle>
-                                  <circle cx="6" cy="12" r="3"></circle>
-                                  <circle cx="18" cy="19" r="3"></circle>
-                                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                                </svg>
-                              )}
+                          <div>
+                            <div className="font-medium text-sm">{list.name}</div>
+                            <div className="text-xs text-gray-500 mt-0.5">
+                              {Object.entries(list.filters)
+                                .filter(([_, value]) => value)
+                                .map(([key]) => key)
+                                .join(', ')}
                             </div>
                           </div>
-                        </div>
+                          {list.isShared && (
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-500">
+                              <circle cx="18" cy="5" r="3"></circle>
+                              <circle cx="6" cy="12" r="3"></circle>
+                              <circle cx="18" cy="19" r="3"></circle>
+                              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                            </svg>
+                          )}
+                        </button>
                       ))}
                     </div>
                     
-
+                    <div className="p-2 border-t">
+                      <button
+                        className="w-full text-left py-1.5 px-3 text-indigo-600 hover:bg-indigo-50 rounded-md text-sm flex items-center"
+                        onClick={() => {
+                          setActiveList(null);
+                          setFilterText('');
+                          setSelectedStatus('');
+                          setSelectedType('');
+                          setShowSaveListModal(true);
+                          setShowListsDropdown(false);
+                        }}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                          <line x1="12" y1="5" x2="12" y2="19"></line>
+                          <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        Create New List
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>
@@ -653,6 +534,23 @@ function OpportunitiesTable() {
             
             {/* Right-side action buttons */}
             <div className="flex items-center gap-2">
+              {/* Save button - only shown when filters are applied */}
+              {(filterText || selectedStatus || selectedType) && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="text-indigo-600"
+                  onClick={() => setShowSaveListModal(true)}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                    <polyline points="7 3 7 8 15 8"></polyline>
+                  </svg>
+                  {activeList ? 'Update' : 'Save'}
+                </Button>
+              )}
+              
               <Button variant="outline" size="sm" className="hidden md:flex items-center">
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -660,6 +558,14 @@ function OpportunitiesTable() {
                   <line x1="12" y1="15" x2="12" y2="3"></line>
                 </svg>
                 Export
+              </Button>
+              
+              <Button size="sm" className="flex items-center bg-indigo-600 hover:bg-indigo-700">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                  <line x1="12" y1="5" x2="12" y2="19"></line>
+                  <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+                New
               </Button>
             </div>
           </div>
@@ -673,13 +579,7 @@ function OpportunitiesTable() {
                   type="text"
                   placeholder="Search opportunities..."
                   value={filterText}
-                  onChange={(e) => {
-                    setFilterText(e.target.value);
-                    // If we have an active view, mark as having unsaved changes
-                    if (activeView) {
-                      setHasUnsavedChanges(true);
-                    }
-                  }}
+                  onChange={(e) => setFilterText(e.target.value)}
                   className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
                 />
                 <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
@@ -690,115 +590,11 @@ function OpportunitiesTable() {
                 </button>
               </div>
               
-              {/* Views dropdown - moved after search bar with icon */}
-              <div className="relative w-60">
-                <Select 
-                  value={activeView ? activeView.id : ""} 
-                  onValueChange={(value) => {
-                    // If we have unsaved changes, ask for confirmation
-                    if (hasUnsavedChanges) {
-                      if (!confirm("You have unsaved changes. Are you sure you want to switch views?")) {
-                        return;
-                      }
-                    }
-                    
-                    // Set active view
-                    const view = views.find(v => v.id === value);
-                    if (view) {
-                      setActiveView(view);
-                      setFilterText(view.filters.searchText || '');
-                      setSelectedStatus(view.filters.status || '');
-                      setSelectedType(view.filters.type || '');
-                      setHasUnsavedChanges(false);
-                    }
-                  }}
-                >
-                  <SelectTrigger 
-                    className="w-full flex items-center border border-gray-300 rounded-md bg-white text-gray-700 hover:bg-gray-50"
-                    style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px', fontWeight: 500 }}
-                  >
-                    <div className="flex items-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                        <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path>
-                        <line x1="6" y1="9" x2="18" y2="9"></line>
-                        <polyline points="12 13 12 17"></polyline>
-                        <line x1="10" y1="15" x2="14" y2="15"></line>
-                      </svg>
-                      <SelectValue placeholder={activeView ? activeView.name : "Select a view"} />
-                    </div>
-                  </SelectTrigger>
-                  <SelectContent>
-                    {views.length > 0 ? (
-                      <>
-                        {views.map(view => (
-                          <SelectItem key={view.id} value={view.id}>{view.name}</SelectItem>
-                        ))}
-                        {activeView && (
-                          <div className="pt-2 mt-1 border-t border-gray-200">
-                            <div 
-                              className="py-1.5 px-2 flex items-center text-sm text-gray-700 hover:bg-gray-100 cursor-pointer rounded"
-                              onClick={() => {
-                                // Clear active view and reset filters
-                                setActiveView(null);
-                                setFilterText('');
-                                setSelectedStatus('');
-                                setSelectedType('');
-                                setHasUnsavedChanges(false);
-                              }}
-                            >
-                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 text-gray-500">
-                                <path d="M18 6L6 18"></path>
-                                <path d="M6 6L18 18"></path>
-                              </svg>
-                              Clear view
-                            </div>
-                          </div>
-                        )}
-                      </>
-                    ) : (
-                      <div className="py-2 px-2 text-sm text-gray-500 italic">
-                        No saved views. Apply filters and save them as a view.
-                      </div>
-                    )}
-                    
-                    <div className="pt-2 mt-1 border-t border-gray-200">
-                      <div 
-                        className="py-1.5 px-2 flex items-center text-sm text-indigo-600 hover:bg-gray-100 cursor-pointer rounded"
-                        onClick={() => {
-                          // Setup and show the save view modal
-                          if (activeView) {
-                            setNewViewName(activeView.name);
-                            setNewViewDescription(activeView.description || '');
-                          } else {
-                            setNewViewName('');
-                            setNewViewDescription('');
-                          }
-                          setShowSaveViewModal(true);
-                        }}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 text-indigo-600">
-                          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                          <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                          <polyline points="7 3 7 8 15 8"></polyline>
-                        </svg>
-                        {activeView ? 'Save as new view' : 'Save current filters as view'}
-                      </div>
-                    </div>
-                  </SelectContent>
-                </Select>
-              </div>
-              
               {/* Filters - placed alongside search */}
               <div className="flex gap-2 flex-wrap">
                 <button 
                   className={`flex items-center space-x-1 px-3 py-2 border rounded-md text-sm ${selectedStatus ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
-                  onClick={() => {
-                    setSelectedStatus(selectedStatus ? '' : 'In Progress');
-                    // If we have an active view, mark as having unsaved changes
-                    if (activeView) {
-                      setHasUnsavedChanges(true);
-                    }
-                  }}
+                  onClick={() => setSelectedStatus(selectedStatus ? '' : 'In Progress')}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={selectedStatus ? 'text-indigo-500' : 'text-gray-500'}>
                     <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
@@ -814,13 +610,7 @@ function OpportunitiesTable() {
                 
                 <button 
                   className={`flex items-center space-x-1 px-3 py-2 border rounded-md text-sm ${selectedType ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
-                  onClick={() => {
-                    setSelectedType(selectedType ? '' : 'Renewal');
-                    // If we have an active view, mark as having unsaved changes
-                    if (activeView) {
-                      setHasUnsavedChanges(true);
-                    }
-                  }}
+                  onClick={() => setSelectedType(selectedType ? '' : 'Renewal')}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={selectedType ? 'text-indigo-500' : 'text-gray-500'}>
                     <path d="m2 2 20 20"></path>
@@ -836,70 +626,11 @@ function OpportunitiesTable() {
                     </svg>
                   )}
                 </button>
-                
-                {/* Filter action buttons - only shown when filters have been modified */}
-                {(hasUnsavedChanges || (!activeView && (filterText || selectedStatus || selectedType))) && (
-                  <div className="ml-auto flex gap-2">
-                    {/* Revert Changes Button */}
-                    <Button 
-                      variant="outline" 
-                      size="sm"
-                      onClick={() => {
-                        // Revert to the original filters
-                        if (activeView) {
-                          // Reset to active view's filters
-                          setFilterText(activeView.filters.searchText || '');
-                          setSelectedStatus(activeView.filters.status || '');
-                          setSelectedType(activeView.filters.type || '');
-                          setHasUnsavedChanges(false);
-                        } else {
-                          // Clear all filters
-                          setFilterText('');
-                          setSelectedStatus('');
-                          setSelectedType('');
-                        }
-                      }}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                        <path d="M3 2v6h6"></path>
-                        <path d="M3 13a9 9 0 1 0 3-7.7L3 8"></path>
-                      </svg>
-                      Revert changes
-                    </Button>
-                    
-                    {/* Save as View Button */}
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="text-[#3E4DC4]"
-                      onClick={() => {
-                        // Set up the view modal with existing view details if editing
-                        if (activeView) {
-                          setNewViewName(activeView.name);
-                          setNewViewDescription(activeView.description || '');
-                        } else {
-                          setNewViewName('');
-                          setNewViewDescription('');
-                        }
-                        
-                        // Show the save view modal
-                        setShowSaveViewModal(true);
-                      }}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                        <polyline points="7 3 7 8 15 8"></polyline>
-                      </svg>
-                      {activeView ? 'Save view' : 'Save as new view'}
-                    </Button>
-                  </div>
-                )}
               </div>
             </div>
             
             {/* Clear filters button - only shown when at least one filter is applied */}
-            {(filterText || selectedStatus || selectedType) && !hasUnsavedChanges && !activeView && (
+            {(filterText || selectedStatus || selectedType) && (
               <button 
                 onClick={() => {
                   setFilterText('');
@@ -1040,133 +771,37 @@ function OpportunitiesTable() {
       <Dialog open={showSaveListModal} onOpenChange={setShowSaveListModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle className="text-[#282A3F] font-semibold text-lg" style={{ fontFamily: 'Poppins, sans-serif' }}>{activeList ? 'Update Saved List' : 'Create new list'}</DialogTitle>
+            <DialogTitle>{activeList ? 'Update Saved List' : 'Save Current List'}</DialogTitle>
             <DialogDescription>
-              {activeList ? 
-                'Update your list settings below.' : 
-                'Give your list a name and choose how it should work.'}
+              Save your current filter settings as a list that you can easily access later.
             </DialogDescription>
           </DialogHeader>
           
           <div className="grid gap-4 py-4">
-            <div className="grid gap-4">
-              {/* List Name */}
-              <div className="grid gap-2">
-                <Label htmlFor="listName" className="text-base font-medium">List Name</Label>
-                <Input 
-                  id="listName" 
-                  placeholder="Enter a name for this list"
-                  defaultValue={activeList?.name || ''}
-                />
-              </div>
-              
-              {/* List Type as Radio Buttons */}
-              <div className="grid gap-2">
-                <input type="hidden" id="hidden-list-type-value" value={activeList?.type || (selectedOpportunities.length > 0 ? "selection" : "filter")} />
-                <div className="space-y-2">
-                  <Label className="text-base font-medium">List Behavior</Label>
-                  
-                  <div className="grid grid-cols-1 gap-3">
-                    {/* Dynamic List Option */}
-                    <div 
-                      className={`relative flex items-start p-3 rounded-lg border-2 ${
-                        document.getElementById('hidden-list-type-value')?.getAttribute('value') === 'filter' 
-                        ? 'border-indigo-600 bg-indigo-50' 
-                        : 'border-gray-200 hover:border-gray-300'
-                      } cursor-pointer`}
-                      onClick={() => {
-                        document.getElementById('hidden-list-type-value')?.setAttribute('value', 'filter');
-                        const radioElement = document.getElementById('list-type-filter') as HTMLInputElement;
-                        if (radioElement) radioElement.checked = true;
-                      }}
-                    >
-                      <div className="flex items-center h-5">
-                        <input
-                          id="list-type-filter"
-                          type="radio"
-                          name="list-type"
-                          className="w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-600"
-                          defaultChecked={!activeList?.type || activeList?.type === 'filter'}
-                          onChange={() => {
-                            document.getElementById('hidden-list-type-value')?.setAttribute('value', 'filter');
-                          }}
-                        />
-                      </div>
-                      <div className="ml-3 flex gap-2 items-center">
-                        <div className="p-1 rounded-full bg-blue-100">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-800">
-                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                          </svg>
-                        </div>
-                        <div>
-                          <Label className="font-medium text-sm">Save my current filters</Label>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    {/* Static List Option */}
-                    <div 
-                      className={`relative flex items-start p-3 rounded-lg border-2 ${
-                        document.getElementById('hidden-list-type-value')?.getAttribute('value') === 'selection' 
-                        ? 'border-indigo-600 bg-indigo-50' 
-                        : 'border-gray-200 hover:border-gray-300'
-                      } cursor-pointer`}
-                      onClick={() => {
-                        document.getElementById('hidden-list-type-value')?.setAttribute('value', 'selection');
-                        const radioElement = document.getElementById('list-type-selection') as HTMLInputElement;
-                        if (radioElement) radioElement.checked = true;
-                      }}
-                    >
-                      <div className="flex items-center h-5">
-                        <input
-                          id="list-type-selection"
-                          type="radio"
-                          name="list-type"
-                          className="w-4 h-4 text-indigo-600 border-gray-300 focus:ring-indigo-600"
-                          defaultChecked={activeList?.type === 'selection' || (!activeList?.type && selectedOpportunities.length > 0)}
-                          onChange={() => {
-                            document.getElementById('hidden-list-type-value')?.setAttribute('value', 'selection');
-                          }}
-                        />
-                      </div>
-                      <div className="ml-3 flex gap-2 items-center">
-                        <div className="p-1 rounded-full bg-emerald-100">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-emerald-800">
-                            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                            <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                          </svg>
-                        </div>
-                        <div>
-                          <Label className="font-medium text-sm">Save my selected opportunities</Label>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              
-              {/* Description Field */}
-              <div className="grid gap-2">
-                <Label htmlFor="listDescription" className="text-sm font-medium">Description (Optional)</Label>
-                <Textarea 
-                  id="listDescription" 
-                  placeholder="Add a short description"
-                  rows={2}
-                  defaultValue={activeList?.description || ''}
-                />
-              </div>
+            <div className="grid gap-2">
+              <Label htmlFor="listName">List Name</Label>
+              <Input 
+                id="listName" 
+                placeholder="Enter a name for this list"
+                defaultValue={activeList?.name || ''}
+              />
             </div>
             
-            <div className="flex p-3 rounded-lg border border-gray-200 items-center space-x-3 bg-gray-50">
+            <div className="grid gap-2">
+              <Label htmlFor="listDescription">Description (Optional)</Label>
+              <Textarea 
+                id="listDescription" 
+                placeholder="Add a short description to help others understand this list"
+                rows={3}
+                defaultValue={activeList?.description || ''}
+              />
+            </div>
+            
+            <div className="flex items-center space-x-2">
               <Checkbox id="shareList" defaultChecked={activeList?.isShared || false} />
-              <div>
-                <Label htmlFor="shareList" className="text-sm font-medium">
-                  Share this list with my team
-                </Label>
-                <p className="text-xs text-gray-500">
-                  Make this list visible to all collaborators in your environment
-                </p>
-              </div>
+              <Label htmlFor="shareList" className="text-sm font-normal">
+                Share this list with collaborators
+              </Label>
             </div>
           </div>
           
@@ -1187,44 +822,19 @@ function OpportunitiesTable() {
                     const listDescription = (document.getElementById('listDescription') as HTMLTextAreaElement).value;
                     const isShared = (document.getElementById('shareList') as HTMLInputElement).checked;
                     
-                    // Validate required fields
-                    if (!listName.trim()) {
-                      // Show error toast notification
-                      toast({
-                        title: "Missing required field",
-                        description: "Please enter a name for your list.",
-                        variant: "destructive",
-                      });
-                      return;
-                    }
-                    
-                    // Get the selected list type from our hidden input
-                    const listTypeInput = document.getElementById('hidden-list-type-value') as HTMLInputElement;
-                    const listType = (listTypeInput?.value || "filter") as "filter" | "selection";
-                    
                     const newList: SavedList = {
                       id: String(Date.now()),
                       name: listName,
                       description: listDescription || undefined,
-                      type: listType, // Store the list type
-                      // For filter lists, store the current filters
-                      filters: listType === 'filter' ? {
+                      filters: {
                         searchText: filterText || undefined,
                         status: selectedStatus || undefined,
                         type: selectedType || undefined
-                      } : {},
-                      // For selection lists, store the selected records
-                      members: listType === 'selection' ? selectedOpportunities : [],
+                      },
                       isShared,
                       createdBy: 'John Smith',
                       createdAt: new Date()
                     };
-                    
-                    // Show success toast notification
-                    toast({
-                      title: "List created",
-                      description: `"${listName}" has been created successfully.`,
-                    });
                     
                     setSavedLists([...savedLists, newList]);
                     setActiveList(newList);
@@ -1258,7 +868,7 @@ function OpportunitiesTable() {
                   setShowSaveListModal(false);
                 }}
               >
-                {activeList ? 'Update List' : 'Create new list'}
+                {activeList ? 'Update List' : 'Save List'}
               </Button>
             </div>
           </DialogFooter>
@@ -1291,191 +901,52 @@ function OpportunitiesTable() {
             
             {/* Partners Section */}
             <div className="grid gap-3">
-              <div className="flex justify-between items-center">
-                <Label>Select Partners</Label>
-                <button 
-                  type="button" 
-                  className="text-xs text-indigo-600 hover:text-indigo-800"
-                  onClick={() => {
-                    // Get all unique partner IDs from opportunities
-                    const allPartnerIds = mockOpportunities.reduce((partners, opp) => {
-                      if (!partners.includes(opp.partnerId.toString())) {
-                        partners.push(opp.partnerId.toString());
-                      }
-                      return partners;
-                    }, [] as string[]);
-                    
-                    const currentSelectedPartners = document.querySelectorAll('input[id^="partner-checkbox-"]:checked');
-                    const isAllSelected = currentSelectedPartners.length === allPartnerIds.length;
-                    
-                    // Toggle checkboxes based on current state
-                    document.querySelectorAll('input[id^="partner-checkbox-"]').forEach(checkbox => {
-                      (checkbox as HTMLInputElement).checked = !isAllSelected;
-                    });
-                  }}
-                >
-                  {document.querySelectorAll('input[id^="partner-checkbox-"]:checked').length === 
-                   mockOpportunities.reduce((partners, opp) => {
-                     if (!partners.includes(opp.partnerId.toString())) {
-                       partners.push(opp.partnerId.toString());
-                     }
-                     return partners;
-                   }, [] as string[]).length 
-                    ? 'Deselect All' : 'Select All'}
-                </button>
+              <Label>Select Partner</Label>
+              <div className="relative">
+                <select className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm appearance-none">
+                  <option value="">Select a partner...</option>
+                  {mockOpportunities.reduce((partners, opp) => {
+                    if (!partners.some(p => p.id === opp.partnerId)) {
+                      partners.push({ id: opp.partnerId, name: opp.partnerName });
+                    }
+                    return partners;
+                  }, [] as { id: number, name: string }[]).map(partner => (
+                    <option key={partner.id} value={partner.id}>{partner.name}</option>
+                  ))}
+                </select>
+                <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                  </svg>
+                </div>
               </div>
               
-              {/* Partners Checklist */}
-              <div className="border border-gray-200 rounded-md max-h-48 overflow-y-auto">
-                {mockOpportunities.reduce((partners, opp) => {
-                  if (!partners.some(p => p.id === opp.partnerId)) {
-                    partners.push({ id: opp.partnerId, name: opp.partnerName });
-                  }
-                  return partners;
-                }, [] as { id: number, name: string }[]).map((partner, index) => (
-                  <div key={partner.id} className={`p-3 ${index !== 0 ? 'border-t border-gray-200' : ''} hover:bg-gray-50`}>
-                    <div className="flex items-center">
-                      <Checkbox 
-                        id={`partner-checkbox-${partner.id}`} 
-                        className="mr-3"
-                        value={partner.id.toString()}
-                        data-partner-id={partner.id.toString()}
-                        onCheckedChange={(checked) => {
-                          console.log("Partner checkbox changed:", partner.id, checked);
-                          // Add a data attribute to identify this checkbox
-                          const checkbox = document.getElementById(`partner-checkbox-${partner.id}`);
-                          if (checkbox) {
-                            if (checked) {
-                              checkbox.setAttribute('data-checked', 'true');
-                            } else {
-                              checkbox.removeAttribute('data-checked');
-                            }
-                          }
-                        }}
-                      />
-                      <Label 
-                        htmlFor={`partner-checkbox-${partner.id}`} 
-                        className="font-medium text-gray-800 cursor-pointer flex-grow"
-                      >
-                        {partner.name}
-                      </Label>
-                      
-                      {/* Quick toggle for related contacts */}
-                      <button
-                        type="button"
-                        className="text-xs text-indigo-600 hover:text-indigo-800 ml-2"
-                        onClick={() => {
-                          // Toggle display of contacts for this partner
-                          const contactsEl = document.getElementById(`partner-contacts-${partner.id}`);
-                          if (contactsEl) {
-                            contactsEl.classList.toggle('hidden');
-                            // Change button text based on visibility
-                            const button = contactsEl.previousElementSibling as HTMLButtonElement;
-                            if (button) {
-                              button.innerText = contactsEl.classList.contains('hidden') ? 'Show Contacts' : 'Hide Contacts';
-                            }
-                          }
-                        }}
-                      >
-                        Show Contacts
-                      </button>
-                    </div>
-                    
-                    {/* Partner Contacts - Initially Hidden */}
-                    <div id={`partner-contacts-${partner.id}`} className="hidden mt-2 ml-8 pl-2 border-l-2 border-gray-200">
-                      <div className="space-y-2">
-                        {/* Generate a few sample contacts for demo */}
-                        {Array.from({ length: 2 }).map((_, i) => (
-                          <div key={i} className="flex items-center">
-                            <Checkbox 
-                              id={`contact-${partner.id}-${i}`} 
-                              className="mr-2" 
-                            />
-                            <Label 
-                              htmlFor={`contact-${partner.id}-${i}`} 
-                              className="text-sm font-normal cursor-pointer flex-grow"
-                            >
-                              {i === 0 ? 'Primary Contact' : 'Secondary Contact'}
-                              <span className="text-xs text-gray-500 ml-1">
-                                ({i === 0 ? 'contact' : 'sales'}@{partner.name.toLowerCase().replace(/\s+/g, '-')}.com)
-                              </span>
-                            </Label>
-                          </div>
-                        ))}
-                        <div className="flex items-center pt-1">
-                          <Checkbox 
-                            id={`contact-${partner.id}-all`} 
-                            className="mr-2" 
-                          />
-                          <Label 
-                            htmlFor={`contact-${partner.id}-all`} 
-                            className="text-sm font-medium cursor-pointer flex-grow text-indigo-600"
-                          >
-                            All Contacts <span className="text-xs text-gray-500 ml-1">(3)</span>
-                          </Label>
-                        </div>
-                      </div>
-                    </div>
+              <Label className="mt-2">Partner Contacts</Label>
+              <div className="border border-gray-200 rounded-md max-h-36 overflow-y-auto">
+                <div className="p-2 border-b hover:bg-gray-50">
+                  <div className="flex items-center">
+                    <Checkbox id="contact-1" className="mr-2" />
+                    <Label htmlFor="contact-1" className="text-sm font-normal cursor-pointer flex-grow">
+                      Sarah Johnson <span className="text-xs text-gray-500 ml-1">(sjohnson@abc-insurance.com)</span>
+                    </Label>
                   </div>
-                ))}
-                
-                {/* Empty state */}
-                {mockOpportunities.reduce((partners, opp) => {
-                  if (!partners.some(p => p.id === opp.partnerId)) {
-                    partners.push({ id: opp.partnerId, name: opp.partnerName });
-                  }
-                  return partners;
-                }, [] as { id: number, name: string }[]).length === 0 && (
-                  <div className="p-4 text-center text-gray-500">
-                    No partners available for this list
+                </div>
+                <div className="p-2 border-b hover:bg-gray-50">
+                  <div className="flex items-center">
+                    <Checkbox id="contact-2" className="mr-2" />
+                    <Label htmlFor="contact-2" className="text-sm font-normal cursor-pointer flex-grow">
+                      Michael Chen <span className="text-xs text-gray-500 ml-1">(mchen@abc-insurance.com)</span>
+                    </Label>
                   </div>
-                )}
-              </div>
-              
-              {/* Selection summary */}
-              <div className="text-sm text-gray-600">
-                <span id="selected-partners-count">0</span> partners selected
-              </div>
-              
-              {/* Filter partners input */}
-              <div className="relative mt-2">
-                <Input
-                  placeholder="Search partners..."
-                  className="pl-8"
-                  onChange={(e) => {
-                    const searchTerm = e.target.value.toLowerCase();
-                    const partnerItems = document.querySelectorAll('[id^="partner-checkbox-"]');
-                    partnerItems.forEach(item => {
-                      const parentDiv = item.closest('div[class*="p-3"]');
-                      if (parentDiv) {
-                        const label = parentDiv.querySelector('label');
-                        if (label) {
-                          const partnerName = label.textContent?.toLowerCase() || '';
-                          if (partnerName.includes(searchTerm)) {
-                            (parentDiv as HTMLElement).style.display = '';
-                          } else {
-                            (parentDiv as HTMLElement).style.display = 'none';
-                          }
-                        }
-                      }
-                    });
-                  }}
-                />
-                <svg 
-                  xmlns="http://www.w3.org/2000/svg" 
-                  width="16" 
-                  height="16" 
-                  viewBox="0 0 24 24" 
-                  fill="none" 
-                  stroke="currentColor" 
-                  strokeWidth="2" 
-                  strokeLinecap="round" 
-                  strokeLinejoin="round" 
-                  className="absolute left-2.5 top-1/2 transform -translate-y-1/2 text-gray-400"
-                >
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
+                </div>
+                <div className="p-2 hover:bg-gray-50">
+                  <div className="flex items-center">
+                    <Checkbox id="contact-3" className="mr-2" />
+                    <Label htmlFor="contact-3" className="text-sm font-normal cursor-pointer flex-grow">
+                      All Contacts <span className="text-xs text-gray-500 ml-1">(3 people)</span>
+                    </Label>
+                  </div>
+                </div>
               </div>
             </div>
             
@@ -1544,426 +1015,38 @@ function OpportunitiesTable() {
               <Button variant="outline">Cancel</Button>
             </DialogClose>
             <Button onClick={() => {
+              // Handle sharing logic
+              const partners = document.querySelectorAll('input[type="checkbox"]:checked');
+              const canEdit = (document.getElementById('canEdit') as HTMLInputElement).checked;
+              const canShare = (document.getElementById('canShare') as HTMLInputElement).checked;
+              const message = (document.getElementById('shareMessage') as HTMLTextAreaElement).value;
+              
+              // Extract recipients from selected partners and contacts
+              const selectedPartnerIds = Array.from(partners).map(el => el.id.split('-')[1]);
+              
+              // Just for demonstration, we'll use hardcoded emails
+              const recipientEmails = ['sjohnson@abc-insurance.com', 'mchen@abc-insurance.com'];
+              
+              // Update the active list's sharing settings
               if (activeList) {
-                // For demo purposes, we'll use all partner IDs from the opportunities
-                const uniquePartnerIds = Array.from(new Set(mockOpportunities.map(opp => opp.partnerId.toString())));
-                
-                // Create partner-specific lists
-                let createdCount = 0;
-                
-                uniquePartnerIds.forEach(partnerId => {
-                  // Get partner name
-                  const partnerName = mockOpportunities.find(opp => 
-                    opp.partnerId.toString() === partnerId
-                  )?.partnerName || "Unknown Partner";
-                  
-                  // Get opportunities relevant to this partner
-                  const relevantOpportunities = displayedOpportunities.filter(opp => 
-                    opp.partnerId.toString() === partnerId
-                  );
-                  
-                  // Skip if no relevant opportunities
-                  if (relevantOpportunities.length === 0) {
-                    return;
+                const updatedLists = savedLists.map(list => {
+                  if (list.id === activeList.id) {
+                    return {
+                      ...list,
+                      isShared: true,
+                      sharedWith: recipientEmails
+                    };
                   }
-                  
-                  // Create a partner-specific list
-                  const partnerList: SavedList = {
-                    id: `list-${Date.now()}-${partnerId}`,
-                    name: `${activeList.name} - ${partnerName}`,
-                    description: `Shared from ${activeList.name}`,
-                    type: 'selection',
-                    filters: {},
-                    members: relevantOpportunities.map(opp => opp.id),
-                    isShared: true,
-                    sharedWith: [`partner-${partnerId}`],
-                    createdBy: 'Current User',
-                    createdAt: new Date()
-                  };
-                  
-                  // Add to saved lists
-                  setSavedLists(prev => [...prev, partnerList]);
-                  createdCount++;
+                  return list;
                 });
                 
-                // Show success message
-                if (createdCount > 0) {
-                  toast({
-                    title: "Lists shared successfully",
-                    description: `Created ${createdCount} partner-specific ${createdCount === 1 ? 'list' : 'lists'}.`
-                  });
-                } else {
-                  toast({
-                    title: "No lists created",
-                    description: "No partners had relevant opportunities in this list.",
-                    variant: "destructive"
-                  });
-                }
-                
-                // Mark original list as shared
-                setSavedLists(prev => 
-                  prev.map(list => 
-                    list.id === activeList.id 
-                    ? {
-                        ...list,
-                        isShared: true,
-                        sharedWith: [...(list.sharedWith || []), ...uniquePartnerIds.map(id => `partner-${id}`)]
-                      } 
-                    : list
-                  )
-                );
+                setSavedLists(updatedLists);
+                setActiveList(updatedLists.find(v => v.id === activeList.id) || null);
               }
               
-              // Close the modal
               setShowShareListModal(false);
             }}>
               Share List
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      {/* Save View Modal */}
-      <Dialog open={showSaveViewModal} onOpenChange={setShowSaveViewModal}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-[#282A3F] font-semibold text-lg" style={{ fontFamily: 'Poppins, sans-serif' }}>
-              Save as view
-            </DialogTitle>
-            <DialogDescription>
-              Save your current filter settings as a view. You can quickly access this view later from any list, and it will apply the filters you saved.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="grid gap-4 py-4">
-            {/* View name and description fields */}
-            <div className="space-y-4">
-              <div>
-                <Label htmlFor="view-name" className="text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif' }}>
-                  View name*
-                </Label>
-                <Input 
-                  id="view-name" 
-                  value={newViewName} 
-                  onChange={(e) => setNewViewName(e.target.value)} 
-                  placeholder="Enter view name" 
-                  className="mt-1.5"
-                  required
-                />
-              </div>
-              
-              <div>
-                <Label htmlFor="view-description" className="text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif' }}>
-                  Description (optional)
-                </Label>
-                <Textarea 
-                  id="view-description" 
-                  value={newViewDescription} 
-                  onChange={(e) => setNewViewDescription(e.target.value)} 
-                  placeholder="Enter view description" 
-                  className="mt-1.5"
-                />
-              </div>
-              
-              {/* Current filters summary */}
-              <div>
-                <h4 className="text-sm font-medium mb-2 text-[#282A3F]">Filters saved in this view</h4>
-                <div className="bg-[#EBEEFB] border border-[#D4D9F3] rounded-lg p-3 text-sm">
-                  <ul className="space-y-1 text-[#3E4DC4]">
-                    {filterText && (
-                      <li className="flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                          <circle cx="11" cy="11" r="8"></circle>
-                          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                        </svg>
-                        Search: "{filterText}"
-                      </li>
-                    )}
-                    {selectedStatus && (
-                      <li className="flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                          <path d="M20 6H4"></path>
-                          <path d="M20 12H4"></path>
-                          <path d="M20 18H4"></path>
-                        </svg>
-                        Status: {selectedStatus}
-                      </li>
-                    )}
-                    {selectedType && (
-                      <li className="flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                          <path d="M4 20h16a2 2 0 0 0 2-2V8a2 2 0 0 0-2-2h-7.93a2 2 0 0 1-1.66-.9l-.82-1.2A2 2 0 0 0 7.93 3H4a2 2 0 0 0-2 2v13c0 1.1.9 2 2 2Z"></path>
-                        </svg>
-                        Type: {selectedType}
-                      </li>
-                    )}
-                    {!filterText && !selectedStatus && !selectedType && (
-                      <li className="text-gray-500 italic">No filters applied</li>
-                    )}
-                  </ul>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">
-                Cancel
-              </Button>
-            </DialogClose>
-            <Button 
-              className="bg-[#5567E5] hover:bg-[#4555CB] text-white"
-              onClick={() => {
-                if (!newViewName.trim()) {
-                  toast({
-                    title: "View name required",
-                    description: "Please enter a name for your view.",
-                    variant: "destructive",
-                  });
-                  return;
-                }
-                
-                // Determine if we're updating an existing view or creating a new one
-                if (activeView && views.some(v => v.id === activeView.id)) {
-                  // Update existing view
-                  const updatedViews = views.map(view => 
-                    view.id === activeView.id 
-                      ? {
-                          ...view,
-                          name: newViewName,
-                          description: newViewDescription,
-                          filters: {
-                            searchText: filterText || undefined,
-                            status: selectedStatus || undefined,
-                            type: selectedType || undefined,
-                          }
-                        }
-                      : view
-                  );
-                  
-                  setViews(updatedViews);
-                  setActiveView(updatedViews.find(v => v.id === activeView.id) || null);
-                  
-                  toast({
-                    title: "View updated",
-                    description: `"${newViewName}" has been updated with your current filters.`,
-                  });
-                } else {
-                  // Create a new view
-                  const newView = {
-                    id: `view-${Date.now()}`,
-                    name: newViewName,
-                    description: newViewDescription,
-                    filters: {
-                      searchText: filterText || undefined,
-                      status: selectedStatus || undefined,
-                      type: selectedType || undefined,
-                    },
-                    isShared: false,
-                    createdBy: 'John Smith',
-                    createdAt: new Date()
-                  };
-                  
-                  setViews([...views, newView]);
-                  setActiveView(newView);
-                  
-                  toast({
-                    title: "View created",
-                    description: `"${newViewName}" has been created with your current filters.`,
-                  });
-                }
-                
-                setShowSaveViewModal(false);
-              }}
-            >
-              {activeView && views.some(v => v.id === activeView.id) ? 'Update view' : 'Save view'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      {/* Add to List Modal */}
-      <Dialog open={showAddToListModal} onOpenChange={setShowAddToListModal}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-[#282A3F] font-semibold text-lg" style={{ fontFamily: 'Poppins, sans-serif' }}>
-              Add opportunities to list
-            </DialogTitle>
-            <DialogDescription>
-              Add selected opportunities to an existing list or create a new list.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="py-4">
-            <div className="space-y-4">
-              {/* List selection */}
-              <div>
-                <Label htmlFor="list-selection" className="text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif' }}>
-                  Select an option
-                </Label>
-                <Select 
-                  value={listToAddTo} 
-                  onValueChange={setListToAddTo}
-                >
-                  <SelectTrigger id="list-selection" className="mt-1.5">
-                    <SelectValue placeholder="Select an option" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="new">Create a new list</SelectItem>
-                    {savedLists.filter(list => list.type === 'selection').map(list => (
-                      <SelectItem key={list.id} value={list.id}>{list.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              {/* New list fields - only shown when creating a new list */}
-              {listToAddTo === 'new' && (
-                <>
-                  <div>
-                    <Label htmlFor="new-list-name" className="text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif' }}>
-                      List name*
-                    </Label>
-                    <Input 
-                      id="new-list-name" 
-                      value={newListName} 
-                      onChange={(e) => setNewListName(e.target.value)} 
-                      placeholder="Enter list name" 
-                      className="mt-1.5"
-                      required
-                    />
-                  </div>
-                  
-                  <div>
-                    <Label htmlFor="new-list-description" className="text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif' }}>
-                      Description (optional)
-                    </Label>
-                    <Textarea 
-                      id="new-list-description" 
-                      value={newListDescription} 
-                      onChange={(e) => setNewListDescription(e.target.value)} 
-                      placeholder="Enter list description" 
-                      className="mt-1.5"
-                    />
-                  </div>
-                </>
-              )}
-              
-              {/* Selected opportunities count */}
-              <div className="bg-[#EBEEFB] border border-[#D4D9F3] rounded-lg p-4">
-                <div className="flex items-start">
-                  <div className="mt-1 mr-3 rounded-full p-2 bg-[#D4D9F3]">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                      <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                    </svg>
-                  </div>
-                  <div>
-                    <h4 className="text-base font-semibold text-[#282A3F]">{selectedOpportunities.length} opportunities selected</h4>
-                    <p className="text-sm text-[#5F6585] mt-1">
-                      These opportunities will be added to your list.
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">
-                Cancel
-              </Button>
-            </DialogClose>
-            <Button
-              onClick={() => {
-                if (listToAddTo === 'new') {
-                  // Create a new list
-                  if (!newListName.trim()) {
-                    toast({
-                      title: "List name required",
-                      description: "Please enter a name for your list.",
-                      variant: "destructive",
-                    });
-                    return;
-                  }
-                  
-                  // Create a new list with the selected opportunities
-                  const newList: SavedList = {
-                    id: `list-${Date.now()}`,
-                    name: newListName,
-                    description: newListDescription,
-                    type: 'selection',
-                    filters: {},
-                    members: selectedOpportunities,
-                    isShared: false,
-                    createdBy: 'John Smith',
-                    createdAt: new Date()
-                  };
-                  
-                  // Add the new list to saved lists
-                  setSavedLists([...savedLists, newList]);
-                  
-                  // Set as active list
-                  setActiveList(newList);
-                  
-                  // Reset selected opportunities
-                  setSelectedOpportunities([]);
-                  
-                  toast({
-                    title: "List created successfully",
-                    description: `"${newListName}" has been created with ${selectedOpportunities.length} opportunities.`,
-                  });
-                } else {
-                  // Add to existing list
-                  const existingList = savedLists.find(list => list.id === listToAddTo);
-                  
-                  if (existingList) {
-                    // Get current list members
-                    const currentMembers = existingList.members || [];
-                    const updatedMembers = [...currentMembers];
-                    
-                    // Add each selected opportunity if not already in the list
-                    selectedOpportunities.forEach(id => {
-                      if (!updatedMembers.includes(id)) {
-                        updatedMembers.push(id);
-                      }
-                    });
-                    
-                    // Update the list
-                    const updatedList = {
-                      ...existingList,
-                      members: updatedMembers
-                    };
-                    
-                    // Update saved lists
-                    const updatedLists = savedLists.map(list => 
-                      list.id === existingList.id ? updatedList : list
-                    );
-                    
-                    setSavedLists(updatedLists);
-                    
-                    if (activeList && activeList.id === existingList.id) {
-                      setActiveList(updatedList);
-                    }
-                    
-                    // Reset selected opportunities
-                    setSelectedOpportunities([]);
-                    
-                    toast({
-                      title: "Opportunities added to list",
-                      description: `${selectedOpportunities.length} opportunities have been added to "${existingList.name}".`,
-                    });
-                  }
-                }
-                
-                // Close the modal
-                setShowAddToListModal(false);
-              }}
-              disabled={selectedOpportunities.length === 0}
-            >
-              {listToAddTo === 'new' ? 'Create list' : 'Add to list'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -2144,8 +1227,8 @@ export default function OpportunitiesPage() {
   const { environment } = useEnvironment();
   
   return (
-    <div className="max-w-full py-6 pl-8">
-      <div className="flex justify-between items-center mb-6 px-4">
+    <div className="container mx-auto px-4 py-6">
+      <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold tracking-tight text-black">Opportunities</h1>
       </div>
       
