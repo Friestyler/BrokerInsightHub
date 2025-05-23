@@ -183,7 +183,7 @@ export default function OpportunityDetail() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-6">
+    <div className="container mx-auto px-4 py-6 pl-8">
       {/* Header with back navigation */}
       <div className="mb-6">
         <Link href="/lists/opportunities" className="inline-flex items-center text-indigo-600 hover:text-indigo-800 mb-4">
