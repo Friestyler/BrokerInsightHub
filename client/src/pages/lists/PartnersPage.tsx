@@ -208,10 +208,6 @@ interface PartnersTableProps {
   setSelectedStatus?: (status: string) => void;
   setSelectedIndustry?: (industry: string) => void;
   setSelectedType?: (type: string) => void;
-  isEditingList?: boolean;
-  setIsEditingList?: (isEditing: boolean) => void;
-  isSavingList?: boolean;
-  setIsSavingList?: (isSaving: boolean) => void;
 }
 
 function PartnersTable({ 
@@ -228,6 +224,13 @@ function PartnersTable({
   const [selectedPartners, setSelectedPartners] = useState<number[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
+  
+  // Initialize edited list members when entering edit mode
+  useEffect(() => {
+    if (isEditingList && activeList && setEditedListMembers) {
+      setEditedListMembers(activeList.members || []);
+    }
+  }, [isEditingList, activeList, setEditedListMembers]);
   
   // This function will be defined in the main component
 
@@ -361,7 +364,12 @@ function PartnersTable({
   
   // First filter by list membership, then apply filters
   const displayedPartners = (() => {
-    // First restrict to list members if a list is active
+    // When in edit list mode, show all partners
+    if (isEditingList) {
+      return applyFilters(mockPartners);
+    }
+    
+    // Otherwise, first restrict to list members if a list is active
     let filteredPartners = mockPartners;
     
     if (activeList) {
@@ -2188,9 +2196,32 @@ function PartnersTable({
                 <td className="relative whitespace-nowrap py-4 pl-3 pr-3 text-sm w-10">
                   <input
                     type="checkbox"
-                    className={`h-4 w-4 rounded border-gray-300 ${selectedPartners.includes(partner.id) ? 'visible' : 'invisible group-hover:visible'}`}
-                    checked={selectedPartners.includes(partner.id)}
-                    onChange={() => toggleSelectPartner(partner.id)}
+                    className={`h-4 w-4 rounded border-gray-300 ${
+                      // Always show checkboxes when in edit list mode
+                      isEditingList 
+                        ? 'visible' 
+                        : (selectedPartners.includes(partner.id) ? 'visible' : 'invisible group-hover:visible')
+                    }`}
+                    checked={
+                      // When in edit mode, check if partner is in editedListMembers
+                      // Otherwise use normal selection
+                      isEditingList 
+                        ? editedListMembers.includes(partner.id)
+                        : selectedPartners.includes(partner.id)
+                    }
+                    onChange={() => {
+                      if (isEditingList) {
+                        // In edit mode, toggle membership in editedListMembers
+                        if (editedListMembers.includes(partner.id)) {
+                          setEditedListMembers(editedListMembers.filter(id => id !== partner.id));
+                        } else {
+                          setEditedListMembers([...editedListMembers, partner.id]);
+                        }
+                      } else {
+                        // Regular selection mode
+                        toggleSelectPartner(partner.id);
+                      }
+                    }}
                   />
                 </td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm font-medium">
