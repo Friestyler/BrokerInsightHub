@@ -222,20 +222,12 @@ function PartnersTable({
   setFilterText,
   setSelectedStatus,
   setSelectedIndustry,
-  setSelectedType,
-  isEditingList,
-  setIsEditingList,
-  isSavingList,
-  setIsSavingList
+  setSelectedType
 }: PartnersTableProps) {
   // Component state
   const [selectedPartners, setSelectedPartners] = useState<number[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
-  
-  // This function will be defined in the main component instead
-  
-  // Track changes code has been moved to the main component
   
   // This function will be defined in the main component
 
@@ -340,6 +332,10 @@ function PartnersTable({
   const [listToAddTo, setListToAddTo] = useState<string>('new'); // 'new' or list ID
   const [showDynamicListGuidance, setShowDynamicListGuidance] = useState(false);
   const [isGuidanceCollapsed, setIsGuidanceCollapsed] = useState(false);
+  // List editing state
+  const [isEditingList, setIsEditingList] = useState(false);
+  const [isSavingList, setIsSavingList] = useState(false);
+  const [editedListMembers, setEditedListMembers] = useState<number[]>([]);
   // State for the name and description when creating a list through the general create modal
   const [newListName, setNewListName] = useState('');
   const [newListDescription, setNewListDescription] = useState('');
