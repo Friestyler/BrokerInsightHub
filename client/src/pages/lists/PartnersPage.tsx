@@ -490,6 +490,10 @@ function PartnersTable() {
           <div className="flex flex-wrap items-center justify-between">
             {/* Left side - Saved Lists with actions */}
             <div className="flex items-center gap-3">
+              {/* Lists heading on the left of dropdown */}
+              <h3 className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
+                Lists
+              </h3>
               {/* Saved Lists dropdown - redesigned to match provided image */}
               <div className="relative">
                 <button 
