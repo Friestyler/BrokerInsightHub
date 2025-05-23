@@ -562,7 +562,7 @@ export default function PartnerDetail() {
   };
   
   return (
-    <div className="container mx-auto px-4 py-6">
+    <div className="container mx-auto px-4 py-6 pl-8">
       {/* Partner header */}
       <div className="mb-8">
         <div className="flex justify-between items-start">
