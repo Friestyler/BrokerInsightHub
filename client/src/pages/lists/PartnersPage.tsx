@@ -1109,7 +1109,7 @@ function PartnersTable() {
       {selectedPartners.length > 0 && (
         <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between mb-4">
           <div className="flex items-center">
-            <span className="text-indigo-700 font-medium mr-2">{selectedPartners.length} partners selected</span>
+            <span className="text-indigo-700 font-medium mr-2 text-[14px]">{selectedPartners.length} partners selected</span>
             <Button 
               variant="ghost" 
               size="sm"
