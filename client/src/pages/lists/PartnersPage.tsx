@@ -1,5 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, createContext, useContext } from 'react';
 import { useEnvironment } from "@/contexts/EnvironmentContext";
+
+// Create a context for list editing state
+interface ListEditingContextType {
+  isEditingList: boolean;
+  setIsEditingList: (value: boolean) => void;
+}
+
+const ListEditingContext = createContext<ListEditingContextType>({
+  isEditingList: false,
+  setIsEditingList: () => {},
+});
 import {
   Card,
   CardContent,
@@ -785,8 +796,13 @@ function PartnersTable() {
               {/* Saved Views Dropdown */}
               <div className="relative mr-2">
                 <button 
-                  className="flex items-center space-x-2 px-3 py-2 border rounded-md text-sm font-medium bg-white hover:bg-gray-50"
-                  onClick={() => setShowViewsDropdown(!showViewsDropdown)}
+                  className={`flex items-center space-x-2 px-3 py-2 border rounded-md text-sm font-medium bg-white hover:bg-gray-50 ${isEditingList ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  onClick={() => {
+                    if (!isEditingList) {
+                      setShowViewsDropdown(!showViewsDropdown);
+                    }
+                  }}
+                  disabled={isEditingList}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
                     <path d="M4 18v-8a5 5 0 0 1 10 0v8"></path>
@@ -2100,24 +2116,32 @@ function PartnersTable() {
 
 export default function PartnersPage() {
   const { environment } = useEnvironment();
+  const [isEditingList, setIsEditingList] = useState(false);
   
   return (
-    <div className="container mx-auto px-4 py-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold tracking-tight text-black">Partners</h1>
-        <button 
-          className="flex items-center gap-2 px-4 py-2 text-white rounded-md hover:bg-[#4556D4] transition-colors font-medium text-[14px] pl-[12px] pr-[12px] bg-[#5567E5]"
-          onClick={() => alert("Create new partner functionality coming soon!")}
-          style={{ fontFamily: 'Poppins, sans-serif' }}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
-          Create new partner
-        </button>
+    <ListEditingContext.Provider value={{ isEditingList, setIsEditingList }}>
+      <div className="container mx-auto px-4 py-6">
+        <div className="flex justify-between items-center mb-6">
+          <h1 className="text-2xl font-bold tracking-tight text-black">Partners</h1>
+          <button 
+            className={`flex items-center gap-2 px-4 py-2 text-white rounded-md transition-colors font-medium text-[14px] pl-[12px] pr-[12px] ${isEditingList ? 'bg-[#8B98F9] cursor-not-allowed' : 'bg-[#5567E5] hover:bg-[#4556D4]'}`}
+            onClick={() => {
+              if (!isEditingList) {
+                alert("Create new partner functionality coming soon!");
+              }
+            }}
+            disabled={isEditingList}
+            style={{ fontFamily: 'Poppins, sans-serif' }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            Create new partner
+          </button>
+        </div>
+        <PartnersTable />
       </div>
-      <PartnersTable />
-    </div>
+    </ListEditingContext.Provider>
   );
 }
