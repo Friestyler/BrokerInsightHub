@@ -278,6 +278,7 @@ function PartnersTable() {
   const [listToRename, setListToRename] = useState<SavedList | null>(null);
   const [listToDelete, setListToDelete] = useState<SavedList | null>(null);
   const [newListName, setNewListName] = useState("");
+  const [activeDropdownId, setActiveDropdownId] = useState<string | null>(null);
   
   // State for saved views (filter combinations)
   const [savedViews, setSavedViews] = useState<SavedView[]>([
@@ -523,12 +524,15 @@ function PartnersTable() {
                             
                             {/* Three dots menu - only shown for non-default lists */}
                             {!list.isDefault && (
-                              <div className="group ml-auto relative">
+                              <div className="ml-auto relative">
                                 <div 
                                   className="rounded-full p-1 hover:bg-slate-200 text-slate-500 focus:outline-none cursor-pointer"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    // This would toggle the edit menu in a real implementation
+                                    // Toggle dropdown visibility using state
+                                    setActiveDropdownId(activeDropdownId === list.id ? null : list.id);
+                                    // Close other dropdowns when clicking this one
+                                    document.addEventListener('click', () => setActiveDropdownId(null), { once: true });
                                   }}
                                 >
                                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -538,8 +542,11 @@ function PartnersTable() {
                                   </svg>
                                 </div>
                                 
-                                {/* Edit menu - shown on hover */}
-                                <div className="absolute right-0 mt-1 w-36 rounded-md border border-slate-200 bg-white p-1 shadow-md hidden group-hover:block z-50">
+                                {/* Edit menu - shown based on activeDropdownId state */}
+                                <div 
+                                  className={`absolute right-0 mt-1 w-36 rounded-md border border-slate-200 bg-white p-1 shadow-md z-50 ${activeDropdownId === list.id ? 'block' : 'hidden'}`}
+                                  onClick={(e) => e.stopPropagation()} // Prevent clicks inside from closing
+                                >
                                   <div 
                                     className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 w-full text-left text-[#282A3F]" 
                                     style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
@@ -549,6 +556,8 @@ function PartnersTable() {
                                       setListToRename(list);
                                       setNewListName(list.name);
                                       setShowRenameListModal(true);
+                                      // Close the dropdown
+                                      setActiveDropdownId(null);
                                     }}
                                   >
                                     Rename
@@ -561,6 +570,8 @@ function PartnersTable() {
                                       // Set the list to delete and open the delete dialog
                                       setListToDelete(list);
                                       setShowDeleteListModal(true);
+                                      // Close the dropdown
+                                      setActiveDropdownId(null);
                                     }}
                                   >
                                     Delete
@@ -1859,7 +1870,7 @@ function PartnersTable() {
                   setShowRenameListModal(false);
                 }
               }}
-              disabled={!newListName.trim() || (listToRename && newListName.trim() === listToRename.name)}
+              disabled={!newListName || newListName.trim() === ''}
             >
               Save
             </Button>
