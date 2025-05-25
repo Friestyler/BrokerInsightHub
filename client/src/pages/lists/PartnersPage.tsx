@@ -1249,8 +1249,9 @@ function PartnersTable() {
                   });
                 }
               }}
-              disabled={(isCreatingNewList && !document.getElementById('listName')) || 
-                (!isCreatingNewList && !selectedExistingList)}
+              disabled={
+                (!isCreatingNewList && !selectedExistingList)
+              }
             >
               {isCreatingNewList ? 'Create List' : 'Add to List'}
             </Button>
