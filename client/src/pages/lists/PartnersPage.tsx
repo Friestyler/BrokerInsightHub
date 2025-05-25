@@ -229,6 +229,13 @@ function PartnersTable() {
   const [isSavingList, setIsSavingList] = useState(false);
   const [editedListMembers, setEditedListMembers] = useState<number[]>([]);
   
+  // State for unsaved changes confirmation
+  const [showUnsavedChangesModal, setShowUnsavedChangesModal] = useState(false);
+  const [pendingListAction, setPendingListAction] = useState<{
+    type: 'select' | 'clear';
+    list?: SavedList;
+  } | null>(null);
+  
   // State for saved lists
   const [savedLists, setSavedLists] = useState<SavedList[]>([
     {
