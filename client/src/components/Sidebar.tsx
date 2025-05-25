@@ -19,7 +19,7 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
   
   // Auto-open the appropriate menu when on relevant pages
   useEffect(() => {
-    if (location.startsWith('/lists')) {
+    if (location.startsWith('/partners') || location.startsWith('/customers') || location.startsWith('/opportunities') || location.startsWith('/vendors') || location.startsWith('/products') || location.startsWith('/projects') || location.startsWith('/contacts')) {
       setDataMenuOpen(true);
       setTemplatesMenuOpen(false);
     } else if (location.startsWith('/templates')) {
@@ -137,7 +137,7 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
           </button>
           
           {/* Always show a tiny indicator on the sidebar if a list section is active */}
-          {collapsed && !dataMenuOpen && location.startsWith('/lists') && (
+          {collapsed && !dataMenuOpen && (location.startsWith('/partners') || location.startsWith('/customers') || location.startsWith('/opportunities') || location.startsWith('/vendors') || location.startsWith('/products') || location.startsWith('/projects') || location.startsWith('/contacts')) && (
             <div className="absolute top-[93px] right-0 w-1 h-7 bg-indigo-500 rounded-l-md"></div>
           )}
           
@@ -145,8 +145,8 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
           {dataMenuOpen && (
             <div className={`${collapsed ? "absolute left-16 top-0 bg-white border border-gray-200 rounded-md shadow-md py-1 z-50 w-48" : "mt-0.5"}`}>
               <button
-                onClick={() => navigateTo('/lists/partners')}
-                className={`flex py-2 text-sm ${collapsed ? "px-4" : "pl-12"} w-full text-left ${location.startsWith("/lists/partners") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
+                onClick={() => navigateTo('/partners')}
+                className={`flex py-2 text-sm ${collapsed ? "px-4" : "pl-12"} w-full text-left ${location.startsWith("/partners") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
@@ -157,8 +157,8 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
                 Partners
               </button>
               <button
-                onClick={() => navigateTo('/lists/customers')}
-                className={`flex py-2 text-sm ${collapsed ? "px-4" : "pl-12"} w-full text-left ${location.startsWith("/lists/customers") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
+                onClick={() => navigateTo('/customers')}
+                className={`flex py-2 text-sm ${collapsed ? "px-4" : "pl-12"} w-full text-left ${location.startsWith("/customers") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -167,8 +167,8 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
                 Customers
               </button>
               <button
-                onClick={() => navigateTo('/lists/opportunities')}
-                className={`flex py-2 text-sm ${collapsed ? "px-4" : "pl-12"} w-full text-left ${location.startsWith("/lists/opportunities") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
+                onClick={() => navigateTo('/opportunities')}
+                className={`flex py-2 text-sm ${collapsed ? "px-4" : "pl-12"} w-full text-left ${location.startsWith("/opportunities") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
@@ -176,8 +176,8 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
                 Opportunities
               </button>
               <button
-                onClick={() => navigateTo('/lists/projects')}
-                className={`flex py-2 text-sm ${collapsed ? "px-4" : "pl-12"} w-full text-left ${location.startsWith("/lists/projects") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
+                onClick={() => navigateTo('/projects')}
+                className={`flex py-2 text-sm ${collapsed ? "px-4" : "pl-12"} w-full text-left ${location.startsWith("/projects") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
