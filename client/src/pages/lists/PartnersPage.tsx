@@ -1843,7 +1843,7 @@ function PartnersTable() {
               </tr>
             ))}
             
-            {displayedPartners.length === 0 && (
+            {displayedPartners.length === 0 && !isEditingList && (
               <tr>
                 <td colSpan={9} className="py-10 text-center">
                   <div className="flex flex-col items-center">
