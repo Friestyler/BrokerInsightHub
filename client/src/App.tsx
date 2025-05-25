@@ -45,21 +45,16 @@ function Router() {
         <Route path="/compare" component={CompareFiles} />
         <Route path="/predict" component={PredictOpportunities} />
         
-        {/* Lists section routes */}
-        <Route path="/lists/partners" component={PartnersPage} />
-        <Route path="/lists/partners/:id" component={PartnerDetail} />
-        <Route path="/lists/customers" component={CustomersPage} />
-        <Route path="/lists/opportunities" component={OpportunitiesPage} />
-        <Route path="/lists/opportunities/:id" component={OpportunityDetail} />
-        <Route path="/lists/projects" component={ProjectsPage} />
-        <Route path="/lists/contacts" component={ContactsPage} />
-        <Route path="/lists/vendors" component={VendorsPage} />
-        <Route path="/lists/products" component={ProductsPage} />
-        
-        {/* Direct route aliases for convenience */}
-        <Route path="/opportunities" component={OpportunitiesPage} />
+        {/* Primary entity routes */}
         <Route path="/partners" component={PartnersPage} />
+        <Route path="/partners/:id" component={PartnerDetail} />
         <Route path="/customers" component={CustomersPage} />
+        <Route path="/opportunities" component={OpportunitiesPage} />
+        <Route path="/opportunities/:id" component={OpportunityDetail} />
+        <Route path="/vendors" component={VendorsPage} />
+        <Route path="/products" component={ProductsPage} />
+        <Route path="/projects" component={ProjectsPage} />
+        <Route path="/contacts" component={ContactsPage} />
         
         {/* Campaign routes */}
         <Route path="/campaigns">
