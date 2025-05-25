@@ -1544,15 +1544,55 @@ function PartnersTable() {
       </Dialog>
       {/* Share List Modal with Extended Options */}
       <Dialog open={showShareListModal} onOpenChange={setShowShareListModal}>
-        <DialogContent className="sm:max-w-md bg-[#ffffff] text-[#282A3F] p-[32px]">
+        <DialogContent className="sm:max-w-2xl bg-[#ffffff] text-[#282A3F] p-[32px]">
           <DialogHeader>
-            <DialogTitle>Share List: {activeList?.name}</DialogTitle>
+            <DialogTitle>
+              {selectedPartners.length > 0 
+                ? `Share ${selectedPartners.length} Selected Partners`
+                : `Share List: ${activeList?.name}`
+              }
+            </DialogTitle>
             <DialogDescription>
-              Share this list with partners, teams, or individuals.
+              {selectedPartners.length > 0 
+                ? `Share the ${selectedPartners.length} selected partner records with other partners, teams, or individuals.`
+                : "Share this list with partners, teams, or individuals."
+              }
             </DialogDescription>
           </DialogHeader>
           
           <div className="grid gap-4 py-4">
+            {/* Show selected partners summary when bulk sharing */}
+            {selectedPartners.length > 0 && (
+              <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-2">
+                <div className="flex items-center mb-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                  </svg>
+                  <span className="text-sm font-medium text-blue-800">
+                    Selected Partners ({selectedPartners.length})
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {selectedPartners.slice(0, 5).map(partnerId => {
+                    const partner = mockPartners.find(p => p.id === partnerId);
+                    return partner ? (
+                      <span key={partnerId} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+                        {partner.name}
+                      </span>
+                    ) : null;
+                  })}
+                  {selectedPartners.length > 5 && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+                      +{selectedPartners.length - 5} more
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Tabs for different sharing options */}
             <div className="flex border-b">
               <button className="px-3 py-2 text-sm font-medium text-indigo-600 border-b-2 border-indigo-600">
@@ -1566,46 +1606,64 @@ function PartnersTable() {
               </button>
             </div>
             
-            {/* Partners Section */}
+            {/* Partners Section - Enhanced for multiple selection */}
             <div className="grid gap-3">
-              <Label>Select Partner</Label>
-              <div className="relative">
-                <select className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm appearance-none">
-                  <option value="">Select a partner...</option>
-                  {mockPartners.map(partner => (
-                    <option key={partner.id} value={partner.id}>{partner.name}</option>
-                  ))}
-                </select>
-                <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                    <polyline points="6 9 12 15 18 9"></polyline>
-                  </svg>
+              <Label>Select Partners to Share With</Label>
+              <div className="border border-gray-200 rounded-md max-h-48 overflow-y-auto">
+                {/* Select All Option */}
+                <div className="p-2 border-b hover:bg-gray-50 bg-gray-25">
+                  <div className="flex items-center">
+                    <Checkbox 
+                      id="select-all-partners" 
+                      className="mr-2"
+                      onCheckedChange={(checked) => {
+                        mockPartners.forEach(partner => {
+                          const checkbox = document.querySelector(`input[id="share-partner-${partner.id}"]`) as HTMLInputElement;
+                          if (checkbox) checkbox.checked = checked === true;
+                        });
+                      }}
+                    />
+                    <Label htmlFor="select-all-partners" className="text-sm font-medium cursor-pointer flex-grow">
+                      Select All Partners ({mockPartners.length})
+                    </Label>
+                  </div>
                 </div>
+                
+                {/* Individual Partners */}
+                {mockPartners.map(partner => (
+                  <div key={partner.id} className="p-2 border-b hover:bg-gray-50">
+                    <div className="flex items-center">
+                      <Checkbox id={`share-partner-${partner.id}`} className="mr-2" />
+                      <Label htmlFor={`share-partner-${partner.id}`} className="text-sm font-normal cursor-pointer flex-grow">
+                        <div className="flex items-center">
+                          <Avatar className="h-6 w-6 mr-2 bg-indigo-100 text-indigo-600">
+                            <AvatarFallback className="text-xs">{partner.initials}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="font-medium">{partner.name}</div>
+                            <div className="text-xs text-gray-500">{partner.industry} • {partner.type}</div>
+                          </div>
+                        </div>
+                      </Label>
+                    </div>
+                  </div>
+                ))}
               </div>
               
-              <Label className="mt-2">Partner Contacts</Label>
-              <div className="border border-gray-200 rounded-md max-h-36 overflow-y-auto">
-                <div className="p-2 border-b hover:bg-gray-50">
-                  <div className="flex items-center">
-                    <Checkbox id="contact-1" className="mr-2" />
-                    <Label htmlFor="contact-1" className="text-sm font-normal cursor-pointer flex-grow">
-                      Sarah Johnson <span className="text-xs text-gray-500 ml-1">(sjohnson@abc-insurance.com)</span>
+              {/* Contact Selection for Selected Partners */}
+              <div className="mt-2">
+                <Label className="mb-2 block">Contact Selection</Label>
+                <div className="space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <Checkbox id="share-primary-contacts" defaultChecked />
+                    <Label htmlFor="share-primary-contacts" className="text-sm font-normal">
+                      Share with primary contacts only
                     </Label>
                   </div>
-                </div>
-                <div className="p-2 border-b hover:bg-gray-50">
-                  <div className="flex items-center">
-                    <Checkbox id="contact-2" className="mr-2" />
-                    <Label htmlFor="contact-2" className="text-sm font-normal cursor-pointer flex-grow">
-                      Michael Chen <span className="text-xs text-gray-500 ml-1">(mchen@abc-insurance.com)</span>
-                    </Label>
-                  </div>
-                </div>
-                <div className="p-2 hover:bg-gray-50">
-                  <div className="flex items-center">
-                    <Checkbox id="contact-3" className="mr-2" />
-                    <Label htmlFor="contact-3" className="text-sm font-normal cursor-pointer flex-grow">
-                      All Contacts <span className="text-xs text-gray-500 ml-1">(3 people)</span>
+                  <div className="flex items-center space-x-2">
+                    <Checkbox id="share-all-contacts" />
+                    <Label htmlFor="share-all-contacts" className="text-sm font-normal">
+                      Share with all contacts at selected partners
                     </Label>
                   </div>
                 </div>
@@ -1677,26 +1735,57 @@ function PartnersTable() {
               <Button variant="outline">Cancel</Button>
             </DialogClose>
             <Button onClick={() => {
-              // Handle sharing logic
-              const partners = document.querySelectorAll('input[type="checkbox"]:checked');
-              const canEdit = (document.getElementById('canEdit') as HTMLInputElement).checked;
-              const canShare = (document.getElementById('canShare') as HTMLInputElement).checked;
-              const message = (document.getElementById('shareMessage') as HTMLTextAreaElement).value;
+              // Handle sharing logic for both list and bulk partner sharing
+              const sharePartnerCheckboxes = document.querySelectorAll('input[id^="share-partner-"]:checked');
+              const canEdit = (document.getElementById('canEdit') as HTMLInputElement)?.checked || false;
+              const canShare = (document.getElementById('canShare') as HTMLInputElement)?.checked || false;
+              const canView = (document.getElementById('canView') as HTMLInputElement)?.checked || true;
+              const message = (document.getElementById('shareMessage') as HTMLTextAreaElement)?.value || '';
+              const primaryContactsOnly = (document.getElementById('share-primary-contacts') as HTMLInputElement)?.checked || true;
               
-              // Extract recipients from selected partners and contacts
-              const selectedPartnerIds = Array.from(partners).map(el => el.id.split('-')[1]);
+              // Extract recipient partner IDs from share modal checkboxes
+              const recipientPartnerIds = Array.from(sharePartnerCheckboxes)
+                .map(checkbox => checkbox.id.replace('share-partner-', ''))
+                .filter(id => id); // Remove empty IDs
               
-              // Just for demonstration, we'll use hardcoded emails
-              const recipientEmails = ['sjohnson@abc-insurance.com', 'mchen@abc-insurance.com'];
-              
-              // Update the active list's sharing settings
-              if (activeList) {
+              if (recipientPartnerIds.length === 0) {
+                toast({
+                  title: "No recipients selected",
+                  description: "Please select at least one partner to share with.",
+                  variant: "destructive"
+                });
+                return;
+              }
+
+              // Generate recipient emails based on selected partners
+              const recipientEmails = recipientPartnerIds.flatMap(partnerId => {
+                const partner = mockPartners.find(p => p.id.toString() === partnerId);
+                if (!partner) return [];
+                
+                if (primaryContactsOnly) {
+                  // Return primary contact email (simplified)
+                  return [`primary@${partner.name.toLowerCase().replace(/\s+/g, '')}.com`];
+                } else {
+                  // Return all contact emails (simplified)
+                  return [
+                    `primary@${partner.name.toLowerCase().replace(/\s+/g, '')}.com`,
+                    `secondary@${partner.name.toLowerCase().replace(/\s+/g, '')}.com`
+                  ];
+                }
+              });
+
+              // Determine what's being shared
+              const isListShare = selectedPartners.length === 0;
+              const isBulkPartnerShare = selectedPartners.length > 0;
+
+              if (isListShare && activeList) {
+                // Sharing the entire list
                 const updatedLists = savedLists.map(list => {
                   if (list.id === activeList.id) {
                     return {
                       ...list,
                       isShared: true,
-                      sharedWith: recipientEmails
+                      sharedWith: [...(list.sharedWith || []), ...recipientEmails]
                     };
                   }
                   return list;
@@ -1704,6 +1793,25 @@ function PartnersTable() {
                 
                 setSavedLists(updatedLists);
                 setActiveList(updatedLists.find(v => v.id === activeList.id) || null);
+
+                toast({
+                  title: "List shared successfully",
+                  description: `"${activeList.name}" has been shared with ${recipientPartnerIds.length} partner${recipientPartnerIds.length > 1 ? 's' : ''}.`
+                });
+              } else if (isBulkPartnerShare) {
+                // Sharing selected partner records
+                const selectedPartnerNames = selectedPartners
+                  .map(id => mockPartners.find(p => p.id === id)?.name)
+                  .filter(Boolean)
+                  .slice(0, 3);
+
+                toast({
+                  title: "Partners shared successfully",
+                  description: `${selectedPartners.length} partner record${selectedPartners.length > 1 ? 's' : ''} (${selectedPartnerNames.join(', ')}${selectedPartners.length > 3 ? '...' : ''}) shared with ${recipientPartnerIds.length} recipient${recipientPartnerIds.length > 1 ? 's' : ''}.`
+                });
+
+                // Clear selection after sharing
+                setSelectedPartners([]);
               }
               
               setShowShareListModal(false);
