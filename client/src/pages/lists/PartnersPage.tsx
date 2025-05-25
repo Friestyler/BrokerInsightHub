@@ -300,7 +300,7 @@ function PartnersTable() {
   const [activeView, setActiveView] = useState<SavedView | null>(null);
   const [showSaveViewModal, setShowSaveViewModal] = useState(false);
   const [showViewsDropdown, setShowViewsDropdown] = useState(false);
-  const [isCreatingNewList, setIsCreatingNewList] = useState(false); // Default to adding to existing list
+  const [isCreatingNewList, setIsCreatingNewList] = useState(true); // Default to creating a new list
   const [selectedExistingList, setSelectedExistingList] = useState<string | null>(null);
     
   // Filter partners based on search text and filter selections
