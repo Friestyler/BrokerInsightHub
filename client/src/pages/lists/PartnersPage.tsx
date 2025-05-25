@@ -1957,6 +1957,7 @@ function PartnersTable() {
             <DialogTitle>Delete List</DialogTitle>
             <DialogDescription>
               Are you sure you want to delete this list? This action cannot be undone.
+              Deleting a list does not delete the partner records themselves.
             </DialogDescription>
           </DialogHeader>
           <div className="py-4">
@@ -1972,14 +1973,35 @@ function PartnersTable() {
               variant="destructive"
               onClick={() => {
                 if (listToDelete) {
+                  // Prevent deletion of system lists
+                  if (listToDelete.isDefault) {
+                    toast({
+                      title: "Cannot Delete System List",
+                      description: "System lists like 'All Partners' cannot be deleted.",
+                      variant: "destructive"
+                    });
+                    setShowDeleteListModal(false);
+                    setShowListsDropdown(false);
+                    return;
+                  }
+                
                   // Remove the list from savedLists
                   const updatedLists = savedLists.filter(l => l.id !== listToDelete.id);
                   setSavedLists(updatedLists);
                   
                   // If this was the active list, go back to "All Partners"
                   if (activeList && activeList.id === listToDelete.id) {
-                    setActiveList(null);
-                    setOriginalListFilters(null);
+                    // Find the "All Partners" list
+                    const allPartnersList = savedLists.find(list => list.id === 'all-partners');
+                    if (allPartnersList) {
+                      setActiveList(allPartnersList);
+                      setOriginalListFilters(allPartnersList.filters);
+                    } else {
+                      setActiveList(null);
+                      setOriginalListFilters(null);
+                    }
+                    
+                    // Reset filters
                     setFilterText('');
                     setSelectedStatus('');
                     setSelectedIndustry('');
@@ -1990,7 +2012,7 @@ function PartnersTable() {
                   // Show success message
                   toast({
                     title: "List deleted",
-                    description: `The list "${listToDelete.name}" has been deleted.`,
+                    description: `The list "${listToDelete.name}" has been deleted. Your partner records remain intact.`,
                   });
                   
                   // Close the dialog and dropdown
