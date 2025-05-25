@@ -509,6 +509,24 @@ function PartnersTable() {
                           <div
                             className={`relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 ${activeList?.id === list.id ? 'bg-indigo-50 text-indigo-900' : 'text-slate-700'}`}
                             onClick={() => {
+                              // Don't do anything if clicking on already active list
+                              if (activeList?.id === list.id) {
+                                setShowListsDropdown(false);
+                                return;
+                              }
+                              
+                              // Check for unsaved changes before switching lists
+                              if (hasUnsavedChanges && activeList) {
+                                // Store the pending action and show confirmation dialog
+                                setPendingListAction({
+                                  type: list.isDefault && list.name === "All Partners" ? 'clear' : 'select',
+                                  list: list.isDefault && list.name === "All Partners" ? undefined : list
+                                });
+                                setShowUnsavedChangesModal(true);
+                                setShowListsDropdown(false);
+                                return;
+                              }
+                              
                               // Special handling for "All Partners" default list
                               if (list.isDefault && list.name === "All Partners") {
                                 // Clear filters and active list (same behavior as "Return to all partners" button)
