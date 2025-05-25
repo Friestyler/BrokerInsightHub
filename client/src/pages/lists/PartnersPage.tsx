@@ -415,6 +415,10 @@ function PartnersTable() {
           <div className="flex flex-wrap items-center justify-between">
             {/* Left side - Saved Lists with actions */}
             <div className="flex items-center gap-3">
+              {/* Lists heading */}
+              <div className="flex flex-col mr-2">
+                <span className="text-base font-semibold text-gray-800 mb-2">Lists</span>
+              </div>
               {/* Saved Lists dropdown - redesigned to match provided image */}
               <div className="relative">
                 <button 
@@ -425,7 +429,7 @@ function PartnersTable() {
                     <path d="M5.25 1.5V4.25H12.6875V2C12.6875 1.725 12.4906 1.5 12.25 1.5H5.25ZM3.9375 1.5H1.75C1.50937 1.5 1.3125 1.725 1.3125 2V4.25H3.9375V1.5ZM1.3125 5.75V8.25H3.9375V5.75H1.3125ZM1.3125 9.75V12C1.3125 12.275 1.50937 12.5 1.75 12.5H3.9375V9.75H1.3125ZM5.25 12.5H12.25C12.4906 12.5 12.6875 12.275 12.6875 12V9.75H5.25V12.5ZM12.6875 8.25V5.75H5.25V8.25H12.6875ZM0 2C0 0.896875 0.784766 0 1.75 0H12.25C13.2152 0 14 0.896875 14 2V12C14 13.1031 13.2152 14 12.25 14H1.75C0.784766 14 0 13.1031 0 12V2Z" fill="#3E4DC4"/>
                   </svg>
                   <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
-                    {activeList ? activeList.name : "Saved lists"}
+                    {activeList ? activeList.name : "All Partners"}
                   </span>
                   <svg 
                     xmlns="http://www.w3.org/2000/svg" 
@@ -549,31 +553,7 @@ function PartnersTable() {
                       ))}
                     </div>
                     
-                    {/* Separator */}
-                    <div className="mx-1 my-1 h-px bg-slate-100"></div>
-                    
-                    {/* Create new list button */}
-                    <div className="p-1">
-                      <div
-                        className="relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm font-medium outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 text-indigo-600"
-                        onClick={() => {
-                          setActiveList(null);
-                          setFilterText('');
-                          setSelectedStatus('');
-                          setSelectedIndustry('');
-                          setSelectedType('');
-                          setShowSaveListModal(true);
-                          setShowListsDropdown(false);
-                        }}
-                        style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                          <path d="M5 12h14"></path>
-                          <path d="M12 5v14"></path>
-                        </svg>
-                        Create new list
-                      </div>
-                    </div>
+                    {/* No 'Create new list' button as specified by the user */}
                   </div>
                 )}
               </div>
