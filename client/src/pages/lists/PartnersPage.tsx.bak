@@ -1039,6 +1039,7 @@ function PartnersTable() {
               </button>
             )}
           </div>
+          </div>
         </div>
       </div>
       {/* Selection actions bar - visible when items are selected */}
