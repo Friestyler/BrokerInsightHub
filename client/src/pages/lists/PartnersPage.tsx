@@ -1854,21 +1854,38 @@ function PartnersTable() {
                       <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
                     </svg>
                     <h3 className="text-base font-medium text-gray-900 mb-1">No partners found</h3>
-                    <p className="text-sm text-gray-500 max-w-md mb-4">
-                      There are no partners matching your filter criteria.
-                    </p>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => {
-                        setFilterText('');
-                        setSelectedStatus('');
-                        setSelectedIndustry('');
-                        setSelectedType('');
-                      }}
-                    >
-                      Clear Filters
-                    </Button>
+                    {activeList && activeList.id !== 'all-partners' ? (
+                      <>
+                        <p className="text-sm text-gray-500 max-w-md mb-4">
+                          This list doesn't have any partners yet. Add some partners to get started.
+                        </p>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setIsEditingList(true)}
+                        >
+                          Edit List
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-sm text-gray-500 max-w-md mb-4">
+                          There are no partners matching your filter criteria.
+                        </p>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => {
+                            setFilterText('');
+                            setSelectedStatus('');
+                            setSelectedIndustry('');
+                            setSelectedType('');
+                          }}
+                        >
+                          Clear Filters
+                        </Button>
+                      </>
+                    )}
                   </div>
                 </td>
               </tr>
