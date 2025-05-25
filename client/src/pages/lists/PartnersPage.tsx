@@ -1060,108 +1060,88 @@ function PartnersTable() {
             </DialogDescription>
           </DialogHeader>
           
-          <div className="grid gap-5 py-4">
-            {/* Selection counter info message */}
-            <div className="bg-blue-50 p-3 rounded-md border border-blue-100 mb-2">
-              <div className="flex items-center">
-                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                  <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="9" cy="7" r="4"></circle>
-                  <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                </svg>
-                <p className="text-sm text-blue-700 font-medium">
-                  {selectedPartners.length} partners selected
-                </p>
+          <div className="grid gap-4 py-4">
+            <div className="flex flex-col space-y-2">
+              <div className="flex items-center space-x-2">
+                <input 
+                  type="radio" 
+                  id="option-existing" 
+                  name="list-option" 
+                  className="h-4 w-4 text-indigo-600"
+                  checked={!isCreatingNewList}
+                  onChange={() => setIsCreatingNewList(false)}
+                />
+                <Label htmlFor="option-existing" className="text-sm font-medium">
+                  Add to existing list
+                </Label>
               </div>
+              
+              {!isCreatingNewList && (
+                <div className="pl-6 mt-2">
+                  <select
+                    id="list-select"
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                    value={selectedExistingList || ''}
+                    onChange={(e) => setSelectedExistingList(e.target.value || null)}
+                  >
+                    <option value="">Select a list...</option>
+                    {savedLists
+                      .filter(list => list.type === 'selection' && !list.isDefault)
+                      .map(list => (
+                        <option key={list.id} value={list.id}>
+                          {list.name}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              )}
             </div>
             
-            {/* Options */}
-            <div className="space-y-4 rounded-md border border-gray-200 p-4 bg-gray-50">
-              <h3 className="text-sm font-medium text-gray-700 mb-2">Choose an option:</h3>
-              
-              {/* Add to existing list option */}
-              <div className="rounded-md border border-gray-200 bg-white p-3">
-                <div className="flex items-center space-x-2 mb-2">
-                  <input 
-                    type="radio" 
-                    id="option-existing" 
-                    name="list-option" 
-                    className="h-4 w-4 text-indigo-600"
-                    checked={!isCreatingNewList}
-                    onChange={() => setIsCreatingNewList(false)}
-                  />
-                  <Label htmlFor="option-existing" className="text-sm font-semibold cursor-pointer">
-                    Add to existing list
-                  </Label>
-                </div>
-                
-                {!isCreatingNewList && (
-                  <div className="mt-3 pl-6">
-                    <select
-                      id="list-select"
-                      className="w-full p-2 border border-gray-300 rounded-md focus:border-indigo-500 focus:ring-indigo-500"
-                      value={selectedExistingList || ''}
-                      onChange={(e) => setSelectedExistingList(e.target.value || null)}
-                      autoFocus
-                    >
-                      <option value="">Select a list...</option>
-                      {savedLists
-                        .filter(list => list.type === 'selection' && !list.isDefault)
-                        .map(list => (
-                          <option key={list.id} value={list.id}>
-                            {list.name}
-                          </option>
-                        ))}
-                    </select>
-                  </div>
-                )}
+            <div className="flex flex-col space-y-2">
+              <div className="flex items-center space-x-2">
+                <input 
+                  type="radio" 
+                  id="option-new" 
+                  name="list-option" 
+                  className="h-4 w-4 text-indigo-600"
+                  checked={isCreatingNewList}
+                  onChange={() => setIsCreatingNewList(true)}
+                />
+                <Label htmlFor="option-new" className="text-sm font-medium">
+                  Create new list
+                </Label>
               </div>
               
-              {/* Create new list option */}
-              <div className="rounded-md border border-gray-200 bg-white p-3">
-                <div className="flex items-center space-x-2 mb-2">
-                  <input 
-                    type="radio" 
-                    id="option-new" 
-                    name="list-option" 
-                    className="h-4 w-4 text-indigo-600"
-                    checked={isCreatingNewList}
-                    onChange={() => setIsCreatingNewList(true)}
-                  />
-                  <Label htmlFor="option-new" className="text-sm font-semibold cursor-pointer">
-                    Create new list
-                  </Label>
-                </div>
-                
-                {isCreatingNewList && (
-                  <div className="pl-6 space-y-4 mt-3">
-                    <div className="space-y-1">
-                      <Label htmlFor="listName" className="text-xs text-gray-700">List Name <span className="text-red-500">*</span></Label>
-                      <Input 
-                        id="listName" 
-                        placeholder="Enter a name for this list"
-                        maxLength={50}
-                        className="w-full"
-                        autoFocus
-                      />
-                      <p className="text-xs text-gray-500">Maximum 50 characters</p>
-                    </div>
-                    
-                    <div className="space-y-1">
-                      <Label htmlFor="listDescription" className="text-xs text-gray-700">Description (Optional)</Label>
-                      <Textarea 
-                        id="listDescription" 
-                        placeholder="Add a short description for this list"
-                        rows={2}
-                        maxLength={200}
-                        className="w-full"
-                      />
-                      <p className="text-xs text-gray-500">Maximum 200 characters</p>
-                    </div>
+              {isCreatingNewList && (
+                <div className="pl-6 space-y-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="listName">List Name</Label>
+                    <Input 
+                      id="listName" 
+                      placeholder="Enter a name for this list"
+                      maxLength={50}
+                    />
+                    <p className="text-xs text-gray-500">Maximum 50 characters</p>
                   </div>
-                )}
-              </div>
+                  
+                  <div className="grid gap-2">
+                    <Label htmlFor="listDescription">Description (Optional)</Label>
+                    <Textarea 
+                      id="listDescription" 
+                      placeholder="Add a short description for this list"
+                      rows={3}
+                      maxLength={200}
+                    />
+                    <p className="text-xs text-gray-500">Maximum 200 characters</p>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            <div className="bg-blue-50 p-3 rounded-md border border-blue-100">
+              <p className="text-sm text-blue-700">
+                {selectedPartners.length} partners will be added to this list.
+              </p>
             </div>
           </div>
           
