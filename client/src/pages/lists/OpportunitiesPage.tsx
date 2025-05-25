@@ -714,6 +714,20 @@ function OpportunitiesTable() {
               variant="outline" 
               size="sm"
               className="text-indigo-600"
+              onClick={() => setShowShareListModal(true)}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+                <polyline points="16 6 12 2 8 6"></polyline>
+                <line x1="12" y1="2" x2="12" y2="15"></line>
+              </svg>
+              Share
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="text-indigo-600"
               onClick={() => {
                 // TODO: Implement campaign creation
                 alert('Selected opportunities can be added to a campaign. This will be available in the Campaigns section');
@@ -877,15 +891,53 @@ function OpportunitiesTable() {
       
       {/* Share List Modal with Extended Options */}
       <Dialog open={showShareListModal} onOpenChange={setShowShareListModal}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-2xl bg-[#ffffff] text-[#282A3F] p-[32px]">
           <DialogHeader>
-            <DialogTitle>Share List: {activeList?.name}</DialogTitle>
+            <DialogTitle>
+              {selectedOpportunities.length > 0 
+                ? `Share ${selectedOpportunities.length} Selected Opportunities`
+                : `Share List: ${activeList?.name}`
+              }
+            </DialogTitle>
             <DialogDescription>
-              Share this list with partners, teams, or individuals.
+              {selectedOpportunities.length > 0 
+                ? `Share the ${selectedOpportunities.length} selected opportunity records with other partners, teams, or individuals.`
+                : "Share this list with partners, teams, or individuals."
+              }
             </DialogDescription>
           </DialogHeader>
           
           <div className="grid gap-4 py-4">
+            {/* Show selected opportunities summary when bulk sharing */}
+            {selectedOpportunities.length > 0 && (
+              <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-2">
+                <div className="flex items-center mb-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                    <path d="M3 6h18l-2 13H5L3 6z"></path>
+                    <path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"></path>
+                  </svg>
+                  <span className="text-sm font-medium text-blue-800">
+                    Selected Opportunities ({selectedOpportunities.length})
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {selectedOpportunities.slice(0, 5).map(oppId => {
+                    const opportunity = mockOpportunities.find(o => o.id === oppId);
+                    return opportunity ? (
+                      <span key={oppId} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+                        {opportunity.title}
+                      </span>
+                    ) : null;
+                  })}
+                  {selectedOpportunities.length > 5 && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+                      +{selectedOpportunities.length - 5} more
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+
             {/* Tabs for different sharing options */}
             <div className="flex border-b">
               <button className="px-3 py-2 text-sm font-medium text-indigo-600 border-b-2 border-indigo-600">
@@ -899,54 +951,70 @@ function OpportunitiesTable() {
               </button>
             </div>
             
-            {/* Partners Section */}
+            {/* Partners Section with individual contact selection */}
             <div className="grid gap-3">
-              <Label>Select Partner</Label>
-              <div className="relative">
-                <select className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm appearance-none">
-                  <option value="">Select a partner...</option>
-                  {mockOpportunities.reduce((partners, opp) => {
-                    if (!partners.some(p => p.id === opp.partnerId)) {
-                      partners.push({ id: opp.partnerId, name: opp.partnerName });
-                    }
-                    return partners;
-                  }, [] as { id: number, name: string }[]).map(partner => (
-                    <option key={partner.id} value={partner.id}>{partner.name}</option>
-                  ))}
-                </select>
-                <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                    <polyline points="6 9 12 15 18 9"></polyline>
-                  </svg>
-                </div>
-              </div>
+              <Label>Select Partners and Contacts</Label>
               
-              <Label className="mt-2">Partner Contacts</Label>
-              <div className="border border-gray-200 rounded-md max-h-36 overflow-y-auto">
-                <div className="p-2 border-b hover:bg-gray-50">
-                  <div className="flex items-center">
-                    <Checkbox id="contact-1" className="mr-2" />
-                    <Label htmlFor="contact-1" className="text-sm font-normal cursor-pointer flex-grow">
-                      Sarah Johnson <span className="text-xs text-gray-500 ml-1">(sjohnson@abc-insurance.com)</span>
-                    </Label>
-                  </div>
-                </div>
-                <div className="p-2 border-b hover:bg-gray-50">
-                  <div className="flex items-center">
-                    <Checkbox id="contact-2" className="mr-2" />
-                    <Label htmlFor="contact-2" className="text-sm font-normal cursor-pointer flex-grow">
-                      Michael Chen <span className="text-xs text-gray-500 ml-1">(mchen@abc-insurance.com)</span>
-                    </Label>
-                  </div>
-                </div>
-                <div className="p-2 hover:bg-gray-50">
-                  <div className="flex items-center">
-                    <Checkbox id="contact-3" className="mr-2" />
-                    <Label htmlFor="contact-3" className="text-sm font-normal cursor-pointer flex-grow">
-                      All Contacts <span className="text-xs text-gray-500 ml-1">(3 people)</span>
-                    </Label>
-                  </div>
-                </div>
+              {/* Dynamic list of partners with their contacts */}
+              <div className="space-y-3 max-h-80 overflow-y-auto border border-gray-200 rounded-md p-3">
+                {mockOpportunities.reduce((partners, opp) => {
+                  if (!partners.some(p => p.id === opp.partnerId)) {
+                    partners.push({ id: opp.partnerId, name: opp.partnerName });
+                  }
+                  return partners;
+                }, [] as { id: number, name: string }[]).map(partner => {
+                  const partnerContacts = [
+                    { id: 1, name: `${partner.name.split(' ')[0]} Manager`, email: `manager@${partner.name.toLowerCase().replace(/\s+/g, '')}.com` },
+                    { id: 2, name: `${partner.name.split(' ')[0]} Sales`, email: `sales@${partner.name.toLowerCase().replace(/\s+/g, '')}.com` },
+                    { id: 3, name: `${partner.name.split(' ')[0]} Admin`, email: `admin@${partner.name.toLowerCase().replace(/\s+/g, '')}.com` }
+                  ];
+                  
+                  return (
+                    <div key={partner.id} className="border border-gray-100 rounded-md p-3">
+                      <div className="flex items-center mb-2">
+                        <Checkbox 
+                          id={`share-partner-${partner.id}`}
+                          className="mr-2"
+                          onChange={(e) => {
+                            const isChecked = (e.target as HTMLInputElement).checked;
+                            partnerContacts.forEach(contact => {
+                              const contactCheckbox = document.querySelector(`input[id="contact-${partner.id}-${contact.id}"]`) as HTMLInputElement;
+                              if (contactCheckbox) contactCheckbox.checked = isChecked;
+                            });
+                          }}
+                        />
+                        <Label htmlFor={`share-partner-${partner.id}`} className="font-medium text-sm cursor-pointer">
+                          {partner.name}
+                        </Label>
+                      </div>
+                      
+                      <div className="ml-6 space-y-2">
+                        {partnerContacts.map(contact => (
+                          <div key={contact.id} className="flex items-center">
+                            <Checkbox 
+                              id={`contact-${partner.id}-${contact.id}`}
+                              className="mr-2"
+                              onChange={() => {
+                                const allContactsSelected = partnerContacts.every(c => {
+                                  const checkbox = document.querySelector(`input[id="contact-${partner.id}-${c.id}"]`) as HTMLInputElement;
+                                  return checkbox?.checked;
+                                });
+                                const partnerCheckbox = document.querySelector(`input[id="share-partner-${partner.id}"]`) as HTMLInputElement;
+                                if (partnerCheckbox) partnerCheckbox.checked = allContactsSelected;
+                              }}
+                            />
+                            <Label htmlFor={`contact-${partner.id}-${contact.id}`} className="text-xs cursor-pointer flex-grow">
+                              <div>
+                                <div className="font-medium text-gray-800">{contact.name}</div>
+                                <div className="text-gray-500">{contact.email}</div>
+                              </div>
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
             
@@ -963,12 +1031,6 @@ function OpportunitiesTable() {
                   <Checkbox id="canEdit" />
                   <Label htmlFor="canEdit" className="text-sm font-normal">
                     Can edit this saved list
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="canShare" />
-                  <Label htmlFor="canShare" className="text-sm font-normal">
-                    Can share this list with others
                   </Label>
                 </div>
               </div>
@@ -1015,26 +1077,62 @@ function OpportunitiesTable() {
               <Button variant="outline">Cancel</Button>
             </DialogClose>
             <Button onClick={() => {
-              // Handle sharing logic
-              const partners = document.querySelectorAll('input[type="checkbox"]:checked');
-              const canEdit = (document.getElementById('canEdit') as HTMLInputElement).checked;
-              const canShare = (document.getElementById('canShare') as HTMLInputElement).checked;
-              const message = (document.getElementById('shareMessage') as HTMLTextAreaElement).value;
+              // Handle sharing logic for both list and bulk opportunity sharing
+              const canEdit = (document.getElementById('canEdit') as HTMLInputElement)?.checked || false;
+              const canView = (document.getElementById('canView') as HTMLInputElement)?.checked || true;
+              const message = (document.getElementById('shareMessage') as HTMLTextAreaElement)?.value || '';
               
-              // Extract recipients from selected partners and contacts
-              const selectedPartnerIds = Array.from(partners).map(el => el.id.split('-')[1]);
+              // Collect all selected contact emails
+              const selectedContactEmails: string[] = [];
+              const selectedPartnerNames: string[] = [];
               
-              // Just for demonstration, we'll use hardcoded emails
-              const recipientEmails = ['sjohnson@abc-insurance.com', 'mchen@abc-insurance.com'];
+              mockOpportunities.reduce((partners, opp) => {
+                if (!partners.some(p => p.id === opp.partnerId)) {
+                  partners.push({ id: opp.partnerId, name: opp.partnerName });
+                }
+                return partners;
+              }, [] as { id: number, name: string }[]).forEach(partner => {
+                const partnerContacts = [
+                  { id: 1, name: `${partner.name.split(' ')[0]} Manager`, email: `manager@${partner.name.toLowerCase().replace(/\s+/g, '')}.com` },
+                  { id: 2, name: `${partner.name.split(' ')[0]} Sales`, email: `sales@${partner.name.toLowerCase().replace(/\s+/g, '')}.com` },
+                  { id: 3, name: `${partner.name.split(' ')[0]} Admin`, email: `admin@${partner.name.toLowerCase().replace(/\s+/g, '')}.com` }
+                ];
+                
+                let hasSelectedContacts = false;
+                partnerContacts.forEach(contact => {
+                  const contactCheckbox = document.querySelector(`input[id="contact-${partner.id}-${contact.id}"]`) as HTMLInputElement;
+                  if (contactCheckbox?.checked) {
+                    selectedContactEmails.push(contact.email);
+                    hasSelectedContacts = true;
+                  }
+                });
+                
+                if (hasSelectedContacts && !selectedPartnerNames.includes(partner.name)) {
+                  selectedPartnerNames.push(partner.name);
+                }
+              });
               
-              // Update the active list's sharing settings
-              if (activeList) {
+              if (selectedContactEmails.length === 0) {
+                toast({
+                  title: "No contacts selected",
+                  description: "Please select at least one contact to share with.",
+                  variant: "destructive"
+                });
+                return;
+              }
+
+              // Determine what's being shared
+              const isListShare = selectedOpportunities.length === 0;
+              const isBulkOpportunityShare = selectedOpportunities.length > 0;
+
+              if (isListShare && activeList) {
+                // Sharing the entire list
                 const updatedLists = savedLists.map(list => {
                   if (list.id === activeList.id) {
                     return {
                       ...list,
                       isShared: true,
-                      sharedWith: recipientEmails
+                      sharedWith: [...(list.sharedWith || []), ...selectedContactEmails]
                     };
                   }
                   return list;
@@ -1042,6 +1140,25 @@ function OpportunitiesTable() {
                 
                 setSavedLists(updatedLists);
                 setActiveList(updatedLists.find(v => v.id === activeList.id) || null);
+
+                toast({
+                  title: "List shared successfully",
+                  description: `"${activeList.name}" has been shared with ${selectedContactEmails.length} contact${selectedContactEmails.length > 1 ? 's' : ''} at ${selectedPartnerNames.length} partner${selectedPartnerNames.length > 1 ? 's' : ''}.`
+                });
+              } else if (isBulkOpportunityShare) {
+                // Sharing selected opportunity records
+                const bulkOpportunityNames = selectedOpportunities
+                  .map(id => mockOpportunities.find(o => o.id === id)?.title)
+                  .filter(Boolean)
+                  .slice(0, 3);
+
+                toast({
+                  title: "Opportunities shared successfully",
+                  description: `${selectedOpportunities.length} opportunity record${selectedOpportunities.length > 1 ? 's' : ''} (${bulkOpportunityNames.join(', ')}${selectedOpportunities.length > 3 ? '...' : ''}) shared with ${selectedContactEmails.length} contact${selectedContactEmails.length > 1 ? 's' : ''} at ${selectedPartnerNames.length} partner${selectedPartnerNames.length > 1 ? 's' : ''}.`
+                });
+
+                // Clear selection after sharing
+                setSelectedOpportunities([]);
               }
               
               setShowShareListModal(false);
