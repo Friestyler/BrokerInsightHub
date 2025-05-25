@@ -949,25 +949,7 @@ function PartnersTable() {
                   )}
                 </button>
                 
-                {/* Save View Button - only shown when filters are applied and no view is active or filters don't match active view */}
-                {(filterText || selectedStatus || selectedIndustry || selectedType) && (
-                  <div className="relative group">
-                    <button 
-                      className="flex items-center space-x-1 px-3 py-2 border border-indigo-200 rounded-md text-sm bg-indigo-50 text-indigo-700 hover:bg-indigo-100"
-                      onClick={() => setShowSaveViewModal(true)}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-500">
-                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                        <polyline points="7 3 7 8 15 8"></polyline>
-                      </svg>
-                      <span>Save View</span>
-                    </button>
-                    <div className="absolute z-10 invisible group-hover:visible bg-[#282A3F] text-white p-2 rounded text-xs w-60 bottom-full mb-2 left-1/2 transform -translate-x-1/2 shadow-lg">
-                      Saves the current filter settings as a view. Views store filter combinations (like industry, type) but not specific partner selections.
-                    </div>
-                  </div>
-                )}
+                {/* Save View Button has been removed since we have the "Save as new view" button in the action bar */}
               </div>
             </div>
             
@@ -992,7 +974,7 @@ function PartnersTable() {
                   <span className="text-[#5F6585]">Revert changes</span>
                 </button>
                 
-                {/* Save as view button - only shown when filters are applied */}
+                {/* Save as new view button - only shown when filters are applied */}
                 <button 
                   className="flex items-center rounded-md bg-[#EBEEFB] px-4 py-2 hover:bg-[#E3E6F7]"
                   onClick={() => setShowSaveViewModal(true)}
@@ -1003,7 +985,7 @@ function PartnersTable() {
                     <polyline points="17 21 17 13 7 13 7 21"></polyline>
                     <polyline points="7 3 7 8 15 8"></polyline>
                   </svg>
-                  <span className="text-[#3E4DC4] font-medium">Save as view</span>
+                  <span className="text-[#3E4DC4] font-medium">Save as new view</span>
                 </button>
                 
                 {/* Revert button - only shown for non-default lists with unsaved changes */}
