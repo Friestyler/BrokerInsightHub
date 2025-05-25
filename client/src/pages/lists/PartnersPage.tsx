@@ -1420,21 +1420,21 @@ function PartnersTable() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      {/* Save View Modal */}
+      {/* Save as new View Modal */}
       <Dialog 
         open={showSaveViewModal} 
         onOpenChange={(open) => {
           if (open) {
-            // Initialize view name input when modal opens
-            setViewNameInput(activeView?.name || '');
+            // Always start with empty input for "Save as new view"
+            setViewNameInput('');
           }
           setShowSaveViewModal(open);
         }}>
         <DialogContent className="sm:max-w-md bg-[#ffffff] text-[#282A3F] p-[32px]">
           <DialogHeader>
-            <DialogTitle>{activeView ? 'Update Saved View' : 'Save Current View'}</DialogTitle>
+            <DialogTitle>Save as new view</DialogTitle>
             <DialogDescription className="text-sm text-[#282A3F]">
-              Save your current filter settings as a view that you can easily access later. Views store filter combinations but not specific partner selections.
+              Save your current filter settings as a new view that you can easily access later. Views store filter combinations but not specific partner selections.
             </DialogDescription>
           </DialogHeader>
           
@@ -1444,7 +1444,6 @@ function PartnersTable() {
               <Input 
                 id="viewName" 
                 placeholder="Enter a name for this view"
-                defaultValue={activeView?.name || ''}
                 maxLength={50}
                 value={viewNameInput}
                 onChange={(e) => setViewNameInput(e.target.value)}
@@ -1458,7 +1457,6 @@ function PartnersTable() {
                 id="viewDescription" 
                 placeholder="Add a short description to help remember what this view shows"
                 rows={2}
-                defaultValue={activeView?.description || ''}
                 maxLength={200}
               />
               <p className="text-xs text-gray-500">Maximum 200 characters</p>
@@ -1505,7 +1503,7 @@ function PartnersTable() {
             <Button
               disabled={!viewNameInput.trim()}
               onClick={() => {
-                // Handle save/update view
+                // Always create a new view
                 const viewName = viewNameInput.trim();
                 const viewDescription = (document.getElementById('viewDescription') as HTMLTextAreaElement).value;
                 
@@ -1518,10 +1516,9 @@ function PartnersTable() {
                   return;
                 }
                 
-                // Check for duplicate view names (excluding the current view being edited)
+                // Check for duplicate view names
                 const isDuplicate = savedViews.some(view => 
-                  view.name.toLowerCase() === viewName.toLowerCase() && 
-                  (!activeView || view.id !== activeView.id)
+                  view.name.toLowerCase() === viewName.toLowerCase()
                 );
                 
                 if (isDuplicate) {
@@ -1533,62 +1530,33 @@ function PartnersTable() {
                   return;
                 }
                 
-                if (activeView) {
-                  // Update existing view
-                  const updatedViews = savedViews.map(view => {
-                    if (view.id === activeView.id) {
-                      return {
-                        ...view,
-                        name: viewName,
-                        description: viewDescription || undefined,
-                        filters: {
-                          searchText: filterText || undefined,
-                          status: selectedStatus || undefined,
-                          industry: selectedIndustry || undefined,
-                          type: selectedType || undefined
-                        },
-                        createdAt: new Date()
-                      };
-                    }
-                    return view;
-                  });
-                  
-                  setSavedViews(updatedViews);
-                  setActiveView(updatedViews.find(v => v.id === activeView.id) || null);
-                  
-                  toast({
-                    title: "View Updated",
-                    description: "Your view has been updated successfully"
-                  });
-                } else {
-                  // Create new view
-                  const newView: SavedView = {
-                    id: `view-${Date.now()}`,
-                    name: viewName,
-                    description: viewDescription || undefined,
-                    filters: {
-                      searchText: filterText || undefined,
-                      status: selectedStatus || undefined,
-                      industry: selectedIndustry || undefined,
-                      type: selectedType || undefined
-                    },
-                    createdBy: 'John Smith',
-                    createdAt: new Date()
-                  };
-                  
-                  setSavedViews([...savedViews, newView]);
-                  setActiveView(newView);
-                  
-                  toast({
-                    title: "View Saved",
-                    description: "Your new view has been saved successfully"
-                  });
-                }
+                // Create new view
+                const newView: SavedView = {
+                  id: `view-${Date.now()}`,
+                  name: viewName,
+                  description: viewDescription || undefined,
+                  filters: {
+                    searchText: filterText || undefined,
+                    status: selectedStatus || undefined,
+                    industry: selectedIndustry || undefined,
+                    type: selectedType || undefined
+                  },
+                  createdBy: 'John Smith',
+                  createdAt: new Date()
+                };
+                
+                setSavedViews([...savedViews, newView]);
+                setActiveView(newView);
+                
+                toast({
+                  title: "View Saved",
+                  description: "Your new view has been saved successfully"
+                });
                 
                 setShowSaveViewModal(false);
               }}
             >
-              {activeView ? 'Update View' : 'Save View'}
+              Save View
             </Button>
           </DialogFooter>
         </DialogContent>
