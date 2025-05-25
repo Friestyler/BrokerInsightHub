@@ -1362,19 +1362,21 @@ function PartnersTable() {
         <DialogContent className="sm:max-w-md bg-[#ffffff] text-[#282A3F] p-[32px]">
           <DialogHeader>
             <DialogTitle>{activeView ? 'Update Saved View' : 'Save Current View'}</DialogTitle>
-            <DialogDescription>
-              Save your current filter settings as a view that you can easily access later.
+            <DialogDescription className="text-sm text-[#282A3F]">
+              Save your current filter settings as a view that you can easily access later. Views store filter combinations but not specific partner selections.
             </DialogDescription>
           </DialogHeader>
           
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <Label htmlFor="viewName">View Name</Label>
+              <Label htmlFor="viewName">View Name<span className="text-red-500">*</span></Label>
               <Input 
                 id="viewName" 
                 placeholder="Enter a name for this view"
                 defaultValue={activeView?.name || ''}
+                maxLength={50}
               />
+              <p className="text-xs text-gray-500">Maximum 50 characters</p>
             </div>
             
             <div className="grid gap-2">
@@ -1384,34 +1386,36 @@ function PartnersTable() {
                 placeholder="Add a short description to help remember what this view shows"
                 rows={2}
                 defaultValue={activeView?.description || ''}
+                maxLength={200}
               />
+              <p className="text-xs text-gray-500">Maximum 200 characters</p>
             </div>
             
-            <div className="bg-gray-50 p-3 rounded-md">
-              <div className="text-xs font-medium mb-2">Current Filters</div>
-              <div className="space-y-1">
+            <div className="bg-[#EBEEFB] p-4 rounded-md border border-[#D4D9F3]">
+              <div className="text-sm font-medium mb-2 text-[#282A3F]">Filters saved in this view</div>
+              <div className="space-y-2">
                 {selectedStatus && (
-                  <div className="flex items-center text-xs">
-                    <span className="font-medium w-20">Status:</span>
-                    <span className="text-gray-700">{selectedStatus}</span>
+                  <div className="flex items-center text-sm">
+                    <span className="font-medium w-24 text-[#3E4DC4]">Status:</span>
+                    <span className="text-[#282A3F]">{selectedStatus}</span>
                   </div>
                 )}
                 {selectedIndustry && (
-                  <div className="flex items-center text-xs">
-                    <span className="font-medium w-20">Industry:</span>
-                    <span className="text-gray-700">{selectedIndustry}</span>
+                  <div className="flex items-center text-sm">
+                    <span className="font-medium w-24 text-[#3E4DC4]">Industry:</span>
+                    <span className="text-[#282A3F]">{selectedIndustry}</span>
                   </div>
                 )}
                 {selectedType && (
-                  <div className="flex items-center text-xs">
-                    <span className="font-medium w-20">Type:</span>
-                    <span className="text-gray-700">{selectedType}</span>
+                  <div className="flex items-center text-sm">
+                    <span className="font-medium w-24 text-[#3E4DC4]">Type:</span>
+                    <span className="text-[#282A3F]">{selectedType}</span>
                   </div>
                 )}
                 {filterText && (
-                  <div className="flex items-center text-xs">
-                    <span className="font-medium w-20">Search:</span>
-                    <span className="text-gray-700">{filterText}</span>
+                  <div className="flex items-center text-sm">
+                    <span className="font-medium w-24 text-[#3E4DC4]">Search:</span>
+                    <span className="text-[#282A3F]">{filterText}</span>
                   </div>
                 )}
                 {!selectedStatus && !selectedIndustry && !selectedType && !filterText && (
