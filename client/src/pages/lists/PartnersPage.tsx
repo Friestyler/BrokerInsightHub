@@ -21,15 +21,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+
 import { useToast } from "@/hooks/use-toast";
 
 // Sample data for partners - updated to match the detail page data
@@ -308,11 +300,6 @@ function PartnersTable() {
   const [activeView, setActiveView] = useState<SavedView | null>(null);
   const [showSaveViewModal, setShowSaveViewModal] = useState(false);
   const [showViewsDropdown, setShowViewsDropdown] = useState(false);
-  const [showAddToListModal, setShowAddToListModal] = useState(false);
-  const [newListName, setNewListName] = useState('');
-  const [newListDescription, setNewListDescription] = useState('');
-  const [selectedExistingList, setSelectedExistingList] = useState<string | null>(null);
-  const [isCreatingNewList, setIsCreatingNewList] = useState(false);
     
   // Filter partners based on search text and filter selections
   const displayedPartners = mockPartners.filter(partner => {
@@ -399,80 +386,7 @@ function PartnersTable() {
     }
   };
   
-  // Handler for adding partners to lists
-  const handleAddToList = () => {
-    if (isCreatingNewList) {
-      // Create a new list with selected partners
-      if (!newListName.trim()) return;
-      
-      const newList: SavedList = {
-        id: `list-${Date.now()}`,
-        name: newListName,
-        description: newListDescription || undefined,
-        type: 'selection',
-        members: selectedPartners,
-        filters: {},
-        isShared: false,
-        createdBy: 'John Smith',
-        createdAt: new Date()
-      };
-      
-      setSavedLists([...savedLists, newList]);
-      
-      // Show success message
-      toast({
-        title: "List created",
-        description: `"${newListName}" has been created with ${selectedPartners.length} partners.`,
-      });
-      
-      // Reset form
-      setNewListName('');
-      setNewListDescription('');
-      
-    } else {
-      // Add to existing list
-      if (!selectedExistingList) return;
-      
-      // Find the existing list
-      const existingList = savedLists.find(list => list.id === selectedExistingList);
-      if (!existingList) return;
-      
-      // Determine which partners are already in the list to avoid duplicates
-      const existingMembers = existingList.members || [];
-      const newMembers = selectedPartners.filter(id => !existingMembers.includes(id));
-      const alreadyInList = selectedPartners.length - newMembers.length;
-      
-      // Update the list with new members
-      const updatedLists = savedLists.map(list => {
-        if (list.id === selectedExistingList) {
-          return {
-            ...list,
-            members: [...existingMembers, ...newMembers]
-          };
-        }
-        return list;
-      });
-      
-      setSavedLists(updatedLists);
-      
-      // Show success message with information about duplicates
-      let description = `${newMembers.length} partners added to "${existingList.name}".`;
-      if (alreadyInList > 0) {
-        description += ` ${alreadyInList} partner${alreadyInList > 1 ? 's' : ''} already in list.`;
-      }
-      
-      toast({
-        title: "Partners added to list",
-        description,
-      });
-    }
-    
-    // Close modal and clear selection
-    setShowAddToListModal(false);
-    setIsCreatingNewList(false);
-    setSelectedExistingList(null);
-    setSelectedPartners([]);
-  };
+
 
   // Calculate stats based on filtered partners
   const stats = calculatePartnerStats(displayedPartners);
@@ -1052,54 +966,50 @@ function PartnersTable() {
           </div>
           
           <div className="flex items-center gap-2 flex-wrap">
-            {/* Bulk Actions Dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  className="text-indigo-600"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                    <path d="M12 20h9"/>
-                    <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/>
-                  </svg>
-                  Bulk Actions
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuLabel>Actions</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => setShowAddToListModal(true)}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                    <polyline points="7 3 7 8 15 8"></polyline>
-                  </svg>
-                  Add to List
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => {
-                  // TODO: Implement campaign creation
-                  alert('Selected partners can be added to a campaign. This will be available in the Campaigns section');
-                }}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                    <path d="M22 2 11 13" />
-                    <path d="M22 2 15 22 11 13 2 9 22 2z" />
-                  </svg>
-                  Add to Campaign
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => {
-                  // TODO: Implement template assignment
-                  alert('Assign template functionality will be implemented in future');
-                }}>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                  </svg>
-                  Assign Template
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="text-indigo-600"
+              onClick={() => setShowSaveListModal(true)}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                <polyline points="7 3 7 8 15 8"></polyline>
+              </svg>
+              Create List
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="text-indigo-600"
+              onClick={() => {
+                // TODO: Implement campaign creation
+                alert('Selected partners can be added to a campaign. This will be available in the Campaigns section');
+              }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                <path d="M22 2 11 13" />
+                <path d="M22 2 15 22 11 13 2 9 22 2z" />
+              </svg>
+              Add to Campaign
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                // TODO: Implement template assignment
+                alert('Assign template functionality will be implemented in future');
+              }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+              Assign Template
+            </Button>
           </div>
         </div>
       )}
@@ -1378,113 +1288,6 @@ function PartnersTable() {
         </DialogContent>
       </Dialog>
       {/* Share List Modal with Extended Options */}
-      {/* Add to List Modal */}
-      <Dialog open={showAddToListModal} onOpenChange={setShowAddToListModal}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Add to List</DialogTitle>
-            <DialogDescription>
-              Add selected partners to an existing list or create a new one.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <RadioGroup 
-              defaultValue="existing" 
-              onValueChange={(value) => setIsCreatingNewList(value === "new")}
-              className="grid gap-4"
-            >
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="existing" id="existing-list" />
-                <Label htmlFor="existing-list">Add to existing list</Label>
-              </div>
-              {!isCreatingNewList && (
-                <div className="pl-6">
-                  <Label htmlFor="list-select" className="block mb-2">
-                    Select a list
-                  </Label>
-                  <select
-                    id="list-select"
-                    className="w-full p-2 border border-gray-300 rounded-md"
-                    value={selectedExistingList || ''}
-                    onChange={(e) => setSelectedExistingList(e.target.value || null)}
-                  >
-                    <option value="">Select a list...</option>
-                    {savedLists
-                      .filter(list => list.type === 'selection' && !list.isDefault)
-                      .map(list => (
-                        <option key={list.id} value={list.id}>
-                          {list.name}
-                        </option>
-                      ))}
-                  </select>
-                </div>
-              )}
-              
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="new" id="new-list" />
-                <Label htmlFor="new-list">Create new list</Label>
-              </div>
-              {isCreatingNewList && (
-                <div className="pl-6 space-y-4">
-                  <div>
-                    <Label htmlFor="new-list-name" className="block mb-2">
-                      List name
-                    </Label>
-                    <Input
-                      id="new-list-name"
-                      value={newListName}
-                      onChange={(e) => setNewListName(e.target.value)}
-                      maxLength={50}
-                      placeholder="Enter list name"
-                      className="w-full"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Maximum 50 characters
-                    </p>
-                  </div>
-                  <div>
-                    <Label htmlFor="new-list-description" className="block mb-2">
-                      Description (optional)
-                    </Label>
-                    <Textarea
-                      id="new-list-description"
-                      value={newListDescription}
-                      onChange={(e) => setNewListDescription(e.target.value)}
-                      maxLength={200}
-                      placeholder="Enter description"
-                      className="w-full"
-                    />
-                    <p className="text-xs text-gray-500 mt-1">
-                      Maximum 200 characters
-                    </p>
-                  </div>
-                </div>
-              )}
-            </RadioGroup>
-            
-            <div className="bg-blue-50 p-3 rounded-md border border-blue-100">
-              <p className="text-sm text-blue-700">
-                {selectedPartners.length} partners will be added to this list.
-              </p>
-            </div>
-          </div>
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
-            </DialogClose>
-            <Button
-              type="submit"
-              onClick={handleAddToList}
-              disabled={(isCreatingNewList && !newListName.trim()) || 
-                (!isCreatingNewList && !selectedExistingList)}
-            >
-              {isCreatingNewList ? 'Create List' : 'Add to List'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      {/* Share List Modal */}
       <Dialog open={showShareListModal} onOpenChange={setShowShareListModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
