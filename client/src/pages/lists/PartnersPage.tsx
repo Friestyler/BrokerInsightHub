@@ -1693,14 +1693,9 @@ function PartnersTable() {
                               }}
                             />
                             <Label htmlFor={`contact-${partner.id}-${contact.id}`} className="text-xs cursor-pointer flex-grow">
-                              <div className="flex items-center justify-between">
-                                <div>
-                                  <div className="font-medium text-gray-800">{contact.name}</div>
-                                  <div className="text-gray-500">{contact.email}</div>
-                                </div>
-                                <div className="text-gray-400 text-xs">
-                                  {contact.role}
-                                </div>
+                              <div>
+                                <div className="font-medium text-gray-800">{contact.name}</div>
+                                <div className="text-gray-500">{contact.email}</div>
                               </div>
                             </Label>
                           </div>
