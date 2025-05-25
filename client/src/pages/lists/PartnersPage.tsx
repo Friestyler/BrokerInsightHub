@@ -307,7 +307,7 @@ function PartnersTable() {
   const displayedPartners = mockPartners
     .filter(partner => {
       // If we have an active list that's not a default list, filter by membership
-      if (activeList && !activeList.isDefault && activeList.type === 'selection') {
+      if (activeList && !activeList.isDefault && activeList.type === 'selection' && Array.isArray(activeList.members)) {
         // Only show partners that are members of the active list
         if (!activeList.members.includes(partner.id)) {
           return false;
@@ -535,10 +535,71 @@ function PartnersTable() {
                                 
                                 {/* Edit menu - shown on hover */}
                                 <div className="absolute right-0 mt-1 w-36 rounded-md border border-slate-200 bg-white p-1 shadow-md hidden group-hover:block z-50">
-                                  <div className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 w-full text-left text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
+                                  <div 
+                                    className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 w-full text-left text-[#282A3F]" 
+                                    style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      // Create a copy of the current list
+                                      const currentList = list;
+                                      // Prompt for a new name with the current name as default
+                                      const newName = prompt("Enter a new name for this list:", currentList.name);
+                                      // Only update if a name was provided and it's different
+                                      if (newName && newName.trim() !== '' && newName !== currentList.name) {
+                                        // Update the list name in the savedLists array
+                                        const updatedLists = savedLists.map(l => 
+                                          l.id === currentList.id ? {...l, name: newName.trim()} : l
+                                        );
+                                        setSavedLists(updatedLists);
+                                        
+                                        // If this is the active list, update that too
+                                        if (activeList && activeList.id === currentList.id) {
+                                          setActiveList({...activeList, name: newName.trim()});
+                                        }
+                                        
+                                        // Show success message
+                                        toast({
+                                          title: "List renamed",
+                                          description: `The list has been renamed to "${newName.trim()}"`,
+                                        });
+                                      }
+                                    }}
+                                  >
                                     Rename
                                   </div>
-                                  <div className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 w-full text-left text-red-600" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
+                                  <div 
+                                    className="relative flex cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 w-full text-left text-red-600" 
+                                    style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      // Confirm before deleting
+                                      if (confirm(`Are you sure you want to delete the list "${list.name}"? This action cannot be undone.`)) {
+                                        // Remove the list from savedLists
+                                        const updatedLists = savedLists.filter(l => l.id !== list.id);
+                                        setSavedLists(updatedLists);
+                                        
+                                        // If this was the active list, go back to "All Partners"
+                                        if (activeList && activeList.id === list.id) {
+                                          setActiveList(null);
+                                          setOriginalListFilters(null);
+                                          setFilterText('');
+                                          setSelectedStatus('');
+                                          setSelectedIndustry('');
+                                          setSelectedType('');
+                                          setHasUnsavedChanges(false);
+                                        }
+                                        
+                                        // Show success message
+                                        toast({
+                                          title: "List deleted",
+                                          description: `The list "${list.name}" has been deleted.`,
+                                        });
+                                        
+                                        // Close the dropdown
+                                        setShowListsDropdown(false);
+                                      }
+                                    }}
+                                  >
                                     Delete
                                   </div>
                                 </div>
