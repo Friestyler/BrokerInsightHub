@@ -56,6 +56,11 @@ function Router() {
         <Route path="/lists/vendors" component={VendorsPage} />
         <Route path="/lists/products" component={ProductsPage} />
         
+        {/* Direct route aliases for convenience */}
+        <Route path="/opportunities" component={OpportunitiesPage} />
+        <Route path="/partners" component={PartnersPage} />
+        <Route path="/customers" component={CustomersPage} />
+        
         {/* Campaign routes */}
         <Route path="/campaigns">
           {() => (
