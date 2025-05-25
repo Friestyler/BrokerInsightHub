@@ -236,6 +236,17 @@ function PartnersTable() {
     list?: SavedList;
   } | null>(null);
   
+  // Function to handle navigation with unsaved changes
+  const handleNavigationWithUnsavedChanges = (action: { type: 'select' | 'clear', list?: SavedList }) => {
+    if (hasUnsavedChanges && activeList && !isEditingList) {
+      // Store the pending action and show confirmation dialog
+      setPendingListAction(action);
+      setShowUnsavedChangesModal(true);
+      return true; // Navigation was interrupted
+    }
+    return false; // Navigation can proceed
+  };
+  
   // State for saved lists
   const [savedLists, setSavedLists] = useState<SavedList[]>([
     {
@@ -1930,6 +1941,128 @@ function PartnersTable() {
               }}
             >
               Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Unsaved Changes Confirmation Dialog */}
+      <Dialog open={showUnsavedChangesModal} onOpenChange={setShowUnsavedChangesModal}>
+        <DialogContent className="sm:max-w-md" style={{ background: '#ffffff', color: '#282A3F', padding: '32px' }}>
+          <DialogHeader>
+            <DialogTitle>Unsaved Changes</DialogTitle>
+            <DialogDescription>
+              You have unsaved changes to the current list. What would you like to do?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex justify-end space-x-2 mt-6">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                // Cancel navigation and keep editing
+                setShowUnsavedChangesModal(false);
+                setPendingListAction(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="secondary"
+              onClick={() => {
+                // Discard changes and proceed with the pending action
+                if (pendingListAction?.type === 'select' && pendingListAction.list) {
+                  // Switch to the selected list
+                  const list = pendingListAction.list;
+                  
+                  // Set filter text and current selections based on list filters
+                  if (list.filters) {
+                    setFilterText(list.filters.searchText || '');
+                    setSelectedStatus(list.filters.status || '');
+                    setSelectedIndustry(list.filters.industry || '');
+                    setSelectedType(list.filters.type || '');
+                  }
+                  
+                  // Set the active list and store its original filters
+                  setActiveList(list);
+                  setOriginalListFilters(list.filters ? { ...list.filters } : {});
+                  
+                  // Clear active view when switching lists
+                  setActiveView(null);
+                } else if (pendingListAction?.type === 'clear') {
+                  // Clear the current list selection
+                  setActiveList(null);
+                  setOriginalListFilters(null);
+                }
+                
+                // Close the dialog and clear pending action
+                setShowUnsavedChangesModal(false);
+                setPendingListAction(null);
+                setHasUnsavedChanges(false);
+              }}
+            >
+              Discard Changes
+            </Button>
+            <Button 
+              onClick={() => {
+                // Save changes first
+                if (activeList && !activeList.isDefault) {
+                  const updatedList = {
+                    ...activeList,
+                    filters: {
+                      searchText: filterText || undefined,
+                      status: selectedStatus || undefined,
+                      industry: selectedIndustry || undefined,
+                      type: selectedType || undefined,
+                      size: originalListFilters?.size // Preserve size filter if it exists
+                    }
+                  };
+                  
+                  // Update the list in the savedLists array
+                  const updatedLists = savedLists.map(list => 
+                    list.id === activeList.id ? updatedList : list
+                  );
+                  
+                  setSavedLists(updatedLists);
+                  
+                  // Then proceed with the pending action
+                  if (pendingListAction?.type === 'select' && pendingListAction.list) {
+                    // Switch to the selected list
+                    const list = pendingListAction.list;
+                    
+                    // Set filter text and current selections based on list filters
+                    if (list.filters) {
+                      setFilterText(list.filters.searchText || '');
+                      setSelectedStatus(list.filters.status || '');
+                      setSelectedIndustry(list.filters.industry || '');
+                      setSelectedType(list.filters.type || '');
+                    }
+                    
+                    // Set the active list and store its original filters
+                    setActiveList(list);
+                    setOriginalListFilters(list.filters ? { ...list.filters } : {});
+                    
+                    // Clear active view when switching lists
+                    setActiveView(null);
+                  } else if (pendingListAction?.type === 'clear') {
+                    // Clear the current list selection
+                    setActiveList(null);
+                    setOriginalListFilters(null);
+                  }
+                }
+                
+                // Show success notification
+                toast({
+                  title: "Changes Saved",
+                  description: "Your changes have been saved successfully"
+                });
+                
+                // Close the dialog and clear pending action
+                setShowUnsavedChangesModal(false);
+                setPendingListAction(null);
+                setHasUnsavedChanges(false);
+              }}
+            >
+              Save Changes
             </Button>
           </DialogFooter>
         </DialogContent>
