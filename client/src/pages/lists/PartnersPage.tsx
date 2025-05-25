@@ -949,11 +949,75 @@ function PartnersTable() {
                 </button>
               </div>
               
-              {/* Action buttons - shown when filters are applied */}
+              {/* Action buttons - only shown when filters have changed from an existing view or no view is selected */}
               {(filterText || selectedStatus || selectedIndustry || selectedType) && (
-                <>
+                <div className="flex items-center gap-2">
+                  {/* If a view is active and filter changes were made, show Revert and Save buttons */}
+                  {activeView && 
+                   (filterText !== (activeView.filters.searchText || '') || 
+                    selectedStatus !== (activeView.filters.status || '') || 
+                    selectedIndustry !== (activeView.filters.industry || '') || 
+                    selectedType !== (activeView.filters.type || '')) && (
+                    <>
+                      {/* Revert changes button */}
+                      <button 
+                        className="flex items-center rounded-md px-4 py-2 text-gray-600 hover:bg-gray-100"
+                        onClick={() => {
+                          // Revert to view's original filters
+                          setFilterText(activeView.filters.searchText || '');
+                          setSelectedStatus(activeView.filters.status || '');
+                          setSelectedIndustry(activeView.filters.industry || '');
+                          setSelectedType(activeView.filters.type || '');
+                        }}
+                        style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5F6585" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                          <path d="M3 7v6h6"></path>
+                          <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
+                        </svg>
+                        <span className="text-[#5F6585]">Revert changes</span>
+                      </button>
+                      
+                      {/* Save button - updates the current view */}
+                      <button 
+                        className="flex items-center rounded-md bg-[#EBEEFB] px-4 py-2 hover:bg-[#E3E6F7]"
+                        onClick={() => {
+                          // Update the current view
+                          const updatedViews = savedViews.map(view => {
+                            if (view.id === activeView.id) {
+                              return {
+                                ...view,
+                                filters: {
+                                  searchText: filterText || undefined,
+                                  status: selectedStatus || undefined,
+                                  industry: selectedIndustry || undefined,
+                                  type: selectedType || undefined
+                                }
+                              };
+                            }
+                            return view;
+                          });
+                          setSavedViews(updatedViews);
+                          setActiveView(updatedViews.find(view => view.id === activeView.id) || null);
+                          
+                          toast({
+                            title: "View Updated",
+                            description: "Your changes have been saved to the current view"
+                          });
+                        }}
+                        style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                          <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                          <polyline points="7 3 7 8 15 8"></polyline>
+                        </svg>
+                        <span className="text-[#3E4DC4] font-medium">Save</span>
+                      </button>
+                    </>
+                  )}
                   
-                  {/* Save as new view button */}
+                  {/* Save as new view button - always available when filters are applied */}
                   <button 
                     className="flex items-center rounded-md bg-[#EBEEFB] px-4 py-2 hover:bg-[#E3E6F7]"
                     onClick={() => setShowSaveViewModal(true)}
@@ -966,7 +1030,7 @@ function PartnersTable() {
                     </svg>
                     <span className="text-[#3E4DC4] font-medium">Save as new view</span>
                   </button>
-                </>
+                </div>
               )}
             </div>
             
