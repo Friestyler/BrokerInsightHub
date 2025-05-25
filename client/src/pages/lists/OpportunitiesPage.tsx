@@ -1130,6 +1130,8 @@ function OpportunitiesTable() {
                           ...list,
                           name: listName,
                           description: listDescription || undefined,
+                          type: selectedOpportunities.length > 0 ? 'selection' as const : 'filter' as const,
+                          members: selectedOpportunities.length > 0 ? selectedOpportunities : list.members,
                           filters: {
                             searchText: filterText || undefined,
                             status: selectedStatus || undefined,
@@ -1430,6 +1432,79 @@ function OpportunitiesTable() {
               setShowShareListModal(false);
             }}>
               Share List
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Save View Modal */}
+      <Dialog open={showSaveViewModal} onOpenChange={setShowSaveViewModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Save Current View</DialogTitle>
+            <DialogDescription>
+              Save your current filter settings as a quick view that you can easily access later.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="viewName">View Name</Label>
+              <Input 
+                id="viewName" 
+                placeholder="Enter a name for this view"
+                value={viewNameInput}
+                onChange={(e) => setViewNameInput(e.target.value)}
+              />
+            </div>
+            
+            <div className="text-sm text-gray-600">
+              <div className="font-medium mb-1">Current filters:</div>
+              <div className="space-y-1">
+                {filterText && <div>• Search: "{filterText}"</div>}
+                {selectedStatus && <div>• Status: {selectedStatus}</div>}
+                {selectedType && <div>• Type: {selectedType}</div>}
+                {!filterText && !selectedStatus && !selectedType && (
+                  <div className="text-gray-400">No filters applied</div>
+                )}
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button
+              onClick={() => {
+                if (!viewNameInput.trim()) return;
+                
+                const newView: SavedView = {
+                  id: String(Date.now()),
+                  name: viewNameInput.trim(),
+                  filters: {
+                    searchText: filterText || undefined,
+                    status: selectedStatus || undefined,
+                    type: selectedType || undefined
+                  },
+                  createdBy: 'John Smith',
+                  createdAt: new Date()
+                };
+                
+                setSavedViews([...savedViews, newView]);
+                setActiveView(newView);
+                setViewNameInput('');
+                setShowSaveViewModal(false);
+                
+                toast({
+                  title: "View saved successfully",
+                  description: `"${newView.name}" has been saved to your quick views.`,
+                  className: "bg-indigo-50 border-indigo-200 text-indigo-800",
+                });
+              }}
+              disabled={!viewNameInput.trim()}
+            >
+              Save View
             </Button>
           </DialogFooter>
         </DialogContent>
