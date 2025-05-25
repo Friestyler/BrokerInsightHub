@@ -348,6 +348,7 @@ function PartnersTable() {
   const [activeView, setActiveView] = useState<SavedView | null>(null);
   const [showSaveViewModal, setShowSaveViewModal] = useState(false);
   const [showViewsDropdown, setShowViewsDropdown] = useState(false);
+  const [viewNameInput, setViewNameInput] = useState('');
   const [isCreatingNewList, setIsCreatingNewList] = useState(false); // Default to adding to existing list
   const [selectedExistingList, setSelectedExistingList] = useState<string | null>(null);
     
@@ -1358,7 +1359,15 @@ function PartnersTable() {
         </DialogContent>
       </Dialog>
       {/* Save View Modal */}
-      <Dialog open={showSaveViewModal} onOpenChange={setShowSaveViewModal}>
+      <Dialog 
+        open={showSaveViewModal} 
+        onOpenChange={(open) => {
+          if (open) {
+            // Initialize view name input when modal opens
+            setViewNameInput(activeView?.name || '');
+          }
+          setShowSaveViewModal(open);
+        }}>
         <DialogContent className="sm:max-w-md bg-[#ffffff] text-[#282A3F] p-[32px]">
           <DialogHeader>
             <DialogTitle>{activeView ? 'Update Saved View' : 'Save Current View'}</DialogTitle>
@@ -1375,6 +1384,8 @@ function PartnersTable() {
                 placeholder="Enter a name for this view"
                 defaultValue={activeView?.name || ''}
                 maxLength={50}
+                value={viewNameInput}
+                onChange={(e) => setViewNameInput(e.target.value)}
               />
               <p className="text-xs text-gray-500">Maximum 50 characters</p>
             </div>
@@ -1419,7 +1430,7 @@ function PartnersTable() {
                   </div>
                 )}
                 {!selectedStatus && !selectedIndustry && !selectedType && !filterText && (
-                  <div className="text-xs text-gray-500">No filters currently applied</div>
+                  <div className="text-sm text-[#5F6585] italic">No filters currently applied</div>
                 )}
               </div>
             </div>
@@ -1430,15 +1441,31 @@ function PartnersTable() {
               <Button variant="outline">Cancel</Button>
             </DialogClose>
             <Button
+              disabled={!viewNameInput.trim()}
               onClick={() => {
                 // Handle save/update view
-                const viewName = (document.getElementById('viewName') as HTMLInputElement).value;
+                const viewName = viewNameInput.trim();
                 const viewDescription = (document.getElementById('viewDescription') as HTMLTextAreaElement).value;
                 
                 if (!viewName) {
                   toast({
                     title: "Name Required",
                     description: "Please provide a name for this view",
+                    variant: "destructive"
+                  });
+                  return;
+                }
+                
+                // Check for duplicate view names (excluding the current view being edited)
+                const isDuplicate = savedViews.some(view => 
+                  view.name.toLowerCase() === viewName.toLowerCase() && 
+                  (!activeView || view.id !== activeView.id)
+                );
+                
+                if (isDuplicate) {
+                  toast({
+                    title: "Duplicate Name",
+                    description: "A view with this name already exists. Please choose a different name.",
                     variant: "destructive"
                   });
                   return;
