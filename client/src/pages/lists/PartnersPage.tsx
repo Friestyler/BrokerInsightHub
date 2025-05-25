@@ -869,22 +869,42 @@ function PartnersTable() {
                       ))}
                     </div>
                     <div className="p-2">
-                      <button 
-                        className="flex w-full items-center p-2 text-sm rounded-md text-indigo-600 hover:bg-indigo-50"
-                        onClick={() => {
-                          setShowViewsDropdown(false);
-                          // Clear active view
-                          setActiveView(null);
-                          // Open save view modal
-                          setShowSaveViewModal(true);
-                        }}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                          <path d="M12 5v14"></path>
-                          <path d="M5 12h14"></path>
-                        </svg>
-                        Create new view
-                      </button>
+                      {activeView ? (
+                        <button 
+                          className="flex w-full items-center p-2 text-sm rounded-md text-indigo-600 hover:bg-indigo-50"
+                          onClick={() => {
+                            setShowViewsDropdown(false);
+                            // Clear active view
+                            setActiveView(null);
+                            // Reset filters if needed
+                            setFilterText('');
+                            setSelectedStatus('');
+                            setSelectedIndustry('');
+                            setSelectedType('');
+                          }}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                            <path d="M18 6L6 18"></path>
+                            <path d="M6 6l12 12"></path>
+                          </svg>
+                          Clear view
+                        </button>
+                      ) : (
+                        <button 
+                          className="flex w-full items-center p-2 text-sm rounded-md text-indigo-600 hover:bg-indigo-50"
+                          onClick={() => {
+                            setShowViewsDropdown(false);
+                            // Open save view modal
+                            setShowSaveViewModal(true);
+                          }}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                            <path d="M12 5v14"></path>
+                            <path d="M5 12h14"></path>
+                          </svg>
+                          Create new view
+                        </button>
+                      )}
                     </div>
                   </div>
                 )}
