@@ -1737,12 +1737,7 @@ function PartnersTable() {
                     Can edit this saved list
                   </Label>
                 </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="canShare" />
-                  <Label htmlFor="canShare" className="text-sm font-normal">
-                    Can share this list with others
-                  </Label>
-                </div>
+
               </div>
             </div>
             
