@@ -686,7 +686,7 @@ function PartnersTable() {
                     Add to Campaign
                   </Button>
                   
-{/* "Return to all partners" button removed as requested */}
+
                 </div>
               )}
             </div>
@@ -1136,16 +1136,14 @@ function PartnersTable() {
                 <polyline points="17 21 17 13 7 13 7 21"></polyline>
                 <polyline points="7 3 7 8 15 8"></polyline>
               </svg>
-              Add to List
+              Create List
             </Button>
             
-
             <Button 
               variant="outline" 
               size="sm"
               className="text-indigo-600"
               onClick={() => {
-                // TODO: Implement campaign creation
                 alert('Selected partners can be added to a campaign. This will be available in the Campaigns section');
               }}
             >
@@ -1160,7 +1158,6 @@ function PartnersTable() {
               variant="outline" 
               size="sm"
               onClick={() => {
-                // TODO: Implement template assignment
                 alert('Assign template functionality will be implemented in future');
               }}
             >
