@@ -1052,7 +1052,7 @@ function PartnersTable() {
           setShowSaveListModal(open);
         }}
       >
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md bg-[#ffffff] text-[#282A3F] p-[32px]">
           <DialogHeader>
             <DialogTitle>Add to List</DialogTitle>
             <DialogDescription>
@@ -1259,7 +1259,7 @@ function PartnersTable() {
       </Dialog>
       {/* Save View Modal */}
       <Dialog open={showSaveViewModal} onOpenChange={setShowSaveViewModal}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md bg-[#ffffff] text-[#282A3F] p-[32px]">
           <DialogHeader>
             <DialogTitle>{activeView ? 'Update Saved View' : 'Save Current View'}</DialogTitle>
             <DialogDescription>
@@ -1402,7 +1402,7 @@ function PartnersTable() {
       </Dialog>
       {/* Share List Modal with Extended Options */}
       <Dialog open={showShareListModal} onOpenChange={setShowShareListModal}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-md bg-[#ffffff] text-[#282A3F] p-[32px]">
           <DialogHeader>
             <DialogTitle>Share List: {activeList?.name}</DialogTitle>
             <DialogDescription>
