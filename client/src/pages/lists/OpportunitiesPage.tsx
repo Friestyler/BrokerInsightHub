@@ -608,154 +608,7 @@ function OpportunitiesTable() {
                 )}
               </div>
               
-              {/* Views dropdown - next to Lists dropdown */}
-              <div className="relative">
-                <button 
-                  className={`flex items-center space-x-2 px-3 py-2 border rounded-md text-sm font-medium ${activeView ? 'bg-purple-50 border-purple-400 text-purple-700' : 'border-gray-300 hover:border-gray-400'}`}
-                  onClick={() => setShowViewsDropdown(!showViewsDropdown)}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={activeView ? 'text-purple-600' : 'text-gray-500'}>
-                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
-                    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
-                  </svg>
-                  <span className="max-w-[120px] truncate">{activeView ? activeView.name : 'Views'}</span>
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    width="14" 
-                    height="14" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    className={`transition-transform ${showViewsDropdown ? 'rotate-180' : ''}`}
-                  >
-                    <polyline points="6 9 12 15 18 9" />
-                  </svg>
-                </button>
-                
-                {/* Views dropdown menu */}
-                {showViewsDropdown && (
-                  <div className="absolute z-40 mt-1 w-80 bg-white rounded-md shadow-lg border border-gray-200 overflow-hidden">
-                    <div className="p-2 border-b">
-                      <div className="text-sm font-medium mb-1">Quick Views</div>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          placeholder="Search views..."
-                          className="w-full pl-3 pr-10 py-1.5 text-xs border border-gray-300 rounded-md"
-                        />
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                          <circle cx="11" cy="11" r="8"></circle>
-                          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                        </svg>
-                      </div>
-                    </div>
-                    <div className="max-h-60 overflow-y-auto">
-                      {savedViews.map(view => (
-                        <div
-                          key={view.id}
-                          className={`flex items-center justify-between p-2 hover:bg-gray-50 cursor-pointer ${activeView?.id === view.id ? 'bg-purple-50' : ''}`}
-                          onClick={() => {
-                            setActiveView(view);
-                            // Apply view filters
-                            setFilterText(view.filters.searchText || '');
-                            setSelectedStatus(view.filters.status || '');
-                            setSelectedType(view.filters.type || '');
-                            setShowViewsDropdown(false);
-                          }}
-                        >
-                          <div>
-                            <div className="font-medium text-sm">{view.name}</div>
-                            <div className="text-xs text-gray-500">
-                              {Object.entries(view.filters)
-                                .filter(([_, value]) => value)
-                                .map(([key, value]) => `${key}: ${value}`)
-                                .join(', ') || 'No filters'}
-                            </div>
-                          </div>
-                          {activeView?.id === view.id && (
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-600">
-                              <polyline points="20 6 9 17 4 12"></polyline>
-                            </svg>
-                          )}
-                        </div>
-                      ))}
-                    </div>
-                    {activeView && (
-                      <div className="p-2">
-                        <button 
-                          className="flex w-full items-center p-2 text-sm rounded-md text-purple-600 hover:bg-purple-50"
-                          onClick={() => {
-                            setShowViewsDropdown(false);
-                            setActiveView(null);
-                            setFilterText('');
-                            setSelectedStatus('');
-                            setSelectedType('');
-                          }}
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                            <path d="M18 6L6 18"></path>
-                            <path d="M6 6l12 12"></path>
-                          </svg>
-                          Clear view
-                        </button>
-                      </div>
-                    )}
-                    <div className="p-2 border-t bg-gray-50">
-                      <button
-                        className="w-full text-left py-1.5 px-3 text-purple-600 hover:bg-purple-50 rounded-md text-sm flex items-center font-medium"
-                        onClick={() => {
-                          setShowSaveViewModal(true);
-                          setShowViewsDropdown(false);
-                        }}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                          <line x1="12" y1="5" x2="12" y2="19"></line>
-                          <line x1="5" y1="12" x2="19" y2="12"></line>
-                        </svg>
-                        Save Current View
-                      </button>
-                    </div>
-                  </div>
-                )}
-              </div>
-              
-              {/* Filter buttons next to the views dropdown */}
-              <div className="flex items-center gap-2 ml-3">
-                <button 
-                  className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedStatus ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
-                  onClick={() => setSelectedStatus(selectedStatus ? '' : 'In Progress')}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                  </svg>
-                  <span>{selectedStatus ? `Status: ${selectedStatus}` : 'Status'}</span>
-                  {selectedStatus && (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                  )}
-                </button>
-                
-                <button 
-                  className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedType ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
-                  onClick={() => setSelectedType(selectedType ? '' : 'Renewal')}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                  </svg>
-                  <span>{selectedType ? `Type: ${selectedType}` : 'Type'}</span>
-                  {selectedType && (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                  )}
-                </button>
-              </div>
+
               
               {/* List actions - Share/Clear when a list is active */}
               {activeList && (
@@ -847,7 +700,7 @@ function OpportunitiesTable() {
             </div>
           </div>
           
-          {/* Bottom row with search */}
+          {/* Bottom row with search, views, and filters */}
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-3 flex-grow">
               {/* Search field */}
@@ -864,6 +717,123 @@ function OpportunitiesTable() {
                     <circle cx="11" cy="11" r="8"></circle>
                     <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                   </svg>
+                </button>
+              </div>
+              
+              {/* Views dropdown - next to search field */}
+              <div className="relative">
+                <button 
+                  className={`flex items-center space-x-2 px-3 py-2 border rounded-md text-sm font-medium ${activeView ? 'bg-indigo-50 border-indigo-400 text-indigo-700' : 'border-gray-300 hover:border-gray-400'}`}
+                  onClick={() => setShowViewsDropdown(!showViewsDropdown)}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={activeView ? 'text-indigo-600' : 'text-gray-500'}>
+                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                  </svg>
+                  <span className="max-w-[120px] truncate">{activeView ? activeView.name : 'Views'}</span>
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width="14" 
+                    height="14" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    className={`transition-transform ${showViewsDropdown ? 'rotate-180' : ''}`}
+                  >
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </button>
+                
+                {/* Saved Views dropdown menu */}
+                {showViewsDropdown && (
+                  <div className="absolute z-50 mt-1 w-64 rounded-md border border-slate-200 bg-white shadow-md">
+                    <div className="p-2 border-b">
+                      <div className="text-xs font-medium mb-2 text-gray-500">SAVED VIEWS</div>
+                      {savedViews.map(view => (
+                        <div 
+                          key={view.id}
+                          className={`flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 ${activeView?.id === view.id ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700'}`}
+                          onClick={() => {
+                            setActiveView(view);
+                            setFilterText(view.filters.searchText || '');
+                            setSelectedStatus(view.filters.status || '');
+                            setSelectedType(view.filters.type || '');
+                            setShowViewsDropdown(false);
+                          }}
+                        >
+                          <div className="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 text-indigo-500">
+                              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                            {view.name}
+                          </div>
+                          {activeView?.id === view.id && (
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                              <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    {activeView && (
+                      <div className="p-2">
+                        <button 
+                          className="flex w-full items-center p-2 text-sm rounded-md text-indigo-600 hover:bg-indigo-50"
+                          onClick={() => {
+                            setShowViewsDropdown(false);
+                            setActiveView(null);
+                            setFilterText('');
+                            setSelectedStatus('');
+                            setSelectedType('');
+                          }}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                            <path d="M18 6L6 18"></path>
+                            <path d="M6 6l12 12"></path>
+                          </svg>
+                          Clear view
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              
+              {/* Filter buttons next to the views dropdown */}
+              <div className="flex items-center gap-2 ml-3">
+                <button 
+                  className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedStatus ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+                  onClick={() => setSelectedStatus(selectedStatus ? '' : 'In Progress')}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                  </svg>
+                  <span>{selectedStatus ? `Status: ${selectedStatus}` : 'Status'}</span>
+                  {selectedStatus && (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  )}
+                </button>
+                
+                <button 
+                  className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedType ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+                  onClick={() => setSelectedType(selectedType ? '' : 'Renewal')}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                  </svg>
+                  <span>{selectedType ? `Type: ${selectedType}` : 'Type'}</span>
+                  {selectedType && (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  )}
                 </button>
               </div>
             </div>
