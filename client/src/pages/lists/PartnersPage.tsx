@@ -300,6 +300,8 @@ function PartnersTable() {
   const [activeView, setActiveView] = useState<SavedView | null>(null);
   const [showSaveViewModal, setShowSaveViewModal] = useState(false);
   const [showViewsDropdown, setShowViewsDropdown] = useState(false);
+  const [isCreatingNewList, setIsCreatingNewList] = useState(true);
+  const [selectedExistingList, setSelectedExistingList] = useState<string | null>(null);
     
   // Filter partners based on search text and filter selections
   const displayedPartners = mockPartners.filter(partner => {
@@ -977,7 +979,7 @@ function PartnersTable() {
                 <polyline points="17 21 17 13 7 13 7 21"></polyline>
                 <polyline points="7 3 7 8 15 8"></polyline>
               </svg>
-              Create List
+              Add to List
             </Button>
             
             <Button 
@@ -1035,112 +1037,220 @@ function PartnersTable() {
           <div className="text-sm text-gray-500">Total Opportunities</div>
         </div>
       </div>
-      {/* Save List Modal */}
-      <Dialog open={showSaveListModal} onOpenChange={setShowSaveListModal}>
+      {/* Add to List Modal */}
+      <Dialog 
+        open={showSaveListModal} 
+        onOpenChange={(open) => {
+          if (!open) {
+            // Reset state when closing the modal
+            setIsCreatingNewList(true);
+            setSelectedExistingList(null);
+          }
+          setShowSaveListModal(open);
+        }}
+      >
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{activeList ? 'Update Saved List' : 'Save Current List'}</DialogTitle>
+            <DialogTitle>Add to List</DialogTitle>
             <DialogDescription>
-              Save your current filter settings as a list that you can easily access later.
+              Add selected partners to an existing list or create a new one.
             </DialogDescription>
           </DialogHeader>
           
           <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="listName">List Name</Label>
-              <Input 
-                id="listName" 
-                placeholder="Enter a name for this list"
-                defaultValue={activeList?.name || ''}
-              />
+            <div className="flex flex-col space-y-2">
+              <div className="flex items-center space-x-2">
+                <input 
+                  type="radio" 
+                  id="option-existing" 
+                  name="list-option" 
+                  className="h-4 w-4 text-indigo-600"
+                  checked={!isCreatingNewList}
+                  onChange={() => setIsCreatingNewList(false)}
+                />
+                <Label htmlFor="option-existing" className="text-sm font-medium">
+                  Add to existing list
+                </Label>
+              </div>
+              
+              {!isCreatingNewList && (
+                <div className="pl-6 mt-2">
+                  <select
+                    id="list-select"
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                    value={selectedExistingList || ''}
+                    onChange={(e) => setSelectedExistingList(e.target.value || null)}
+                  >
+                    <option value="">Select a list...</option>
+                    {savedLists
+                      .filter(list => list.type === 'selection' && !list.isDefault)
+                      .map(list => (
+                        <option key={list.id} value={list.id}>
+                          {list.name}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              )}
             </div>
             
-            <div className="grid gap-2">
-              <Label htmlFor="listDescription">Description (Optional)</Label>
-              <Textarea 
-                id="listDescription" 
-                placeholder="Add a short description to help others understand this list"
-                rows={3}
-                defaultValue={activeList?.description || ''}
-              />
+            <div className="flex flex-col space-y-2">
+              <div className="flex items-center space-x-2">
+                <input 
+                  type="radio" 
+                  id="option-new" 
+                  name="list-option" 
+                  className="h-4 w-4 text-indigo-600"
+                  checked={isCreatingNewList}
+                  onChange={() => setIsCreatingNewList(true)}
+                />
+                <Label htmlFor="option-new" className="text-sm font-medium">
+                  Create new list
+                </Label>
+              </div>
+              
+              {isCreatingNewList && (
+                <div className="pl-6 space-y-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="listName">List Name</Label>
+                    <Input 
+                      id="listName" 
+                      placeholder="Enter a name for this list"
+                      maxLength={50}
+                    />
+                    <p className="text-xs text-gray-500">Maximum 50 characters</p>
+                  </div>
+                  
+                  <div className="grid gap-2">
+                    <Label htmlFor="listDescription">Description (Optional)</Label>
+                    <Textarea 
+                      id="listDescription" 
+                      placeholder="Add a short description for this list"
+                      rows={3}
+                      maxLength={200}
+                    />
+                    <p className="text-xs text-gray-500">Maximum 200 characters</p>
+                  </div>
+                </div>
+              )}
             </div>
             
-            <div className="flex items-center space-x-2">
-              <Checkbox id="shareList" defaultChecked={activeList?.isShared || false} />
-              <Label htmlFor="shareList" className="text-sm font-normal">
-                Share this list with collaborators
-              </Label>
+            <div className="bg-blue-50 p-3 rounded-md border border-blue-100">
+              <p className="text-sm text-blue-700">
+                {selectedPartners.length} partners will be added to this list.
+              </p>
             </div>
           </div>
           
-          <DialogFooter className="sm:justify-between">
-            <div className="text-xs text-gray-500">
-              {activeList ? 'Last updated on ' + new Date(activeList.createdAt).toLocaleDateString() : 'Applied filters will be saved with this list'}
-            </div>
-            <div className="flex space-x-2">
-              <DialogClose asChild>
-                <Button variant="outline">Cancel</Button>
-              </DialogClose>
-              <Button
-                onClick={() => {
-                  // Handle save/update list
-                  if (!activeList) {
-                    // Create new list
-                    const listName = (document.getElementById('listName') as HTMLInputElement).value;
-                    const listDescription = (document.getElementById('listDescription') as HTMLTextAreaElement).value;
-                    const isShared = (document.getElementById('shareList') as HTMLInputElement).checked;
-                    
-                    const newList: SavedList = {
-                      id: String(Date.now()),
-                      name: listName,
-                      description: listDescription || undefined,
-                      filters: {
-                        searchText: filterText || undefined,
-                        status: selectedStatus || undefined,
-                        industry: selectedIndustry || undefined,
-                        type: selectedType || undefined
-                      },
-                      isShared,
-                      createdBy: 'John Smith',
-                      createdAt: new Date()
-                    };
-                    
-                    setSavedLists([...savedLists, newList]);
-                    setActiveList(newList);
-                  } else {
-                    // Update existing list
-                    const listName = (document.getElementById('listName') as HTMLInputElement).value;
-                    const listDescription = (document.getElementById('listDescription') as HTMLTextAreaElement).value;
-                    const isShared = (document.getElementById('shareList') as HTMLInputElement).checked;
-                    
-                    const updatedLists = savedLists.map(list => {
-                      if (list.id === activeList.id) {
-                        return {
-                          ...list,
-                          name: listName,
-                          description: listDescription || undefined,
-                          filters: {
-                            searchText: filterText || undefined,
-                            status: selectedStatus || undefined,
-                            industry: selectedIndustry || undefined,
-                            type: selectedType || undefined
-                          },
-                          isShared
-                        };
-                      }
-                      return list;
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button
+              onClick={() => {
+                if (isCreatingNewList) {
+                  // Create new list with selected partners
+                  const listName = (document.getElementById('listName') as HTMLInputElement).value;
+                  if (!listName.trim()) {
+                    toast({
+                      title: "Name Required",
+                      description: "Please provide a name for the new list",
+                      variant: "destructive"
                     });
-                    
-                    setSavedLists(updatedLists);
-                    setActiveList(updatedLists.find(v => v.id === activeList.id) || null);
+                    return;
                   }
                   
+                  const listDescription = (document.getElementById('listDescription') as HTMLTextAreaElement).value;
+                  
+                  const newList: SavedList = {
+                    id: `list-${Date.now()}`,
+                    name: listName,
+                    description: listDescription || undefined,
+                    type: 'selection', // This is a selection-based list, not filter-based
+                    members: selectedPartners, // Add selected partners as members
+                    filters: {}, // Empty filters since this is a selection-based list
+                    isShared: false,
+                    createdBy: 'John Smith',
+                    createdAt: new Date()
+                  };
+                  
+                  // Add the new list to saved lists
+                  setSavedLists([...savedLists, newList]);
+                  
+                  // Set it as the active list and redirect to it
+                  setActiveList(newList);
+                  setOriginalListFilters(newList.filters);
+                  
+                  // Clear selections and close modal
+                  setSelectedPartners([]);
                   setShowSaveListModal(false);
-                }}
-              >
-                {activeList ? 'Update List' : 'Save List'}
-              </Button>
-            </div>
+                  
+                  // Show success message
+                  toast({
+                    title: "List Created",
+                    description: `"${listName}" has been created with ${selectedPartners.length} partners.`
+                  });
+                  
+                } else {
+                  // Add to existing list
+                  if (!selectedExistingList) {
+                    toast({
+                      title: "List Required",
+                      description: "Please select a list to add partners to",
+                      variant: "destructive"
+                    });
+                    return;
+                  }
+                  
+                  // Find the target list
+                  const targetList = savedLists.find(list => list.id === selectedExistingList);
+                  if (!targetList) return;
+                  
+                  // Get existing members to avoid duplicates
+                  const existingMembers = targetList.members || [];
+                  const newMembers = selectedPartners.filter(id => !existingMembers.includes(id));
+                  const alreadyInList = selectedPartners.length - newMembers.length;
+                  
+                  // Update the list with new members
+                  const updatedLists = savedLists.map(list => {
+                    if (list.id === selectedExistingList) {
+                      return {
+                        ...list,
+                        members: [...existingMembers, ...newMembers]
+                      };
+                    }
+                    return list;
+                  });
+                  
+                  // Update lists and set active list
+                  setSavedLists(updatedLists);
+                  const updatedList = updatedLists.find(list => list.id === selectedExistingList);
+                  if (updatedList) {
+                    setActiveList(updatedList);
+                    setOriginalListFilters(updatedList.filters);
+                  }
+                  
+                  // Clear selections and close modal
+                  setSelectedPartners([]);
+                  setShowSaveListModal(false);
+                  
+                  // Show success message with info about duplicates
+                  let description = `${newMembers.length} partners added to "${targetList.name}".`;
+                  if (alreadyInList > 0) {
+                    description += ` ${alreadyInList} partner${alreadyInList > 1 ? 's' : ''} already in list.`;
+                  }
+                  
+                  toast({
+                    title: "Partners Added to List",
+                    description
+                  });
+                }
+              }}
+              disabled={(isCreatingNewList && !document.getElementById('listName')?.value) || 
+                (!isCreatingNewList && !selectedExistingList)}
+            >
+              {isCreatingNewList ? 'Create List' : 'Add to List'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
