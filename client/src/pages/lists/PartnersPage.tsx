@@ -273,6 +273,11 @@ function PartnersTable() {
   const [showSaveListModal, setShowSaveListModal] = useState(false);
   const [showShareListModal, setShowShareListModal] = useState(false);
   const [showListsDropdown, setShowListsDropdown] = useState(false);
+  const [showRenameListModal, setShowRenameListModal] = useState(false);
+  const [showDeleteListModal, setShowDeleteListModal] = useState(false);
+  const [listToRename, setListToRename] = useState<SavedList | null>(null);
+  const [listToDelete, setListToDelete] = useState<SavedList | null>(null);
+  const [newListName, setNewListName] = useState("");
   
   // State for saved views (filter combinations)
   const [savedViews, setSavedViews] = useState<SavedView[]>([
@@ -540,29 +545,10 @@ function PartnersTable() {
                                     style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      // Create a copy of the current list
-                                      const currentList = list;
-                                      // Prompt for a new name with the current name as default
-                                      const newName = prompt("Enter a new name for this list:", currentList.name);
-                                      // Only update if a name was provided and it's different
-                                      if (newName && newName.trim() !== '' && newName !== currentList.name) {
-                                        // Update the list name in the savedLists array
-                                        const updatedLists = savedLists.map(l => 
-                                          l.id === currentList.id ? {...l, name: newName.trim()} : l
-                                        );
-                                        setSavedLists(updatedLists);
-                                        
-                                        // If this is the active list, update that too
-                                        if (activeList && activeList.id === currentList.id) {
-                                          setActiveList({...activeList, name: newName.trim()});
-                                        }
-                                        
-                                        // Show success message
-                                        toast({
-                                          title: "List renamed",
-                                          description: `The list has been renamed to "${newName.trim()}"`,
-                                        });
-                                      }
+                                      // Set the list to rename and open the rename dialog
+                                      setListToRename(list);
+                                      setNewListName(list.name);
+                                      setShowRenameListModal(true);
                                     }}
                                   >
                                     Rename
@@ -572,32 +558,9 @@ function PartnersTable() {
                                     style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      // Confirm before deleting
-                                      if (confirm(`Are you sure you want to delete the list "${list.name}"? This action cannot be undone.`)) {
-                                        // Remove the list from savedLists
-                                        const updatedLists = savedLists.filter(l => l.id !== list.id);
-                                        setSavedLists(updatedLists);
-                                        
-                                        // If this was the active list, go back to "All Partners"
-                                        if (activeList && activeList.id === list.id) {
-                                          setActiveList(null);
-                                          setOriginalListFilters(null);
-                                          setFilterText('');
-                                          setSelectedStatus('');
-                                          setSelectedIndustry('');
-                                          setSelectedType('');
-                                          setHasUnsavedChanges(false);
-                                        }
-                                        
-                                        // Show success message
-                                        toast({
-                                          title: "List deleted",
-                                          description: `The list "${list.name}" has been deleted.`,
-                                        });
-                                        
-                                        // Close the dropdown
-                                        setShowListsDropdown(false);
-                                      }
+                                      // Set the list to delete and open the delete dialog
+                                      setListToDelete(list);
+                                      setShowDeleteListModal(true);
                                     }}
                                   >
                                     Delete
