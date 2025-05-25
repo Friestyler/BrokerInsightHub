@@ -593,7 +593,7 @@ function PartnersTable() {
               {/* Edit list button - only visible when a custom list is selected */}
               {activeList && activeList.type === 'selection' && !activeList.isDefault && (
                 <button 
-                  className={`md:flex items-center px-4 py-2 rounded-md border ${isEditingList ? 'bg-indigo-50 text-indigo-700 border-indigo-500' : 'text-[#696C8C] border-gray-300 hover:bg-[#F5F6FE]'}`}
+                  className={`md:flex items-center px-4 py-2 rounded-md ${isEditingList ? 'bg-indigo-50 text-indigo-700 border border-indigo-500' : 'bg-[#E1E4FB] text-[#3E4DC4] hover:bg-[#D8DCFA]'}`}
                   onClick={() => {
                     if (isEditingList) {
                       setIsEditingList(false);
@@ -606,7 +606,7 @@ function PartnersTable() {
                   disabled={isEditingList && isSavingList}
                   style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px', fontWeight: 500 }}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={isEditingList ? "#3E4DC4" : "#696C8C"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
                     <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                     <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                   </svg>
