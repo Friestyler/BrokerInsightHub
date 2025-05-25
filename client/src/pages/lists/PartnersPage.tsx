@@ -1955,7 +1955,7 @@ function PartnersTable() {
         <DialogContent className="sm:max-w-md" style={{ background: '#ffffff', color: '#282A3F', padding: '32px' }}>
           <DialogHeader>
             <DialogTitle>Delete List</DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-sm text-[#282A3F]">
               Are you sure you want to delete this list? This action cannot be undone.
               Deleting a list does not delete the partner records themselves.
             </DialogDescription>
@@ -2032,7 +2032,7 @@ function PartnersTable() {
         <DialogContent className="sm:max-w-md" style={{ background: '#ffffff', color: '#282A3F', padding: '32px' }}>
           <DialogHeader>
             <DialogTitle>Unsaved Changes</DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-sm text-[#282A3F]">
               You're currently editing this list and have unsaved changes. What would you like to do?
             </DialogDescription>
           </DialogHeader>
