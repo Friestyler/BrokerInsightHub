@@ -226,6 +226,11 @@ interface SavedView {
 }
 
 // Main partner list component
+// Hook to use list editing context
+function useListEditing() {
+  return useContext(ListEditingContext);
+}
+
 function PartnersTable() {
   const [filterText, setFilterText] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
@@ -235,8 +240,8 @@ function PartnersTable() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
   
-  // List editing state
-  const [isEditingList, setIsEditingList] = useState(false);
+  // Use the shared context for list editing state
+  const { isEditingList, setIsEditingList } = useListEditing();
   const [isSavingList, setIsSavingList] = useState(false);
   const [editedListMembers, setEditedListMembers] = useState<number[]>([]);
   
@@ -796,7 +801,7 @@ function PartnersTable() {
               {/* Saved Views Dropdown */}
               <div className="relative mr-2">
                 <button 
-                  className={`flex items-center space-x-2 px-3 py-2 border rounded-md text-sm font-medium bg-white hover:bg-gray-50 ${isEditingList ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className={`flex items-center space-x-2 px-3 py-2 border rounded-md text-sm font-medium bg-white ${isEditingList ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
                   onClick={() => {
                     if (!isEditingList) {
                       setShowViewsDropdown(!showViewsDropdown);
