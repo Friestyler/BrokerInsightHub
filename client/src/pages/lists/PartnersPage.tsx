@@ -226,6 +226,7 @@ function PartnersTable() {
     {
       id: 'all-partners',
       name: 'All Partners',
+      type: 'filter',
       filters: { },
       isShared: false,
       createdBy: 'System',
@@ -235,7 +236,9 @@ function PartnersTable() {
     {
       id: '1',
       name: 'Active Insurance Brokers',
-      filters: { status: 'active', industry: 'Insurance', type: 'Broker' },
+      type: 'selection',
+      filters: {},
+      members: [2, 3, 4], // IDs of the partners in this list
       isShared: true,
       sharedWith: ['team@acme.com'],
       createdBy: 'John Smith',
@@ -244,7 +247,9 @@ function PartnersTable() {
     {
       id: '2',
       name: 'Consulting Partners',
-      filters: { industry: 'Consulting' },
+      type: 'selection',
+      filters: {},
+      members: [5, 6, 7], // IDs of the partners in this list
       isShared: false,
       createdBy: 'John Smith',
       createdAt: new Date('2025-05-10')
@@ -252,7 +257,9 @@ function PartnersTable() {
     {
       id: '3',
       name: 'Enterprise Partners',
-      filters: { size: 'enterprise' },
+      type: 'selection',
+      filters: {},
+      members: [3, 8, 10], // IDs of the partners in this list
       isShared: true,
       sharedWith: ['partnerships@acme.com'],
       createdBy: 'John Smith',
@@ -641,7 +648,15 @@ function PartnersTable() {
                   variant="outline" 
                   size="sm" 
                   className={`md:flex items-center ${isEditingList ? 'bg-indigo-50 text-indigo-700 border-indigo-500' : ''}`}
-                  onClick={() => setIsEditingList(!isEditingList)}
+                  onClick={() => {
+                    if (isEditingList) {
+                      setIsEditingList(false);
+                    } else {
+                      // Initialize edited list members with current list members
+                      setEditedListMembers(activeList?.members || []);
+                      setIsEditingList(true);
+                    }
+                  }}
                   disabled={isEditingList && isSavingList}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
@@ -1618,17 +1633,39 @@ function PartnersTable() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 bg-white">
-            {displayedPartners.map((partner) => (
+            {(isEditingList ? mockPartners : displayedPartners).map((partner) => (
               <tr 
                 key={partner.id} 
-                className={`hover:bg-gray-50 group ${selectedPartners.includes(partner.id) ? 'bg-blue-50' : ''}`}
+                className={`hover:bg-gray-50 group ${
+                  isEditingList 
+                    ? editedListMembers.includes(partner.id) ? 'bg-indigo-50' : '' 
+                    : selectedPartners.includes(partner.id) ? 'bg-blue-50' : ''
+                }`}
               >
                 <td className="relative whitespace-nowrap py-4 pl-3 pr-3 text-sm w-10">
                   <input
                     type="checkbox"
-                    className={`h-4 w-4 rounded border-gray-300 ${selectedPartners.includes(partner.id) ? 'visible' : 'invisible group-hover:visible'}`}
-                    checked={selectedPartners.includes(partner.id)}
-                    onChange={() => toggleSelectPartner(partner.id)}
+                    className={`h-4 w-4 rounded border-gray-300 ${
+                      isEditingList 
+                        ? 'visible' 
+                        : selectedPartners.includes(partner.id) ? 'visible' : 'invisible group-hover:visible'
+                    }`}
+                    checked={
+                      isEditingList
+                        ? editedListMembers.includes(partner.id)
+                        : selectedPartners.includes(partner.id)
+                    }
+                    onChange={() => {
+                      if (isEditingList) {
+                        if (editedListMembers.includes(partner.id)) {
+                          setEditedListMembers(editedListMembers.filter(id => id !== partner.id));
+                        } else {
+                          setEditedListMembers([...editedListMembers, partner.id]);
+                        }
+                      } else {
+                        toggleSelectPartner(partner.id);
+                      }
+                    }}
                   />
                 </td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm font-medium">
