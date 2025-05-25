@@ -1077,29 +1077,22 @@ function PartnersTable() {
               </div>
               
               {!isCreatingNewList && (
-                <div className="pl-6 mt-2">
-                  <div className="relative">
-                    <select
-                      id="list-select"
-                      className="w-full p-2 text-[#282A3F] bg-white border border-[#D4D9F3] rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-[#3E4DC4] focus:border-[#3E4DC4] text-sm"
-                      value={selectedExistingList || ''}
-                      onChange={(e) => setSelectedExistingList(e.target.value || null)}
-                    >
-                      <option value="">Select a list...</option>
-                      {savedLists
-                        .filter(list => list.type === 'selection' && !list.isDefault)
-                        .map(list => (
-                          <option key={list.id} value={list.id} className="py-1">
-                            {list.name}
-                          </option>
-                        ))}
-                    </select>
-                    <div className="absolute inset-y-0 right-0 flex items-center pr-2 pointer-events-none">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#3E4DC4]">
-                        <polyline points="6 9 12 15 18 9"></polyline>
-                      </svg>
-                    </div>
-                  </div>
+                <div className="pl-6 mt-2 text-[888AA6]">
+                  <select
+                    id="list-select"
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                    value={selectedExistingList || ''}
+                    onChange={(e) => setSelectedExistingList(e.target.value || null)}
+                  >
+                    <option value="">Select a list...</option>
+                    {savedLists
+                      .filter(list => list.type === 'selection' && !list.isDefault)
+                      .map(list => (
+                        <option key={list.id} value={list.id}>
+                          {list.name}
+                        </option>
+                      ))}
+                  </select>
                 </div>
               )}
             </div>
