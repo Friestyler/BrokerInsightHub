@@ -1810,6 +1810,117 @@ function PartnersTable() {
           </tbody>
         </table>
       </div>
+      
+      {/* Rename List Dialog */}
+      <Dialog open={showRenameListModal} onOpenChange={setShowRenameListModal}>
+        <DialogContent className="sm:max-w-md" style={{ background: '#ffffff', color: '#282A3F', padding: '32px' }}>
+          <DialogHeader>
+            <DialogTitle>Rename List</DialogTitle>
+            <DialogDescription>
+              Enter a new name for your list.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Label htmlFor="renameListName" className="mb-2 block">List Name</Label>
+            <Input
+              id="renameListName"
+              placeholder="Enter a new name for the list"
+              value={newListName}
+              onChange={(e) => setNewListName(e.target.value)}
+              className="w-full"
+              maxLength={50}
+            />
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowRenameListModal(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                if (listToRename && newListName.trim() !== '' && newListName !== listToRename.name) {
+                  // Update the list name in the savedLists array
+                  const updatedLists = savedLists.map(l => 
+                    l.id === listToRename.id ? {...l, name: newListName.trim()} : l
+                  );
+                  setSavedLists(updatedLists);
+                  
+                  // If this is the active list, update that too
+                  if (activeList && activeList.id === listToRename.id) {
+                    setActiveList({...activeList, name: newListName.trim()});
+                  }
+                  
+                  // Show success message
+                  toast({
+                    title: "List renamed",
+                    description: `The list has been renamed to "${newListName.trim()}"`,
+                  });
+                  
+                  // Close the dialog
+                  setShowRenameListModal(false);
+                }
+              }}
+              disabled={!newListName.trim() || (listToRename && newListName.trim() === listToRename.name)}
+            >
+              Save
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Delete List Dialog */}
+      <Dialog open={showDeleteListModal} onOpenChange={setShowDeleteListModal}>
+        <DialogContent className="sm:max-w-md" style={{ background: '#ffffff', color: '#282A3F', padding: '32px' }}>
+          <DialogHeader>
+            <DialogTitle>Delete List</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this list? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            {listToDelete && (
+              <p className="font-medium text-lg text-center">{listToDelete.name}</p>
+            )}
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDeleteListModal(false)}>
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive"
+              onClick={() => {
+                if (listToDelete) {
+                  // Remove the list from savedLists
+                  const updatedLists = savedLists.filter(l => l.id !== listToDelete.id);
+                  setSavedLists(updatedLists);
+                  
+                  // If this was the active list, go back to "All Partners"
+                  if (activeList && activeList.id === listToDelete.id) {
+                    setActiveList(null);
+                    setOriginalListFilters(null);
+                    setFilterText('');
+                    setSelectedStatus('');
+                    setSelectedIndustry('');
+                    setSelectedType('');
+                    setHasUnsavedChanges(false);
+                  }
+                  
+                  // Show success message
+                  toast({
+                    title: "List deleted",
+                    description: `The list "${listToDelete.name}" has been deleted.`,
+                  });
+                  
+                  // Close the dialog and dropdown
+                  setShowDeleteListModal(false);
+                  setShowListsDropdown(false);
+                }
+              }}
+            >
+              Delete
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
