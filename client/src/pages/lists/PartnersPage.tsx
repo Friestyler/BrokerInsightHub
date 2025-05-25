@@ -892,7 +892,7 @@ function PartnersTable() {
                 {/* Save/Save as new list button - context-dependent */}
                 {activeList && !activeList.isDefault && hasUnsavedChanges ? (
                   // Save button for existing non-default lists with unsaved changes
-                  <button 
+                  (<button 
                     className="flex items-center rounded-md bg-[#EBEEFB] px-4 py-2 hover:bg-[#E3E6F7]"
                     onClick={saveChanges}
                     style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
@@ -903,23 +903,21 @@ function PartnersTable() {
                       <polyline points="7 3 7 8 15 8"></polyline>
                     </svg>
                     <span className="text-[#3E4DC4] font-medium">Save</span>
-                  </button>
+                  </button>)
                 ) : (
                   // Save as new list button - only shown when filters are applied and on default/no list
-                  (filterText || selectedStatus || selectedIndustry || selectedType) && (activeList?.isDefault || !activeList) && (
-                    <button 
-                      className="flex items-center rounded-md bg-[#EBEEFB] px-4 py-2 hover:bg-[#E3E6F7]"
-                      onClick={() => setShowSaveListModal(true)}
-                      style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                        <polyline points="7 3 7 8 15 8"></polyline>
-                      </svg>
-                      <span className="text-[#3E4DC4] font-medium">Save as new list</span>
-                    </button>
-                  )
+                  ((filterText || selectedStatus || selectedIndustry || selectedType) && (activeList?.isDefault || !activeList) && (<button 
+                    className="flex items-center rounded-md bg-[#EBEEFB] px-4 py-2 hover:bg-[#E3E6F7]"
+                    onClick={() => setShowSaveListModal(true)}
+                    style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                      <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                      <polyline points="7 3 7 8 15 8"></polyline>
+                    </svg>
+                    <span className="text-[#3E4DC4] font-medium">Save as new list</span>
+                  </button>))
                 )}
                 
                 {/* Save as new list button - only shown for existing non-default lists */}
@@ -962,7 +960,6 @@ function PartnersTable() {
           </div>
         </div>
       </div>
-      
       {/* Selection actions bar - visible when items are selected */}
       {selectedPartners.length > 0 && (
         <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between mb-4">
@@ -1030,7 +1027,6 @@ function PartnersTable() {
           </div>
         </div>
       )}
-
       {/* Statistics overview */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white p-4 rounded-md border border-gray-200">
@@ -1053,7 +1049,6 @@ function PartnersTable() {
           <div className="text-sm text-gray-500">Total Opportunities</div>
         </div>
       </div>
-      
       {/* Save List Modal */}
       <Dialog open={showSaveListModal} onOpenChange={setShowSaveListModal}>
         <DialogContent className="sm:max-w-md">
@@ -1163,7 +1158,6 @@ function PartnersTable() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
       {/* Save View Modal */}
       <Dialog open={showSaveViewModal} onOpenChange={setShowSaveViewModal}>
         <DialogContent className="sm:max-w-md">
@@ -1307,7 +1301,6 @@ function PartnersTable() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
       {/* Share List Modal with Extended Options */}
       <Dialog open={showShareListModal} onOpenChange={setShowShareListModal}>
         <DialogContent className="sm:max-w-md">
@@ -1479,7 +1472,6 @@ function PartnersTable() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
       {/* Edit Mode Indicator */}
       {isEditingList && (
         <div className="bg-indigo-50 border border-indigo-200 rounded-lg mb-4 p-4">
@@ -1497,7 +1489,6 @@ function PartnersTable() {
           </div>
         </div>
       )}
-      
       {/* Table section without a border */}
       <div className="bg-white overflow-x-auto rounded-lg">
         <table className="min-w-full divide-y divide-gray-200">
@@ -1698,8 +1689,9 @@ export default function PartnersPage() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold tracking-tight text-black">Partners</h1>
         <button 
-          className="flex items-center gap-2 px-4 py-2 bg-[#5567E5] text-white rounded-md hover:bg-[#4556D4] transition-colors"
+          className="flex items-center gap-2 px-4 py-2 text-white rounded-md hover:bg-[#4556D4] transition-colors font-medium text-[14px] bg-[#5567E5]"
           onClick={() => alert("Create new partner functionality coming soon!")}
+          style={{ fontFamily: 'Poppins, sans-serif' }}
         >
           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -1708,7 +1700,6 @@ export default function PartnersPage() {
           Create new partner
         </button>
       </div>
-      
       <PartnersTable />
     </div>
   );
