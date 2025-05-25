@@ -174,6 +174,7 @@ interface SavedList {
   id: string;
   name: string;
   description?: string;
+  type?: 'filter' | 'selection'; // 'filter' for Saved Filters, 'selection' for Custom Lists
   filters: {
     searchText?: string;
     status?: string;
@@ -181,6 +182,7 @@ interface SavedList {
     type?: string;
     size?: string;
   };
+  members?: number[]; // Array of partner IDs for Custom Lists
   isShared: boolean;
   sharedWith?: string[];
   createdBy: string;
@@ -213,6 +215,11 @@ function PartnersTable() {
   const [selectedPartners, setSelectedPartners] = useState<number[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
+  
+  // List editing state
+  const [isEditingList, setIsEditingList] = useState(false);
+  const [isSavingList, setIsSavingList] = useState(false);
+  const [editedListMembers, setEditedListMembers] = useState<number[]>([]);
   
   // State for saved lists
   const [savedLists, setSavedLists] = useState<SavedList[]>([
@@ -628,7 +635,71 @@ function PartnersTable() {
             {/* Right-side action buttons */}
             <div className="flex items-center gap-2">
               
-              <Button variant="outline" size="sm" className="hidden md:flex items-center">
+              {/* Edit list button - only visible when a custom list is selected */}
+              {activeList && activeList.type === 'selection' && !activeList.isDefault && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className={`md:flex items-center ${isEditingList ? 'bg-indigo-50 text-indigo-700 border-indigo-500' : ''}`}
+                  onClick={() => setIsEditingList(!isEditingList)}
+                  disabled={isEditingList && isSavingList}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                  </svg>
+                  {isEditingList ? 'Cancel' : 'Edit list'}
+                </Button>
+              )}
+              
+              {/* Save button - only visible in edit mode */}
+              {isEditingList && (
+                <Button 
+                  variant="default" 
+                  size="sm" 
+                  className="md:flex items-center bg-indigo-600 hover:bg-indigo-700"
+                  onClick={() => {
+                    setIsSavingList(true);
+                    // Save changes to the list
+                    setTimeout(() => {
+                      setIsEditingList(false);
+                      setIsSavingList(false);
+                      
+                      // Update the list with the edited members
+                      if (activeList) {
+                        const updatedLists = savedLists.map(list => 
+                          list.id === activeList.id 
+                            ? {...list, members: editedListMembers}
+                            : list
+                        );
+                        setSavedLists(updatedLists);
+                        setActiveList({...activeList, members: editedListMembers});
+                        
+                        // Show success toast
+                        toast({
+                          title: "List updated",
+                          description: "Your changes to the list have been saved.",
+                        });
+                      }
+                    }, 500); // Simulate a short delay for saving
+                  }}
+                  disabled={isSavingList}
+                >
+                  {isSavingList ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Saving...
+                    </>
+                  ) : "Save"}
+                </Button>
+              )}
+              
+              <Button variant="outline" size="sm" className="hidden md:flex items-center"
+                disabled={isEditingList}
+              >
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
                   <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
                   <polyline points="7 10 12 15 17 10"></polyline>
@@ -1433,6 +1504,24 @@ function PartnersTable() {
         </DialogContent>
       </Dialog>
       
+      {/* Edit Mode Indicator */}
+      {isEditingList && (
+        <div className="bg-indigo-50 border border-indigo-200 rounded-lg mb-4 p-4">
+          <div className="flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-3">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+            <div>
+              <h3 className="text-base font-medium text-indigo-900">Editing "{activeList?.name}" List</h3>
+              <p className="text-sm text-indigo-700 mt-1">
+                Use the checkboxes to select or deselect partners. All selected partners will be included in this list when you save.
+              </p>
+            </div>
+          </div>
+        </div>
+      )}
+      
       {/* Table section without a border */}
       <div className="bg-white overflow-x-auto rounded-lg">
         <table className="min-w-full divide-y divide-gray-200">
@@ -1442,8 +1531,20 @@ function PartnersTable() {
                 <input
                   type="checkbox"
                   className="absolute h-4 w-4 rounded border-gray-300"
-                  checked={selectedPartners.length === displayedPartners.length && displayedPartners.length > 0}
-                  onChange={toggleSelectAll}
+                  checked={isEditingList 
+                    ? editedListMembers.length === (activeList ? mockPartners.length : displayedPartners.length) && (activeList ? mockPartners.length : displayedPartners.length) > 0
+                    : selectedPartners.length === displayedPartners.length && displayedPartners.length > 0
+                  }
+                  onChange={isEditingList 
+                    ? () => {
+                        if (editedListMembers.length === (activeList ? mockPartners.length : displayedPartners.length)) {
+                          setEditedListMembers([]);
+                        } else {
+                          setEditedListMembers(mockPartners.map(p => p.id));
+                        }
+                      }
+                    : toggleSelectAll
+                  }
                 />
               </th>
               <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[250px]">
