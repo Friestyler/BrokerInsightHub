@@ -1054,7 +1054,7 @@ function PartnersTable() {
       >
         <DialogContent className="sm:max-w-md bg-[#ffffff] text-[#282A3F] p-[32px]">
           <DialogHeader>
-            <DialogTitle>Add to List</DialogTitle>
+            <DialogTitle>Add to list</DialogTitle>
             <DialogDescription>
               Add selected partners to an existing list or create a new one.
             </DialogDescription>
@@ -1077,7 +1077,7 @@ function PartnersTable() {
               </div>
               
               {!isCreatingNewList && (
-                <div className="pl-6 mt-2">
+                <div className="pl-6 mt-2 text-[888AA6]">
                   <select
                     id="list-select"
                     className="w-full p-2 border border-gray-300 rounded-md"
@@ -1113,7 +1113,7 @@ function PartnersTable() {
               </div>
               
               {isCreatingNewList && (
-                <div className="pl-6 space-y-4">
+                <div className="pl-6 space-y-4 mt-4">
                   <div className="grid gap-2">
                     <Label htmlFor="listName">List Name</Label>
                     <Input 
