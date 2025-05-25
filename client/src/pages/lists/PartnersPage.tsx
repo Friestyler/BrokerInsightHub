@@ -304,18 +304,21 @@ function PartnersTable() {
   const [selectedExistingList, setSelectedExistingList] = useState<string | null>(null);
     
   // Filter partners based on search text and filter selections
-  const displayedPartners = mockPartners.filter(partner => {
-    const matchesText = !filterText || 
-      partner.name.toLowerCase().includes(filterText.toLowerCase()) ||
-      partner.industry.toLowerCase().includes(filterText.toLowerCase()) ||
-      partner.type.toLowerCase().includes(filterText.toLowerCase());
+  const displayedPartners = mockPartners
+    .filter(partner => {
+      const matchesText = !filterText || 
+        partner.name.toLowerCase().includes(filterText.toLowerCase()) ||
+        partner.industry.toLowerCase().includes(filterText.toLowerCase()) ||
+        partner.type.toLowerCase().includes(filterText.toLowerCase());
+        
+      const matchesStatus = !selectedStatus || partner.status === selectedStatus;
+      const matchesIndustry = !selectedIndustry || partner.industry === selectedIndustry;
+      const matchesType = !selectedType || partner.type === selectedType;
       
-    const matchesStatus = !selectedStatus || partner.status === selectedStatus;
-    const matchesIndustry = !selectedIndustry || partner.industry === selectedIndustry;
-    const matchesType = !selectedType || partner.type === selectedType;
-    
-    return matchesText && matchesStatus && matchesIndustry && matchesType;
-  });
+      return matchesText && matchesStatus && matchesIndustry && matchesType;
+    })
+    // Sort alphabetically by name by default
+    .sort((a, b) => a.name.localeCompare(b.name));
   
   // Check if current filters differ from original list filters to detect unsaved changes
   useEffect(() => {
@@ -1246,7 +1249,7 @@ function PartnersTable() {
                   });
                 }
               }}
-              disabled={(isCreatingNewList && !document.getElementById('listName')?.value) || 
+              disabled={(isCreatingNewList && !document.getElementById('listName')) || 
                 (!isCreatingNewList && !selectedExistingList)}
             >
               {isCreatingNewList ? 'Create List' : 'Add to List'}
