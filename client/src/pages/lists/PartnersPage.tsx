@@ -593,7 +593,7 @@ function PartnersTable() {
               {/* Edit list button - only visible when a custom list is selected */}
               {activeList && activeList.type === 'selection' && !activeList.isDefault && (
                 <button 
-                  className={`md:flex items-center px-4 py-2 rounded-md ${isEditingList ? 'bg-indigo-50 text-indigo-700 border border-indigo-500' : 'bg-[#E1E4FB] text-[#3E4DC4] hover:bg-[#D8DCFA]'}`}
+                  className={`md:flex items-center px-4 py-2 rounded-md ${isEditingList ? 'bg-[#9CA6F0] text-[#3E4DC4] border border-indigo-500' : 'bg-[#E1E4FB] text-[#3E4DC4] hover:bg-[#BFC6F5]'}`}
                   onClick={() => {
                     if (isEditingList) {
                       setIsEditingList(false);
