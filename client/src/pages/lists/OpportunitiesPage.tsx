@@ -206,8 +206,28 @@ function TemplateBadges({ type, status }: { type: string, status: string }) {
   );
 }
 
-// Define interface for saved lists
+// Define interfaces for saved lists and views
 interface SavedList {
+  id: string;
+  name: string;
+  description?: string;
+  type: 'filter' | 'selection';
+  members?: number[]; // For selection-based lists
+  filters: {
+    searchText?: string;
+    status?: string;
+    type?: string;
+    customerId?: string;
+    partnerId?: string;
+  };
+  isShared: boolean;
+  sharedWith?: string[];
+  createdBy: string;
+  createdAt: Date;
+  isDefault?: boolean;
+}
+
+interface SavedView {
   id: string;
   name: string;
   description?: string;
@@ -218,8 +238,6 @@ interface SavedList {
     customerId?: string;
     partnerId?: string;
   };
-  isShared: boolean;
-  sharedWith?: string[];
   createdBy: string;
   createdAt: Date;
 }
@@ -235,11 +253,53 @@ function OpportunitiesTable() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
   
-  // State for saved lists
+  // Enhanced state management
+  const [isCreatingNewList, setIsCreatingNewList] = useState(true);
+  const [selectedExistingList, setSelectedExistingList] = useState<string | null>(null);
+  const [originalListFilters, setOriginalListFilters] = useState<any>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isEditingList, setIsEditingList] = useState(false);
+  const [editedListMembers, setEditedListMembers] = useState<number[]>([]);
+  
+  // Views state
+  const [savedViews, setSavedViews] = useState<SavedView[]>([
+    {
+      id: 'view-1',
+      name: 'Active Renewals',
+      filters: { status: 'In Progress', type: 'Renewal' },
+      createdBy: 'John Smith',
+      createdAt: new Date('2025-05-01')
+    },
+    {
+      id: 'view-2',
+      name: 'New Business Focus',
+      filters: { type: 'New Business' },
+      createdBy: 'John Smith',
+      createdAt: new Date('2025-05-05')
+    }
+  ]);
+  const [activeView, setActiveView] = useState<SavedView | null>(null);
+  const [showSaveViewModal, setShowSaveViewModal] = useState(false);
+  const [showViewsDropdown, setShowViewsDropdown] = useState(false);
+  const [viewNameInput, setViewNameInput] = useState('');
+  
+  // State for saved lists with enhanced functionality
   const [savedLists, setSavedLists] = useState<SavedList[]>([
+    {
+      id: 'all-opportunities',
+      name: 'All Opportunities',
+      description: 'Complete list of all opportunities',
+      type: 'filter',
+      filters: {},
+      isShared: false,
+      createdBy: 'System',
+      createdAt: new Date('2025-01-01'),
+      isDefault: true
+    },
     {
       id: '1',
       name: 'High Value Renewals',
+      type: 'filter',
       filters: { status: 'In Progress', type: 'Renewal' },
       isShared: true,
       sharedWith: ['team@acme.com'],
@@ -249,6 +309,7 @@ function OpportunitiesTable() {
     {
       id: '2',
       name: 'New Business Pipeline',
+      type: 'filter',
       filters: { type: 'New Business' },
       isShared: false,
       createdBy: 'John Smith',
@@ -256,37 +317,60 @@ function OpportunitiesTable() {
     },
     {
       id: '3',
-      name: 'Acme Corporation Opportunities',
-      filters: { customerId: "1" },
+      name: 'Selected Opportunities',
+      type: 'selection',
+      members: [1, 3, 5], // Selected opportunity IDs
+      filters: {},
       isShared: true,
       sharedWith: ['team@acme.com'],
       createdBy: 'John Smith',
       createdAt: new Date('2025-05-15')
     }
   ]);
-  const [activeList, setActiveList] = useState<SavedList | null>(null);
+  const [activeList, setActiveList] = useState<SavedList | null>(savedLists.find(list => list.id === 'all-opportunities') || null);
   const [showSaveListModal, setShowSaveListModal] = useState(false);
   const [showShareListModal, setShowShareListModal] = useState(false);
   const [showListsDropdown, setShowListsDropdown] = useState(false);
+  const [showRenameListModal, setShowRenameListModal] = useState(false);
+  const [showDeleteListModal, setShowDeleteListModal] = useState(false);
+  const [listToRename, setListToRename] = useState<SavedList | null>(null);
+  const [listToDelete, setListToDelete] = useState<SavedList | null>(null);
+  const [newListName, setNewListName] = useState('');
   
-  // Filter opportunities based on search text and filter selections
-  const displayedOpportunities = mockOpportunities.filter(opportunity => {
-    const matchesText = !filterText || 
-      opportunity.title.toLowerCase().includes(filterText.toLowerCase()) ||
-      opportunity.customerName.toLowerCase().includes(filterText.toLowerCase()) ||
-      opportunity.partnerName.toLowerCase().includes(filterText.toLowerCase());
+  // Enhanced filtering logic for both filter and selection-based lists
+  const displayedOpportunities = (() => {
+    let opportunities = mockOpportunities;
+    
+    // If we have an active list that's selection-based, use its members
+    if (activeList && activeList.type === 'selection' && activeList.members) {
+      opportunities = mockOpportunities.filter(opp => activeList.members!.includes(opp.id));
+    }
+    
+    // Apply current filters (from UI or active list/view)
+    return opportunities.filter(opportunity => {
+      // Text search
+      const matchesText = !filterText || 
+        opportunity.title.toLowerCase().includes(filterText.toLowerCase()) ||
+        opportunity.customerName.toLowerCase().includes(filterText.toLowerCase()) ||
+        opportunity.partnerName.toLowerCase().includes(filterText.toLowerCase());
+        
+      // Status filter (from UI or active list/view)
+      const activeStatus = selectedStatus || activeList?.filters.status || activeView?.filters.status;
+      const matchesStatus = !activeStatus || opportunity.status === activeStatus;
       
-    const matchesStatus = !selectedStatus || opportunity.status === selectedStatus;
-    const matchesType = !selectedType || opportunity.type === selectedType;
-    
-    // Handle filters from active list
-    const matchesCustomerId = !activeList?.filters.customerId || 
-      String(opportunity.customerId) === activeList.filters.customerId;
-    const matchesPartnerId = !activeList?.filters.partnerId || 
-      String(opportunity.partnerId) === activeList.filters.partnerId;
-    
-    return matchesText && matchesStatus && matchesType && matchesCustomerId && matchesPartnerId;
-  });
+      // Type filter (from UI or active list/view)
+      const activeType = selectedType || activeList?.filters.type || activeView?.filters.type;
+      const matchesType = !activeType || opportunity.type === activeType;
+      
+      // Customer/Partner filters from active list
+      const matchesCustomerId = !activeList?.filters.customerId || 
+        String(opportunity.customerId) === activeList.filters.customerId;
+      const matchesPartnerId = !activeList?.filters.partnerId || 
+        String(opportunity.partnerId) === activeList.filters.partnerId;
+      
+      return matchesText && matchesStatus && matchesType && matchesCustomerId && matchesPartnerId;
+    });
+  })();
   
   // Calculate stats based on filtered opportunities
   const stats = calculateOpportunityStats(displayedOpportunities);
@@ -371,14 +455,14 @@ function OpportunitiesTable() {
   
   return (
     <div className="space-y-4">
-      {/* Unified toolbar with more emphasis on saved lists */}
+      {/* Enhanced unified toolbar */}
       <div className="bg-white p-4 rounded-lg shadow-sm">
         <div className="flex flex-col gap-4">
-          {/* Top row with saved lists and action buttons */}
+          {/* Top row with saved lists and views */}
           <div className="flex flex-wrap items-center justify-between">
-            {/* Left side - Saved Lists with actions */}
+            {/* Left side - Enhanced Lists and Views Management */}
             <div className="flex items-center gap-3">
-              {/* Saved Lists dropdown - now more prominent */}
+              {/* Saved Lists dropdown */}
               <div className="relative">
                 <button 
                   className={`flex items-center space-x-2 px-4 py-2.5 border-2 rounded-md text-sm font-medium ${activeList ? 'bg-indigo-50 border-indigo-400 text-indigo-700' : 'border-gray-300 hover:border-gray-400'}`}
@@ -387,7 +471,7 @@ function OpportunitiesTable() {
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={activeList ? 'text-indigo-600' : 'text-gray-500'}>
                     <path d="M19 21l-7-4-7 4V5a2 2 0 012-2h10a2 2 0 012 2v16z"/>
                   </svg>
-                  <span className="max-w-[180px] truncate font-medium">{activeList ? activeList.name : 'Saved Lists'}</span>
+                  <span className="max-w-[180px] truncate font-medium">{activeList ? activeList.name : 'All Opportunities'}</span>
                   <svg 
                     xmlns="http://www.w3.org/2000/svg" 
                     width="14" 
@@ -404,15 +488,15 @@ function OpportunitiesTable() {
                   </svg>
                 </button>
                 
-                {/* Saved Lists dropdown menu */}
+                {/* Enhanced Saved Lists dropdown menu with advanced functionality */}
                 {showListsDropdown && (
-                  <div className="absolute z-40 mt-1 w-80 bg-white rounded-md shadow-lg border border-gray-200 overflow-hidden">
-                    <div className="p-2 border-b">
-                      <div className="text-sm font-medium mb-1">Saved Lists</div>
+                  <div className="absolute z-40 mt-1 w-96 bg-white rounded-md shadow-lg border border-gray-200 overflow-hidden">
+                    <div className="p-3 border-b">
+                      <div className="text-sm font-medium mb-2">Saved Lists</div>
                       <div className="relative">
                         <input
                           type="text"
-                          placeholder="Search saved lists..."
+                          placeholder="Search lists..."
                           className="w-full pl-3 pr-10 py-1.5 text-xs border border-gray-300 rounded-md"
                         />
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
@@ -422,51 +506,95 @@ function OpportunitiesTable() {
                       </div>
                     </div>
                     
-                    <div className="max-h-60 overflow-y-auto">
+                    <div className="max-h-80 overflow-y-auto">
                       {savedLists.map(list => (
-                        <button
-                          key={list.id}
-                          className={`w-full text-left py-2 px-3 hover:bg-gray-50 flex items-center justify-between ${activeList?.id === list.id ? 'bg-indigo-50' : ''}`}
-                          onClick={() => {
-                            setActiveList(list);
-                            if (list.filters.searchText) setFilterText(list.filters.searchText);
-                            if (list.filters.status) setSelectedStatus(list.filters.status);
-                            if (list.filters.type) setSelectedType(list.filters.type);
-                            setShowListsDropdown(false);
-                          }}
-                        >
-                          <div>
-                            <div className="font-medium text-sm">{list.name}</div>
-                            <div className="text-xs text-gray-500 mt-0.5">
-                              {Object.entries(list.filters)
-                                .filter(([_, value]) => value)
-                                .map(([key]) => key)
-                                .join(', ')}
+                        <div key={list.id} className="group relative">
+                          <button
+                            className={`w-full text-left py-3 px-3 hover:bg-gray-50 flex items-center justify-between ${activeList?.id === list.id ? 'bg-indigo-50' : ''}`}
+                            onClick={() => {
+                              setActiveList(list);
+                              // Apply list filters and settings
+                              if (list.type === 'filter') {
+                                setFilterText(list.filters.searchText || '');
+                                setSelectedStatus(list.filters.status || '');
+                                setSelectedType(list.filters.type || '');
+                              } else if (list.type === 'selection' && list.members) {
+                                // For selection-based lists, we maintain the members but reset UI filters
+                                setFilterText('');
+                                setSelectedStatus('');
+                                setSelectedType('');
+                                setSelectedOpportunities(list.members);
+                              }
+                              setShowListsDropdown(false);
+                            }}
+                          >
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2">
+                                <div className="font-medium text-sm">{list.name}</div>
+                                {list.type === 'selection' && (
+                                  <span className="text-xs bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded">
+                                    {list.members?.length || 0} selected
+                                  </span>
+                                )}
+                              </div>
+                              <div className="text-xs text-gray-500 mt-0.5 truncate">
+                                {list.description || (list.type === 'filter' ? 
+                                  Object.entries(list.filters)
+                                    .filter(([_, value]) => value)
+                                    .map(([key, value]) => `${key}: ${value}`)
+                                    .join(', ') || 'No filters'
+                                  : `${list.members?.length || 0} opportunities selected`
+                                )}
+                              </div>
                             </div>
-                          </div>
-                          {list.isShared && (
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-500">
-                              <circle cx="18" cy="5" r="3"></circle>
-                              <circle cx="6" cy="12" r="3"></circle>
-                              <circle cx="18" cy="19" r="3"></circle>
-                              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                            </svg>
+                            <div className="flex items-center gap-1">
+                              {list.isShared && (
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-500">
+                                  <circle cx="18" cy="5" r="3"></circle>
+                                  <circle cx="6" cy="12" r="3"></circle>
+                                  <circle cx="18" cy="19" r="3"></circle>
+                                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                                </svg>
+                              )}
+                              {activeList?.id === list.id && (
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                                  <polyline points="20 6 9 17 4 12"></polyline>
+                                </svg>
+                              )}
+                            </div>
+                          </button>
+                          
+                          {/* List action menu - only show for non-default lists */}
+                          {!list.isDefault && (
+                            <div className="absolute right-1 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <button
+                                className="p-1 hover:bg-gray-100 rounded"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  // Show context menu for list actions
+                                }}
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                                  <circle cx="12" cy="12" r="1"></circle>
+                                  <circle cx="12" cy="5" r="1"></circle>
+                                  <circle cx="12" cy="19" r="1"></circle>
+                                </svg>
+                              </button>
+                            </div>
                           )}
-                        </button>
+                        </div>
                       ))}
                     </div>
                     
-                    <div className="p-2 border-t">
+                    <div className="p-2 border-t bg-gray-50">
                       <button
-                        className="w-full text-left py-1.5 px-3 text-indigo-600 hover:bg-indigo-50 rounded-md text-sm flex items-center"
+                        className="w-full text-left py-2 px-3 text-indigo-600 hover:bg-indigo-50 rounded-md text-sm flex items-center font-medium"
                         onClick={() => {
-                          setActiveList(null);
-                          setFilterText('');
-                          setSelectedStatus('');
-                          setSelectedType('');
                           setShowSaveListModal(true);
                           setShowListsDropdown(false);
+                          setIsCreatingNewList(true);
+                          setSelectedExistingList(null);
                         }}
                       >
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
@@ -478,6 +606,155 @@ function OpportunitiesTable() {
                     </div>
                   </div>
                 )}
+              </div>
+              
+              {/* Views dropdown - next to Lists dropdown */}
+              <div className="relative">
+                <button 
+                  className={`flex items-center space-x-2 px-3 py-2 border rounded-md text-sm font-medium ${activeView ? 'bg-purple-50 border-purple-400 text-purple-700' : 'border-gray-300 hover:border-gray-400'}`}
+                  onClick={() => setShowViewsDropdown(!showViewsDropdown)}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={activeView ? 'text-purple-600' : 'text-gray-500'}>
+                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                  </svg>
+                  <span className="max-w-[120px] truncate">{activeView ? activeView.name : 'Views'}</span>
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width="14" 
+                    height="14" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    className={`transition-transform ${showViewsDropdown ? 'rotate-180' : ''}`}
+                  >
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </button>
+                
+                {/* Views dropdown menu */}
+                {showViewsDropdown && (
+                  <div className="absolute z-40 mt-1 w-80 bg-white rounded-md shadow-lg border border-gray-200 overflow-hidden">
+                    <div className="p-2 border-b">
+                      <div className="text-sm font-medium mb-1">Quick Views</div>
+                      <div className="relative">
+                        <input
+                          type="text"
+                          placeholder="Search views..."
+                          className="w-full pl-3 pr-10 py-1.5 text-xs border border-gray-300 rounded-md"
+                        />
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                          <circle cx="11" cy="11" r="8"></circle>
+                          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="max-h-60 overflow-y-auto">
+                      {savedViews.map(view => (
+                        <div
+                          key={view.id}
+                          className={`flex items-center justify-between p-2 hover:bg-gray-50 cursor-pointer ${activeView?.id === view.id ? 'bg-purple-50' : ''}`}
+                          onClick={() => {
+                            setActiveView(view);
+                            // Apply view filters
+                            setFilterText(view.filters.searchText || '');
+                            setSelectedStatus(view.filters.status || '');
+                            setSelectedType(view.filters.type || '');
+                            setShowViewsDropdown(false);
+                          }}
+                        >
+                          <div>
+                            <div className="font-medium text-sm">{view.name}</div>
+                            <div className="text-xs text-gray-500">
+                              {Object.entries(view.filters)
+                                .filter(([_, value]) => value)
+                                .map(([key, value]) => `${key}: ${value}`)
+                                .join(', ') || 'No filters'}
+                            </div>
+                          </div>
+                          {activeView?.id === view.id && (
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-purple-600">
+                              <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    {activeView && (
+                      <div className="p-2">
+                        <button 
+                          className="flex w-full items-center p-2 text-sm rounded-md text-purple-600 hover:bg-purple-50"
+                          onClick={() => {
+                            setShowViewsDropdown(false);
+                            setActiveView(null);
+                            setFilterText('');
+                            setSelectedStatus('');
+                            setSelectedType('');
+                          }}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                            <path d="M18 6L6 18"></path>
+                            <path d="M6 6l12 12"></path>
+                          </svg>
+                          Clear view
+                        </button>
+                      </div>
+                    )}
+                    <div className="p-2 border-t bg-gray-50">
+                      <button
+                        className="w-full text-left py-1.5 px-3 text-purple-600 hover:bg-purple-50 rounded-md text-sm flex items-center font-medium"
+                        onClick={() => {
+                          setShowSaveViewModal(true);
+                          setShowViewsDropdown(false);
+                        }}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                          <line x1="12" y1="5" x2="12" y2="19"></line>
+                          <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        Save Current View
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+              
+              {/* Filter buttons next to the views dropdown */}
+              <div className="flex items-center gap-2 ml-3">
+                <button 
+                  className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedStatus ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+                  onClick={() => setSelectedStatus(selectedStatus ? '' : 'In Progress')}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                  </svg>
+                  <span>{selectedStatus ? `Status: ${selectedStatus}` : 'Status'}</span>
+                  {selectedStatus && (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  )}
+                </button>
+                
+                <button 
+                  className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedType ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+                  onClick={() => setSelectedType(selectedType ? '' : 'Renewal')}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                  </svg>
+                  <span>{selectedType ? `Type: ${selectedType}` : 'Type'}</span>
+                  {selectedType && (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  )}
+                </button>
               </div>
               
               {/* List actions - Share/Clear when a list is active */}
@@ -827,6 +1104,8 @@ function OpportunitiesTable() {
                       id: String(Date.now()),
                       name: listName,
                       description: listDescription || undefined,
+                      type: selectedOpportunities.length > 0 ? 'selection' : 'filter',
+                      members: selectedOpportunities.length > 0 ? selectedOpportunities : undefined,
                       filters: {
                         searchText: filterText || undefined,
                         status: selectedStatus || undefined,
