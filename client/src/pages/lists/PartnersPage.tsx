@@ -1165,12 +1165,13 @@ function PartnersTable() {
                   
                   const listDescription = (document.getElementById('listDescription') as HTMLTextAreaElement).value;
                   
+                  // Create a new list with only the selected partners
                   const newList: SavedList = {
                     id: `list-${Date.now()}`,
                     name: listName,
                     description: listDescription || undefined,
                     type: 'selection', // This is a selection-based list, not filter-based
-                    members: selectedPartners, // Add selected partners as members
+                    members: selectedPartners, // Add only the selected partners as members
                     filters: {}, // Empty filters since this is a selection-based list
                     isShared: false,
                     createdBy: 'John Smith',
