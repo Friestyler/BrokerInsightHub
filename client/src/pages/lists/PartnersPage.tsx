@@ -398,6 +398,81 @@ function PartnersTable() {
       });
     }
   };
+  
+  // Handler for adding partners to lists
+  const handleAddToList = () => {
+    if (isCreatingNewList) {
+      // Create a new list with selected partners
+      if (!newListName.trim()) return;
+      
+      const newList: SavedList = {
+        id: `list-${Date.now()}`,
+        name: newListName,
+        description: newListDescription || undefined,
+        type: 'selection',
+        members: selectedPartners,
+        filters: {},
+        isShared: false,
+        createdBy: 'John Smith',
+        createdAt: new Date()
+      };
+      
+      setSavedLists([...savedLists, newList]);
+      
+      // Show success message
+      toast({
+        title: "List created",
+        description: `"${newListName}" has been created with ${selectedPartners.length} partners.`,
+      });
+      
+      // Reset form
+      setNewListName('');
+      setNewListDescription('');
+      
+    } else {
+      // Add to existing list
+      if (!selectedExistingList) return;
+      
+      // Find the existing list
+      const existingList = savedLists.find(list => list.id === selectedExistingList);
+      if (!existingList) return;
+      
+      // Determine which partners are already in the list to avoid duplicates
+      const existingMembers = existingList.members || [];
+      const newMembers = selectedPartners.filter(id => !existingMembers.includes(id));
+      const alreadyInList = selectedPartners.length - newMembers.length;
+      
+      // Update the list with new members
+      const updatedLists = savedLists.map(list => {
+        if (list.id === selectedExistingList) {
+          return {
+            ...list,
+            members: [...existingMembers, ...newMembers]
+          };
+        }
+        return list;
+      });
+      
+      setSavedLists(updatedLists);
+      
+      // Show success message with information about duplicates
+      let description = `${newMembers.length} partners added to "${existingList.name}".`;
+      if (alreadyInList > 0) {
+        description += ` ${alreadyInList} partner${alreadyInList > 1 ? 's' : ''} already in list.`;
+      }
+      
+      toast({
+        title: "Partners added to list",
+        description,
+      });
+    }
+    
+    // Close modal and clear selection
+    setShowAddToListModal(false);
+    setIsCreatingNewList(false);
+    setSelectedExistingList(null);
+    setSelectedPartners([]);
+  };
 
   // Calculate stats based on filtered partners
   const stats = calculatePartnerStats(displayedPartners);
@@ -1303,6 +1378,113 @@ function PartnersTable() {
         </DialogContent>
       </Dialog>
       {/* Share List Modal with Extended Options */}
+      {/* Add to List Modal */}
+      <Dialog open={showAddToListModal} onOpenChange={setShowAddToListModal}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Add to List</DialogTitle>
+            <DialogDescription>
+              Add selected partners to an existing list or create a new one.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <RadioGroup 
+              defaultValue="existing" 
+              onValueChange={(value) => setIsCreatingNewList(value === "new")}
+              className="grid gap-4"
+            >
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="existing" id="existing-list" />
+                <Label htmlFor="existing-list">Add to existing list</Label>
+              </div>
+              {!isCreatingNewList && (
+                <div className="pl-6">
+                  <Label htmlFor="list-select" className="block mb-2">
+                    Select a list
+                  </Label>
+                  <select
+                    id="list-select"
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                    value={selectedExistingList || ''}
+                    onChange={(e) => setSelectedExistingList(e.target.value || null)}
+                  >
+                    <option value="">Select a list...</option>
+                    {savedLists
+                      .filter(list => list.type === 'selection' && !list.isDefault)
+                      .map(list => (
+                        <option key={list.id} value={list.id}>
+                          {list.name}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              )}
+              
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="new" id="new-list" />
+                <Label htmlFor="new-list">Create new list</Label>
+              </div>
+              {isCreatingNewList && (
+                <div className="pl-6 space-y-4">
+                  <div>
+                    <Label htmlFor="new-list-name" className="block mb-2">
+                      List name
+                    </Label>
+                    <Input
+                      id="new-list-name"
+                      value={newListName}
+                      onChange={(e) => setNewListName(e.target.value)}
+                      maxLength={50}
+                      placeholder="Enter list name"
+                      className="w-full"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Maximum 50 characters
+                    </p>
+                  </div>
+                  <div>
+                    <Label htmlFor="new-list-description" className="block mb-2">
+                      Description (optional)
+                    </Label>
+                    <Textarea
+                      id="new-list-description"
+                      value={newListDescription}
+                      onChange={(e) => setNewListDescription(e.target.value)}
+                      maxLength={200}
+                      placeholder="Enter description"
+                      className="w-full"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">
+                      Maximum 200 characters
+                    </p>
+                  </div>
+                </div>
+              )}
+            </RadioGroup>
+            
+            <div className="bg-blue-50 p-3 rounded-md border border-blue-100">
+              <p className="text-sm text-blue-700">
+                {selectedPartners.length} partners will be added to this list.
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button
+              type="submit"
+              onClick={handleAddToList}
+              disabled={(isCreatingNewList && !newListName.trim()) || 
+                (!isCreatingNewList && !selectedExistingList)}
+            >
+              {isCreatingNewList ? 'Create List' : 'Add to List'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Share List Modal */}
       <Dialog open={showShareListModal} onOpenChange={setShowShareListModal}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
