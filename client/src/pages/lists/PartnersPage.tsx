@@ -810,12 +810,13 @@ function PartnersTable() {
                   disabled={isEditingList}
                 >
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
-                    <path d="M4 18v-8a5 5 0 0 1 10 0v8"></path>
-                    <path d="M2 8h20"></path>
-                    <path d="M12 18v-8"></path>
-                    <path d="M12 8V6"></path>
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                    <path d="M9 3v4"></path>
+                    <path d="M14 3v4"></path>
+                    <path d="M9 13h6"></path>
+                    <path d="M9 17h6"></path>
                   </svg>
-                  <span className="text-gray-700">{activeView ? activeView.name : "Saved Views"}</span>
+                  <span className="text-gray-700">{activeView ? activeView.name : "Select a view"}</span>
                   <svg 
                     xmlns="http://www.w3.org/2000/svg" 
                     width="14" 
@@ -852,10 +853,11 @@ function PartnersTable() {
                         >
                           <div className="flex items-center">
                             <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 text-indigo-500">
-                              <path d="M4 18v-8a5 5 0 0 1 10 0v8"></path>
-                              <path d="M2 8h20"></path>
-                              <path d="M12 18v-8"></path>
-                              <path d="M12 8V6"></path>
+                              <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                              <path d="M9 3v4"></path>
+                              <path d="M14 3v4"></path>
+                              <path d="M9 13h6"></path>
+                              <path d="M9 17h6"></path>
                             </svg>
                             {view.name}
                           </div>
