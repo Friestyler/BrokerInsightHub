@@ -897,15 +897,15 @@ function PartnersTable() {
               {/* Filter buttons next to the views dropdown */}
               <div className="flex items-center gap-2 ml-3">
                 <button 
-                  className={`flex items-center px-2 py-1 text-sm border rounded-md ${selectedStatus ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+                  className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedStatus ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
                   onClick={() => setSelectedStatus(selectedStatus ? '' : 'active')}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
                     <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
                   </svg>
                   <span>{selectedStatus ? `Status: ${selectedStatus.charAt(0).toUpperCase() + selectedStatus.slice(1)}` : 'Status'}</span>
                   {selectedStatus && (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
                       <line x1="18" y1="6" x2="6" y2="18"></line>
                       <line x1="6" y1="6" x2="18" y2="18"></line>
                     </svg>
@@ -913,15 +913,15 @@ function PartnersTable() {
                 </button>
                 
                 <button 
-                  className={`flex items-center px-2 py-1 text-sm border rounded-md ${selectedIndustry ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+                  className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedIndustry ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
                   onClick={() => setSelectedIndustry(selectedIndustry ? '' : 'Insurance')}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
                     <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
                   </svg>
                   <span>{selectedIndustry ? `Industry: ${selectedIndustry}` : 'Industry'}</span>
                   {selectedIndustry && (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
                       <line x1="18" y1="6" x2="6" y2="18"></line>
                       <line x1="6" y1="6" x2="18" y2="18"></line>
                     </svg>
@@ -929,15 +929,15 @@ function PartnersTable() {
                 </button>
                 
                 <button 
-                  className={`flex items-center px-2 py-1 text-sm border rounded-md ${selectedType ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+                  className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedType ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
                   onClick={() => setSelectedType(selectedType ? '' : 'Broker')}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
                     <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
                   </svg>
                   <span>{selectedType ? `Type: ${selectedType}` : 'Type'}</span>
                   {selectedType && (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
                       <line x1="18" y1="6" x2="6" y2="18"></line>
                       <line x1="6" y1="6" x2="18" y2="18"></line>
                     </svg>
@@ -1447,17 +1447,6 @@ function PartnersTable() {
               <p className="text-xs text-gray-500">Maximum 50 characters</p>
             </div>
             
-            <div className="grid gap-2">
-              <Label htmlFor="viewDescription">Description (Optional)</Label>
-              <Textarea 
-                id="viewDescription" 
-                placeholder="Add a short description to help remember what this view shows"
-                rows={2}
-                maxLength={200}
-              />
-              <p className="text-xs text-gray-500">Maximum 200 characters</p>
-            </div>
-            
             <div className="bg-[#EBEEFB] p-4 rounded-md border border-[#D4D9F3]">
               <div className="text-sm font-medium mb-2 text-[#282A3F]">Filters saved in this view</div>
               <div className="space-y-2">
@@ -1501,7 +1490,6 @@ function PartnersTable() {
               onClick={() => {
                 // Always create a new view
                 const viewName = viewNameInput.trim();
-                const viewDescription = (document.getElementById('viewDescription') as HTMLTextAreaElement).value;
                 
                 if (!viewName) {
                   toast({
@@ -1530,7 +1518,7 @@ function PartnersTable() {
                 const newView: SavedView = {
                   id: `view-${Date.now()}`,
                   name: viewName,
-                  description: viewDescription || undefined,
+                  description: undefined,
                   filters: {
                     searchText: filterText || undefined,
                     status: selectedStatus || undefined,
