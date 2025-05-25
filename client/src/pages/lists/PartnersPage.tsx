@@ -238,7 +238,15 @@ function PartnersTable() {
   
   // Function to handle navigation with unsaved changes
   const handleNavigationWithUnsavedChanges = (action: { type: 'select' | 'clear', list?: SavedList }) => {
-    if (hasUnsavedChanges && activeList && !isEditingList) {
+    // Check if we're in list editing mode with unsaved changes
+    if (isEditingList && activeList && !activeList.isDefault) {
+      // Store the pending action and show confirmation dialog
+      setPendingListAction(action);
+      setShowUnsavedChangesModal(true);
+      return true; // Navigation was interrupted
+    }
+    // Fall back to regular filter changes check
+    else if (hasUnsavedChanges && activeList && !isEditingList) {
       // Store the pending action and show confirmation dialog
       setPendingListAction(action);
       setShowUnsavedChangesModal(true);
@@ -515,8 +523,8 @@ function PartnersTable() {
                                 return;
                               }
                               
-                              // Check for unsaved changes before switching lists
-                              if (hasUnsavedChanges && activeList) {
+                              // Check for unsaved changes or editing mode before switching lists
+                              if ((hasUnsavedChanges && activeList) || isEditingList) {
                                 // Store the pending action and show confirmation dialog
                                 setPendingListAction({
                                   type: list.isDefault && list.name === "All Partners" ? 'clear' : 'select',
@@ -1970,7 +1978,10 @@ function PartnersTable() {
           <DialogHeader>
             <DialogTitle>Unsaved Changes</DialogTitle>
             <DialogDescription>
-              You have unsaved changes to the current list. What would you like to do?
+              {isEditingList 
+                ? "You're currently editing this list and have unsaved changes. What would you like to do?"
+                : "You have unsaved changes to the current list. What would you like to do?"
+              }
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex justify-end space-x-2 mt-6">
@@ -1987,7 +1998,17 @@ function PartnersTable() {
             <Button 
               variant="secondary"
               onClick={() => {
-                // Discard changes and proceed with the pending action
+                // Handle exit from list editing mode if needed
+                if (isEditingList) {
+                  // Exit editing mode without saving changes
+                  setIsEditingList(false);
+                  // Reset the edited list members back to original
+                  if (activeList && activeList.members) {
+                    setEditedListMembers([...activeList.members]);
+                  }
+                }
+                
+                // Then proceed with the pending action
                 if (pendingListAction?.type === 'select' && pendingListAction.list) {
                   // Switch to the selected list
                   const list = pendingListAction.list;
@@ -2022,8 +2043,24 @@ function PartnersTable() {
             </Button>
             <Button 
               onClick={() => {
-                // Save changes first
-                if (activeList && !activeList.isDefault) {
+                // Handle different types of unsaved changes
+                if (isEditingList && activeList && !activeList.isDefault) {
+                  // We're in list editing mode, save the member changes
+                  const updatedList = {
+                    ...activeList,
+                    members: editedListMembers
+                  };
+                  
+                  // Update in saved lists
+                  setSavedLists(savedLists.map(list => 
+                    list.id === activeList.id ? updatedList : list
+                  ));
+                  
+                  // Exit editing mode
+                  setIsEditingList(false);
+                } 
+                // Handle filter changes (non-editing mode)
+                else if (activeList && !activeList.isDefault) {
                   const updatedList = {
                     ...activeList,
                     filters: {
