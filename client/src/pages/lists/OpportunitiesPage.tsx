@@ -847,10 +847,10 @@ function OpportunitiesTable() {
             </div>
           </div>
           
-          {/* Bottom row with search and filters */}
+          {/* Bottom row with search */}
           <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-3 flex-grow">
-              {/* Search field - moved to second row */}
+              {/* Search field */}
               <div className="relative w-60">
                 <input
                   type="text"
@@ -864,44 +864,6 @@ function OpportunitiesTable() {
                     <circle cx="11" cy="11" r="8"></circle>
                     <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                   </svg>
-                </button>
-              </div>
-              
-              {/* Filters - placed alongside search */}
-              <div className="flex gap-2 flex-wrap">
-                <button 
-                  className={`flex items-center space-x-1 px-3 py-2 border rounded-md text-sm ${selectedStatus ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
-                  onClick={() => setSelectedStatus(selectedStatus ? '' : 'In Progress')}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={selectedStatus ? 'text-indigo-500' : 'text-gray-500'}>
-                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                  </svg>
-                  <span>Status{selectedStatus ? `: ${selectedStatus}` : ''}</span>
-                  {selectedStatus && (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                      <path d="M18 6 6 18"></path>
-                      <path d="m6 6 12 12"></path>
-                    </svg>
-                  )}
-                </button>
-                
-                <button 
-                  className={`flex items-center space-x-1 px-3 py-2 border rounded-md text-sm ${selectedType ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
-                  onClick={() => setSelectedType(selectedType ? '' : 'Renewal')}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={selectedType ? 'text-indigo-500' : 'text-gray-500'}>
-                    <path d="m2 2 20 20"></path>
-                    <path d="M5.5 13.5C7 15 9 16 11.5 16"></path>
-                    <path d="M11.5 8c2.5 0 4.5 1 6 2.5"></path>
-                    <path d="M15.5 13.5c1.5 1.5 3.5 2.5 6 2.5"></path>
-                  </svg>
-                  <span>Type{selectedType ? `: ${selectedType}` : ''}</span>
-                  {selectedType && (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                      <path d="M18 6 6 18"></path>
-                      <path d="m6 6 12 12"></path>
-                    </svg>
-                  )}
                 </button>
               </div>
             </div>
