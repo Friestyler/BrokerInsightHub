@@ -566,6 +566,9 @@ function PartnersTable() {
                                 setSelectedType(list.filters.type || '');
                                 setHasUnsavedChanges(false);
                               }
+                              
+                              // Clear any active view when switching lists
+                              setActiveView(null);
                               setShowListsDropdown(false);
                             }}
                           >
