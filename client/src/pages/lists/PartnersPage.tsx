@@ -303,9 +303,17 @@ function PartnersTable() {
   const [isCreatingNewList, setIsCreatingNewList] = useState(false); // Default to adding to existing list
   const [selectedExistingList, setSelectedExistingList] = useState<string | null>(null);
     
-  // Filter partners based on search text and filter selections
+  // Filter partners based on search text, filter selections, and list membership
   const displayedPartners = mockPartners
     .filter(partner => {
+      // If we have an active list that's not a default list, filter by membership
+      if (activeList && !activeList.isDefault && activeList.type === 'selection') {
+        // Only show partners that are members of the active list
+        if (!activeList.members.includes(partner.id)) {
+          return false;
+        }
+      }
+      
       const matchesText = !filterText || 
         partner.name.toLowerCase().includes(filterText.toLowerCase()) ||
         partner.industry.toLowerCase().includes(filterText.toLowerCase()) ||
