@@ -1629,42 +1629,99 @@ function PartnersTable() {
                   </div>
                 </div>
                 
-                {/* Individual Partners */}
-                {mockPartners.map(partner => (
-                  <div key={partner.id} className="p-2 border-b hover:bg-gray-50">
-                    <div className="flex items-center">
-                      <Checkbox id={`share-partner-${partner.id}`} className="mr-2" />
-                      <Label htmlFor={`share-partner-${partner.id}`} className="text-sm font-normal cursor-pointer flex-grow">
+                {/* Individual Partners with Contact Selection */}
+                {mockPartners.map(partner => {
+                  // Mock contacts for each partner
+                  const partnerContacts = [
+                    { id: 1, name: `${partner.name.split(' ')[0]} Manager`, email: `manager@${partner.name.toLowerCase().replace(/\s+/g, '')}.com`, role: 'Primary Contact' },
+                    { id: 2, name: `${partner.name.split(' ')[0]} Sales`, email: `sales@${partner.name.toLowerCase().replace(/\s+/g, '')}.com`, role: 'Sales Lead' },
+                    { id: 3, name: `${partner.name.split(' ')[0]} Admin`, email: `admin@${partner.name.toLowerCase().replace(/\s+/g, '')}.com`, role: 'Administrator' }
+                  ];
+
+                  return (
+                    <div key={partner.id} className="border-b">
+                      {/* Partner Header */}
+                      <div className="p-2 hover:bg-gray-50">
                         <div className="flex items-center">
-                          <Avatar className="h-6 w-6 mr-2 bg-indigo-100 text-indigo-600">
-                            <AvatarFallback className="text-xs">{partner.initials}</AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <div className="font-medium">{partner.name}</div>
-                            <div className="text-xs text-gray-500">{partner.industry} • {partner.type}</div>
-                          </div>
+                          <Checkbox 
+                            id={`share-partner-${partner.id}`} 
+                            className="mr-2"
+                            onCheckedChange={(checked) => {
+                              // When partner is selected/deselected, toggle all their contacts
+                              partnerContacts.forEach(contact => {
+                                const contactCheckbox = document.querySelector(`input[id="contact-${partner.id}-${contact.id}"]`) as HTMLInputElement;
+                                if (contactCheckbox) contactCheckbox.checked = checked === true;
+                              });
+                            }}
+                          />
+                          <Label htmlFor={`share-partner-${partner.id}`} className="text-sm font-normal cursor-pointer flex-grow">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center">
+                                <Avatar className="h-6 w-6 mr-2 bg-indigo-100 text-indigo-600">
+                                  <AvatarFallback className="text-xs">{partner.initials}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <div className="font-medium">{partner.name}</div>
+                                  <div className="text-xs text-gray-500">{partner.industry} • {partner.type}</div>
+                                </div>
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                {partnerContacts.length} contacts
+                              </div>
+                            </div>
+                          </Label>
                         </div>
-                      </Label>
+                      </div>
+                      
+                      {/* Partner Contacts - shown when partner is expanded */}
+                      <div className="pl-8 pr-2 pb-2 bg-gray-25">
+                        {partnerContacts.map(contact => (
+                          <div key={contact.id} className="flex items-center py-1.5 px-2 hover:bg-gray-100 rounded">
+                            <Checkbox 
+                              id={`contact-${partner.id}-${contact.id}`} 
+                              className="mr-2 h-3 w-3"
+                              onCheckedChange={() => {
+                                // Check if all contacts for this partner are selected
+                                const allContactsSelected = partnerContacts.every(c => {
+                                  const cb = document.querySelector(`input[id="contact-${partner.id}-${c.id}"]`) as HTMLInputElement;
+                                  return cb?.checked;
+                                });
+                                
+                                // Update partner checkbox accordingly
+                                const partnerCheckbox = document.querySelector(`input[id="share-partner-${partner.id}"]`) as HTMLInputElement;
+                                if (partnerCheckbox) partnerCheckbox.checked = allContactsSelected;
+                              }}
+                            />
+                            <Label htmlFor={`contact-${partner.id}-${contact.id}`} className="text-xs cursor-pointer flex-grow">
+                              <div className="flex items-center justify-between">
+                                <div>
+                                  <div className="font-medium text-gray-800">{contact.name}</div>
+                                  <div className="text-gray-500">{contact.email}</div>
+                                </div>
+                                <div className="text-gray-400 text-xs">
+                                  {contact.role}
+                                </div>
+                              </div>
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
               
-              {/* Contact Selection for Selected Partners */}
-              <div className="mt-2">
-                <Label className="mb-2 block">Contact Selection</Label>
-                <div className="space-y-2">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox id="share-primary-contacts" defaultChecked />
-                    <Label htmlFor="share-primary-contacts" className="text-sm font-normal">
-                      Share with primary contacts only
-                    </Label>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <Checkbox id="share-all-contacts" />
-                    <Label htmlFor="share-all-contacts" className="text-sm font-normal">
-                      Share with all contacts at selected partners
-                    </Label>
+              {/* Instructions for contact selection */}
+              <div className="mt-2 p-3 bg-blue-50 rounded-md">
+                <div className="flex items-start">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 mt-0.5 flex-shrink-0">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                  </svg>
+                  <div className="text-sm text-blue-800">
+                    <div className="font-medium mb-1">Select specific contacts</div>
+                    <div>Check individual partners to select all their contacts, or expand and choose specific contacts for granular sharing control.</div>
                   </div>
                 </div>
               </div>
@@ -1736,43 +1793,44 @@ function PartnersTable() {
             </DialogClose>
             <Button onClick={() => {
               // Handle sharing logic for both list and bulk partner sharing
-              const sharePartnerCheckboxes = document.querySelectorAll('input[id^="share-partner-"]:checked');
               const canEdit = (document.getElementById('canEdit') as HTMLInputElement)?.checked || false;
               const canShare = (document.getElementById('canShare') as HTMLInputElement)?.checked || false;
               const canView = (document.getElementById('canView') as HTMLInputElement)?.checked || true;
               const message = (document.getElementById('shareMessage') as HTMLTextAreaElement)?.value || '';
-              const primaryContactsOnly = (document.getElementById('share-primary-contacts') as HTMLInputElement)?.checked || true;
               
-              // Extract recipient partner IDs from share modal checkboxes
-              const recipientPartnerIds = Array.from(sharePartnerCheckboxes)
-                .map(checkbox => checkbox.id.replace('share-partner-', ''))
-                .filter(id => id); // Remove empty IDs
+              // Collect all selected contact emails
+              const selectedContactEmails: string[] = [];
+              const selectedPartnerNames: string[] = [];
               
-              if (recipientPartnerIds.length === 0) {
+              mockPartners.forEach(partner => {
+                const partnerContacts = [
+                  { id: 1, name: `${partner.name.split(' ')[0]} Manager`, email: `manager@${partner.name.toLowerCase().replace(/\s+/g, '')}.com`, role: 'Primary Contact' },
+                  { id: 2, name: `${partner.name.split(' ')[0]} Sales`, email: `sales@${partner.name.toLowerCase().replace(/\s+/g, '')}.com`, role: 'Sales Lead' },
+                  { id: 3, name: `${partner.name.split(' ')[0]} Admin`, email: `admin@${partner.name.toLowerCase().replace(/\s+/g, '')}.com`, role: 'Administrator' }
+                ];
+                
+                let hasSelectedContacts = false;
+                partnerContacts.forEach(contact => {
+                  const contactCheckbox = document.querySelector(`input[id="contact-${partner.id}-${contact.id}"]`) as HTMLInputElement;
+                  if (contactCheckbox?.checked) {
+                    selectedContactEmails.push(contact.email);
+                    hasSelectedContacts = true;
+                  }
+                });
+                
+                if (hasSelectedContacts && !selectedPartnerNames.includes(partner.name)) {
+                  selectedPartnerNames.push(partner.name);
+                }
+              });
+              
+              if (selectedContactEmails.length === 0) {
                 toast({
-                  title: "No recipients selected",
-                  description: "Please select at least one partner to share with.",
+                  title: "No contacts selected",
+                  description: "Please select at least one contact to share with.",
                   variant: "destructive"
                 });
                 return;
               }
-
-              // Generate recipient emails based on selected partners
-              const recipientEmails = recipientPartnerIds.flatMap(partnerId => {
-                const partner = mockPartners.find(p => p.id.toString() === partnerId);
-                if (!partner) return [];
-                
-                if (primaryContactsOnly) {
-                  // Return primary contact email (simplified)
-                  return [`primary@${partner.name.toLowerCase().replace(/\s+/g, '')}.com`];
-                } else {
-                  // Return all contact emails (simplified)
-                  return [
-                    `primary@${partner.name.toLowerCase().replace(/\s+/g, '')}.com`,
-                    `secondary@${partner.name.toLowerCase().replace(/\s+/g, '')}.com`
-                  ];
-                }
-              });
 
               // Determine what's being shared
               const isListShare = selectedPartners.length === 0;
@@ -1785,7 +1843,7 @@ function PartnersTable() {
                     return {
                       ...list,
                       isShared: true,
-                      sharedWith: [...(list.sharedWith || []), ...recipientEmails]
+                      sharedWith: [...(list.sharedWith || []), ...selectedContactEmails]
                     };
                   }
                   return list;
@@ -1796,18 +1854,18 @@ function PartnersTable() {
 
                 toast({
                   title: "List shared successfully",
-                  description: `"${activeList.name}" has been shared with ${recipientPartnerIds.length} partner${recipientPartnerIds.length > 1 ? 's' : ''}.`
+                  description: `"${activeList.name}" has been shared with ${selectedContactEmails.length} contact${selectedContactEmails.length > 1 ? 's' : ''} at ${selectedPartnerNames.length} partner${selectedPartnerNames.length > 1 ? 's' : ''}.`
                 });
               } else if (isBulkPartnerShare) {
                 // Sharing selected partner records
-                const selectedPartnerNames = selectedPartners
+                const bulkPartnerNames = selectedPartners
                   .map(id => mockPartners.find(p => p.id === id)?.name)
                   .filter(Boolean)
                   .slice(0, 3);
 
                 toast({
                   title: "Partners shared successfully",
-                  description: `${selectedPartners.length} partner record${selectedPartners.length > 1 ? 's' : ''} (${selectedPartnerNames.join(', ')}${selectedPartners.length > 3 ? '...' : ''}) shared with ${recipientPartnerIds.length} recipient${recipientPartnerIds.length > 1 ? 's' : ''}.`
+                  description: `${selectedPartners.length} partner record${selectedPartners.length > 1 ? 's' : ''} (${bulkPartnerNames.join(', ')}${selectedPartners.length > 3 ? '...' : ''}) shared with ${selectedContactEmails.length} contact${selectedContactEmails.length > 1 ? 's' : ''} at ${selectedPartnerNames.length} partner${selectedPartnerNames.length > 1 ? 's' : ''}.`
                 });
 
                 // Clear selection after sharing
