@@ -1136,7 +1136,7 @@ function PartnersTable() {
                 <polyline points="17 21 17 13 7 13 7 21"></polyline>
                 <polyline points="7 3 7 8 15 8"></polyline>
               </svg>
-              Create List
+              Add to List
             </Button>
             
             <Button 
