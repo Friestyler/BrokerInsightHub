@@ -1107,20 +1107,20 @@ function PartnersTable() {
       </div>
       {/* Selection actions bar - visible when items are selected */}
       {selectedPartners.length > 0 && (
-        <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between mb-4">
+        <div className="bg-slate-800 text-white p-4 rounded-lg flex flex-wrap items-center justify-between mb-4 shadow-lg">
           <div className="flex items-center">
-            <span className="text-indigo-700 font-medium mr-2">{selectedPartners.length} partners selected</span>
+            <span className="text-white font-medium mr-3">{selectedPartners.length} selected</span>
             <Button 
               variant="ghost" 
               size="sm"
-              className="text-gray-600"
+              className="text-white hover:bg-slate-700 h-8 px-3"
               onClick={() => setSelectedPartners([])}
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
                 <path d="M18 6 6 18"></path>
                 <path d="m6 6 12 12"></path>
               </svg>
-              Clear selection
+              Clear
             </Button>
           </div>
           
@@ -1128,7 +1128,7 @@ function PartnersTable() {
             <Button 
               variant="outline" 
               size="sm"
-              className="text-indigo-600"
+              className="bg-white text-slate-800 border-white hover:bg-gray-100 h-8 px-3"
               onClick={() => setShowSaveListModal(true)}
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
@@ -1142,7 +1142,21 @@ function PartnersTable() {
             <Button 
               variant="outline" 
               size="sm"
-              className="text-indigo-600"
+              className="bg-white text-slate-800 border-white hover:bg-gray-100 h-8 px-3"
+              onClick={() => setShowShareListModal(true)}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+                <polyline points="16 6 12 2 8 6"></polyline>
+                <line x1="12" y1="2" x2="12" y2="15"></line>
+              </svg>
+              Share
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="bg-white text-slate-800 border-white hover:bg-gray-100 h-8 px-3"
               onClick={() => {
                 // TODO: Implement campaign creation
                 alert('Selected partners can be added to a campaign. This will be available in the Campaigns section');
@@ -1152,12 +1166,13 @@ function PartnersTable() {
                 <path d="M22 2 11 13" />
                 <path d="M22 2 15 22 11 13 2 9 22 2z" />
               </svg>
-              Add to Campaign
+              Plans
             </Button>
             
             <Button 
               variant="outline" 
               size="sm"
+              className="bg-white text-slate-800 border-white hover:bg-gray-100 h-8 px-3"
               onClick={() => {
                 // TODO: Implement template assignment
                 alert('Assign template functionality will be implemented in future');
@@ -1167,7 +1182,58 @@ function PartnersTable() {
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
                 <polyline points="22 4 12 14.01 9 11.01"></polyline>
               </svg>
-              Assign Template
+              Assign
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="bg-white text-slate-800 border-white hover:bg-gray-100 h-8 px-3"
+              onClick={() => {
+                // TODO: Implement export functionality
+                alert('Export functionality will be implemented in future');
+              }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              Export
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="bg-white text-slate-800 border-white hover:bg-gray-100 h-8 px-3"
+              onClick={() => {
+                // TODO: Implement archive functionality
+                alert('Archive functionality will be implemented in future');
+              }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                <path d="M21 8v13H3V8"></path>
+                <path d="M1 3h22v5H1z"></path>
+                <path d="M10 12h4"></path>
+              </svg>
+              Archive
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="bg-white text-slate-800 border-white hover:bg-gray-100 h-8 px-3"
+              onClick={() => {
+                // TODO: Implement more options
+                alert('More options will be available in future updates');
+              }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                <circle cx="12" cy="12" r="1"></circle>
+                <circle cx="12" cy="5" r="1"></circle>
+                <circle cx="12" cy="19" r="1"></circle>
+              </svg>
+              More
             </Button>
           </div>
         </div>
