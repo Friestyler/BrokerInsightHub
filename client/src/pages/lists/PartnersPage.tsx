@@ -236,17 +236,10 @@ function PartnersTable() {
     list?: SavedList;
   } | null>(null);
   
-  // Function to handle navigation with unsaved changes
+  // Function to handle navigation with unsaved changes in list editing
   const handleNavigationWithUnsavedChanges = (action: { type: 'select' | 'clear', list?: SavedList }) => {
     // Check if we're in list editing mode with unsaved changes
     if (isEditingList && activeList && !activeList.isDefault) {
-      // Store the pending action and show confirmation dialog
-      setPendingListAction(action);
-      setShowUnsavedChangesModal(true);
-      return true; // Navigation was interrupted
-    }
-    // Fall back to regular filter changes check
-    else if (hasUnsavedChanges && activeList && !isEditingList) {
       // Store the pending action and show confirmation dialog
       setPendingListAction(action);
       setShowUnsavedChangesModal(true);
@@ -523,8 +516,8 @@ function PartnersTable() {
                                 return;
                               }
                               
-                              // Check for unsaved changes or editing mode before switching lists
-                              if ((hasUnsavedChanges && activeList) || isEditingList) {
+                              // Check if we're in list editing mode before switching lists
+                              if (isEditingList) {
                                 // Store the pending action and show confirmation dialog
                                 setPendingListAction({
                                   type: list.isDefault && list.name === "All Partners" ? 'clear' : 'select',
@@ -1978,10 +1971,7 @@ function PartnersTable() {
           <DialogHeader>
             <DialogTitle>Unsaved Changes</DialogTitle>
             <DialogDescription>
-              {isEditingList 
-                ? "You're currently editing this list and have unsaved changes. What would you like to do?"
-                : "You have unsaved changes to the current list. What would you like to do?"
-              }
+              You're currently editing this list and have unsaved changes. What would you like to do?
             </DialogDescription>
           </DialogHeader>
           <DialogFooter className="flex justify-end space-x-2 mt-6">
@@ -2043,9 +2033,9 @@ function PartnersTable() {
             </Button>
             <Button 
               onClick={() => {
-                // Handle different types of unsaved changes
-                if (isEditingList && activeList && !activeList.isDefault) {
-                  // We're in list editing mode, save the member changes
+                // Save list member changes 
+                if (activeList && !activeList.isDefault) {
+                  // Save the member changes
                   const updatedList = {
                     ...activeList,
                     members: editedListMembers
@@ -2058,26 +2048,6 @@ function PartnersTable() {
                   
                   // Exit editing mode
                   setIsEditingList(false);
-                } 
-                // Handle filter changes (non-editing mode)
-                else if (activeList && !activeList.isDefault) {
-                  const updatedList = {
-                    ...activeList,
-                    filters: {
-                      searchText: filterText || undefined,
-                      status: selectedStatus || undefined,
-                      industry: selectedIndustry || undefined,
-                      type: selectedType || undefined,
-                      size: originalListFilters?.size // Preserve size filter if it exists
-                    }
-                  };
-                  
-                  // Update the list in the savedLists array
-                  const updatedLists = savedLists.map(list => 
-                    list.id === activeList.id ? updatedList : list
-                  );
-                  
-                  setSavedLists(updatedLists);
                   
                   // Then proceed with the pending action
                   if (pendingListAction?.type === 'select' && pendingListAction.list) {
