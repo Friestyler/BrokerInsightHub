@@ -778,9 +778,9 @@ function PartnersTable() {
             </div>
           </div>
           
-          {/* Top row with search and views dropdown */}
+          {/* Top row with search, views dropdown and filter buttons */}
           <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
+            <div className="flex flex-wrap items-center gap-3">
               {/* Search field */}
               <div className="relative w-60">
                 <input
@@ -968,6 +968,27 @@ function PartnersTable() {
                 </>
               )}
             </div>
+            
+            {/* Clear filters button - shown when any filters are applied */}
+            {(filterText || selectedStatus || selectedIndustry || selectedType) && (
+              <div className="mt-2">
+                <button 
+                  className="flex items-center text-sm text-gray-500 hover:text-gray-700"
+                  onClick={() => {
+                    setFilterText('');
+                    setSelectedStatus('');
+                    setSelectedIndustry('');
+                    setSelectedType('');
+                  }}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                  Clear filters
+                </button>
+              </div>
+            )}
             
             {/* List editing actions - shown only for non-default lists with unsaved changes */}
             {hasUnsavedChanges && activeList && !activeList.isDefault && (
