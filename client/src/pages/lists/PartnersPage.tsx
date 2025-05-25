@@ -934,23 +934,6 @@ function PartnersTable() {
               {/* Action buttons - shown when filters are applied */}
               {(filterText || selectedStatus || selectedIndustry || selectedType) && (
                 <>
-                  {/* Revert changes button */}
-                  <button 
-                    className="flex items-center rounded-md px-4 py-2 text-gray-600 hover:bg-gray-100"
-                    onClick={() => {
-                      setFilterText('');
-                      setSelectedStatus('');
-                      setSelectedIndustry('');
-                      setSelectedType('');
-                    }}
-                    style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5F6585" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                      <path d="M3 7v6h6"></path>
-                      <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
-                    </svg>
-                    <span className="text-[#5F6585]">Revert changes</span>
-                  </button>
                   
                   {/* Save as new view button */}
                   <button 
