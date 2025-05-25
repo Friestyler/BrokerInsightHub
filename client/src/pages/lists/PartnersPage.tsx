@@ -1893,7 +1893,6 @@ function PartnersTable() {
           </tbody>
         </table>
       </div>
-      
       {/* Rename List Dialog */}
       <Dialog open={showRenameListModal} onOpenChange={setShowRenameListModal}>
         <DialogContent className="sm:max-w-md" style={{ background: '#ffffff', color: '#282A3F', padding: '32px' }}>
@@ -1949,7 +1948,6 @@ function PartnersTable() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
       {/* Delete List Dialog */}
       <Dialog open={showDeleteListModal} onOpenChange={setShowDeleteListModal}>
         <DialogContent className="sm:max-w-md" style={{ background: '#ffffff', color: '#282A3F', padding: '32px' }}>
@@ -1970,7 +1968,7 @@ function PartnersTable() {
               Cancel
             </Button>
             <Button 
-              variant="destructive"
+              className="text-[#FFFFFF] bg-[#D3321D] pl-[14px] pr-[14px] ml-[12px] mr-[12px] hover:bg-destructive/90"
               onClick={() => {
                 if (listToDelete) {
                   // Prevent deletion of system lists
@@ -2020,13 +2018,10 @@ function PartnersTable() {
                   setShowListsDropdown(false);
                 }
               }}
-            >
-              Delete
-            </Button>
+            >Delete list</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
       {/* Unsaved Changes Confirmation Dialog */}
       <Dialog open={showUnsavedChangesModal} onOpenChange={setShowUnsavedChangesModal}>
         <DialogContent className="sm:max-w-md" style={{ background: '#ffffff', color: '#282A3F', padding: '32px' }}>
