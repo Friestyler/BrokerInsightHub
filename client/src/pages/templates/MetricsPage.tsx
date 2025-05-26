@@ -791,37 +791,49 @@ export default function MetricsPage() {
                   className={`w-[160px] px-3 py-2 border border-gray-300 rounded-md text-sm ${!selectedMeasureUnit && !showNoTarget ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white'}`}
                 />
 
-                <Select value={selectedTimeframe} onValueChange={(value) => {
-                  if (value === "clear") {
-                    setSelectedTimeframe("");
-                  } else {
-                    setSelectedTimeframe(value);
-                  }
-                }}>
-                  <SelectTrigger className="w-[140px] bg-white">
-                    <SelectValue placeholder="Timeframe" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="monthly">Monthly</SelectItem>
-                    <SelectItem value="quarterly">Quarterly</SelectItem>
-                    <SelectItem value="yearly">Yearly</SelectItem>
-                    <SelectItem value="ongoing">Ongoing</SelectItem>
-                    {selectedTimeframe && (
-                      <>
-                        <div className="border-t border-gray-200 my-1"></div>
-                        <SelectItem value="clear" className="text-gray-600">
-                          <div className="flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                              <path d="M18 6L6 18"></path>
-                              <path d="M6 6l12 12"></path>
-                            </svg>
-                            Clear filter
-                          </div>
-                        </SelectItem>
-                      </>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-[240px] justify-start text-left font-normal bg-white"
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {dateRange?.from ? (
+                        dateRange.to ? (
+                          <>
+                            {format(dateRange.from, "LLL dd, y")} -{" "}
+                            {format(dateRange.to, "LLL dd, y")}
+                          </>
+                        ) : (
+                          format(dateRange.from, "LLL dd, y")
+                        )
+                      ) : (
+                        <span>Pick a date range</span>
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      initialFocus
+                      mode="range"
+                      defaultMonth={dateRange?.from}
+                      selected={dateRange}
+                      onSelect={setDateRange}
+                      numberOfMonths={2}
+                    />
+                    {(dateRange?.from || dateRange?.to) && (
+                      <div className="p-3 border-t">
+                        <Button
+                          variant="ghost"
+                          onClick={() => setDateRange({ from: undefined, to: undefined })}
+                          className="w-full text-sm"
+                        >
+                          Clear date range
+                        </Button>
+                      </div>
                     )}
-                  </SelectContent>
-                </Select>
+                  </PopoverContent>
+                </Popover>
 
                 <div className="flex items-center gap-2">
                   <label className="flex items-center cursor-pointer">
