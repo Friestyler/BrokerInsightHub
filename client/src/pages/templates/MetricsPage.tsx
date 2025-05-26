@@ -1125,8 +1125,9 @@ export default function MetricsPage() {
                     <TagBadge tag={tag} />
                   </div>
                 </div>
-                <Table className="border-b" style={{ borderColor: '#E6E7F1' }}>
-                  <TableHeader>
+                <div className="overflow-x-auto">
+                  <Table className="border-b min-w-full" style={{ borderColor: '#E6E7F1' }}>
+                    <TableHeader>
                     <TableRow className="border-b" style={{ borderColor: '#E6E7F1' }}>
                       <TableHead className="w-12 px-3 py-2">
                         <input
@@ -1143,7 +1144,7 @@ export default function MetricsPage() {
                         />
                       </TableHead>
                       <TableHead 
-                        className="px-3 py-2"
+                        className="px-3 py-2 min-w-[250px]"
                         style={{ 
                           fontFamily: 'Poppins', 
                           fontWeight: '500', 
@@ -1154,7 +1155,18 @@ export default function MetricsPage() {
                         OKR Name
                       </TableHead>
                       <TableHead 
-                        className="px-3 py-2"
+                        className="px-3 py-2 min-w-[120px]"
+                        style={{ 
+                          fontFamily: 'Poppins', 
+                          fontWeight: '500', 
+                          fontSize: '13px', 
+                          color: '#696C8C' 
+                        }}
+                      >
+                        Timeframe
+                      </TableHead>
+                      <TableHead 
+                        className="px-3 py-2 min-w-[150px]"
                         style={{ 
                           fontFamily: 'Poppins', 
                           fontWeight: '500', 
@@ -1165,7 +1177,7 @@ export default function MetricsPage() {
                         Milestone Frequency
                       </TableHead>
                       <TableHead 
-                        className="text-right px-3 py-2"
+                        className="text-right px-3 py-2 min-w-[120px]"
                         style={{ 
                           fontFamily: 'Poppins', 
                           fontWeight: '500', 
@@ -1176,7 +1188,7 @@ export default function MetricsPage() {
                         Target
                       </TableHead>
                       <TableHead 
-                        className="px-3 py-2"
+                        className="px-3 py-2 min-w-[100px]"
                         style={{ 
                           fontFamily: 'Poppins', 
                           fontWeight: '500', 
@@ -1187,7 +1199,7 @@ export default function MetricsPage() {
                         Tags
                       </TableHead>
                       <TableHead 
-                        className="text-right px-3 py-2"
+                        className="text-right px-3 py-2 min-w-[80px]"
                         style={{ 
                           fontFamily: 'Poppins', 
                           fontWeight: '500', 
@@ -1243,6 +1255,11 @@ export default function MetricsPage() {
                               </Tooltip>
                             </TooltipProvider>
                           </div>
+                        </TableCell>
+                        <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
+                          <span className="text-sm">
+                            Quarterly
+                          </span>
                         </TableCell>
                         <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
                           <span className="text-sm">
@@ -1306,8 +1323,9 @@ export default function MetricsPage() {
                         </TableCell>
                       </TableRow>
                     ))}
-                  </TableBody>
-                </Table>
+                    </TableBody>
+                  </Table>
+                </div>
               </div>
             );
           })}
