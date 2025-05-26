@@ -1673,46 +1673,157 @@ function OpportunitiesTable() {
                         });
                       }}
                     />
-                    <Label htmlFor="select-all-partners" className="font-medium text-sm">
-                      Select All Partners
+                    <Label htmlFor="select-all-partners" className="text-sm font-medium cursor-pointer flex-grow">
+                      Select All Partners ({mockPartners.length})
                     </Label>
                   </div>
                 </div>
                 
-                {/* Individual Partner Options */}
-                {mockPartners.map(partner => (
-                  <div key={partner.id} className="p-2 hover:bg-gray-50 border-b last:border-b-0">
-                    <div className="flex items-center">
-                      <Checkbox 
-                        id={`share-partner-${partner.id}`}
-                        className="mr-3"
-                      />
-                      <div className="flex-1 flex items-center">
-                        <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center mr-3">
-                          <span className="text-xs font-medium text-indigo-600">
-                            {partner.company.substring(0, 2).toUpperCase()}
-                          </span>
-                        </div>
-                        <div>
-                          <div className="font-medium text-sm text-gray-900">{partner.company}</div>
-                          <div className="text-xs text-gray-500">{partner.industry}</div>
+                {/* Individual Partners with Contact Selection */}
+                {mockPartners.map(partner => {
+                  // Mock contacts for each partner
+                  const partnerContacts = [
+                    { id: 1, name: `${partner.company.split(' ')[0]} Manager`, email: `manager@${partner.company.toLowerCase().replace(/\s+/g, '')}.com`, role: 'Primary Contact' },
+                    { id: 2, name: `${partner.company.split(' ')[0]} Sales`, email: `sales@${partner.company.toLowerCase().replace(/\s+/g, '')}.com`, role: 'Sales Lead' },
+                    { id: 3, name: `${partner.company.split(' ')[0]} Admin`, email: `admin@${partner.company.toLowerCase().replace(/\s+/g, '')}.com`, role: 'Administrator' }
+                  ];
+
+                  return (
+                    <div key={partner.id} className="border-b">
+                      {/* Partner Header */}
+                      <div className="p-2 hover:bg-gray-50">
+                        <div className="flex items-center">
+                          <Checkbox 
+                            id={`share-partner-${partner.id}`} 
+                            className="mr-2"
+                            onCheckedChange={(checked) => {
+                              // When partner is selected/deselected, toggle all their contacts
+                              partnerContacts.forEach(contact => {
+                                const contactCheckbox = document.querySelector(`input[id="contact-${partner.id}-${contact.id}"]`) as HTMLInputElement;
+                                if (contactCheckbox) contactCheckbox.checked = checked === true;
+                              });
+                            }}
+                          />
+                          <Label htmlFor={`share-partner-${partner.id}`} className="text-sm font-normal cursor-pointer flex-grow">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center">
+                                <Avatar className="h-6 w-6 mr-2 bg-indigo-100 text-indigo-600">
+                                  <AvatarFallback className="text-xs">{partner.company.substring(0, 2).toUpperCase()}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <div className="font-medium">{partner.company}</div>
+                                  <div className="text-xs text-gray-500">{partner.industry} • {partner.partnerType}</div>
+                                </div>
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                {partnerContacts.length} contacts
+                              </div>
+                            </div>
+                          </Label>
                         </div>
                       </div>
+                      
+                      {/* Partner Contacts - shown when partner is expanded */}
+                      <div className="pl-8 pr-2 pb-2 bg-gray-25">
+                        {partnerContacts.map(contact => (
+                          <div key={contact.id} className="flex items-center py-1.5 px-2 hover:bg-gray-100 rounded">
+                            <Checkbox 
+                              id={`contact-${partner.id}-${contact.id}`} 
+                              className="mr-2 h-3 w-3"
+                              onCheckedChange={() => {
+                                // Check if all contacts for this partner are selected
+                                const allContactsSelected = partnerContacts.every(c => {
+                                  const cb = document.querySelector(`input[id="contact-${partner.id}-${c.id}"]`) as HTMLInputElement;
+                                  return cb?.checked;
+                                });
+                                
+                                // Update partner checkbox accordingly
+                                const partnerCheckbox = document.querySelector(`input[id="share-partner-${partner.id}"]`) as HTMLInputElement;
+                                if (partnerCheckbox) partnerCheckbox.checked = allContactsSelected;
+                              }}
+                            />
+                            <Label htmlFor={`contact-${partner.id}-${contact.id}`} className="text-xs cursor-pointer flex-grow">
+                              <div>
+                                <div className="font-medium text-gray-800">{contact.name}</div>
+                                <div className="text-gray-500">{contact.email}</div>
+                              </div>
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
                     </div>
+                  );
+                })}
+              </div>
+              
+              {/* Instructions for contact selection */}
+              <div className="mt-2 p-3 bg-blue-50 rounded-md">
+                <div className="flex items-start">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 mt-0.5 flex-shrink-0">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                  </svg>
+                  <div className="text-sm text-blue-800">
+                    <div className="font-medium mb-1">Select specific contacts</div>
+                    <div>Check individual partners to select all their contacts, or expand and choose specific contacts for granular sharing control.</div>
                   </div>
-                ))}
+                </div>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Permission Settings</Label>
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Checkbox id="canView" defaultChecked />
+                  <Label htmlFor="canView" className="text-sm font-normal">
+                    Can view this saved list
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox id="canEdit" />
+                  <Label htmlFor="canEdit" className="text-sm font-normal">
+                    Can edit this saved list
+                  </Label>
+                </div>
+
               </div>
             </div>
             
             <div className="grid gap-2">
-              <Label htmlFor="shareMessage">Message (Optional)</Label>
+              <Label htmlFor="shareMessage">Add a Message (Optional)</Label>
               <Textarea 
                 id="shareMessage" 
-                placeholder="Add a message to include with the shared opportunities"
-                rows={3}
-                maxLength={500}
+                placeholder="Include a note to the recipients"
+                rows={2}
               />
-              <p className="text-xs text-gray-500">Maximum 500 characters</p>
+            </div>
+            
+            {/* Copy Link Section */}
+            <div className="bg-gray-50 p-3 rounded-md">
+              <div className="flex justify-between items-center mb-2">
+                <div className="text-xs font-medium">Direct Link</div>
+                <div className="text-xs text-gray-500">Only accessible by people with permissions</div>
+              </div>
+              <div className="flex">
+                <Input 
+                  id="shareLink" 
+                  value={`https://qollabi.com/share/list/${activeList?.id}`}
+                  readOnly
+                  className="text-xs"
+                />
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="ml-2"
+                  onClick={() => {
+                    navigator.clipboard.writeText(`https://qollabi.com/share/list/${activeList?.id}`);
+                  }}
+                >
+                  Copy
+                </Button>
+              </div>
             </div>
           </div>
           
@@ -1721,38 +1832,85 @@ function OpportunitiesTable() {
               <Button variant="outline">Cancel</Button>
             </DialogClose>
             <Button onClick={() => {
-              // Get selected partners
-              const selectedPartnerIds: number[] = [];
+              // Handle sharing logic for both list and bulk opportunity sharing
+              const canEdit = (document.getElementById('canEdit') as HTMLInputElement)?.checked || false;
+              const canShare = (document.getElementById('canShare') as HTMLInputElement)?.checked || false;
+              const canView = (document.getElementById('canView') as HTMLInputElement)?.checked || true;
+              const message = (document.getElementById('shareMessage') as HTMLTextAreaElement)?.value || '';
+              
+              // Collect all selected contact emails
+              const selectedContactEmails: string[] = [];
+              const selectedPartnerNames: string[] = [];
+              
               mockPartners.forEach(partner => {
-                const checkbox = document.querySelector(`input[id="share-partner-${partner.id}"]`) as HTMLInputElement;
-                if (checkbox && checkbox.checked) {
-                  selectedPartnerIds.push(partner.id);
+                const partnerContacts = [
+                  { id: 1, name: `${partner.company.split(' ')[0]} Manager`, email: `manager@${partner.company.toLowerCase().replace(/\s+/g, '')}.com`, role: 'Primary Contact' },
+                  { id: 2, name: `${partner.company.split(' ')[0]} Sales`, email: `sales@${partner.company.toLowerCase().replace(/\s+/g, '')}.com`, role: 'Sales Lead' },
+                  { id: 3, name: `${partner.company.split(' ')[0]} Admin`, email: `admin@${partner.company.toLowerCase().replace(/\s+/g, '')}.com`, role: 'Administrator' }
+                ];
+                
+                let hasSelectedContacts = false;
+                partnerContacts.forEach(contact => {
+                  const contactCheckbox = document.querySelector(`input[id="contact-${partner.id}-${contact.id}"]`) as HTMLInputElement;
+                  if (contactCheckbox?.checked) {
+                    selectedContactEmails.push(contact.email);
+                    hasSelectedContacts = true;
+                  }
+                });
+                
+                if (hasSelectedContacts && !selectedPartnerNames.includes(partner.company)) {
+                  selectedPartnerNames.push(partner.company);
                 }
               });
               
-              if (selectedPartnerIds.length === 0) {
+              if (selectedContactEmails.length === 0) {
                 toast({
-                  title: "No Partners Selected", 
-                  description: "Please select at least one partner to share with",
+                  title: "No contacts selected",
+                  description: "Please select at least one contact to share with.",
                   variant: "destructive"
                 });
                 return;
               }
-              
-              const message = (document.getElementById('shareMessage') as HTMLTextAreaElement).value;
-              const selectedPartnerNames = selectedPartnerIds.map(id => {
-                const partner = mockPartners.find(p => p.id === id);
-                return partner?.company;
-              }).filter(Boolean);
-              
-              // Handle share functionality
-              toast({
-                title: "List Shared Successfully",
-                description: `Shared with ${selectedPartnerIds.length} partner${selectedPartnerIds.length > 1 ? 's' : ''}: ${selectedPartnerNames.slice(0, 2).join(', ')}${selectedPartnerIds.length > 2 ? ` and ${selectedPartnerIds.length - 2} more` : ''}`
-              });
-              
-              // Clear selection after sharing
-              setSelectedOpportunities([]);
+
+              // Determine what's being shared
+              const isListShare = selectedOpportunities.length === 0;
+              const isBulkOpportunityShare = selectedOpportunities.length > 0;
+
+              if (isListShare && activeList) {
+                // Sharing the entire list
+                const updatedLists = savedLists.map(list => {
+                  if (list.id === activeList.id) {
+                    return {
+                      ...list,
+                      isShared: true,
+                      sharedWith: [...(list.sharedWith || []), ...selectedContactEmails]
+                    };
+                  }
+                  return list;
+                });
+                
+                setSavedLists(updatedLists);
+                setActiveList(updatedLists.find(v => v.id === activeList.id) || null);
+
+                toast({
+                  title: "List shared successfully",
+                  description: `"${activeList.name}" has been shared with ${selectedContactEmails.length} contact${selectedContactEmails.length > 1 ? 's' : ''} at ${selectedPartnerNames.length} partner${selectedPartnerNames.length > 1 ? 's' : ''}.`
+                });
+              } else if (isBulkOpportunityShare) {
+                // Sharing selected opportunity records
+                const bulkOpportunityNames = selectedOpportunities
+                  .map(id => mockOpportunities.find(o => o.id === id)?.title)
+                  .filter(Boolean)
+                  .slice(0, 3);
+
+                toast({
+                  title: "Opportunities shared successfully",
+                  description: `${selectedOpportunities.length} opportunity record${selectedOpportunities.length > 1 ? 's' : ''} (${bulkOpportunityNames.join(', ')}${selectedOpportunities.length > 3 ? '...' : ''}) shared with ${selectedContactEmails.length} contact${selectedContactEmails.length > 1 ? 's' : ''} at ${selectedPartnerNames.length} partner${selectedPartnerNames.length > 1 ? 's' : ''}.`
+                });
+
+                // Clear selection after sharing
+                setSelectedOpportunities([]);
+              }
               
               setShowShareListModal(false);
             }}>
