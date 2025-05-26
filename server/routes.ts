@@ -689,7 +689,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/opportunities', async (req, res) => {
     try {
       const opportunities = await storage.getAllOpportunities();
-      res.json(opportunities);
+      
+      // Enrich opportunities with client and product information
+      const enrichedOpportunities = await Promise.all(
+        opportunities.map(async (opportunity) => {
+          const client = await storage.getClient(opportunity.clientId);
+          const product = await storage.getInsuranceProduct(opportunity.productId);
+          
+          return {
+            ...opportunity,
+            client: client ? {
+              id: client.id,
+              name: client.name,
+              type: client.type,
+              initials: client.initials
+            } : null,
+            product: product ? {
+              id: product.id,
+              name: product.name,
+              category: product.category
+            } : null
+          };
+        })
+      );
+      
+      res.json(enrichedOpportunities);
     } catch (error) {
       console.error('Error fetching opportunities:', error);
       res.status(500).json({ message: 'Failed to fetch opportunities' });

@@ -1295,9 +1295,15 @@ function OpportunitiesTable() {
                     </div>
                   </div>
                 </td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{`Client #${opportunity.clientId}`}</td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{`Product #${opportunity.productId}`}</td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{opportunity.type || 'Commercial'}</td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{(opportunity as any).client?.name || `Client #${opportunity.clientId}`}</td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{(opportunity as any).product?.name || `Product #${opportunity.productId}`}</td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm capitalize">
+                  {opportunity.type === 'new_business' ? 'New Business' :
+                   opportunity.type === 'cross_sell' ? 'Cross Sell' :
+                   opportunity.type === 'upsell' ? 'Upsell' :
+                   opportunity.type === 'renewal' ? 'Renewal' :
+                   opportunity.type || 'Commercial'}
+                </td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm capitalize">{opportunity.stage || 'Prospecting'}</td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
                   <Badge variant="secondary" className="capitalize">
