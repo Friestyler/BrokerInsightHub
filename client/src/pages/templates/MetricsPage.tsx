@@ -1759,10 +1759,10 @@ export default function MetricsPage() {
                             {/* Nested count icon with count */}
                             {okr.nestedCount > 0 && (
                               <div className="flex items-center ml-2">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                                  <circle cx="8" cy="8" r="6"/>
-                                  <path d="M18.09 10.37A6 6 0 1 1 10.37 18.09"/>
-                                  <circle cx="16" cy="16" r="6"/>
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-gray-400">
+                                  <circle cx="5" cy="5" r="3" stroke="currentColor" strokeWidth="1" fill="none"/>
+                                  <circle cx="11" cy="11" r="3" stroke="currentColor" strokeWidth="1" fill="none"/>
+                                  <line x1="7.5" y1="7.5" x2="8.5" y2="8.5" stroke="currentColor" strokeWidth="1"/>
                                 </svg>
                                 <span className="text-xs text-gray-500 ml-1">{okr.nestedCount}</span>
                               </div>
