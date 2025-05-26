@@ -690,36 +690,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Opportunities API endpoints
   app.get('/api/opportunities', async (req, res) => {
     try {
-      // Get opportunities with joined client and product data directly from database
-      const db = storage.getDb();
-      const enrichedOpportunities = await db
-        .select({
-          id: opportunities.id,
-          title: opportunities.title,
-          clientId: opportunities.clientId,
-          productId: opportunities.productId,
-          status: opportunities.status,
-          stage: opportunities.stage,
-          type: opportunities.type,
-          probability: opportunities.probability,
-          estimatedValue: opportunities.estimatedValue,
-          ownerId: opportunities.ownerId,
-          partnerId: opportunities.partnerId,
-          description: opportunities.description,
-          notes: opportunities.notes,
-          expectedCloseDate: opportunities.expectedCloseDate,
-          createdAt: opportunities.createdAt,
-          updatedAt: opportunities.updatedAt,
-          clientName: clients.name,
-          clientType: clients.type,
-          clientInitials: clients.initials,
-          productName: insuranceProducts.name,
-          productCategory: insuranceProducts.category
+      const opportunities = await storage.getAllOpportunities();
+      
+      // Enrich opportunities with client and product information
+      const enrichedOpportunities = await Promise.all(
+        opportunities.map(async (opportunity) => {
+          let clientName = `Client #${opportunity.clientId}`;
+          let productName = `Product #${opportunity.productId}`;
+          
+          try {
+            const client = await storage.getClient(opportunity.clientId);
+            if (client) {
+              clientName = client.name;
+            }
+          } catch (e) {
+            // Fallback to default name if client lookup fails
+          }
+          
+          try {
+            const product = await storage.getInsuranceProduct(opportunity.productId);
+            if (product) {
+              productName = product.name;
+            }
+          } catch (e) {
+            // Fallback to default name if product lookup fails
+          }
+          
+          return {
+            ...opportunity,
+            clientName,
+            productName
+          };
         })
-        .from(opportunities)
-        .leftJoin(clients, eq(opportunities.clientId, clients.id))
-        .leftJoin(insuranceProducts, eq(opportunities.productId, insuranceProducts.id));
-
+      );
+      
       res.json(enrichedOpportunities);
     } catch (error) {
       console.error('Error fetching opportunities:', error);
