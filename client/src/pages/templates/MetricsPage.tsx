@@ -926,13 +926,13 @@ export default function MetricsPage() {
                   <TableBody>
                     {okrsForTag.map((okr) => (
                       <TableRow key={okr.id} className="hover:bg-slate-50">
-                        <TableCell>
+                        <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
                           <div>
                             <div className="font-medium">{okr.title}</div>
                             <div className="text-sm text-gray-500 mt-1">{okr.description}</div>
                           </div>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                             okr.type === 'Objective' 
                               ? 'bg-blue-100 text-blue-800' 
@@ -941,10 +941,10 @@ export default function MetricsPage() {
                             {okr.type}
                           </span>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
                           <div className="text-sm font-medium">{okr.owner}</div>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
                           <div className="flex items-center gap-2">
                             <div className="w-16 bg-gray-200 rounded-full h-2">
                               <div 
@@ -958,7 +958,7 @@ export default function MetricsPage() {
                             <span className="text-sm font-medium">{okr.progress}%</span>
                           </div>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
                           <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
                             okr.status === 'On Track' 
                               ? 'bg-green-100 text-green-800' 
@@ -967,12 +967,12 @@ export default function MetricsPage() {
                             {okr.status}
                           </span>
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
                           <div className="text-sm">
                             {okr.dueDate.toLocaleDateString()}
                           </div>
                         </TableCell>
-                        <TableCell className="text-right">
+                        <TableCell className="text-right p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
                           <div className="font-medium">
                             {okr.unit === 'currency' 
                               ? `$${(okr.targetValue / 1000000).toFixed(1)}M`
