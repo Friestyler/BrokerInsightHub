@@ -186,20 +186,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Partners Endpoints
   app.get('/api/partners', async (req, res) => {
     try {
+      // Get customers directly from storage (partners are stored as customers)
       const customers = await storage.getAllCustomers();
       
       // Transform customers into partners format with required fields
-      const partners = customers.map(customer => ({
+      const partners = customers.map((customer: any) => ({
         id: customer.id,
         name: customer.name,
         description: customer.description,
-        initials: customer.name.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 2),
-        industry: getIndustryFromDescription(customer.description),
-        type: getTypeFromDescription(customer.description),
-        size: getSizeFromDescription(customer.description),
+        initials: customer.name.split(' ').map((word: string) => word[0]).join('').toUpperCase().slice(0, 2),
+        industry: getIndustryFromDescription(customer.description || ''),
+        type: getTypeFromDescription(customer.description || ''),
+        size: getSizeFromDescription(customer.description || ''),
         status: customer.ownerId ? 'active' : 'inactive',
-        customers: Math.floor(Math.random() * 50) + 10, // Placeholder for now
-        opportunities: Math.floor(Math.random() * 20) + 5, // Placeholder for now
+        customers: Math.floor(Math.random() * 50) + 10,
+        opportunities: Math.floor(Math.random() * 20) + 5,
         createdAt: customer.createdAt,
         updatedAt: customer.updatedAt
       }));
