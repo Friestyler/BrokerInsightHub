@@ -1218,9 +1218,30 @@ export default function MetricsPage() {
                           />
                         </TableCell>
                         <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
-                          <div className="flex flex-col">
+                          <div className="flex items-center">
                             <span className="font-medium">{okr.title}</span>
-                            <span className="text-sm text-gray-600" style={{ marginTop: '4px' }}>{okr.description}</span>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <svg 
+                                    xmlns="http://www.w3.org/2000/svg" 
+                                    width="14" 
+                                    height="8" 
+                                    viewBox="0 0 14 8" 
+                                    fill="none" 
+                                    className="text-gray-400 hover:text-gray-600 cursor-help flex-shrink-0"
+                                    style={{ minWidth: '14px', minHeight: '8px', marginLeft: '4px' }}
+                                  >
+                                    <rect width="14" height="1" fill="currentColor"/>
+                                    <rect y="3.5" width="14" height="1" fill="currentColor"/>
+                                    <rect y="7" width="7" height="1" fill="currentColor"/>
+                                  </svg>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p className="max-w-xs">{okr.description}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
                           </div>
                         </TableCell>
                         <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
