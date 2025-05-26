@@ -41,6 +41,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 import { useToast } from "@/hooks/use-toast";
 
+
+
 // Sample data for opportunities - adapted from partners structure
 const mockOpportunities = [
   {
@@ -235,6 +237,44 @@ function useListEditing() {
 }
 
 function OpportunitiesTable() {
+  // Sample data for partners (needed for sharing functionality)
+  const mockPartners: Array<{
+    id: number;
+    company: string;
+    industry: string;
+    partnerType: string;
+    status: string;
+  }> = [
+    {
+      id: 1,
+      company: "TechFlow Solutions",
+      industry: "Technology",
+      partnerType: "Channel Partner",
+      status: "Active"
+    },
+    {
+      id: 2,
+      company: "DataSync Corp",
+      industry: "Data Analytics",
+      partnerType: "Integration Partner",
+      status: "Active"
+    },
+    {
+      id: 3,
+      company: "CloudFirst Systems",
+      industry: "Cloud Services",
+      partnerType: "Technology Partner",
+      status: "Active"
+    },
+    {
+      id: 4,
+      company: "SecureNet Solutions",
+      industry: "Cybersecurity",
+      partnerType: "Channel Partner",
+      status: "Active"
+    }
+  ];
+
   const [filterText, setFilterText] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedType, setSelectedType] = useState('');
@@ -1555,7 +1595,7 @@ function OpportunitiesTable() {
         </DialogContent>
       </Dialog>
       
-      {/* Share List Modal */}
+      {/* Share List Modal with Extended Options */}
       <Dialog open={showShareListModal} onOpenChange={setShowShareListModal}>
         <DialogContent className="sm:max-w-2xl bg-[#ffffff] text-[#282A3F] p-[32px]">
           <DialogHeader>
@@ -1574,34 +1614,105 @@ function OpportunitiesTable() {
           </DialogHeader>
           
           <div className="grid gap-4 py-4">
+            {/* Show selected opportunities summary when bulk sharing */}
+            {selectedOpportunities.length > 0 && (
+              <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-2">
+                <div className="flex items-center mb-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                    <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  <span className="text-sm font-medium text-blue-800">
+                    Selected Opportunities ({selectedOpportunities.length})
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {selectedOpportunities.slice(0, 5).map(opportunityId => {
+                    const opportunity = mockOpportunities.find(o => o.id === opportunityId);
+                    return opportunity ? (
+                      <span key={opportunityId} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+                        {opportunity.title}
+                      </span>
+                    ) : null;
+                  })}
+                  {selectedOpportunities.length > 5 && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+                      +{selectedOpportunities.length - 5} more
+                    </span>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Tabs for different sharing options */}
             <div className="flex border-b">
               <button className="px-3 py-2 text-sm font-medium text-indigo-600 border-b-2 border-indigo-600">
-                External Partners
+                Partners
               </button>
-              <button className="px-3 py-2 text-sm font-medium text-gray-500">
-                Internal Teams
+              <button className="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700">
+                Teams
               </button>
-              <button className="px-3 py-2 text-sm font-medium text-gray-500">
+              <button className="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700">
                 Individuals
               </button>
             </div>
             
-            <div className="grid gap-2">
-              <Label htmlFor="shareEmails">Partner Email Addresses</Label>
-              <Textarea 
-                id="shareEmails" 
-                placeholder="Enter email addresses separated by commas"
-                rows={3}
-              />
+            {/* Partners Section - Enhanced for multiple selection */}
+            <div className="grid gap-3">
+              <Label>Select Partners to Share With</Label>
+              <div className="border border-gray-200 rounded-md max-h-48 overflow-y-auto">
+                {/* Select All Option */}
+                <div className="p-2 border-b hover:bg-gray-50 bg-gray-25">
+                  <div className="flex items-center">
+                    <Checkbox 
+                      id="select-all-partners" 
+                      className="mr-2"
+                      onCheckedChange={(checked) => {
+                        mockPartners.forEach(partner => {
+                          const checkbox = document.querySelector(`input[id="share-partner-${partner.id}"]`) as HTMLInputElement;
+                          if (checkbox) checkbox.checked = checked === true;
+                        });
+                      }}
+                    />
+                    <Label htmlFor="select-all-partners" className="font-medium text-sm">
+                      Select All Partners
+                    </Label>
+                  </div>
+                </div>
+                
+                {/* Individual Partner Options */}
+                {mockPartners.map(partner => (
+                  <div key={partner.id} className="p-2 hover:bg-gray-50 border-b last:border-b-0">
+                    <div className="flex items-center">
+                      <Checkbox 
+                        id={`share-partner-${partner.id}`}
+                        className="mr-3"
+                      />
+                      <div className="flex-1 flex items-center">
+                        <div className="w-8 h-8 bg-indigo-100 rounded-full flex items-center justify-center mr-3">
+                          <span className="text-xs font-medium text-indigo-600">
+                            {partner.company.substring(0, 2).toUpperCase()}
+                          </span>
+                        </div>
+                        <div>
+                          <div className="font-medium text-sm text-gray-900">{partner.company}</div>
+                          <div className="text-xs text-gray-500">{partner.industry}</div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
             
             <div className="grid gap-2">
               <Label htmlFor="shareMessage">Message (Optional)</Label>
               <Textarea 
                 id="shareMessage" 
-                placeholder="Add a message to include with the shared list"
+                placeholder="Add a message to include with the shared opportunities"
                 rows={3}
+                maxLength={500}
               />
+              <p className="text-xs text-gray-500">Maximum 500 characters</p>
             </div>
           </div>
           
@@ -1609,16 +1720,42 @@ function OpportunitiesTable() {
             <DialogClose asChild>
               <Button variant="outline">Cancel</Button>
             </DialogClose>
-            <Button 
-              onClick={() => {
-                // Handle share functionality
+            <Button onClick={() => {
+              // Get selected partners
+              const selectedPartnerIds: number[] = [];
+              mockPartners.forEach(partner => {
+                const checkbox = document.querySelector(`input[id="share-partner-${partner.id}"]`) as HTMLInputElement;
+                if (checkbox && checkbox.checked) {
+                  selectedPartnerIds.push(partner.id);
+                }
+              });
+              
+              if (selectedPartnerIds.length === 0) {
                 toast({
-                  title: "List Shared",
-                  description: "Your list has been shared successfully"
+                  title: "No Partners Selected", 
+                  description: "Please select at least one partner to share with",
+                  variant: "destructive"
                 });
-                setShowShareListModal(false);
-              }}
-            >
+                return;
+              }
+              
+              const message = (document.getElementById('shareMessage') as HTMLTextAreaElement).value;
+              const selectedPartnerNames = selectedPartnerIds.map(id => {
+                const partner = mockPartners.find(p => p.id === id);
+                return partner?.company;
+              }).filter(Boolean);
+              
+              // Handle share functionality
+              toast({
+                title: "List Shared Successfully",
+                description: `Shared with ${selectedPartnerIds.length} partner${selectedPartnerIds.length > 1 ? 's' : ''}: ${selectedPartnerNames.slice(0, 2).join(', ')}${selectedPartnerIds.length > 2 ? ` and ${selectedPartnerIds.length - 2} more` : ''}`
+              });
+              
+              // Clear selection after sharing
+              setSelectedOpportunities([]);
+              
+              setShowShareListModal(false);
+            }}>
               Share List
             </Button>
           </DialogFooter>
