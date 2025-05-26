@@ -919,19 +919,15 @@ export default function MetricsPage() {
                                   <svg 
                                     xmlns="http://www.w3.org/2000/svg" 
                                     width="14" 
-                                    height="14" 
-                                    viewBox="0 0 24 24" 
+                                    height="8" 
+                                    viewBox="0 0 14 8" 
                                     fill="none" 
-                                    stroke="currentColor" 
-                                    strokeWidth="2" 
-                                    strokeLinecap="round" 
-                                    strokeLinejoin="round" 
                                     className="text-gray-400 hover:text-gray-600 cursor-help"
                                     style={{ marginLeft: '4px' }}
                                   >
-                                    <circle cx="12" cy="12" r="10" />
-                                    <line x1="12" y1="16" x2="12" y2="12" />
-                                    <line x1="12" y1="8" x2="12.01" y2="8" />
+                                    <rect width="14" height="1" fill="currentColor"/>
+                                    <rect y="3.5" width="14" height="1" fill="currentColor"/>
+                                    <rect y="7" width="14" height="1" fill="currentColor"/>
                                   </svg>
                                 </TooltipTrigger>
                                 <TooltipContent>
