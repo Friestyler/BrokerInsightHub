@@ -23,6 +23,7 @@ import PartnersPage from "@/pages/lists/PartnersPage";
 import PartnerDetail from "@/pages/lists/PartnerDetail";
 import CustomersPage from "@/pages/lists/CustomersPage";
 import OpportunitiesPage from "@/pages/lists/OpportunitiesPage";
+import Opportunities2Page from "@/pages/lists/Opportunities2Page";
 import OpportunityDetail from "@/pages/lists/OpportunityDetail";
 import VendorsPage from "@/pages/lists/VendorsPage";
 import ProductsPage from "@/pages/lists/ProductsPage";
@@ -49,6 +50,7 @@ function Router() {
         <Route path="/partners" component={PartnersPage} />
         <Route path="/partners/:id" component={PartnerDetail} />
         <Route path="/customers" component={CustomersPage} />
+        <Route path="/opportunities2" component={Opportunities2Page} />
         <Route path="/opportunities" component={OpportunitiesPage} />
         <Route path="/opportunities/:id" component={OpportunityDetail} />
         <Route path="/vendors" component={VendorsPage} />
