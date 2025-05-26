@@ -1061,7 +1061,7 @@ function OpportunitiesTable() {
       
       {/* Opportunities table */}
       <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
-        <table className="min-w-full divide-y divide-gray-300">
+        <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
               <th scope="col" className="relative px-3 py-3.5 w-10">
