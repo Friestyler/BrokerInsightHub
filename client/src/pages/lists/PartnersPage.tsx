@@ -261,6 +261,18 @@ function PartnersTable() {
   const { isEditingList, setIsEditingList } = useListEditing();
   const [isSavingList, setIsSavingList] = useState(false);
   const [editedListMembers, setEditedListMembers] = useState<number[]>([]);
+
+  // Show loading spinner while fetching data
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-2 text-sm text-gray-500">Loading partners...</p>
+        </div>
+      </div>
+    );
+  }
   
   // State for unsaved changes confirmation
   const [showUnsavedChangesModal, setShowUnsavedChangesModal] = useState(false);
@@ -1569,15 +1581,15 @@ function PartnersTable() {
                     type="checkbox"
                     className="h-4 w-4 rounded border-gray-300"
                   checked={isEditingList 
-                    ? editedListMembers.length === (activeList ? mockPartners.length : displayedPartners.length) && (activeList ? mockPartners.length : displayedPartners.length) > 0
+                    ? editedListMembers.length === (activeList ? partners.length : displayedPartners.length) && (activeList ? partners.length : displayedPartners.length) > 0
                     : selectedPartners.length === displayedPartners.length && displayedPartners.length > 0
                   }
                   onChange={isEditingList 
                     ? () => {
-                        if (editedListMembers.length === (activeList ? mockPartners.length : displayedPartners.length)) {
+                        if (editedListMembers.length === (activeList ? partners.length : displayedPartners.length)) {
                           setEditedListMembers([]);
                         } else {
-                          setEditedListMembers(mockPartners.map(p => p.id));
+                          setEditedListMembers(partners.map(p => p.id));
                         }
                       }
                     : toggleSelectAll
@@ -1656,7 +1668,7 @@ function PartnersTable() {
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 bg-white">
-            {(isEditingList ? mockPartners : displayedPartners).map((partner) => (
+            {(isEditingList ? partners : displayedPartners).map((partner) => (
               <tr 
                 key={partner.id} 
                 className={`hover:bg-gray-50 group ${
