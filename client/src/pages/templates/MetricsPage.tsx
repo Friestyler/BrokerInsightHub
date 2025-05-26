@@ -1718,7 +1718,7 @@ export default function MetricsPage() {
                   </TableHeader>
                   <TableBody>
                     {okrsInGroup.map((okr) => (
-                      <TableRow key={okr.id} className="hover:bg-slate-50 border-b group" style={{ borderColor: '#E6E7F1' }}>
+                      <TableRow key={okr.id} className="hover:bg-[#F5F6FA] border-b group" style={{ borderColor: '#E6E7F1' }}>
                         <TableCell className="w-12 px-3 py-3">
                           <input
                             type="checkbox"
