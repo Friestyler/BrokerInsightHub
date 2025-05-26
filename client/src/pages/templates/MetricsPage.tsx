@@ -2043,6 +2043,294 @@ export default function MetricsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      {/* Create OKR Metric Dialog */}
+      <Dialog open={isCreateOKROpen} onOpenChange={setIsCreateOKROpen}>
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="pb-4 border-b">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                  <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                </svg>
+              </div>
+              <div>
+                <DialogTitle className="text-lg font-semibold">Create OKR Metric</DialogTitle>
+                <DialogDescription className="text-sm text-gray-500">
+                  Build a comprehensive OKR template with objectives, activities, and key results
+                </DialogDescription>
+              </div>
+            </div>
+          </DialogHeader>
+          
+          <div className="space-y-6 py-6">
+            {/* Quick Start Templates */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-semibold text-gray-900">Quick Start</h3>
+              <div className="grid grid-cols-3 gap-3">
+                <button className="p-4 border-2 border-indigo-200 bg-indigo-50 rounded-lg text-left hover:border-indigo-300 transition-colors">
+                  <div className="flex items-center gap-2 mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                      <circle cx="12" cy="12" r="10"/>
+                      <polyline points="12 6 12 12 16 14"/>
+                    </svg>
+                    <span className="font-medium text-sm">Single Objective</span>
+                  </div>
+                  <p className="text-xs text-gray-600">Create a standalone objective without nested activities</p>
+                </button>
+                
+                <button className="p-4 border-2 border-gray-200 rounded-lg text-left hover:border-gray-300 transition-colors">
+                  <div className="flex items-center gap-2 mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600">
+                      <rect width="3" height="8" x="13" y="2" rx="1.5"/>
+                      <path d="M19 8.5V10h1.5A1.5 1.5 0 1 1 19 11.5V19a1.5 1.5 0 0 1-3 0v-2"/>
+                      <rect width="3" height="8" x="8" y="14" rx="1.5"/>
+                      <path d="M5 15.5V14H3.5A1.5 1.5 0 1 1 5 12.5V5a1.5 1.5 0 0 1 3 0v2"/>
+                    </svg>
+                    <span className="font-medium text-sm">With Activities</span>
+                  </div>
+                  <p className="text-xs text-gray-600">Objective with multiple activities underneath</p>
+                </button>
+                
+                <button className="p-4 border-2 border-gray-200 rounded-lg text-left hover:border-gray-300 transition-colors">
+                  <div className="flex items-center gap-2 mb-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600">
+                      <polyline points="9 11 12 14 22 4"/>
+                      <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+                    </svg>
+                    <span className="font-medium text-sm">Full Hierarchy</span>
+                  </div>
+                  <p className="text-xs text-gray-600">Complete structure with objectives, activities, and subactivities</p>
+                </button>
+              </div>
+            </div>
+
+            {/* Main Content */}
+            <div className="space-y-6">
+              {/* Title and Description */}
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Title *</label>
+                  <Input 
+                    placeholder="e.g., Increase Annual Revenue by 25%"
+                    className="text-base"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Description</label>
+                  <Textarea 
+                    placeholder="Describe the objective and its impact..."
+                    rows={3}
+                    className="resize-none"
+                  />
+                </div>
+              </div>
+
+              {/* Properties Grid */}
+              <div className="grid grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Level *</label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="objective">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-indigo-500 rounded-full"></div>
+                          Objective
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="activity">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                          Activity
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="subactivity">
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                          Subactivity
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Tag *</label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Choose a tag" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Revenue Growth">Revenue Growth</SelectItem>
+                      <SelectItem value="Product Innovation">Product Innovation</SelectItem>
+                      <SelectItem value="Customer Experience">Customer Experience</SelectItem>
+                      <SelectItem value="Operational Excellence">Operational Excellence</SelectItem>
+                      <SelectItem value="Market Expansion">Market Expansion</SelectItem>
+                      <SelectItem value="Team Development">Team Development</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Measurement Section */}
+              <div className="border rounded-lg p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-semibold text-gray-900">Measurement & Targets</h4>
+                  <input type="checkbox" defaultChecked className="rounded w-4 h-4" />
+                </div>
+                
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Measure Unit</label>
+                    <Select>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select unit" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="currency">💰 Currency</SelectItem>
+                        <SelectItem value="percentage">📊 Percentage</SelectItem>
+                        <SelectItem value="number">🔢 Number</SelectItem>
+                        <SelectItem value="checkbox">☑️ Checkbox</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Target Value</label>
+                    <Input type="number" placeholder="0" />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Current Value</label>
+                    <Input type="number" placeholder="0" />
+                  </div>
+                </div>
+              </div>
+
+              {/* Timeline Section */}
+              <div className="border rounded-lg p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-semibold text-gray-900">Timeline & Schedule</h4>
+                  <input type="checkbox" defaultChecked className="rounded w-4 h-4" />
+                </div>
+                
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Start Date</label>
+                    <Input type="date" />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">End Date</label>
+                    <Input type="date" />
+                  </div>
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-700">Milestone Frequency</label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="How often to check progress" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="weekly">Weekly</SelectItem>
+                      <SelectItem value="monthly">Monthly</SelectItem>
+                      <SelectItem value="quarterly">Quarterly</SelectItem>
+                      <SelectItem value="annually">Annually</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              {/* Breakdown Section */}
+              <div className="border rounded-lg p-4 space-y-4">
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-semibold text-gray-900">Break into Activities</h4>
+                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">Optional</span>
+                </div>
+                
+                <div className="space-y-3">
+                  {/* Sample Activity */}
+                  <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                    <div className="flex items-center gap-3 mb-3">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600">
+                        <rect width="3" height="8" x="13" y="2" rx="1.5"/>
+                        <path d="M19 8.5V10h1.5A1.5 1.5 0 1 1 19 11.5V19a1.5 1.5 0 0 1-3 0v-2"/>
+                        <rect width="3" height="8" x="8" y="14" rx="1.5"/>
+                        <path d="M5 15.5V14H3.5A1.5 1.5 0 1 1 5 12.5V5a1.5 1.5 0 0 1 3 0v2"/>
+                      </svg>
+                      <Input 
+                        placeholder="Activity name (e.g., Launch Marketing Campaign)"
+                        className="flex-1 border-0 bg-transparent text-sm font-medium focus-visible:ring-0"
+                      />
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-gray-400 hover:text-red-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M3 6h18"/>
+                          <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                        </svg>
+                      </Button>
+                    </div>
+                    
+                    {/* Subtasks */}
+                    <div className="ml-6 space-y-2">
+                      <div className="flex items-center gap-2 group">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                          <circle cx="12" cy="12" r="10"/>
+                          <path d="M12 6v6l4 2"/>
+                        </svg>
+                        <Input 
+                          placeholder="Subtask (e.g., Create campaign assets)"
+                          className="flex-1 border-0 bg-white text-sm h-8 focus-visible:ring-1 focus-visible:ring-blue-200"
+                        />
+                        <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-gray-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M18 6 6 18"/>
+                            <path d="m6 6 12 12"/>
+                          </svg>
+                        </Button>
+                      </div>
+                      
+                      <button className="flex items-center gap-2 text-gray-400 hover:text-gray-600 text-sm ml-4 py-1">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M5 12h14"/>
+                          <path d="M12 5v14"/>
+                        </svg>
+                        Add subtask
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Add Activity Button */}
+                  <button className="flex items-center gap-2 text-gray-500 hover:text-gray-700 text-sm py-3 px-4 rounded-lg hover:bg-gray-50 transition-colors w-full border-2 border-dashed border-gray-200 hover:border-gray-300">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M5 12h14"/>
+                      <path d="M12 5v14"/>
+                    </svg>
+                    Add activity
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter className="pt-4 border-t">
+            <Button variant="outline" onClick={() => setIsCreateOKROpen(false)}>
+              Cancel
+            </Button>
+            <Button className="bg-indigo-600 hover:bg-indigo-700">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/>
+              </svg>
+              Create OKR Template
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
