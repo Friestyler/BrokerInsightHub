@@ -847,7 +847,7 @@ export default function MetricsPage() {
                     <TagBadge tag={tag} />
                   </div>
                 </div>
-                <Table>
+                <Table className="border-b" style={{ borderColor: '#E6E7F1' }}>
                   <TableHeader>
                     <TableRow className="border-b" style={{ borderColor: '#E6E7F1' }}>
                       <TableHead 
