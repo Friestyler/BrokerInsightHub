@@ -680,45 +680,31 @@ export default function MetricsPage() {
                   )}
                 </button>
                 
-                <div className="flex flex-col gap-1">
-                  <label className="text-xs text-gray-600 font-medium">Measure Unit</label>
-                  <Select value={selectedMeasureUnit} onValueChange={setSelectedMeasureUnit}>
-                    <SelectTrigger className="w-[140px] bg-white">
-                      <SelectValue placeholder="Select unit" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="currency">Currency</SelectItem>
-                      <SelectItem value="number">Number</SelectItem>
-                      <SelectItem value="percent">Percent</SelectItem>
-                      <SelectItem value="checkbox">Checkbox</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                <Select value={selectedMeasureUnit} onValueChange={setSelectedMeasureUnit}>
+                  <SelectTrigger className="w-[140px] bg-white">
+                    <SelectValue placeholder="Measure Unit" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="currency">Currency</SelectItem>
+                    <SelectItem value="number">Number</SelectItem>
+                    <SelectItem value="percent">Percent</SelectItem>
+                    <SelectItem value="checkbox">Checkbox</SelectItem>
+                  </SelectContent>
+                </Select>
                 
-                <div className="flex flex-col gap-1">
-                  <label className="text-xs text-gray-600 font-medium">Target Range</label>
-                  <input
-                    type="text"
-                    placeholder={
-                      selectedMeasureUnit === 'currency' ? 'e.g., $100-$500' : 
-                      selectedMeasureUnit === 'percent' ? 'e.g., 20%-80%' : 
-                      selectedMeasureUnit === 'checkbox' ? 'complete or incomplete' : 
-                      'Select measure unit first'
-                    }
-                    value={selectedTargetRange}
-                    onChange={(e) => setSelectedTargetRange(e.target.value)}
-                    disabled={!selectedMeasureUnit}
-                    className={`w-[160px] px-3 py-2 border border-gray-300 rounded-md text-sm ${!selectedMeasureUnit ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white'}`}
-                  />
-                  {selectedMeasureUnit && (
-                    <div className="text-xs text-gray-500">
-                      {selectedMeasureUnit === 'currency' && 'Format: $min-$max or single value like $500'}
-                      {selectedMeasureUnit === 'percent' && 'Format: min%-max% or single value like 75%'}
-                      {selectedMeasureUnit === 'number' && 'Format: min-max or single value like 100'}
-                      {selectedMeasureUnit === 'checkbox' && 'Type "complete" or "incomplete"'}
-                    </div>
-                  )}
-                </div>
+                <input
+                  type="text"
+                  placeholder={
+                    selectedMeasureUnit === 'currency' ? 'Target: $100-$500' : 
+                    selectedMeasureUnit === 'percent' ? 'Target: 20%-80%' : 
+                    selectedMeasureUnit === 'checkbox' ? 'Target: complete' : 
+                    'Target Range'
+                  }
+                  value={selectedTargetRange}
+                  onChange={(e) => setSelectedTargetRange(e.target.value)}
+                  disabled={!selectedMeasureUnit}
+                  className={`w-[160px] px-3 py-2 border border-gray-300 rounded-md text-sm ${!selectedMeasureUnit ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white'}`}
+                />
               </div>
               
               {(selectedTags.length > 0 || searchTerm || selectedMeasureUnit || selectedTargetRange) && (
