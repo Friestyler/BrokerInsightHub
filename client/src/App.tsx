@@ -48,7 +48,7 @@ function Router() {
         
         {/* Primary entity routes */}
         <Route path="/partners" component={PartnersPage} />
-        <Route path="/partners/:id" component={PartnerDetail} />
+        <Route path="/lists/partners/:id" component={PartnerDetail} />
         <Route path="/customers" component={CustomersPage} />
         <Route path="/opportunities2" component={Opportunities2Page} />
         <Route path="/opportunities" component={OpportunitiesPage} />

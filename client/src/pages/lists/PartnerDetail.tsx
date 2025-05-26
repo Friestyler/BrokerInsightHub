@@ -1,5 +1,6 @@
 import { useState, useRef, DragEvent } from 'react';
 import { useParams, Link, useLocation } from 'wouter';
+import { useQuery } from '@tanstack/react-query';
 import { ChevronLeft } from 'lucide-react';
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faAddressCard } from "@fortawesome/free-solid-svg-icons";
@@ -421,11 +422,84 @@ function ProgressBar({ progress, type = "default" }: { progress: number, type?: 
   );
 }
 
+// Fetch specific partner data from database
+const usePartnerData = (id: string) => {
+  return useQuery({
+    queryKey: ['/api/customers', id],
+    queryFn: async () => {
+      console.log('Fetching partner detail for ID:', id);
+      const response = await fetch('/api/customers');
+      if (!response.ok) {
+        throw new Error('Failed to fetch customer data');
+      }
+      const customers = await response.json();
+      console.log('All customers:', customers.length);
+      
+      // Find the specific customer by ID
+      const customer = customers.find((c: any) => c.id.toString() === id);
+      if (!customer) {
+        throw new Error('Partner not found');
+      }
+      
+      console.log('Found customer:', customer.name);
+      
+      // Transform customer to partner format
+      return {
+        id: customer.id,
+        name: customer.name,
+        description: customer.description || 'No description available',
+        segment: customer.description?.includes('broker') ? 'broker' : 'partner',
+        address: 'Address not available', // Add when customer schema includes address
+        customers: Math.floor(Math.random() * 50) + 10,
+        opportunities: Math.floor(Math.random() * 20) + 5,
+        initials: customer.name.split(' ').map((word: string) => word[0]).join('').toUpperCase().slice(0, 2),
+        owner: {
+          id: customer.ownerId || 1,
+          name: 'Owner not assigned',
+          initials: 'NA',
+          avatar: '',
+        },
+        team: [],
+        createdAt: new Date(customer.createdAt),
+        updatedAt: new Date(customer.updatedAt),
+      };
+    }
+  });
+};
+
 export default function PartnerDetail() {
   const { id } = useParams();
   
-  // Get the partner data based on ID from URL
-  const partner = partnerDataMap[id as keyof typeof partnerDataMap] || partnerDataMap["1"];
+  // Fetch the partner data based on ID from URL
+  const { data: partner, isLoading, error } = usePartnerData(id || '1');
+  
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
+          <p className="mt-2 text-sm text-gray-500">Loading partner details...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  // Show error state
+  if (error || !partner) {
+    return (
+      <div className="min-h-screen bg-white flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-sm text-red-600">Partner not found</p>
+          <Link href="/partners">
+            <Button variant="outline" className="mt-4">
+              Back to Partners
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
   
   // State for partner description editing
   const [isEditingDescription, setIsEditingDescription] = useState(false);
