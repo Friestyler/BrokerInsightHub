@@ -344,7 +344,10 @@ const TagBadge = ({ tag }: { tag: string }) => {
   };
   
   return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mr-2 mb-1 ${getTagColor(tag)}`}>
+    <span 
+      className={`inline-flex items-center px-3 py-1.5 rounded-full border font-semibold mr-2 mb-1 ${getTagColor(tag)}`}
+      style={{ fontSize: '15px', fontFamily: 'Poppins' }}
+    >
       {tag}
     </span>
   );
@@ -834,12 +837,7 @@ export default function MetricsPage() {
               <div key={tag} className="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
                 <div className="px-6 py-3 border-b bg-[#ffffff] text-[#282A3F]">
                   <div className="flex items-center">
-                    <span 
-                      className={`inline-flex items-center px-3 py-1.5 rounded-full border font-semibold ${getTagColor(tag)}`}
-                      style={{ fontSize: '15px', fontFamily: 'Poppins' }}
-                    >
-                      {tag}
-                    </span>
+                    <TagBadge tag={tag} />
                   </div>
                 </div>
                 <Table>
