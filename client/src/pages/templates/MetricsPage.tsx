@@ -922,7 +922,8 @@ export default function MetricsPage() {
                                     height="8" 
                                     viewBox="0 0 14 8" 
                                     fill="none" 
-                                    className="text-gray-400 hover:text-gray-600 cursor-help ml-1"
+                                    className="text-gray-400 hover:text-gray-600 cursor-help ml-1 flex-shrink-0"
+                                    style={{ minWidth: '14px', minHeight: '8px' }}
                                   >
                                     <rect width="14" height="1" fill="currentColor"/>
                                     <rect y="3.5" width="14" height="1" fill="currentColor"/>
