@@ -2149,19 +2149,110 @@ export default function MetricsPage() {
               </div>
             </div>
 
-            {/* Add Activities Section */}
+            {/* Nested Tasks Section */}
             <div className="border rounded-lg p-4 space-y-4">
               <div className="flex items-center justify-between">
-                <h3 className="font-medium text-sm">Activities & Subactivities</h3>
-                <Button variant="outline" size="sm">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                <h3 className="font-medium text-sm">Break Down into Tasks</h3>
+                <div className="text-xs text-gray-500">Optional - helps organize complex objectives</div>
+              </div>
+              
+              {/* Activities List */}
+              <div className="space-y-3">
+                {/* Sample Activity 1 */}
+                <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="flex items-center gap-2 flex-1">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600">
+                        <rect width="3" height="8" x="13" y="2" rx="1.5"/>
+                        <path d="M19 8.5V10h1.5A1.5 1.5 0 1 1 19 11.5V19a1.5 1.5 0 0 1-3 0v-2"/>
+                        <rect width="3" height="8" x="8" y="14" rx="1.5"/>
+                        <path d="M5 15.5V14H3.5A1.5 1.5 0 1 1 5 12.5V5a1.5 1.5 0 0 1 3 0v2"/>
+                      </svg>
+                      <Input 
+                        placeholder="Activity title (e.g., Implement Sales Training Program)"
+                        className="flex-1 border-0 bg-transparent p-0 text-sm font-medium focus-visible:ring-0"
+                      />
+                    </div>
+                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-gray-400 hover:text-red-600">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M3 6h18"/>
+                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                      </svg>
+                    </Button>
+                  </div>
+                  
+                  {/* Subactivities */}
+                  <div className="ml-6 space-y-2">
+                    <div className="flex items-center gap-2 group">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 6v6l4 2"/>
+                      </svg>
+                      <Input 
+                        placeholder="Subtask (e.g., Create training materials)"
+                        className="flex-1 border-0 bg-white text-sm h-8 focus-visible:ring-1 focus-visible:ring-blue-200"
+                      />
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-gray-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M18 6 6 18"/>
+                          <path d="m6 6 12 12"/>
+                        </svg>
+                      </Button>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 group">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                        <circle cx="12" cy="12" r="10"/>
+                        <path d="M12 6v6l4 2"/>
+                      </svg>
+                      <Input 
+                        placeholder="Subtask (e.g., Conduct training sessions)"
+                        className="flex-1 border-0 bg-white text-sm h-8 focus-visible:ring-1 focus-visible:ring-blue-200"
+                      />
+                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-gray-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M18 6 6 18"/>
+                          <path d="m6 6 12 12"/>
+                        </svg>
+                      </Button>
+                    </div>
+                    
+                    {/* Add Subtask Button */}
+                    <button className="flex items-center gap-2 text-gray-400 hover:text-gray-600 text-sm ml-4 py-1">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M5 12h14"/>
+                        <path d="M12 5v14"/>
+                      </svg>
+                      Add subtask
+                    </button>
+                  </div>
+                </div>
+
+                {/* Add Activity Button */}
+                <button className="flex items-center gap-2 text-gray-500 hover:text-gray-700 text-sm py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors w-full border-2 border-dashed border-gray-200 hover:border-gray-300">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M5 12h14"/>
                     <path d="M12 5v14"/>
                   </svg>
-                  Add Activity
-                </Button>
+                  Add activity
+                </button>
               </div>
-              <p className="text-sm text-gray-500">No activities added yet. Click "Add Activity" to create nested items under this objective.</p>
+              
+              {/* Help Text */}
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                <div className="flex gap-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600 mt-0.5 flex-shrink-0">
+                    <circle cx="12" cy="12" r="10"/>
+                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                    <path d="M12 17h.01"/>
+                  </svg>
+                  <div className="text-sm text-blue-800">
+                    <div className="font-medium mb-1">Break down complex objectives</div>
+                    <div className="text-blue-700">Activities help organize work into manageable chunks. Subtasks make tracking progress easier and more granular.</div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
           <DialogFooter>
