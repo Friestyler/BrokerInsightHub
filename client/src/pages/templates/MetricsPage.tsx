@@ -1402,17 +1402,7 @@ export default function MetricsPage() {
                       >
                         Target
                       </TableHead>
-                      <TableHead 
-                        className="px-3 py-2 min-w-[100px]"
-                        style={{ 
-                          fontFamily: 'Poppins', 
-                          fontWeight: '500', 
-                          fontSize: '13px', 
-                          color: '#696C8C' 
-                        }}
-                      >
-                        Tags
-                      </TableHead>
+
                       <TableHead 
                         className="text-right px-3 py-2 min-w-[80px]"
                         style={{ 
@@ -1509,13 +1499,7 @@ export default function MetricsPage() {
                           </div>
                           <div className="text-xs text-gray-500 capitalize">{okr.unit}</div>
                         </TableCell>
-                        <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
-                          <div className="flex flex-wrap gap-1">
-                            <Badge variant="secondary" className="text-xs">
-                              {okr.tag}
-                            </Badge>
-                          </div>
-                        </TableCell>
+
                         <TableCell className="text-right p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
