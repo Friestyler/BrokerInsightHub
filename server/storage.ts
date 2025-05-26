@@ -650,6 +650,36 @@ export class DatabaseStorage implements IStorage {
     return this.getDb().select().from(opportunities).where(eq(opportunities.clientId, clientId));
   }
 
+  // Client operations
+  async getAllClients(): Promise<Client[]> {
+    return this.getDb().select().from(clients);
+  }
+  
+  async getClient(id: number): Promise<Client | undefined> {
+    const result = await this.getDb().select().from(clients).where(eq(clients.id, id));
+    return result[0];
+  }
+  
+  async createClient(client: InsertClient): Promise<Client> {
+    const result = await this.getDb().insert(clients).values(client).returning();
+    return result[0];
+  }
+
+  // Insurance Product operations
+  async getAllInsuranceProducts(): Promise<InsuranceProduct[]> {
+    return this.getDb().select().from(insuranceProducts);
+  }
+  
+  async getInsuranceProduct(id: number): Promise<InsuranceProduct | undefined> {
+    const result = await this.getDb().select().from(insuranceProducts).where(eq(insuranceProducts.id, id));
+    return result[0];
+  }
+  
+  async createInsuranceProduct(product: InsertInsuranceProduct): Promise<InsuranceProduct> {
+    const result = await this.getDb().insert(insuranceProducts).values(product).returning();
+    return result[0];
+  }
+
   async createNewsArticle(article: InsertNewsArticle): Promise<NewsArticle> {
     const result = await this.getDb().insert(newsArticles).values(article).returning();
     return result[0];
