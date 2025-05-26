@@ -1,4 +1,5 @@
 import { useState, useEffect, createContext, useContext } from 'react';
+import { useQuery } from '@tanstack/react-query';
 
 // Create a context for list editing state
 interface ListEditingContextType {
@@ -43,105 +44,36 @@ import { useToast } from "@/hooks/use-toast";
 
 
 
-// Sample data for opportunities - adapted from partners structure
-const mockOpportunities = [
-  {
-    id: 1,
-    title: "Enterprise Insurance Renewal", 
-    initials: "EI",
-    customerName: "TechCorp Solutions",
-    partnerName: "ABC Insurance Brokers",
-    status: "In Progress",
-    type: "Renewal",
-    stage: "Proposal",
-    value: 125000,
-    probability: 75,
-    estimatedCloseDate: "2025-06-15",
-    owner: "Sarah Johnson"
-  },
-  {
-    id: 2,
-    title: "Small Business Package",
-    initials: "SB",
-    customerName: "Local Bakery Co",
-    partnerName: "Global Insurance Partners",
-    status: "Qualified",
-    type: "New Business",
-    stage: "Discovery",
-    value: 25000,
-    probability: 60,
-    estimatedCloseDate: "2025-07-01",
-    owner: "Mike Davis"
-  },
-  {
-    id: 3,
-    title: "Commercial Property Coverage",
-    initials: "CP",
-    customerName: "Downtown Retail Mall",
-    partnerName: "Premier Insurance Agency",
-    status: "In Progress",
-    type: "New Business",
-    stage: "Negotiation",
-    value: 85000,
-    probability: 80,
-    estimatedCloseDate: "2025-05-30",
-    owner: "Emma Wilson"
-  },
-  {
-    id: 4,
-    title: "Fleet Insurance Upgrade",
-    initials: "FI",
-    customerName: "City Transport LLC",
-    partnerName: "Secure Financial Services",
-    status: "Closed Won",
-    type: "Expansion",
-    stage: "Closed",
-    value: 95000,
-    probability: 100,
-    estimatedCloseDate: "2025-04-20",
-    owner: "John Smith"
-  },
-  {
-    id: 5,
-    title: "Professional Liability Policy",
-    initials: "PL",
-    customerName: "Law Firm Associates",
-    partnerName: "Pinnacle Risk Solutions",
-    status: "Qualified",
-    type: "New Business",
-    stage: "Proposal",
-    value: 45000,
-    probability: 65,
-    estimatedCloseDate: "2025-06-10",
-    owner: "Jessica Brown"
-  },
-  {
-    id: 6,
-    title: "Manufacturing Coverage Review",
-    initials: "MC",
-    customerName: "Industrial Parts Inc",
-    partnerName: "ABC Insurance Brokers",
-    status: "Closed Lost",
-    type: "Renewal",
-    stage: "Closed",
-    value: 150000,
-    probability: 0,
-    estimatedCloseDate: "2025-03-15",
-    owner: "Robert Smith"
-  }
-];
+// Define the opportunity type based on the database schema
+interface Opportunity {
+  id: number;
+  title: string;
+  type: string;
+  status: string;
+  stage: string;
+  probability: number;
+  estimatedValue: number;
+  ownerId: number | null;
+  description: string | null;
+  notes: string | null;
+  expectedCloseDate: Date | null;
+  clientId: number;
+  productId: number;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 // Calculate opportunity statistics
-function calculateOpportunityStats(opportunities: typeof mockOpportunities) {
+function calculateOpportunityStats(opportunities: Opportunity[]) {
   const totalOpportunities = opportunities.length;
-  const totalValue = opportunities.reduce((sum, opp) => sum + opp.value, 0);
-  const weightedValue = opportunities.reduce((sum, opp) => sum + (opp.value * opp.probability / 100), 0);
-  const closedWon = opportunities.filter(o => o.status === 'Closed Won').length;
+  const totalValue = opportunities.reduce((sum, opp) => sum + opp.estimatedValue, 0);
+  const weightedValue = opportunities.reduce((sum, opp) => sum + (opp.estimatedValue * opp.probability / 100), 0);
+  const closedWon = opportunities.filter(o => o.status === 'closed' && o.stage === 'closed').length;
   
   return {
     totalOpportunities,
-    totalValue: `$${(totalValue / 1000).toFixed(0)}K`,
-    weightedValue: `$${(weightedValue / 1000).toFixed(0)}K`,
+    totalValue: `€${(totalValue / 1000).toFixed(0)}K`,
+    weightedValue: `€${(weightedValue / 1000).toFixed(0)}K`,
     closedWon
   };
 }
