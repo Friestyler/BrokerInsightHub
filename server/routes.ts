@@ -691,9 +691,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/opportunities', async (req, res) => {
     try {
       const opportunities = await storage.getAllOpportunities();
-      console.log('Retrieved opportunities:', opportunities.length);
       
-      // For now, hardcode the customer mapping based on what we know from the database
+      // Customer and product mapping based on database values
       const clientMapping: {[key: number]: string} = {
         1: "Van Damme BVBA",
         2: "Laura Martens", 
@@ -708,17 +707,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
         7: "Business Interruption"
       };
       
-      // Enrich opportunities with client and product names
-      const enrichedOpportunities = opportunities.map((opportunity: any) => {
-        console.log(`Processing opportunity ${opportunity.id}: clientId=${opportunity.clientId}, productId=${opportunity.productId}`);
-        const result = {
-          ...opportunity,
-          clientName: clientMapping[opportunity.clientId] || `Client #${opportunity.clientId}`,
-          productName: productMapping[opportunity.productId] || `Product #${opportunity.productId}`
-        };
-        console.log(`Mapped to: clientName=${result.clientName}, productName=${result.productName}`);
-        return result;
-      });
+      // Add client and product names to each opportunity
+      const enrichedOpportunities = opportunities.map((opportunity: any) => ({
+        id: opportunity.id,
+        title: opportunity.title,
+        clientId: opportunity.clientId,
+        productId: opportunity.productId,
+        status: opportunity.status,
+        stage: opportunity.stage,
+        type: opportunity.type,
+        probability: opportunity.probability,
+        estimatedValue: opportunity.estimatedValue,
+        ownerId: opportunity.ownerId,
+        partnerId: opportunity.partnerId,
+        description: opportunity.description,
+        notes: opportunity.notes,
+        expectedCloseDate: opportunity.expectedCloseDate,
+        createdAt: opportunity.createdAt,
+        updatedAt: opportunity.updatedAt,
+        clientName: clientMapping[opportunity.clientId] || `Client #${opportunity.clientId}`,
+        productName: productMapping[opportunity.productId] || `Product #${opportunity.productId}`
+      }));
       
       res.json(enrichedOpportunities);
     } catch (error) {
