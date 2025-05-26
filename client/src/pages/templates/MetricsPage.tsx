@@ -927,9 +927,34 @@ export default function MetricsPage() {
                     {okrsForTag.map((okr) => (
                       <TableRow key={okr.id} className="hover:bg-slate-50">
                         <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
-                          <div>
-                            <div className="font-medium">{okr.title}</div>
-                            <div className="text-sm text-gray-500 mt-1">{okr.description}</div>
+                          <div className="flex items-center gap-1">
+                            <span className="font-medium">{okr.title}</span>
+                            <TooltipProvider>
+                              <Tooltip>
+                                <TooltipTrigger asChild>
+                                  <svg 
+                                    xmlns="http://www.w3.org/2000/svg" 
+                                    width="14" 
+                                    height="14" 
+                                    viewBox="0 0 24 24" 
+                                    fill="none" 
+                                    stroke="currentColor" 
+                                    strokeWidth="2" 
+                                    strokeLinecap="round" 
+                                    strokeLinejoin="round" 
+                                    className="text-gray-400 hover:text-gray-600 cursor-help"
+                                    style={{ marginLeft: '4px' }}
+                                  >
+                                    <circle cx="12" cy="12" r="10" />
+                                    <line x1="12" y1="16" x2="12" y2="12" />
+                                    <line x1="12" y1="8" x2="12.01" y2="8" />
+                                  </svg>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p className="max-w-xs">{okr.description}</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
                           </div>
                         </TableCell>
                         <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
