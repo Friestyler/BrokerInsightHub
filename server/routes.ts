@@ -183,16 +183,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Partners Endpoints
+  // Partners Endpoints - Move this to the top to ensure it's registered first
   app.get('/api/partners', async (req, res) => {
     try {
       console.log('Partners API called');
-      // Get customers directly from storage (partners are stored as customers)
-      const customers = await storage.getAllCustomers();
-      console.log('Customers fetched:', customers.length);
+      // Use direct database query to avoid storage method issues
+      const { db } = await import('./db');
+      const { customers } = await import('../shared/schema');
+      
+      const customerRecords = await db.select().from(customers);
+      console.log('Customers fetched from DB:', customerRecords.length);
       
       // Transform customers into partners format with required fields
-      const partners = customers.map((customer: any) => ({
+      const partners = customerRecords.map((customer: any) => ({
         id: customer.id,
         name: customer.name,
         description: customer.description,
@@ -209,7 +212,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('Partners transformed:', partners.length);
       res.setHeader('Content-Type', 'application/json');
-      res.json(partners);
+      return res.json(partners);
     } catch (error) {
       console.error('Error fetching partners:', error);
       res.status(500).json({ message: 'Failed to fetch partners' });
