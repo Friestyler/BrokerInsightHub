@@ -693,17 +693,21 @@ function OpportunitiesTable() {
                 </button>
               </div>
               
-              {/* Views dropdown - next to search field */}
+              {/* Saved Views Dropdown */}
               <div className="relative">
                 <button 
-                  className={`flex items-center space-x-2 px-3 py-2 border rounded-md text-sm font-medium ${activeView ? 'bg-indigo-50 border-indigo-400 text-indigo-700' : 'border-gray-300 hover:border-gray-400'}`}
-                  onClick={() => setShowViewsDropdown(!showViewsDropdown)}
+                  className={`flex items-center space-x-2 px-3 py-2 border rounded-md text-sm font-medium bg-white ${isEditingList ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
+                  onClick={() => {
+                    if (!isEditingList) {
+                      setShowViewsDropdown(!showViewsDropdown);
+                    }
+                  }}
+                  disabled={isEditingList}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={activeView ? 'text-indigo-600' : 'text-gray-500'}>
-                    <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
-                    <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
                   </svg>
-                  <span className="max-w-[120px] truncate">{activeView ? activeView.name : 'Views'}</span>
+                  <span className="text-gray-700">{activeView ? activeView.name : "Select a view"}</span>
                   <svg 
                     xmlns="http://www.w3.org/2000/svg" 
                     width="14" 
@@ -758,7 +762,9 @@ function OpportunitiesTable() {
                           className="flex w-full items-center p-2 text-sm rounded-md text-indigo-600 hover:bg-indigo-50"
                           onClick={() => {
                             setShowViewsDropdown(false);
+                            // Clear active view
                             setActiveView(null);
+                            // Reset filters if needed
                             setFilterText('');
                             setSelectedStatus('');
                             setSelectedType('');
@@ -829,24 +835,72 @@ function OpportunitiesTable() {
               </div>
             </div>
             
-            {/* Clear filters button - only shown when at least one filter is applied */}
+            {/* Right side - Views management and filters */}
+            <div className="flex items-center gap-3">
+              {/* Views management section - complex logic for different states */}
+              {(() => {
+                const hasFilters = filterText || selectedStatus || selectedType || selectedStage;
+                
+                return (
+                  <div className="flex items-center gap-2">
+                    {/* Show different buttons based on active view and filter state */}
+                    {activeView && hasFilters && (
+                      <>
+                        {/* Save as new view button - only shown when filters have changed */}
+                        <button 
+                          className="flex items-center rounded-md bg-[#EBEEFB] px-4 py-2 hover:bg-[#E3E6F7]"
+                          onClick={() => setShowSaveViewModal(true)}
+                          style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                            <polyline points="7 3 7 8 15 8"></polyline>
+                          </svg>
+                          <span className="text-[#3E4DC4] font-medium">Save as new view</span>
+                        </button>
+                      </>
+                    )}
+                    
+                    {/* Show Save as new view button only when no view is active but filters are applied */}
+                    {!activeView && hasFilters && (
+                      <button 
+                        className="flex items-center rounded-md bg-[#EBEEFB] px-4 py-2 hover:bg-[#E3E6F7]"
+                        onClick={() => setShowSaveViewModal(true)}
+                        style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                          <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                          <polyline points="7 3 7 8 15 8"></polyline>
+                        </svg>
+                        <span className="text-[#3E4DC4] font-medium">Save as new view</span>
+                      </button>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
+            
+            {/* Clear filters button - shown when any filters are applied */}
             {(filterText || selectedStatus || selectedType || selectedStage) && (
-              <button 
-                onClick={() => {
-                  setFilterText('');
-                  setSelectedStatus('');
-                  setSelectedType('');
-                  setSelectedStage('');
-                  if (activeList) setActiveList(null);
-                }}
-                className="text-xs text-gray-500 hover:text-gray-700 flex items-center px-2 py-1 hover:bg-gray-50 rounded-md transition-colors"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                  <path d="M18 6L6 18"></path>
-                  <path d="M6 6l12 12"></path>
-                </svg>
-                Clear filters
-              </button>
+              <div className="mt-2">
+                <button 
+                  className="flex items-center text-sm text-gray-500 hover:text-gray-700"
+                  onClick={() => {
+                    setFilterText('');
+                    setSelectedStatus('');
+                    setSelectedType('');
+                    setSelectedStage('');
+                  }}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                    <path d="M18 6L6 18"></path>
+                    <path d="M6 6l12 12"></path>
+                  </svg>
+                  Clear all filters
+                </button>
+              </div>
             )}
           </div>
         </div>
@@ -1149,6 +1203,118 @@ function OpportunitiesTable() {
                 {activeList ? 'Update List' : 'Save List'}
               </Button>
             </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* Save View Modal */}
+      <Dialog 
+        open={showSaveViewModal} 
+        onOpenChange={(open) => {
+          if (open) {
+            // Always start with empty input for "Save as new view"
+            setViewNameInput('');
+          }
+          setShowSaveViewModal(open);
+        }}>
+        <DialogContent className="sm:max-w-md bg-[#ffffff] text-[#282A3F] p-[32px]">
+          <DialogHeader>
+            <DialogTitle>Save as new view</DialogTitle>
+            <DialogDescription className="text-sm text-[#282A3F]">
+              Save your current filter settings as a new view that you can easily access later. Views store filter combinations but not specific opportunity selections.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="viewName">View Name<span className="text-red-500">*</span></Label>
+              <Input 
+                id="viewName" 
+                placeholder="Enter a name for this view"
+                maxLength={50}
+                value={viewNameInput}
+                onChange={(e) => setViewNameInput(e.target.value)}
+              />
+              <p className="text-xs text-gray-500">Maximum 50 characters</p>
+            </div>
+            
+            <div className="bg-[#EBEEFB] p-4 rounded-md border border-[#D4D9F3]">
+              <div className="text-sm font-medium mb-2 text-[#282A3F]">Filters saved in this view</div>
+              <div className="space-y-2">
+                {filterText && (
+                  <div className="flex items-center text-sm text-[#282A3F]">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 text-indigo-600">
+                      <circle cx="11" cy="11" r="8"></circle>
+                      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    Search: "{filterText}"
+                  </div>
+                )}
+                {selectedStatus && (
+                  <div className="flex items-center text-sm text-[#282A3F]">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 text-indigo-600">
+                      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                    </svg>
+                    Status: {selectedStatus}
+                  </div>
+                )}
+                {selectedType && (
+                  <div className="flex items-center text-sm text-[#282A3F]">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 text-indigo-600">
+                      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                    </svg>
+                    Type: {selectedType}
+                  </div>
+                )}
+                {selectedStage && (
+                  <div className="flex items-center text-sm text-[#282A3F]">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 text-indigo-600">
+                      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                    </svg>
+                    Stage: {selectedStage}
+                  </div>
+                )}
+                {!filterText && !selectedStatus && !selectedType && !selectedStage && (
+                  <div className="text-sm text-gray-500 italic">No filters currently applied</div>
+                )}
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button 
+              disabled={!viewNameInput.trim()}
+              onClick={() => {
+                const newView: SavedView = {
+                  id: `view-${Date.now()}`,
+                  name: viewNameInput.trim(),
+                  description: '',
+                  filters: {
+                    searchText: filterText || undefined,
+                    status: selectedStatus || undefined,
+                    type: selectedType || undefined,
+                    stage: selectedStage || undefined
+                  },
+                  createdBy: 'John Smith',
+                  createdAt: new Date()
+                };
+                
+                setSavedViews([...savedViews, newView]);
+                setActiveView(newView);
+                
+                toast({
+                  title: "View Saved",
+                  description: "Your new view has been saved successfully"
+                });
+                
+                setShowSaveViewModal(false);
+              }}
+            >
+              Save View
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
