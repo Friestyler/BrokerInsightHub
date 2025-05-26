@@ -388,6 +388,7 @@ export default function MetricsPage() {
   const [selectedTargetRange, setSelectedTargetRange] = useState("");
   const [selectedTimeframe, setSelectedTimeframe] = useState("");
   const [showNoTarget, setShowNoTarget] = useState(false);
+  const [selectedOKRs, setSelectedOKRs] = useState<number[]>([]);
 
   // Filtered metrics based on search and selected tags
   const filteredMetrics = mockMetrics.filter(metric => {
@@ -1064,6 +1065,52 @@ export default function MetricsPage() {
         
         {/* Coming Soon (OKRs) tab content */}
         <TabsContent value="okrs" className="space-y-4">
+          {/* Bulk Actions Bar */}
+          {selectedOKRs.length > 0 && (
+            <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
+              <div className="bg-white border border-gray-200 rounded-lg shadow-lg px-6 py-4 flex items-center gap-4">
+                <span className="text-sm font-medium text-gray-700">
+                  {selectedOKRs.length} OKR{selectedOKRs.length > 1 ? 's' : ''} selected
+                </span>
+                <div className="flex items-center gap-2">
+                  <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M8 2v4"/>
+                      <path d="M16 2v4"/>
+                      <rect width="18" height="18" x="3" y="4" rx="2"/>
+                      <path d="M3 10h18"/>
+                    </svg>
+                    Assign to entity
+                  </button>
+                  <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+                      <rect width="8" height="4" x="8" y="2" rx="1" ry="1"/>
+                    </svg>
+                    Duplicate
+                  </button>
+                  <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 6h18"/>
+                      <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                      <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                    </svg>
+                    Delete
+                  </button>
+                </div>
+                <button 
+                  onClick={() => setSelectedOKRs([])}
+                  className="ml-2 p-1 hover:bg-gray-100 rounded-md transition-colors"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M18 6L6 18"/>
+                    <path d="M6 6l12 12"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Group OKRs by tags and display in sections */}
           {Array.from(new Set(filteredOKRs.map(okr => okr.tag))).map(tag => {
             const okrsForTag = filteredOKRs.filter(okr => okr.tag === tag);
@@ -1078,6 +1125,20 @@ export default function MetricsPage() {
                 <Table className="border-b" style={{ borderColor: '#E6E7F1' }}>
                   <TableHeader>
                     <TableRow className="border-b" style={{ borderColor: '#E6E7F1' }}>
+                      <TableHead className="w-12 px-3 py-2">
+                        <input
+                          type="checkbox"
+                          checked={okrsForTag.length > 0 && okrsForTag.every(okr => selectedOKRs.includes(okr.id))}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedOKRs(prev => [...new Set([...prev, ...okrsForTag.map(okr => okr.id)])]);
+                            } else {
+                              setSelectedOKRs(prev => prev.filter(id => !okrsForTag.map(okr => okr.id).includes(id)));
+                            }
+                          }}
+                          className="rounded border-gray-300"
+                        />
+                      </TableHead>
                       <TableHead 
                         className="px-3 py-2"
                         style={{ 
@@ -1137,7 +1198,22 @@ export default function MetricsPage() {
                   </TableHeader>
                   <TableBody>
                     {okrsForTag.map((okr) => (
-                      <TableRow key={okr.id} className="hover:bg-slate-50 border-b" style={{ borderColor: '#E6E7F1' }}>
+                      <TableRow key={okr.id} className="hover:bg-slate-50 border-b group" style={{ borderColor: '#E6E7F1' }}>
+                        <TableCell className="w-12 px-3 py-3">
+                          <input
+                            type="checkbox"
+                            checked={selectedOKRs.includes(okr.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedOKRs(prev => [...prev, okr.id]);
+                              } else {
+                                setSelectedOKRs(prev => prev.filter(id => id !== okr.id));
+                              }
+                            }}
+                            className="rounded border-gray-300 opacity-0 group-hover:opacity-100 transition-opacity"
+                            style={{ opacity: selectedOKRs.includes(okr.id) ? 1 : undefined }}
+                          />
+                        </TableCell>
                         <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
                           <div className="flex items-center">
                             <span className="font-medium">{okr.title}</span>
