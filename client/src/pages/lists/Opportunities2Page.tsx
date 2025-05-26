@@ -375,7 +375,20 @@ function OpportunitiesTable() {
         (opportunity.title || '').toLowerCase().includes(filterText.toLowerCase());
         
       const matchesStatus = !selectedStatus || opportunity.status === selectedStatus;
-      const matchesType = !selectedType || opportunity.type === selectedType;
+      
+      // Convert UI filter values to database format for type comparison
+      const getDbTypeValue = (uiType: string) => {
+        switch (uiType) {
+          case 'New Business': return 'new_business';
+          case 'Renewal': return 'renewal';
+          case 'Cross Sell': return 'cross_sell';
+          case 'Upsell': return 'upsell';
+          case 'Expansion': return 'expansion';
+          default: return uiType.toLowerCase().replace(' ', '_');
+        }
+      };
+      
+      const matchesType = !selectedType || opportunity.type === getDbTypeValue(selectedType);
       const matchesStage = !selectedStage || opportunity.stage === selectedStage;
       
       return matchesText && matchesStatus && matchesType && matchesStage;
