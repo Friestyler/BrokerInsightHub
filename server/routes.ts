@@ -183,6 +183,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Partners Endpoints
+  app.get('/api/partners', async (req, res) => {
+    try {
+      const customers = await storage.getAllCustomers();
+      
+      // Transform customers into partners format with required fields
+      const partners = customers.map(customer => ({
+        id: customer.id,
+        name: customer.name,
+        description: customer.description,
+        initials: customer.name.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 2),
+        industry: getIndustryFromDescription(customer.description),
+        type: getTypeFromDescription(customer.description),
+        size: getSizeFromDescription(customer.description),
+        status: customer.ownerId ? 'active' : 'inactive',
+        customers: Math.floor(Math.random() * 50) + 10, // Placeholder for now
+        opportunities: Math.floor(Math.random() * 20) + 5, // Placeholder for now
+        createdAt: customer.createdAt,
+        updatedAt: customer.updatedAt
+      }));
+      
+      res.json(partners);
+    } catch (error) {
+      console.error('Error fetching partners:', error);
+      res.status(500).json({ message: 'Failed to fetch partners' });
+    }
+  });
+
+  // Helper functions to extract partner info from existing data
+  function getIndustryFromDescription(description: string): string {
+    if (!description) return 'Other';
+    const desc = description.toLowerCase();
+    if (desc.includes('insurance')) return 'Insurance';
+    if (desc.includes('mortgage') || desc.includes('hypotheek')) return 'Financial Services';
+    if (desc.includes('financial')) return 'Financial Services';
+    if (desc.includes('consulting')) return 'Consulting';
+    return 'Other';
+  }
+
+  function getTypeFromDescription(description: string): string {
+    if (!description) return 'Partner';
+    const desc = description.toLowerCase();
+    if (desc.includes('broker')) return 'Broker';
+    if (desc.includes('agency')) return 'Agency';
+    if (desc.includes('advisor')) return 'Advisor';
+    if (desc.includes('strategic')) return 'Strategic';
+    return 'Partner';
+  }
+
+  function getSizeFromDescription(description: string): string {
+    if (!description) return 'medium';
+    const desc = description.toLowerCase();
+    if (desc.includes('global') || desc.includes('enterprise')) return 'large';
+    if (desc.includes('specialized') || desc.includes('premier')) return 'small';
+    return 'medium';
+  }
+
   // Vendor Endpoints
   app.get('/api/vendors', async (req, res) => {
     try {
