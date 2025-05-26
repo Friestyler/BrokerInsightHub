@@ -55,9 +55,12 @@ export interface IStorage {
   addClientProduct(data: InsertClientProduct): Promise<ClientProduct>;
   
   // Opportunity operations
-  getAllOpportunities(): Promise<ClientWithDetails[]>;
+  getAllOpportunities(): Promise<Opportunity[]>;
+  getOpportunity(id: number): Promise<Opportunity | undefined>;
   getOpportunitiesForClient(clientId: number): Promise<Opportunity[]>;
   createOpportunity(opportunity: InsertOpportunity): Promise<Opportunity>;
+  updateOpportunity(id: number, updates: Partial<InsertOpportunity>): Promise<Opportunity | undefined>;
+  deleteOpportunity(id: number): Promise<boolean>;
   
   // Document operations
   getAllDocuments(userId: number): Promise<Document[]>;
@@ -266,27 +269,12 @@ export class MemStorage implements IStorage {
   }
   
   // Opportunity operations
-  async getAllOpportunities(): Promise<ClientWithDetails[]> {
-    const clientOpportunities: ClientWithDetails[] = [];
-    
-    for (const opportunity of this.opportunities.values()) {
-      const client = await this.getClient(opportunity.clientId);
-      const product = await this.getInsuranceProduct(opportunity.productId);
-      
-      if (client && product) {
-        const currentProducts = await this.getClientProducts(client.id);
-        
-        clientOpportunities.push({
-          ...client,
-          currentProducts,
-          opportunity: product,
-          probability: opportunity.probability,
-          estimatedValue: opportunity.estimatedValue
-        });
-      }
-    }
-    
-    return clientOpportunities;
+  async getAllOpportunities(): Promise<Opportunity[]> {
+    return Array.from(this.opportunities.values());
+  }
+
+  async getOpportunity(id: number): Promise<Opportunity | undefined> {
+    return this.opportunities.get(id);
   }
   
   async getOpportunitiesForClient(clientId: number): Promise<Opportunity[]> {
@@ -296,9 +284,31 @@ export class MemStorage implements IStorage {
   
   async createOpportunity(opportunity: InsertOpportunity): Promise<Opportunity> {
     const id = this.currentOpportunityId++;
-    const newOpportunity: Opportunity = { ...opportunity, id };
+    const newOpportunity: Opportunity = { 
+      ...opportunity, 
+      id,
+      createdAt: new Date(),
+      updatedAt: new Date()
+    };
     this.opportunities.set(id, newOpportunity);
     return newOpportunity;
+  }
+
+  async updateOpportunity(id: number, updates: Partial<InsertOpportunity>): Promise<Opportunity | undefined> {
+    const opportunity = this.opportunities.get(id);
+    if (!opportunity) return undefined;
+    
+    const updatedOpportunity: Opportunity = { 
+      ...opportunity, 
+      ...updates,
+      updatedAt: new Date()
+    };
+    this.opportunities.set(id, updatedOpportunity);
+    return updatedOpportunity;
+  }
+
+  async deleteOpportunity(id: number): Promise<boolean> {
+    return this.opportunities.delete(id);
   }
   
   // Document operations
