@@ -842,7 +842,7 @@ export default function MetricsPage() {
             
             return (
               <div key={tag} className="bg-white mb-6">
-                <div className="px-6 py-3 bg-[#ffffff] text-[#282A3F]">
+                <div className="px-6 pb-1 pt-3 bg-[#ffffff] text-[#282A3F]">
                   <div className="flex items-center">
                     <TagBadge tag={tag} />
                   </div>
