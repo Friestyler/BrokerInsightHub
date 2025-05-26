@@ -1920,69 +1920,253 @@ export default function MetricsPage() {
       </Dialog>
       {/* Create Metric Dialog */}
       <Dialog open={isCreateMetricOpen} onOpenChange={setIsCreateMetricOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>Create New Metric</DialogTitle>
+            <DialogTitle>Create New OKR Template</DialogTitle>
             <DialogDescription>
-              Create a new metric for your OKR tracking.
+              Create a comprehensive OKR template with objectives, activities, and subactivities.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <label htmlFor="title" className="text-sm font-medium">Metric Title</label>
-              <Input
-                id="title"
-                placeholder="Enter metric title"
-                className="col-span-3"
-              />
-            </div>
-            <div className="grid gap-2">
-              <label htmlFor="description" className="text-sm font-medium">Description</label>
-              <Textarea
-                id="description"
-                placeholder="Describe this metric"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <label htmlFor="unit" className="text-sm font-medium">Unit</label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select unit" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="currency">Currency</SelectItem>
-                    <SelectItem value="percentage">Percentage</SelectItem>
-                    <SelectItem value="number">Number</SelectItem>
-                    <SelectItem value="boolean">Yes/No</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <label htmlFor="hierarchy" className="text-sm font-medium">Level</label>
-                <Select>
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select level" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="objective">Objective</SelectItem>
-                    <SelectItem value="activity">Activity</SelectItem>
-                    <SelectItem value="subactivity">Subactivity</SelectItem>
-                  </SelectContent>
-                </Select>
+          <div className="grid gap-6 py-4">
+            {/* Structure Selection */}
+            <div className="grid gap-3">
+              <label className="text-sm font-medium">Template Structure</label>
+              <div className="grid grid-cols-3 gap-2">
+                <div className="border rounded-lg p-3 cursor-pointer hover:bg-gray-50 border-blue-200 bg-blue-50">
+                  <div className="font-medium text-sm">Objective Only</div>
+                  <div className="text-xs text-gray-500 mt-1">Single objective template</div>
+                </div>
+                <div className="border rounded-lg p-3 cursor-pointer hover:bg-gray-50">
+                  <div className="font-medium text-sm">With Activities</div>
+                  <div className="text-xs text-gray-500 mt-1">Objective + activities</div>
+                </div>
+                <div className="border rounded-lg p-3 cursor-pointer hover:bg-gray-50">
+                  <div className="font-medium text-sm">Full Hierarchy</div>
+                  <div className="text-xs text-gray-500 mt-1">Objective + activities + subactivities</div>
+                </div>
               </div>
             </div>
-            <div className="grid gap-2">
-              <label htmlFor="tags" className="text-sm font-medium">Tags</label>
-              <Input
-                id="tags"
-                placeholder="Enter tags (comma separated)"
-              />
+
+            {/* Basic Information */}
+            <div className="border rounded-lg p-4 space-y-4">
+              <h3 className="font-medium text-sm">Basic Information</h3>
+              <div className="grid gap-4">
+                <div className="grid gap-2">
+                  <label htmlFor="title" className="text-sm font-medium">
+                    Title <span className="text-red-500">*</span>
+                  </label>
+                  <Input
+                    id="title"
+                    placeholder="Enter OKR title"
+                    className="col-span-3"
+                  />
+                </div>
+                <div className="grid gap-2">
+                  <label htmlFor="description" className="text-sm font-medium">
+                    Description <span className="text-red-500">*</span>
+                  </label>
+                  <Textarea
+                    id="description"
+                    placeholder="Describe this OKR"
+                    rows={3}
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <label htmlFor="hierarchy" className="text-sm font-medium">
+                      Level <span className="text-red-500">*</span>
+                    </label>
+                    <Select>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select level" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="objective">Objective</SelectItem>
+                        <SelectItem value="activity">Activity</SelectItem>
+                        <SelectItem value="subactivity">Subactivity</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <label htmlFor="tag" className="text-sm font-medium">
+                      Tag <span className="text-red-500">*</span>
+                    </label>
+                    <Select>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select tag" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Revenue Growth">Revenue Growth</SelectItem>
+                        <SelectItem value="Product Innovation">Product Innovation</SelectItem>
+                        <SelectItem value="Customer Experience">Customer Experience</SelectItem>
+                        <SelectItem value="Operational Excellence">Operational Excellence</SelectItem>
+                        <SelectItem value="Market Expansion">Market Expansion</SelectItem>
+                        <SelectItem value="Team Development">Team Development</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Target & Measurement */}
+            <div className="border rounded-lg p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-medium text-sm">Target & Measurement</h3>
+                <input type="checkbox" defaultChecked className="rounded" />
+              </div>
+              <div className="grid gap-4">
+                <div className="grid grid-cols-3 gap-4">
+                  <div className="grid gap-2">
+                    <label htmlFor="unit" className="text-sm font-medium">Measure Unit</label>
+                    <Select>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select unit" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="currency">Currency</SelectItem>
+                        <SelectItem value="percentage">Percentage</SelectItem>
+                        <SelectItem value="number">Number</SelectItem>
+                        <SelectItem value="checkbox">Checkbox</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="grid gap-2">
+                    <label htmlFor="target" className="text-sm font-medium">Target Value</label>
+                    <Input
+                      id="target"
+                      placeholder="Enter target"
+                      type="number"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <label htmlFor="current" className="text-sm font-medium">Current Value</label>
+                    <Input
+                      id="current"
+                      placeholder="Enter current"
+                      type="number"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Timeline */}
+            <div className="border rounded-lg p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-medium text-sm">Timeline</h3>
+                <input type="checkbox" defaultChecked className="rounded" />
+              </div>
+              <div className="grid gap-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <label htmlFor="startDate" className="text-sm font-medium">Start Date</label>
+                    <Input
+                      id="startDate"
+                      type="date"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <label htmlFor="endDate" className="text-sm font-medium">End Date</label>
+                    <Input
+                      id="endDate"
+                      type="date"
+                    />
+                  </div>
+                </div>
+                <div className="grid gap-2">
+                  <label htmlFor="frequency" className="text-sm font-medium">Milestone Frequency</label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select frequency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="weekly">Weekly</SelectItem>
+                      <SelectItem value="monthly">Monthly</SelectItem>
+                      <SelectItem value="quarterly">Quarterly</SelectItem>
+                      <SelectItem value="annually">Annually</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+            {/* Assignment & Progress */}
+            <div className="border rounded-lg p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-medium text-sm">Assignment & Progress</h3>
+                <input type="checkbox" className="rounded" />
+              </div>
+              <div className="grid gap-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="grid gap-2">
+                    <label htmlFor="owner" className="text-sm font-medium">Responsible Person</label>
+                    <Input
+                      id="owner"
+                      placeholder="Enter owner name"
+                    />
+                  </div>
+                  <div className="grid gap-2">
+                    <label htmlFor="dueDate" className="text-sm font-medium">Due Date</label>
+                    <Input
+                      id="dueDate"
+                      type="date"
+                    />
+                  </div>
+                </div>
+                <div className="grid gap-2">
+                  <label htmlFor="status" className="text-sm font-medium">Status</label>
+                  <Select>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Not Started">Not Started</SelectItem>
+                      <SelectItem value="In Progress">In Progress</SelectItem>
+                      <SelectItem value="On Track">On Track</SelectItem>
+                      <SelectItem value="Behind Schedule">Behind Schedule</SelectItem>
+                      <SelectItem value="Nearly Complete">Nearly Complete</SelectItem>
+                      <SelectItem value="Complete">Complete</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+
+            {/* Attachments */}
+            <div className="border rounded-lg p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-medium text-sm">Attachments</h3>
+                <input type="checkbox" className="rounded" />
+              </div>
+              <div className="grid gap-2">
+                <Input
+                  type="file"
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.png"
+                  className="file:mr-2 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:bg-gray-100 hover:file:bg-gray-200"
+                />
+                <p className="text-xs text-gray-500">Supported formats: PDF, DOC, XLS, JPG, PNG</p>
+              </div>
+            </div>
+
+            {/* Add Activities Section */}
+            <div className="border rounded-lg p-4 space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="font-medium text-sm">Activities & Subactivities</h3>
+                <Button variant="outline" size="sm">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                    <path d="M5 12h14"/>
+                    <path d="M12 5v14"/>
+                  </svg>
+                  Add Activity
+                </Button>
+              </div>
+              <p className="text-sm text-gray-500">No activities added yet. Click "Add Activity" to create nested items under this objective.</p>
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsCreateMetricOpen(false)}>Cancel</Button>
-            <Button className="bg-indigo-600 hover:bg-indigo-700">Create Metric</Button>
+            <Button className="bg-indigo-600 hover:bg-indigo-700">Create OKR Template</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
