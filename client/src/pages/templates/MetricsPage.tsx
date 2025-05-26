@@ -244,6 +244,8 @@ const mockOKRs = [
     status: "On Track",
     owner: "Sarah Chen",
     dueDate: new Date('2024-12-31'),
+    startDate: new Date('2024-01-01'),
+    endDate: new Date('2024-12-31'),
     tag: "Revenue Growth"
   },
   {
@@ -258,6 +260,8 @@ const mockOKRs = [
     status: "Behind Schedule",
     owner: "Mike Rodriguez",
     dueDate: new Date('2024-11-30'),
+    startDate: new Date('2024-09-01'),
+    endDate: null,
     tag: "Product Innovation"
   },
   {
@@ -272,6 +276,8 @@ const mockOKRs = [
     status: "On Track",
     owner: "Emily Johnson",
     dueDate: new Date('2024-12-31'),
+    startDate: null,
+    endDate: new Date('2024-12-31'),
     tag: "Customer Success"
   },
   {
@@ -286,6 +292,8 @@ const mockOKRs = [
     status: "On Track",
     owner: "Emily Johnson",
     dueDate: new Date('2024-12-31'),
+    startDate: new Date('2024-03-15'),
+    endDate: new Date('2025-03-14'),
     tag: "Customer Success"
   },
   {
@@ -300,6 +308,8 @@ const mockOKRs = [
     status: "On Track",
     owner: "David Wilson",
     dueDate: new Date('2024-10-31'),
+    startDate: new Date('2024-07-01'),
+    endDate: null,
     tag: "Market Expansion"
   },
   {
@@ -314,6 +324,8 @@ const mockOKRs = [
     status: "On Track",
     owner: "Sarah Chen",
     dueDate: new Date('2024-12-31'),
+    startDate: null,
+    endDate: new Date('2025-06-30'),
     tag: "Revenue Growth"
   }
 ];
@@ -1258,7 +1270,24 @@ export default function MetricsPage() {
                         </TableCell>
                         <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
                           <span className="text-sm">
-                            Quarterly
+                            {(() => {
+                              const formatDate = (date: Date) => {
+                                return date.toLocaleDateString('en-US', { 
+                                  month: 'short', 
+                                  day: 'numeric', 
+                                  year: 'numeric' 
+                                });
+                              };
+                              
+                              if (okr.startDate && okr.endDate) {
+                                return `${formatDate(okr.startDate)} - ${formatDate(okr.endDate)}`;
+                              } else if (okr.startDate) {
+                                return `From ${formatDate(okr.startDate)}`;
+                              } else if (okr.endDate) {
+                                return `Until ${formatDate(okr.endDate)}`;
+                              }
+                              return 'Ongoing';
+                            })()}
                           </span>
                         </TableCell>
                         <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
