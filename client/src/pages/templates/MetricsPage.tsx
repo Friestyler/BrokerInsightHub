@@ -1247,15 +1247,20 @@ export default function MetricsPage() {
             </div>
           )}
 
-          {/* Group OKRs by tags and display in sections */}
-          {Array.from(new Set(filteredOKRs.map(okr => okr.tag))).map(tag => {
-            const okrsForTag = filteredOKRs.filter(okr => okr.tag === tag);
+          {/* Group OKRs and display in sections */}
+          {Object.entries(groupOKRs(filteredOKRs)).map(([groupName, okrsInGroup]) => {
             
             return (
-              <div key={tag} className="bg-white" style={{ marginBottom: '32px' }}>
+              <div key={groupName} className="bg-white" style={{ marginBottom: '32px' }}>
                 <div className="px-6 pb-0 pt-3 bg-[#ffffff] text-[#282A3F]">
                   <div className="flex items-center">
-                    <TagBadge tag={tag} />
+                    {groupBy === "tag" ? (
+                      <TagBadge tag={groupName} />
+                    ) : groupBy === "none" ? null : (
+                      <div className="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium">
+                        {groupName}
+                      </div>
+                    )}
                   </div>
                 </div>
                 <div className="overflow-x-auto">
@@ -1265,12 +1270,12 @@ export default function MetricsPage() {
                       <TableHead className="w-12 px-3 py-2">
                         <input
                           type="checkbox"
-                          checked={okrsForTag.length > 0 && okrsForTag.every(okr => selectedOKRs.includes(okr.id))}
+                          checked={okrsInGroup.length > 0 && okrsInGroup.every(okr => selectedOKRs.includes(okr.id))}
                           onChange={(e) => {
                             if (e.target.checked) {
-                              setSelectedOKRs(prev => [...new Set([...prev, ...okrsForTag.map(okr => okr.id)])]);
+                              setSelectedOKRs(prev => [...new Set([...prev, ...okrsInGroup.map(okr => okr.id)])]);
                             } else {
-                              setSelectedOKRs(prev => prev.filter(id => !okrsForTag.map(okr => okr.id).includes(id)));
+                              setSelectedOKRs(prev => prev.filter(id => !okrsInGroup.map(okr => okr.id).includes(id)));
                             }
                           }}
                           className="rounded border-gray-300"
@@ -1345,7 +1350,7 @@ export default function MetricsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {okrsForTag.map((okr) => (
+                    {okrsInGroup.map((okr) => (
                       <TableRow key={okr.id} className="hover:bg-slate-50 border-b group" style={{ borderColor: '#E6E7F1' }}>
                         <TableCell className="w-12 px-3 py-3">
                           <input
@@ -1429,15 +1434,9 @@ export default function MetricsPage() {
                         </TableCell>
                         <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
                           <div className="flex flex-wrap gap-1">
-                            {okr.tags?.map((tag, index) => (
-                              <Badge key={index} variant="secondary" className="text-xs">
-                                {tag}
-                              </Badge>
-                            )) || (
-                              <Badge variant="secondary" className="text-xs">
-                                {tag}
-                              </Badge>
-                            )}
+                            <Badge variant="secondary" className="text-xs">
+                              {okr.tag}
+                            </Badge>
                           </div>
                         </TableCell>
                         <TableCell className="text-right p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
