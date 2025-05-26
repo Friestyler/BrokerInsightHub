@@ -911,7 +911,7 @@ export default function MetricsPage() {
                     {okrsForTag.map((okr) => (
                       <TableRow key={okr.id} className="hover:bg-slate-50 border-b" style={{ borderColor: '#E6E7F1' }}>
                         <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
-                          <div className="flex items-center gap-1">
+                          <div className="flex items-center">
                             <span className="font-medium">{okr.title}</span>
                             <TooltipProvider>
                               <Tooltip>
@@ -922,8 +922,7 @@ export default function MetricsPage() {
                                     height="8" 
                                     viewBox="0 0 14 8" 
                                     fill="none" 
-                                    className="text-gray-400 hover:text-gray-600 cursor-help"
-                                    style={{ marginLeft: '4px' }}
+                                    className="text-gray-400 hover:text-gray-600 cursor-help ml-1"
                                   >
                                     <rect width="14" height="1" fill="currentColor"/>
                                     <rect y="3.5" width="14" height="1" fill="currentColor"/>
