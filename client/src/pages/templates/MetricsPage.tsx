@@ -728,21 +728,44 @@ export default function MetricsPage() {
               
               {/* Filter buttons */}
               <div className="flex items-center gap-2">
-                <button 
-                  className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedTags.length > 0 ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
-                  onClick={() => setSelectedTags(selectedTags.length > 0 ? [] : [allTags[0] || ''])}
+                <Select 
+                  value={selectedTags.length === 1 ? selectedTags[0] : ""}
+                  onValueChange={(value) => {
+                    if (value === "clear") {
+                      setSelectedTags([]);
+                    } else if (value && value !== "all_tags") {
+                      setSelectedTags([value]);
+                    } else {
+                      setSelectedTags([]);
+                    }
+                  }}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                  </svg>
-                  <span>{selectedTags.length > 0 ? `Tag: ${selectedTags[0]}` : 'Tag'}</span>
-                  {selectedTags.length > 0 && (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
-                    </svg>
-                  )}
-                </button>
+                  <SelectTrigger className="w-[140px] bg-white">
+                    <SelectValue placeholder="Tag" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all_tags">All Tags</SelectItem>
+                    {Array.from(new Set(mockOKRs.map(okr => okr.tag))).sort().map(tag => (
+                      <SelectItem key={tag} value={tag}>
+                        {tag}
+                      </SelectItem>
+                    ))}
+                    {selectedTags.length > 0 && (
+                      <>
+                        <div className="border-t border-gray-200 my-1"></div>
+                        <SelectItem value="clear" className="text-gray-600">
+                          <div className="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                              <path d="M18 6L6 18"></path>
+                              <path d="M6 6l12 12"></path>
+                            </svg>
+                            Clear filter
+                          </div>
+                        </SelectItem>
+                      </>
+                    )}
+                  </SelectContent>
+                </Select>
                 
                 <Select value={selectedMeasureUnit} onValueChange={(value) => {
                   if (value === "clear") {
@@ -818,7 +841,7 @@ export default function MetricsPage() {
                       mode="range"
                       defaultMonth={dateRange?.from}
                       selected={dateRange}
-                      onSelect={setDateRange}
+                      onSelect={(range) => setDateRange(range || { from: undefined, to: undefined })}
                       numberOfMonths={2}
                     />
                     {(dateRange?.from || dateRange?.to) && (
