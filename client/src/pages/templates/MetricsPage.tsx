@@ -524,7 +524,6 @@ export default function MetricsPage() {
           </Button>
         </div>
       </div>
-      
       {/* Tabs for Metrics and Metric Groups */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid grid-cols-3 w-96 mb-6">
@@ -833,13 +832,16 @@ export default function MetricsPage() {
             
             return (
               <div key={tag} className="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
-                <div className="bg-gray-50 px-6 py-3 border-b">
-                  <div className="flex items-center justify-between">
-                    <h3 className="text-lg font-semibold text-gray-900">{tag}</h3>
-                    <TagBadge tag={tag} />
+                <div className="px-6 py-3 border-b bg-[#ffffff] text-[#282A3F]">
+                  <div className="flex items-center">
+                    <span 
+                      className={`inline-flex items-center px-3 py-1.5 rounded-full border font-semibold ${getTagColor(tag)}`}
+                      style={{ fontSize: '15px', fontFamily: 'Poppins' }}
+                    >
+                      {tag}
+                    </span>
                   </div>
                 </div>
-                
                 <Table>
                   <TableHeader>
                     <TableRow>
@@ -928,7 +930,6 @@ export default function MetricsPage() {
           })}
         </TabsContent>
       </Tabs>
-      
       {/* Manage Tags Dialog */}
       <Dialog open={isManageTagsOpen} onOpenChange={setIsManageTagsOpen}>
         <DialogContent className="sm:max-w-[425px]">
@@ -973,7 +974,6 @@ export default function MetricsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
       {/* Create Metric Dialog */}
       <Dialog open={isCreateMetricOpen} onOpenChange={setIsCreateMetricOpen}>
         <DialogContent className="sm:max-w-[425px]">
@@ -1042,7 +1042,6 @@ export default function MetricsPage() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-      
       {/* Create Group Dialog */}
       <Dialog open={isCreateGroupOpen} onOpenChange={setIsCreateGroupOpen}>
         <DialogContent className="sm:max-w-[425px]">
