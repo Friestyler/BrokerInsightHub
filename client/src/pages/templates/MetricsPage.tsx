@@ -384,6 +384,8 @@ export default function MetricsPage() {
   const [isManageTagsOpen, setIsManageTagsOpen] = useState(false);
   const [isCreateMetricOpen, setIsCreateMetricOpen] = useState(false);
   const [isCreateGroupOpen, setIsCreateGroupOpen] = useState(false);
+  const [selectedMeasureUnit, setSelectedMeasureUnit] = useState("");
+  const [selectedTargetRange, setSelectedTargetRange] = useState("");
 
   // Filtered metrics based on search and selected tags
   const filteredMetrics = mockMetrics.filter(metric => {
@@ -436,6 +438,8 @@ export default function MetricsPage() {
   const clearFilters = () => {
     setSearchTerm("");
     setSelectedTags([]);
+    setSelectedMeasureUnit("");
+    setSelectedTargetRange("");
   };
 
   // Clear selection
