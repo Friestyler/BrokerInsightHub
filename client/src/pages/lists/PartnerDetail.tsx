@@ -625,7 +625,7 @@ export default function PartnerDetail() {
           <div className="flex items-start">
             <div>
               <div className="flex items-center space-x-3">
-                <Link href="/lists/partners" className="inline-flex items-center text-indigo-600 hover:text-indigo-800 mr-2">
+                <Link href="/partners" className="inline-flex items-center text-indigo-600 hover:text-indigo-800 mr-2">
                   <ChevronLeft className="h-4 w-4" />
                 </Link>
                 <h1 className="text-[20px] font-bold tracking-tight text-black">
