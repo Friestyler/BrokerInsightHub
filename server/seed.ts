@@ -84,29 +84,84 @@ async function seedDatabase() {
     await storage.addClientProduct({ clientId: createdClients[2].id, productId: createdProducts[0].id }); // Green Tech has Property
     console.log('Created client products associations');
     
-    // Create sample opportunities
-    await storage.createOpportunity({ 
-      clientId: createdClients[0].id, 
-      productId: createdProducts[2].id, 
-      probability: 85, 
-      estimatedValue: 2450 
-    }); // Van Damme - Cyber Insurance
-    
-    await storage.createOpportunity({ 
-      clientId: createdClients[1].id, 
-      productId: createdProducts[5].id, 
-      probability: 65, 
-      estimatedValue: 890 
-    }); // Laura - Life Insurance
-    
-    await storage.createOpportunity({ 
-      clientId: createdClients[2].id, 
-      productId: createdProducts[6].id, 
-      probability: 90, 
-      estimatedValue: 3200 
-    }); // Green Tech - Business Interruption
-    
-    console.log('Created opportunities');
+    // Create sample opportunities with rich data
+    const opportunities = [
+      {
+        title: "Cyber Insurance for Van Damme BVBA",
+        clientId: createdClients[0].id,
+        productId: createdProducts[2].id,
+        status: "open",
+        stage: "proposal",
+        type: "cross_sell",
+        probability: 85,
+        estimatedValue: 2450,
+        ownerId: user.id,
+        description: "Cyber insurance opportunity for manufacturing company",
+        notes: "Client expressed interest after recent cyber attack news",
+        expectedCloseDate: new Date(2025, 6, 15)
+      },
+      {
+        title: "Life Insurance for Laura Martens",
+        clientId: createdClients[1].id,
+        productId: createdProducts[5].id,
+        status: "open",
+        stage: "discovery",
+        type: "new_business",
+        probability: 65,
+        estimatedValue: 890,
+        ownerId: user.id,
+        description: "Individual life insurance policy",
+        notes: "Client recently married, looking for coverage",
+        expectedCloseDate: new Date(2025, 5, 30)
+      },
+      {
+        title: "Business Interruption for Green Tech SA",
+        clientId: createdClients[2].id,
+        productId: createdProducts[6].id,
+        status: "open",
+        stage: "negotiation",
+        type: "upsell",
+        probability: 90,
+        estimatedValue: 3200,
+        ownerId: user.id,
+        description: "Business interruption insurance for tech company",
+        notes: "Client needs coverage for potential supply chain disruptions",
+        expectedCloseDate: new Date(2025, 5, 20)
+      },
+      {
+        title: "Property Insurance Extension for Van Damme BVBA",
+        clientId: createdClients[0].id,
+        productId: createdProducts[0].id,
+        status: "on_hold",
+        stage: "proposal",
+        type: "renewal",
+        probability: 70,
+        estimatedValue: 1800,
+        ownerId: user.id,
+        description: "Extension of existing property coverage",
+        notes: "Waiting for building valuation report",
+        expectedCloseDate: new Date(2025, 7, 1)
+      },
+      {
+        title: "Auto Insurance for Laura Martens",
+        clientId: createdClients[1].id,
+        productId: createdProducts[3].id,
+        status: "closed",
+        stage: "closed",
+        type: "new_business",
+        probability: 100,
+        estimatedValue: 650,
+        ownerId: user.id,
+        description: "New vehicle insurance policy",
+        notes: "Successfully closed - client purchased new car",
+        expectedCloseDate: new Date(2025, 4, 10)
+      }
+    ];
+
+    for (const opportunityData of opportunities) {
+      await storage.createOpportunity(opportunityData);
+      console.log(`Created opportunity: ${opportunityData.title}`);
+    }
     
     console.log('Database seeding completed successfully!');
   } catch (error) {
