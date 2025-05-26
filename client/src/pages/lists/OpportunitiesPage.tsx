@@ -584,8 +584,8 @@ function OpportunitiesTable() {
                 )}
               </div>
               
-              {/* List actions - Share/Clear when a list is active */}
-              {activeList && (
+              {/* List actions - Share/Add to Campaign when a non-default list is active */}
+              {activeList && !activeList.isDefault && (
                 <div className="flex items-center gap-2">
                   <Button 
                     variant="ghost" 
