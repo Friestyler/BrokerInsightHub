@@ -1060,97 +1060,178 @@ function OpportunitiesTable() {
       </div>
       
       {/* Opportunities table */}
-      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-200">
+      <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+        <table className="min-w-full divide-y divide-gray-300">
+          <thead className="bg-gray-50">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
+              <th scope="col" className="relative px-3 py-3.5 w-10">
                 <input
                   type="checkbox"
-                  checked={selectedOpportunities.length === displayedOpportunities.length && displayedOpportunities.length > 0}
-                  onChange={toggleSelectAll}
-                  className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                  className="absolute h-4 w-4 rounded border-gray-300"
+                  checked={isEditingList 
+                    ? editedListMembers.length === (activeList ? mockOpportunities.length : displayedOpportunities.length) && (activeList ? mockOpportunities.length : displayedOpportunities.length) > 0
+                    : selectedOpportunities.length === displayedOpportunities.length && displayedOpportunities.length > 0
+                  }
+                  onChange={isEditingList 
+                    ? () => {
+                        if (editedListMembers.length === (activeList ? mockOpportunities.length : displayedOpportunities.length)) {
+                          setEditedListMembers([]);
+                        } else {
+                          setEditedListMembers(mockOpportunities.map(o => o.id));
+                        }
+                      }
+                    : toggleSelectAll
+                  }
                 />
               </th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Opportunity</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Partner</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Type</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Value</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Templates</th>
-              <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12"></th>
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[250px]">
+                <div className="flex items-center">
+                  Opportunity
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                    <path d="M8 9l4-4 4 4"></path>
+                    <path d="M16 15l-4 4-4-4"></path>
+                  </svg>
+                </div>
+              </th>
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                <div className="flex items-center">
+                  Customer
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                    <path d="M8 9l4-4 4 4"></path>
+                    <path d="M16 15l-4 4-4-4"></path>
+                  </svg>
+                </div>
+              </th>
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                <div className="flex items-center">
+                  Partner
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                    <path d="M8 9l4-4 4 4"></path>
+                    <path d="M16 15l-4 4-4-4"></path>
+                  </svg>
+                </div>
+              </th>
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                <div className="flex items-center">
+                  Type
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                    <path d="M8 9l4-4 4 4"></path>
+                    <path d="M16 15l-4 4-4-4"></path>
+                  </svg>
+                </div>
+              </th>
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                <div className="flex items-center">
+                  Stage
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                    <path d="M8 9l4-4 4 4"></path>
+                    <path d="M16 15l-4 4-4-4"></path>
+                  </svg>
+                </div>
+              </th>
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                <div className="flex items-center">
+                  Status
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                    <path d="M8 9l4-4 4 4"></path>
+                    <path d="M16 15l-4 4-4-4"></path>
+                  </svg>
+                </div>
+              </th>
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                <div className="flex items-center">
+                  Value
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                    <path d="M8 9l4-4 4 4"></path>
+                    <path d="M16 15l-4 4-4-4"></path>
+                  </svg>
+                </div>
+              </th>
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                <div className="flex items-center">
+                  Template
+                </div>
+              </th>
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
-            {displayedOpportunities.map((opportunity) => (
-              <tr key={opportunity.id} className="hover:bg-gray-50">
-                <td className="px-4 py-4">
+          <tbody className="divide-y divide-gray-100 bg-white">
+            {(isEditingList ? mockOpportunities : displayedOpportunities).map((opportunity) => (
+              <tr 
+                key={opportunity.id} 
+                className={`hover:bg-gray-50 group ${
+                  isEditingList 
+                    ? editedListMembers.includes(opportunity.id) ? 'bg-indigo-50' : '' 
+                    : selectedOpportunities.includes(opportunity.id) ? 'bg-blue-50' : ''
+                }`}
+              >
+                <td className="relative whitespace-nowrap py-4 pl-3 pr-3 text-sm w-10">
                   <input
                     type="checkbox"
-                    checked={selectedOpportunities.includes(opportunity.id)}
-                    onChange={() => toggleSelectOpportunity(opportunity.id)}
-                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded"
+                    className={`h-4 w-4 rounded border-gray-300 ${
+                      isEditingList 
+                        ? editedListMembers.includes(opportunity.id) ? 'text-indigo-600 focus:ring-indigo-500' : ''
+                        : selectedOpportunities.includes(opportunity.id) ? 'text-indigo-600 focus:ring-indigo-500' : ''
+                    }`}
+                    checked={isEditingList 
+                      ? editedListMembers.includes(opportunity.id)
+                      : selectedOpportunities.includes(opportunity.id)
+                    }
+                    onChange={isEditingList 
+                      ? () => {
+                          if (editedListMembers.includes(opportunity.id)) {
+                            setEditedListMembers(editedListMembers.filter(id => id !== opportunity.id));
+                          } else {
+                            setEditedListMembers([...editedListMembers, opportunity.id]);
+                          }
+                        }
+                      : () => toggleOpportunitySelection(opportunity.id)
+                    }
                   />
                 </td>
-                <td className="px-4 py-4">
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm w-[250px]">
                   <div className="flex items-center">
-                    <Avatar className="h-8 w-8 mr-3">
-                      <AvatarFallback className="bg-indigo-100 text-indigo-600 text-sm font-medium">
-                        {opportunity.initials}
-                      </AvatarFallback>
-                    </Avatar>
-                    <div>
-                      <Link href={`/opportunities/${opportunity.id}`} className="font-medium text-gray-900 hover:text-indigo-600">
-                        {opportunity.title}
-                      </Link>
-                      <div className="text-sm text-gray-500">Owner: {opportunity.owner}</div>
+                    <div className="flex-shrink-0 h-10 w-10">
+                      <Avatar className="h-10 w-10">
+                        <AvatarFallback className="bg-indigo-100 text-indigo-700 text-sm font-medium">
+                          {opportunity.initials}
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
+                    <div className="ml-3">
+                      <div className="text-sm font-medium text-gray-900">{opportunity.title}</div>
+                      <div className="text-sm text-gray-500">{opportunity.owner}</div>
                     </div>
                   </div>
                 </td>
-                <td className="px-4 py-4 text-sm text-gray-900">{opportunity.customerName}</td>
-                <td className="px-4 py-4 text-sm text-gray-900">{opportunity.partnerName}</td>
-                <td className="px-4 py-4">
-                  <Badge 
-                    variant={opportunity.status === 'Closed Won' ? 'default' : 
-                            opportunity.status === 'Closed Lost' ? 'destructive' : 
-                            opportunity.status === 'In Progress' ? 'secondary' : 'outline'}
-                    className="text-xs"
-                  >
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{opportunity.customerName}</td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{opportunity.partnerName}</td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{opportunity.type}</td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm capitalize">{opportunity.stage}</td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                  <Badge variant={opportunity.status === 'Closed Won' ? 'outline' : 'secondary'} className="capitalize">
                     {opportunity.status}
                   </Badge>
                 </td>
-                <td className="px-4 py-4 text-sm text-gray-900">{opportunity.type}</td>
-                <td className="px-4 py-4 text-sm text-gray-900">${opportunity.value.toLocaleString()}</td>
-                <td className="px-4 py-4">
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">${opportunity.value.toLocaleString()}</td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
                   <TemplateBadges type={opportunity.type} status={opportunity.status} />
-                </td>
-                <td className="px-4 py-4">
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                        <span className="sr-only">Open menu</span>
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <circle cx="12" cy="12" r="1"></circle>
-                          <circle cx="12" cy="5" r="1"></circle>
-                          <circle cx="12" cy="19" r="1"></circle>
-                        </svg>
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end">
-                      <DropdownMenuItem>
-                        <Link href={`/opportunities/${opportunity.id}`} className="flex w-full">
-                          View details
-                        </Link>
-                      </DropdownMenuItem>
-                      <DropdownMenuItem>Edit</DropdownMenuItem>
-                      <DropdownMenuSeparator />
-                      <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
                 </td>
               </tr>
             ))}
+            
+            {displayedOpportunities.length === 0 && !isEditingList && (
+              <tr>
+                <td colSpan={9} className="py-10 text-center">
+                  <div className="flex flex-col items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 mb-3">
+                      <path d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                    </svg>
+                    <h3 className="text-lg font-medium text-gray-900 mb-1">No opportunities found</h3>
+                    <p className="text-gray-500">Try adjusting your filters or search terms</p>
+                  </div>
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
