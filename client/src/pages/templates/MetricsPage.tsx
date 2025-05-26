@@ -511,7 +511,7 @@ export default function MetricsPage() {
       
       switch (groupBy) {
         case "tag":
-          groupKey = okr.tag || "Untagged";
+          groupKey = okr.tag || "No Tag";
           break;
         case "type":
           groupKey = okr.type || "No Type";
@@ -536,7 +536,7 @@ export default function MetricsPage() {
     const emptyGroups: string[] = [];
     
     Object.keys(grouped).forEach(key => {
-      if (key === "Untagged" || key === "No Type" || key === "No Status") {
+      if (key === "No Tag" || key === "No Type" || key === "No Status") {
         emptyGroups.push(key);
       } else {
         regularGroups.push(key);
@@ -1310,7 +1310,7 @@ export default function MetricsPage() {
                 <div className="px-6 pb-0 pt-3 bg-[#ffffff] text-[#282A3F]">
                   <div className="flex items-center">
                     {groupBy === "tag" ? (
-                      groupName === "Untagged" ? (
+                      groupName === "No Tag" ? (
                         <div className="px-3 py-1 bg-gray-200 text-gray-600 rounded-lg text-sm font-medium border border-dashed border-gray-400">
                           <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline mr-1">
                             <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
