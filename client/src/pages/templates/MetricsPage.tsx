@@ -927,7 +927,7 @@ export default function MetricsPage() {
                                   >
                                     <rect width="14" height="1" fill="currentColor"/>
                                     <rect y="3.5" width="14" height="1" fill="currentColor"/>
-                                    <rect y="7" width="14" height="1" fill="currentColor"/>
+                                    <rect y="7" width="7" height="1" fill="currentColor"/>
                                   </svg>
                                 </TooltipTrigger>
                                 <TooltipContent>
