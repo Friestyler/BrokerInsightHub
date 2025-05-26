@@ -844,13 +844,83 @@ export default function MetricsPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>OKR Title</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Owner</TableHead>
-                      <TableHead>Progress</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Due Date</TableHead>
-                      <TableHead className="text-right">Target</TableHead>
+                      <TableHead 
+                        className="px-3 py-2"
+                        style={{ 
+                          fontFamily: 'Poppins', 
+                          fontWeight: '500', 
+                          fontSize: '13px', 
+                          color: '#696C8C' 
+                        }}
+                      >
+                        OKR Title
+                      </TableHead>
+                      <TableHead 
+                        className="px-3 py-2"
+                        style={{ 
+                          fontFamily: 'Poppins', 
+                          fontWeight: '500', 
+                          fontSize: '13px', 
+                          color: '#696C8C' 
+                        }}
+                      >
+                        Type
+                      </TableHead>
+                      <TableHead 
+                        className="px-3 py-2"
+                        style={{ 
+                          fontFamily: 'Poppins', 
+                          fontWeight: '500', 
+                          fontSize: '13px', 
+                          color: '#696C8C' 
+                        }}
+                      >
+                        Owner
+                      </TableHead>
+                      <TableHead 
+                        className="px-3 py-2"
+                        style={{ 
+                          fontFamily: 'Poppins', 
+                          fontWeight: '500', 
+                          fontSize: '13px', 
+                          color: '#696C8C' 
+                        }}
+                      >
+                        Progress
+                      </TableHead>
+                      <TableHead 
+                        className="px-3 py-2"
+                        style={{ 
+                          fontFamily: 'Poppins', 
+                          fontWeight: '500', 
+                          fontSize: '13px', 
+                          color: '#696C8C' 
+                        }}
+                      >
+                        Status
+                      </TableHead>
+                      <TableHead 
+                        className="px-3 py-2"
+                        style={{ 
+                          fontFamily: 'Poppins', 
+                          fontWeight: '500', 
+                          fontSize: '13px', 
+                          color: '#696C8C' 
+                        }}
+                      >
+                        Due Date
+                      </TableHead>
+                      <TableHead 
+                        className="text-right px-3 py-2"
+                        style={{ 
+                          fontFamily: 'Poppins', 
+                          fontWeight: '500', 
+                          fontSize: '13px', 
+                          color: '#696C8C' 
+                        }}
+                      >
+                        Target
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
