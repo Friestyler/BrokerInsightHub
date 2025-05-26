@@ -1199,7 +1199,6 @@ function OpportunitiesTable() {
                     </div>
                     <div className="ml-3">
                       <div className="text-sm font-medium text-gray-900">{opportunity.title}</div>
-                      <div className="text-sm text-gray-500">{opportunity.owner}</div>
                     </div>
                   </div>
                 </td>
