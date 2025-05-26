@@ -344,12 +344,13 @@ const TagBadge = ({ tag }: { tag: string }) => {
   };
   
   return (
-    <span 
-      className={`inline-flex items-center px-3 py-1.5 rounded-full border font-semibold mr-2 mb-1 ${getTagColor(tag)}`}
+    <Badge 
+      variant="outline"
+      className={`mr-2 mb-1 font-semibold ${getTagColor(tag)}`}
       style={{ fontSize: '15px', fontFamily: 'Poppins' }}
     >
       {tag}
-    </span>
+    </Badge>
   );
 };
 
