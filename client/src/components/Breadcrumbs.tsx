@@ -1,5 +1,6 @@
 import { Link, useLocation } from "wouter";
 import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 
 interface BreadcrumbItem {
   label: string;
@@ -10,58 +11,46 @@ interface BreadcrumbItem {
 export default function Breadcrumbs() {
   const [location] = useLocation();
   
+  // Parse current location to get entity type and ID
+  const paths = location.split('/').filter(Boolean);
+  const isPartnerDetail = paths[0] === 'partners' && paths[1];
+  const partnerId = isPartnerDetail ? paths[1] : null;
+  
+  // Fetch partner data if we're on a partner detail page
+  const { data: partners } = useQuery({
+    queryKey: ['/api/partners'],
+    enabled: isPartnerDetail
+  });
+  
   const breadcrumbs = useMemo(() => {
     if (location === '/') {
       return [];
     }
 
-    const paths = location.split('/').filter(Boolean);
-    let currentPath = '';
     const items: BreadcrumbItem[] = [];
 
-    // Only show breadcrumbs for detail pages, not for main sections
-    if (paths[0] === 'lists' && paths.length > 2) {
-      const entityType = paths[1].charAt(0).toUpperCase() + paths[1].slice(1);
-      
-      // First breadcrumb is the entity type (Partners, Customers, etc.)
+    // Handle partner detail pages
+    if (isPartnerDetail && partnerId) {
+      // First breadcrumb is Partners
       items.push({
-        label: entityType,
-        path: `/lists/${paths[1]}`,
+        label: 'Partners',
+        path: '/partners',
         isCurrent: false
       });
       
-      // Entity detail page
-      const entityId = paths[2];
+      // Second breadcrumb is the partner name
+      const partner = partners?.find((p: any) => p.id.toString() === partnerId);
+      const partnerName = partner?.name || `Partner ${partnerId}`;
       
-      // For partner detail page with ID 1
-      if (paths[1] === 'partners' && entityId === '1') {
-        items.push({
-          label: 'ABC Insurance',
-          path: `/lists/${paths[1]}/${entityId}`,
-          isCurrent: true
-        });
-      } 
-      // For other entities, use a generic name with ID
-      else {
-        const entityMap: Record<string, string> = {
-          'partners': 'Partner',
-          'customers': 'Customer',
-          'opportunities': 'Opportunity',
-          'projects': 'Project',
-          'contacts': 'Contact'
-        };
-        
-        const entityName = entityMap[paths[1]] || paths[1].slice(0, -1).charAt(0).toUpperCase() + paths[1].slice(0, -1).slice(1);
-        items.push({
-          label: `${entityName} ${entityId}`,
-          path: `/lists/${paths[1]}/${entityId}`,
-          isCurrent: true
-        });
-      }
+      items.push({
+        label: partnerName,
+        path: `/partners/${partnerId}`,
+        isCurrent: true
+      });
     }
 
     return items;
-  }, [location]);
+  }, [location, partners, isPartnerDetail, partnerId]);
   
   if (breadcrumbs.length === 0) {
     return null;
