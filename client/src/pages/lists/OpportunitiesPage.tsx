@@ -336,6 +336,8 @@ function OpportunitiesTable() {
   const [listToRename, setListToRename] = useState<SavedList | null>(null);
   const [listToDelete, setListToDelete] = useState<SavedList | null>(null);
   const [newListName, setNewListName] = useState('');
+  const [pendingListAction, setPendingListAction] = useState<any>(null);
+  const [showUnsavedChangesModal, setShowUnsavedChangesModal] = useState(false);
   
   // Enhanced filtering logic for both filter and selection-based lists
   const displayedOpportunities = (() => {
