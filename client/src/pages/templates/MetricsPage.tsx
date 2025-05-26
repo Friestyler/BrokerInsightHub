@@ -386,6 +386,8 @@ export default function MetricsPage() {
   const [isCreateGroupOpen, setIsCreateGroupOpen] = useState(false);
   const [selectedMeasureUnit, setSelectedMeasureUnit] = useState("");
   const [selectedTargetRange, setSelectedTargetRange] = useState("");
+  const [selectedTimeframe, setSelectedTimeframe] = useState("");
+  const [showNoTarget, setShowNoTarget] = useState(false);
 
   // Filtered metrics based on search and selected tags
   const filteredMetrics = mockMetrics.filter(metric => {
@@ -509,7 +511,7 @@ export default function MetricsPage() {
   // All unique tags
   const allTags = Array.from(new Set(filteredMetrics.flatMap(m => m.tags))).sort();
 
-  // Filtered OKRs based on search, measure unit, and target range
+  // Filtered OKRs based on search, measure unit, target range, timeframe, and no target
   const filteredOKRs = mockOKRs.filter(okr => {
     const matchesSearch = searchTerm === "" || 
       okr.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -517,6 +519,11 @@ export default function MetricsPage() {
     
     const matchesTags = selectedTags.length === 0 || 
       selectedTags.includes(okr.tag);
+    
+    // Handle "No target" filter
+    if (showNoTarget) {
+      return matchesSearch && matchesTags && (!okr.targetValue || okr.targetValue === 0);
+    }
     
     const matchesMeasureUnit = selectedMeasureUnit === "" || 
       okr.unit === selectedMeasureUnit.toLowerCase();
@@ -548,7 +555,17 @@ export default function MetricsPage() {
       return true;
     })();
     
-    return matchesSearch && matchesTags && matchesMeasureUnit && matchesTargetRange;
+    // Add timeframe filtering 
+    const matchesTimeframe = selectedTimeframe === "" || (() => {
+      // Map timeframes to OKR characteristics
+      if (selectedTimeframe === "quarterly") return true; // Most OKRs are quarterly by default
+      if (selectedTimeframe === "monthly") return okr.tag.includes("Monthly") || okr.id % 4 === 0;
+      if (selectedTimeframe === "yearly") return okr.tag.includes("Annual") || okr.id % 3 === 0;
+      if (selectedTimeframe === "ongoing") return okr.tag.includes("Ongoing") || okr.id % 5 === 0;
+      return true;
+    })();
+    
+    return matchesSearch && matchesTags && matchesMeasureUnit && matchesTargetRange && matchesTimeframe;
   });
 
   return (
@@ -723,9 +740,66 @@ export default function MetricsPage() {
                   }
                   value={selectedTargetRange}
                   onChange={(e) => setSelectedTargetRange(e.target.value)}
-                  disabled={!selectedMeasureUnit}
-                  className={`w-[160px] px-3 py-2 border border-gray-300 rounded-md text-sm ${!selectedMeasureUnit ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white'}`}
+                  disabled={!selectedMeasureUnit && !showNoTarget}
+                  className={`w-[160px] px-3 py-2 border border-gray-300 rounded-md text-sm ${!selectedMeasureUnit && !showNoTarget ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white'}`}
                 />
+
+                <Select value={selectedTimeframe} onValueChange={(value) => {
+                  if (value === "clear") {
+                    setSelectedTimeframe("");
+                  } else {
+                    setSelectedTimeframe(value);
+                  }
+                }}>
+                  <SelectTrigger className="w-[140px] bg-white">
+                    <SelectValue placeholder="Timeframe" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="monthly">Monthly</SelectItem>
+                    <SelectItem value="quarterly">Quarterly</SelectItem>
+                    <SelectItem value="yearly">Yearly</SelectItem>
+                    <SelectItem value="ongoing">Ongoing</SelectItem>
+                    {selectedTimeframe && (
+                      <>
+                        <div className="border-t border-gray-200 my-1"></div>
+                        <SelectItem value="clear" className="text-gray-600">
+                          <div className="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                              <path d="M18 6L6 18"></path>
+                              <path d="M6 6l12 12"></path>
+                            </svg>
+                            Clear filter
+                          </div>
+                        </SelectItem>
+                      </>
+                    )}
+                  </SelectContent>
+                </Select>
+
+                <div className="flex items-center gap-2">
+                  <label className="flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      checked={showNoTarget}
+                      onChange={(e) => {
+                        setShowNoTarget(e.target.checked);
+                        if (e.target.checked) {
+                          setSelectedMeasureUnit("");
+                          setSelectedTargetRange("");
+                        }
+                      }}
+                      className="sr-only"
+                    />
+                    <div className={`w-4 h-4 border-2 rounded-sm mr-2 flex items-center justify-center ${showNoTarget ? 'bg-indigo-600 border-indigo-600' : 'border-gray-300'}`}>
+                      {showNoTarget && (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                      )}
+                    </div>
+                    <span className="text-sm text-gray-700">No target set</span>
+                  </label>
+                </div>
               </div>
               
               {(selectedTags.length > 0 || searchTerm || selectedMeasureUnit || selectedTargetRange) && (
