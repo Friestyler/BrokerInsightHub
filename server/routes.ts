@@ -690,39 +690,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Opportunities API endpoints
   app.get('/api/opportunities', async (req, res) => {
     try {
-      const opportunities = await storage.getAllOpportunities();
+      // Use raw SQL to get opportunities with client and product names
+      const { pool } = require('./db');
+      const result = await pool.query(`
+        SELECT 
+          o.*,
+          c.name as client_name,
+          ip.name as product_name
+        FROM opportunities o
+        LEFT JOIN clients c ON o.client_id = c.id
+        LEFT JOIN insurance_products ip ON o.product_id = ip.id
+        ORDER BY o.id
+      `);
       
-      // Enrich opportunities with client and product information
-      const enrichedOpportunities = await Promise.all(
-        opportunities.map(async (opportunity) => {
-          let clientName = `Client #${opportunity.clientId}`;
-          let productName = `Product #${opportunity.productId}`;
-          
-          try {
-            const client = await storage.getClient(opportunity.clientId);
-            if (client) {
-              clientName = client.name;
-            }
-          } catch (e) {
-            // Fallback to default name if client lookup fails
-          }
-          
-          try {
-            const product = await storage.getInsuranceProduct(opportunity.productId);
-            if (product) {
-              productName = product.name;
-            }
-          } catch (e) {
-            // Fallback to default name if product lookup fails
-          }
-          
-          return {
-            ...opportunity,
-            clientName,
-            productName
-          };
-        })
-      );
+      // Convert snake_case database fields to camelCase for frontend
+      const enrichedOpportunities = result.rows.map(row => ({
+        id: row.id,
+        title: row.title,
+        clientId: row.client_id,
+        productId: row.product_id,
+        status: row.status,
+        stage: row.stage,
+        type: row.type,
+        probability: row.probability,
+        estimatedValue: row.estimated_value,
+        ownerId: row.owner_id,
+        partnerId: row.partner_id,
+        description: row.description,
+        notes: row.notes,
+        expectedCloseDate: row.expected_close_date,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+        clientName: row.client_name,
+        productName: row.product_name
+      }));
       
       res.json(enrichedOpportunities);
     } catch (error) {
