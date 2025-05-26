@@ -21,11 +21,8 @@ function getEnvironmentUrl(url: string): string {
     return url;
   }
   
-  // Only add environment prefix to API URLs
-  if (url.startsWith('/api/')) {
-    return url.replace('/api/', `/api/env-${envId}/`);
-  }
-  
+  // For now, don't add environment prefix - use direct API URLs
+  // TODO: Add environment support when backend routes are ready
   return url;
 }
 
