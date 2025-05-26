@@ -708,26 +708,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       
       // Add client and product names to each opportunity
-      const enrichedOpportunities = opportunities.map((opportunity: any) => ({
-        id: opportunity.id,
-        title: opportunity.title,
-        clientId: opportunity.clientId,
-        productId: opportunity.productId,
-        status: opportunity.status,
-        stage: opportunity.stage,
-        type: opportunity.type,
-        probability: opportunity.probability,
-        estimatedValue: opportunity.estimatedValue,
-        ownerId: opportunity.ownerId,
-        partnerId: opportunity.partnerId,
-        description: opportunity.description,
-        notes: opportunity.notes,
-        expectedCloseDate: opportunity.expectedCloseDate,
-        createdAt: opportunity.createdAt,
-        updatedAt: opportunity.updatedAt,
-        clientName: clientMapping[opportunity.clientId] || `Client #${opportunity.clientId}`,
-        productName: productMapping[opportunity.productId] || `Product #${opportunity.productId}`
-      }));
+      const enrichedOpportunities = opportunities.map((opportunity: any) => {
+        const clientName = clientMapping[opportunity.clientId] || `Client #${opportunity.clientId}`;
+        const productName = productMapping[opportunity.productId] || `Product #${opportunity.productId}`;
+        
+        return {
+          ...opportunity,
+          clientName,
+          productName
+        };
+      });
       
       res.json(enrichedOpportunities);
     } catch (error) {

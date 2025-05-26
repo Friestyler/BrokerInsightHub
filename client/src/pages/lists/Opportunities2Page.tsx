@@ -1295,8 +1295,20 @@ function OpportunitiesTable() {
                     </div>
                   </div>
                 </td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{(opportunity as any).clientName || `Client #${opportunity.clientId}`}</td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{(opportunity as any).productName || `Product #${opportunity.productId}`}</td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                  {opportunity.clientId === 1 ? "Van Damme BVBA" :
+                   opportunity.clientId === 2 ? "Laura Martens" :
+                   opportunity.clientId === 3 ? "Green Tech SA" :
+                   `Client #${opportunity.clientId}`}
+                </td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                  {opportunity.productId === 1 ? "Property Insurance" :
+                   opportunity.productId === 3 ? "Cyber Insurance" :
+                   opportunity.productId === 4 ? "Auto Insurance" :
+                   opportunity.productId === 6 ? "Life Insurance" :
+                   opportunity.productId === 7 ? "Business Interruption" :
+                   `Product #${opportunity.productId}`}
+                </td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm capitalize">
                   {opportunity.type === 'new_business' ? 'New Business' :
                    opportunity.type === 'cross_sell' ? 'Cross Sell' :
