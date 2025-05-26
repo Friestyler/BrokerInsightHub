@@ -173,7 +173,7 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
                 </svg>
-                Opportunities2
+                Opportunities
               </button>
               {/* Hidden for now - will be used later
               <button
