@@ -374,7 +374,19 @@ function OpportunitiesTable() {
       const matchesText = !filterText || 
         (opportunity.title || '').toLowerCase().includes(filterText.toLowerCase());
         
-      const matchesStatus = !selectedStatus || opportunity.status === selectedStatus;
+      // Convert UI filter values to database format for status comparison
+      const getDbStatusValue = (uiStatus: string) => {
+        switch (uiStatus) {
+          case 'Active': return 'open';
+          case 'In Progress': return 'open';
+          case 'On Hold': return 'on_hold';
+          case 'Closed Won': return 'closed';
+          case 'Closed Lost': return 'closed';
+          default: return uiStatus.toLowerCase().replace(' ', '_');
+        }
+      };
+      
+      const matchesStatus = !selectedStatus || opportunity.status === getDbStatusValue(selectedStatus);
       
       // Convert UI filter values to database format for type comparison
       const getDbTypeValue = (uiType: string) => {
@@ -389,7 +401,20 @@ function OpportunitiesTable() {
       };
       
       const matchesType = !selectedType || opportunity.type === getDbTypeValue(selectedType);
-      const matchesStage = !selectedStage || opportunity.stage === selectedStage;
+      
+      // Convert UI filter values to database format for stage comparison
+      const getDbStageValue = (uiStage: string) => {
+        switch (uiStage) {
+          case 'Discovery': return 'discovery';
+          case 'Proposal': return 'proposal';
+          case 'Negotiation': return 'negotiation';
+          case 'Closed Won': return 'closed';
+          case 'Closed Lost': return 'closed';
+          default: return uiStage.toLowerCase().replace(' ', '_');
+        }
+      };
+      
+      const matchesStage = !selectedStage || opportunity.stage === getDbStageValue(selectedStage);
       
       return matchesText && matchesStatus && matchesType && matchesStage;
     })
