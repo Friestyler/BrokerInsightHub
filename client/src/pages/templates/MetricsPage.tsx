@@ -853,7 +853,7 @@ export default function MetricsPage() {
                           color: '#696C8C' 
                         }}
                       >
-                        OKR Title
+                        Template Name
                       </TableHead>
                       <TableHead 
                         className="px-3 py-2"
@@ -867,7 +867,7 @@ export default function MetricsPage() {
                         Type
                       </TableHead>
                       <TableHead 
-                        className="px-3 py-2"
+                        className="text-right px-3 py-2"
                         style={{ 
                           fontFamily: 'Poppins', 
                           fontWeight: '500', 
@@ -875,40 +875,7 @@ export default function MetricsPage() {
                           color: '#696C8C' 
                         }}
                       >
-                        Owner
-                      </TableHead>
-                      <TableHead 
-                        className="px-3 py-2"
-                        style={{ 
-                          fontFamily: 'Poppins', 
-                          fontWeight: '500', 
-                          fontSize: '13px', 
-                          color: '#696C8C' 
-                        }}
-                      >
-                        Progress
-                      </TableHead>
-                      <TableHead 
-                        className="px-3 py-2"
-                        style={{ 
-                          fontFamily: 'Poppins', 
-                          fontWeight: '500', 
-                          fontSize: '13px', 
-                          color: '#696C8C' 
-                        }}
-                      >
-                        Status
-                      </TableHead>
-                      <TableHead 
-                        className="px-3 py-2"
-                        style={{ 
-                          fontFamily: 'Poppins', 
-                          fontWeight: '500', 
-                          fontSize: '13px', 
-                          color: '#696C8C' 
-                        }}
-                      >
-                        Due Date
+                        Target Value
                       </TableHead>
                       <TableHead 
                         className="text-right px-3 py-2"
@@ -919,7 +886,7 @@ export default function MetricsPage() {
                           color: '#696C8C' 
                         }}
                       >
-                        Target
+                        Actions
                       </TableHead>
                     </TableRow>
                   </TableHeader>
@@ -966,37 +933,6 @@ export default function MetricsPage() {
                             {okr.type}
                           </span>
                         </TableCell>
-                        <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
-                          <div className="text-sm font-medium">{okr.owner}</div>
-                        </TableCell>
-                        <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
-                          <div className="flex items-center gap-2">
-                            <div className="w-16 bg-gray-200 rounded-full h-2">
-                              <div 
-                                className={`h-2 rounded-full ${
-                                  okr.progress >= 80 ? 'bg-green-500' :
-                                  okr.progress >= 60 ? 'bg-yellow-500' : 'bg-red-500'
-                                }`}
-                                style={{ width: `${okr.progress}%` }}
-                              ></div>
-                            </div>
-                            <span className="text-sm font-medium">{okr.progress}%</span>
-                          </div>
-                        </TableCell>
-                        <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            okr.status === 'On Track' 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-red-100 text-red-800'
-                          }`}>
-                            {okr.status}
-                          </span>
-                        </TableCell>
-                        <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
-                          <div className="text-sm">
-                            {okr.dueDate.toLocaleDateString()}
-                          </div>
-                        </TableCell>
                         <TableCell className="text-right p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
                           <div className="font-medium">
                             {okr.unit === 'currency' 
@@ -1006,13 +942,26 @@ export default function MetricsPage() {
                               : okr.targetValue.toString()
                             }
                           </div>
-                          <div className="text-xs text-gray-500">
-                            Current: {okr.unit === 'currency' 
-                              ? `$${(okr.currentValue / 1000000).toFixed(1)}M`
-                              : okr.unit === 'percentage'
-                              ? `${okr.currentValue}%`
-                              : okr.currentValue.toString()
-                            }
+                          <div className="text-xs text-gray-500 capitalize">{okr.unit}</div>
+                        </TableCell>
+                        <TableCell className="text-right p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
+                          <div className="flex gap-2 justify-end">
+                            <Button variant="outline" size="sm" className="h-8">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                                <path d="m15 5 4 4"/>
+                              </svg>
+                              Edit
+                            </Button>
+                            <Button variant="outline" size="sm" className="h-8">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                                <circle cx="9" cy="7" r="4" />
+                                <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                              </svg>
+                              Assign
+                            </Button>
                           </div>
                         </TableCell>
                       </TableRow>
