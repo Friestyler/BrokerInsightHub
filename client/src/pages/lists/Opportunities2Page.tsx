@@ -1237,116 +1237,208 @@ function OpportunitiesTable() {
         </table>
       </div>
       
-      {/* Save List Modal */}
-      <Dialog open={showSaveListModal} onOpenChange={setShowSaveListModal}>
-        <DialogContent className="sm:max-w-md">
+      {/* Add to List Modal */}
+      <Dialog 
+        open={showSaveListModal} 
+        onOpenChange={(open) => {
+          if (!open) {
+            // Reset state when closing the modal
+            setIsCreatingNewList(true);
+            setSelectedExistingList(null);
+          }
+          setShowSaveListModal(open);
+        }}
+      >
+        <DialogContent className="sm:max-w-md bg-[#ffffff] text-[#282A3F] p-[32px]">
           <DialogHeader>
-            <DialogTitle>{activeList ? 'Update Saved List' : 'Save Current List'}</DialogTitle>
+            <DialogTitle>Add to list</DialogTitle>
             <DialogDescription>
-              Save your current filter settings as a list that you can easily access later.
+              Add selected opportunities to an existing list or create a new one.
             </DialogDescription>
           </DialogHeader>
           
           <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="listName">List Name</Label>
-              <Input 
-                id="listName" 
-                placeholder="Enter a name for this list"
-                defaultValue={activeList?.name || ''}
-              />
+            <div className="flex flex-col space-y-2">
+              <div className="flex items-center space-x-2">
+                <input 
+                  type="radio" 
+                  id="option-existing" 
+                  name="list-option" 
+                  className="h-4 w-4 text-indigo-600"
+                  checked={!isCreatingNewList}
+                  onChange={() => setIsCreatingNewList(false)}
+                />
+                <Label htmlFor="option-existing" className="text-sm font-medium">
+                  Add to existing list
+                </Label>
+              </div>
+              
+              {!isCreatingNewList && (
+                <div className="pl-6 mt-2 text-[888AA6]">
+                  <select
+                    id="list-select"
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                    value={selectedExistingList || ''}
+                    onChange={(e) => setSelectedExistingList(e.target.value || null)}
+                  >
+                    <option value="">Select a list...</option>
+                    {savedLists
+                      .filter(list => list.type === 'selection' && !list.isDefault)
+                      .map(list => (
+                        <option key={list.id} value={list.id}>
+                          {list.name}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              )}
             </div>
             
-            <div className="grid gap-2">
-              <Label htmlFor="listDescription">Description (Optional)</Label>
-              <Textarea 
-                id="listDescription" 
-                placeholder="Add a short description to help others understand this list"
-                rows={3}
-                defaultValue={activeList?.description || ''}
-              />
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <Checkbox id="shareList" defaultChecked={activeList?.isShared || false} />
-              <Label htmlFor="shareList" className="text-sm font-normal">
-                Share this list with collaborators
-              </Label>
+            <div className="flex flex-col space-y-2">
+              <div className="flex items-center space-x-2">
+                <input 
+                  type="radio" 
+                  id="option-new" 
+                  name="list-option" 
+                  className="h-4 w-4 text-indigo-600"
+                  checked={isCreatingNewList}
+                  onChange={() => setIsCreatingNewList(true)}
+                />
+                <Label htmlFor="option-new" className="text-sm font-medium">
+                  Create new list
+                </Label>
+              </div>
+              
+              {isCreatingNewList && (
+                <div className="pl-6 space-y-4 mt-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="listName">List Name</Label>
+                    <Input 
+                      id="listName" 
+                      placeholder="Enter a name for this list"
+                      maxLength={50}
+                    />
+                    <p className="text-xs text-gray-500">Maximum 50 characters</p>
+                  </div>
+                  
+                  <div className="grid gap-2">
+                    <Label htmlFor="listDescription">Description (Optional)</Label>
+                    <Textarea 
+                      id="listDescription" 
+                      placeholder="Add a short description for this list"
+                      rows={3}
+                      maxLength={200}
+                    />
+                    <p className="text-xs text-gray-500">Maximum 200 characters</p>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
           
-          <DialogFooter className="sm:justify-between">
-            <div className="text-xs text-gray-500">
-              {activeList ? 'Last updated on ' + new Date(activeList.createdAt).toLocaleDateString() : 'Applied filters will be saved with this list'}
-            </div>
-            <div className="flex space-x-2">
-              <DialogClose asChild>
-                <Button variant="outline">Cancel</Button>
-              </DialogClose>
-              <Button
-                onClick={() => {
-                  // Handle save/update list
-                  if (!activeList) {
-                    // Create new list
-                    const listName = (document.getElementById('listName') as HTMLInputElement).value;
-                    const listDescription = (document.getElementById('listDescription') as HTMLTextAreaElement).value;
-                    const isShared = (document.getElementById('shareList') as HTMLInputElement).checked;
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button
+              onClick={() => {
+                if (!isCreatingNewList && selectedExistingList) {
+                  // Add to existing list logic
+                  const targetList = savedLists.find(list => list.id === selectedExistingList);
+                  if (targetList) {
+                    // Get current members or empty array
+                    const currentMembers = targetList.members || [];
                     
-                    const newList: SavedList = {
-                      id: String(Date.now()),
-                      name: listName,
-                      description: listDescription || undefined,
-                      type: selectedOpportunities.length > 0 ? 'selection' : 'filter',
-                      members: selectedOpportunities.length > 0 ? selectedOpportunities : undefined,
-                      filters: {
-                        searchText: filterText || undefined,
-                        status: selectedStatus || undefined,
-                        type: selectedType || undefined,
-                        stage: selectedStage || undefined
-                      },
-                      isShared,
-                      createdBy: 'John Smith',
-                      createdAt: new Date()
-                    };
+                    // Find new members (opportunities not already in the list)
+                    const newMembers = selectedOpportunities.filter(id => !currentMembers.includes(id));
+                    const alreadyInList = selectedOpportunities.length - newMembers.length;
                     
-                    setSavedLists([...savedLists, newList]);
-                    setActiveList(newList);
-                  } else {
-                    // Update existing list
-                    const listName = (document.getElementById('listName') as HTMLInputElement).value;
-                    const listDescription = (document.getElementById('listDescription') as HTMLTextAreaElement).value;
-                    const isShared = (document.getElementById('shareList') as HTMLInputElement).checked;
-                    
+                    // Update the list with new members
                     const updatedLists = savedLists.map(list => {
-                      if (list.id === activeList.id) {
+                      if (list.id === selectedExistingList) {
                         return {
                           ...list,
-                          name: listName,
-                          description: listDescription || undefined,
-                          type: selectedOpportunities.length > 0 ? 'selection' as const : 'filter' as const,
-                          members: selectedOpportunities.length > 0 ? selectedOpportunities : list.members,
-                          filters: {
-                            searchText: filterText || undefined,
-                            status: selectedStatus || undefined,
-                            type: selectedType || undefined,
-                            stage: selectedStage || undefined
-                          },
-                          isShared
+                          members: [...currentMembers, ...newMembers]
                         };
                       }
                       return list;
                     });
                     
+                    // Update lists and set active list
                     setSavedLists(updatedLists);
-                    setActiveList(updatedLists.find(v => v.id === activeList.id) || null);
+                    const updatedList = updatedLists.find(list => list.id === selectedExistingList);
+                    if (updatedList) {
+                      setActiveList(updatedList);
+                      setOriginalListFilters(updatedList.filters);
+                    }
+                    
+                    // Clear selections and close modal
+                    setSelectedOpportunities([]);
+                    setShowSaveListModal(false);
+                    
+                    // Show success message with info about duplicates
+                    let description = `${newMembers.length} opportunities added to "${targetList.name}".`;
+                    if (alreadyInList > 0) {
+                      description += ` ${alreadyInList} opportunit${alreadyInList > 1 ? 'ies' : 'y'} already in list.`;
+                    }
+                    
+                    toast({
+                      title: "Opportunities Added to List",
+                      description
+                    });
+                  }
+                } else if (isCreatingNewList) {
+                  // Create new list logic
+                  const listName = (document.getElementById('listName') as HTMLInputElement).value;
+                  
+                  if (!listName || listName.trim() === '') {
+                    toast({
+                      title: "List name required",
+                      description: "Please provide a name for the new list",
+                      variant: "destructive"
+                    });
+                    return;
                   }
                   
+                  const listDescription = (document.getElementById('listDescription') as HTMLTextAreaElement).value;
+                  
+                  // Create a new list with only the selected opportunities
+                  const newList: SavedList = {
+                    id: `list-${Date.now()}`,
+                    name: listName,
+                    description: listDescription || undefined,
+                    type: 'selection', // This is a selection-based list, not filter-based
+                    members: selectedOpportunities, // Add only the selected opportunities as members
+                    filters: {}, // Empty filters since this is a selection-based list
+                    isShared: false,
+                    createdBy: 'John Smith',
+                    createdAt: new Date()
+                  };
+                  
+                  // Add the new list to saved lists
+                  setSavedLists([...savedLists, newList]);
+                  
+                  // Set it as the active list and redirect to it
+                  setActiveList(newList);
+                  setOriginalListFilters(newList.filters);
+                  
+                  // Clear selections and close modal
+                  setSelectedOpportunities([]);
                   setShowSaveListModal(false);
-                }}
-              >
-                {activeList ? 'Update List' : 'Save List'}
-              </Button>
-            </div>
+                  
+                  // Show success message
+                  toast({
+                    title: "List Created",
+                    description: `Created "${listName}" with ${selectedOpportunities.length} opportunities.`
+                  });
+                }
+              }}
+              disabled={
+                (!isCreatingNewList && !selectedExistingList)
+              }
+            >
+              {isCreatingNewList ? 'Create List' : 'Add to List'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
