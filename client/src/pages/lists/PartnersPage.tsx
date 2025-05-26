@@ -1,4 +1,5 @@
 import { useState, useEffect, createContext, useContext } from 'react';
+import { useQuery } from '@tanstack/react-query';
 
 // Create a context for list editing state
 interface ListEditingContextType {
@@ -41,7 +42,21 @@ import { Checkbox } from "@/components/ui/checkbox";
 
 import { useToast } from "@/hooks/use-toast";
 
-// Sample data for partners - updated to match the detail page data
+// Fetch partners from database
+const usePartnersData = () => {
+  return useQuery({
+    queryKey: ['/api/partners'],
+    queryFn: async () => {
+      const response = await fetch('/api/partners');
+      if (!response.ok) {
+        throw new Error('Failed to fetch partners');
+      }
+      return response.json();
+    }
+  });
+};
+
+// Keep the original mock structure for fallback compatibility
 const mockPartners = [
   {
     id: 1,
@@ -130,7 +145,7 @@ const mockPartners = [
 ];
 
 // Calculate partner statistics
-function calculatePartnerStats(partners: typeof mockPartners) {
+function calculatePartnerStats(partners: any[]) {
   const totalPartners = partners.length;
   const totalCustomers = partners.reduce((sum, partner) => sum + partner.customers, 0);
   const totalOpportunities = partners.reduce((sum, partner) => sum + partner.opportunities, 0);
@@ -231,6 +246,9 @@ function useListEditing() {
 }
 
 function PartnersTable() {
+  // Fetch partners from database
+  const { data: partners = [], isLoading, error } = usePartnersData();
+  
   const [filterText, setFilterText] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedIndustry, setSelectedIndustry] = useState('');
@@ -351,7 +369,7 @@ function PartnersTable() {
   const [selectedExistingList, setSelectedExistingList] = useState<string | null>(null);
     
   // Filter partners based on search text, filter selections, and list membership
-  const displayedPartners = mockPartners
+  const displayedPartners = partners
     .filter(partner => {
       // If we have an active list that's not a default list, filter by membership
       if (activeList && !activeList.isDefault && activeList.type === 'selection' && Array.isArray(activeList.members)) {
