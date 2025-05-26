@@ -1064,10 +1064,11 @@ function OpportunitiesTable() {
         <table className="min-w-full">
           <thead className="bg-gray-50">
             <tr>
-              <th scope="col" className="relative px-3 py-3.5 w-10">
-                <input
-                  type="checkbox"
-                  className="absolute h-4 w-4 rounded border-gray-300"
+              <th scope="col" className="relative px-3 py-3.5 w-10 pt-[12px] pb-[12px]">
+                <div className="flex items-center justify-center">
+                  <input
+                    type="checkbox"
+                    className="h-4 w-4 rounded border-gray-300"
                   checked={isEditingList 
                     ? editedListMembers.length === (activeList ? mockOpportunities.length : displayedOpportunities.length) && (activeList ? mockOpportunities.length : displayedOpportunities.length) > 0
                     : selectedOpportunities.length === displayedOpportunities.length && displayedOpportunities.length > 0
@@ -1082,10 +1083,11 @@ function OpportunitiesTable() {
                       }
                     : toggleSelectAll
                   }
-                />
+                  />
+                </div>
               </th>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[250px]">
-                <div className="flex items-center">
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold w-[250px] text-[#696C8C] pt-[12px] pb-[12px]">
+                <div className="flex items-center text-[#696C8C] text-[13px] font-medium">
                   Opportunity
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
                     <path d="M8 9l4-4 4 4"></path>
@@ -1093,8 +1095,8 @@ function OpportunitiesTable() {
                   </svg>
                 </div>
               </th>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                <div className="flex items-center">
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-[#696C8C] pt-[12px] pb-[12px]">
+                <div className="flex items-center text-[13px] font-medium text-[#696C8C]">
                   Customer
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
                     <path d="M8 9l4-4 4 4"></path>
@@ -1102,8 +1104,8 @@ function OpportunitiesTable() {
                   </svg>
                 </div>
               </th>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                <div className="flex items-center">
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-[#696C8C] pt-[12px] pb-[12px]">
+                <div className="flex items-center text-[13px] font-medium text-[#696C8C]">
                   Partner
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
                     <path d="M8 9l4-4 4 4"></path>
@@ -1111,8 +1113,8 @@ function OpportunitiesTable() {
                   </svg>
                 </div>
               </th>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                <div className="flex items-center">
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-[#696C8C]">
+                <div className="flex items-center text-[13px] font-medium text-[#696C8C]">
                   Type
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
                     <path d="M8 9l4-4 4 4"></path>
@@ -1121,7 +1123,7 @@ function OpportunitiesTable() {
                 </div>
               </th>
               <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                <div className="flex items-center">
+                <div className="flex items-center text-[13px] font-medium text-[#696C8C]">
                   Stage
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
                     <path d="M8 9l4-4 4 4"></path>
