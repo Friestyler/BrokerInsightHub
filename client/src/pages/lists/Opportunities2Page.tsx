@@ -169,6 +169,18 @@ function useListEditing() {
 }
 
 function OpportunitiesTable() {
+  // Fetch real opportunities from the database
+  const { data: opportunities = [], isLoading, error } = useQuery({
+    queryKey: ['/api/opportunities'],
+    queryFn: async () => {
+      const response = await fetch('/api/opportunities');
+      if (!response.ok) {
+        throw new Error('Failed to fetch opportunities');
+      }
+      return response.json() as Promise<Opportunity[]>;
+    },
+  });
+
   // Sample data for partners (needed for sharing functionality)
   const mockPartners: Array<{
     id: number;
@@ -327,8 +339,8 @@ function OpportunitiesTable() {
   const [selectedExistingList, setSelectedExistingList] = useState<string | null>(null);
     
   // Filter opportunities based on search text, filter selections, and list membership
-  const displayedOpportunities = mockOpportunities
-    .filter(opportunity => {
+  const displayedOpportunities = opportunities
+    .filter((opportunity: Opportunity) => {
       // If we have an active list that's not a default list, filter by membership
       if (activeList && !activeList.isDefault && activeList.type === 'selection' && Array.isArray(activeList.members)) {
         // Only show opportunities that are members of the active list
@@ -338,9 +350,7 @@ function OpportunitiesTable() {
       }
       
       const matchesText = !filterText || 
-        opportunity.title.toLowerCase().includes(filterText.toLowerCase()) ||
-        opportunity.customerName.toLowerCase().includes(filterText.toLowerCase()) ||
-        opportunity.partnerName.toLowerCase().includes(filterText.toLowerCase());
+        opportunity.title.toLowerCase().includes(filterText.toLowerCase());
         
       const matchesStatus = !selectedStatus || opportunity.status === selectedStatus;
       const matchesType = !selectedType || opportunity.type === selectedType;
@@ -349,7 +359,7 @@ function OpportunitiesTable() {
       return matchesText && matchesStatus && matchesType && matchesStage;
     })
     // Sort alphabetically by title by default
-    .sort((a, b) => a.title.localeCompare(b.title));
+    .sort((a: Opportunity, b: Opportunity) => a.title.localeCompare(b.title));
   
   // Check if current filters differ from original list filters to detect unsaved changes
   useEffect(() => {
@@ -1042,15 +1052,15 @@ function OpportunitiesTable() {
                     type="checkbox"
                     className="h-4 w-4 rounded border-gray-300"
                   checked={isEditingList 
-                    ? editedListMembers.length === (activeList ? mockOpportunities.length : displayedOpportunities.length) && (activeList ? mockOpportunities.length : displayedOpportunities.length) > 0
+                    ? editedListMembers.length === (activeList ? opportunities.length : displayedOpportunities.length) && (activeList ? opportunities.length : displayedOpportunities.length) > 0
                     : selectedOpportunities.length === displayedOpportunities.length && displayedOpportunities.length > 0
                   }
                   onChange={isEditingList 
                     ? () => {
-                        if (editedListMembers.length === (activeList ? mockOpportunities.length : displayedOpportunities.length)) {
+                        if (editedListMembers.length === (activeList ? opportunities.length : displayedOpportunities.length)) {
                           setEditedListMembers([]);
                         } else {
-                          setEditedListMembers(mockOpportunities.map(o => o.id));
+                          setEditedListMembers(opportunities.map((o: Opportunity) => o.id));
                         }
                       }
                     : toggleSelectAll
@@ -1129,7 +1139,7 @@ function OpportunitiesTable() {
             </tr>
           </thead>
           <tbody className="bg-white">
-            {(isEditingList ? mockOpportunities : displayedOpportunities).map((opportunity) => (
+            {(isEditingList ? opportunities : displayedOpportunities).map((opportunity: Opportunity) => (
               <tr 
                 key={opportunity.id} 
                 className={`hover:bg-gray-50 group ${
@@ -1559,7 +1569,7 @@ function OpportunitiesTable() {
                 </div>
                 <div className="flex flex-wrap gap-1">
                   {selectedOpportunities.slice(0, 5).map(opportunityId => {
-                    const opportunity = mockOpportunities.find(o => o.id === opportunityId);
+                    const opportunity = opportunities.find((o: Opportunity) => o.id === opportunityId);
                     return opportunity ? (
                       <span key={opportunityId} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
                         {opportunity.title}
