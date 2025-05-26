@@ -522,13 +522,29 @@ export default function MetricsPage() {
       okr.unit === selectedMeasureUnit.toLowerCase();
     
     const matchesTargetRange = selectedTargetRange === "" || (() => {
-      if (selectedTargetRange === "0-50") {
-        return okr.targetValue >= 0 && okr.targetValue <= 50;
-      } else if (selectedTargetRange === "51-100") {
-        return okr.targetValue >= 51 && okr.targetValue <= 100;
-      } else if (selectedTargetRange === "100+") {
-        return okr.targetValue > 100;
+      // Handle different target range formats based on measure unit
+      if (selectedMeasureUnit === 'checkbox') {
+        // For checkbox type, match complete/incomplete
+        const searchTerm = selectedTargetRange.toLowerCase();
+        return searchTerm.includes('complete') || searchTerm.includes('incomplete');
       }
+      
+      // Parse numeric ranges like "10-50", "$100-$500", "20%-80%"
+      const rangeMatch = selectedTargetRange.match(/(\d+)\s*-\s*(\d+)/);
+      if (rangeMatch) {
+        const [, min, max] = rangeMatch;
+        const minVal = parseInt(min);
+        const maxVal = parseInt(max);
+        return okr.targetValue >= minVal && okr.targetValue <= maxVal;
+      }
+      
+      // Parse single values like "100", "$500", "75%"
+      const singleMatch = selectedTargetRange.match(/(\d+)/);
+      if (singleMatch) {
+        const targetVal = parseInt(singleMatch[1]);
+        return okr.targetValue === targetVal;
+      }
+      
       return true;
     })();
     
@@ -676,16 +692,15 @@ export default function MetricsPage() {
                   </SelectContent>
                 </Select>
                 
-                <Select value={selectedTargetRange} onValueChange={setSelectedTargetRange}>
-                  <SelectTrigger className="w-[140px] bg-white">
-                    <SelectValue placeholder="Target Range" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="0-50">0 - 50</SelectItem>
-                    <SelectItem value="51-100">51 - 100</SelectItem>
-                    <SelectItem value="100+">100+</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="flex items-center gap-2">
+                  <input
+                    type="text"
+                    placeholder={selectedMeasureUnit === 'currency' ? '$0 - $1000' : selectedMeasureUnit === 'percent' ? '0% - 100%' : selectedMeasureUnit === 'checkbox' ? 'Complete/Incomplete' : 'Min - Max'}
+                    value={selectedTargetRange}
+                    onChange={(e) => setSelectedTargetRange(e.target.value)}
+                    className="w-[140px] px-3 py-2 border border-gray-300 rounded-md text-sm bg-white"
+                  />
+                </div>
               </div>
               
               {(selectedTags.length > 0 || searchTerm || selectedMeasureUnit || selectedTargetRange) && (
