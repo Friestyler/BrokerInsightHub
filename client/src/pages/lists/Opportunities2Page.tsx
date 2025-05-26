@@ -1060,8 +1060,8 @@ function OpportunitiesTable() {
       </div>
       
       {/* Opportunities table */}
-      <div className="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
-        <table className="min-w-full divide-y divide-gray-200">
+      <div className="overflow-hidden bg-white sm:rounded-lg">
+        <table className="min-w-full">
           <thead className="bg-gray-50">
             <tr>
               <th scope="col" className="relative px-3 py-3.5 w-10">
@@ -1154,7 +1154,7 @@ function OpportunitiesTable() {
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100 bg-white">
+          <tbody className="bg-white">
             {(isEditingList ? mockOpportunities : displayedOpportunities).map((opportunity) => (
               <tr 
                 key={opportunity.id} 
@@ -1184,7 +1184,7 @@ function OpportunitiesTable() {
                             setEditedListMembers([...editedListMembers, opportunity.id]);
                           }
                         }
-                      : () => toggleOpportunitySelection(opportunity.id)
+                      : () => toggleSelectOpportunity(opportunity.id)
                     }
                   />
                 </td>
