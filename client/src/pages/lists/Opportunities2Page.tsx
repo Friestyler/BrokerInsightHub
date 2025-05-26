@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext } from 'react';
+import { useState, useEffect, useRef, createContext, useContext } from 'react';
 import { useQuery } from '@tanstack/react-query';
 
 // Create a context for list editing state
@@ -341,6 +341,24 @@ function OpportunitiesTable() {
   // Bulk status update state
   const [showBulkStatusDropdown, setShowBulkStatusDropdown] = useState(false);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowBulkStatusDropdown(false);
+      }
+    };
+
+    if (showBulkStatusDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showBulkStatusDropdown]);
     
   // Filter opportunities based on search text, filter selections, and list membership
   const displayedOpportunities = opportunities
@@ -445,7 +463,7 @@ function OpportunitiesTable() {
       }
       
       // Refresh the opportunities data
-      refetch();
+      window.location.reload();
       
       // Clear selections
       setSelectedOpportunities([]);
@@ -1031,7 +1049,7 @@ function OpportunitiesTable() {
             </Button>
             
             {/* Bulk Status Update Button */}
-            <div className="relative">
+            <div className="relative" ref={dropdownRef}>
               <Button 
                 variant="outline" 
                 size="sm"

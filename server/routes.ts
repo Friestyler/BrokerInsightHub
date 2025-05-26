@@ -748,6 +748,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Bulk update opportunity status
+  app.patch('/api/opportunities/bulk-update-status', async (req, res) => {
+    try {
+      const { opportunityIds, status } = req.body;
+      
+      if (!opportunityIds || !Array.isArray(opportunityIds) || opportunityIds.length === 0) {
+        return res.status(400).json({ message: 'opportunityIds array is required' });
+      }
+      
+      if (!status) {
+        return res.status(400).json({ message: 'status is required' });
+      }
+      
+      // Update each opportunity's status
+      const updatedOpportunities = [];
+      for (const id of opportunityIds) {
+        try {
+          const updated = await storage.updateOpportunity(id, { status });
+          if (updated) {
+            updatedOpportunities.push(updated);
+          }
+        } catch (error) {
+          console.error(`Error updating opportunity ${id}:`, error);
+        }
+      }
+      
+      res.json({ 
+        message: `Updated ${updatedOpportunities.length} opportunities to "${status}"`,
+        updatedCount: updatedOpportunities.length,
+        updatedOpportunities
+      });
+    } catch (error) {
+      console.error('Error bulk updating opportunity status:', error);
+      res.status(500).json({ message: 'Failed to update opportunity status' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
