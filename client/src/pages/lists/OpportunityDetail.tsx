@@ -300,13 +300,11 @@ export default function OpportunityDetail() {
     <div className="container mx-auto px-4 py-6">
       {/* Header with back navigation */}
       <div className="mb-6">
-        <Link href="/lists/opportunities" className="inline-flex items-center text-indigo-600 hover:text-indigo-800 mb-4">
-          <ChevronLeft className="h-4 w-4 mr-1" />
-          Back to Opportunities
-        </Link>
-        
         <div className="flex justify-between items-center">
           <div className="flex items-center">
+            <Link href="/opportunities2" className="inline-flex items-center text-indigo-600 hover:text-indigo-800 mr-2">
+              <ChevronLeft className="h-4 w-4" />
+            </Link>
             <h1 className="text-2xl font-bold tracking-tight">{opportunity.name}</h1>
             <div className="ml-4 flex items-center">
               <Avatar className="h-8 w-8">
