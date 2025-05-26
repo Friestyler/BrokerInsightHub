@@ -1,11 +1,27 @@
 import { useState, useEffect, createContext, useContext } from 'react';
+
+// Create a context for list editing state
+interface ListEditingContextType {
+  isEditingList: boolean;
+  setIsEditingList: (value: boolean) => void;
+}
+
+const ListEditingContext = createContext<ListEditingContextType>({
+  isEditingList: false,
+  setIsEditingList: () => {},
+});
+import {
+  Card,
+  CardContent,
+} from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Link } from "wouter";
+import { Link, useLocation } from "wouter";
 import { 
   Dialog, 
   DialogContent, 
+  DialogDescription, 
   DialogFooter, 
   DialogHeader, 
   DialogTitle,
@@ -22,23 +38,10 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+
 import { useToast } from "@/hooks/use-toast";
 
-// Create a context for list editing state
-interface ListEditingContextType {
-  isEditingList: boolean;
-  setIsEditingList: (value: boolean) => void;
-}
-
-const ListEditingContext = createContext<ListEditingContextType>({
-  isEditingList: false,
-  setIsEditingList: () => {},
-});
-
-// Hook to use the list editing context
-const useListEditing = () => useContext(ListEditingContext);
-
-// Sample data for partners
+// Sample data for partners - updated to match the detail page data
 const mockPartners = [
   {
     id: 1,
@@ -50,10 +53,13 @@ const mockPartners = [
     size: "medium",
     customers: 3,
     opportunities: 4,
+    location: "Amsterdam, NL",
+    contactEmail: "contact@jeroen-hypotheek.nl",
+    primaryContact: "Jeroen de Vries"
   },
   {
     id: 2,
-    name: "ABC Insurance Brokers",
+    name: "ABC Insurance Brokers",  // This matches PartnerDetail.tsx
     initials: "AB",
     industry: "Insurance",
     type: "Broker",
@@ -61,10 +67,13 @@ const mockPartners = [
     size: "large",
     customers: 5,
     opportunities: 4,
+    location: "New York, NY",
+    contactEmail: "contact@abc-insurance.com",
+    primaryContact: "Sarah Johnson"
   },
   {
     id: 3,
-    name: "Global Insurance Partners",
+    name: "Global Insurance Partners",  // Updated to match PartnerDetail.tsx
     initials: "GI",
     industry: "Insurance",
     type: "Broker",
@@ -72,9 +81,40 @@ const mockPartners = [
     size: "enterprise",
     customers: 15,
     opportunities: 12,
+    location: "London, UK",
+    contactEmail: "partnerships@grp.com",
+    primaryContact: "Emma Wilson"
   },
   {
     id: 4,
+    name: "Premier Insurance Agency",
+    initials: "PI",
+    industry: "Insurance",
+    type: "Agency",
+    status: "inactive",
+    size: "medium",
+    customers: 6,
+    opportunities: 3,
+    location: "Boston, MA",
+    contactEmail: "support@premierinsurance.co",
+    primaryContact: "John Davis"
+  },
+  {
+    id: 5,
+    name: "Secure Financial Services",
+    initials: "SF",
+    industry: "Finance",
+    type: "Broker",
+    status: "active",
+    size: "large",
+    customers: 22,
+    opportunities: 15,
+    location: "San Francisco, CA",
+    contactEmail: "info@secure-financial.com",
+    primaryContact: "Jessica Brown"
+  },
+  {
+    id: 6,
     name: "Pinnacle Risk Solutions",
     initials: "PR",
     industry: "Insurance",
@@ -83,84 +123,113 @@ const mockPartners = [
     size: "enterprise",
     customers: 18,
     opportunities: 9,
+    location: "Miami, FL",
+    contactEmail: "contact@pinnacle-risk.com",
+    primaryContact: "Robert Smith"
   }
 ];
 
-// Template badges component
-function TemplateBadges({ industry, type }: { industry: string; type: string }) {
-  const getTemplateType = (industry: string, type: string) => {
-    if (industry === "Insurance" && type === "Broker") return "IB";
-    if (industry === "Insurance" && type === "Agent") return "PR";
-    if (industry === "Finance" && type === "Advisor") return "FS";
-    return "GN";
+// Calculate partner statistics
+function calculatePartnerStats(partners: typeof mockPartners) {
+  const totalPartners = partners.length;
+  const totalCustomers = partners.reduce((sum, partner) => sum + partner.customers, 0);
+  const totalOpportunities = partners.reduce((sum, partner) => sum + partner.opportunities, 0);
+  const activePartners = partners.filter(p => p.status === 'active').length;
+  
+  return {
+    totalPartners,
+    totalCustomers,
+    totalOpportunities,
+    activePartners
   };
+}
 
-  const getTemplateColor = (templateType: string) => {
-    switch (templateType) {
-      case "IB": return "bg-blue-100 text-blue-800";
-      case "PR": return "bg-purple-100 text-purple-800";
-      case "FS": return "bg-green-100 text-green-800";
-      default: return "bg-gray-100 text-gray-800";
+// Template badges component for partners
+function TemplateBadges({ industry, type }: { industry: string, type: string }) {
+  // Mock template badges based on industry and type
+  const getBadges = (industry: string, type: string) => {
+    if (industry === 'Insurance' && type === 'Broker') {
+      return [
+        { code: 'IB', color: 'bg-blue-200 text-blue-800' },
+        { code: 'PR', color: 'bg-purple-200 text-purple-800' }
+      ];
+    } else if (industry === 'Insurance' && type === 'Agency') {
+      return [
+        { code: 'IA', color: 'bg-teal-200 text-teal-800' },
+        { code: 'SM', color: 'bg-blue-200 text-blue-800' }
+      ];
+    } else if (industry === 'Consulting') {
+      return [
+        { code: 'CO', color: 'bg-amber-200 text-amber-800' },
+        { code: 'AD', color: 'bg-purple-200 text-purple-800' }
+      ];
+    } else if (industry === 'Finance') {
+      return [
+        { code: 'FS', color: 'bg-green-200 text-green-800' }
+      ];
+    } else {
+      return [
+        { code: 'GP', color: 'bg-gray-200 text-gray-800' }
+      ];
     }
   };
-
-  const templateType = getTemplateType(industry, type);
+  
+  const badges = getBadges(industry, type);
   
   return (
-    <div className="flex space-x-1">
-      <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${getTemplateColor(templateType)}`}>
-        {templateType}
-      </span>
+    <div className="flex space-x-2">
+      {badges.map((badge, index) => (
+        <div key={index} className={`${badge.color} w-8 h-8 rounded-lg flex items-center justify-center text-xs font-medium`}>
+          {badge.code}
+        </div>
+      ))}
     </div>
   );
 }
 
-// Saved lists functionality
+// Define interface for saved lists
 interface SavedList {
-  id: number;
+  id: string;
   name: string;
-  isDefault?: boolean;
-  filters?: {
-    searchText?: string;
-    status?: string;
-    industry?: string;
-    type?: string;
-  };
-}
-
-// Mock saved lists
-const mockSavedLists: SavedList[] = [
-  { id: 1, name: "All Partners", isDefault: true },
-  { id: 2, name: "Active Insurance Brokers", filters: { status: "active", industry: "Insurance", type: "Broker" } },
-  { id: 3, name: "High-Value Partners", filters: { searchText: "enterprise" } },
-];
-
-// Views functionality
-interface SavedView {
-  id: number;
-  name: string;
+  description?: string;
+  type?: 'filter' | 'selection'; // 'filter' for Saved Filters, 'selection' for Custom Lists
   filters: {
     searchText?: string;
     status?: string;
     industry?: string;
     type?: string;
+    size?: string;
   };
+  members?: number[]; // Array of partner IDs for Custom Lists
+  isShared: boolean;
+  sharedWith?: string[];
+  createdBy: string;
+  createdAt: Date;
+  isDefault?: boolean; // Flag for system-generated default lists that can't be edited/deleted
 }
 
-const mockSavedViews: SavedView[] = [
-  { 
-    id: 1, 
-    name: "Active Brokers", 
-    filters: { status: "active", type: "Broker" } 
-  },
-  { 
-    id: 2, 
-    name: "Insurance Partners", 
-    filters: { industry: "Insurance" } 
-  },
-];
+// Define interface for saved views (filter combinations)
+interface SavedView {
+  id: string;
+  name: string;
+  description?: string;
+  filters: {
+    searchText?: string;
+    status?: string;
+    industry?: string;
+    type?: string;
+    size?: string;
+  };
+  createdBy: string;
+  createdAt: Date;
+}
 
-// Main Partners Table Component
+// Main partner list component
+// Hook to use list editing context
+function useListEditing() {
+  return useContext(ListEditingContext);
+}
+
 function PartnersTable() {
   const [filterText, setFilterText] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
@@ -170,361 +239,1788 @@ function PartnersTable() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
   
-  // List editing state
+  // Use the shared context for list editing state
   const { isEditingList, setIsEditingList } = useListEditing();
+  const [isSavingList, setIsSavingList] = useState(false);
   const [editedListMembers, setEditedListMembers] = useState<number[]>([]);
   
-  // Views state
+  // State for unsaved changes confirmation
+  const [showUnsavedChangesModal, setShowUnsavedChangesModal] = useState(false);
+  const [pendingListAction, setPendingListAction] = useState<{
+    type: 'select' | 'clear';
+    list?: SavedList;
+  } | null>(null);
+  
+  // Function to handle navigation with unsaved changes in list editing
+  const handleNavigationWithUnsavedChanges = (action: { type: 'select' | 'clear', list?: SavedList }) => {
+    // Check if we're in list editing mode with unsaved changes
+    if (isEditingList && activeList && !activeList.isDefault) {
+      // Store the pending action and show confirmation dialog
+      setPendingListAction(action);
+      setShowUnsavedChangesModal(true);
+      return true; // Navigation was interrupted
+    }
+    return false; // Navigation can proceed
+  };
+  
+  // State for saved lists
+  const [savedLists, setSavedLists] = useState<SavedList[]>([
+    {
+      id: 'all-partners',
+      name: 'All Partners',
+      type: 'filter',
+      filters: { },
+      isShared: false,
+      createdBy: 'System',
+      createdAt: new Date('2025-01-01'),
+      isDefault: true // Flag to indicate this is a default list that can't be edited/deleted
+    },
+    {
+      id: '1',
+      name: 'Active Insurance Brokers',
+      type: 'selection',
+      filters: {},
+      members: [2, 3, 4], // IDs of the partners in this list
+      isShared: true,
+      sharedWith: ['team@acme.com'],
+      createdBy: 'John Smith',
+      createdAt: new Date('2025-05-01')
+    },
+    {
+      id: '2',
+      name: 'Consulting Partners',
+      type: 'selection',
+      filters: {},
+      members: [5, 6, 7], // IDs of the partners in this list
+      isShared: false,
+      createdBy: 'John Smith',
+      createdAt: new Date('2025-05-10')
+    },
+    {
+      id: '3',
+      name: 'Enterprise Partners',
+      type: 'selection',
+      filters: {},
+      members: [3, 8, 10], // IDs of the partners in this list
+      isShared: true,
+      sharedWith: ['partnerships@acme.com'],
+      createdBy: 'John Smith',
+      createdAt: new Date('2025-05-15')
+    }
+  ]);
+  const [activeList, setActiveList] = useState<SavedList | null>(null);
+  const [originalListFilters, setOriginalListFilters] = useState<SavedList['filters'] | null>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [showSaveListModal, setShowSaveListModal] = useState(false);
+  const [showShareListModal, setShowShareListModal] = useState(false);
+  const [showListsDropdown, setShowListsDropdown] = useState(false);
+  const [showRenameListModal, setShowRenameListModal] = useState(false);
+  const [showDeleteListModal, setShowDeleteListModal] = useState(false);
+  const [listToRename, setListToRename] = useState<SavedList | null>(null);
+  const [listToDelete, setListToDelete] = useState<SavedList | null>(null);
+  const [newListName, setNewListName] = useState("");
+  const [activeDropdownId, setActiveDropdownId] = useState<string | null>(null);
+  
+  // State for saved views (filter combinations)
+  const [savedViews, setSavedViews] = useState<SavedView[]>([
+    {
+      id: 'view-1',
+      name: 'Active Insurance Brokers',
+      filters: {
+        status: 'active',
+        industry: 'Insurance',
+        type: 'Broker'
+      },
+      createdBy: 'John Smith',
+      createdAt: new Date('2025-05-01')
+    },
+    {
+      id: 'view-2',
+      name: 'Insurance Partners',
+      filters: {
+        industry: 'Insurance'
+      },
+      createdBy: 'John Smith',
+      createdAt: new Date('2025-05-10')
+    }
+  ]);
   const [activeView, setActiveView] = useState<SavedView | null>(null);
-  const [originalViewFilters, setOriginalViewFilters] = useState<any>(null);
-  const [hasUnsavedViewChanges, setHasUnsavedViewChanges] = useState(false);
-  const [showSaveViewDialog, setShowSaveViewDialog] = useState(false);
-  const [newViewName, setNewViewName] = useState('');
+  const [showSaveViewModal, setShowSaveViewModal] = useState(false);
+  const [showViewsDropdown, setShowViewsDropdown] = useState(false);
+  const [viewNameInput, setViewNameInput] = useState('');
+  const [isCreatingNewList, setIsCreatingNewList] = useState(false); // Default to adding to existing list
+  const [selectedExistingList, setSelectedExistingList] = useState<string | null>(null);
+    
+  // Filter partners based on search text, filter selections, and list membership
+  const displayedPartners = mockPartners
+    .filter(partner => {
+      // If we have an active list that's not a default list, filter by membership
+      if (activeList && !activeList.isDefault && activeList.type === 'selection' && Array.isArray(activeList.members)) {
+        // Only show partners that are members of the active list
+        if (!activeList.members.includes(partner.id)) {
+          return false;
+        }
+      }
+      
+      const matchesText = !filterText || 
+        partner.name.toLowerCase().includes(filterText.toLowerCase()) ||
+        partner.industry.toLowerCase().includes(filterText.toLowerCase()) ||
+        partner.type.toLowerCase().includes(filterText.toLowerCase());
+        
+      const matchesStatus = !selectedStatus || partner.status === selectedStatus;
+      const matchesIndustry = !selectedIndustry || partner.industry === selectedIndustry;
+      const matchesType = !selectedType || partner.type === selectedType;
+      
+      return matchesText && matchesStatus && matchesIndustry && matchesType;
+    })
+    // Sort alphabetically by name by default
+    .sort((a, b) => a.name.localeCompare(b.name));
   
-  // Lists state
-  const [activeList, setActiveList] = useState<SavedList | null>(mockSavedLists[0]);
-  const [showShareDialog, setShowShareDialog] = useState(false);
+  // Check if current filters differ from original list filters to detect unsaved changes
+  useEffect(() => {
+    if (activeList && originalListFilters) {
+      const currentFilters = {
+        searchText: filterText || undefined,
+        status: selectedStatus || undefined,
+        industry: selectedIndustry || undefined,
+        type: selectedType || undefined,
+        size: originalListFilters.size // Preserve size filter if it exists
+      };
+      
+      // Compare current filters with original list filters
+      const hasChanges = 
+        currentFilters.searchText !== originalListFilters.searchText ||
+        currentFilters.status !== originalListFilters.status ||
+        currentFilters.industry !== originalListFilters.industry ||
+        currentFilters.type !== originalListFilters.type;
+      
+      setHasUnsavedChanges(hasChanges);
+    } else {
+      setHasUnsavedChanges(false);
+    }
+  }, [filterText, selectedStatus, selectedIndustry, selectedType, activeList, originalListFilters]);
   
+  // Function to revert changes to the original list filters
+  const revertChanges = () => {
+    if (activeList && originalListFilters) {
+      setFilterText(originalListFilters.searchText || '');
+      setSelectedStatus(originalListFilters.status || '');
+      setSelectedIndustry(originalListFilters.industry || '');
+      setSelectedType(originalListFilters.type || '');
+      setHasUnsavedChanges(false);
+    }
+  };
+  
+  // Initialize toast
   const { toast } = useToast();
 
-  // Filter partners based on current filters
-  const filteredPartners = mockPartners.filter(partner => {
-    const matchesText = filterText === '' || 
-      partner.name.toLowerCase().includes(filterText.toLowerCase()) ||
-      partner.industry.toLowerCase().includes(filterText.toLowerCase()) ||
-      partner.type.toLowerCase().includes(filterText.toLowerCase());
-    
-    const matchesStatus = selectedStatus === '' || partner.status === selectedStatus;
-    const matchesIndustry = selectedIndustry === '' || partner.industry === selectedIndustry;
-    const matchesType = selectedType === '' || partner.type === selectedType;
-    
-    return matchesText && matchesStatus && matchesIndustry && matchesType;
-  });
-
-  // Pagination
-  const totalPages = Math.ceil(filteredPartners.length / itemsPerPage);
-  const displayedPartners = filteredPartners.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
-
-  // Selection functions
-  const toggleSelectPartner = (partnerId: number) => {
-    setSelectedPartners(prev =>
-      prev.includes(partnerId)
-        ? prev.filter(id => id !== partnerId)
-        : [...prev, partnerId]
-    );
+  // Function to save changes to the current list
+  const saveChanges = () => {
+    if (activeList && !activeList.isDefault) {
+      const updatedList = {
+        ...activeList,
+        filters: {
+          searchText: filterText || undefined,
+          status: selectedStatus || undefined,
+          industry: selectedIndustry || undefined,
+          type: selectedType || undefined,
+          size: originalListFilters?.size // Preserve size filter if it exists
+        },
+        createdAt: new Date() // Update the timestamp
+      };
+      
+      // Update the list in the savedLists array
+      const updatedLists = savedLists.map(list => 
+        list.id === activeList.id ? updatedList : list
+      );
+      
+      setSavedLists(updatedLists);
+      setActiveList(updatedList);
+      setOriginalListFilters(updatedList.filters);
+      setHasUnsavedChanges(false);
+      
+      // Show toast notification for successful save
+      toast({
+        title: "List Saved",
+        description: "Your changes have been saved successfully"
+      });
+    }
   };
+  
 
+
+  // Calculate stats based on filtered partners
+  const stats = calculatePartnerStats(displayedPartners);
+  
+  // Function to toggle partner selection
+  const toggleSelectPartner = (id: number) => {
+    if (selectedPartners.includes(id)) {
+      setSelectedPartners(selectedPartners.filter(partnerId => partnerId !== id));
+    } else {
+      setSelectedPartners([...selectedPartners, id]);
+    }
+  };
+  
+  // Function to toggle select/deselect all partners
   const toggleSelectAll = () => {
-    if (selectedPartners.length === displayedPartners.length && displayedPartners.length > 0) {
+    if (selectedPartners.length === displayedPartners.length) {
       setSelectedPartners([]);
     } else {
-      setSelectedPartners(displayedPartners.map(p => p.id));
+      setSelectedPartners(displayedPartners.map(partner => partner.id));
     }
   };
-
-  // Views functionality
-  const getCurrentFilters = () => ({
-    searchText: filterText,
-    status: selectedStatus,
-    industry: selectedIndustry,
-    type: selectedType,
-  });
-
-  const checkForUnsavedViewChanges = () => {
-    if (!activeView || !originalViewFilters) return false;
-    
-    const currentFilters = getCurrentFilters();
-    return JSON.stringify(currentFilters) !== JSON.stringify(originalViewFilters);
-  };
-
-  useEffect(() => {
-    setHasUnsavedViewChanges(checkForUnsavedViewChanges());
-  }, [filterText, selectedStatus, selectedIndustry, selectedType, activeView, originalViewFilters]);
-
-  const applyView = (view: SavedView) => {
-    const filters = view.filters;
-    setFilterText(filters.searchText || '');
-    setSelectedStatus(filters.status || '');
-    setSelectedIndustry(filters.industry || '');
-    setSelectedType(filters.type || '');
-    setActiveView(view);
-    setOriginalViewFilters({ ...filters });
-    setHasUnsavedViewChanges(false);
-  };
-
-  const revertViewChanges = () => {
-    if (activeView && originalViewFilters) {
-      const filters = originalViewFilters;
-      setFilterText(filters.searchText || '');
-      setSelectedStatus(filters.status || '');
-      setSelectedIndustry(filters.industry || '');
-      setSelectedType(filters.type || '');
-      setHasUnsavedViewChanges(false);
-    }
-  };
-
-  const saveViewChanges = () => {
-    if (activeView) {
-      const currentFilters = getCurrentFilters();
-      // In a real app, this would update the view in the backend
-      activeView.filters = { ...currentFilters };
-      setOriginalViewFilters({ ...currentFilters });
-      setHasUnsavedViewChanges(false);
-      
-      toast({
-        title: "View Updated",
-        description: `"${activeView.name}" has been updated with your current filters.`
-      });
-    }
-  };
-
-  const saveNewView = () => {
-    if (newViewName.trim()) {
-      const currentFilters = getCurrentFilters();
-      // In a real app, this would save the view to the backend
-      toast({
-        title: "View Saved",
-        description: `"${newViewName}" has been saved with your current filters.`
-      });
-      setShowSaveViewDialog(false);
-      setNewViewName('');
-    }
-  };
-
+  
   return (
-    <div className="space-y-6">
-      {/* Views and Filters Section */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center space-x-4">
-            <h2 className="text-lg font-semibold">Views</h2>
-            
-            {/* Views Dropdown */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="sm">
-                  {activeView ? activeView.name : "Select View"}
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
-                    <path d="M6 9l6 6 6-6"/>
+    <div className="space-y-4">
+      {/* Unified toolbar with more emphasis on saved lists */}
+      <div className="bg-white p-4 rounded-lg shadow-sm">
+        <div className="flex flex-col gap-4">
+          {/* Top row with saved lists and action buttons */}
+          <div className="flex flex-wrap items-center justify-between">
+            {/* Left side - Saved Lists with actions */}
+            <div className="flex items-center gap-3">
+              {/* Lists heading */}
+              <div className="flex flex-col mr-2">
+                <span className="text-base font-semibold text-gray-800 mb-2">Lists</span>
+              </div>
+              {/* Saved Lists dropdown - redesigned to match provided image */}
+              <div className="relative">
+                <button 
+                  className="flex items-center space-x-2 px-4 py-2.5 border rounded-md text-sm font-medium shadow-sm bg-white hover:bg-gray-50"
+                  onClick={() => setShowListsDropdown(!showListsDropdown)}
+                >
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-indigo-600">
+                    <path d="M5.25 1.5V4.25H12.6875V2C12.6875 1.725 12.4906 1.5 12.25 1.5H5.25ZM3.9375 1.5H1.75C1.50937 1.5 1.3125 1.725 1.3125 2V4.25H3.9375V1.5ZM1.3125 5.75V8.25H3.9375V5.75H1.3125ZM1.3125 9.75V12C1.3125 12.275 1.50937 12.5 1.75 12.5H3.9375V9.75H1.3125ZM5.25 12.5H12.25C12.4906 12.5 12.6875 12.275 12.6875 12V9.75H5.25V12.5ZM12.6875 8.25V5.75H5.25V8.25H12.6875ZM0 2C0 0.896875 0.784766 0 1.75 0H12.25C13.2152 0 14 0.896875 14 2V12C14 13.1031 13.2152 14 12.25 14H1.75C0.784766 14 0 13.1031 0 12V2Z" fill="#3E4DC4"/>
                   </svg>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => {
-                  setActiveView(null);
-                  setOriginalViewFilters(null);
-                  setHasUnsavedViewChanges(false);
-                }}>
-                  Clear View
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                {mockSavedViews.map(view => (
-                  <DropdownMenuItem key={view.id} onClick={() => applyView(view)}>
-                    {view.name}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
+                    {activeList ? activeList.name : "All Partners"}
+                  </span>
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width="14" 
+                    height="14" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    className={`transition-transform ${showListsDropdown ? 'rotate-180' : ''}`}
+                  >
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </button>
+                
+                {/* Saved Lists dropdown menu - shadcn/ui style with Qollabi colors */}
+                {showListsDropdown && (
+                  <div className="absolute z-50 mt-1.5 w-80 rounded-md border border-slate-200 bg-white text-slate-950 shadow-md animate-in fade-in-80 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2">
+                    {/* No search section as per screenshot */}
+                    
+                    {/* Lists with edit options */}
+                    <div className="max-h-[300px] overflow-y-auto p-1">
+                      {savedLists.map(list => (
+                        <div 
+                          key={list.id}
+                          className="relative"
+                        >
+                          <div
+                            className={`relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 ${activeList?.id === list.id ? 'bg-indigo-50 text-indigo-900' : 'text-slate-700'}`}
+                            onClick={() => {
+                              // Don't do anything if clicking on already active list
+                              if (activeList?.id === list.id) {
+                                setShowListsDropdown(false);
+                                return;
+                              }
+                              
+                              // Check if we're in list editing mode before switching lists
+                              if (isEditingList) {
+                                // Store the pending action and show confirmation dialog
+                                setPendingListAction({
+                                  type: list.isDefault && list.name === "All Partners" ? 'clear' : 'select',
+                                  list: list.isDefault && list.name === "All Partners" ? undefined : list
+                                });
+                                setShowUnsavedChangesModal(true);
+                                setShowListsDropdown(false);
+                                return;
+                              }
+                              
+                              // Special handling for "All Partners" default list
+                              if (list.isDefault && list.name === "All Partners") {
+                                // Clear filters and active list (same behavior as "Return to all partners" button)
+                                setActiveList(null);
+                                setOriginalListFilters(null);
+                                setFilterText('');
+                                setSelectedStatus('');
+                                setSelectedIndustry('');
+                                setSelectedType('');
+                                setHasUnsavedChanges(false);
+                              } else {
+                                // Normal behavior for other lists
+                                setActiveList(list);
+                                // Store the original filters to enable reverting changes
+                                setOriginalListFilters(list.filters);
+                                // Apply filter settings
+                                setFilterText(list.filters.searchText || '');
+                                setSelectedStatus(list.filters.status || '');
+                                setSelectedIndustry(list.filters.industry || '');
+                                setSelectedType(list.filters.type || '');
+                                setHasUnsavedChanges(false);
+                              }
+                              
+                              // Clear any active view when switching lists
+                              setActiveView(null);
+                              setShowListsDropdown(false);
+                            }}
+                          >
+                            <div className="flex flex-1 items-center">
+                              <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>{list.name}</span>
+                              {list.isShared && (
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2 text-indigo-500">
+                                  <circle cx="18" cy="5" r="3"></circle>
+                                  <circle cx="6" cy="12" r="3"></circle>
+                                  <circle cx="18" cy="19" r="3"></circle>
+                                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                                </svg>
+                              )}
+                            </div>
+                            
+                            {/* Dropdown menu for non-default lists */}
+                            {!list.isDefault && (
+                              <div className="ml-auto">
+                                <DropdownMenu>
+                                  <DropdownMenuTrigger asChild>
+                                    <button 
+                                      className="rounded-full p-1 hover:bg-slate-100 text-slate-500 focus:outline-none"
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <circle cx="12" cy="12" r="1"></circle>
+                                        <circle cx="12" cy="5" r="1"></circle>
+                                        <circle cx="12" cy="19" r="1"></circle>
+                                      </svg>
+                                    </button>
+                                  </DropdownMenuTrigger>
+                                  <DropdownMenuContent 
+                                    className="bg-white p-2 rounded-md shadow-md min-w-[160px]"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <DropdownMenuItem 
+                                      className="py-1.5 font-medium text-[#282A3F]"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setListToRename(list);
+                                        setNewListName(list.name);
+                                        setShowRenameListModal(true);
+                                      }}
+                                    >
+                                      Rename
+                                    </DropdownMenuItem>
+                                    <DropdownMenuItem 
+                                      className="py-1.5 font-medium text-red-600"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        setListToDelete(list);
+                                        setShowDeleteListModal(true);
+                                      }}
+                                    >
+                                      Delete
+                                    </DropdownMenuItem>
+                                  </DropdownMenuContent>
+                                </DropdownMenu>
+                              </div>
+                            )}
+                            
+                            {/* Visual indicator for default list */}
+                            {list.isDefault && (
+                              <div className="ml-auto">
+                                <span className="text-xs text-[#282A3F] italic" style={{ fontFamily: 'Poppins, sans-serif' }}>Default</span>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                    
+                    {/* No 'Create new list' button as specified by the user */}
+                  </div>
+                )}
+              </div>
+              
+              {/* List actions - Share/Clear when a list is active */}
+              {activeList && (
+                <div className="flex items-center gap-2">
+                  
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className={`text-indigo-600 ${isEditingList ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    onClick={() => setShowShareListModal(true)}
+                    disabled={isEditingList}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                      <circle cx="18" cy="5" r="3"></circle>
+                      <circle cx="6" cy="12" r="3"></circle>
+                      <circle cx="18" cy="19" r="3"></circle>
+                      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                    </svg>
+                    Share
+                  </Button>
+                  
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    className={`text-indigo-600 ${isEditingList ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    onClick={() => {
+                      // Show campaign options modal
+                      // This would be implemented with a proper modal in the final version
+                      alert('This list can be added to a campaign in the Campaigns section');
+                    }}
+                    disabled={isEditingList}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                      <path d="M22 2 11 13" />
+                      <path d="M22 2 15 22 11 13 2 9 22 2z" />
+                    </svg>
+                    Add to Campaign
+                  </Button>
+                  
 
-            {/* View Action Buttons */}
-            {hasUnsavedViewChanges && (
-              <div className="flex items-center space-x-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={revertViewChanges}
+                </div>
+              )}
+            </div>
+            
+            {/* Right-side action buttons */}
+            <div className="flex items-center gap-2 text-[14px] font-medium text-[#696C8C]">
+              
+              {/* Edit list button - only visible when a custom list is selected */}
+              {activeList && activeList.type === 'selection' && !activeList.isDefault && (
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className={`md:flex items-center ${isEditingList ? 'bg-indigo-50 text-indigo-700 border-indigo-500' : ''}`}
+                  onClick={() => {
+                    if (isEditingList) {
+                      setIsEditingList(false);
+                    } else {
+                      // Initialize edited list members with current list members
+                      setEditedListMembers(activeList?.members || []);
+                      setIsEditingList(true);
+                    }
+                  }}
+                  disabled={isEditingList && isSavingList}
                 >
-                  Revert changes
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                  </svg>
+                  {isEditingList ? 'Cancel' : 'Edit list'}
                 </Button>
-                <Button
-                  size="sm"
-                  onClick={saveViewChanges}
+              )}
+              
+              {/* Save button - only visible in edit mode */}
+              {isEditingList && (
+                <Button 
+                  variant="default" 
+                  size="sm" 
+                  className="md:flex items-center bg-indigo-600 hover:bg-indigo-700"
+                  onClick={() => {
+                    setIsSavingList(true);
+                    // Save changes to the list
+                    setTimeout(() => {
+                      setIsEditingList(false);
+                      setIsSavingList(false);
+                      
+                      // Update the list with the edited members
+                      if (activeList) {
+                        const updatedLists = savedLists.map(list => 
+                          list.id === activeList.id 
+                            ? {...list, members: editedListMembers}
+                            : list
+                        );
+                        setSavedLists(updatedLists);
+                        setActiveList({...activeList, members: editedListMembers});
+                        
+                        // Show success toast
+                        toast({
+                          title: "List updated",
+                          description: "Your changes to the list have been saved.",
+                        });
+                      }
+                    }, 500); // Simulate a short delay for saving
+                  }}
+                  disabled={isSavingList}
                 >
-                  Save
+                  {isSavingList ? (
+                    <>
+                      <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                      </svg>
+                      Saving...
+                    </>
+                  ) : "Save"}
                 </Button>
+              )}
+              
+              <button 
+                className={`hidden md:flex items-center px-4 py-2 text-[#696C8C] rounded-md border border-gray-300 hover:bg-[#F5F6FE] ${isEditingList ? 'opacity-50 cursor-not-allowed' : ''}`}
+                disabled={isEditingList}
+                style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px', fontWeight: 500 }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#696C8C" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                  <polyline points="7 10 12 15 17 10"></polyline>
+                  <line x1="12" y1="15" x2="12" y2="3"></line>
+                </svg>
+                Export
+              </button>
+              
+{/* New button removed as requested */}
+            </div>
+          </div>
+          
+          {/* Top row with search, views dropdown and filter buttons */}
+          <div className="flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Search field */}
+              <div className="relative w-60">
+                <input
+                  type="text"
+                  placeholder="Search by name, industry..."
+                  value={filterText}
+                  onChange={(e) => setFilterText(e.target.value)}
+                  className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
+                />
+                <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                  </svg>
+                </button>
+              </div>
+              
+              {/* Saved Views Dropdown */}
+              <div className="relative">
+                <button 
+                  className={`flex items-center space-x-2 px-3 py-2 border rounded-md text-sm font-medium bg-white ${isEditingList ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
+                  onClick={() => {
+                    if (!isEditingList) {
+                      setShowViewsDropdown(!showViewsDropdown);
+                    }
+                  }}
+                  disabled={isEditingList}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                  </svg>
+                  <span className="text-gray-700">{activeView ? activeView.name : "Select a view"}</span>
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width="14" 
+                    height="14" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    className={`transition-transform ${showViewsDropdown ? 'rotate-180' : ''}`}
+                  >
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </button>
+                
+                {/* Saved Views dropdown menu */}
+                {showViewsDropdown && (
+                  <div className="absolute z-50 mt-1 w-64 rounded-md border border-slate-200 bg-white shadow-md">
+                    <div className="p-2 border-b">
+                      <div className="text-xs font-medium mb-2 text-gray-500">SAVED VIEWS</div>
+                      {savedViews.map(view => (
+                        <div 
+                          key={view.id}
+                          className={`flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 ${activeView?.id === view.id ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700'}`}
+                          onClick={() => {
+                            setActiveView(view);
+                            setFilterText(view.filters.searchText || '');
+                            setSelectedStatus(view.filters.status || '');
+                            setSelectedIndustry(view.filters.industry || '');
+                            setSelectedType(view.filters.type || '');
+                            setShowViewsDropdown(false);
+                          }}
+                        >
+                          <div className="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 text-indigo-500">
+                              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                            </svg>
+                            {view.name}
+                          </div>
+                          {activeView?.id === view.id && (
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                              <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    {activeView && (
+                      <div className="p-2">
+                        <button 
+                          className="flex w-full items-center p-2 text-sm rounded-md text-indigo-600 hover:bg-indigo-50"
+                          onClick={() => {
+                            setShowViewsDropdown(false);
+                            // Clear active view
+                            setActiveView(null);
+                            // Reset filters if needed
+                            setFilterText('');
+                            setSelectedStatus('');
+                            setSelectedIndustry('');
+                            setSelectedType('');
+                          }}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                            <path d="M18 6L6 18"></path>
+                            <path d="M6 6l12 12"></path>
+                          </svg>
+                          Clear view
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              
+              {/* Filter buttons next to the views dropdown */}
+              <div className="flex items-center gap-2 ml-3">
+                <button 
+                  className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedStatus ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+                  onClick={() => setSelectedStatus(selectedStatus ? '' : 'active')}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                  </svg>
+                  <span>{selectedStatus ? `Status: ${selectedStatus.charAt(0).toUpperCase() + selectedStatus.slice(1)}` : 'Status'}</span>
+                  {selectedStatus && (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  )}
+                </button>
+                
+                <button 
+                  className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedIndustry ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+                  onClick={() => setSelectedIndustry(selectedIndustry ? '' : 'Insurance')}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                  </svg>
+                  <span>{selectedIndustry ? `Industry: ${selectedIndustry}` : 'Industry'}</span>
+                  {selectedIndustry && (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  )}
+                </button>
+                
+                <button 
+                  className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedType ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+                  onClick={() => setSelectedType(selectedType ? '' : 'Broker')}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                  </svg>
+                  <span>{selectedType ? `Type: ${selectedType}` : 'Type'}</span>
+                  {selectedType && (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  )}
+                </button>
+              </div>
+              
+              {/* Action buttons - only shown when filters have changed from an existing view or no view is selected */}
+              {/* Determine if filters have changed from the active view */}
+              {(() => {
+                // Calculate if filters have been modified from the active view
+                const filtersChanged = activeView && 
+                  (filterText !== (activeView.filters.searchText || '') || 
+                   selectedStatus !== (activeView.filters.status || '') || 
+                   selectedIndustry !== (activeView.filters.industry || '') || 
+                   selectedType !== (activeView.filters.type || ''));
+                   
+                // Only render buttons if there are filters applied or filters have changed
+                return (filterText || selectedStatus || selectedIndustry || selectedType) && (
+                  <div className="flex items-center gap-2">
+                    {/* Show Revert and Save buttons only when a view is active AND filters have changed */}
+                    {filtersChanged && (
+                      <>
+                        {/* Revert changes button */}
+                        <button 
+                          className="flex items-center rounded-md px-4 py-2 text-gray-600 hover:bg-gray-100"
+                          onClick={() => {
+                            // Revert to view's original filters
+                            setFilterText(activeView.filters.searchText || '');
+                            setSelectedStatus(activeView.filters.status || '');
+                            setSelectedIndustry(activeView.filters.industry || '');
+                            setSelectedType(activeView.filters.type || '');
+                          }}
+                          style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5F6585" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                            <path d="M3 7v6h6"></path>
+                            <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
+                          </svg>
+                          <span className="text-[#5F6585]">Revert changes</span>
+                        </button>
+                        
+                        {/* Save button - updates the current view */}
+                        <button 
+                          className="flex items-center rounded-md bg-[#EBEEFB] px-4 py-2 hover:bg-[#E3E6F7]"
+                          onClick={() => {
+                            // Update the current view
+                            const updatedViews = savedViews.map(view => {
+                              if (view.id === activeView.id) {
+                                return {
+                                  ...view,
+                                  filters: {
+                                    searchText: filterText || undefined,
+                                    status: selectedStatus || undefined,
+                                    industry: selectedIndustry || undefined,
+                                    type: selectedType || undefined
+                                  }
+                                };
+                              }
+                              return view;
+                            });
+                            setSavedViews(updatedViews);
+                            setActiveView(updatedViews.find(view => view.id === activeView.id) || null);
+                            
+                            toast({
+                              title: "View Updated",
+                              description: "Your changes have been saved to the current view"
+                            });
+                          }}
+                          style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                            <polyline points="7 3 7 8 15 8"></polyline>
+                          </svg>
+                          <span className="text-[#3E4DC4] font-medium">Save</span>
+                        </button>
+                        
+                        {/* Save as new view button - only shown when filters have changed */}
+                        <button 
+                          className="flex items-center rounded-md bg-[#EBEEFB] px-4 py-2 hover:bg-[#E3E6F7]"
+                          onClick={() => setShowSaveViewModal(true)}
+                          style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                            <polyline points="7 3 7 8 15 8"></polyline>
+                          </svg>
+                          <span className="text-[#3E4DC4] font-medium">Save as new view</span>
+                        </button>
+                      </>
+                    )}
+                    
+                    {/* Show Save as new view button only when no view is active but filters are applied */}
+                    {!activeView && (
+                      <button 
+                        className="flex items-center rounded-md bg-[#EBEEFB] px-4 py-2 hover:bg-[#E3E6F7]"
+                        onClick={() => setShowSaveViewModal(true)}
+                        style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                          <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                          <polyline points="7 3 7 8 15 8"></polyline>
+                        </svg>
+                        <span className="text-[#3E4DC4] font-medium">Save as new view</span>
+                      </button>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
+            
+            {/* Clear filters button - shown when any filters are applied */}
+            {(filterText || selectedStatus || selectedIndustry || selectedType) && (
+              <div className="mt-2">
+                <button 
+                  className="flex items-center text-sm text-gray-500 hover:text-gray-700"
+                  onClick={() => {
+                    setFilterText('');
+                    setSelectedStatus('');
+                    setSelectedIndustry('');
+                    setSelectedType('');
+                  }}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                  Clear filters
+                </button>
               </div>
             )}
+            
+            {/* List editing actions - shown only for non-default lists with unsaved changes */}
+            {hasUnsavedChanges && activeList && !activeList.isDefault && (
+              <div className="flex items-center gap-2 mt-2">
+                <button 
+                  className="flex items-center rounded-md px-4 py-2 text-gray-600 hover:bg-gray-100"
+                  onClick={revertChanges}
+                  style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5F6585" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                    <path d="M3 7v6h6"></path>
+                    <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
+                  </svg>
+                  <span className="text-[#5F6585]">Revert changes</span>
+                </button>
+                
+                <button 
+                  className="flex items-center rounded-md bg-[#EBEEFB] px-4 py-2 hover:bg-[#E3E6F7]"
+                  onClick={saveChanges}
+                  style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                    <polyline points="7 3 7 8 15 8"></polyline>
+                  </svg>
+                  <span className="text-[#3E4DC4] font-medium">Save</span>
+                </button>
+              </div>
+            )}
+            
 
-            <Button
-              variant="outline"
+          </div>
+        </div>
+      </div>
+      {/* Selection actions bar - visible when items are selected */}
+      {selectedPartners.length > 0 && (
+        <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between mb-4">
+          <div className="flex items-center">
+            <span className="text-indigo-700 font-medium mr-2 text-[14px]">{selectedPartners.length} partners selected</span>
+            <Button 
+              variant="ghost" 
               size="sm"
-              onClick={() => setShowSaveViewDialog(true)}
+              className="text-gray-600"
+              onClick={() => setSelectedPartners([])}
             >
-              Save as new view
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                <path d="M18 6 6 18"></path>
+                <path d="m6 6 12 12"></path>
+              </svg>
+              Clear selection
+            </Button>
+          </div>
+          
+          <div className="flex items-center gap-2 flex-wrap">
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="text-indigo-600"
+              onClick={() => setShowSaveListModal(true)}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                <polyline points="7 3 7 8 15 8"></polyline>
+              </svg>
+              Add to List
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              size="sm"
+              className="text-indigo-600"
+              onClick={() => {
+                alert('Selected partners can be added to a campaign. This will be available in the Campaigns section');
+              }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                <path d="M22 2 11 13" />
+                <path d="M22 2 15 22 11 13 2 9 22 2z" />
+              </svg>
+              Add to Campaign
+            </Button>
+            
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => {
+                alert('Assign template functionality will be implemented in future');
+              }}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+              </svg>
+              Assign Template
             </Button>
           </div>
         </div>
-
-        {/* Filters */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div>
-            <Label htmlFor="search">Search</Label>
-            <Input
-              id="search"
-              placeholder="Search partners..."
-              value={filterText}
-              onChange={(e) => setFilterText(e.target.value)}
-            />
-          </div>
-          <div>
-            <Label htmlFor="status">Status</Label>
-            <select
-              id="status"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
-              value={selectedStatus}
-              onChange={(e) => setSelectedStatus(e.target.value)}
-            >
-              <option value="">All Status</option>
-              <option value="active">Active</option>
-              <option value="inactive">Inactive</option>
-            </select>
-          </div>
-          <div>
-            <Label htmlFor="industry">Industry</Label>
-            <select
-              id="industry"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
-              value={selectedIndustry}
-              onChange={(e) => setSelectedIndustry(e.target.value)}
-            >
-              <option value="">All Industries</option>
-              <option value="Insurance">Insurance</option>
-              <option value="Finance">Finance</option>
-            </select>
-          </div>
-          <div>
-            <Label htmlFor="type">Type</Label>
-            <select
-              id="type"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md"
-              value={selectedType}
-              onChange={(e) => setSelectedType(e.target.value)}
-            >
-              <option value="">All Types</option>
-              <option value="Broker">Broker</option>
-              <option value="Advisor">Advisor</option>
-              <option value="Agency">Agency</option>
-            </select>
-          </div>
+      )}
+      {/* Statistics overview */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="bg-white p-4 rounded-md border border-gray-200">
+          <div className="text-xl font-semibold">{stats.totalPartners}</div>
+          <div className="text-sm text-gray-500">Total Partners</div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-md border border-gray-200">
+          <div className="text-xl font-semibold">{stats.activePartners}</div>
+          <div className="text-sm text-gray-500">Active Partners</div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-md border border-gray-200">
+          <div className="text-xl font-semibold">{stats.totalCustomers}</div>
+          <div className="text-sm text-gray-500">Total Customers</div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-md border border-gray-200">
+          <div className="text-xl font-semibold">{stats.totalOpportunities}</div>
+          <div className="text-sm text-gray-500">Total Opportunities</div>
         </div>
       </div>
-
-      {/* Lists Section */}
-      <div className="bg-white rounded-lg border border-gray-200 p-6">
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold">Lists</h2>
-          <div className="flex items-center space-x-2">
+      {/* Add to List Modal */}
+      <Dialog 
+        open={showSaveListModal} 
+        onOpenChange={(open) => {
+          if (!open) {
+            // Reset state when closing the modal
+            setIsCreatingNewList(true);
+            setSelectedExistingList(null);
+          }
+          setShowSaveListModal(open);
+        }}
+      >
+        <DialogContent className="sm:max-w-md bg-[#ffffff] text-[#282A3F] p-[32px]">
+          <DialogHeader>
+            <DialogTitle>Add to list</DialogTitle>
+            <DialogDescription>
+              Add selected partners to an existing list or create a new one.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="flex flex-col space-y-2">
+              <div className="flex items-center space-x-2">
+                <input 
+                  type="radio" 
+                  id="option-existing" 
+                  name="list-option" 
+                  className="h-4 w-4 text-indigo-600"
+                  checked={!isCreatingNewList}
+                  onChange={() => setIsCreatingNewList(false)}
+                />
+                <Label htmlFor="option-existing" className="text-sm font-medium">
+                  Add to existing list
+                </Label>
+              </div>
+              
+              {!isCreatingNewList && (
+                <div className="pl-6 mt-2 text-[888AA6]">
+                  <select
+                    id="list-select"
+                    className="w-full p-2 border border-gray-300 rounded-md"
+                    value={selectedExistingList || ''}
+                    onChange={(e) => setSelectedExistingList(e.target.value || null)}
+                  >
+                    <option value="">Select a list...</option>
+                    {savedLists
+                      .filter(list => list.type === 'selection' && !list.isDefault)
+                      .map(list => (
+                        <option key={list.id} value={list.id}>
+                          {list.name}
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              )}
+            </div>
+            
+            <div className="flex flex-col space-y-2">
+              <div className="flex items-center space-x-2">
+                <input 
+                  type="radio" 
+                  id="option-new" 
+                  name="list-option" 
+                  className="h-4 w-4 text-indigo-600"
+                  checked={isCreatingNewList}
+                  onChange={() => setIsCreatingNewList(true)}
+                />
+                <Label htmlFor="option-new" className="text-sm font-medium">
+                  Create new list
+                </Label>
+              </div>
+              
+              {isCreatingNewList && (
+                <div className="pl-6 space-y-4 mt-4">
+                  <div className="grid gap-2">
+                    <Label htmlFor="listName">List Name</Label>
+                    <Input 
+                      id="listName" 
+                      placeholder="Enter a name for this list"
+                      maxLength={50}
+                    />
+                    <p className="text-xs text-gray-500">Maximum 50 characters</p>
+                  </div>
+                  
+                  <div className="grid gap-2">
+                    <Label htmlFor="listDescription">Description (Optional)</Label>
+                    <Textarea 
+                      id="listDescription" 
+                      placeholder="Add a short description for this list"
+                      rows={3}
+                      maxLength={200}
+                    />
+                    <p className="text-xs text-gray-500">Maximum 200 characters</p>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            <div className="bg-blue-50 p-3 rounded-md border border-blue-100">
+              <p className="text-sm text-blue-700">
+                {selectedPartners.length} partners will be added to this list.
+              </p>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button
+              onClick={() => {
+                if (isCreatingNewList) {
+                  // Create new list with selected partners
+                  const listName = (document.getElementById('listName') as HTMLInputElement).value;
+                  if (!listName.trim()) {
+                    toast({
+                      title: "Name Required",
+                      description: "Please provide a name for the new list",
+                      variant: "destructive"
+                    });
+                    return;
+                  }
+                  
+                  const listDescription = (document.getElementById('listDescription') as HTMLTextAreaElement).value;
+                  
+                  // Create a new list with only the selected partners
+                  const newList: SavedList = {
+                    id: `list-${Date.now()}`,
+                    name: listName,
+                    description: listDescription || undefined,
+                    type: 'selection', // This is a selection-based list, not filter-based
+                    members: selectedPartners, // Add only the selected partners as members
+                    filters: {}, // Empty filters since this is a selection-based list
+                    isShared: false,
+                    createdBy: 'John Smith',
+                    createdAt: new Date()
+                  };
+                  
+                  // Add the new list to saved lists
+                  setSavedLists([...savedLists, newList]);
+                  
+                  // Set it as the active list and redirect to it
+                  setActiveList(newList);
+                  setOriginalListFilters(newList.filters);
+                  
+                  // Clear selections and close modal
+                  setSelectedPartners([]);
+                  setShowSaveListModal(false);
+                  
+                  // Show success message
+                  toast({
+                    title: "List Created",
+                    description: `"${listName}" has been created with ${selectedPartners.length} partners.`
+                  });
+                  
+                } else {
+                  // Add to existing list
+                  if (!selectedExistingList) {
+                    toast({
+                      title: "List Required",
+                      description: "Please select a list to add partners to",
+                      variant: "destructive"
+                    });
+                    return;
+                  }
+                  
+                  // Find the target list
+                  const targetList = savedLists.find(list => list.id === selectedExistingList);
+                  if (!targetList) return;
+                  
+                  // Get existing members to avoid duplicates
+                  const existingMembers = targetList.members || [];
+                  const newMembers = selectedPartners.filter(id => !existingMembers.includes(id));
+                  const alreadyInList = selectedPartners.length - newMembers.length;
+                  
+                  // Update the list with new members
+                  const updatedLists = savedLists.map(list => {
+                    if (list.id === selectedExistingList) {
+                      return {
+                        ...list,
+                        members: [...existingMembers, ...newMembers]
+                      };
+                    }
+                    return list;
+                  });
+                  
+                  // Update lists and set active list
+                  setSavedLists(updatedLists);
+                  const updatedList = updatedLists.find(list => list.id === selectedExistingList);
+                  if (updatedList) {
+                    setActiveList(updatedList);
+                    setOriginalListFilters(updatedList.filters);
+                  }
+                  
+                  // Clear selections and close modal
+                  setSelectedPartners([]);
+                  setShowSaveListModal(false);
+                  
+                  // Show success message with info about duplicates
+                  let description = `${newMembers.length} partners added to "${targetList.name}".`;
+                  if (alreadyInList > 0) {
+                    description += ` ${alreadyInList} partner${alreadyInList > 1 ? 's' : ''} already in list.`;
+                  }
+                  
+                  toast({
+                    title: "Partners Added to List",
+                    description
+                  });
+                }
+              }}
+              disabled={
+                (!isCreatingNewList && !selectedExistingList)
+              }
+            >
+              {isCreatingNewList ? 'Create List' : 'Add to List'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {/* Save as new View Modal */}
+      <Dialog 
+        open={showSaveViewModal} 
+        onOpenChange={(open) => {
+          if (open) {
+            // Always start with empty input for "Save as new view"
+            setViewNameInput('');
+          }
+          setShowSaveViewModal(open);
+        }}>
+        <DialogContent className="sm:max-w-md bg-[#ffffff] text-[#282A3F] p-[32px]">
+          <DialogHeader>
+            <DialogTitle>Save as new view</DialogTitle>
+            <DialogDescription className="text-sm text-[#282A3F]">
+              Save your current filter settings as a new view that you can easily access later. Views store filter combinations but not specific partner selections.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="viewName">View Name<span className="text-red-500">*</span></Label>
+              <Input 
+                id="viewName" 
+                placeholder="Enter a name for this view"
+                maxLength={50}
+                value={viewNameInput}
+                onChange={(e) => setViewNameInput(e.target.value)}
+              />
+              <p className="text-xs text-gray-500">Maximum 50 characters</p>
+            </div>
+            
+            <div className="bg-[#EBEEFB] p-4 rounded-md border border-[#D4D9F3]">
+              <div className="text-sm font-medium mb-2 text-[#282A3F]">Filters saved in this view</div>
+              <div className="space-y-2">
+                {selectedStatus && (
+                  <div className="flex items-center text-sm">
+                    <span className="font-medium w-24 text-[#3E4DC4]">Status:</span>
+                    <span className="text-[#282A3F]">{selectedStatus}</span>
+                  </div>
+                )}
+                {selectedIndustry && (
+                  <div className="flex items-center text-sm">
+                    <span className="font-medium w-24 text-[#3E4DC4]">Industry:</span>
+                    <span className="text-[#282A3F]">{selectedIndustry}</span>
+                  </div>
+                )}
+                {selectedType && (
+                  <div className="flex items-center text-sm">
+                    <span className="font-medium w-24 text-[#3E4DC4]">Type:</span>
+                    <span className="text-[#282A3F]">{selectedType}</span>
+                  </div>
+                )}
+                {filterText && (
+                  <div className="flex items-center text-sm">
+                    <span className="font-medium w-24 text-[#3E4DC4]">Search:</span>
+                    <span className="text-[#282A3F]">{filterText}</span>
+                  </div>
+                )}
+                {!selectedStatus && !selectedIndustry && !selectedType && !filterText && (
+                  <div className="text-sm text-[#5F6585] italic">No filters currently applied</div>
+                )}
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter className="sm:justify-end">
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button
+              disabled={!viewNameInput.trim()}
+              onClick={() => {
+                // Always create a new view
+                const viewName = viewNameInput.trim();
+                
+                if (!viewName) {
+                  toast({
+                    title: "Name Required",
+                    description: "Please provide a name for this view",
+                    variant: "destructive"
+                  });
+                  return;
+                }
+                
+                // Check for duplicate view names
+                const isDuplicate = savedViews.some(view => 
+                  view.name.toLowerCase() === viewName.toLowerCase()
+                );
+                
+                if (isDuplicate) {
+                  toast({
+                    title: "Duplicate Name",
+                    description: "A view with this name already exists. Please choose a different name.",
+                    variant: "destructive"
+                  });
+                  return;
+                }
+                
+                // Create new view
+                const newView: SavedView = {
+                  id: `view-${Date.now()}`,
+                  name: viewName,
+                  description: undefined,
+                  filters: {
+                    searchText: filterText || undefined,
+                    status: selectedStatus || undefined,
+                    industry: selectedIndustry || undefined,
+                    type: selectedType || undefined
+                  },
+                  createdBy: 'John Smith',
+                  createdAt: new Date()
+                };
+                
+                setSavedViews([...savedViews, newView]);
+                setActiveView(newView);
+                
+                toast({
+                  title: "View Saved",
+                  description: "Your new view has been saved successfully"
+                });
+                
+                setShowSaveViewModal(false);
+              }}
+            >
+              Save View
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {/* Share List Modal with Extended Options */}
+      <Dialog open={showShareListModal} onOpenChange={setShowShareListModal}>
+        <DialogContent className="sm:max-w-2xl bg-[#ffffff] text-[#282A3F] p-[32px]">
+          <DialogHeader>
+            <DialogTitle>
+              {selectedPartners.length > 0 
+                ? `Share ${selectedPartners.length} Selected Partners`
+                : `Share List: ${activeList?.name}`
+              }
+            </DialogTitle>
+            <DialogDescription>
+              {selectedPartners.length > 0 
+                ? `Share the ${selectedPartners.length} selected partner records with other partners, teams, or individuals.`
+                : "Share this list with partners, teams, or individuals."
+              }
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid gap-4 py-4">
+            {/* Show selected partners summary when bulk sharing */}
             {selectedPartners.length > 0 && (
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowShareDialog(true)}
-              >
-                Share ({selectedPartners.length})
-              </Button>
+              <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-2">
+                <div className="flex items-center mb-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="9" cy="7" r="4"></circle>
+                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                  </svg>
+                  <span className="text-sm font-medium text-blue-800">
+                    Selected Partners ({selectedPartners.length})
+                  </span>
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {selectedPartners.slice(0, 5).map(partnerId => {
+                    const partner = mockPartners.find(p => p.id === partnerId);
+                    return partner ? (
+                      <span key={partnerId} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+                        {partner.name}
+                      </span>
+                    ) : null;
+                  })}
+                  {selectedPartners.length > 5 && (
+                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+                      +{selectedPartners.length - 5} more
+                    </span>
+                  )}
+                </div>
+              </div>
             )}
+
+            {/* Tabs for different sharing options */}
+            <div className="flex border-b">
+              <button className="px-3 py-2 text-sm font-medium text-indigo-600 border-b-2 border-indigo-600">
+                Partners
+              </button>
+              <button className="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700">
+                Teams
+              </button>
+              <button className="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700">
+                Individuals
+              </button>
+            </div>
+            
+            {/* Partners Section - Enhanced for multiple selection */}
+            <div className="grid gap-3">
+              <Label>Select Partners to Share With</Label>
+              <div className="border border-gray-200 rounded-md max-h-48 overflow-y-auto">
+                {/* Select All Option */}
+                <div className="p-2 border-b hover:bg-gray-50 bg-gray-25">
+                  <div className="flex items-center">
+                    <Checkbox 
+                      id="select-all-partners" 
+                      className="mr-2"
+                      onCheckedChange={(checked) => {
+                        mockPartners.forEach(partner => {
+                          const checkbox = document.querySelector(`input[id="share-partner-${partner.id}"]`) as HTMLInputElement;
+                          if (checkbox) checkbox.checked = checked === true;
+                        });
+                      }}
+                    />
+                    <Label htmlFor="select-all-partners" className="text-sm font-medium cursor-pointer flex-grow">
+                      Select All Partners ({mockPartners.length})
+                    </Label>
+                  </div>
+                </div>
+                
+                {/* Individual Partners with Contact Selection */}
+                {mockPartners.map(partner => {
+                  // Mock contacts for each partner
+                  const partnerContacts = [
+                    { id: 1, name: `${partner.name.split(' ')[0]} Manager`, email: `manager@${partner.name.toLowerCase().replace(/\s+/g, '')}.com`, role: 'Primary Contact' },
+                    { id: 2, name: `${partner.name.split(' ')[0]} Sales`, email: `sales@${partner.name.toLowerCase().replace(/\s+/g, '')}.com`, role: 'Sales Lead' },
+                    { id: 3, name: `${partner.name.split(' ')[0]} Admin`, email: `admin@${partner.name.toLowerCase().replace(/\s+/g, '')}.com`, role: 'Administrator' }
+                  ];
+
+                  return (
+                    <div key={partner.id} className="border-b">
+                      {/* Partner Header */}
+                      <div className="p-2 hover:bg-gray-50">
+                        <div className="flex items-center">
+                          <Checkbox 
+                            id={`share-partner-${partner.id}`} 
+                            className="mr-2"
+                            onCheckedChange={(checked) => {
+                              // When partner is selected/deselected, toggle all their contacts
+                              partnerContacts.forEach(contact => {
+                                const contactCheckbox = document.querySelector(`input[id="contact-${partner.id}-${contact.id}"]`) as HTMLInputElement;
+                                if (contactCheckbox) contactCheckbox.checked = checked === true;
+                              });
+                            }}
+                          />
+                          <Label htmlFor={`share-partner-${partner.id}`} className="text-sm font-normal cursor-pointer flex-grow">
+                            <div className="flex items-center justify-between">
+                              <div className="flex items-center">
+                                <Avatar className="h-6 w-6 mr-2 bg-indigo-100 text-indigo-600">
+                                  <AvatarFallback className="text-xs">{partner.initials}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                  <div className="font-medium">{partner.name}</div>
+                                  <div className="text-xs text-gray-500">{partner.industry} • {partner.type}</div>
+                                </div>
+                              </div>
+                              <div className="text-xs text-gray-500">
+                                {partnerContacts.length} contacts
+                              </div>
+                            </div>
+                          </Label>
+                        </div>
+                      </div>
+                      
+                      {/* Partner Contacts - shown when partner is expanded */}
+                      <div className="pl-8 pr-2 pb-2 bg-gray-25">
+                        {partnerContacts.map(contact => (
+                          <div key={contact.id} className="flex items-center py-1.5 px-2 hover:bg-gray-100 rounded">
+                            <Checkbox 
+                              id={`contact-${partner.id}-${contact.id}`} 
+                              className="mr-2 h-3 w-3"
+                              onCheckedChange={() => {
+                                // Check if all contacts for this partner are selected
+                                const allContactsSelected = partnerContacts.every(c => {
+                                  const cb = document.querySelector(`input[id="contact-${partner.id}-${c.id}"]`) as HTMLInputElement;
+                                  return cb?.checked;
+                                });
+                                
+                                // Update partner checkbox accordingly
+                                const partnerCheckbox = document.querySelector(`input[id="share-partner-${partner.id}"]`) as HTMLInputElement;
+                                if (partnerCheckbox) partnerCheckbox.checked = allContactsSelected;
+                              }}
+                            />
+                            <Label htmlFor={`contact-${partner.id}-${contact.id}`} className="text-xs cursor-pointer flex-grow">
+                              <div>
+                                <div className="font-medium text-gray-800">{contact.name}</div>
+                                <div className="text-gray-500">{contact.email}</div>
+                              </div>
+                            </Label>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              
+              {/* Instructions for contact selection */}
+              <div className="mt-2 p-3 bg-blue-50 rounded-md">
+                <div className="flex items-start">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#2563eb" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 mt-0.5 flex-shrink-0">
+                    <circle cx="12" cy="12" r="10"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                  </svg>
+                  <div className="text-sm text-blue-800">
+                    <div className="font-medium mb-1">Select specific contacts</div>
+                    <div>Check individual partners to select all their contacts, or expand and choose specific contacts for granular sharing control.</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label>Permission Settings</Label>
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <Checkbox id="canView" defaultChecked />
+                  <Label htmlFor="canView" className="text-sm font-normal">
+                    Can view this saved list
+                  </Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <Checkbox id="canEdit" />
+                  <Label htmlFor="canEdit" className="text-sm font-normal">
+                    Can edit this saved list
+                  </Label>
+                </div>
+
+              </div>
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="shareMessage">Add a Message (Optional)</Label>
+              <Textarea 
+                id="shareMessage" 
+                placeholder="Include a note to the recipients"
+                rows={2}
+              />
+            </div>
+            
+            {/* Copy Link Section */}
+            <div className="bg-gray-50 p-3 rounded-md">
+              <div className="flex justify-between items-center mb-2">
+                <div className="text-xs font-medium">Direct Link</div>
+                <div className="text-xs text-gray-500">Only accessible by people with permissions</div>
+              </div>
+              <div className="flex">
+                <Input 
+                  id="shareLink" 
+                  value={`https://qollabi.com/share/list/${activeList?.id}`}
+                  readOnly
+                  className="text-xs"
+                />
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="ml-2"
+                  onClick={() => {
+                    navigator.clipboard.writeText(`https://qollabi.com/share/list/${activeList?.id}`);
+                  }}
+                >
+                  Copy
+                </Button>
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
+            <Button onClick={() => {
+              // Handle sharing logic for both list and bulk partner sharing
+              const canEdit = (document.getElementById('canEdit') as HTMLInputElement)?.checked || false;
+              const canShare = (document.getElementById('canShare') as HTMLInputElement)?.checked || false;
+              const canView = (document.getElementById('canView') as HTMLInputElement)?.checked || true;
+              const message = (document.getElementById('shareMessage') as HTMLTextAreaElement)?.value || '';
+              
+              // Collect all selected contact emails
+              const selectedContactEmails: string[] = [];
+              const selectedPartnerNames: string[] = [];
+              
+              mockPartners.forEach(partner => {
+                const partnerContacts = [
+                  { id: 1, name: `${partner.name.split(' ')[0]} Manager`, email: `manager@${partner.name.toLowerCase().replace(/\s+/g, '')}.com`, role: 'Primary Contact' },
+                  { id: 2, name: `${partner.name.split(' ')[0]} Sales`, email: `sales@${partner.name.toLowerCase().replace(/\s+/g, '')}.com`, role: 'Sales Lead' },
+                  { id: 3, name: `${partner.name.split(' ')[0]} Admin`, email: `admin@${partner.name.toLowerCase().replace(/\s+/g, '')}.com`, role: 'Administrator' }
+                ];
+                
+                let hasSelectedContacts = false;
+                partnerContacts.forEach(contact => {
+                  const contactCheckbox = document.querySelector(`input[id="contact-${partner.id}-${contact.id}"]`) as HTMLInputElement;
+                  if (contactCheckbox?.checked) {
+                    selectedContactEmails.push(contact.email);
+                    hasSelectedContacts = true;
+                  }
+                });
+                
+                if (hasSelectedContacts && !selectedPartnerNames.includes(partner.name)) {
+                  selectedPartnerNames.push(partner.name);
+                }
+              });
+              
+              if (selectedContactEmails.length === 0) {
+                toast({
+                  title: "No contacts selected",
+                  description: "Please select at least one contact to share with.",
+                  variant: "destructive"
+                });
+                return;
+              }
+
+              // Determine what's being shared
+              const isListShare = selectedPartners.length === 0;
+              const isBulkPartnerShare = selectedPartners.length > 0;
+
+              if (isListShare && activeList) {
+                // Sharing the entire list
+                const updatedLists = savedLists.map(list => {
+                  if (list.id === activeList.id) {
+                    return {
+                      ...list,
+                      isShared: true,
+                      sharedWith: [...(list.sharedWith || []), ...selectedContactEmails]
+                    };
+                  }
+                  return list;
+                });
+                
+                setSavedLists(updatedLists);
+                setActiveList(updatedLists.find(v => v.id === activeList.id) || null);
+
+                toast({
+                  title: "List shared successfully",
+                  description: `"${activeList.name}" has been shared with ${selectedContactEmails.length} contact${selectedContactEmails.length > 1 ? 's' : ''} at ${selectedPartnerNames.length} partner${selectedPartnerNames.length > 1 ? 's' : ''}.`
+                });
+              } else if (isBulkPartnerShare) {
+                // Sharing selected partner records
+                const bulkPartnerNames = selectedPartners
+                  .map(id => mockPartners.find(p => p.id === id)?.name)
+                  .filter(Boolean)
+                  .slice(0, 3);
+
+                toast({
+                  title: "Partners shared successfully",
+                  description: `${selectedPartners.length} partner record${selectedPartners.length > 1 ? 's' : ''} (${bulkPartnerNames.join(', ')}${selectedPartners.length > 3 ? '...' : ''}) shared with ${selectedContactEmails.length} contact${selectedContactEmails.length > 1 ? 's' : ''} at ${selectedPartnerNames.length} partner${selectedPartnerNames.length > 1 ? 's' : ''}.`
+                });
+
+                // Clear selection after sharing
+                setSelectedPartners([]);
+              }
+              
+              setShowShareListModal(false);
+            }}>
+              Share List
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {/* Edit Mode Indicator */}
+      {isEditingList && (
+        <div className="bg-indigo-50 border border-indigo-200 rounded-lg mb-4 p-4">
+          <div className="flex items-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#4F46E5" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-3">
+              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+            </svg>
+            <div>
+              <h3 className="text-base font-medium text-indigo-900">Editing "{activeList?.name}" List</h3>
+              <p className="text-sm text-indigo-700 mt-1">
+                Use the checkboxes to select or deselect partners. All selected partners will be included in this list when you save.
+              </p>
+            </div>
           </div>
         </div>
-
-        <div className="flex items-center space-x-4">
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" size="sm">
-                {activeList ? activeList.name : "Select List"}
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
-                  <path d="M6 9l6 6 6-6"/>
-                </svg>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              {mockSavedLists.map(list => (
-                <DropdownMenuItem key={list.id} onClick={() => setActiveList(list)}>
-                  {list.name}
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
-      </div>
-
-      {/* Results Summary */}
-      <div className="flex justify-between items-center">
-        <div className="text-sm text-gray-600">
-          Showing {displayedPartners.length} of {filteredPartners.length} partners
-        </div>
-        <div className="text-sm text-gray-600">
-          {selectedPartners.length} selected
-        </div>
-      </div>
-
-      {/* Partners Table */}
-      <div className="overflow-hidden bg-white sm:rounded-lg">
-        <table className="min-w-full">
+      )}
+      {/* Table section without a border */}
+      <div className="bg-white overflow-x-auto rounded-lg">
+        <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
               <th scope="col" className="relative px-3 py-3.5 w-10">
                 <input
                   type="checkbox"
                   className="absolute h-4 w-4 rounded border-gray-300"
-                  checked={selectedPartners.length === displayedPartners.length && displayedPartners.length > 0}
-                  onChange={toggleSelectAll}
+                  checked={isEditingList 
+                    ? editedListMembers.length === (activeList ? mockPartners.length : displayedPartners.length) && (activeList ? mockPartners.length : displayedPartners.length) > 0
+                    : selectedPartners.length === displayedPartners.length && displayedPartners.length > 0
+                  }
+                  onChange={isEditingList 
+                    ? () => {
+                        if (editedListMembers.length === (activeList ? mockPartners.length : displayedPartners.length)) {
+                          setEditedListMembers([]);
+                        } else {
+                          setEditedListMembers(mockPartners.map(p => p.id));
+                        }
+                      }
+                    : toggleSelectAll
+                  }
                 />
               </th>
               <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[250px]">
-                Partner
+                <div className="flex items-center">
+                  Partner
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                    <path d="M8 9l4-4 4 4"></path>
+                    <path d="M16 15l-4 4-4-4"></path>
+                  </svg>
+                </div>
               </th>
               <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                Industry
+                <div className="flex items-center">
+                  Industry
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                    <path d="M8 9l4-4 4 4"></path>
+                    <path d="M16 15l-4 4-4-4"></path>
+                  </svg>
+                </div>
               </th>
               <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                Type
+                <div className="flex items-center">
+                  Type
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                    <path d="M8 9l4-4 4 4"></path>
+                    <path d="M16 15l-4 4-4-4"></path>
+                  </svg>
+                </div>
               </th>
               <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                Size
+                <div className="flex items-center">
+                  Size
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                    <path d="M8 9l4-4 4 4"></path>
+                    <path d="M16 15l-4 4-4-4"></path>
+                  </svg>
+                </div>
               </th>
               <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                Status
+                <div className="flex items-center">
+                  Status
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                    <path d="M8 9l4-4 4 4"></path>
+                    <path d="M16 15l-4 4-4-4"></path>
+                  </svg>
+                </div>
               </th>
               <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                Customers
+                <div className="flex items-center">
+                  Customers
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                    <path d="M8 9l4-4 4 4"></path>
+                    <path d="M16 15l-4 4-4-4"></path>
+                  </svg>
+                </div>
               </th>
               <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                Opportunities
+                <div className="flex items-center">
+                  Opportunities
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                    <path d="M8 9l4-4 4 4"></path>
+                    <path d="M16 15l-4 4-4-4"></path>
+                  </svg>
+                </div>
               </th>
               <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                Template
+                <div className="flex items-center">
+                  Template
+                </div>
               </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 bg-white">
-            {displayedPartners.map((partner) => (
+            {(isEditingList ? mockPartners : displayedPartners).map((partner) => (
               <tr 
                 key={partner.id} 
-                className={`hover:bg-gray-50 group ${selectedPartners.includes(partner.id) ? 'bg-blue-50' : ''}`}
+                className={`hover:bg-gray-50 group ${
+                  isEditingList 
+                    ? editedListMembers.includes(partner.id) ? 'bg-indigo-50' : '' 
+                    : selectedPartners.includes(partner.id) ? 'bg-blue-50' : ''
+                }`}
               >
                 <td className="relative whitespace-nowrap py-4 pl-3 pr-3 text-sm w-10">
                   <input
                     type="checkbox"
-                    className="h-4 w-4 rounded border-gray-300"
-                    checked={selectedPartners.includes(partner.id)}
-                    onChange={() => toggleSelectPartner(partner.id)}
+                    className={`h-4 w-4 rounded border-gray-300 ${
+                      isEditingList 
+                        ? 'visible' 
+                        : selectedPartners.includes(partner.id) ? 'visible' : 'invisible group-hover:visible'
+                    }`}
+                    checked={
+                      isEditingList
+                        ? editedListMembers.includes(partner.id)
+                        : selectedPartners.includes(partner.id)
+                    }
+                    onChange={() => {
+                      if (isEditingList) {
+                        if (editedListMembers.includes(partner.id)) {
+                          setEditedListMembers(editedListMembers.filter(id => id !== partner.id));
+                        } else {
+                          setEditedListMembers([...editedListMembers, partner.id]);
+                        }
+                      } else {
+                        toggleSelectPartner(partner.id);
+                      }
+                    }}
                   />
                 </td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm w-[250px]">
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm font-medium">
                   <div className="flex items-center">
-                    <Avatar className="h-8 w-8 mr-3">
-                      <AvatarFallback className="text-xs font-medium">
-                        {partner.initials}
-                      </AvatarFallback>
+                    <Avatar className="h-9 w-9 mr-3 bg-indigo-100 text-indigo-600">
+                      <AvatarFallback>{partner.initials}</AvatarFallback>
                     </Avatar>
-                    <Link href={`/partners/${partner.id}`}>
-                      <span className="font-medium text-gray-900 hover:text-blue-600 cursor-pointer">
-                        {partner.name}
-                      </span>
-                    </Link>
+                    <Link href={`/lists/partners/${partner.id}`} className="font-medium text-gray-900 hover:text-indigo-700">{partner.name}</Link>
                   </div>
                 </td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{partner.industry}</td>
@@ -542,120 +2038,309 @@ function PartnersTable() {
                 </td>
               </tr>
             ))}
+            
+            {displayedPartners.length === 0 && !isEditingList && (
+              <tr>
+                <td colSpan={9} className="py-10 text-center">
+                  <div className="flex flex-col items-center">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 mb-3">
+                      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                      <circle cx="9" cy="7" r="4"></circle>
+                      <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                      <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                    </svg>
+                    <h3 className="text-base font-medium text-gray-900 mb-1">No partners found</h3>
+                    {activeList && activeList.id !== 'all-partners' ? (
+                      <>
+                        <p className="text-sm text-gray-500 max-w-md mb-4">
+                          This list doesn't have any partners yet. Add some partners to get started.
+                        </p>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => setIsEditingList(true)}
+                        >
+                          Edit List
+                        </Button>
+                      </>
+                    ) : (
+                      <>
+                        <p className="text-sm text-gray-500 max-w-md mb-4">
+                          There are no partners matching your filter criteria.
+                        </p>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          onClick={() => {
+                            setFilterText('');
+                            setSelectedStatus('');
+                            setSelectedIndustry('');
+                            setSelectedType('');
+                          }}
+                        >
+                          Clear Filters
+                        </Button>
+                      </>
+                    )}
+                  </div>
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
       </div>
-
-      {/* Pagination */}
-      {totalPages > 1 && (
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-2">
-            <span className="text-sm text-gray-600">Show</span>
-            <select
-              value={itemsPerPage}
-              onChange={(e) => {
-                setItemsPerPage(Number(e.target.value));
-                setCurrentPage(1);
-              }}
-              className="px-2 py-1 border border-gray-300 rounded text-sm"
-            >
-              <option value={12}>12</option>
-              <option value={24}>24</option>
-              <option value={48}>48</option>
-            </select>
-            <span className="text-sm text-gray-600">per page</span>
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
-              disabled={currentPage === 1}
-            >
-              Previous
-            </Button>
-            <span className="text-sm text-gray-600">
-              Page {currentPage} of {totalPages}
-            </span>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
-              disabled={currentPage === totalPages}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      )}
-
-      {/* Save View Dialog */}
-      <Dialog open={showSaveViewDialog} onOpenChange={setShowSaveViewDialog}>
-        <DialogContent>
+      {/* Rename List Dialog */}
+      <Dialog open={showRenameListModal} onOpenChange={setShowRenameListModal}>
+        <DialogContent className="sm:max-w-md" style={{ background: '#ffffff', color: '#282A3F', padding: '32px' }}>
           <DialogHeader>
-            <DialogTitle>Save Current View</DialogTitle>
+            <DialogTitle>Rename List</DialogTitle>
+            <DialogDescription>
+              Enter a new name for your list.
+            </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="viewName">View Name</Label>
-              <Input
-                id="viewName"
-                value={newViewName}
-                onChange={(e) => setNewViewName(e.target.value)}
-                placeholder="Enter view name..."
-              />
-            </div>
+          <div className="py-4">
+            <Label htmlFor="renameListName" className="mb-2 block">List Name</Label>
+            <Input
+              id="renameListName"
+              placeholder="Enter a new name for the list"
+              value={newListName}
+              onChange={(e) => setNewListName(e.target.value)}
+              className="w-full"
+              maxLength={50}
+            />
           </div>
           <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
-            </DialogClose>
-            <Button onClick={saveNewView}>Save View</Button>
+            <Button variant="outline" onClick={() => setShowRenameListModal(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={() => {
+                if (listToRename && newListName.trim() !== '' && newListName !== listToRename.name) {
+                  // Update the list name in the savedLists array
+                  const updatedLists = savedLists.map(l => 
+                    l.id === listToRename.id ? {...l, name: newListName.trim()} : l
+                  );
+                  setSavedLists(updatedLists);
+                  
+                  // If this is the active list, update that too
+                  if (activeList && activeList.id === listToRename.id) {
+                    setActiveList({...activeList, name: newListName.trim()});
+                  }
+                  
+                  // Show success message
+                  toast({
+                    title: "List renamed",
+                    description: `The list has been renamed to "${newListName.trim()}"`,
+                  });
+                  
+                  // Close the dialog
+                  setShowRenameListModal(false);
+                }
+              }}
+              disabled={!newListName || newListName.trim() === ''}
+            >
+              Save
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      {/* Share Dialog */}
-      <Dialog open={showShareDialog} onOpenChange={setShowShareDialog}>
-        <DialogContent className="max-w-2xl">
+      {/* Delete List Dialog */}
+      <Dialog open={showDeleteListModal} onOpenChange={setShowDeleteListModal}>
+        <DialogContent className="sm:max-w-md" style={{ background: '#ffffff', color: '#282A3F', padding: '32px' }}>
           <DialogHeader>
-            <DialogTitle>Share Partners</DialogTitle>
+            <DialogTitle>Delete List</DialogTitle>
+            <DialogDescription className="text-sm text-[#282A3F]">
+              Are you sure you want to delete this list? This action cannot be undone.
+              Deleting a list does not delete the partner records themselves.
+            </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <Label>Selected Partners ({selectedPartners.length})</Label>
-              <div className="mt-2 max-h-32 overflow-y-auto border rounded p-2">
-                {selectedPartners.map(id => {
-                  const partner = mockPartners.find(p => p.id === id);
-                  return partner ? (
-                    <div key={id} className="text-sm py-1">{partner.name}</div>
-                  ) : null;
-                })}
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="shareMessage">Message (Optional)</Label>
-              <Textarea 
-                id="shareMessage" 
-                placeholder="Include a note to the recipients"
-                rows={3}
-              />
-            </div>
+          <div className="py-4">
+            {listToDelete && (
+              <p className="font-medium text-lg text-center">{listToDelete.name}</p>
+            )}
           </div>
           <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
-            </DialogClose>
-            <Button onClick={() => {
-              toast({
-                title: "Partners Shared",
-                description: `${selectedPartners.length} partners have been shared successfully.`
-              });
-              setShowShareDialog(false);
-              setSelectedPartners([]);
-            }}>
-              Share
+            <Button variant="outline" onClick={() => setShowDeleteListModal(false)}>
+              Cancel
+            </Button>
+            <Button 
+              className="text-[#FFFFFF] bg-[#D3321D] pl-[14px] pr-[14px] ml-[12px] mr-[12px] hover:bg-destructive/90"
+              onClick={() => {
+                if (listToDelete) {
+                  // Prevent deletion of system lists
+                  if (listToDelete.isDefault) {
+                    toast({
+                      title: "Cannot Delete System List",
+                      description: "System lists like 'All Partners' cannot be deleted.",
+                      variant: "destructive"
+                    });
+                    setShowDeleteListModal(false);
+                    setShowListsDropdown(false);
+                    return;
+                  }
+                
+                  // Remove the list from savedLists
+                  const updatedLists = savedLists.filter(l => l.id !== listToDelete.id);
+                  setSavedLists(updatedLists);
+                  
+                  // If this was the active list, go back to "All Partners"
+                  if (activeList && activeList.id === listToDelete.id) {
+                    // Find the "All Partners" list
+                    const allPartnersList = savedLists.find(list => list.id === 'all-partners');
+                    if (allPartnersList) {
+                      setActiveList(allPartnersList);
+                      setOriginalListFilters(allPartnersList.filters);
+                    } else {
+                      setActiveList(null);
+                      setOriginalListFilters(null);
+                    }
+                    
+                    // Reset filters
+                    setFilterText('');
+                    setSelectedStatus('');
+                    setSelectedIndustry('');
+                    setSelectedType('');
+                    setHasUnsavedChanges(false);
+                  }
+                  
+                  // Show success message
+                  toast({
+                    title: "List deleted",
+                    description: `The list "${listToDelete.name}" has been deleted. Your partner records remain intact.`,
+                  });
+                  
+                  // Close the dialog and dropdown
+                  setShowDeleteListModal(false);
+                  setShowListsDropdown(false);
+                }
+              }}
+            >Delete list</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {/* Unsaved Changes Confirmation Dialog */}
+      <Dialog open={showUnsavedChangesModal} onOpenChange={setShowUnsavedChangesModal}>
+        <DialogContent className="sm:max-w-md" style={{ background: '#ffffff', color: '#282A3F', padding: '32px' }}>
+          <DialogHeader>
+            <DialogTitle>Unsaved Changes</DialogTitle>
+            <DialogDescription className="text-sm text-[#282A3F]">
+              You're currently editing this list and have unsaved changes. What would you like to do?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex justify-end space-x-2 mt-6">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                // Cancel navigation and keep editing
+                setShowUnsavedChangesModal(false);
+                setPendingListAction(null);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="secondary"
+              onClick={() => {
+                // Handle exit from list editing mode if needed
+                if (isEditingList) {
+                  // Exit editing mode without saving changes
+                  setIsEditingList(false);
+                  // Reset the edited list members back to original
+                  if (activeList && activeList.members) {
+                    setEditedListMembers([...activeList.members]);
+                  }
+                }
+                
+                // Then proceed with the pending action
+                if (pendingListAction?.type === 'select' && pendingListAction.list) {
+                  // Switch to the selected list
+                  const list = pendingListAction.list;
+                  
+                  // Set filter text and current selections based on list filters
+                  if (list.filters) {
+                    setFilterText(list.filters.searchText || '');
+                    setSelectedStatus(list.filters.status || '');
+                    setSelectedIndustry(list.filters.industry || '');
+                    setSelectedType(list.filters.type || '');
+                  }
+                  
+                  // Set the active list and store its original filters
+                  setActiveList(list);
+                  setOriginalListFilters(list.filters ? { ...list.filters } : {});
+                  
+                  // Clear active view when switching lists
+                  setActiveView(null);
+                } else if (pendingListAction?.type === 'clear') {
+                  // Clear the current list selection
+                  setActiveList(null);
+                  setOriginalListFilters(null);
+                }
+                
+                // Close the dialog and clear pending action
+                setShowUnsavedChangesModal(false);
+                setPendingListAction(null);
+                setHasUnsavedChanges(false);
+              }}
+            >
+              Discard Changes
+            </Button>
+            <Button 
+              onClick={() => {
+                // Save list member changes 
+                if (activeList && !activeList.isDefault) {
+                  // Save the member changes
+                  const updatedList = {
+                    ...activeList,
+                    members: editedListMembers
+                  };
+                  
+                  // Update in saved lists
+                  setSavedLists(savedLists.map(list => 
+                    list.id === activeList.id ? updatedList : list
+                  ));
+                  
+                  // Exit editing mode
+                  setIsEditingList(false);
+                  
+                  // Then proceed with the pending action
+                  if (pendingListAction?.type === 'select' && pendingListAction.list) {
+                    // Switch to the selected list
+                    const list = pendingListAction.list;
+                    
+                    // Set filter text and current selections based on list filters
+                    if (list.filters) {
+                      setFilterText(list.filters.searchText || '');
+                      setSelectedStatus(list.filters.status || '');
+                      setSelectedIndustry(list.filters.industry || '');
+                      setSelectedType(list.filters.type || '');
+                    }
+                    
+                    // Set the active list and store its original filters
+                    setActiveList(list);
+                    setOriginalListFilters(list.filters ? { ...list.filters } : {});
+                    
+                    // Clear active view when switching lists
+                    setActiveView(null);
+                  } else if (pendingListAction?.type === 'clear') {
+                    // Clear the current list selection
+                    setActiveList(null);
+                    setOriginalListFilters(null);
+                  }
+                }
+                
+                // Show success notification
+                toast({
+                  title: "Changes Saved",
+                  description: "Your changes have been saved successfully"
+                });
+                
+                // Close the dialog and clear pending action
+                setShowUnsavedChangesModal(false);
+                setPendingListAction(null);
+                setHasUnsavedChanges(false);
+              }}
+            >
+              Save Changes
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -665,6 +2350,7 @@ function PartnersTable() {
 }
 
 export default function PartnersPage() {
+  // Remove the useEnvironment reference as it's not needed for this implementation
   const [isEditingList, setIsEditingList] = useState(false);
   
   return (
