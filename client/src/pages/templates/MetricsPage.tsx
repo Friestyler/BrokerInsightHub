@@ -509,6 +509,32 @@ export default function MetricsPage() {
   // All unique tags
   const allTags = Array.from(new Set(filteredMetrics.flatMap(m => m.tags))).sort();
 
+  // Filtered OKRs based on search, measure unit, and target range
+  const filteredOKRs = mockOKRs.filter(okr => {
+    const matchesSearch = searchTerm === "" || 
+      okr.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      okr.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesTags = selectedTags.length === 0 || 
+      selectedTags.includes(okr.tag);
+    
+    const matchesMeasureUnit = selectedMeasureUnit === "" || 
+      okr.unit === selectedMeasureUnit.toLowerCase();
+    
+    const matchesTargetRange = selectedTargetRange === "" || (() => {
+      if (selectedTargetRange === "0-50") {
+        return okr.targetValue >= 0 && okr.targetValue <= 50;
+      } else if (selectedTargetRange === "51-100") {
+        return okr.targetValue >= 51 && okr.targetValue <= 100;
+      } else if (selectedTargetRange === "100+") {
+        return okr.targetValue > 100;
+      }
+      return true;
+    })();
+    
+    return matchesSearch && matchesTags && matchesMeasureUnit && matchesTargetRange;
+  });
+
   return (
     <div className="container mx-auto px-4 py-6">
       <div className="flex justify-between items-center mb-6">
@@ -637,9 +663,41 @@ export default function MetricsPage() {
                     </svg>
                   )}
                 </button>
+                
+                <button 
+                  className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedMeasureUnit ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+                  onClick={() => setSelectedMeasureUnit(selectedMeasureUnit ? '' : 'Percent')}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                  </svg>
+                  <span>{selectedMeasureUnit ? `Unit: ${selectedMeasureUnit}` : 'Measure Unit'}</span>
+                  {selectedMeasureUnit && (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  )}
+                </button>
+                
+                <button 
+                  className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedTargetRange ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+                  onClick={() => setSelectedTargetRange(selectedTargetRange ? '' : '0-50')}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                  </svg>
+                  <span>{selectedTargetRange ? `Target: ${selectedTargetRange}` : 'Target Range'}</span>
+                  {selectedTargetRange && (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  )}
+                </button>
               </div>
               
-              {(selectedTags.length > 0 || searchTerm) && (
+              {(selectedTags.length > 0 || searchTerm || selectedMeasureUnit || selectedTargetRange) && (
                 <div className="flex items-center gap-2">
                   <button 
                     className="flex items-center rounded-md px-4 py-2 text-gray-600 hover:bg-gray-100"
@@ -902,8 +960,8 @@ export default function MetricsPage() {
         {/* Coming Soon (OKRs) tab content */}
         <TabsContent value="okrs" className="space-y-4">
           {/* Group OKRs by tags and display in sections */}
-          {Array.from(new Set(mockOKRs.map(okr => okr.tag))).map(tag => {
-            const okrsForTag = mockOKRs.filter(okr => okr.tag === tag);
+          {Array.from(new Set(filteredOKRs.map(okr => okr.tag))).map(tag => {
+            const okrsForTag = filteredOKRs.filter(okr => okr.tag === tag);
             
             return (
               <div key={tag} className="bg-white" style={{ marginBottom: '32px' }}>
