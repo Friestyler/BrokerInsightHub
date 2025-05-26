@@ -353,6 +353,8 @@ const mockOKRs = [
     title: "Complete Security Audit",
     description: "Conduct comprehensive security review and implement fixes",
     type: "Key Result",
+    hierarchy: "subactivity",
+    parent: 9,
     progress: 20,
     targetValue: 1,
     currentValue: 0,
@@ -363,6 +365,79 @@ const mockOKRs = [
     startDate: new Date('2024-10-01'),
     endDate: new Date('2024-11-15'),
     tag: ""
+  },
+  // New hierarchical items
+  {
+    id: 9,
+    title: "Implement Sales Training Program",
+    description: "Develop and execute comprehensive sales training for all team members",
+    type: "Activity",
+    hierarchy: "activity",
+    parent: 1,
+    progress: 40,
+    targetValue: 1,
+    currentValue: 0,
+    unit: "checkbox",
+    status: "In Progress",
+    owner: "Sarah Chen",
+    dueDate: new Date('2024-10-31'),
+    startDate: new Date('2024-08-01'),
+    endDate: new Date('2024-10-31'),
+    tag: "Revenue Growth"
+  },
+  {
+    id: 10,
+    title: "Create Training Materials",
+    description: "Develop comprehensive training content and resources",
+    type: "Subactivity",
+    hierarchy: "subactivity",
+    parent: 9,
+    progress: 80,
+    targetValue: 1,
+    currentValue: 0,
+    unit: "checkbox",
+    status: "Nearly Complete",
+    owner: "Sarah Chen",
+    dueDate: new Date('2024-09-15'),
+    startDate: new Date('2024-08-01'),
+    endDate: new Date('2024-09-15'),
+    tag: "Revenue Growth"
+  },
+  {
+    id: 11,
+    title: "Conduct Training Sessions",
+    description: "Execute training sessions for all sales team members",
+    type: "Subactivity",
+    hierarchy: "subactivity",
+    parent: 9,
+    progress: 10,
+    targetValue: 5,
+    currentValue: 1,
+    unit: "number",
+    status: "In Progress",
+    owner: "Sarah Chen",
+    dueDate: new Date('2024-10-31'),
+    startDate: new Date('2024-09-16'),
+    endDate: new Date('2024-10-31'),
+    tag: "Revenue Growth"
+  },
+  {
+    id: 12,
+    title: "Expand Marketing Channels",
+    description: "Diversify marketing efforts across multiple channels",
+    type: "Activity",
+    hierarchy: "activity",
+    parent: 1,
+    progress: 25,
+    targetValue: 3,
+    currentValue: 1,
+    unit: "number",
+    status: "In Progress",
+    owner: "Mike Rodriguez",
+    dueDate: new Date('2024-11-30'),
+    startDate: new Date('2024-07-01'),
+    endDate: new Date('2024-11-30'),
+    tag: "Revenue Growth"
   }
 ];
 
@@ -500,10 +575,93 @@ export default function MetricsPage() {
     setShowNoTarget(false);
   }
 
+  // Toggle expansion of an item
+  const toggleExpansion = (id: number) => {
+    setExpandedItems(prev => {
+      if (prev.includes(id)) {
+        return prev.filter(itemId => itemId !== id);
+      } else {
+        return [...prev, id];
+      }
+    });
+  };
+
+  // Get count of nested items for an OKR
+  const getNestedCount = (okr: any, allOkrs: any[]) => {
+    if (okr.hierarchy === 'objective') {
+      const activities = allOkrs.filter(item => item.parent === okr.id && item.hierarchy === 'activity');
+      const subactivities = allOkrs.filter(item => activities.some(act => act.id === item.parent) && item.hierarchy === 'subactivity');
+      return activities.length + subactivities.length;
+    } else if (okr.hierarchy === 'activity') {
+      const subactivities = allOkrs.filter(item => item.parent === okr.id && item.hierarchy === 'subactivity');
+      return subactivities.length;
+    }
+    return 0;
+  };
+
+  // Build hierarchical structure with proper nesting
+  const buildHierarchicalOKRs = (okrs: any[]) => {
+    const result: any[] = [];
+    
+    // Start with objectives (top level)
+    const objectives = okrs.filter(okr => okr.hierarchy === 'objective');
+    
+    objectives.forEach(objective => {
+      const isExpanded = expandedItems.includes(objective.id);
+      result.push({
+        ...objective,
+        level: 0,
+        isExpanded,
+        nestedCount: getNestedCount(objective, okrs)
+      });
+      
+      // Add activities under this objective if expanded
+      if (isExpanded) {
+        const activities = okrs.filter(okr => okr.parent === objective.id && okr.hierarchy === 'activity');
+        
+        activities.forEach(activity => {
+          const isActivityExpanded = expandedItems.includes(activity.id);
+          result.push({
+            ...activity,
+            level: 1,
+            isExpanded: isActivityExpanded,
+            nestedCount: getNestedCount(activity, okrs)
+          });
+          
+          // Add subactivities under this activity if expanded
+          if (isActivityExpanded) {
+            const subactivities = okrs.filter(okr => okr.parent === activity.id && okr.hierarchy === 'subactivity');
+            
+            subactivities.forEach(subactivity => {
+              result.push({
+                ...subactivity,
+                level: 2,
+                nestedCount: 0
+              });
+            });
+          }
+        });
+      }
+    });
+    
+    // Add standalone items that don't have parents
+    const standalone = okrs.filter(okr => !okr.parent && okr.hierarchy !== 'objective');
+    standalone.forEach(item => {
+      result.push({
+        ...item,
+        level: 0,
+        isStandalone: true,
+        nestedCount: 0
+      });
+    });
+    
+    return result;
+  };
+
   // Group OKRs by selected field
   const groupOKRs = (okrs: typeof mockOKRs) => {
     if (groupBy === "none") {
-      return { "All OKRs": okrs };
+      return { "All OKRs": buildHierarchicalOKRs(okrs) };
     }
 
     const grouped = okrs.reduce((acc, okr) => {
@@ -530,8 +688,8 @@ export default function MetricsPage() {
       return acc;
     }, {} as Record<string, typeof mockOKRs>);
 
-    // Sort groups to put "Untagged", "No Type", "No Status" at the bottom
-    const sortedGroups: Record<string, typeof mockOKRs> = {};
+    // Sort groups and build hierarchical structure for each
+    const sortedGroups: Record<string, any[]> = {};
     const regularGroups: string[] = [];
     const emptyGroups: string[] = [];
     
@@ -545,12 +703,12 @@ export default function MetricsPage() {
     
     // Add regular groups first (sorted alphabetically)
     regularGroups.sort().forEach(key => {
-      sortedGroups[key] = grouped[key];
+      sortedGroups[key] = buildHierarchicalOKRs(grouped[key]);
     });
     
     // Add empty groups at the bottom
     emptyGroups.forEach(key => {
-      sortedGroups[key] = grouped[key];
+      sortedGroups[key] = buildHierarchicalOKRs(grouped[key]);
     });
 
     return sortedGroups;
@@ -1430,8 +1588,39 @@ export default function MetricsPage() {
                           />
                         </TableCell>
                         <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
-                          <div className="flex items-center">
+                          <div className="flex items-center" style={{ paddingLeft: `${(okr.level || 0) * 24}px` }}>
+                            {/* Expand/Collapse button for objectives and activities with children */}
+                            {(okr.hierarchy === 'objective' || okr.hierarchy === 'activity') && okr.nestedCount > 0 && (
+                              <button
+                                onClick={() => toggleExpansion(okr.id)}
+                                className="mr-2 p-1 hover:bg-gray-100 rounded"
+                              >
+                                {okr.isExpanded ? (
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="m6 9 6 6 6-6"/>
+                                  </svg>
+                                ) : (
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="m9 18 6-6-6-6"/>
+                                  </svg>
+                                )}
+                              </button>
+                            )}
+                            
                             <span className="font-medium">{okr.title}</span>
+                            
+                            {/* Nested count icon with count */}
+                            {okr.nestedCount > 0 && (
+                              <div className="flex items-center ml-2">
+                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                                  <circle cx="8" cy="8" r="6"/>
+                                  <path d="M18.09 10.37A6 6 0 1 1 10.37 18.09"/>
+                                  <circle cx="16" cy="16" r="6"/>
+                                </svg>
+                                <span className="text-xs text-gray-500 ml-1">{okr.nestedCount}</span>
+                              </div>
+                            )}
+                            
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger asChild>
