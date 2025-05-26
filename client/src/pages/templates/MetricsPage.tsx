@@ -695,10 +695,11 @@ export default function MetricsPage() {
                 <div className="flex items-center gap-2">
                   <input
                     type="text"
-                    placeholder={selectedMeasureUnit === 'currency' ? '$0 - $1000' : selectedMeasureUnit === 'percent' ? '0% - 100%' : selectedMeasureUnit === 'checkbox' ? 'Complete/Incomplete' : 'Min - Max'}
+                    placeholder={selectedMeasureUnit === 'currency' ? '$0 - $1000' : selectedMeasureUnit === 'percent' ? '0% - 100%' : selectedMeasureUnit === 'checkbox' ? 'Complete/Incomplete' : 'Select measure unit first'}
                     value={selectedTargetRange}
                     onChange={(e) => setSelectedTargetRange(e.target.value)}
-                    className="w-[140px] px-3 py-2 border border-gray-300 rounded-md text-sm bg-white"
+                    disabled={!selectedMeasureUnit}
+                    className={`w-[140px] px-3 py-2 border border-gray-300 rounded-md text-sm ${!selectedMeasureUnit ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white'}`}
                   />
                 </div>
               </div>
