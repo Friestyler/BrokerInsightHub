@@ -175,6 +175,7 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
                 </svg>
                 Opportunities2
               </button>
+              {/* Hidden for now - will be used later
               <button
                 onClick={() => navigateTo('/opportunities')}
                 className={`flex py-2 text-sm ${collapsed ? "px-4" : "pl-12"} w-full text-left ${location.startsWith("/opportunities") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
@@ -184,6 +185,7 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
                 </svg>
                 Opportunities
               </button>
+              */}
               <button
                 onClick={() => navigateTo('/projects')}
                 className={`flex py-2 text-sm ${collapsed ? "px-4" : "pl-12"} w-full text-left ${location.startsWith("/projects") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
