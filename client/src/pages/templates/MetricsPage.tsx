@@ -841,8 +841,8 @@ export default function MetricsPage() {
             const okrsForTag = mockOKRs.filter(okr => okr.tag === tag);
             
             return (
-              <div key={tag} className="bg-white" style={{ marginBottom: '24px' }}>
-                <div className="px-6 pb-1 pt-3 bg-[#ffffff] text-[#282A3F]">
+              <div key={tag} className="bg-white" style={{ marginBottom: '32px' }}>
+                <div className="px-6 pb-0 pt-3 bg-[#ffffff] text-[#282A3F]">
                   <div className="flex items-center">
                     <TagBadge tag={tag} />
                   </div>
