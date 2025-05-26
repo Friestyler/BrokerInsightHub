@@ -680,7 +680,14 @@ export default function MetricsPage() {
                   )}
                 </button>
                 
-                <Select value={selectedMeasureUnit} onValueChange={setSelectedMeasureUnit}>
+                <Select value={selectedMeasureUnit} onValueChange={(value) => {
+                  if (value === "clear") {
+                    setSelectedMeasureUnit("");
+                    setSelectedTargetRange("");
+                  } else {
+                    setSelectedMeasureUnit(value);
+                  }
+                }}>
                   <SelectTrigger className="w-[140px] bg-white">
                     <SelectValue placeholder="Measure Unit" />
                   </SelectTrigger>
@@ -689,6 +696,20 @@ export default function MetricsPage() {
                     <SelectItem value="number">Number</SelectItem>
                     <SelectItem value="percent">Percent</SelectItem>
                     <SelectItem value="checkbox">Checkbox</SelectItem>
+                    {selectedMeasureUnit && (
+                      <>
+                        <div className="border-t border-gray-200 my-1"></div>
+                        <SelectItem value="clear" className="text-gray-600">
+                          <div className="flex items-center">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                              <path d="M18 6L6 18"></path>
+                              <path d="M6 6l12 12"></path>
+                            </svg>
+                            Clear filter
+                          </div>
+                        </SelectItem>
+                      </>
+                    )}
                   </SelectContent>
                 </Select>
                 
