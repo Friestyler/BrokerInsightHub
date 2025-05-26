@@ -1178,16 +1178,16 @@ function OpportunitiesTable() {
                     <div className="flex-shrink-0 h-10 w-10">
                       <Avatar className="h-10 w-10">
                         <AvatarFallback className="bg-indigo-100 text-indigo-700 text-sm font-medium">
-                          {(opportunity.title || '').substring(0, 2).toUpperCase() || 'OP'}
+                          {(opportunity.opportunity?.name || opportunity.title || '').substring(0, 2).toUpperCase() || 'OP'}
                         </AvatarFallback>
                       </Avatar>
                     </div>
                     <div className="ml-3">
-                      <div className="text-sm font-medium text-gray-900">{opportunity.title}</div>
+                      <div className="text-sm font-medium text-gray-900">{opportunity.opportunity?.name || opportunity.title}</div>
                     </div>
                   </div>
                 </td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">Client #{opportunity.clientId}</td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{opportunity.name || `Client #${opportunity.clientId}`}</td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">Product #{opportunity.productId}</td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{opportunity.type}</td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm capitalize">{opportunity.stage}</td>
