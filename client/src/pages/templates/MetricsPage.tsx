@@ -409,6 +409,7 @@ export default function MetricsPage() {
     to: undefined,
   });
   const [selectedOKRs, setSelectedOKRs] = useState<number[]>([]);
+  const [groupBy, setGroupBy] = useState("tag"); // Default grouping by tag
 
   // Filtered metrics based on search and selected tags
   const filteredMetrics = mockMetrics.filter(metric => {
@@ -465,6 +466,39 @@ export default function MetricsPage() {
     setSelectedTargetRange("");
     setDateRange({ from: undefined, to: undefined });
     setShowNoTarget(false);
+  }
+
+  // Group OKRs by selected field
+  const groupOKRs = (okrs: typeof mockOKRs) => {
+    if (groupBy === "none") {
+      return { "All OKRs": okrs };
+    }
+
+    const grouped = okrs.reduce((acc, okr) => {
+      let groupKey = "";
+      
+      switch (groupBy) {
+        case "tag":
+          groupKey = okr.tag;
+          break;
+        case "type":
+          groupKey = okr.type;
+          break;
+        case "status":
+          groupKey = okr.status;
+          break;
+        default:
+          groupKey = "All OKRs";
+      }
+      
+      if (!acc[groupKey]) {
+        acc[groupKey] = [];
+      }
+      acc[groupKey].push(okr);
+      return acc;
+    }, {} as Record<string, typeof mockOKRs>);
+
+    return grouped;
   };
 
   // Clear selection
@@ -883,8 +917,26 @@ export default function MetricsPage() {
                   </label>
                 </div>
               </div>
-              
-              {(selectedTags.length > 0 || searchTerm || selectedMeasureUnit || selectedTargetRange) && (
+            </div>
+            
+            {/* Group by dropdown */}
+            <div className="flex items-center gap-2">
+              <span className="text-sm text-gray-600 whitespace-nowrap">Group by:</span>
+              <Select value={groupBy} onValueChange={setGroupBy}>
+                <SelectTrigger className="w-[120px] bg-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="tag">Tag</SelectItem>
+                  <SelectItem value="type">Type</SelectItem>
+                  <SelectItem value="status">Status</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div className="flex items-center gap-2">
+              {(selectedTags.length > 0 || searchTerm || selectedMeasureUnit || selectedTargetRange || dateRange.from || dateRange.to) && (
                 <div className="flex items-center gap-2">
                   <button 
                     className="flex items-center rounded-md px-4 py-2 text-gray-600 hover:bg-gray-100"
