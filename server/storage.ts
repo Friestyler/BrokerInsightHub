@@ -617,6 +617,39 @@ export class DatabaseStorage implements IStorage {
     return result[0];
   }
   
+  // Opportunity operations
+  async getAllOpportunities(): Promise<Opportunity[]> {
+    return this.getDb().select().from(opportunities).orderBy(opportunities.createdAt);
+  }
+  
+  async getOpportunity(id: number): Promise<Opportunity | undefined> {
+    const result = await this.getDb().select().from(opportunities).where(eq(opportunities.id, id));
+    return result[0];
+  }
+  
+  async createOpportunity(opportunity: InsertOpportunity): Promise<Opportunity> {
+    const result = await this.getDb().insert(opportunities).values(opportunity).returning();
+    return result[0];
+  }
+  
+  async updateOpportunity(id: number, updates: Partial<InsertOpportunity>): Promise<Opportunity | undefined> {
+    const result = await this.getDb()
+      .update(opportunities)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(opportunities.id, id))
+      .returning();
+    return result[0];
+  }
+  
+  async deleteOpportunity(id: number): Promise<boolean> {
+    const result = await this.getDb().delete(opportunities).where(eq(opportunities.id, id));
+    return result.rowCount > 0;
+  }
+  
+  async getOpportunitiesForClient(clientId: number): Promise<Opportunity[]> {
+    return this.getDb().select().from(opportunities).where(eq(opportunities.clientId, clientId));
+  }
+
   async createNewsArticle(article: InsertNewsArticle): Promise<NewsArticle> {
     const result = await this.getDb().insert(newsArticles).values(article).returning();
     return result[0];
@@ -778,4 +811,4 @@ export class DatabaseStorage implements IStorage {
 }
 
 // Use the database storage implementation
-export const storage = new MemStorage();
+export const storage = new DatabaseStorage();
