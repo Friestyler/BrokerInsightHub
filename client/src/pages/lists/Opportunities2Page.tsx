@@ -1167,10 +1167,10 @@ function OpportunitiesTable() {
                 <td className="relative whitespace-nowrap py-4 pl-3 pr-3 text-sm w-10">
                   <input
                     type="checkbox"
-                    className={`h-4 w-4 rounded border-gray-300 ${
+                    className={`h-4 w-4 rounded border-gray-300 opacity-0 group-hover:opacity-100 transition-opacity ${
                       isEditingList 
-                        ? editedListMembers.includes(opportunity.id) ? 'text-indigo-600 focus:ring-indigo-500' : ''
-                        : selectedOpportunities.includes(opportunity.id) ? 'text-indigo-600 focus:ring-indigo-500' : ''
+                        ? editedListMembers.includes(opportunity.id) ? 'text-indigo-600 focus:ring-indigo-500 opacity-100' : ''
+                        : selectedOpportunities.includes(opportunity.id) ? 'text-indigo-600 focus:ring-indigo-500 opacity-100' : ''
                     }`}
                     checked={isEditingList 
                       ? editedListMembers.includes(opportunity.id)
