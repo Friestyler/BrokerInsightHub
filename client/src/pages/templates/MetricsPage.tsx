@@ -1831,7 +1831,6 @@ export default function MetricsPage() {
                               : okr.targetValue.toString()
                             }
                           </div>
-                          <div className="text-xs text-gray-500 capitalize">{okr.unit}</div>
                         </TableCell>
 
                         <TableCell className="text-right p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
