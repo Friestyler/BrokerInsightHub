@@ -350,7 +350,8 @@ function OpportunitiesTable() {
       }
       
       const matchesText = !filterText || 
-        opportunity.title.toLowerCase().includes(filterText.toLowerCase());
+        (opportunity.opportunity?.name || opportunity.title || '').toLowerCase().includes(filterText.toLowerCase()) ||
+        opportunity.name?.toLowerCase().includes(filterText.toLowerCase());
         
       const matchesStatus = !selectedStatus || opportunity.status === selectedStatus;
       const matchesType = !selectedType || opportunity.type === selectedType;

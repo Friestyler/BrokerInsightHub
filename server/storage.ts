@@ -676,28 +676,9 @@ export class DatabaseStorage implements IStorage {
   }
   
   // Opportunity operations
-  async getAllOpportunities(): Promise<ClientWithDetails[]> {
+  async getAllOpportunities(): Promise<Opportunity[]> {
     const allOpportunities = await this.getDb().select().from(opportunities);
-    const clientOpportunities: ClientWithDetails[] = [];
-    
-    for (const opportunity of allOpportunities) {
-      const client = await this.getClient(opportunity.clientId);
-      const product = await this.getInsuranceProduct(opportunity.productId);
-      
-      if (client && product) {
-        const currentProducts = await this.getClientProducts(client.id);
-        
-        clientOpportunities.push({
-          ...client,
-          currentProducts,
-          opportunity: product,
-          probability: opportunity.probability,
-          estimatedValue: opportunity.estimatedValue
-        });
-      }
-    }
-    
-    return clientOpportunities;
+    return allOpportunities;
   }
   
   async getOpportunitiesForClient(clientId: number): Promise<Opportunity[]> {
