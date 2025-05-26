@@ -41,6 +41,10 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { CalendarIcon } from "lucide-react";
+import { format } from "date-fns";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
 // Mock data for metrics
@@ -400,6 +404,10 @@ export default function MetricsPage() {
   const [selectedTargetRange, setSelectedTargetRange] = useState("");
   const [selectedTimeframe, setSelectedTimeframe] = useState("");
   const [showNoTarget, setShowNoTarget] = useState(false);
+  const [dateRange, setDateRange] = useState<{from: Date | undefined, to: Date | undefined}>({
+    from: undefined,
+    to: undefined,
+  });
   const [selectedOKRs, setSelectedOKRs] = useState<number[]>([]);
 
   // Filtered metrics based on search and selected tags
@@ -455,6 +463,8 @@ export default function MetricsPage() {
     setSelectedTags([]);
     setSelectedMeasureUnit("");
     setSelectedTargetRange("");
+    setDateRange({ from: undefined, to: undefined });
+    setShowNoTarget(false);
   };
 
   // Clear selection
@@ -568,17 +578,41 @@ export default function MetricsPage() {
       return true;
     })();
     
-    // Add timeframe filtering 
-    const matchesTimeframe = selectedTimeframe === "" || (() => {
-      // Map timeframes to OKR characteristics
-      if (selectedTimeframe === "quarterly") return true; // Most OKRs are quarterly by default
-      if (selectedTimeframe === "monthly") return okr.tag.includes("Monthly") || okr.id % 4 === 0;
-      if (selectedTimeframe === "yearly") return okr.tag.includes("Annual") || okr.id % 3 === 0;
-      if (selectedTimeframe === "ongoing") return okr.tag.includes("Ongoing") || okr.id % 5 === 0;
+    // Add date range filtering
+    const matchesDateRange = (() => {
+      if (!dateRange.from && !dateRange.to) return true;
+      
+      const okrStart = okr.startDate;
+      const okrEnd = okr.endDate || okr.dueDate;
+      
+      // If we have a date range filter
+      if (dateRange.from && dateRange.to) {
+        // OKR must overlap with the selected date range
+        if (okrStart && okrEnd) {
+          return okrStart <= dateRange.to && okrEnd >= dateRange.from;
+        } else if (okrStart) {
+          return okrStart <= dateRange.to && okrStart >= dateRange.from;
+        } else if (okrEnd) {
+          return okrEnd >= dateRange.from && okrEnd <= dateRange.to;
+        }
+      }
+      
+      // If we only have a start date filter
+      if (dateRange.from && !dateRange.to) {
+        if (okrStart) return okrStart >= dateRange.from;
+        if (okrEnd) return okrEnd >= dateRange.from;
+      }
+      
+      // If we only have an end date filter
+      if (!dateRange.from && dateRange.to) {
+        if (okrEnd) return okrEnd <= dateRange.to;
+        if (okrStart) return okrStart <= dateRange.to;
+      }
+      
       return true;
     })();
     
-    return matchesSearch && matchesTags && matchesMeasureUnit && matchesTargetRange && matchesTimeframe;
+    return matchesSearch && matchesTags && matchesMeasureUnit && matchesTargetRange && matchesDateRange;
   });
 
   return (
