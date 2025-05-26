@@ -1188,7 +1188,7 @@ function OpportunitiesTable() {
                     }
                   />
                 </td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm w-[250px]">
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm font-medium w-[250px]">
                   <div className="flex items-center">
                     <div className="flex-shrink-0 h-10 w-10">
                       <Avatar className="h-10 w-10">
