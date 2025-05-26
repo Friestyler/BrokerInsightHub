@@ -337,6 +337,10 @@ function OpportunitiesTable() {
   const [viewNameInput, setViewNameInput] = useState('');
   const [isCreatingNewList, setIsCreatingNewList] = useState(false); // Default to adding to existing list
   const [selectedExistingList, setSelectedExistingList] = useState<string | null>(null);
+  
+  // Bulk status update state
+  const [showBulkStatusDropdown, setShowBulkStatusDropdown] = useState(false);
+  const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
     
   // Filter opportunities based on search text, filter selections, and list membership
   const displayedOpportunities = opportunities
@@ -400,6 +404,80 @@ function OpportunitiesTable() {
   // Initialize toast
   const { toast } = useToast();
 
+  // Function to toggle opportunity selection
+  const toggleSelectOpportunity = (id: number) => {
+    if (selectedOpportunities.includes(id)) {
+      setSelectedOpportunities(selectedOpportunities.filter(oppId => oppId !== id));
+    } else {
+      setSelectedOpportunities([...selectedOpportunities, id]);
+    }
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedOpportunities.length === displayedOpportunities.length) {
+      setSelectedOpportunities([]);
+    } else {
+      setSelectedOpportunities(displayedOpportunities.map(opportunity => opportunity.id));
+    }
+  };
+
+  // Function to handle bulk status update
+  const handleBulkStatusUpdate = async (newStatus: string) => {
+    if (!newStatus || selectedOpportunities.length === 0) return;
+    
+    setIsUpdatingStatus(true);
+    
+    try {
+      // Call API to update status for selected opportunities  
+      const response = await fetch('/api/opportunities/bulk-update-status', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          opportunityIds: selectedOpportunities,
+          status: newStatus
+        })
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to update status');
+      }
+      
+      // Refresh the opportunities data
+      refetch();
+      
+      // Clear selections
+      setSelectedOpportunities([]);
+      setShowBulkStatusDropdown(false);
+      
+      // Show success message
+      toast({
+        title: "Status Updated",
+        description: `${selectedOpportunities.length} ${selectedOpportunities.length === 1 ? 'opportunity' : 'opportunities'} updated to "${newStatus}"`
+      });
+      
+    } catch (error) {
+      toast({
+        title: "Update Failed",
+        description: "Failed to update opportunity status. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsUpdatingStatus(false);
+    }
+  };
+
+  // Available status options
+  const statusOptions = [
+    'Active',
+    'In Progress', 
+    'On Hold',
+    'Closed Won',
+    'Closed Lost',
+    'Cancelled'
+  ];
+
   // Function to save changes to the current list
   const saveChanges = () => {
     if (activeList && !activeList.isDefault) {
@@ -438,23 +516,7 @@ function OpportunitiesTable() {
   // Calculate stats based on filtered opportunities
   const stats = calculateOpportunityStats(displayedOpportunities);
   
-  // Function to toggle opportunity selection
-  const toggleSelectOpportunity = (id: number) => {
-    if (selectedOpportunities.includes(id)) {
-      setSelectedOpportunities(selectedOpportunities.filter(oppId => oppId !== id));
-    } else {
-      setSelectedOpportunities([...selectedOpportunities, id]);
-    }
-  };
-  
-  // Function to toggle select/deselect all opportunities
-  const toggleSelectAll = () => {
-    if (selectedOpportunities.length === displayedOpportunities.length) {
-      setSelectedOpportunities([]);
-    } else {
-      setSelectedOpportunities(displayedOpportunities.map(opportunity => opportunity.id));
-    }
-  };
+
   
   return (
     <div className="space-y-4">
@@ -967,6 +1029,52 @@ function OpportunitiesTable() {
               </svg>
               Add to List
             </Button>
+            
+            {/* Bulk Status Update Button */}
+            <div className="relative">
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="text-indigo-600"
+                onClick={() => setShowBulkStatusDropdown(!showBulkStatusDropdown)}
+                disabled={isUpdatingStatus}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <path d="M12 6v6l4 2"></path>
+                </svg>
+                {isUpdatingStatus ? 'Updating...' : 'Update Status'}
+                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </Button>
+              
+              {/* Status dropdown */}
+              {showBulkStatusDropdown && (
+                <div className="absolute right-0 top-full mt-1 w-48 rounded-md border border-gray-200 bg-white shadow-lg z-50">
+                  <div className="p-1">
+                    {statusOptions.map((status) => (
+                      <button
+                        key={status}
+                        className="flex w-full items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md"
+                        onClick={() => handleBulkStatusUpdate(status)}
+                        disabled={isUpdatingStatus}
+                      >
+                        <div className={`w-2 h-2 rounded-full mr-2 ${
+                          status === 'Active' ? 'bg-green-500' :
+                          status === 'In Progress' ? 'bg-blue-500' :
+                          status === 'On Hold' ? 'bg-yellow-500' :
+                          status === 'Closed Won' ? 'bg-emerald-500' :
+                          status === 'Closed Lost' ? 'bg-red-500' :
+                          'bg-gray-500'
+                        }`}></div>
+                        {status}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
             
             <Button 
               variant="outline" 
