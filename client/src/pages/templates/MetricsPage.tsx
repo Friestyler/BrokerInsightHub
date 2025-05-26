@@ -543,52 +543,58 @@ export default function MetricsPage() {
         </TabsList>
         
         {/* Search and filter section */}
-        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-          <div className="flex flex-wrap gap-3 items-center">
-            <div className="relative flex-grow">
-              <Input
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Search field */}
+            <div className="relative w-60">
+              <input
+                type="text"
                 placeholder={`Search ${activeTab === "metrics" ? "metrics" : "groups"}...`}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
+                className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
               />
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
                   <circle cx="11" cy="11" r="8"></circle>
                   <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                 </svg>
-              </div>
+              </button>
             </div>
             
-            <div className="flex gap-2">
-              <Select 
-                value={selectedTags.length === 1 ? selectedTags[0] : "all_tags"}
-                onValueChange={(value) => {
-                  if (value && value !== "all_tags") {
-                    setSelectedTags([value]);
-                  } else {
-                    setSelectedTags([]);
-                  }
-                }}
+            {/* Filter buttons */}
+            <div className="flex items-center gap-2">
+              <button 
+                className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedTags.length > 0 ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+                onClick={() => setSelectedTags(selectedTags.length > 0 ? [] : [allTags[0] || ''])}
               >
-                <SelectTrigger className="w-[160px]">
-                  <SelectValue placeholder="Filter by tag" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all_tags">All Tags</SelectItem>
-                  {allTags.map(tag => (
-                    <SelectItem key={tag} value={tag}>
-                      {tag}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                </svg>
+                <span>{selectedTags.length > 0 ? `Tag: ${selectedTags[0]}` : 'Tag'}</span>
+                {selectedTags.length > 0 && (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                  </svg>
+                )}
+              </button>
             </div>
             
             {(selectedTags.length > 0 || searchTerm) && (
-              <Button variant="ghost" onClick={clearFilters} className="h-10">
-                Clear filters
-              </Button>
+              <div className="flex items-center gap-2">
+                <button 
+                  className="flex items-center rounded-md px-4 py-2 text-gray-600 hover:bg-gray-100"
+                  onClick={clearFilters}
+                  style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5F6585" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                    <path d="M18 6L6 18"></path>
+                    <path d="M6 6l12 12"></path>
+                  </svg>
+                  <span className="text-[#5F6585]">Clear filters</span>
+                </button>
+              </div>
             )}
           </div>
         </div>
