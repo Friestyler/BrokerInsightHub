@@ -664,38 +664,28 @@ export default function MetricsPage() {
                   )}
                 </button>
                 
-                <div className="relative">
-                  <Select value={selectedMeasureUnit} onValueChange={setSelectedMeasureUnit}>
-                    <SelectTrigger className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium min-w-[140px] ${selectedMeasureUnit ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}>
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                      </svg>
-                      <SelectValue placeholder="Measure Unit" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="currency">Currency</SelectItem>
-                      <SelectItem value="number">Number</SelectItem>
-                      <SelectItem value="percent">Percent</SelectItem>
-                      <SelectItem value="checkbox">Checkbox</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                <Select value={selectedMeasureUnit} onValueChange={setSelectedMeasureUnit}>
+                  <SelectTrigger className="w-[140px] bg-white">
+                    <SelectValue placeholder="Measure Unit" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="currency">Currency</SelectItem>
+                    <SelectItem value="number">Number</SelectItem>
+                    <SelectItem value="percent">Percent</SelectItem>
+                    <SelectItem value="checkbox">Checkbox</SelectItem>
+                  </SelectContent>
+                </Select>
                 
-                <div className="relative">
-                  <Select value={selectedTargetRange} onValueChange={setSelectedTargetRange}>
-                    <SelectTrigger className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium min-w-[140px] ${selectedTargetRange ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}>
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                      </svg>
-                      <SelectValue placeholder="Target Range" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="0-50">0 - 50</SelectItem>
-                      <SelectItem value="51-100">51 - 100</SelectItem>
-                      <SelectItem value="100+">100+</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
+                <Select value={selectedTargetRange} onValueChange={setSelectedTargetRange}>
+                  <SelectTrigger className="w-[140px] bg-white">
+                    <SelectValue placeholder="Target Range" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="0-50">0 - 50</SelectItem>
+                    <SelectItem value="51-100">51 - 100</SelectItem>
+                    <SelectItem value="100+">100+</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               
               {(selectedTags.length > 0 || searchTerm || selectedMeasureUnit || selectedTargetRange) && (
