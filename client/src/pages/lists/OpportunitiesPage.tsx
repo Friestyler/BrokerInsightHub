@@ -460,18 +460,24 @@ function OpportunitiesTable() {
         <div className="flex flex-col gap-4">
           {/* Top row with saved lists and views */}
           <div className="flex flex-wrap items-center justify-between">
-            {/* Left side - Enhanced Lists and Views Management */}
+            {/* Left side - Saved Lists with actions */}
             <div className="flex items-center gap-3">
-              {/* Saved Lists dropdown */}
+              {/* Lists heading */}
+              <div className="flex flex-col mr-2">
+                <span className="text-base font-semibold text-gray-800 mb-2">Lists</span>
+              </div>
+              {/* Saved Lists dropdown - redesigned to match provided image */}
               <div className="relative">
                 <button 
-                  className={`flex items-center space-x-2 px-4 py-2.5 border-2 rounded-md text-sm font-medium ${activeList ? 'bg-indigo-50 border-indigo-400 text-indigo-700' : 'border-gray-300 hover:border-gray-400'}`}
+                  className="flex items-center space-x-2 px-4 py-2.5 border rounded-md text-sm font-medium shadow-sm bg-white hover:bg-gray-50"
                   onClick={() => setShowListsDropdown(!showListsDropdown)}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={activeList ? 'text-indigo-600' : 'text-gray-500'}>
-                    <path d="M19 21l-7-4-7 4V5a2 2 0 012-2h10a2 2 0 012 2v16z"/>
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-indigo-600">
+                    <path d="M5.25 1.5V4.25H12.6875V2C12.6875 1.725 12.4906 1.5 12.25 1.5H5.25ZM3.9375 1.5H1.75C1.50937 1.5 1.3125 1.725 1.3125 2V4.25H3.9375V1.5ZM1.3125 5.75V8.25H3.9375V5.75H1.3125ZM1.3125 9.75V12C1.3125 12.275 1.50937 12.5 1.75 12.5H3.9375V9.75H1.3125ZM5.25 12.5H12.25C12.4906 12.5 12.6875 12.275 12.6875 12V9.75H5.25V12.5ZM12.6875 8.25V5.75H5.25V8.25H12.6875ZM0 2C0 0.896875 0.784766 0 1.75 0H12.25C13.2152 0 14 0.896875 14 2V12C14 13.1031 13.2152 14 12.25 14H1.75C0.784766 14 0 13.1031 0 12V2Z" fill="#3E4DC4"/>
                   </svg>
-                  <span className="max-w-[180px] truncate font-medium">{activeList ? activeList.name : 'All Opportunities'}</span>
+                  <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
+                    {activeList ? activeList.name : "All Opportunities"}
+                  </span>
                   <svg 
                     xmlns="http://www.w3.org/2000/svg" 
                     width="14" 
@@ -488,68 +494,69 @@ function OpportunitiesTable() {
                   </svg>
                 </button>
                 
-                {/* Enhanced Saved Lists dropdown menu with advanced functionality */}
+                {/* Saved Lists dropdown menu - shadcn/ui style with Qollabi colors */}
                 {showListsDropdown && (
-                  <div className="absolute z-40 mt-1 w-96 bg-white rounded-md shadow-lg border border-gray-200 overflow-hidden">
-                    <div className="p-3 border-b">
-                      <div className="text-sm font-medium mb-2">Saved Lists</div>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          placeholder="Search lists..."
-                          className="w-full pl-3 pr-10 py-1.5 text-xs border border-gray-300 rounded-md"
-                        />
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                          <circle cx="11" cy="11" r="8"></circle>
-                          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                        </svg>
-                      </div>
-                    </div>
+                  <div className="absolute z-50 mt-1.5 w-80 rounded-md border border-slate-200 bg-white text-slate-950 shadow-md animate-in fade-in-80 data-[side=bottom]:slide-in-from-top-2 data-[side=left]:slide-in-from-right-2 data-[side=right]:slide-in-from-left-2 data-[side=top]:slide-in-from-bottom-2">
+                    {/* No search section as per screenshot */}
                     
-                    <div className="max-h-80 overflow-y-auto">
+                    {/* Lists with edit options */}
+                    <div className="max-h-[300px] overflow-y-auto p-1">
                       {savedLists.map(list => (
-                        <div key={list.id} className="group relative">
-                          <button
-                            className={`w-full text-left py-3 px-3 hover:bg-gray-50 flex items-center justify-between ${activeList?.id === list.id ? 'bg-indigo-50' : ''}`}
+                        <div 
+                          key={list.id}
+                          className="relative"
+                        >
+                          <div
+                            className={`relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 ${activeList?.id === list.id ? 'bg-indigo-50 text-indigo-900' : 'text-slate-700'}`}
                             onClick={() => {
-                              setActiveList(list);
-                              // Apply list filters and settings
-                              if (list.type === 'filter') {
-                                setFilterText(list.filters.searchText || '');
-                                setSelectedStatus(list.filters.status || '');
-                                setSelectedType(list.filters.type || '');
-                              } else if (list.type === 'selection' && list.members) {
-                                // For selection-based lists, we maintain the members but reset UI filters
+                              // Don't do anything if clicking on already active list
+                              if (activeList?.id === list.id) {
+                                setShowListsDropdown(false);
+                                return;
+                              }
+                              
+                              // Check if we're in list editing mode before switching lists
+                              if (isEditingList) {
+                                // Store the pending action and show confirmation dialog
+                                setPendingListAction({
+                                  type: list.isDefault && list.name === "All Opportunities" ? 'clear' : 'select',
+                                  list: list.isDefault && list.name === "All Opportunities" ? undefined : list
+                                });
+                                setShowUnsavedChangesModal(true);
+                                setShowListsDropdown(false);
+                                return;
+                              }
+                              
+                              // Special handling for "All Opportunities" default list
+                              if (list.isDefault && list.name === "All Opportunities") {
+                                // Clear filters and active list (same behavior as "Return to all opportunities" button)
+                                setActiveList(null);
+                                setOriginalListFilters(null);
                                 setFilterText('');
                                 setSelectedStatus('');
                                 setSelectedType('');
-                                setSelectedOpportunities(list.members);
+                                setHasUnsavedChanges(false);
+                              } else {
+                                // Normal behavior for other lists
+                                setActiveList(list);
+                                // Store the original filters to enable reverting changes
+                                setOriginalListFilters(list.filters);
+                                // Apply filter settings
+                                setFilterText(list.filters.searchText || '');
+                                setSelectedStatus(list.filters.status || '');
+                                setSelectedType(list.filters.type || '');
+                                setHasUnsavedChanges(false);
                               }
+                              
+                              // Clear any active view when switching lists
+                              setActiveView(null);
                               setShowListsDropdown(false);
                             }}
                           >
-                            <div className="flex-1 min-w-0">
-                              <div className="flex items-center gap-2">
-                                <div className="font-medium text-sm">{list.name}</div>
-                                {list.type === 'selection' && (
-                                  <span className="text-xs bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded">
-                                    {list.members?.length || 0} selected
-                                  </span>
-                                )}
-                              </div>
-                              <div className="text-xs text-gray-500 mt-0.5 truncate">
-                                {list.description || (list.type === 'filter' ? 
-                                  Object.entries(list.filters)
-                                    .filter(([_, value]) => value)
-                                    .map(([key, value]) => `${key}: ${value}`)
-                                    .join(', ') || 'No filters'
-                                  : `${list.members?.length || 0} opportunities selected`
-                                )}
-                              </div>
-                            </div>
-                            <div className="flex items-center gap-1">
+                            <div className="flex flex-1 items-center">
+                              <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>{list.name}</span>
                               {list.isShared && (
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2 text-indigo-500">
                                   <circle cx="18" cy="5" r="3"></circle>
                                   <circle cx="6" cy="12" r="3"></circle>
                                   <circle cx="18" cy="19" r="3"></circle>
@@ -557,58 +564,23 @@ function OpportunitiesTable() {
                                   <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
                                 </svg>
                               )}
-                              {activeList?.id === list.id && (
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
-                                  <polyline points="20 6 9 17 4 12"></polyline>
-                                </svg>
-                              )}
                             </div>
-                          </button>
-                          
-                          {/* List action menu - only show for non-default lists */}
-                          {!list.isDefault && (
-                            <div className="absolute right-1 top-1/2 transform -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <button
-                                className="p-1 hover:bg-gray-100 rounded"
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  // Show context menu for list actions
-                                }}
-                              >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                                  <circle cx="12" cy="12" r="1"></circle>
-                                  <circle cx="12" cy="5" r="1"></circle>
-                                  <circle cx="12" cy="19" r="1"></circle>
-                                </svg>
-                              </button>
-                            </div>
-                          )}
+                            
+                            {/* Visual indicator for default list */}
+                            {list.isDefault && (
+                              <div className="ml-auto">
+                                <span className="text-xs text-[#282A3F] italic" style={{ fontFamily: 'Poppins, sans-serif' }}>Default</span>
+                              </div>
+                            )}
+                          </div>
                         </div>
                       ))}
                     </div>
                     
-                    <div className="p-2 border-t bg-gray-50">
-                      <button
-                        className="w-full text-left py-2 px-3 text-indigo-600 hover:bg-indigo-50 rounded-md text-sm flex items-center font-medium"
-                        onClick={() => {
-                          setShowSaveListModal(true);
-                          setShowListsDropdown(false);
-                          setIsCreatingNewList(true);
-                          setSelectedExistingList(null);
-                        }}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                          <line x1="12" y1="5" x2="12" y2="19"></line>
-                          <line x1="5" y1="12" x2="19" y2="12"></line>
-                        </svg>
-                        Create New List
-                      </button>
-                    </div>
+                    {/* No 'Create new list' button as specified by the user */}
                   </div>
                 )}
               </div>
-              
-
               
               {/* List actions - Share/Clear when a list is active */}
               {activeList && (
