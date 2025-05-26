@@ -186,8 +186,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Partners Endpoints
   app.get('/api/partners', async (req, res) => {
     try {
+      console.log('Partners API called');
       // Get customers directly from storage (partners are stored as customers)
       const customers = await storage.getAllCustomers();
+      console.log('Customers fetched:', customers.length);
       
       // Transform customers into partners format with required fields
       const partners = customers.map((customer: any) => ({
@@ -205,6 +207,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updatedAt: customer.updatedAt
       }));
       
+      console.log('Partners transformed:', partners.length);
+      res.setHeader('Content-Type', 'application/json');
       res.json(partners);
     } catch (error) {
       console.error('Error fetching partners:', error);
