@@ -1643,7 +1643,7 @@ export default function MetricsPage() {
                 <div className="overflow-x-auto">
                   <Table className="border-b min-w-full" style={{ borderColor: '#E6E7F1' }}>
                     <TableHeader>
-                    <TableRow className="border-b hover:bg-[#F5F6FA]" style={{ borderColor: '#E6E7F1' }}>
+                    <TableRow className="border-b hover:bg-[#F5F6FA] group" style={{ borderColor: '#E6E7F1' }}>
                       <TableHead className="w-12 px-3 py-2">
                         <input
                           type="checkbox"
@@ -1655,7 +1655,10 @@ export default function MetricsPage() {
                               setSelectedOKRs(prev => prev.filter(id => !okrsInGroup.map(okr => okr.id).includes(id)));
                             }
                           }}
-                          className="rounded border-gray-300"
+                          className="rounded border-gray-300 opacity-0 group-hover:opacity-100 transition-opacity"
+                          style={{ 
+                            opacity: okrsInGroup.some(okr => selectedOKRs.includes(okr.id)) ? 1 : undefined 
+                          }}
                         />
                       </TableHead>
                       <TableHead 
