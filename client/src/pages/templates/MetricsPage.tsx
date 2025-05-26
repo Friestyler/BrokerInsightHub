@@ -654,6 +654,7 @@ export default function MetricsPage() {
   const [isManageTagsOpen, setIsManageTagsOpen] = useState(false);
   const [isCreateMetricOpen, setIsCreateMetricOpen] = useState(false);
   const [isCreateGroupOpen, setIsCreateGroupOpen] = useState(false);
+  const [isCreateOKROpen, setIsCreateOKROpen] = useState(false);
   const [selectedMeasureUnit, setSelectedMeasureUnit] = useState("");
   const [selectedTargetRange, setSelectedTargetRange] = useState("");
   const [selectedTimeframe, setSelectedTimeframe] = useState("");
@@ -1311,6 +1312,17 @@ export default function MetricsPage() {
                   </button>
                 </div>
               )}
+              
+              <Button 
+                className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                onClick={() => setIsCreateOKROpen(true)}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                  <path d="M5 12h14"/>
+                  <path d="M12 5v14"/>
+                </svg>
+                Add OKR Metric
+              </Button>
             </div>
           </div>
         )}
@@ -1920,344 +1932,69 @@ export default function MetricsPage() {
       </Dialog>
       {/* Create Metric Dialog */}
       <Dialog open={isCreateMetricOpen} onOpenChange={setIsCreateMetricOpen}>
-        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-[425px]">
           <DialogHeader>
-            <DialogTitle>Create New OKR Template</DialogTitle>
+            <DialogTitle>Create New Metric</DialogTitle>
             <DialogDescription>
-              Create a comprehensive OKR template with objectives, activities, and subactivities.
+              Create a new metric for your OKR tracking.
             </DialogDescription>
           </DialogHeader>
-          <div className="grid gap-6 py-4">
-            {/* Structure Selection */}
-            <div className="grid gap-3">
-              <label className="text-sm font-medium">Template Structure</label>
-              <div className="grid grid-cols-3 gap-2">
-                <div className="border rounded-lg p-3 cursor-pointer hover:bg-gray-50 border-blue-200 bg-blue-50">
-                  <div className="font-medium text-sm">Objective Only</div>
-                  <div className="text-xs text-gray-500 mt-1">Single objective template</div>
-                </div>
-                <div className="border rounded-lg p-3 cursor-pointer hover:bg-gray-50">
-                  <div className="font-medium text-sm">With Activities</div>
-                  <div className="text-xs text-gray-500 mt-1">Objective + activities</div>
-                </div>
-                <div className="border rounded-lg p-3 cursor-pointer hover:bg-gray-50">
-                  <div className="font-medium text-sm">Full Hierarchy</div>
-                  <div className="text-xs text-gray-500 mt-1">Objective + activities + subactivities</div>
-                </div>
-              </div>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <label htmlFor="title" className="text-sm font-medium">Metric Title</label>
+              <Input
+                id="title"
+                placeholder="Enter metric title"
+                className="col-span-3"
+              />
             </div>
-
-            {/* Basic Information */}
-            <div className="border rounded-lg p-4 space-y-4">
-              <h3 className="font-medium text-sm">Basic Information</h3>
-              <div className="grid gap-4">
-                <div className="grid gap-2">
-                  <label htmlFor="title" className="text-sm font-medium">
-                    Title <span className="text-red-500">*</span>
-                  </label>
-                  <Input
-                    id="title"
-                    placeholder="Enter OKR title"
-                    className="col-span-3"
-                  />
-                </div>
-                <div className="grid gap-2">
-                  <label htmlFor="description" className="text-sm font-medium">
-                    Description <span className="text-red-500">*</span>
-                  </label>
-                  <Textarea
-                    id="description"
-                    placeholder="Describe this OKR"
-                    rows={3}
-                  />
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <label htmlFor="hierarchy" className="text-sm font-medium">
-                      Level <span className="text-red-500">*</span>
-                    </label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select level" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="objective">Objective</SelectItem>
-                        <SelectItem value="activity">Activity</SelectItem>
-                        <SelectItem value="subactivity">Subactivity</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid gap-2">
-                    <label htmlFor="tag" className="text-sm font-medium">
-                      Tag <span className="text-red-500">*</span>
-                    </label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select tag" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Revenue Growth">Revenue Growth</SelectItem>
-                        <SelectItem value="Product Innovation">Product Innovation</SelectItem>
-                        <SelectItem value="Customer Experience">Customer Experience</SelectItem>
-                        <SelectItem value="Operational Excellence">Operational Excellence</SelectItem>
-                        <SelectItem value="Market Expansion">Market Expansion</SelectItem>
-                        <SelectItem value="Team Development">Team Development</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </div>
+            <div className="grid gap-2">
+              <label htmlFor="description" className="text-sm font-medium">Description</label>
+              <Textarea
+                id="description"
+                placeholder="Describe this metric"
+              />
             </div>
-
-            {/* Target & Measurement */}
-            <div className="border rounded-lg p-4 space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="font-medium text-sm">Target & Measurement</h3>
-                <input type="checkbox" defaultChecked className="rounded" />
-              </div>
-              <div className="grid gap-4">
-                <div className="grid grid-cols-3 gap-4">
-                  <div className="grid gap-2">
-                    <label htmlFor="unit" className="text-sm font-medium">Measure Unit</label>
-                    <Select>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select unit" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="currency">Currency</SelectItem>
-                        <SelectItem value="percentage">Percentage</SelectItem>
-                        <SelectItem value="number">Number</SelectItem>
-                        <SelectItem value="checkbox">Checkbox</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid gap-2">
-                    <label htmlFor="target" className="text-sm font-medium">Target Value</label>
-                    <Input
-                      id="target"
-                      placeholder="Enter target"
-                      type="number"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <label htmlFor="current" className="text-sm font-medium">Current Value</label>
-                    <Input
-                      id="current"
-                      placeholder="Enter current"
-                      type="number"
-                    />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Timeline */}
-            <div className="border rounded-lg p-4 space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="font-medium text-sm">Timeline</h3>
-                <input type="checkbox" defaultChecked className="rounded" />
-              </div>
-              <div className="grid gap-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <label htmlFor="startDate" className="text-sm font-medium">Start Date</label>
-                    <Input
-                      id="startDate"
-                      type="date"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <label htmlFor="endDate" className="text-sm font-medium">End Date</label>
-                    <Input
-                      id="endDate"
-                      type="date"
-                    />
-                  </div>
-                </div>
-                <div className="grid gap-2">
-                  <label htmlFor="frequency" className="text-sm font-medium">Milestone Frequency</label>
-                  <Select>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select frequency" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="weekly">Weekly</SelectItem>
-                      <SelectItem value="monthly">Monthly</SelectItem>
-                      <SelectItem value="quarterly">Quarterly</SelectItem>
-                      <SelectItem value="annually">Annually</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
-
-            {/* Assignment & Progress */}
-            <div className="border rounded-lg p-4 space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="font-medium text-sm">Assignment & Progress</h3>
-                <input type="checkbox" className="rounded" />
-              </div>
-              <div className="grid gap-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="grid gap-2">
-                    <label htmlFor="owner" className="text-sm font-medium">Responsible Person</label>
-                    <Input
-                      id="owner"
-                      placeholder="Enter owner name"
-                    />
-                  </div>
-                  <div className="grid gap-2">
-                    <label htmlFor="dueDate" className="text-sm font-medium">Due Date</label>
-                    <Input
-                      id="dueDate"
-                      type="date"
-                    />
-                  </div>
-                </div>
-                <div className="grid gap-2">
-                  <label htmlFor="status" className="text-sm font-medium">Status</label>
-                  <Select>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Not Started">Not Started</SelectItem>
-                      <SelectItem value="In Progress">In Progress</SelectItem>
-                      <SelectItem value="On Track">On Track</SelectItem>
-                      <SelectItem value="Behind Schedule">Behind Schedule</SelectItem>
-                      <SelectItem value="Nearly Complete">Nearly Complete</SelectItem>
-                      <SelectItem value="Complete">Complete</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
-
-            {/* Attachments */}
-            <div className="border rounded-lg p-4 space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="font-medium text-sm">Attachments</h3>
-                <input type="checkbox" className="rounded" />
+            <div className="grid grid-cols-2 gap-4">
+              <div className="grid gap-2">
+                <label htmlFor="unit" className="text-sm font-medium">Unit</label>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select unit" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="currency">Currency</SelectItem>
+                    <SelectItem value="percentage">Percentage</SelectItem>
+                    <SelectItem value="number">Number</SelectItem>
+                    <SelectItem value="boolean">Yes/No</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="grid gap-2">
-                <Input
-                  type="file"
-                  accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.png"
-                  className="file:mr-2 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:bg-gray-100 hover:file:bg-gray-200"
-                />
-                <p className="text-xs text-gray-500">Supported formats: PDF, DOC, XLS, JPG, PNG</p>
+                <label htmlFor="hierarchy" className="text-sm font-medium">Level</label>
+                <Select>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select level" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="objective">Objective</SelectItem>
+                    <SelectItem value="activity">Activity</SelectItem>
+                    <SelectItem value="subactivity">Subactivity</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
-
-            {/* Nested Tasks Section */}
-            <div className="border rounded-lg p-4 space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="font-medium text-sm">Break Down into Tasks</h3>
-                <div className="text-xs text-gray-500">Optional - helps organize complex objectives</div>
-              </div>
-              
-              {/* Activities List */}
-              <div className="space-y-3">
-                {/* Sample Activity 1 */}
-                <div className="border border-gray-200 rounded-lg p-3 bg-gray-50">
-                  <div className="flex items-center gap-3 mb-3">
-                    <div className="flex items-center gap-2 flex-1">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600">
-                        <rect width="3" height="8" x="13" y="2" rx="1.5"/>
-                        <path d="M19 8.5V10h1.5A1.5 1.5 0 1 1 19 11.5V19a1.5 1.5 0 0 1-3 0v-2"/>
-                        <rect width="3" height="8" x="8" y="14" rx="1.5"/>
-                        <path d="M5 15.5V14H3.5A1.5 1.5 0 1 1 5 12.5V5a1.5 1.5 0 0 1 3 0v2"/>
-                      </svg>
-                      <Input 
-                        placeholder="Activity title (e.g., Implement Sales Training Program)"
-                        className="flex-1 border-0 bg-transparent p-0 text-sm font-medium focus-visible:ring-0"
-                      />
-                    </div>
-                    <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-gray-400 hover:text-red-600">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M3 6h18"/>
-                        <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
-                        <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
-                      </svg>
-                    </Button>
-                  </div>
-                  
-                  {/* Subactivities */}
-                  <div className="ml-6 space-y-2">
-                    <div className="flex items-center gap-2 group">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                        <circle cx="12" cy="12" r="10"/>
-                        <path d="M12 6v6l4 2"/>
-                      </svg>
-                      <Input 
-                        placeholder="Subtask (e.g., Create training materials)"
-                        className="flex-1 border-0 bg-white text-sm h-8 focus-visible:ring-1 focus-visible:ring-blue-200"
-                      />
-                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-gray-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M18 6 6 18"/>
-                          <path d="m6 6 12 12"/>
-                        </svg>
-                      </Button>
-                    </div>
-                    
-                    <div className="flex items-center gap-2 group">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                        <circle cx="12" cy="12" r="10"/>
-                        <path d="M12 6v6l4 2"/>
-                      </svg>
-                      <Input 
-                        placeholder="Subtask (e.g., Conduct training sessions)"
-                        className="flex-1 border-0 bg-white text-sm h-8 focus-visible:ring-1 focus-visible:ring-blue-200"
-                      />
-                      <Button variant="ghost" size="sm" className="h-6 w-6 p-0 text-gray-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M18 6 6 18"/>
-                          <path d="m6 6 12 12"/>
-                        </svg>
-                      </Button>
-                    </div>
-                    
-                    {/* Add Subtask Button */}
-                    <button className="flex items-center gap-2 text-gray-400 hover:text-gray-600 text-sm ml-4 py-1">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M5 12h14"/>
-                        <path d="M12 5v14"/>
-                      </svg>
-                      Add subtask
-                    </button>
-                  </div>
-                </div>
-
-                {/* Add Activity Button */}
-                <button className="flex items-center gap-2 text-gray-500 hover:text-gray-700 text-sm py-2 px-3 rounded-lg hover:bg-gray-50 transition-colors w-full border-2 border-dashed border-gray-200 hover:border-gray-300">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M5 12h14"/>
-                    <path d="M12 5v14"/>
-                  </svg>
-                  Add activity
-                </button>
-              </div>
-              
-              {/* Help Text */}
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-3">
-                <div className="flex gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600 mt-0.5 flex-shrink-0">
-                    <circle cx="12" cy="12" r="10"/>
-                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
-                    <path d="M12 17h.01"/>
-                  </svg>
-                  <div className="text-sm text-blue-800">
-                    <div className="font-medium mb-1">Break down complex objectives</div>
-                    <div className="text-blue-700">Activities help organize work into manageable chunks. Subtasks make tracking progress easier and more granular.</div>
-                  </div>
-                </div>
-              </div>
+            <div className="grid gap-2">
+              <label htmlFor="tags" className="text-sm font-medium">Tags</label>
+              <Input
+                id="tags"
+                placeholder="Enter tags (comma separated)"
+              />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setIsCreateMetricOpen(false)}>Cancel</Button>
-            <Button className="bg-indigo-600 hover:bg-indigo-700">Create OKR Template</Button>
+            <Button className="bg-indigo-600 hover:bg-indigo-700">Create Metric</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
