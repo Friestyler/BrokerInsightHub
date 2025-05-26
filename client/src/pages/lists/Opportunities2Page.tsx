@@ -359,7 +359,7 @@ function OpportunitiesTable() {
       return matchesText && matchesStatus && matchesType && matchesStage;
     })
     // Sort alphabetically by title by default
-    .sort((a: Opportunity, b: Opportunity) => a.title.localeCompare(b.title));
+    .sort((a: Opportunity, b: Opportunity) => (a.title || '').localeCompare(b.title || ''));
   
   // Check if current filters differ from original list filters to detect unsaved changes
   useEffect(() => {
@@ -1177,7 +1177,7 @@ function OpportunitiesTable() {
                     <div className="flex-shrink-0 h-10 w-10">
                       <Avatar className="h-10 w-10">
                         <AvatarFallback className="bg-indigo-100 text-indigo-700 text-sm font-medium">
-                          {opportunity.initials}
+                          {opportunity.title.substring(0, 2).toUpperCase()}
                         </AvatarFallback>
                       </Avatar>
                     </div>
@@ -1186,8 +1186,8 @@ function OpportunitiesTable() {
                     </div>
                   </div>
                 </td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{opportunity.customerName}</td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{opportunity.partnerName}</td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">Client #{opportunity.clientId}</td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">Product #{opportunity.productId}</td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{opportunity.type}</td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm capitalize">{opportunity.stage}</td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
@@ -1195,7 +1195,7 @@ function OpportunitiesTable() {
                     {opportunity.status}
                   </Badge>
                 </td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">${opportunity.value.toLocaleString()}</td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">€{opportunity.estimatedValue.toLocaleString()}</td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
                   <TemplateBadges type={opportunity.type} status={opportunity.status} />
                 </td>
@@ -1841,7 +1841,7 @@ function OpportunitiesTable() {
               } else if (isBulkOpportunityShare) {
                 // Sharing selected opportunity records
                 const bulkOpportunityNames = selectedOpportunities
-                  .map(id => mockOpportunities.find(o => o.id === id)?.title)
+                  .map(id => opportunities.find(o => o.id === id)?.title)
                   .filter(Boolean)
                   .slice(0, 3);
 
