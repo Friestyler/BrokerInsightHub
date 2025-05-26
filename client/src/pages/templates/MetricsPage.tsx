@@ -224,6 +224,94 @@ const mockMetricGroups = [
   }
 ];
 
+// Sample OKR data grouped by tags
+const mockOKRs = [
+  {
+    id: 1,
+    title: "Increase Annual Recurring Revenue by 40%",
+    description: "Grow our subscription revenue through new acquisitions and expansion",
+    type: "Objective",
+    progress: 65,
+    targetValue: 5000000,
+    currentValue: 3250000,
+    unit: "currency",
+    status: "On Track",
+    owner: "Sarah Chen",
+    dueDate: new Date('2024-12-31'),
+    tag: "Revenue Growth"
+  },
+  {
+    id: 2,
+    title: "Launch 3 Major Product Features",
+    description: "Deliver key features to improve customer satisfaction and retention",
+    type: "Objective", 
+    progress: 33,
+    targetValue: 3,
+    currentValue: 1,
+    unit: "number",
+    status: "Behind Schedule",
+    owner: "Mike Rodriguez",
+    dueDate: new Date('2024-11-30'),
+    tag: "Product Innovation"
+  },
+  {
+    id: 3,
+    title: "Achieve 95% Customer Satisfaction Score",
+    description: "Maintain high customer satisfaction through excellent service delivery",
+    type: "Objective",
+    progress: 88,
+    targetValue: 95,
+    currentValue: 84,
+    unit: "percentage",
+    status: "On Track",
+    owner: "Emily Johnson",
+    dueDate: new Date('2024-12-31'),
+    tag: "Customer Success"
+  },
+  {
+    id: 4,
+    title: "Reduce Customer Churn to Below 5%",
+    description: "Implement retention strategies to minimize customer loss",
+    type: "Key Result",
+    progress: 70,
+    targetValue: 5,
+    currentValue: 6.5,
+    unit: "percentage",
+    status: "On Track",
+    owner: "Emily Johnson",
+    dueDate: new Date('2024-12-31'),
+    tag: "Customer Success"
+  },
+  {
+    id: 5,
+    title: "Expand to 2 New Geographic Markets",
+    description: "Enter European and Asian markets to diversify revenue streams",
+    type: "Objective",
+    progress: 50,
+    targetValue: 2,
+    currentValue: 1,
+    unit: "number",
+    status: "On Track",
+    owner: "David Wilson",
+    dueDate: new Date('2024-10-31'),
+    tag: "Market Expansion"
+  },
+  {
+    id: 6,
+    title: "Achieve $2M Monthly Recurring Revenue",
+    description: "Reach sustainable monthly revenue milestone",
+    type: "Key Result",
+    progress: 75,
+    targetValue: 2000000,
+    currentValue: 1500000,
+    unit: "currency",
+    status: "On Track",
+    owner: "Sarah Chen",
+    dueDate: new Date('2024-12-31'),
+    tag: "Revenue Growth"
+  }
+];
+
 const TagBadge = ({ tag }: { tag: string }) => {
   // Get a consistent color for each tag based on a simple hash function
   const getTagColor = (tag: string) => {
@@ -246,6 +334,10 @@ const TagBadge = ({ tag }: { tag: string }) => {
       "Support": "bg-slate-100 text-slate-800 border-slate-200",
       "Service": "bg-gray-100 text-gray-800 border-gray-200",
       "Quality": "bg-yellow-100 text-yellow-800 border-yellow-200",
+      "Revenue Growth": "bg-emerald-100 text-emerald-800 border-emerald-200",
+      "Product Innovation": "bg-blue-100 text-blue-800 border-blue-200",
+      "Customer Success": "bg-teal-100 text-teal-800 border-teal-200",
+      "Market Expansion": "bg-purple-100 text-purple-800 border-purple-200",
     };
     
     return tagColors[tag] || "bg-gray-100 text-gray-800 border-gray-200";
@@ -435,9 +527,10 @@ export default function MetricsPage() {
       
       {/* Tabs for Metrics and Metric Groups */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-2 w-64 mb-6">
+        <TabsList className="grid grid-cols-3 w-96 mb-6">
           <TabsTrigger value="metrics">Metrics</TabsTrigger>
           <TabsTrigger value="groups">Metric Groups</TabsTrigger>
+          <TabsTrigger value="okrs">Coming Soon</TabsTrigger>
         </TabsList>
         
         {/* Search and filter section */}
@@ -730,6 +823,109 @@ export default function MetricsPage() {
               </Card>
             ))}
           </div>
+        </TabsContent>
+        
+        {/* Coming Soon (OKRs) tab content */}
+        <TabsContent value="okrs" className="space-y-4">
+          {/* Group OKRs by tags and display in sections */}
+          {Array.from(new Set(mockOKRs.map(okr => okr.tag))).map(tag => {
+            const okrsForTag = mockOKRs.filter(okr => okr.tag === tag);
+            
+            return (
+              <div key={tag} className="bg-white rounded-lg shadow-sm overflow-hidden mb-6">
+                <div className="bg-gray-50 px-6 py-3 border-b">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-lg font-semibold text-gray-900">{tag}</h3>
+                    <TagBadge tag={tag} />
+                  </div>
+                </div>
+                
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>OKR Title</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Owner</TableHead>
+                      <TableHead>Progress</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Due Date</TableHead>
+                      <TableHead className="text-right">Target</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {okrsForTag.map((okr) => (
+                      <TableRow key={okr.id} className="hover:bg-slate-50">
+                        <TableCell>
+                          <div>
+                            <div className="font-medium">{okr.title}</div>
+                            <div className="text-sm text-gray-500 mt-1">{okr.description}</div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            okr.type === 'Objective' 
+                              ? 'bg-blue-100 text-blue-800' 
+                              : 'bg-green-100 text-green-800'
+                          }`}>
+                            {okr.type}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm font-medium">{okr.owner}</div>
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <div className="w-16 bg-gray-200 rounded-full h-2">
+                              <div 
+                                className={`h-2 rounded-full ${
+                                  okr.progress >= 80 ? 'bg-green-500' :
+                                  okr.progress >= 60 ? 'bg-yellow-500' : 'bg-red-500'
+                                }`}
+                                style={{ width: `${okr.progress}%` }}
+                              ></div>
+                            </div>
+                            <span className="text-sm font-medium">{okr.progress}%</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                            okr.status === 'On Track' 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-red-100 text-red-800'
+                          }`}>
+                            {okr.status}
+                          </span>
+                        </TableCell>
+                        <TableCell>
+                          <div className="text-sm">
+                            {okr.dueDate.toLocaleDateString()}
+                          </div>
+                        </TableCell>
+                        <TableCell className="text-right">
+                          <div className="font-medium">
+                            {okr.unit === 'currency' 
+                              ? `$${(okr.targetValue / 1000000).toFixed(1)}M`
+                              : okr.unit === 'percentage'
+                              ? `${okr.targetValue}%`
+                              : okr.targetValue.toString()
+                            }
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            Current: {okr.unit === 'currency' 
+                              ? `$${(okr.currentValue / 1000000).toFixed(1)}M`
+                              : okr.unit === 'percentage'
+                              ? `${okr.currentValue}%`
+                              : okr.currentValue.toString()
+                            }
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            );
+          })}
         </TabsContent>
       </Tabs>
       
