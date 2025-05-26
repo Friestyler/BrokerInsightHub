@@ -853,7 +853,7 @@ export default function MetricsPage() {
                           color: '#696C8C' 
                         }}
                       >
-                        Template Name
+                        OKR Name
                       </TableHead>
                       <TableHead 
                         className="px-3 py-2"
@@ -864,7 +864,7 @@ export default function MetricsPage() {
                           color: '#696C8C' 
                         }}
                       >
-                        Type
+                        Milestone Frequency
                       </TableHead>
                       <TableHead 
                         className="text-right px-3 py-2"
@@ -875,7 +875,18 @@ export default function MetricsPage() {
                           color: '#696C8C' 
                         }}
                       >
-                        Target Value
+                        Target
+                      </TableHead>
+                      <TableHead 
+                        className="px-3 py-2"
+                        style={{ 
+                          fontFamily: 'Poppins', 
+                          fontWeight: '500', 
+                          fontSize: '13px', 
+                          color: '#696C8C' 
+                        }}
+                      >
+                        Tags
                       </TableHead>
                       <TableHead 
                         className="text-right px-3 py-2"
@@ -925,12 +936,8 @@ export default function MetricsPage() {
                           </div>
                         </TableCell>
                         <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
-                          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                            okr.type === 'Objective' 
-                              ? 'bg-blue-100 text-blue-800' 
-                              : 'bg-green-100 text-green-800'
-                          }`}>
-                            {okr.type}
+                          <span className="text-sm">
+                            {okr.milestoneFrequency || 'Quarterly'}
                           </span>
                         </TableCell>
                         <TableCell className="text-right p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
@@ -943,6 +950,19 @@ export default function MetricsPage() {
                             }
                           </div>
                           <div className="text-xs text-gray-500 capitalize">{okr.unit}</div>
+                        </TableCell>
+                        <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
+                          <div className="flex flex-wrap gap-1">
+                            {okr.tags?.map((tag, index) => (
+                              <Badge key={index} variant="secondary" className="text-xs">
+                                {tag}
+                              </Badge>
+                            )) || (
+                              <Badge variant="secondary" className="text-xs">
+                                {tag}
+                              </Badge>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell className="text-right p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
                           <div className="flex gap-2 justify-end">
