@@ -473,6 +473,25 @@ export default function PartnerDetail() {
   // Fetch the partner data based on ID from URL
   const { data: partner, isLoading, error } = usePartnerData(id || '1');
   
+  // All useState hooks must be called before any conditional returns
+  const [isEditingDescription, setIsEditingDescription] = useState(false);
+  const [description, setDescription] = useState(partner?.description || '');
+  const [activeTab, setActiveTab] = useState("okr");
+  const [tabOrder, setTabOrder] = useState<string[]>(["okr", "opportunities", "customers"]);
+  const [tabNames, setTabNames] = useState<Record<string, string>>({
+    okr: "OKR plans",
+    opportunities: "Opportunities",
+    customers: "Customers"
+  });
+  const [isEditingTabName, setIsEditingTabName] = useState("");
+  const [editedTabName, setEditedTabName] = useState("");
+  const [selectedItems, setSelectedItems] = useState<number[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [filterOpen, setFilterOpen] = useState(false);
+  
+  const dragTab = useRef<string | null>(null);
+  const dragOverTab = useRef<string | null>(null);
+  
   // Show loading state
   if (isLoading) {
     return (
@@ -500,27 +519,6 @@ export default function PartnerDetail() {
       </div>
     );
   }
-  
-  // State for partner description editing
-  const [isEditingDescription, setIsEditingDescription] = useState(false);
-  const [description, setDescription] = useState(partner.description);
-  
-  // Tabs state
-  const [activeTab, setActiveTab] = useState("okr");
-  const [tabOrder, setTabOrder] = useState<string[]>(["okr", "opportunities", "customers"]);
-  const [tabNames, setTabNames] = useState<Record<string, string>>({
-    okr: "OKR plans",
-    opportunities: "Opportunities",
-    customers: "Customers"
-  });
-  const [isEditingTabName, setIsEditingTabName] = useState("");
-  const [editedTabName, setEditedTabName] = useState("");
-  const [selectedItems, setSelectedItems] = useState<number[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [filterOpen, setFilterOpen] = useState(false);
-  
-  const dragTab = useRef<string | null>(null);
-  const dragOverTab = useRef<string | null>(null);
   
   // Get partner data (using mock data for now)
   // Partner data already defined above using partnerDataMap[id]
