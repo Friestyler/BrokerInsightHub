@@ -651,13 +651,22 @@ function OpportunitiesTable() {
                 Export
               </Button>
               
-              <Button size="sm" className="flex items-center bg-indigo-600 hover:bg-indigo-700">
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+              <button 
+                className={`flex items-center gap-2 px-4 py-2 text-white rounded-md transition-colors font-medium text-[14px] pl-[12px] pr-[12px] ${isEditingList ? 'bg-[#8B98F9] cursor-not-allowed' : 'bg-[#5567E5] hover:bg-[#4556D4]'}`}
+                onClick={() => {
+                  if (!isEditingList) {
+                    alert("Create new opportunity functionality coming soon!");
+                  }
+                }}
+                disabled={isEditingList}
+                style={{ fontFamily: 'Poppins, sans-serif' }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="12" y1="5" x2="12" y2="19"></line>
                   <line x1="5" y1="12" x2="19" y2="12"></line>
                 </svg>
-                New
-              </Button>
+                Create new opportunity
+              </button>
             </div>
           </div>
           
