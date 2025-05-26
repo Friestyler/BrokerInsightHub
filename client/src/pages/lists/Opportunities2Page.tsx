@@ -1188,15 +1188,15 @@ function OpportunitiesTable() {
                   </div>
                 </td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{opportunity.name || `Client #${opportunity.clientId}`}</td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">Product #{opportunity.productId}</td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{opportunity.type}</td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm capitalize">{opportunity.stage}</td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{opportunity.opportunity?.name || `Product #${opportunity.productId}`}</td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{opportunity.type || 'Commercial'}</td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm capitalize">{'prospecting'}</td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
-                  <Badge variant={opportunity.status === 'Closed Won' ? 'outline' : 'secondary'} className="capitalize">
-                    {opportunity.status}
+                  <Badge variant="secondary" className="capitalize">
+                    Active
                   </Badge>
                 </td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">€{opportunity.estimatedValue.toLocaleString()}</td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">€{opportunity.estimatedValue?.toLocaleString() || '0'}</td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
                   <TemplateBadges type={opportunity.type} status={opportunity.status} />
                 </td>
