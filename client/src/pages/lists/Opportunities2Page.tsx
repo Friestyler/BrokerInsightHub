@@ -1302,12 +1302,12 @@ function OpportunitiesTable() {
                    `Client #${opportunity.clientId}`}
                 </td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
-                  {opportunity.productId === 1 ? "Property Insurance" :
-                   opportunity.productId === 3 ? "Cyber Insurance" :
-                   opportunity.productId === 4 ? "Auto Insurance" :
-                   opportunity.productId === 6 ? "Life Insurance" :
-                   opportunity.productId === 7 ? "Business Interruption" :
-                   `Product #${opportunity.productId}`}
+                  {opportunity.partnerId === 1 ? "Jeroen Hypotheek Advies" :
+                   opportunity.partnerId === 2 ? "ABC Insurance Brokers" :
+                   opportunity.partnerId === 3 ? "Global Insurance Partners" :
+                   opportunity.partnerId === 4 ? "Premier Insurance Agency" :
+                   opportunity.partnerId === 5 ? "Secure Financial Services" :
+                   opportunity.partnerId ? `Partner #${opportunity.partnerId}` : "No Partner"}
                 </td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm capitalize">
                   {opportunity.type === 'new_business' ? 'New Business' :
