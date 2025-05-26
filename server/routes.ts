@@ -726,6 +726,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Partners API endpoints
+  app.get('/api/partners', async (req, res) => {
+    try {
+      const partners = await storage.getAllCustomers(); // Partners are stored in customers table
+      
+      // Transform database records to match the frontend's expected format
+      const formattedPartners = partners.map((partner: any) => ({
+        id: partner.id,
+        name: partner.name,
+        company: partner.name, // For compatibility with existing frontend
+        initials: partner.name.split(' ').map(word => word[0]).join('').substring(0, 2).toUpperCase(),
+        industry: "Insurance", // Default value, could be enhanced later
+        partnerType: "Broker", // Default value, could be enhanced later
+        status: "active", // Default value, could be enhanced later
+        size: "medium", // Default value, could be enhanced later
+        customers: 0, // Could be calculated from relationships
+        opportunities: 0, // Could be calculated from relationships
+        location: "Various", // Default value, could be enhanced later
+        contactEmail: `contact@${partner.name.toLowerCase().replace(/\s+/g, '')}.com`,
+        primaryContact: partner.name.split(' ')[0] + " Contact",
+        description: partner.description || "Strategic business partner"
+      }));
+      
+      res.json(formattedPartners);
+    } catch (error) {
+      console.error('Error fetching partners:', error);
+      res.status(500).json({ message: 'Failed to fetch partners' });
+    }
+  });
+
   app.get('/api/opportunities/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
