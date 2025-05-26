@@ -843,7 +843,7 @@ export default function MetricsPage() {
                 </div>
                 <Table>
                   <TableHeader>
-                    <TableRow>
+                    <TableRow className="border-b" style={{ borderColor: '#E6E7F1' }}>
                       <TableHead 
                         className="px-3 py-2"
                         style={{ 
@@ -903,7 +903,7 @@ export default function MetricsPage() {
                   </TableHeader>
                   <TableBody>
                     {okrsForTag.map((okr) => (
-                      <TableRow key={okr.id} className="hover:bg-slate-50">
+                      <TableRow key={okr.id} className="hover:bg-slate-50 border-b" style={{ borderColor: '#E6E7F1' }}>
                         <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
                           <div className="flex items-center gap-1">
                             <span className="font-medium">{okr.title}</span>
