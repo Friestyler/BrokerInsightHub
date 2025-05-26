@@ -1329,10 +1329,8 @@ function OpportunitiesTable() {
                       </Avatar>
                     </div>
                     <div className="ml-3">
-                      <Link href={`/opportunities/${opportunity.id}`} className="inline-block">
-                        <div className="text-sm font-medium text-indigo-600 hover:text-indigo-800 hover:underline cursor-pointer">
-                          {opportunity.title}
-                        </div>
+                      <Link href={`/opportunities/${opportunity.id}`} className="font-medium text-gray-900 hover:text-indigo-700">
+                        {opportunity.title}
                       </Link>
                     </div>
                   </div>
