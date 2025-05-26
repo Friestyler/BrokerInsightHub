@@ -685,6 +685,69 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Opportunities API endpoints
+  app.get('/api/opportunities', async (req, res) => {
+    try {
+      const opportunities = await storage.getAllOpportunities();
+      res.json(opportunities);
+    } catch (error) {
+      console.error('Error fetching opportunities:', error);
+      res.status(500).json({ message: 'Failed to fetch opportunities' });
+    }
+  });
+
+  app.get('/api/opportunities/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const opportunity = await storage.getOpportunity(id);
+      if (!opportunity) {
+        return res.status(404).json({ message: 'Opportunity not found' });
+      }
+      res.json(opportunity);
+    } catch (error) {
+      console.error('Error fetching opportunity:', error);
+      res.status(500).json({ message: 'Failed to fetch opportunity' });
+    }
+  });
+
+  app.post('/api/opportunities', async (req, res) => {
+    try {
+      const opportunity = await storage.createOpportunity(req.body);
+      res.status(201).json(opportunity);
+    } catch (error) {
+      console.error('Error creating opportunity:', error);
+      res.status(500).json({ message: 'Failed to create opportunity' });
+    }
+  });
+
+  app.put('/api/opportunities/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const opportunity = await storage.updateOpportunity(id, req.body);
+      if (!opportunity) {
+        return res.status(404).json({ message: 'Opportunity not found' });
+      }
+      res.json(opportunity);
+    } catch (error) {
+      console.error('Error updating opportunity:', error);
+      res.status(500).json({ message: 'Failed to update opportunity' });
+    }
+  });
+
+  app.delete('/api/opportunities/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const success = await storage.deleteOpportunity(id);
+      if (!success) {
+        return res.status(404).json({ message: 'Opportunity not found' });
+      }
+      res.status(204).send();
+    } catch (error) {
+      console.error('Error deleting opportunity:', error);
+      res.status(500).json({ message: 'Failed to delete opportunity' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

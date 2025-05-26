@@ -48,10 +48,21 @@ export const clientProducts = pgTable("client_products", {
 // Opportunity model
 export const opportunities = pgTable("opportunities", {
   id: serial("id").primaryKey(),
+  title: text("title").notNull(),
   clientId: integer("client_id").notNull(),
   productId: integer("product_id").notNull(),
+  status: text("status").notNull().default("open"), // open, closed, on_hold
+  stage: text("stage").notNull().default("discovery"), // discovery, proposal, negotiation, closed
+  type: text("type").notNull().default("new_business"), // new_business, cross_sell, upsell, renewal
   probability: integer("probability").notNull(),
   estimatedValue: integer("estimated_value").notNull(),
+  ownerId: integer("owner_id").references(() => users.id),
+  partnerId: integer("partner_id").references(() => customers.id),
+  description: text("description"),
+  notes: text("notes"),
+  expectedCloseDate: timestamp("expected_close_date"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
 // Document model for file comparison
@@ -103,6 +114,27 @@ export const customerPartners = pgTable("customer_partners", {
 });
 
 // Define relationships
+export const opportunitiesRelations = relations(opportunities, ({ one }) => ({
+  client: one(clients, {
+    fields: [opportunities.clientId],
+    references: [clients.id],
+  }),
+  product: one(insuranceProducts, {
+    fields: [opportunities.productId],
+    references: [insuranceProducts.id],
+  }),
+  owner: one(users, {
+    fields: [opportunities.ownerId],
+    references: [users.id],
+    relationName: "opportunityOwner",
+  }),
+  partner: one(customers, {
+    fields: [opportunities.partnerId],
+    references: [customers.id],
+    relationName: "opportunityPartner",
+  }),
+}));
+
 export const customersRelations = relations(customers, ({ one, many }) => ({
   owner: one(users, {
     fields: [customers.ownerId],
@@ -111,6 +143,7 @@ export const customersRelations = relations(customers, ({ one, many }) => ({
   }),
   teamMembers: many(customerTeamMembers),
   partners: many(customerPartners),
+  opportunities: many(opportunities),
 }));
 
 // Insert schemas
@@ -147,10 +180,19 @@ export const insertClientProductSchema = createInsertSchema(clientProducts).pick
 });
 
 export const insertOpportunitySchema = createInsertSchema(opportunities).pick({
+  title: true,
   clientId: true,
   productId: true,
+  status: true,
+  stage: true,
+  type: true,
   probability: true,
   estimatedValue: true,
+  ownerId: true,
+  partnerId: true,
+  description: true,
+  notes: true,
+  expectedCloseDate: true,
 });
 
 export const insertDocumentSchema = createInsertSchema(documents).pick({
