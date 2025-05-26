@@ -1,6 +1,8 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
+import { opportunities, clients, insuranceProducts } from '@shared/schema';
+import { eq } from 'drizzle-orm';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
@@ -688,31 +690,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Opportunities API endpoints
   app.get('/api/opportunities', async (req, res) => {
     try {
-      const opportunities = await storage.getAllOpportunities();
-      
-      // Enrich opportunities with client and product information
-      const enrichedOpportunities = await Promise.all(
-        opportunities.map(async (opportunity) => {
-          const client = await storage.getClient(opportunity.clientId);
-          const product = await storage.getInsuranceProduct(opportunity.productId);
-          
-          return {
-            ...opportunity,
-            client: client ? {
-              id: client.id,
-              name: client.name,
-              type: client.type,
-              initials: client.initials
-            } : null,
-            product: product ? {
-              id: product.id,
-              name: product.name,
-              category: product.category
-            } : null
-          };
+      // Get opportunities with joined client and product data directly from database
+      const db = storage.getDb();
+      const enrichedOpportunities = await db
+        .select({
+          id: opportunities.id,
+          title: opportunities.title,
+          clientId: opportunities.clientId,
+          productId: opportunities.productId,
+          status: opportunities.status,
+          stage: opportunities.stage,
+          type: opportunities.type,
+          probability: opportunities.probability,
+          estimatedValue: opportunities.estimatedValue,
+          ownerId: opportunities.ownerId,
+          partnerId: opportunities.partnerId,
+          description: opportunities.description,
+          notes: opportunities.notes,
+          expectedCloseDate: opportunities.expectedCloseDate,
+          createdAt: opportunities.createdAt,
+          updatedAt: opportunities.updatedAt,
+          clientName: clients.name,
+          clientType: clients.type,
+          clientInitials: clients.initials,
+          productName: insuranceProducts.name,
+          productCategory: insuranceProducts.category
         })
-      );
-      
+        .from(opportunities)
+        .leftJoin(clients, eq(opportunities.clientId, clients.id))
+        .leftJoin(insuranceProducts, eq(opportunities.productId, insuranceProducts.id));
+
       res.json(enrichedOpportunities);
     } catch (error) {
       console.error('Error fetching opportunities:', error);
