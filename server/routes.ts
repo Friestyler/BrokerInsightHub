@@ -44,6 +44,71 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Partners Endpoints - MUST BE FIRST to avoid routing conflicts
+  app.get('/api/partners', async (req, res) => {
+    try {
+      console.log('Partners API called');
+      // Use direct database query to avoid storage method issues
+      const { db } = await import('./db');
+      const { customers } = await import('../shared/schema');
+      
+      const customerRecords = await db.select().from(customers);
+      console.log('Customers fetched from DB:', customerRecords.length);
+      
+      // Transform customers into partners format with required fields
+      const partners = customerRecords.map((customer: any) => ({
+        id: customer.id,
+        name: customer.name,
+        description: customer.description,
+        initials: customer.name.split(' ').map((word: string) => word[0]).join('').toUpperCase().slice(0, 2),
+        industry: getIndustryFromDescription(customer.description || ''),
+        type: getTypeFromDescription(customer.description || ''),
+        size: getSizeFromDescription(customer.description || ''),
+        status: customer.ownerId ? 'active' : 'inactive',
+        customers: Math.floor(Math.random() * 50) + 10,
+        opportunities: Math.floor(Math.random() * 20) + 5,
+        createdAt: customer.createdAt,
+        updatedAt: customer.updatedAt
+      }));
+      
+      console.log('Partners transformed:', partners.length);
+      res.setHeader('Content-Type', 'application/json');
+      return res.json(partners);
+    } catch (error) {
+      console.error('Error fetching partners:', error);
+      res.status(500).json({ message: 'Failed to fetch partners' });
+    }
+  });
+
+  // Helper functions to extract partner info from existing data
+  function getIndustryFromDescription(description: string): string {
+    if (!description) return 'Other';
+    const desc = description.toLowerCase();
+    if (desc.includes('insurance')) return 'Insurance';
+    if (desc.includes('mortgage') || desc.includes('hypotheek')) return 'Financial Services';
+    if (desc.includes('financial')) return 'Financial Services';
+    if (desc.includes('consulting')) return 'Consulting';
+    return 'Other';
+  }
+
+  function getTypeFromDescription(description: string): string {
+    if (!description) return 'Partner';
+    const desc = description.toLowerCase();
+    if (desc.includes('broker')) return 'Broker';
+    if (desc.includes('agency')) return 'Agency';
+    if (desc.includes('advisor')) return 'Advisor';
+    if (desc.includes('strategic')) return 'Strategic';
+    return 'Partner';
+  }
+
+  function getSizeFromDescription(description: string): string {
+    if (!description) return 'medium';
+    const desc = description.toLowerCase();
+    if (desc.includes('global') || desc.includes('enterprise')) return 'large';
+    if (desc.includes('specialized') || desc.includes('premier')) return 'small';
+    return 'medium';
+  }
+
   // News Articles Endpoints
   app.get('/api/news', async (req, res) => {
     try {
@@ -183,70 +248,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Partners Endpoints - Move this to the top to ensure it's registered first
-  app.get('/api/partners', async (req, res) => {
-    try {
-      console.log('Partners API called');
-      // Use direct database query to avoid storage method issues
-      const { db } = await import('./db');
-      const { customers } = await import('../shared/schema');
-      
-      const customerRecords = await db.select().from(customers);
-      console.log('Customers fetched from DB:', customerRecords.length);
-      
-      // Transform customers into partners format with required fields
-      const partners = customerRecords.map((customer: any) => ({
-        id: customer.id,
-        name: customer.name,
-        description: customer.description,
-        initials: customer.name.split(' ').map((word: string) => word[0]).join('').toUpperCase().slice(0, 2),
-        industry: getIndustryFromDescription(customer.description || ''),
-        type: getTypeFromDescription(customer.description || ''),
-        size: getSizeFromDescription(customer.description || ''),
-        status: customer.ownerId ? 'active' : 'inactive',
-        customers: Math.floor(Math.random() * 50) + 10,
-        opportunities: Math.floor(Math.random() * 20) + 5,
-        createdAt: customer.createdAt,
-        updatedAt: customer.updatedAt
-      }));
-      
-      console.log('Partners transformed:', partners.length);
-      res.setHeader('Content-Type', 'application/json');
-      return res.json(partners);
-    } catch (error) {
-      console.error('Error fetching partners:', error);
-      res.status(500).json({ message: 'Failed to fetch partners' });
-    }
-  });
 
-  // Helper functions to extract partner info from existing data
-  function getIndustryFromDescription(description: string): string {
-    if (!description) return 'Other';
-    const desc = description.toLowerCase();
-    if (desc.includes('insurance')) return 'Insurance';
-    if (desc.includes('mortgage') || desc.includes('hypotheek')) return 'Financial Services';
-    if (desc.includes('financial')) return 'Financial Services';
-    if (desc.includes('consulting')) return 'Consulting';
-    return 'Other';
-  }
-
-  function getTypeFromDescription(description: string): string {
-    if (!description) return 'Partner';
-    const desc = description.toLowerCase();
-    if (desc.includes('broker')) return 'Broker';
-    if (desc.includes('agency')) return 'Agency';
-    if (desc.includes('advisor')) return 'Advisor';
-    if (desc.includes('strategic')) return 'Strategic';
-    return 'Partner';
-  }
-
-  function getSizeFromDescription(description: string): string {
-    if (!description) return 'medium';
-    const desc = description.toLowerCase();
-    if (desc.includes('global') || desc.includes('enterprise')) return 'large';
-    if (desc.includes('specialized') || desc.includes('premier')) return 'small';
-    return 'medium';
-  }
 
   // Vendor Endpoints
   app.get('/api/vendors', async (req, res) => {
