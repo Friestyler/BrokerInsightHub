@@ -1177,7 +1177,7 @@ function OpportunitiesTable() {
                     <div className="flex-shrink-0 h-10 w-10">
                       <Avatar className="h-10 w-10">
                         <AvatarFallback className="bg-indigo-100 text-indigo-700 text-sm font-medium">
-                          {opportunity.title.substring(0, 2).toUpperCase()}
+                          {(opportunity.title || '').substring(0, 2).toUpperCase() || 'OP'}
                         </AvatarFallback>
                       </Avatar>
                     </div>
