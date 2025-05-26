@@ -331,6 +331,38 @@ const mockOKRs = [
     startDate: null,
     endDate: new Date('2025-06-30'),
     tag: "Revenue Growth"
+  },
+  {
+    id: 7,
+    title: "Improve Team Communication",
+    description: "Enhance internal communication processes and tools",
+    type: "Objective",
+    progress: 40,
+    targetValue: 1,
+    currentValue: 0,
+    unit: "checkbox",
+    status: "In Progress",
+    owner: "Alex Thompson",
+    dueDate: new Date('2024-09-30'),
+    startDate: new Date('2024-08-01'),
+    endDate: new Date('2024-09-30'),
+    tag: ""
+  },
+  {
+    id: 8,
+    title: "Complete Security Audit",
+    description: "Conduct comprehensive security review and implement fixes",
+    type: "Key Result",
+    progress: 20,
+    targetValue: 1,
+    currentValue: 0,
+    unit: "checkbox",
+    status: "Not Started",
+    owner: "Jordan Kim",
+    dueDate: new Date('2024-11-15'),
+    startDate: new Date('2024-10-01'),
+    endDate: new Date('2024-11-15'),
+    tag: ""
   }
 ];
 
@@ -479,13 +511,13 @@ export default function MetricsPage() {
       
       switch (groupBy) {
         case "tag":
-          groupKey = okr.tag;
+          groupKey = okr.tag || "Untagged";
           break;
         case "type":
-          groupKey = okr.type;
+          groupKey = okr.type || "No Type";
           break;
         case "status":
-          groupKey = okr.status;
+          groupKey = okr.status || "No Status";
           break;
         default:
           groupKey = "All OKRs";
@@ -498,7 +530,30 @@ export default function MetricsPage() {
       return acc;
     }, {} as Record<string, typeof mockOKRs>);
 
-    return grouped;
+    // Sort groups to put "Untagged", "No Type", "No Status" at the bottom
+    const sortedGroups: Record<string, typeof mockOKRs> = {};
+    const regularGroups: string[] = [];
+    const emptyGroups: string[] = [];
+    
+    Object.keys(grouped).forEach(key => {
+      if (key === "Untagged" || key === "No Type" || key === "No Status") {
+        emptyGroups.push(key);
+      } else {
+        regularGroups.push(key);
+      }
+    });
+    
+    // Add regular groups first (sorted alphabetically)
+    regularGroups.sort().forEach(key => {
+      sortedGroups[key] = grouped[key];
+    });
+    
+    // Add empty groups at the bottom
+    emptyGroups.forEach(key => {
+      sortedGroups[key] = grouped[key];
+    });
+
+    return sortedGroups;
   };
 
   // Clear selection
@@ -1255,11 +1310,33 @@ export default function MetricsPage() {
                 <div className="px-6 pb-0 pt-3 bg-[#ffffff] text-[#282A3F]">
                   <div className="flex items-center">
                     {groupBy === "tag" ? (
-                      <TagBadge tag={groupName} />
+                      groupName === "Untagged" ? (
+                        <div className="px-3 py-1 bg-gray-200 text-gray-600 rounded-lg text-sm font-medium border border-dashed border-gray-400">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline mr-1">
+                            <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path>
+                            <line x1="7" y1="7" x2="7.01" y2="7"></line>
+                            <line x1="18" y1="6" x2="6" y2="18"></line>
+                          </svg>
+                          {groupName}
+                        </div>
+                      ) : (
+                        <TagBadge tag={groupName} />
+                      )
                     ) : groupBy === "none" ? null : (
-                      <div className="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium">
-                        {groupName}
-                      </div>
+                      groupName.startsWith("No ") ? (
+                        <div className="px-3 py-1 bg-gray-200 text-gray-600 rounded-lg text-sm font-medium border border-dashed border-gray-400">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline mr-1">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <line x1="15" y1="9" x2="9" y2="15"></line>
+                            <line x1="9" y1="9" x2="15" y2="15"></line>
+                          </svg>
+                          {groupName}
+                        </div>
+                      ) : (
+                        <div className="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium">
+                          {groupName}
+                        </div>
+                      )
                     )}
                   </div>
                 </div>
