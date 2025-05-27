@@ -23,34 +23,43 @@ export function AdvancedTimeframeFilter({ value, onValueChange, className }: Adv
   const [endTime, setEndTime] = useState('12:00 AM');
 
   const presetOptions = [
-    { section: 'Recent', items: [
+    { section: 'Quick', items: [
       { value: 'today', label: 'Today' },
       { value: 'yesterday', label: 'Yesterday' },
-      { value: 'past-60-minutes', label: 'Past 60 minutes' },
-      { value: 'past-3-hours', label: 'Past 3 hours' },
-      { value: 'past-6-hours', label: 'Past 6 hours' },
-      { value: 'past-24-hours', label: 'Past 24 hours' },
+      { value: 'last-7-days', label: 'Last 7 days' },
+      { value: 'last-14-days', label: 'Last 14 days' },
+      { value: 'last-30-days', label: 'Last 30 days' },
+      { value: 'last-60-days', label: 'Last 60 days' },
+      { value: 'last-90-days', label: 'Last 90 days' },
     ]},
-    { section: 'Days', items: [
-      { value: 'past-7-days', label: 'Past 7 days' },
-      { value: 'past-30-days', label: 'Past 30 days' },
-      { value: 'past-90-days', label: 'Past 90 days' },
-    ]},
-    { section: 'Periods', items: [
-      { value: 'past-12-months', label: 'Past 12 months' },
+    { section: 'Months', items: [
+      { value: 'last-month', label: 'Last month' },
       { value: 'this-month', label: 'This month' },
       { value: 'next-month', label: 'Next month' },
+      { value: 'last-3-months', label: 'Last 3 months' },
+      { value: 'last-6-months', label: 'Last 6 months' },
+      { value: 'last-12-months', label: 'Last 12 months' },
+    ]},
+    { section: 'Quarters', items: [
+      { value: 'last-quarter', label: 'Last quarter' },
       { value: 'this-quarter', label: 'This quarter' },
       { value: 'next-quarter', label: 'Next quarter' },
+      { value: 'quarter-to-date', label: 'Quarter to date' },
+    ]},
+    { section: 'Years', items: [
+      { value: 'last-year', label: 'Last year' },
+      { value: 'this-year', label: 'This year' },
+      { value: 'next-year', label: 'Next year' },
       { value: 'year-to-date', label: 'Year to date' },
-      { value: 'all-time', label: 'All time' },
     ]},
     { section: 'Future', items: [
+      { value: 'next-7-days', label: 'Next 7 days' },
       { value: 'next-14-days', label: 'Next 14 days' },
       { value: 'next-30-days', label: 'Next 30 days' },
       { value: 'next-60-days', label: 'Next 60 days' },
     ]},
-    { section: 'Custom', items: [
+    { section: 'Other', items: [
+      { value: 'all-time', label: 'All time' },
       { value: 'since', label: 'Since' },
       { value: 'custom', label: 'Custom' },
     ]},
@@ -112,11 +121,9 @@ export function AdvancedTimeframeFilter({ value, onValueChange, className }: Adv
           <div className="w-56 border-r border-gray-200 max-h-96 overflow-y-auto">
             {presetOptions.map((section) => (
               <div key={section.section} className="p-2">
-                {section.section !== 'Custom' && (
-                  <div className="text-xs font-medium text-gray-500 mb-2 px-2">
-                    {section.section.toUpperCase()}
-                  </div>
-                )}
+                <div className="text-xs font-medium text-gray-500 mb-2 px-2">
+                  {section.section.toUpperCase()}
+                </div>
                 <div className="space-y-1">
                   {section.items.map((item) => (
                     <button
