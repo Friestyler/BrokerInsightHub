@@ -2495,7 +2495,7 @@ export default function MetricsPage() {
           <DialogHeader className="pb-6">
             <DialogTitle className="text-xl font-semibold text-gray-900">
               {isEditing ? `Edit "${editingOKR?.title}"` : 
-               isCreatingActivity ? `Add Activity to "${parentObjective?.title}"` : "Create OKR Template"}
+               isCreatingActivity ? `Add Activity to "${parentObjective?.title}"` : "Create OKR template"}
             </DialogTitle>
             <DialogDescription className="text-sm text-gray-600 mt-1">
               {isEditing 
