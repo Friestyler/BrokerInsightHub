@@ -1083,7 +1083,7 @@ export default function MetricsPage() {
     if (!formData.name.trim()) return;
     
     const newOKR = {
-      id: Math.max(...okrTemplates.map(o => o.id)) + 1,
+      id: okrTemplates.length > 0 ? Math.max(...okrTemplates.map(o => o.id)) + 1 : 1,
       title: formData.name,
       description: formData.description,
       type: "Objective",
