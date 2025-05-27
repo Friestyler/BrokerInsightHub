@@ -2677,86 +2677,6 @@ export default function MetricsPage() {
               </div>
             </div>
 
-            {/* Activities Section - Only show when creating objectives */}
-            {!isCreatingActivity && (
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-gray-900">Activities</h3>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setFormData(prev => ({
-                        ...prev,
-                        activities: [...prev.activities, { name: "", description: "" }]
-                      }));
-                    }}
-                    className="text-xs"
-                  >
-                    Add Activity
-                  </Button>
-                </div>
-                <div className="text-xs text-gray-600 bg-blue-50 p-3 rounded-md">
-                  Activities break down your objective into specific actionable tasks. They inherit the same tag as the objective and help track progress toward achieving the overall goal.
-                </div>
-                
-                {formData.activities.length > 0 && (
-                  <div className="space-y-3 max-h-48 overflow-y-auto">
-                    {formData.activities.map((activity, index) => (
-                      <div key={index} className="border rounded-md p-3 space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm font-medium text-gray-700">Activity {index + 1}</span>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => {
-                              setFormData(prev => ({
-                                ...prev,
-                                activities: prev.activities.filter((_, i) => i !== index)
-                              }));
-                            }}
-                            className="h-6 w-6 p-0 text-gray-400 hover:text-red-500"
-                          >
-                            ×
-                          </Button>
-                        </div>
-                        <input
-                          type="text"
-                          placeholder="Activity name"
-                          value={activity.name}
-                          onChange={(e) => {
-                            setFormData(prev => ({
-                              ...prev,
-                              activities: prev.activities.map((act, i) => 
-                                i === index ? { ...act, name: e.target.value } : act
-                              )
-                            }));
-                          }}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                        />
-                        <textarea
-                          placeholder="Activity description (optional)"
-                          value={activity.description}
-                          onChange={(e) => {
-                            setFormData(prev => ({
-                              ...prev,
-                              activities: prev.activities.map((act, i) => 
-                                i === index ? { ...act, description: e.target.value } : act
-                              )
-                            }));
-                          }}
-                          className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
-                          rows={2}
-                        />
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
-
             {/* Configuration Options */}
             <div className="space-y-4">
               <h3 className="text-sm font-semibold text-gray-900">Configuration Options</h3>
@@ -2913,6 +2833,86 @@ export default function MetricsPage() {
               </div>
             </div>
           </div>
+
+          {/* Activities Section - Only show when creating objectives, positioned at the bottom */}
+          {!isCreatingActivity && (
+            <div className="space-y-4 pt-6 border-t border-gray-200">
+              <div className="flex items-center justify-between">
+                <h3 className="text-sm font-semibold text-gray-900">Activities</h3>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setFormData(prev => ({
+                      ...prev,
+                      activities: [...prev.activities, { name: "", description: "" }]
+                    }));
+                  }}
+                  className="text-xs"
+                >
+                  Add Activity
+                </Button>
+              </div>
+              <div className="text-xs text-gray-600 bg-blue-50 p-3 rounded-md">
+                Activities break down your objective into specific actionable tasks. They inherit the same tag as the objective and help track progress toward achieving the overall goal.
+              </div>
+              
+              {formData.activities.length > 0 && (
+                <div className="space-y-3 max-h-48 overflow-y-auto">
+                  {formData.activities.map((activity, index) => (
+                    <div key={index} className="border rounded-md p-3 space-y-2">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-gray-700">Activity {index + 1}</span>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setFormData(prev => ({
+                              ...prev,
+                              activities: prev.activities.filter((_, i) => i !== index)
+                            }));
+                          }}
+                          className="h-6 w-6 p-0 text-gray-400 hover:text-red-500"
+                        >
+                          ×
+                        </Button>
+                      </div>
+                      <input
+                        type="text"
+                        placeholder="Activity name"
+                        value={activity.name}
+                        onChange={(e) => {
+                          setFormData(prev => ({
+                            ...prev,
+                            activities: prev.activities.map((act, i) => 
+                              i === index ? { ...act, name: e.target.value } : act
+                            )
+                          }));
+                        }}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                      />
+                      <textarea
+                        placeholder="Activity description (optional)"
+                        value={activity.description}
+                        onChange={(e) => {
+                          setFormData(prev => ({
+                            ...prev,
+                            activities: prev.activities.map((act, i) => 
+                              i === index ? { ...act, description: e.target.value } : act
+                            )
+                          }));
+                        }}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                        rows={2}
+                      />
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
           
           <DialogFooter className="pt-6 border-t flex justify-between">
             <Button 
