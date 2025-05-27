@@ -2082,17 +2082,7 @@ export default function MetricsPage() {
                           }}
                         />
                       </TableHead>
-                      <TableHead 
-                        className="px-3 py-2 w-[70px]"
-                        style={{ 
-                          fontFamily: 'Poppins', 
-                          fontWeight: '500', 
-                          fontSize: '13px', 
-                          color: '#696C8C' 
-                        }}
-                      >
-                        Type
-                      </TableHead>
+
                       <TableHead 
                         className="px-3 py-2 min-w-[300px]"
                         style={{ 
@@ -2198,12 +2188,7 @@ export default function MetricsPage() {
                             )}
                           </div>
                         </TableCell>
-                        {/* Type Column */}
-                        <TableCell className="px-1 py-3">
-                          <span className="inline-flex items-center text-xs font-medium text-gray-600">
-                            {okr.hierarchy === 'objective' ? 'Objective' : okr.hierarchy === 'activity' ? 'Activity' : 'Subactivity'}
-                          </span>
-                        </TableCell>
+
                         
                         {/* Name Column */}
                         <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
