@@ -1859,155 +1859,338 @@ export default function MetricsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {okrsInGroup.map((okr) => (
-                      <TableRow key={okr.id} className="hover:bg-[#F5F6FA] border-b group" style={{ borderColor: '#E6E7F1' }}>
-                        <TableCell className="w-12 px-3 py-3">
-                          <input
-                            type="checkbox"
-                            checked={selectedOKRs.includes(okr.id)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setSelectedOKRs(prev => [...prev, okr.id]);
-                              } else {
-                                setSelectedOKRs(prev => prev.filter(id => id !== okr.id));
-                              }
-                            }}
-                            className="rounded border-gray-300 opacity-0 group-hover:opacity-100 transition-opacity"
-                            style={{ opacity: selectedOKRs.includes(okr.id) ? 1 : undefined }}
-                          />
-                        </TableCell>
-                        <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
-                          <div className="flex items-center" style={{ paddingLeft: `${(okr.level || 0) * 24}px` }}>
-                            {/* Expand/Collapse button for objectives and activities with children */}
-                            {(okr.hierarchy === 'objective' || okr.hierarchy === 'activity') && okr.nestedCount > 0 && (
-                              <button
-                                onClick={() => toggleExpansion(okr.id)}
-                                className="mr-2 p-1 hover:bg-gray-100 rounded"
-                              >
-                                {okr.isExpanded ? (
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="m6 9 6 6 6-6"/>
-                                  </svg>
-                                ) : (
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="m9 18 6-6-6-6"/>
-                                  </svg>
-                                )}
-                              </button>
-                            )}
+                    {(() => {
+                      // Special handling for Revenue Growth tag to show hierarchical layout
+                      if (groupName === "Revenue Growth") {
+                        // Build hierarchical structure for Revenue Growth
+                        const buildHierarchy = (items) => {
+                          const roots = items.filter(item => !item.parent || item.hierarchy === 'objective');
+                          const result = [];
+                          
+                          const addChildren = (parent, level = 0) => {
+                            result.push({ ...parent, level, isVisible: level === 0 || expandedItems.includes(parent.parent || 0) });
                             
-                            <span className="font-medium">{okr.title}</span>
+                            const children = items.filter(item => item.parent === parent.id);
+                            children.forEach(child => addChildren(child, level + 1));
+                          };
+                          
+                          roots.forEach(root => addChildren(root));
+                          return result;
+                        };
+                        
+                        const hierarchicalOkrs = buildHierarchy(okrsInGroup);
+                        
+                        return hierarchicalOkrs
+                          .filter(okr => okr.isVisible)
+                          .map((okr) => {
+                            const hasChildren = okrsInGroup.some(item => item.parent === okr.id);
+                            const childrenCount = okrsInGroup.filter(item => item.parent === okr.id).length;
+                            const isExpanded = expandedItems.includes(okr.id);
                             
-                            {/* Nested count icon with count */}
-                            {okr.nestedCount > 0 && (
-                              <div className="flex items-center ml-2">
-                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-gray-400">
-                                  <circle cx="5" cy="5" r="3" stroke="currentColor" strokeWidth="1" fill="none"/>
-                                  <circle cx="11" cy="11" r="3" stroke="currentColor" strokeWidth="1" fill="none"/>
-                                  <line x1="7.5" y1="7.5" x2="8.5" y2="8.5" stroke="currentColor" strokeWidth="1"/>
-                                </svg>
-                                <span className="text-xs text-gray-500 ml-1">{okr.nestedCount}</span>
+                            return (
+                              <TableRow key={okr.id} className="hover:bg-[#F5F6FA] border-b group" style={{ borderColor: '#E6E7F1' }}>
+                                <TableCell className="w-12 px-3 py-3">
+                                  <input
+                                    type="checkbox"
+                                    checked={selectedOKRs.includes(okr.id)}
+                                    onChange={(e) => {
+                                      if (e.target.checked) {
+                                        setSelectedOKRs(prev => [...prev, okr.id]);
+                                      } else {
+                                        setSelectedOKRs(prev => prev.filter(id => id !== okr.id));
+                                      }
+                                    }}
+                                    className="rounded border-gray-300 opacity-0 group-hover:opacity-100 transition-opacity"
+                                    style={{ opacity: selectedOKRs.includes(okr.id) ? 1 : undefined }}
+                                  />
+                                </TableCell>
+                                <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
+                                  <div className="flex items-center" style={{ paddingLeft: `${okr.level * 24}px` }}>
+                                    {/* Hierarchical indicators */}
+                                    {okr.level > 0 && (
+                                      <div className="flex items-center mr-2">
+                                        {/* Connection lines */}
+                                        <div className="w-4 h-4 border-l-2 border-b-2 border-gray-300 mr-2"></div>
+                                      </div>
+                                    )}
+                                    
+                                    {/* Expand/Collapse button for items with children */}
+                                    {hasChildren && (
+                                      <button
+                                        onClick={() => toggleExpansion(okr.id)}
+                                        className="mr-2 p-1 hover:bg-gray-100 rounded flex items-center"
+                                      >
+                                        {isExpanded ? (
+                                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="m6 9 6 6 6-6"/>
+                                          </svg>
+                                        ) : (
+                                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                            <path d="m9 18 6-6-6-6"/>
+                                          </svg>
+                                        )}
+                                      </button>
+                                    )}
+                                    
+                                    {/* Hierarchy type indicator */}
+                                    <div className="flex items-center mr-3">
+                                      {okr.hierarchy === 'objective' && (
+                                        <div className="w-3 h-3 bg-indigo-500 rounded-full mr-2"></div>
+                                      )}
+                                      {okr.hierarchy === 'activity' && (
+                                        <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                                      )}
+                                      {okr.hierarchy === 'subactivity' && (
+                                        <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                                      )}
+                                    </div>
+                                    
+                                    <div className="flex flex-col">
+                                      <span className={`font-medium ${okr.hierarchy === 'objective' ? 'text-lg' : okr.hierarchy === 'activity' ? 'text-base' : 'text-sm'}`}>
+                                        {okr.title}
+                                      </span>
+                                      {hasChildren && (
+                                        <span className="text-xs text-gray-500 mt-1">
+                                          {childrenCount} {childrenCount === 1 ? 'item' : 'items'}
+                                        </span>
+                                      )}
+                                    </div>
+                                  </div>
+                                  
+                                  {/* Hamburger menu icon */}
+                                  <TooltipProvider>
+                                    <Tooltip>
+                                      <TooltipTrigger asChild>
+                                        <svg 
+                                          xmlns="http://www.w3.org/2000/svg" 
+                                          width="14" 
+                                          height="8" 
+                                          viewBox="0 0 14 8" 
+                                          fill="none" 
+                                          className="text-gray-400 hover:text-gray-600 cursor-help flex-shrink-0"
+                                          style={{ minWidth: '14px', minHeight: '8px', marginLeft: '4px' }}
+                                        >
+                                          <rect width="14" height="1" fill="currentColor"/>
+                                          <rect y="3.5" width="14" height="1" fill="currentColor"/>
+                                          <rect y="7" width="7" height="1" fill="currentColor"/>
+                                        </svg>
+                                      </TooltipTrigger>
+                                      <TooltipContent>
+                                        <p className="max-w-xs">{okr.description}</p>
+                                      </TooltipContent>
+                                    </Tooltip>
+                                  </TooltipProvider>
+                                </TableCell>
+                                <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
+                                  <span className="text-sm">
+                                    {(() => {
+                                      const formatDate = (date: Date) => {
+                                        return date.toLocaleDateString('en-US', { 
+                                          month: 'short', 
+                                          day: 'numeric', 
+                                          year: 'numeric' 
+                                        });
+                                      };
+                                      
+                                      if (okr.startDate && okr.endDate) {
+                                        return `${formatDate(okr.startDate)} - ${formatDate(okr.endDate)}`;
+                                      } else if (okr.startDate) {
+                                        return `From ${formatDate(okr.startDate)}`;
+                                      } else if (okr.endDate) {
+                                        return `Until ${formatDate(okr.endDate)}`;
+                                      }
+                                      return 'Ongoing';
+                                    })()}
+                                  </span>
+                                </TableCell>
+                                <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
+                                  <span className="text-sm">
+                                    {okr.milestoneFrequency || 'Quarterly'}
+                                  </span>
+                                </TableCell>
+                                <TableCell className="text-right p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
+                                  <div className="font-medium">
+                                    {okr.unit === 'currency' 
+                                      ? `$${(okr.targetValue / 1000000).toFixed(1)}M`
+                                      : okr.unit === 'percentage'
+                                      ? `${okr.targetValue}%`
+                                      : okr.targetValue.toString()
+                                    }
+                                  </div>
+                                </TableCell>
+                                <TableCell className="text-right p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                          <circle cx="12" cy="12" r="1" />
+                                          <circle cx="12" cy="5" r="1" />
+                                          <circle cx="12" cy="19" r="1" />
+                                        </svg>
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                      <DropdownMenuItem>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                                          <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                                          <path d="m15 5 4 4"/>
+                                        </svg>
+                                        Edit OKR
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem>
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                                          <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+                                          <rect width="8" height="4" x="8" y="2" rx="1" ry="1"/>
+                                        </svg>
+                                        Duplicate
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem className="text-red-600">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                                          <path d="M3 6h18"/>
+                                          <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                                          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                                        </svg>
+                                        Delete
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                </TableCell>
+                              </TableRow>
+                            );
+                          });
+                      } else {
+                        // Default layout for other tags (like Product Innovation)
+                        return okrsInGroup.map((okr) => (
+                          <TableRow key={okr.id} className="hover:bg-[#F5F6FA] border-b group" style={{ borderColor: '#E6E7F1' }}>
+                            <TableCell className="w-12 px-3 py-3">
+                              <input
+                                type="checkbox"
+                                checked={selectedOKRs.includes(okr.id)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setSelectedOKRs(prev => [...prev, okr.id]);
+                                  } else {
+                                    setSelectedOKRs(prev => prev.filter(id => id !== okr.id));
+                                  }
+                                }}
+                                className="rounded border-gray-300 opacity-0 group-hover:opacity-100 transition-opacity"
+                                style={{ opacity: selectedOKRs.includes(okr.id) ? 1 : undefined }}
+                              />
+                            </TableCell>
+                            <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
+                              <div className="flex items-center" style={{ paddingLeft: `${(okr.level || 0) * 24}px` }}>
+                                <span className="font-medium">{okr.title}</span>
+                                
+                                {/* Hamburger menu icon */}
+                                <TooltipProvider>
+                                  <Tooltip>
+                                    <TooltipTrigger asChild>
+                                      <svg 
+                                        xmlns="http://www.w3.org/2000/svg" 
+                                        width="14" 
+                                        height="8" 
+                                        viewBox="0 0 14 8" 
+                                        fill="none" 
+                                        className="text-gray-400 hover:text-gray-600 cursor-help flex-shrink-0 ml-1"
+                                        style={{ minWidth: '14px', minHeight: '8px', marginLeft: '4px' }}
+                                      >
+                                        <rect width="14" height="1" fill="currentColor"/>
+                                        <rect y="3.5" width="14" height="1" fill="currentColor"/>
+                                        <rect y="7" width="7" height="1" fill="currentColor"/>
+                                      </svg>
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                      <p className="max-w-xs">{okr.description}</p>
+                                    </TooltipContent>
+                                  </Tooltip>
+                                </TooltipProvider>
                               </div>
-                            )}
-                            
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <svg 
-                                    xmlns="http://www.w3.org/2000/svg" 
-                                    width="14" 
-                                    height="8" 
-                                    viewBox="0 0 14 8" 
-                                    fill="none" 
-                                    className="text-gray-400 hover:text-gray-600 cursor-help flex-shrink-0"
-                                    style={{ minWidth: '14px', minHeight: '8px', marginLeft: '4px' }}
-                                  >
-                                    <rect width="14" height="1" fill="currentColor"/>
-                                    <rect y="3.5" width="14" height="1" fill="currentColor"/>
-                                    <rect y="7" width="7" height="1" fill="currentColor"/>
-                                  </svg>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p className="max-w-xs">{okr.description}</p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          </div>
-                        </TableCell>
-                        <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
-                          <span className="text-sm">
-                            {(() => {
-                              const formatDate = (date: Date) => {
-                                return date.toLocaleDateString('en-US', { 
-                                  month: 'short', 
-                                  day: 'numeric', 
-                                  year: 'numeric' 
-                                });
-                              };
-                              
-                              if (okr.startDate && okr.endDate) {
-                                return `${formatDate(okr.startDate)} - ${formatDate(okr.endDate)}`;
-                              } else if (okr.startDate) {
-                                return `From ${formatDate(okr.startDate)}`;
-                              } else if (okr.endDate) {
-                                return `Until ${formatDate(okr.endDate)}`;
-                              }
-                              return 'Ongoing';
-                            })()}
-                          </span>
-                        </TableCell>
-                        <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
-                          <span className="text-sm">
-                            {okr.milestoneFrequency || 'Quarterly'}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-right p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
-                          <div className="font-medium">
-                            {okr.unit === 'currency' 
-                              ? `$${(okr.targetValue / 1000000).toFixed(1)}M`
-                              : okr.unit === 'percentage'
-                              ? `${okr.targetValue}%`
-                              : okr.targetValue.toString()
-                            }
-                          </div>
-                        </TableCell>
-
-                        <TableCell className="text-right p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <circle cx="12" cy="12" r="1" />
-                                  <circle cx="12" cy="5" r="1" />
-                                  <circle cx="12" cy="19" r="1" />
-                                </svg>
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                                  <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
-                                  <path d="m15 5 4 4"/>
-                                </svg>
-                                Edit
-                              </DropdownMenuItem>
-                              <DropdownMenuItem>
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                                  <circle cx="9" cy="7" r="4" />
-                                  <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-                                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                                </svg>
-                                Assign
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                    </TableBody>
+                            </TableCell>
+                            <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
+                              <span className="text-sm">
+                                {(() => {
+                                  const formatDate = (date: Date) => {
+                                    return date.toLocaleDateString('en-US', { 
+                                      month: 'short', 
+                                      day: 'numeric', 
+                                      year: 'numeric' 
+                                    });
+                                  };
+                                  
+                                  if (okr.startDate && okr.endDate) {
+                                    return `${formatDate(okr.startDate)} - ${formatDate(okr.endDate)}`;
+                                  } else if (okr.startDate) {
+                                    return `From ${formatDate(okr.startDate)}`;
+                                  } else if (okr.endDate) {
+                                    return `Until ${formatDate(okr.endDate)}`;
+                                  }
+                                  return 'Ongoing';
+                                })()}
+                              </span>
+                            </TableCell>
+                            <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
+                              <span className="text-sm">
+                                {okr.milestoneFrequency || 'Quarterly'}
+                              </span>
+                            </TableCell>
+                            <TableCell className="text-right p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
+                              <div className="font-medium">
+                                {okr.unit === 'currency' 
+                                  ? `$${(okr.targetValue / 1000000).toFixed(1)}M`
+                                  : okr.unit === 'percentage'
+                                  ? `${okr.targetValue}%`
+                                  : okr.targetValue.toString()
+                                }
+                              </div>
+                            </TableCell>
+                            <TableCell className="text-right p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <circle cx="12" cy="12" r="1" />
+                                      <circle cx="12" cy="5" r="1" />
+                                      <circle cx="12" cy="19" r="1" />
+                                    </svg>
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                                      <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                                      <path d="m15 5 4 4"/>
+                                    </svg>
+                                    Edit OKR
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                                      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+                                      <rect width="8" height="4" x="8" y="2" rx="1" ry="1"/>
+                                    </svg>
+                                    Duplicate
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem className="text-red-600">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                                      <path d="M3 6h18"/>
+                                      <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                                      <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                                    </svg>
+                                    Delete
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+                        ));
+                      }
+                    })()}
+                  </TableBody>
                   </Table>
                 </div>
+              </div>
+            );
+          })}
+        </TabsContent>
               </div>
             );
           })}
