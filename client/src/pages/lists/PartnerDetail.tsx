@@ -1820,20 +1820,12 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                         {/* Name Column with hierarchy and description icons */}
                         <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
                           <div className="flex items-center w-full">
-                            {/* Indentation for nested items */}
-                            {okr.title === "New Customers" && (
-                              <div style={{ width: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <div style={{ width: '2px', height: '16px', backgroundColor: '#E5E7EB', marginRight: '8px' }}></div>
-                              </div>
-                            )}
-                            
                             <span 
                               className="text-[#282A3F]"
                               style={{ 
                                 fontFamily: 'Poppins', 
-                                fontWeight: okr.title === "New Customers" ? '400' : '500', 
-                                fontSize: '14px',
-                                color: okr.title === "New Customers" ? '#6B7280' : '#282A3F'
+                                fontWeight: '500', 
+                                fontSize: '14px' 
                               }}
                             >
                               {okr.title}
@@ -1861,6 +1853,7 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                                 fill="none" 
                                 className="text-gray-400 hover:text-gray-600 cursor-help flex-shrink-0"
                                 style={{ minWidth: '14px', minHeight: '8px', marginLeft: '4px' }}
+                                title={okr.description}
                               >
                                 <rect width="14" height="1" fill="currentColor"/>
                                 <rect y="3.5" width="14" height="1" fill="currentColor"/>
