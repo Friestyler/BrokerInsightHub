@@ -1801,7 +1801,7 @@ export default function MetricsPage() {
                         />
                       </TableHead>
                       <TableHead 
-                        className="px-3 py-2 min-w-[250px]"
+                        className="px-3 py-2 min-w-[80px]"
                         style={{ 
                           fontFamily: 'Poppins', 
                           fontWeight: '500', 
@@ -1809,7 +1809,18 @@ export default function MetricsPage() {
                           color: '#696C8C' 
                         }}
                       >
-                        OKR
+                        Type
+                      </TableHead>
+                      <TableHead 
+                        className="px-3 py-2 min-w-[300px]"
+                        style={{ 
+                          fontFamily: 'Poppins', 
+                          fontWeight: '500', 
+                          fontSize: '13px', 
+                          color: '#696C8C' 
+                        }}
+                      >
+                        Name
                       </TableHead>
                       <TableHead 
                         className="px-3 py-2 min-w-[120px]"
@@ -1876,6 +1887,20 @@ export default function MetricsPage() {
                             style={{ opacity: selectedOKRs.includes(okr.id) ? 1 : undefined }}
                           />
                         </TableCell>
+                        {/* Type Column */}
+                        <TableCell className="px-3 py-3">
+                          <span className={`inline-flex items-center text-xs font-medium ${
+                            okr.hierarchy === 'objective' 
+                              ? 'text-indigo-700' 
+                              : okr.hierarchy === 'activity'
+                              ? 'text-blue-700'
+                              : 'text-gray-600'
+                          }`}>
+                            {okr.hierarchy === 'objective' ? 'Objective' : okr.hierarchy === 'activity' ? 'Activity' : 'Task'}
+                          </span>
+                        </TableCell>
+                        
+                        {/* Name Column */}
                         <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
                           <div className="flex items-center gap-3 w-full">
                             {/* Expand/collapse for items with children - simple disclosure triangle */}
@@ -1898,42 +1923,24 @@ export default function MetricsPage() {
                               <div className="w-6"></div>
                             )}
                             
-                            <div className="flex items-center gap-3 flex-1">
-                              {/* Typography-based hierarchy */}
-                              <div className="flex flex-col gap-0.5">
-                                <div className="flex items-center gap-2">
-                                  <span className={`${
-                                    okr.hierarchy === 'objective' 
-                                      ? 'font-semibold text-gray-900 text-sm' 
-                                      : okr.hierarchy === 'activity'
-                                      ? 'font-medium text-gray-800 text-sm'
-                                      : 'font-normal text-gray-700 text-sm'
-                                  }`}>
-                                    {okr.title}
-                                  </span>
-                                  
-                                  {/* Small type indicator - subtle like Jira */}
-                                  <span className={`px-1.5 py-0.5 rounded text-xs font-medium uppercase tracking-wide ${
-                                    okr.hierarchy === 'objective' 
-                                      ? 'bg-purple-50 text-purple-600 border border-purple-200' 
-                                      : okr.hierarchy === 'activity'
-                                      ? 'bg-blue-50 text-blue-600 border border-blue-200'
-                                      : 'bg-gray-50 text-gray-600 border border-gray-200'
-                                  }`}>
-                                    {okr.hierarchy === 'objective' ? 'Objective' : okr.hierarchy === 'activity' ? 'Activity' : 'Task'}
-                                  </span>
+                            <div className="flex flex-col gap-1 flex-1">
+                              {/* Title with typography hierarchy */}
+                              <span className={`${
+                                okr.hierarchy === 'objective' 
+                                  ? 'font-semibold text-gray-900 text-sm' 
+                                  : okr.hierarchy === 'activity'
+                                  ? 'font-medium text-gray-800 text-sm'
+                                  : 'font-normal text-gray-700 text-sm'
+                              }`}>
+                                {okr.title}
+                              </span>
+                              
+                              {/* Parent context - clean and subtle */}
+                              {okr.hierarchy !== 'objective' && (
+                                <div className="text-xs text-gray-500">
+                                  <span className="text-gray-400">↳</span> {filteredOKRs.find(o => o.id === okr.parent)?.title}
                                 </div>
-                                
-                                {/* Parent context - only for non-objectives */}
-                                {okr.hierarchy !== 'objective' && (
-                                  <div className="text-xs text-gray-500">
-                                    {okr.hierarchy === 'activity' ? 'Part of' : 'Task in'}{' '}
-                                    <span className="font-medium text-gray-600">
-                                      {filteredOKRs.find(o => o.id === okr.parent)?.title}
-                                    </span>
-                                  </div>
-                                )}
-                              </div>
+                              )}
                             </div>
                             
                             {/* Nested count icon with count */}
