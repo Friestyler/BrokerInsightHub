@@ -1359,7 +1359,7 @@ export default function MetricsPage() {
                           word.charAt(0).toUpperCase() + word.slice(1)
                         ).join(' ')
                       ) : (
-                        "Select timeframe"
+                        "Select timeframe 1"
                       )}
                     </Button>
                   </PopoverTrigger>
