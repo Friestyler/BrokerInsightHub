@@ -2530,6 +2530,9 @@ export default function MetricsPage() {
               </Select>
             </div>
 
+            {/* Divider */}
+            <div className="border-t border-gray-200"></div>
+
             {/* Tag Field - Only show when creating objectives */}
             {!isCreatingActivity && (
               <div className="space-y-2">
