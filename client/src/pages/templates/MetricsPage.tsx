@@ -1469,7 +1469,7 @@ export default function MetricsPage() {
             </div>
             
             <div className="flex items-center gap-2">
-              {(selectedTags.length > 0 || searchTerm || selectedMeasureUnit || selectedTargetRange || dateRange.from || dateRange.to) && (
+              {(selectedTags.length > 0 || searchTerm || selectedMeasureUnit || selectedTargetRange || selectedTimeframe || dateRange.from || dateRange.to) && (
                 <div className="flex items-center gap-2">
                   <button 
                     className="flex items-center rounded-md px-4 py-2 text-gray-600 hover:bg-gray-100"
