@@ -1705,53 +1705,86 @@ function PartnersTable() {
                     </label>
                   </div>
 
-                  {/* Individual Template Items */}
-                  {okrTemplatesData.map((template) => (
-                    <div key={template.id} className="flex items-start p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
-                      <input
-                        type="checkbox"
-                        id={`template-${template.id}`}
-                        checked={selectedOKRTemplates.includes(template.id)}
-                        onChange={() => {
-                          if (selectedOKRTemplates.includes(template.id)) {
-                            setSelectedOKRTemplates(selectedOKRTemplates.filter(id => id !== template.id));
-                          } else {
-                            setSelectedOKRTemplates([...selectedOKRTemplates, template.id]);
-                          }
-                        }}
-                        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 mt-1"
-                      />
-                      <div className="ml-3 flex-1">
-                        <div className="flex items-center gap-2 mb-1">
-                          <label htmlFor={`template-${template.id}`} className="font-medium text-gray-900 cursor-pointer">
-                            {template.title}
-                          </label>
-                          <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-full">
-                            {template.type}
+                  {/* Template Items Grouped by Tag */}
+                  {(() => {
+                    // Group templates by tag, same as Coming Soon tab
+                    const groupedTemplates = okrTemplatesData.reduce((groups: Record<string, any[]>, template: any) => {
+                      const tag = template.tag || 'No Tag';
+                      if (!groups[tag]) groups[tag] = [];
+                      groups[tag].push(template);
+                      return groups;
+                    }, {});
+
+                    // Sort groups by tag name, with "No Tag" at the end
+                    const sortedGroups = Object.entries(groupedTemplates).sort(([a], [b]) => {
+                      if (a === 'No Tag') return 1;
+                      if (b === 'No Tag') return -1;
+                      return a.localeCompare(b);
+                    });
+
+                    return sortedGroups.map(([tag, templates]) => (
+                      <div key={tag} className="space-y-3">
+                        {/* Tag Group Header */}
+                        <div className="flex items-center gap-2 pt-3 pb-2 first:pt-0">
+                          <div className="h-px bg-gray-200 flex-1"></div>
+                          <span className="px-3 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full">
+                            {tag} ({templates.length})
                           </span>
-                          {template.tag && (
-                            <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full">
-                              {template.tag}
-                            </span>
-                          )}
+                          <div className="h-px bg-gray-200 flex-1"></div>
                         </div>
-                        {template.description && (
-                          <p className="text-sm text-gray-600 mb-2">{template.description}</p>
-                        )}
-                        <div className="flex items-center gap-4 text-xs text-gray-500">
-                          {template.unit && (
-                            <span>📊 {template.unit}</span>
-                          )}
-                          {template.targetValue && (
-                            <span>🎯 Target: {template.targetValue}</span>
-                          )}
-                          {template.startDate && template.endDate && (
-                            <span>📅 {new Date(template.startDate).toLocaleDateString()} - {new Date(template.endDate).toLocaleDateString()}</span>
-                          )}
+                        
+                        {/* Templates in this group */}
+                        <div className="space-y-3">
+                          {templates.map((template: any) => (
+                            <div key={template.id} className="flex items-start p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                              <input
+                                type="checkbox"
+                                id={`template-${template.id}`}
+                                checked={selectedOKRTemplates.includes(template.id)}
+                                onChange={() => {
+                                  if (selectedOKRTemplates.includes(template.id)) {
+                                    setSelectedOKRTemplates(selectedOKRTemplates.filter(id => id !== template.id));
+                                  } else {
+                                    setSelectedOKRTemplates([...selectedOKRTemplates, template.id]);
+                                  }
+                                }}
+                                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 mt-1"
+                              />
+                              <div className="ml-3 flex-1">
+                                <div className="flex items-center gap-2 mb-1">
+                                  <label htmlFor={`template-${template.id}`} className="font-medium text-gray-900 cursor-pointer">
+                                    {template.title}
+                                  </label>
+                                  <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-full">
+                                    {template.type}
+                                  </span>
+                                  {template.tag && (
+                                    <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full">
+                                      {template.tag}
+                                    </span>
+                                  )}
+                                </div>
+                                {template.description && (
+                                  <p className="text-sm text-gray-600 mb-2">{template.description}</p>
+                                )}
+                                <div className="flex items-center gap-4 text-xs text-gray-500">
+                                  {template.unit && (
+                                    <span>📊 {template.unit}</span>
+                                  )}
+                                  {template.targetValue && (
+                                    <span>🎯 Target: {template.targetValue}</span>
+                                  )}
+                                  {template.startDate && template.endDate && (
+                                    <span>📅 {new Date(template.startDate).toLocaleDateString()} - {new Date(template.endDate).toLocaleDateString()}</span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
                         </div>
                       </div>
-                    </div>
-                  ))}
+                    ));
+                  })()}
                 </div>
               )}
             </div>
