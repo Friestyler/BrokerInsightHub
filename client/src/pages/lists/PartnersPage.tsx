@@ -1741,9 +1741,46 @@ function PartnersTable() {
                                 checked={selectedOKRTemplates.includes(template.id)}
                                 onChange={() => {
                                   if (selectedOKRTemplates.includes(template.id)) {
-                                    setSelectedOKRTemplates(selectedOKRTemplates.filter(id => id !== template.id));
+                                    // Deselecting - remove this item and any dependents
+                                    const toRemove = new Set([template.id]);
+                                    
+                                    // If removing an Objective, also remove its Activities and Subactivities
+                                    if (template.type === 'Objective') {
+                                      okrTemplatesData.forEach(t => {
+                                        if (t.parentId === template.id || 
+                                            (t.parentId && okrTemplatesData.find(p => p.id === t.parentId && p.parentId === template.id))) {
+                                          toRemove.add(t.id);
+                                        }
+                                      });
+                                    }
+                                    // If removing an Activity, also remove its Subactivities
+                                    else if (template.type === 'Activity') {
+                                      okrTemplatesData.forEach(t => {
+                                        if (t.parentId === template.id) {
+                                          toRemove.add(t.id);
+                                        }
+                                      });
+                                    }
+                                    
+                                    setSelectedOKRTemplates(selectedOKRTemplates.filter(id => !toRemove.has(id)));
                                   } else {
-                                    setSelectedOKRTemplates([...selectedOKRTemplates, template.id]);
+                                    // Selecting - add this item and required parents
+                                    const toAdd = new Set([template.id]);
+                                    
+                                    // If selecting an Activity, also select its parent Objective
+                                    if (template.type === 'Activity' && template.parentId) {
+                                      toAdd.add(template.parentId);
+                                    }
+                                    // If selecting a Subactivity, select both Activity and Objective
+                                    else if (template.type === 'Subactivity' && template.parentId) {
+                                      toAdd.add(template.parentId);
+                                      const parentActivity = okrTemplatesData.find(t => t.id === template.parentId);
+                                      if (parentActivity && parentActivity.parentId) {
+                                        toAdd.add(parentActivity.parentId);
+                                      }
+                                    }
+                                    
+                                    setSelectedOKRTemplates([...selectedOKRTemplates, ...Array.from(toAdd).filter(id => !selectedOKRTemplates.includes(id))]);
                                   }
                                 }}
                                 className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 mt-0.5"
@@ -1761,11 +1798,13 @@ function PartnersTable() {
                                   <p className="text-xs text-gray-600 mb-1">{template.description}</p>
                                 )}
                                 <div className="flex items-center gap-3 text-xs text-gray-500">
-                                  {template.unit && (
-                                    <span>📊 {template.unit}</span>
-                                  )}
-                                  {template.targetValue && (
-                                    <span>🎯 Target: {template.targetValue}</span>
+                                  {template.targetValue && template.unit && (
+                                    <span>🎯 {template.targetValue}{
+                                      template.unit === 'Number' ? '#' :
+                                      template.unit === 'Currency' ? '€' :
+                                      template.unit === 'Percent' ? '%' :
+                                      template.unit === 'Checkbox' ? ' complete' : ''
+                                    }{template.frequency ? ` ${template.frequency.toLowerCase()}` : ''}</span>
                                   )}
                                   {template.startDate && template.endDate && (
                                     <span>📅 {new Date(template.startDate).toLocaleDateString()} - {new Date(template.endDate).toLocaleDateString()}</span>
