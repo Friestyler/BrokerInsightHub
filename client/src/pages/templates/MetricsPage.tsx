@@ -833,7 +833,8 @@ export default function MetricsPage() {
     trafficLightConfig: "",
     progressBar: false,
     dueDateRequired: false,
-    responsibleRequired: false
+    responsibleRequired: false,
+    showAdvanced: false
   });
 
   // State for creating activities linked to an objective
@@ -1129,7 +1130,8 @@ export default function MetricsPage() {
       trafficLightConfig: okr.trafficLightConfig || "",
       progressBar: okr.progressBar || false,
       dueDateRequired: okr.dueDateRequired || false,
-      responsibleRequired: okr.responsibleRequired || false
+      responsibleRequired: okr.responsibleRequired || false,
+      showAdvanced: false
     });
     
     setIsCreateOKROpen(true);
@@ -1250,7 +1252,8 @@ export default function MetricsPage() {
       trafficLightConfig: "",
       progressBar: false,
       dueDateRequired: false,
-      responsibleRequired: false
+      responsibleRequired: false,
+      showAdvanced: false
     });
     
     if (isCreatingActivity) {
@@ -2491,7 +2494,7 @@ export default function MetricsPage() {
       
       {/* Create OKR Metric Dialog */}
       <Dialog open={isCreateOKROpen} onOpenChange={setIsCreateOKROpen}>
-        <DialogContent className="sm:max-w-[680px] max-h-[90vh] overflow-y-auto">
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-y-auto">
           <DialogHeader className="pb-4 border-b border-neutral-200">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center">
@@ -2509,7 +2512,7 @@ export default function MetricsPage() {
                     ? `Edit the details and configuration of this ${editingOKR?.type?.toLowerCase()}`
                     : isCreatingActivity 
                     ? `Create a new activity under "${parentObjective?.title}"`
-                    : "Start with the measurement type, then add details"
+                    : "Choose how to measure progress and set up your template"
                   }
                 </DialogDescription>
               </div>
@@ -2517,15 +2520,14 @@ export default function MetricsPage() {
           </DialogHeader>
           
           <div className="space-y-6 pt-6">
-            {/* Step 1: OKR Type Selection - Primary Focus */}
+            {/* Measurement Type - Always visible */}
             <div className="space-y-4">
               <div className="flex items-center gap-2">
-                <div className="w-6 h-6 bg-primary-500 text-white rounded-full flex items-center justify-center text-sm font-medium">1</div>
-                <h3 className="text-lg font-semibold text-neutral-900">Choose measurement type</h3>
-                <span className="text-red-500 text-sm">*</span>
+                <h3 className="text-lg font-semibold text-neutral-900">Measurement Type</h3>
+                <span className="text-red-500 text-sm font-medium">Required</span>
               </div>
               
-              <div className="grid grid-cols-1 gap-3">
+              <div className="grid grid-cols-2 gap-3">
                 {[
                   { value: 'currency', icon: '€', title: 'Currency', desc: 'Track monetary values', example: '€1,000', color: 'bg-green-50 border-green-200 text-green-700' },
                   { value: 'percent', icon: '%', title: 'Percent', desc: 'Track percentage progress', example: '75%', color: 'bg-blue-50 border-blue-200 text-blue-700' },
@@ -2535,7 +2537,7 @@ export default function MetricsPage() {
                 ].map((type) => (
                   <div 
                     key={type.value}
-                    className={`relative p-4 border-2 rounded-xl cursor-pointer transition-all hover:shadow-md ${
+                    className={`relative p-3 border-2 rounded-lg cursor-pointer transition-all hover:shadow-sm ${
                       formData.okrType === type.value 
                         ? 'border-primary-500 bg-primary-50 shadow-sm' 
                         : 'border-neutral-200 hover:border-neutral-300'
@@ -2543,19 +2545,19 @@ export default function MetricsPage() {
                     onClick={() => setFormData(prev => ({...prev, okrType: type.value}))}
                   >
                     <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg font-semibold ${type.color}`}>
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center text-base font-semibold ${type.color}`}>
                         {type.icon}
                       </div>
-                      <div className="flex-1">
+                      <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2">
-                          <h4 className="font-medium text-neutral-900">{type.title}</h4>
-                          <span className="text-xs text-neutral-500 bg-neutral-100 px-2 py-1 rounded-md">{type.example}</span>
+                          <h4 className="font-medium text-neutral-900 text-sm">{type.title}</h4>
+                          <span className="text-xs text-neutral-500 bg-neutral-100 px-1.5 py-0.5 rounded">{type.example}</span>
                         </div>
-                        <p className="text-sm text-neutral-600 mt-1">{type.desc}</p>
+                        <p className="text-xs text-neutral-600 mt-0.5">{type.desc}</p>
                       </div>
                       {formData.okrType === type.value && (
-                        <div className="w-5 h-5 bg-primary-500 text-white rounded-full flex items-center justify-center">
-                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <div className="w-4 h-4 bg-primary-500 text-white rounded-full flex items-center justify-center flex-shrink-0">
+                          <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
                           </svg>
                         </div>
@@ -2566,97 +2568,229 @@ export default function MetricsPage() {
               </div>
             </div>
 
-            {/* Progressive Disclosure: Only show after type is selected */}
-            {formData.okrType && (
-              <>
-                {/* Step 2: Essential Information */}
-                <div className="space-y-4">
-                  <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 bg-primary-500 text-white rounded-full flex items-center justify-center text-sm font-medium">2</div>
-                    <h3 className="text-lg font-semibold text-neutral-900">Essential details</h3>
+            {/* Basic Information - Always visible */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-semibold text-neutral-900">Basic Information</h3>
+              
+              <div className="grid grid-cols-1 gap-4">
+                {/* Name Field with Context-Aware Placeholder */}
+                <div className="space-y-2">
+                  <label htmlFor="okr-name" className="text-sm font-semibold text-neutral-900 flex items-center gap-1">
+                    OKR Name 
+                    <span className="text-red-500">*</span>
+                  </label>
+                  <Input 
+                    id="okr-name"
+                    value={formData.name}
+                    onChange={(e) => setFormData(prev => ({...prev, name: e.target.value}))}
+                    placeholder={
+                      formData.okrType === 'currency' ? "e.g., Increase annual revenue to €500K" :
+                      formData.okrType === 'percent' ? "e.g., Improve customer satisfaction to 90%" :
+                      formData.okrType === 'number' ? "e.g., Acquire 100 new customers" :
+                      formData.okrType === 'checkbox' ? "e.g., Complete market research study" :
+                      formData.okrType === 'traffic-light' ? "e.g., Project delivery status" :
+                      "e.g., Increase Annual Revenue"
+                    }
+                    className="text-base border-neutral-300 focus:border-primary-500 focus:ring-primary-500 bg-white"
+                  />
+                </div>
+
+                {/* Tag Field with Smart Defaults */}
+                {!isCreatingActivity && (
+                  <div className="space-y-2">
+                    <label htmlFor="okr-tag" className="text-sm font-medium text-neutral-700 flex items-center gap-2">
+                      Plan Category
+                      <span className="text-xs text-neutral-500 bg-neutral-100 px-2 py-1 rounded">Optional</span>
+                    </label>
+                    <Select value={formData.tag} onValueChange={(value) => setFormData(prev => ({...prev, tag: value}))}>
+                      <SelectTrigger id="okr-tag" className="border-neutral-300 focus:border-primary-500 bg-white">
+                        <SelectValue placeholder="Choose a category to organize this OKR" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Revenue Growth">💰 Revenue Growth</SelectItem>
+                        <SelectItem value="Product Innovation">🚀 Product Innovation</SelectItem>
+                        <SelectItem value="Customer Experience">😊 Customer Experience</SelectItem>
+                        <SelectItem value="Operational Excellence">⚙️ Operational Excellence</SelectItem>
+                        <SelectItem value="Market Expansion">🌍 Market Expansion</SelectItem>
+                        <SelectItem value="Team Development">👥 Team Development</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                  
-                  <div className="grid grid-cols-1 gap-4">
-                    {/* Name Field with Smart Placeholder */}
-                    <div className="space-y-2">
-                      <label htmlFor="okr-name" className="text-sm font-semibold text-neutral-900 flex items-center gap-1">
-                        OKR Name 
-                        <span className="text-red-500">*</span>
-                      </label>
+                )}
+                
+                {/* Inherited Category for Activities */}
+                {isCreatingActivity && (
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-neutral-700">Plan Category</label>
+                    <div className="p-3 bg-primary-50 border border-primary-200 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                        </svg>
+                        <span className="text-sm text-primary-700">
+                          Inherited: <strong>{parentObjective?.tag || "No category"}</strong>
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Description */}
+                <div className="space-y-2">
+                  <label htmlFor="okr-description" className="text-sm font-medium text-neutral-700">
+                    Description
+                  </label>
+                  <Textarea 
+                    id="okr-description"
+                    value={formData.description}
+                    onChange={(e) => setFormData(prev => ({...prev, description: e.target.value}))}
+                    placeholder="Provide context and explain what success looks like..."
+                    rows={3}
+                    className="resize-none border-neutral-300 focus:border-primary-500 focus:ring-primary-500 bg-white"
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Quick Target Setup - Contextual based on type */}
+            {formData.okrType && formData.okrType !== 'checkbox' && formData.okrType !== 'traffic-light' && (
+              <div className="space-y-4">
+                <div className="flex items-center gap-2">
+                  <h3 className="text-lg font-semibold text-neutral-900">Quick Target</h3>
+                  <span className="text-xs text-neutral-500 bg-neutral-100 px-2 py-1 rounded">Optional</span>
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <input 
+                    type="checkbox" 
+                    id="has-target" 
+                    checked={formData.hasTarget}
+                    onChange={(e) => setFormData(prev => ({...prev, hasTarget: e.target.checked}))}
+                    className="rounded border-neutral-300" 
+                  />
+                  <label htmlFor="has-target" className="text-sm font-medium text-neutral-700">
+                    Set a target value now
+                  </label>
+                  <span className="text-xs text-neutral-500">(Can be changed when assigned)</span>
+                </div>
+                
+                {formData.hasTarget && (
+                  <div className="ml-6 max-w-xs">
+                    <div className="relative">
+                      {formData.okrType === 'currency' && (
+                        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                          <span className="text-neutral-500 text-sm">€</span>
+                        </div>
+                      )}
                       <Input 
-                        id="okr-name"
-                        value={formData.name}
-                        onChange={(e) => setFormData(prev => ({...prev, name: e.target.value}))}
+                        type="number" 
+                        value={formData.targetValue}
+                        onChange={(e) => setFormData(prev => ({...prev, targetValue: e.target.value}))}
                         placeholder={
-                          formData.okrType === 'currency' ? "e.g., Increase annual revenue" :
-                          formData.okrType === 'percent' ? "e.g., Improve customer satisfaction" :
-                          formData.okrType === 'number' ? "e.g., Acquire new customers" :
-                          formData.okrType === 'checkbox' ? "e.g., Complete market research" :
-                          formData.okrType === 'traffic-light' ? "e.g., Project delivery status" :
-                          "e.g., Increase Annual Revenue"
+                          formData.okrType === 'currency' ? "1000" :
+                          formData.okrType === 'percent' ? "75" :
+                          formData.okrType === 'number' ? "50" : ""
                         }
-                        className="text-base border-neutral-300 focus:border-primary-500 focus:ring-primary-500 bg-white"
+                        className={`border-neutral-300 focus:border-primary-500 ${formData.okrType === 'currency' ? 'pl-8' : ''}`}
                       />
+                      {formData.okrType === 'percent' && (
+                        <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                          <span className="text-neutral-500 text-sm">%</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Expandable Advanced Settings */}
+            <div className="border border-neutral-200 rounded-lg">
+              <button
+                type="button"
+                onClick={() => setFormData(prev => ({...prev, showAdvanced: !prev.showAdvanced}))}
+                className="w-full p-4 flex items-center justify-between text-left hover:bg-neutral-50 rounded-lg transition-colors"
+              >
+                <div className="flex items-center gap-2">
+                  <h3 className="text-base font-medium text-neutral-900">Advanced Settings</h3>
+                  <span className="text-xs text-neutral-500 bg-neutral-100 px-2 py-1 rounded">Optional configuration</span>
+                </div>
+                <svg 
+                  className={`w-5 h-5 text-neutral-500 transition-transform ${formData.showAdvanced ? 'rotate-180' : ''}`} 
+                  fill="none" 
+                  stroke="currentColor" 
+                  viewBox="0 0 24 24"
+                >
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                </svg>
+              </button>
+              
+              {formData.showAdvanced && (
+                <div className="px-4 pb-4 space-y-4 border-t border-neutral-100">
+                  {/* Configuration checkboxes */}
+                  <div className="grid grid-cols-1 gap-3">
+                    {/* Traffic Lights */}
+                    <div className="flex items-center gap-2">
+                      <input 
+                        type="checkbox" 
+                        id="traffic-lights" 
+                        checked={formData.okrType === 'traffic-light' ? true : formData.trafficLights}
+                        onChange={(e) => setFormData(prev => ({...prev, trafficLights: e.target.checked}))}
+                        disabled={formData.okrType === 'traffic-light'}
+                        className="rounded border-neutral-300" 
+                      />
+                      <label htmlFor="traffic-lights" className="text-sm font-medium text-neutral-700">
+                        {formData.okrType === 'traffic-light' ? 'Traffic Light Status (Built-in)' : 'Enable Traffic Lights'}
+                      </label>
                     </div>
 
-                    {/* Context-Aware Tag Field */}
-                    {!isCreatingActivity && (
-                      <div className="space-y-2">
-                        <label htmlFor="okr-tag" className="text-sm font-medium text-neutral-700 flex items-center gap-2">
-                          Plan Category
-                          <span className="text-xs text-neutral-500 bg-neutral-100 px-2 py-1 rounded-md">Optional</span>
+                    {/* Progress Bar */}
+                    {(formData.okrType === 'currency' || formData.okrType === 'percent' || formData.okrType === 'number') && (
+                      <div className="flex items-center gap-2">
+                        <input 
+                          type="checkbox" 
+                          id="progress-bar" 
+                          checked={formData.progressBar}
+                          onChange={(e) => setFormData(prev => ({...prev, progressBar: e.target.checked}))}
+                          className="rounded border-neutral-300" 
+                        />
+                        <label htmlFor="progress-bar" className="text-sm font-medium text-neutral-700">
+                          Enable Progress Bar
                         </label>
-                        <Select value={formData.tag} onValueChange={(value) => setFormData(prev => ({...prev, tag: value}))}>
-                          <SelectTrigger id="okr-tag" className="border-neutral-300 focus:border-primary-500 bg-white">
-                            <SelectValue placeholder="Choose a category to organize this OKR" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="Revenue Growth">💰 Revenue Growth</SelectItem>
-                            <SelectItem value="Product Innovation">🚀 Product Innovation</SelectItem>
-                            <SelectItem value="Customer Experience">😊 Customer Experience</SelectItem>
-                            <SelectItem value="Operational Excellence">⚙️ Operational Excellence</SelectItem>
-                            <SelectItem value="Market Expansion">🌍 Market Expansion</SelectItem>
-                            <SelectItem value="Team Development">👥 Team Development</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-                    )}
-                    
-                    {/* Show inherited tag when creating activity */}
-                    {isCreatingActivity && (
-                      <div className="space-y-2">
-                        <label className="text-sm font-medium text-neutral-700">Plan Category</label>
-                        <div className="p-3 bg-primary-50 border border-primary-200 rounded-lg">
-                          <div className="flex items-center gap-2">
-                            <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-                            </svg>
-                            <span className="text-sm text-primary-700">
-                              Inherited: <strong>{parentObjective?.tag || "No category"}</strong>
-                            </span>
-                          </div>
-                        </div>
                       </div>
                     )}
 
-                    {/* Description Field */}
-                    <div className="space-y-2">
-                      <label htmlFor="okr-description" className="text-sm font-medium text-neutral-700">
-                        Description
-                      </label>
-                      <Textarea 
-                        id="okr-description"
-                        value={formData.description}
-                        onChange={(e) => setFormData(prev => ({...prev, description: e.target.value}))}
-                        placeholder="Provide context and explain what success looks like..."
-                        rows={3}
-                        className="resize-none border-neutral-300 focus:border-primary-500 focus:ring-primary-500 bg-white"
+                    {/* Due Date Required */}
+                    <div className="flex items-center gap-2">
+                      <input 
+                        type="checkbox" 
+                        id="due-date-required" 
+                        checked={formData.dueDateRequired}
+                        onChange={(e) => setFormData(prev => ({...prev, dueDateRequired: e.target.checked}))}
+                        className="rounded border-neutral-300" 
                       />
+                      <label htmlFor="due-date-required" className="text-sm font-medium text-neutral-700">
+                        Require Due Date when assigned
+                      </label>
+                    </div>
+
+                    {/* Responsible Person Required */}
+                    <div className="flex items-center gap-2">
+                      <input 
+                        type="checkbox" 
+                        id="responsible-required" 
+                        checked={formData.responsibleRequired}
+                        onChange={(e) => setFormData(prev => ({...prev, responsibleRequired: e.target.checked}))}
+                        className="rounded border-neutral-300" 
+                      />
+                      <label htmlFor="responsible-required" className="text-sm font-medium text-neutral-700">
+                        Require Responsible Person when assigned
+                      </label>
                     </div>
                   </div>
                 </div>
-              </>
-            )}
+              )}
+            </div>
           </div>
 
 
