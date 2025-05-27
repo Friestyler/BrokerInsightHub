@@ -1341,7 +1341,7 @@ export default function MetricsPage() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all_tags">All Tags</SelectItem>
-                    {Array.from(new Set(mockOKRs.map(okr => okr.tag).filter(tag => tag && tag.trim() !== ""))).sort().map(tag => (
+                    {Array.from(new Set(okrTemplates.map(okr => okr.tag).filter(tag => tag && tag.trim() !== ""))).sort().map(tag => (
                       <SelectItem key={tag} value={tag}>
                         {tag}
                       </SelectItem>
