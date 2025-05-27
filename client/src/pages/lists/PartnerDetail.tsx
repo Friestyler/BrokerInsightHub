@@ -1555,42 +1555,41 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
 
   return (
     <div className="space-y-6">
-      {/* AI OKR Creation Block */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-6">
-        <div className="flex items-start gap-4">
+      {/* Quick Action Creation Block */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
+        <div className="flex items-center gap-3">
           <div className="flex-shrink-0">
-            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M12 2L13.09 8.26L20 9L13.09 9.74L12 16L10.91 9.74L4 9L10.91 8.26L12 2Z" fill="#3B82F6"/>
                 <path d="M19 15L19.91 17.26L22 18L19.91 18.74L19 21L18.09 18.74L16 18L18.09 17.26L19 15Z" fill="#3B82F6"/>
-                <path d="M6 15L6.91 17.26L9 18L6.91 18.74L6 21L5.09 18.74L3 18L5.09 17.26L6 15Z" fill="#3B82F6"/>
               </svg>
             </div>
           </div>
           <div className="flex-1">
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Create OKR with AI
+            <h3 className="font-semibold text-gray-900 text-base mb-1">
+              Create a quick action
             </h3>
-            <p className="text-sm text-gray-600 mb-4">
-              Describe what you want to achieve and AI will create a customized OKR for this partner.
+            <p className="text-sm text-gray-600 mb-3">
+              Describe objectives and activities to generate structured OKRs for this partner.
             </p>
-            <div className="flex gap-3">
-              <div className="flex-1">
-                <textarea
-                  placeholder="Example: Increase insurance sales by 25% this quarter through digital marketing campaigns..."
-                  className="w-full px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
-                  rows={3}
-                />
-              </div>
-              <div className="flex flex-col gap-2">
-                <button className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium">
-                  Generate OKR
-                </button>
-                <button className="px-6 py-3 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium text-sm">
-                  Use Template
-                </button>
-              </div>
-            </div>
+          </div>
+        </div>
+        <div className="flex gap-3">
+          <div className="flex-1">
+            <textarea
+              placeholder="Example: Increase insurance sales by 25% with activities like digital marketing campaigns, client outreach, and product training..."
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm"
+              rows={2}
+            />
+          </div>
+          <div className="flex gap-2">
+            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm">
+              Generate
+            </button>
+            <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium text-sm">
+              Templates
+            </button>
           </div>
         </div>
       </div>
