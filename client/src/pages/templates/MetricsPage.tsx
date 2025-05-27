@@ -2294,9 +2294,9 @@ export default function MetricsPage() {
       <Dialog open={isCreateOKROpen} onOpenChange={setIsCreateOKROpen}>
         <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto">
           <DialogHeader className="pb-6">
-            <DialogTitle className="text-xl font-semibold text-gray-900">Add OKR</DialogTitle>
+            <DialogTitle className="text-xl font-semibold text-gray-900">Add OKR Template</DialogTitle>
             <DialogDescription className="text-sm text-gray-600 mt-1">
-              Create a new OKR template that can be assigned to entities
+              Create a new OKR template that can be assigned to partners, opportunities, and customers
             </DialogDescription>
           </DialogHeader>
           
@@ -2354,68 +2354,85 @@ export default function MetricsPage() {
 
             {/* Target & Measurement Section */}
             <div className="space-y-4">
-              <h3 className="text-sm font-semibold text-gray-900">How can this objective be measured?</h3>
+              <div className="flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-gray-900">Target & Measurement</h3>
+                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">Optional</span>
+              </div>
+              <p className="text-xs text-gray-500">
+                Define how this OKR can be measured. If no target is set here, it can be defined later when assigned to specific entities.
+              </p>
               
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-1">
-                    <label htmlFor="measure-unit" className="text-sm font-medium text-gray-700">
-                      Measure Unit <span className="text-red-500">*</span>
-                    </label>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <svg className="w-4 h-4 text-gray-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-                            <path d="M12 17h.01"></path>
-                          </svg>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>Choose how this OKR will be measured:<br/>Currency: €1,000<br/>Percentage: 75%<br/>Number: 50 units<br/>Checkbox: Complete/Incomplete</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
-                  <Select>
-                    <SelectTrigger id="measure-unit" className="border-gray-300">
-                      <SelectValue placeholder="Select unit" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="currency">Currency (€)</SelectItem>
-                      <SelectItem value="percentage">Percentage (%)</SelectItem>
-                      <SelectItem value="number">Number</SelectItem>
-                      <SelectItem value="checkbox">Checkbox</SelectItem>
-                    </SelectContent>
-                  </Select>
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" id="has-target" className="rounded border-gray-300" />
+                  <label htmlFor="has-target" className="text-sm font-medium text-gray-700">
+                    This OKR has measurable targets
+                  </label>
                 </div>
                 
-                <div className="space-y-2">
-                  <div className="flex items-center gap-1">
-                    <label htmlFor="target-value" className="text-sm font-medium text-gray-700">
-                      Target Value
-                    </label>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <svg className="w-4 h-4 text-gray-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-                            <path d="M12 17h.01"></path>
-                          </svg>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>The target value you want to achieve for this OKR</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                <div className="ml-6 space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-1">
+                        <label htmlFor="measure-unit" className="text-sm font-medium text-gray-700">
+                          Measure Unit <span className="text-red-500">*</span>
+                        </label>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <svg className="w-4 h-4 text-gray-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                                <path d="M12 17h.01"></path>
+                              </svg>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Choose how this OKR will be measured:<br/>Currency: €1,000<br/>Percentage: 75%<br/>Number: 50 units<br/>Checkbox: Complete/Incomplete</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                      <Select>
+                        <SelectTrigger id="measure-unit" className="border-gray-300">
+                          <SelectValue placeholder="Select unit" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="currency">Currency (€)</SelectItem>
+                          <SelectItem value="percentage">Percentage (%)</SelectItem>
+                          <SelectItem value="number">Number</SelectItem>
+                          <SelectItem value="checkbox">Checkbox</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-1">
+                        <label htmlFor="target-value" className="text-sm font-medium text-gray-700">
+                          Target Value
+                        </label>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <svg className="w-4 h-4 text-gray-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                                <path d="M12 17h.01"></path>
+                              </svg>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Leave empty to define target values later when assigning to entities</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                      <Input 
+                        id="target-value"
+                        type="number" 
+                        placeholder="Optional - define later when assigned" 
+                        className="border-gray-300"
+                      />
+                    </div>
                   </div>
-                  <Input 
-                    id="target-value"
-                    type="number" 
-                    placeholder="Enter target value" 
-                    className="border-gray-300"
-                  />
                 </div>
               </div>
             </div>
@@ -2644,7 +2661,7 @@ export default function MetricsPage() {
                 setIsCreateOKROpen(false);
               }}
             >
-              Create OKR
+              Create Template
             </Button>
           </DialogFooter>
         </DialogContent>
