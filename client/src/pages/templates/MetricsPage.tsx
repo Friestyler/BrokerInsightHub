@@ -44,6 +44,7 @@ import {
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
 import { CalendarIcon } from "lucide-react";
+import { AdvancedTimeframeFilter } from "@/components/ui/advanced-timeframe-filter";
 import { format } from "date-fns";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
@@ -785,6 +786,7 @@ export default function MetricsPage() {
   const [selectedMeasureUnit, setSelectedMeasureUnit] = useState("");
   const [selectedTargetRange, setSelectedTargetRange] = useState("");
   const [selectedTimeframe, setSelectedTimeframe] = useState("");
+  const [advancedTimeframe, setAdvancedTimeframe] = useState("");
   const [showNoTarget, setShowNoTarget] = useState(false);
   const [dateRange, setDateRange] = useState<{from: Date | undefined, to: Date | undefined}>({
     from: undefined,
@@ -1337,93 +1339,124 @@ export default function MetricsPage() {
                   className={`w-[160px] px-3 py-2 border border-gray-300 rounded-md text-sm ${!selectedMeasureUnit && !showNoTarget ? 'bg-gray-100 text-gray-400 cursor-not-allowed' : 'bg-white'}`}
                 />
 
-                <Select value={selectedTimeframe} onValueChange={(value) => {
-                  if (value === "clear") {
-                    setSelectedTimeframe("");
-                    setDateRange({ from: undefined, to: undefined });
-                  } else {
-                    setSelectedTimeframe(value);
-                    if (value !== "custom") {
-                      setDateRange({ from: undefined, to: undefined });
-                    }
-                  }
-                }}>
-                  <SelectTrigger className="w-[180px] bg-white">
-                    <SelectValue placeholder="Select timeframe" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="last-year">Last Year</SelectItem>
-                    <SelectItem value="this-year">This Year</SelectItem>
-                    <SelectItem value="next-year">Next Year</SelectItem>
-                    <SelectItem value="last-quarter">Last Quarter</SelectItem>
-                    <SelectItem value="this-quarter">This Quarter</SelectItem>
-                    <SelectItem value="next-quarter">Next Quarter</SelectItem>
-                    <SelectItem value="last-month">Last Month</SelectItem>
-                    <SelectItem value="this-month">This Month</SelectItem>
-                    <SelectItem value="next-month">Next Month</SelectItem>
-                    <SelectItem value="last-week">Last Week</SelectItem>
-                    <SelectItem value="this-week">This Week</SelectItem>
-                    <SelectItem value="next-week">Next Week</SelectItem>
-                    <SelectItem value="custom">Custom Date</SelectItem>
-                    <div className="border-t border-gray-200 mx-1 my-1"></div>
-                    <SelectItem value="clear" className="text-gray-500">
-                      <div className="flex items-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                          <path d="M18 6L6 18"/>
-                          <path d="M6 6l12 12"/>
-                        </svg>
-                        Clear filter
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-
-                {/* Custom Date Range Picker - only show when "Custom Date" is selected */}
-                {selectedTimeframe === "custom" && (
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <Button
-                        variant="outline"
-                        className="w-[240px] justify-start text-left font-normal bg-white"
-                      >
-                        <CalendarIcon className="mr-2 h-4 w-4" />
-                        {dateRange?.from ? (
-                          dateRange.to ? (
-                            <>
-                              {format(dateRange.from, "LLL dd, y")} -{" "}
-                              {format(dateRange.to, "LLL dd, y")}
-                            </>
-                          ) : (
-                            format(dateRange.from, "LLL dd, y")
-                          )
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className="w-[180px] justify-start text-left font-normal bg-white"
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {selectedTimeframe === "custom" && dateRange?.from ? (
+                        dateRange.to ? (
+                          <>
+                            {format(dateRange.from, "MMM dd")} - {format(dateRange.to, "MMM dd, y")}
+                          </>
                         ) : (
-                          <span>Pick a date range</span>
-                        )}
-                      </Button>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        initialFocus
-                        mode="range"
-                        defaultMonth={dateRange?.from}
-                        selected={dateRange}
-                        onSelect={(range) => setDateRange(range || { from: undefined, to: undefined })}
-                        numberOfMonths={2}
-                      />
-                      {(dateRange?.from || dateRange?.to) && (
-                        <div className="p-3 border-t">
-                          <Button
-                            variant="ghost"
-                            onClick={() => setDateRange({ from: undefined, to: undefined })}
-                            className="w-full text-sm"
+                          format(dateRange.from, "MMM dd, y")
+                        )
+                      ) : selectedTimeframe ? (
+                        selectedTimeframe.split('-').map(word => 
+                          word.charAt(0).toUpperCase() + word.slice(1)
+                        ).join(' ')
+                      ) : (
+                        "Select timeframe"
+                      )}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <div className="flex">
+                      {/* Left side - preset options */}
+                      <div className="w-48 border-r border-gray-200 p-2">
+                        <div className="space-y-1">
+                          {[
+                            { value: "last-year", label: "Last Year" },
+                            { value: "this-year", label: "This Year" },
+                            { value: "next-year", label: "Next Year" },
+                            { value: "last-quarter", label: "Last Quarter" },
+                            { value: "this-quarter", label: "This Quarter" },
+                            { value: "next-quarter", label: "Next Quarter" },
+                            { value: "last-month", label: "Last Month" },
+                            { value: "this-month", label: "This Month" },
+                            { value: "next-month", label: "Next Month" },
+                            { value: "last-week", label: "Last Week" },
+                            { value: "this-week", label: "This Week" },
+                            { value: "next-week", label: "Next Week" },
+                            { value: "custom", label: "Custom" }
+                          ].map((option) => (
+                            <button
+                              key={option.value}
+                              onClick={() => {
+                                setSelectedTimeframe(option.value);
+                                if (option.value !== "custom") {
+                                  setDateRange({ from: undefined, to: undefined });
+                                }
+                              }}
+                              className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 ${
+                                selectedTimeframe === option.value ? 'bg-blue-50 text-blue-600' : 'text-gray-700'
+                              }`}
+                            >
+                              {selectedTimeframe === option.value && (
+                                <svg className="w-4 h-4 inline mr-2" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" />
+                                </svg>
+                              )}
+                              {option.label}
+                            </button>
+                          ))}
+                          <div className="border-t border-gray-200 my-2"></div>
+                          <button
+                            onClick={() => {
+                              setSelectedTimeframe("");
+                              setDateRange({ from: undefined, to: undefined });
+                            }}
+                            className="w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 text-gray-500"
                           >
-                            Clear date range
-                          </Button>
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline mr-2">
+                              <path d="M18 6L6 18"/>
+                              <path d="M6 6l12 12"/>
+                            </svg>
+                            Clear filter
+                          </button>
+                        </div>
+                      </div>
+                      
+                      {/* Right side - calendar (only show when Custom is selected) */}
+                      {selectedTimeframe === "custom" && (
+                        <div className="p-3">
+                          <Calendar
+                            initialFocus
+                            mode="range"
+                            defaultMonth={dateRange?.from}
+                            selected={dateRange}
+                            onSelect={(range) => setDateRange(range || { from: undefined, to: undefined })}
+                            numberOfMonths={2}
+                          />
+                          {(dateRange?.from || dateRange?.to) && (
+                            <div className="pt-3 border-t mt-3">
+                              <Button
+                                variant="ghost"
+                                onClick={() => setDateRange({ from: undefined, to: undefined })}
+                                className="w-full text-sm"
+                              >
+                                Clear date range
+                              </Button>
+                            </div>
+                          )}
                         </div>
                       )}
-                    </PopoverContent>
-                  </Popover>
-                )}
+                    </div>
+                  </PopoverContent>
+                </Popover>
+
+                {/* Advanced Timeframe Filter (Alternative) */}
+                <AdvancedTimeframeFilter
+                  value={advancedTimeframe}
+                  onValueChange={(value, dateRange) => {
+                    setAdvancedTimeframe(value);
+                    console.log('Advanced filter selected:', value, dateRange);
+                  }}
+                  className="w-[200px]"
+                />
 
                 <div className="flex items-center gap-2">
                   <label className="flex items-center cursor-pointer">
