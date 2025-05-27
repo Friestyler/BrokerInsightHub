@@ -1893,7 +1893,29 @@ function PartnersTable() {
             <Button 
               disabled={selectedOKRTemplates.length === 0}
               onClick={() => {
-                // Handle assignment logic here
+                // Store assignments in localStorage
+                const existingAssignments = JSON.parse(localStorage.getItem('partnerOKRAssignments') || '{}');
+                
+                selectedPartners.forEach(partnerId => {
+                  if (!existingAssignments[partnerId]) {
+                    existingAssignments[partnerId] = [];
+                  }
+                  // Add new template IDs, avoiding duplicates
+                  selectedOKRTemplates.forEach(templateId => {
+                    if (!existingAssignments[partnerId].includes(templateId)) {
+                      existingAssignments[partnerId].push(templateId);
+                    }
+                  });
+                });
+                
+                localStorage.setItem('partnerOKRAssignments', JSON.stringify(existingAssignments));
+                
+                // Dispatch storage event to notify other tabs
+                window.dispatchEvent(new StorageEvent('storage', {
+                  key: 'partnerOKRAssignments',
+                  newValue: JSON.stringify(existingAssignments)
+                }));
+                
                 toast({
                   title: "Templates Assigned Successfully",
                   description: `${selectedOKRTemplates.length} template${selectedOKRTemplates.length !== 1 ? 's' : ''} assigned to ${selectedPartners.length} partner${selectedPartners.length !== 1 ? 's' : ''}.`
