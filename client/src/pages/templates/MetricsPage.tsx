@@ -2159,33 +2159,42 @@ export default function MetricsPage() {
                               className="rounded border-gray-300 opacity-0 group-hover:opacity-100 transition-opacity"
                               style={{ opacity: selectedOKRs.includes(okr.id) ? 1 : undefined }}
                             />
-                            {/* Expand/collapse arrows - visible by default for nested items */}
-                            {okr.nestedCount > 0 ? (
-                              <button
-                                onClick={() => toggleExpansion(okr.id)}
-                                className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
-                              >
-                                {okr.isExpanded ? (
-                                  <svg width="8" height="13" viewBox="0 0 8 13" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ transform: 'rotate(90deg)' }}>
-                                    <path d="M6.83984 6.28516C7.08594 6.55859 7.08594 6.96875 6.83984 7.21484L1.58984 12.4648C1.31641 12.7383 0.90625 12.7383 0.660156 12.4648C0.386719 12.2188 0.386719 11.8086 0.660156 11.5625L5.44531 6.77734L0.660156 1.96484C0.386719 1.71875 0.386719 1.30859 0.660156 1.0625C0.90625 0.789062 1.31641 0.789062 1.5625 1.0625L6.83984 6.28516Z" fill="#696C8C"/>
+                            
+                            {/* Expansion controls group - chevron with hierarchy indicator */}
+                            <div className="flex items-center gap-1">
+                              {/* Expand/collapse chevron */}
+                              {okr.nestedCount > 0 ? (
+                                <button
+                                  onClick={() => toggleExpansion(okr.id)}
+                                  className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
+                                >
+                                  {okr.isExpanded ? (
+                                    <svg width="8" height="13" viewBox="0 0 8 13" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ transform: 'rotate(90deg)' }}>
+                                      <path d="M6.83984 6.28516C7.08594 6.55859 7.08594 6.96875 6.83984 7.21484L1.58984 12.4648C1.31641 12.7383 0.90625 12.7383 0.660156 12.4648C0.386719 12.2188 0.386719 11.8086 0.660156 11.5625L5.44531 6.77734L0.660156 1.96484C0.386719 1.71875 0.386719 1.30859 0.660156 1.0625C0.90625 0.789062 1.31641 0.789062 1.5625 1.0625L6.83984 6.28516Z" fill="#696C8C"/>
+                                    </svg>
+                                  ) : (
+                                    <svg width="8" height="13" viewBox="0 0 8 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                      <path d="M6.83984 6.28516C7.08594 6.55859 7.08594 6.96875 6.83984 7.21484L1.58984 12.4648C1.31641 12.7383 0.90625 12.7383 0.660156 12.4648C0.386719 12.2188 0.386719 11.8086 0.660156 11.5625L5.44531 6.77734L0.660156 1.96484C0.386719 1.71875 0.386719 1.30859 0.660156 1.0625C0.90625 0.789062 1.31641 0.789062 1.5625 1.0625L6.83984 6.28516Z" fill="#696C8C"/>
+                                    </svg>
+                                  )}
+                                </button>
+                              ) : (
+                                /* Empty space for non-nested items */
+                                <div style={{ width: '20px', height: '20px' }}></div>
+                              )}
+                              
+                              {/* Hierarchy icon and count - grouped with chevron */}
+                              {okr.nestedCount > 0 && (
+                                <div className="flex items-center gap-1">
+                                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-gray-400">
+                                    <circle cx="4" cy="4" r="1.5" fill="currentColor"/>
+                                    <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
+                                    <path d="M4 6C4 8 6 10 10 12" stroke="currentColor" strokeWidth="1" fill="none" strokeLinecap="round"/>
                                   </svg>
-                                ) : (
-                                  <svg width="8" height="13" viewBox="0 0 8 13" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                    <path d="M6.83984 6.28516C7.08594 6.55859 7.08594 6.96875 6.83984 7.21484L1.58984 12.4648C1.31641 12.7383 0.90625 12.7383 0.660156 12.4648C0.386719 12.2188 0.386719 11.8086 0.660156 11.5625L5.44531 6.77734L0.660156 1.96484C0.386719 1.71875 0.386719 1.30859 0.660156 1.0625C0.90625 0.789062 1.31641 0.789062 1.5625 1.0625L6.83984 6.28516Z" fill="#696C8C"/>
-                                  </svg>
-                                )}
-                              </button>
-                            ) : (
-                              /* Empty space for non-nested items - arrows only on hover */
-                              <button
-                                className="p-1 hover:bg-gray-100 rounded flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                                style={{ width: '20px', height: '20px' }}
-                              >
-                                <svg width="8" height="13" viewBox="0 0 8 13" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                  <path d="M6.83984 6.28516C7.08594 6.55859 7.08594 6.96875 6.83984 7.21484L1.58984 12.4648C1.31641 12.7383 0.90625 12.7383 0.660156 12.4648C0.386719 12.2188 0.386719 11.8086 0.660156 11.5625L5.44531 6.77734L0.660156 1.96484C0.386719 1.71875 0.386719 1.30859 0.660156 1.0625C0.90625 0.789062 1.31641 0.789062 1.5625 1.0625L6.83984 6.28516Z" fill="#696C8C"/>
-                                </svg>
-                              </button>
-                            )}
+                                  <span className="text-xs text-gray-500 font-medium">{okr.nestedCount}</span>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         </TableCell>
 
@@ -2205,19 +2214,7 @@ export default function MetricsPage() {
                               {okr.title}
                             </span>
                             
-                            {/* Nested count icon - 4px from text */}
-                            {okr.nestedCount > 0 && (
-                              <div className="flex items-center" style={{ marginLeft: '4px' }}>
-                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                  <circle cx="4" cy="4" r="2" fill="#666666"/>
-                                  <circle cx="12" cy="12" r="2" fill="#666666"/>
-                                  <path d="M4 6C4 8 6 10 10 12" stroke="#666666" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
-                                </svg>
-                                <span className="text-xs text-gray-500 ml-1">{okr.nestedCount}</span>
-                              </div>
-                            )}
-                            
-                            {/* Description icon - 4px from nested icon or text */}
+                            {/* Description icon - 4px from text */}
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger asChild>
