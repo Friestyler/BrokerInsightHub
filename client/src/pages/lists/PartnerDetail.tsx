@@ -1724,7 +1724,7 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                           color: '#696C8C' 
                         }}
                       >
-                        Target
+                        Realized
                       </TableHead>
                       <TableHead 
                         className="text-right px-3 py-2 min-w-[120px]"
@@ -1735,7 +1735,7 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                           color: '#696C8C' 
                         }}
                       >
-                        Realized
+                        Target
                       </TableHead>
                       <TableHead 
                         className="px-3 py-2 min-w-[150px]"
@@ -1863,6 +1863,19 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                           </div>
                         </TableCell>
                         
+                        {/* Realized Column - Editable */}
+                        <TableCell className="text-right p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
+                          <div className="font-medium cursor-pointer hover:bg-gray-50 p-1 rounded">
+                            {okr.realizedValue ? (
+                              okr.unit === 'currency' 
+                                ? `€${(okr.realizedValue / 1000000).toFixed(1)}M`
+                                : okr.unit === 'percentage'
+                                ? `${okr.realizedValue}%`
+                                : okr.realizedValue.toString()
+                            ) : "—"}
+                          </div>
+                        </TableCell>
+                        
                         {/* Target Column - Editable */}
                         <TableCell className="text-right p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
                           <div className="font-medium cursor-pointer hover:bg-gray-50 p-1 rounded">
@@ -1871,18 +1884,6 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                               : okr.unit === 'percentage'
                               ? `${okr.targetValue}%`
                               : okr.targetValue?.toString() || "—"
-                            }
-                          </div>
-                        </TableCell>
-                        
-                        {/* Realized Column - Editable */}
-                        <TableCell className="text-right p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
-                          <div className="font-medium cursor-pointer hover:bg-gray-50 p-1 rounded">
-                            {okr.unit === 'currency' 
-                              ? `€${((okr.realizedValue || 0) / 1000000).toFixed(1)}M`
-                              : okr.unit === 'percentage'
-                              ? `${okr.realizedValue || 0}%`
-                              : (okr.realizedValue?.toString() || "—")
                             }
                           </div>
                         </TableCell>
