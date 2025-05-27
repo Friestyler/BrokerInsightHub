@@ -730,7 +730,7 @@ export default function PartnerDetail() {
             
           {/* Tab Contents */}
           <TabsContent value="okr" className="mt-4">
-            <OKRPlansSection partnerId={id} />
+            <OKRPlansSection partnerId={id || ""} />
           </TabsContent>
             
           <TabsContent value="opportunities" className="mt-4">
@@ -1501,7 +1501,7 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                 <SelectValue placeholder="Filter by tag" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Tags</SelectItem>
+                <SelectItem value="__all__">All Tags</SelectItem>
                 {availableTags.map(tag => (
                   <SelectItem key={tag} value={tag}>{tag}</SelectItem>
                 ))}
@@ -1515,7 +1515,7 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
               <SelectValue placeholder="Measure unit" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Units</SelectItem>
+              <SelectItem value="__all__">All Units</SelectItem>
               <SelectItem value="number">Number</SelectItem>
               <SelectItem value="currency">Currency</SelectItem>
               <SelectItem value="percent">Percent</SelectItem>
