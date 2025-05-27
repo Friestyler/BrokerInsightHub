@@ -1877,26 +1877,58 @@ export default function MetricsPage() {
                           />
                         </TableCell>
                         <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
-                          <div className="flex items-center" style={{ paddingLeft: `${(okr.level || 0) * 24}px` }}>
-                            {/* Expand/Collapse button for objectives and activities with children */}
-                            {(okr.hierarchy === 'objective' || okr.hierarchy === 'activity') && okr.nestedCount > 0 && (
-                              <button
-                                onClick={() => toggleExpansion(okr.id)}
-                                className="mr-2 p-1 hover:bg-gray-100 rounded"
-                              >
-                                {okr.isExpanded ? (
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="m6 9 6 6 6-6"/>
-                                  </svg>
-                                ) : (
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                    <path d="m9 18 6-6-6-6"/>
-                                  </svg>
-                                )}
-                              </button>
-                            )}
+                          <div className="flex items-center gap-3">
+                            {/* Hierarchy visual indicator - no indentation, use badges instead */}
+                            <div className="flex items-center gap-2">
+                              {okr.hierarchy === 'objective' && (
+                                <div className="w-3 h-3 bg-indigo-500 rounded-full flex-shrink-0" title="Objective"></div>
+                              )}
+                              {okr.hierarchy === 'activity' && (
+                                <div className="flex items-center gap-1">
+                                  <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0" title="Activity"></div>
+                                  <div className="w-4 h-px bg-gray-300"></div>
+                                </div>
+                              )}
+                              {okr.hierarchy === 'subactivity' && (
+                                <div className="flex items-center gap-1">
+                                  <div className="w-1.5 h-1.5 bg-green-500 rounded-full flex-shrink-0" title="Subactivity"></div>
+                                  <div className="w-6 h-px bg-gray-300"></div>
+                                </div>
+                              )}
+                              
+                              {/* Expand/Collapse button for objectives and activities with children */}
+                              {(okr.hierarchy === 'objective' || okr.hierarchy === 'activity') && okr.nestedCount > 0 && (
+                                <button
+                                  onClick={() => toggleExpansion(okr.id)}
+                                  className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
+                                >
+                                  {okr.isExpanded ? (
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <path d="m6 9 6 6 6-6"/>
+                                    </svg>
+                                  ) : (
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <path d="m9 18 6-6-6-6"/>
+                                    </svg>
+                                  )}
+                                </button>
+                              )}
+                            </div>
                             
-                            <span className="font-medium">{okr.title}</span>
+                            <div className="flex items-center gap-2 flex-1">
+                              <span className="font-medium">{okr.title}</span>
+                              
+                              {/* Type badge for visual hierarchy distinction */}
+                              <span className={`px-2 py-0.5 rounded-full text-xs font-medium flex-shrink-0 ${
+                                okr.hierarchy === 'objective' 
+                                  ? 'bg-indigo-100 text-indigo-700 border border-indigo-200' 
+                                  : okr.hierarchy === 'activity'
+                                  ? 'bg-blue-100 text-blue-700 border border-blue-200'
+                                  : 'bg-green-100 text-green-700 border border-green-200'
+                              }`}>
+                                {okr.hierarchy === 'objective' ? 'OBJ' : okr.hierarchy === 'activity' ? 'ACT' : 'SUB'}
+                              </span>
+                            </div>
                             
                             {/* Nested count icon with count */}
                             {okr.nestedCount > 0 && (
