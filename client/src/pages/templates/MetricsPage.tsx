@@ -2638,90 +2638,85 @@ export default function MetricsPage() {
               </div>
             </div>
 
-            {/* Target & Measurement Section - Dynamically adapts based on OKR type */}
-            {formData.okrType && formData.okrType !== 'traffic-light' && (
+            {/* Target & Measurement Section - Only show for non-checkbox and non-traffic-light types */}
+            {formData.okrType && formData.okrType !== 'traffic-light' && formData.okrType !== 'checkbox' && (
               <div className="space-y-4">
                 <div className="flex items-center gap-2">
                   <h3 className="text-sm font-semibold text-gray-900">Target & Measurement</h3>
                   <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">Optional</span>
                 </div>
                 <p className="text-xs text-gray-500">
-                  {formData.okrType === 'checkbox' 
-                    ? "For checkbox OKRs, completion is tracked as Done/Not Done. No numerical target needed."
-                    : "Define target values for this OKR. If no target is set here, it can be defined later when assigned to specific entities."
-                  }
+                  Define target values for this OKR. If no target is set here, it can be defined later when assigned to specific entities.
                 </p>
                 
-                {formData.okrType !== 'checkbox' && (
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <input 
-                        type="checkbox" 
-                        id="has-target" 
-                        checked={formData.hasTarget}
-                        onChange={(e) => setFormData(prev => ({...prev, hasTarget: e.target.checked}))}
-                        className="rounded border-gray-300" 
-                      />
-                      <label htmlFor="has-target" className="text-sm font-medium text-gray-700">
-                        Set target value for this template
-                      </label>
-                    </div>
-                    
-                    {formData.hasTarget && (
-                      <div className="ml-6 space-y-4">
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-1">
-                            <label htmlFor="target-value" className="text-sm font-medium text-gray-700">
-                              Target Value
-                            </label>
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <svg className="w-4 h-4 text-gray-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <circle cx="12" cy="12" r="10"></circle>
-                                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-                                    <path d="M12 17h.01"></path>
-                                  </svg>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>
-                                    {formData.okrType === 'currency' && "Enter amount in euros (e.g., 1000 for €1,000)"}
-                                    {formData.okrType === 'percent' && "Enter percentage value (e.g., 75 for 75%)"}
-                                    {formData.okrType === 'number' && "Enter numeric target (e.g., 50 for 50 units)"}
-                                  </p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          </div>
-                          <div className="relative">
-                            {formData.okrType === 'currency' && (
-                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <span className="text-gray-500 text-sm">€</span>
-                              </div>
-                            )}
-                            <Input 
-                              id="target-value"
-                              type="number" 
-                              value={formData.targetValue}
-                              onChange={(e) => setFormData(prev => ({...prev, targetValue: e.target.value}))}
-                              placeholder={
-                                formData.okrType === 'currency' ? "1000" :
-                                formData.okrType === 'percent' ? "75" :
-                                formData.okrType === 'number' ? "50" : ""
-                              }
-                              className={`border-gray-300 ${formData.okrType === 'currency' ? 'pl-8' : ''}`}
-                            />
-                            {formData.okrType === 'percent' && (
-                              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                                <span className="text-gray-500 text-sm">%</span>
-                              </div>
-                            )}
-                          </div>
+                <div className="space-y-3">
+                  <div className="flex items-center gap-2">
+                    <input 
+                      type="checkbox" 
+                      id="has-target" 
+                      checked={formData.hasTarget}
+                      onChange={(e) => setFormData(prev => ({...prev, hasTarget: e.target.checked}))}
+                      className="rounded border-gray-300" 
+                    />
+                    <label htmlFor="has-target" className="text-sm font-medium text-gray-700">
+                      Set target value for this template
+                    </label>
+                  </div>
+                  
+                  {formData.hasTarget && (
+                    <div className="ml-6 space-y-4">
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-1">
+                          <label htmlFor="target-value" className="text-sm font-medium text-gray-700">
+                            Target Value
+                          </label>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <svg className="w-4 h-4 text-gray-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <circle cx="12" cy="12" r="10"></circle>
+                                  <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                                  <path d="M12 17h.01"></path>
+                                </svg>
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p>
+                                  {formData.okrType === 'currency' && "Enter amount in euros (e.g., 1000 for €1,000)"}
+                                  {formData.okrType === 'percent' && "Enter percentage value (e.g., 75 for 75%)"}
+                                  {formData.okrType === 'number' && "Enter numeric target (e.g., 50 for 50#)"}
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                        <div className="relative">
+                          {formData.okrType === 'currency' && (
+                            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                              <span className="text-gray-500 text-sm">€</span>
+                            </div>
+                          )}
+                          <Input 
+                            id="target-value"
+                            type="number" 
+                            value={formData.targetValue}
+                            onChange={(e) => setFormData(prev => ({...prev, targetValue: e.target.value}))}
+                            placeholder={
+                              formData.okrType === 'currency' ? "1000" :
+                              formData.okrType === 'percent' ? "75" :
+                              formData.okrType === 'number' ? "50" : ""
+                            }
+                            className={`border-gray-300 ${formData.okrType === 'currency' ? 'pl-8' : ''}`}
+                          />
+                          {formData.okrType === 'percent' && (
+                            <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
+                              <span className="text-gray-500 text-sm">%</span>
+                            </div>
+                          )}
                         </div>
                       </div>
-                    )}
-                  </div>
-                )}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
 
@@ -2758,14 +2753,17 @@ export default function MetricsPage() {
               
               <div className="space-y-2">
                 <label htmlFor="frequency" className="text-sm font-medium text-gray-700">
-                  Review Frequency
+                  {formData.okrType === 'checkbox' ? 'Milestone Frequency' : 'Review Frequency'}
                 </label>
                 <p className="text-xs text-gray-500">
-                  How often the target resets and progress is recorded separately
+                  {formData.okrType === 'checkbox' 
+                    ? 'How often to check milestone completion and update status'
+                    : 'How often the target resets and progress is recorded separately'
+                  }
                 </p>
                 <Select>
                   <SelectTrigger id="frequency" className="border-gray-300">
-                    <SelectValue placeholder="How often to review progress" />
+                    <SelectValue placeholder={formData.okrType === 'checkbox' ? 'How often to review milestones' : 'How often to review progress'} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="weekly">Weekly</SelectItem>
@@ -2877,7 +2875,7 @@ export default function MetricsPage() {
                 )}
               </div>
 
-              {/* Progress Bar - Only show for types that can have progress */}
+              {/* Progress Bar - Only show for types that can have progress (not checkbox or traffic-light) */}
               {(formData.okrType === 'currency' || formData.okrType === 'percent' || formData.okrType === 'number') && (
                 <div className="flex items-center gap-2">
                   <input 
@@ -2907,37 +2905,39 @@ export default function MetricsPage() {
                 </div>
               )}
 
-              {/* Due Date */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <input 
-                    type="checkbox" 
-                    id="due-date-required" 
-                    checked={formData.dueDateRequired}
-                    onChange={(e) => setFormData(prev => ({...prev, dueDateRequired: e.target.checked}))}
-                    className="rounded border-gray-300" 
-                  />
-                  <label htmlFor="due-date-required" className="text-sm font-medium text-gray-700">
-                    Require Due Date
-                  </label>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <svg className="w-4 h-4 text-gray-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <circle cx="12" cy="12" r="10"></circle>
-                          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-                          <path d="M12 17h.01"></path>
-                        </svg>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Make due date mandatory when this OKR is assigned</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
+              {/* Due Date - Show for all types except traffic-light */}
+              {formData.okrType !== 'traffic-light' && (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2">
+                    <input 
+                      type="checkbox" 
+                      id="due-date-required" 
+                      checked={formData.dueDateRequired}
+                      onChange={(e) => setFormData(prev => ({...prev, dueDateRequired: e.target.checked}))}
+                      className="rounded border-gray-300" 
+                    />
+                    <label htmlFor="due-date-required" className="text-sm font-medium text-gray-700">
+                      Require Due Date
+                    </label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <svg className="w-4 h-4 text-gray-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                            <path d="M12 17h.01"></path>
+                          </svg>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Make due date mandatory when this OKR is assigned</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                 </div>
-              </div>
+              )}
 
-              {/* Responsible Person */}
+              {/* Responsible Person - Show for all types */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
                   <input 
