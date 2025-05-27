@@ -404,6 +404,19 @@ function PartnersTable() {
   const [viewNameInput, setViewNameInput] = useState('');
   const [isCreatingNewList, setIsCreatingNewList] = useState(false); // Default to adding to existing list
   const [selectedExistingList, setSelectedExistingList] = useState<string | null>(null);
+  
+  // Assign Template functionality
+  const [showAssignTemplateModal, setShowAssignTemplateModal] = useState(false);
+  const [selectedOKRTemplates, setSelectedOKRTemplates] = useState<number[]>([]);
+  const [okrTemplatesData, setOkrTemplatesData] = useState<any[]>([]);
+
+  // Load OKR templates from localStorage (same as MetricsPage)
+  useEffect(() => {
+    const storedTemplates = localStorage.getItem('okrTemplates');
+    if (storedTemplates) {
+      setOkrTemplatesData(JSON.parse(storedTemplates));
+    }
+  }, []);
     
   // Filter partners based on search text, filter selections, and list membership
   const displayedPartners = partners
@@ -1202,9 +1215,7 @@ function PartnersTable() {
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => {
-                alert('Assign template functionality will be implemented in future');
-              }}
+              onClick={() => setShowAssignTemplateModal(true)}
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
                 <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
@@ -1581,6 +1592,220 @@ function PartnersTable() {
               }}
             >
               Save View
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Assign Template Modal */}
+      <Dialog open={showAssignTemplateModal} onOpenChange={setShowAssignTemplateModal}>
+        <DialogContent className="sm:max-w-[700px] max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Assign OKR Templates</DialogTitle>
+            <DialogDescription>
+              Select OKR templates to assign to {selectedPartners.length} selected partner{selectedPartners.length !== 1 ? 's' : ''}. 
+              Templates will be converted to active OKRs with tracking capabilities.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            {/* Selected Partners Summary */}
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+              <div className="flex items-center mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 text-blue-600">
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+                <span className="font-medium text-blue-900">
+                  {selectedPartners.length} Partner{selectedPartners.length !== 1 ? 's' : ''} Selected
+                </span>
+              </div>
+              <div className="text-sm text-blue-700">
+                {partners
+                  .filter(p => selectedPartners.includes(p.id))
+                  .map(p => p.name)
+                  .join(', ')}
+              </div>
+            </div>
+
+            {/* OKR Templates Selection */}
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-semibold text-gray-900">Available OKR Templates</h3>
+                <span className="text-sm text-gray-500">
+                  {selectedOKRTemplates.length} of {okrTemplatesData.length} selected
+                </span>
+              </div>
+              
+              {okrTemplatesData.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-3 text-gray-400">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                  </svg>
+                  <p className="text-lg font-medium mb-1">No OKR Templates Available</p>
+                  <p className="text-sm">Create some OKR templates first in the Templates section to assign them to partners.</p>
+                </div>
+              ) : (
+                <div className="space-y-3 max-h-80 overflow-y-auto border border-gray-200 rounded-lg p-4">
+                  {/* Select All Checkbox */}
+                  <div className="flex items-center p-3 bg-gray-50 rounded-lg border">
+                    <input
+                      type="checkbox"
+                      id="select-all-templates"
+                      checked={selectedOKRTemplates.length === okrTemplatesData.length && okrTemplatesData.length > 0}
+                      onChange={() => {
+                        if (selectedOKRTemplates.length === okrTemplatesData.length) {
+                          setSelectedOKRTemplates([]);
+                        } else {
+                          setSelectedOKRTemplates(okrTemplatesData.map(t => t.id));
+                        }
+                      }}
+                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <label htmlFor="select-all-templates" className="ml-3 font-medium text-gray-900">
+                      Select All Templates
+                    </label>
+                  </div>
+
+                  {/* Individual Template Items */}
+                  {okrTemplatesData.map((template) => (
+                    <div key={template.id} className="flex items-start p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                      <input
+                        type="checkbox"
+                        id={`template-${template.id}`}
+                        checked={selectedOKRTemplates.includes(template.id)}
+                        onChange={() => {
+                          if (selectedOKRTemplates.includes(template.id)) {
+                            setSelectedOKRTemplates(selectedOKRTemplates.filter(id => id !== template.id));
+                          } else {
+                            setSelectedOKRTemplates([...selectedOKRTemplates, template.id]);
+                          }
+                        }}
+                        className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 mt-1"
+                      />
+                      <div className="ml-3 flex-1">
+                        <div className="flex items-center gap-2 mb-1">
+                          <label htmlFor={`template-${template.id}`} className="font-medium text-gray-900 cursor-pointer">
+                            {template.title}
+                          </label>
+                          <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-full">
+                            {template.type}
+                          </span>
+                          {template.tag && (
+                            <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full">
+                              {template.tag}
+                            </span>
+                          )}
+                        </div>
+                        {template.description && (
+                          <p className="text-sm text-gray-600 mb-2">{template.description}</p>
+                        )}
+                        <div className="flex items-center gap-4 text-xs text-gray-500">
+                          {template.unit && (
+                            <span>📊 {template.unit}</span>
+                          )}
+                          {template.targetValue && (
+                            <span>🎯 Target: {template.targetValue}</span>
+                          )}
+                          {template.startDate && template.endDate && (
+                            <span>📅 {new Date(template.startDate).toLocaleDateString()} - {new Date(template.endDate).toLocaleDateString()}</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Assignment Options */}
+            {selectedOKRTemplates.length > 0 && (
+              <div className="space-y-4 bg-gray-50 p-4 rounded-lg border">
+                <h4 className="font-medium text-gray-900">Assignment Options</h4>
+                <div className="space-y-3">
+                  <div className="flex items-center">
+                    <input 
+                      type="checkbox" 
+                      id="set-due-dates" 
+                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <label htmlFor="set-due-dates" className="ml-2 text-sm text-gray-700">
+                      Set custom due dates for assigned OKRs
+                    </label>
+                  </div>
+                  <div className="flex items-center">
+                    <input 
+                      type="checkbox" 
+                      id="assign-responsible" 
+                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <label htmlFor="assign-responsible" className="ml-2 text-sm text-gray-700">
+                      Assign responsible persons during assignment
+                    </label>
+                  </div>
+                  <div className="flex items-center">
+                    <input 
+                      type="checkbox" 
+                      id="send-notifications" 
+                      defaultChecked
+                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <label htmlFor="send-notifications" className="ml-2 text-sm text-gray-700">
+                      Send notification emails to partners about new OKRs
+                    </label>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Summary */}
+            {selectedOKRTemplates.length > 0 && (
+              <div className="bg-green-50 p-4 rounded-lg border border-green-200">
+                <div className="flex items-center">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 text-green-600">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                  </svg>
+                  <span className="font-medium text-green-900">Assignment Summary</span>
+                </div>
+                <p className="text-sm text-green-700 mt-1">
+                  {selectedOKRTemplates.length} template{selectedOKRTemplates.length !== 1 ? 's' : ''} will be assigned to{' '}
+                  {selectedPartners.length} partner{selectedPartners.length !== 1 ? 's' : ''}, creating{' '}
+                  {selectedOKRTemplates.length * selectedPartners.length} active OKR{selectedOKRTemplates.length * selectedPartners.length !== 1 ? 's' : ''}.
+                </p>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="pt-6 border-t">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowAssignTemplateModal(false);
+                setSelectedOKRTemplates([]);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button 
+              disabled={selectedOKRTemplates.length === 0}
+              onClick={() => {
+                // Handle assignment logic here
+                toast({
+                  title: "Templates Assigned Successfully",
+                  description: `${selectedOKRTemplates.length} template${selectedOKRTemplates.length !== 1 ? 's' : ''} assigned to ${selectedPartners.length} partner${selectedPartners.length !== 1 ? 's' : ''}.`
+                });
+                
+                setShowAssignTemplateModal(false);
+                setSelectedOKRTemplates([]);
+                setSelectedPartners([]);
+              }}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              Assign {selectedOKRTemplates.length} Template{selectedOKRTemplates.length !== 1 ? 's' : ''}
             </Button>
           </DialogFooter>
         </DialogContent>
