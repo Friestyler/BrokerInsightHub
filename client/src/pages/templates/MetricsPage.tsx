@@ -2182,7 +2182,7 @@ export default function MetricsPage() {
                               ? `$${(okr.targetValue / 1000000).toFixed(1)}M`
                               : okr.unit === 'percentage'
                               ? `${okr.targetValue}%`
-                              : okr.targetValue.toString()
+                              : okr.targetValue?.toString() || '-'
                             }
                           </div>
                         </TableCell>
