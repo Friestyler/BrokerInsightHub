@@ -1636,7 +1636,7 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
         </div>
       )}
 
-      {/* OKR Tables Grouped by Tag */}
+      {/* OKR Tables Grouped by Tag - Exact Coming Soon tab structure */}
       {assignedOKRs.length === 0 ? (
         <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
           <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="mx-auto text-gray-400 mb-4">
@@ -1654,37 +1654,38 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
           <Button variant="outline" onClick={clearFilters} className="mt-2">Clear Filters</Button>
         </div>
       ) : (
-        <div className="space-y-8">
-          {sortedGroups.map(([tag, okrs]) => (
-            <div key={tag} className="space-y-4">
-              {/* Tag Header - Exact styling from Coming Soon tab */}
-              <div className="mb-6">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <TagBadgeLocal tag={tag} />
-                  </div>
+        <div>
+          {sortedGroups.map(([groupName, okrsInGroup]) => (
+            <div key={groupName} className="bg-white" style={{ marginBottom: '32px' }}>
+              <div className="px-6 pb-0 pt-3 bg-[#ffffff] text-[#282A3F]">
+                <div className="flex items-center">
+                  {groupName === "No Tag" ? (
+                    <div className="px-3 py-1 bg-gray-200 text-gray-600 rounded-lg text-sm font-medium border border-dashed border-gray-400">
+                      {groupName}
+                    </div>
+                  ) : (
+                    <TagBadgeLocal tag={groupName} />
+                  )}
                 </div>
               </div>
-
-              {/* OKR Table - Exact structure from Coming Soon tab */}
-              <div className="bg-white rounded-lg border overflow-hidden" style={{ borderColor: '#E6E7F1' }}>
-                <Table>
-                  <TableHeader style={{ background: '#F9FAFB' }}>
-                    <TableRow className="border-b group" style={{ borderColor: '#E6E7F1' }}>
-                      <TableHead className="w-12 px-1 py-3">
+              <div className="overflow-x-auto">
+                <Table className="border-b min-w-full" style={{ borderColor: '#E6E7F1' }}>
+                  <TableHeader>
+                    <TableRow className="border-b hover:bg-[#F5F6FA] group" style={{ borderColor: '#E6E7F1' }}>
+                      <TableHead className="w-12 px-3 py-2">
                         <input
                           type="checkbox"
-                          checked={okrs.length > 0 && okrs.every(okr => selectedOKRs.includes(okr.id))}
+                          checked={okrsInGroup.length > 0 && okrsInGroup.every(okr => selectedOKRs.includes(okr.id))}
                           onChange={(e) => {
                             if (e.target.checked) {
-                              setSelectedOKRs(prev => [...new Set([...prev, ...okrs.map(okr => okr.id)])]);
+                              setSelectedOKRs(prev => [...new Set([...prev, ...okrsInGroup.map(okr => okr.id)])]);
                             } else {
-                              setSelectedOKRs(prev => prev.filter(id => !okrs.map(okr => okr.id).includes(id)));
+                              setSelectedOKRs(prev => prev.filter(id => !okrsInGroup.map(okr => okr.id).includes(id)));
                             }
                           }}
                           className="rounded border-gray-300 opacity-0 group-hover:opacity-100 transition-opacity"
                           style={{ 
-                            opacity: okrs.some(okr => selectedOKRs.includes(okr.id)) ? 1 : undefined 
+                            opacity: okrsInGroup.some(okr => selectedOKRs.includes(okr.id)) ? 1 : undefined 
                           }}
                         />
                       </TableHead>
@@ -1757,7 +1758,7 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {okrs.map((okr) => (
+                    {okrsInGroup.map((okr) => (
                       <TableRow key={okr.id} className="hover:bg-[#F5F6FA] border-b group" style={{ borderColor: '#E6E7F1' }}>
                         <TableCell className="w-12 px-1 py-3">
                           <div className="flex items-center" style={{ gap: '4px' }}>
@@ -1794,26 +1795,48 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                           )}
                         </TableCell>
                         <TableCell className="px-3 py-3" style={{ fontFamily: 'Poppins', fontSize: '13px', color: '#696C8C' }}>
-                          {okr.startDate && okr.endDate ? (
-                            `${new Date(okr.startDate).toLocaleDateString()} - ${new Date(okr.endDate).toLocaleDateString()}`
-                          ) : (
-                            'Not set'
-                          )}
+                          {(() => {
+                            const formatDate = (date: any) => {
+                              if (!date) return '';
+                              const dateObj = date instanceof Date ? date : new Date(date);
+                              if (isNaN(dateObj.getTime())) return '';
+                              return dateObj.toLocaleDateString('en-US', { 
+                                month: 'short', 
+                                day: 'numeric', 
+                                year: 'numeric' 
+                              });
+                            };
+                            
+                            if (okr.startDate && okr.endDate) {
+                              const start = formatDate(okr.startDate);
+                              const end = formatDate(okr.endDate);
+                              return start && end ? `${start} - ${end}` : 'Date range';
+                            } else if (okr.startDate) {
+                              const start = formatDate(okr.startDate);
+                              return start ? `From ${start}` : 'Start date';
+                            } else if (okr.endDate) {
+                              const end = formatDate(okr.endDate);
+                              return end ? `Until ${end}` : 'End date';
+                            }
+                            return 'Not set';
+                          })()}
                         </TableCell>
                         <TableCell className="px-3 py-3" style={{ fontFamily: 'Poppins', fontSize: '13px', color: '#696C8C' }}>
-                          {okr.frequency || 'Once'}
+                          {okr.milestoneFrequency || 'Once'}
                         </TableCell>
                         <TableCell className="text-right px-3 py-3" style={{ fontFamily: 'Poppins', fontSize: '13px', fontWeight: '500' }}>
-                          {okr.targetValue && okr.unit && (
-                            <span>
-                              {okr.targetValue}{
-                                okr.unit === 'Number' ? '#' :
-                                okr.unit === 'Currency' ? '€' :
-                                okr.unit === 'Percent' ? '%' :
-                                okr.unit === 'Checkbox' ? ' complete' : ''
-                              }{okr.frequency && okr.frequency !== 'Once' ? ` ${okr.frequency.toLowerCase()}` : ''}
-                            </span>
-                          )}
+                          <div className="font-medium">
+                            {okr.unit === 'currency' 
+                              ? `$${(okr.targetValue / 1000000).toFixed(1)}M`
+                              : okr.unit === 'percent' 
+                              ? `${okr.targetValue}%`
+                              : okr.unit === 'number'
+                              ? `${okr.targetValue}`
+                              : okr.unit === 'checkbox' 
+                              ? 'Complete'
+                              : okr.targetValue || '—'
+                            }
+                          </div>
                         </TableCell>
                         <TableCell className="text-right px-3 py-3">
                           <div className="flex gap-1 justify-end">
