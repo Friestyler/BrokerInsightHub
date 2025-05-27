@@ -1918,13 +1918,7 @@ export default function MetricsPage() {
                         </TableCell>
                         {/* Type Column */}
                         <TableCell className="px-1 py-3">
-                          <span className={`inline-flex items-center text-xs font-medium ${
-                            okr.hierarchy === 'objective' 
-                              ? 'text-indigo-700' 
-                              : okr.hierarchy === 'activity'
-                              ? 'text-blue-700'
-                              : 'text-gray-600'
-                          }`}>
+                          <span className="inline-flex items-center text-xs font-medium text-gray-600">
                             {okr.hierarchy === 'objective' ? 'Objective' : okr.hierarchy === 'activity' ? 'Activity' : 'Subactivity'}
                           </span>
                         </TableCell>
@@ -1933,22 +1927,20 @@ export default function MetricsPage() {
                         <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
                           <div className="flex items-center w-full">
                             {/* Title - consistent styling for all OKRs */}
-                            <div className="flex-1">
-                              <span 
-                                className="text-[#282A3F]"
-                                style={{ 
-                                  fontFamily: 'Poppins', 
-                                  fontWeight: '500', 
-                                  fontSize: '14px' 
-                                }}
-                              >
-                                {okr.title}
-                              </span>
-                            </div>
+                            <span 
+                              className="text-[#282A3F]"
+                              style={{ 
+                                fontFamily: 'Poppins', 
+                                fontWeight: '500', 
+                                fontSize: '14px' 
+                              }}
+                            >
+                              {okr.title}
+                            </span>
                             
-                            {/* Nested count icon with count */}
+                            {/* Nested count icon - 4px from text */}
                             {okr.nestedCount > 0 && (
-                              <div className="flex items-center ml-2">
+                              <div className="flex items-center" style={{ marginLeft: '4px' }}>
                                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-gray-400">
                                   <circle cx="5" cy="5" r="3" stroke="currentColor" strokeWidth="1" fill="none"/>
                                   <circle cx="11" cy="11" r="3" stroke="currentColor" strokeWidth="1" fill="none"/>
@@ -1958,7 +1950,7 @@ export default function MetricsPage() {
                               </div>
                             )}
                             
-                            {/* Hamburger menu icon */}
+                            {/* Description icon - 4px from nested icon or text */}
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger asChild>
