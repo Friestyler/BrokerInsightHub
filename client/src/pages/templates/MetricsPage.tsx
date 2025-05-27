@@ -794,7 +794,20 @@ export default function MetricsPage() {
   });
   const [selectedOKRs, setSelectedOKRs] = useState<number[]>([]);
   const [groupBy, setGroupBy] = useState("tag"); // Default grouping by tag
-  const [okrTemplates, setOkrTemplates] = useState(mockOKRs);
+  const [okrTemplates, setOkrTemplates] = useState(() => {
+    // Initialize from localStorage if available, otherwise use mockOKRs
+    const stored = localStorage.getItem('okrTemplates');
+    try {
+      return stored ? JSON.parse(stored) : mockOKRs;
+    } catch {
+      return mockOKRs;
+    }
+  });
+
+  // Save OKR templates to localStorage whenever they change
+  React.useEffect(() => {
+    localStorage.setItem('okrTemplates', JSON.stringify(okrTemplates));
+  }, [okrTemplates]);
   
   // Form state for OKR creation
   const [formData, setFormData] = useState({
