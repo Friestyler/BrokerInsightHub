@@ -794,6 +794,25 @@ export default function MetricsPage() {
   });
   const [selectedOKRs, setSelectedOKRs] = useState<number[]>([]);
   const [groupBy, setGroupBy] = useState("tag"); // Default grouping by tag
+  const [okrTemplates, setOkrTemplates] = useState(mockOKRs);
+  
+  // Form state for OKR creation
+  const [formData, setFormData] = useState({
+    tag: "",
+    name: "",
+    description: "",
+    hasTarget: false,
+    measureUnit: "",
+    targetValue: "",
+    startDate: "",
+    endDate: "",
+    frequency: "",
+    trafficLights: false,
+    trafficLightConfig: "",
+    progressBar: false,
+    dueDateRequired: false,
+    responsibleRequired: false
+  });
 
   // Filtered metrics based on search and selected tags
   const filteredMetrics = mockMetrics.filter(metric => {
@@ -1059,8 +1078,60 @@ export default function MetricsPage() {
   // All unique tags
   const allTags = Array.from(new Set(filteredMetrics.flatMap(m => m.tags))).sort();
 
+  // Handle form submission for creating new OKR template
+  const handleCreateOKR = () => {
+    if (!formData.name.trim()) return;
+    
+    const newOKR = {
+      id: Math.max(...okrTemplates.map(o => o.id)) + 1,
+      title: formData.name,
+      description: formData.description,
+      type: "Objective",
+      hierarchy: "objective",
+      parent: null,
+      progress: 0,
+      targetValue: formData.hasTarget && formData.targetValue ? parseFloat(formData.targetValue) : undefined,
+      currentValue: 0,
+      unit: formData.hasTarget ? formData.measureUnit : undefined,
+      status: "Not Started",
+      owner: "",
+      dueDate: formData.endDate ? new Date(formData.endDate) : undefined,
+      startDate: formData.startDate ? new Date(formData.startDate) : undefined,
+      endDate: formData.endDate ? new Date(formData.endDate) : undefined,
+      tag: formData.tag || undefined,
+      frequency: formData.frequency || undefined,
+      trafficLights: formData.trafficLights,
+      trafficLightConfig: formData.trafficLightConfig,
+      progressBar: formData.progressBar,
+      dueDateRequired: formData.dueDateRequired,
+      responsibleRequired: formData.responsibleRequired
+    };
+    
+    // Add the new OKR to the templates list
+    setOkrTemplates(prev => [...prev, newOKR]);
+    
+    // Reset form and close dialog
+    setFormData({
+      tag: "",
+      name: "",
+      description: "",
+      hasTarget: false,
+      measureUnit: "",
+      targetValue: "",
+      startDate: "",
+      endDate: "",
+      frequency: "",
+      trafficLights: false,
+      trafficLightConfig: "",
+      progressBar: false,
+      dueDateRequired: false,
+      responsibleRequired: false
+    });
+    setIsCreateOKROpen(false);
+  };
+
   // Filtered OKRs based on search, measure unit, target range, timeframe, and no target
-  const filteredOKRs = mockOKRs.filter(okr => {
+  const filteredOKRs = okrTemplates.filter(okr => {
     const matchesSearch = searchTerm === "" || 
       okr.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       okr.description?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -2309,7 +2380,7 @@ export default function MetricsPage() {
               <p className="text-xs text-gray-500 mb-2">
                 Add a tag if you want to add this OKR to a plan.
               </p>
-              <Select>
+              <Select value={formData.tag} onValueChange={(value) => setFormData(prev => ({...prev, tag: value}))}>
                 <SelectTrigger id="okr-tag" className="border-gray-300 focus:border-blue-500">
                   <SelectValue placeholder="Choose tag (optional)" />
                 </SelectTrigger>
@@ -2333,6 +2404,8 @@ export default function MetricsPage() {
                 </label>
                 <Input 
                   id="okr-name"
+                  value={formData.name}
+                  onChange={(e) => setFormData(prev => ({...prev, name: e.target.value}))}
                   placeholder="e.g., Increase Annual Revenue"
                   className="text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                 />
@@ -2345,6 +2418,8 @@ export default function MetricsPage() {
                 </label>
                 <Textarea 
                   id="okr-description"
+                  value={formData.description}
+                  onChange={(e) => setFormData(prev => ({...prev, description: e.target.value}))}
                   placeholder="Add a description to provide context and details..."
                   rows={3}
                   className="resize-none border-gray-300 focus:border-blue-500 focus:ring-blue-500"
