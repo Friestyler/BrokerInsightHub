@@ -410,12 +410,35 @@ function PartnersTable() {
   const [selectedOKRTemplates, setSelectedOKRTemplates] = useState<number[]>([]);
   const [okrTemplatesData, setOkrTemplatesData] = useState<any[]>([]);
 
-  // Load OKR templates from localStorage (same as MetricsPage)
+  // Load OKR templates from localStorage (same as MetricsPage Coming Soon tab)
   useEffect(() => {
-    const storedTemplates = localStorage.getItem('okrTemplates');
-    if (storedTemplates) {
-      setOkrTemplatesData(JSON.parse(storedTemplates));
-    }
+    const loadTemplates = () => {
+      const storedTemplates = localStorage.getItem('okrTemplates');
+      if (storedTemplates) {
+        try {
+          const templates = JSON.parse(storedTemplates);
+          setOkrTemplatesData(templates);
+        } catch (error) {
+          console.error('Error parsing stored OKR templates:', error);
+          setOkrTemplatesData([]);
+        }
+      } else {
+        setOkrTemplatesData([]);
+      }
+    };
+
+    // Load templates initially
+    loadTemplates();
+
+    // Listen for storage changes to sync between tabs
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'okrTemplates') {
+        loadTemplates();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
     
   // Filter partners based on search text, filter selections, and list membership
