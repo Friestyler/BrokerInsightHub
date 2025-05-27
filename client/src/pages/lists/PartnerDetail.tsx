@@ -1385,6 +1385,44 @@ export default function PartnerDetail() {
   );
 }
 
+// TagBadge component - exact from Coming Soon tab
+const TagBadge = ({ tag }: { tag: string }) => {
+  const tagColors: Record<string, string> = {
+    "Financial": "#3B82F6",
+    "Revenue": "#10B981", 
+    "Partner": "#F59E0B",
+    "Pipeline": "#8B5CF6",
+    "Sales": "#EF4444",
+    "Training": "#06B6D4",
+    "Certification": "#84CC16",
+    "People": "#F97316",
+    "Marketing": "#EC4899",
+    "Budget": "#6366F1",
+    "Digital": "#14B8A6",
+    "Customer": "#8B5CF6",
+    "Support": "#F59E0B",
+    "Service": "#10B981",
+    "Quality": "#3B82F6",
+    "Campaign": "#EC4899",
+    "Brand": "#F97316",
+    "Website": "#06B6D4",
+    "Product": "#84CC16",
+    "Innovation": "#EF4444",
+    "Market Expansion": "#6366F1"
+  };
+
+  const bgColor = tagColors[tag] || "#6B7280";
+  
+  return (
+    <div 
+      className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium text-white"
+      style={{ backgroundColor: bgColor }}
+    >
+      {tag}
+    </div>
+  );
+};
+
 // OKR Plans Section Component
 function OKRPlansSection({ partnerId }: { partnerId: string }) {
   const [selectedOKRs, setSelectedOKRs] = useState<number[]>([]);
@@ -1392,6 +1430,44 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedMeasureUnit, setSelectedMeasureUnit] = useState("");
   const [assignedOKRs, setAssignedOKRs] = useState<any[]>([]);
+
+  // TagBadge component - exact from Coming Soon tab
+  const TagBadgeLocal = ({ tag }: { tag: string }) => {
+    const tagColors: Record<string, string> = {
+      "Financial": "#3B82F6",
+      "Revenue": "#10B981", 
+      "Partner": "#F59E0B",
+      "Pipeline": "#8B5CF6",
+      "Sales": "#EF4444",
+      "Training": "#06B6D4",
+      "Certification": "#84CC16",
+      "People": "#F97316",
+      "Marketing": "#EC4899",
+      "Budget": "#6366F1",
+      "Digital": "#14B8A6",
+      "Customer": "#8B5CF6",
+      "Support": "#F59E0B",
+      "Service": "#10B981",
+      "Quality": "#3B82F6",
+      "Campaign": "#EC4899",
+      "Brand": "#F97316",
+      "Website": "#06B6D4",
+      "Product": "#84CC16",
+      "Innovation": "#EF4444",
+      "Market Expansion": "#6366F1"
+    };
+
+    const bgColor = tagColors[tag] || "#6B7280";
+    
+    return (
+      <div 
+        className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium text-white"
+        style={{ backgroundColor: bgColor }}
+      >
+        {tag}
+      </div>
+    );
+  };
 
   // Load assigned OKR templates for this partner from localStorage
   useEffect(() => {
@@ -1583,14 +1659,10 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
             <div key={tag} className="space-y-4">
               {/* Tag Header - Exact styling from Coming Soon tab */}
               <div className="mb-6">
-                <div 
-                  className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium" 
-                  style={{ 
-                    background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
-                    color: 'white'
-                  }}
-                >
-                  {tag} ({okrs.length})
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <TagBadgeLocal tag={tag} />
+                  </div>
                 </div>
               </div>
 
