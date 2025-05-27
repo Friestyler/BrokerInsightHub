@@ -1872,7 +1872,7 @@ export default function MetricsPage() {
                   <TableBody>
                     {okrsInGroup.map((okr) => (
                       <TableRow key={okr.id} className="hover:bg-[#F5F6FA] border-b group" style={{ borderColor: '#E6E7F1' }}>
-                        <TableCell className="w-12 px-3 py-3">
+                        <TableCell className="w-12 px-1 py-3">
                           <div className="flex items-center" style={{ gap: '4px' }}>
                             <input
                               type="checkbox"
@@ -1917,7 +1917,7 @@ export default function MetricsPage() {
                           </div>
                         </TableCell>
                         {/* Type Column */}
-                        <TableCell className="px-3 py-3">
+                        <TableCell className="px-1 py-3">
                           <span className={`inline-flex items-center text-xs font-medium ${
                             okr.hierarchy === 'objective' 
                               ? 'text-indigo-700' 
