@@ -885,7 +885,6 @@ function PartnersTable() {
                 {showViewsDropdown && (
                   <div className="absolute z-50 mt-1 w-64 rounded-md border border-slate-200 bg-white shadow-md">
                     <div className="p-2 border-b">
-                      <div className="text-xs font-medium mb-2 text-gray-500">SAVED VIEWS</div>
                       {savedViews.map(view => (
                         <div 
                           key={view.id}
