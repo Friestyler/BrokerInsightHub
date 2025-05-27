@@ -2583,12 +2583,36 @@ export default function MetricsPage() {
                     <SelectValue placeholder="Choose tag (optional)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="Revenue Growth">Revenue Growth</SelectItem>
-                    <SelectItem value="Product Innovation">Product Innovation</SelectItem>
-                    <SelectItem value="Customer Experience">Customer Experience</SelectItem>
-                    <SelectItem value="Operational Excellence">Operational Excellence</SelectItem>
-                    <SelectItem value="Market Expansion">Market Expansion</SelectItem>
-                    <SelectItem value="Team Development">Team Development</SelectItem>
+                    <SelectItem value="Revenue Growth">
+                      <Badge variant="secondary" className="bg-blue-100 text-blue-800 border-blue-200">
+                        Revenue Growth
+                      </Badge>
+                    </SelectItem>
+                    <SelectItem value="Product Innovation">
+                      <Badge variant="secondary" className="bg-purple-100 text-purple-800 border-purple-200">
+                        Product Innovation
+                      </Badge>
+                    </SelectItem>
+                    <SelectItem value="Customer Experience">
+                      <Badge variant="secondary" className="bg-green-100 text-green-800 border-green-200">
+                        Customer Experience
+                      </Badge>
+                    </SelectItem>
+                    <SelectItem value="Operational Excellence">
+                      <Badge variant="secondary" className="bg-orange-100 text-orange-800 border-orange-200">
+                        Operational Excellence
+                      </Badge>
+                    </SelectItem>
+                    <SelectItem value="Market Expansion">
+                      <Badge variant="secondary" className="bg-red-100 text-red-800 border-red-200">
+                        Market Expansion
+                      </Badge>
+                    </SelectItem>
+                    <SelectItem value="Team Development">
+                      <Badge variant="secondary" className="bg-indigo-100 text-indigo-800 border-indigo-200">
+                        Team Development
+                      </Badge>
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
