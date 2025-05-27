@@ -1942,9 +1942,9 @@ export default function MetricsPage() {
                             {okr.nestedCount > 0 && (
                               <div className="flex items-center" style={{ marginLeft: '4px' }}>
                                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                  <circle cx="4" cy="4" r="3" fill="#808080"/>
-                                  <circle cx="12" cy="12" r="3" fill="#808080"/>
-                                  <path d="M6.5 6.5C7.5 7.5 8.5 8.5 9.5 9.5" stroke="#808080" strokeWidth="2" strokeLinecap="round"/>
+                                  <circle cx="5" cy="3" r="2.5" fill="#808080"/>
+                                  <circle cx="11" cy="13" r="2.5" fill="#808080"/>
+                                  <path d="M6.5 5.5Q8.5 8.5 8.5 10.5" stroke="#808080" strokeWidth="1.5" fill="none"/>
                                 </svg>
                                 <span className="text-xs text-gray-500 ml-1">{okr.nestedCount}</span>
                               </div>
