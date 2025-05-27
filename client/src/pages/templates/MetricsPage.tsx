@@ -2491,446 +2491,171 @@ export default function MetricsPage() {
       
       {/* Create OKR Metric Dialog */}
       <Dialog open={isCreateOKROpen} onOpenChange={setIsCreateOKROpen}>
-        <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto">
-          <DialogHeader className="pb-6">
-            <DialogTitle className="text-xl font-semibold text-gray-900">
-              {isEditing ? `Edit "${editingOKR?.title}"` : 
-               isCreatingActivity ? `Add Activity to "${parentObjective?.title}"` : "Create OKR template"}
-            </DialogTitle>
-            <DialogDescription className="text-sm text-gray-600 mt-1">
-              {isEditing 
-                ? `Edit the details and configuration of this ${editingOKR?.type?.toLowerCase()}`
-                : isCreatingActivity 
-                ? `Create a new activity under the objective "${parentObjective?.title}". This activity will inherit the tag "${parentObjective?.tag}".`
-                : "Create a new OKR template that can be assigned to partners, opportunities, and customers"
-              }
-            </DialogDescription>
+        <DialogContent className="sm:max-w-[680px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader className="pb-4 border-b border-neutral-200">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-primary-600 rounded-lg flex items-center justify-center">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div>
+                <DialogTitle className="text-xl font-semibold text-neutral-900">
+                  {isEditing ? `Edit "${editingOKR?.title}"` : 
+                   isCreatingActivity ? `Add Activity to "${parentObjective?.title}"` : "Create OKR template"}
+                </DialogTitle>
+                <DialogDescription className="text-sm text-neutral-500 mt-1">
+                  {isEditing 
+                    ? `Edit the details and configuration of this ${editingOKR?.type?.toLowerCase()}`
+                    : isCreatingActivity 
+                    ? `Create a new activity under "${parentObjective?.title}"`
+                    : "Start with the measurement type, then add details"
+                  }
+                </DialogDescription>
+              </div>
+            </div>
           </DialogHeader>
           
-          <div className="space-y-6">
-            {/* OKR Type Field */}
-            <div className="space-y-2">
-              <label htmlFor="okr-type" className="text-sm font-medium text-gray-900">
-                OKR Type <span className="text-red-500">*</span>
-              </label>
-              <p className="text-xs text-gray-500 mb-2">
-                Select the measurement type for this OKR. This determines how values will be tracked and displayed.
-              </p>
-              <Select value={formData.okrType} onValueChange={(value) => setFormData(prev => ({...prev, okrType: value}))}>
-                <SelectTrigger id="okr-type" className="border-gray-300 focus:border-blue-500">
-                  <SelectValue placeholder="Choose measurement type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="currency">Currency - Track monetary values (€1,000)</SelectItem>
-                  <SelectItem value="percent">Percent - Track percentage values (75%)</SelectItem>
-                  <SelectItem value="number">Number - Track numeric counts (50 units)</SelectItem>
-                  <SelectItem value="checkbox">Checkbox - Track completion status (Done/Not Done)</SelectItem>
-                  <SelectItem value="traffic-light">Traffic Light - Track status with color indicators</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Divider */}
-            <div className="border-t border-gray-200"></div>
-
-            {/* Tag Field - Only show when creating objectives */}
-            {!isCreatingActivity && (
-              <div className="space-y-2">
-                <label htmlFor="okr-tag" className="text-sm font-medium text-gray-900">
-                  Tag
-                </label>
-                <p className="text-xs text-gray-500 mb-2">
-                  Add a tag if you want to add this OKR to a plan.
-                </p>
-                <Select value={formData.tag} onValueChange={(value) => setFormData(prev => ({...prev, tag: value}))}>
-                  <SelectTrigger id="okr-tag" className="border-gray-300 focus:border-blue-500">
-                    <SelectValue placeholder="Choose tag (optional)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Revenue Growth">Revenue Growth</SelectItem>
-                    <SelectItem value="Product Innovation">Product Innovation</SelectItem>
-                    <SelectItem value="Customer Experience">Customer Experience</SelectItem>
-                    <SelectItem value="Operational Excellence">Operational Excellence</SelectItem>
-                    <SelectItem value="Market Expansion">Market Expansion</SelectItem>
-                    <SelectItem value="Team Development">Team Development</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-            
-            {/* Show inherited tag when creating activity */}
-            {isCreatingActivity && (
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-gray-900">Tag</label>
-                <div className="p-3 bg-gray-50 border border-gray-200 rounded-md">
-                  <span className="text-sm text-gray-700">
-                    Inherited from objective: <strong>{parentObjective?.tag || "No tag"}</strong>
-                  </span>
-                </div>
-              </div>
-            )}
-
-            {/* Essential Fields */}
+          <div className="space-y-6 pt-6">
+            {/* Step 1: OKR Type Selection - Primary Focus */}
             <div className="space-y-4">
-              {/* Name Field */}
-              <div className="space-y-2">
-                <label htmlFor="okr-name" className="text-sm font-medium text-gray-900">
-                  Name <span className="text-red-500">*</span>
-                </label>
-                <Input 
-                  id="okr-name"
-                  value={formData.name}
-                  onChange={(e) => setFormData(prev => ({...prev, name: e.target.value}))}
-                  placeholder="e.g., Increase Annual Revenue"
-                  className="text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                />
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 bg-primary-500 text-white rounded-full flex items-center justify-center text-sm font-medium">1</div>
+                <h3 className="text-lg font-semibold text-neutral-900">Choose measurement type</h3>
+                <span className="text-red-500 text-sm">*</span>
               </div>
-
-              {/* Description Field */}
-              <div className="space-y-2">
-                <label htmlFor="okr-description" className="text-sm font-medium text-gray-900">
-                  Description
-                </label>
-                <Textarea 
-                  id="okr-description"
-                  value={formData.description}
-                  onChange={(e) => setFormData(prev => ({...prev, description: e.target.value}))}
-                  placeholder="Add a description to provide context and details..."
-                  rows={3}
-                  className="resize-none border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                />
+              
+              <div className="grid grid-cols-1 gap-3">
+                {[
+                  { value: 'currency', icon: '€', title: 'Currency', desc: 'Track monetary values', example: '€1,000', color: 'bg-green-50 border-green-200 text-green-700' },
+                  { value: 'percent', icon: '%', title: 'Percent', desc: 'Track percentage progress', example: '75%', color: 'bg-blue-50 border-blue-200 text-blue-700' },
+                  { value: 'number', icon: '#', title: 'Number', desc: 'Track numeric counts', example: '50 units', color: 'bg-purple-50 border-purple-200 text-purple-700' },
+                  { value: 'checkbox', icon: '✓', title: 'Checkbox', desc: 'Done/Not Done tracking', example: 'Complete', color: 'bg-orange-50 border-orange-200 text-orange-700' },
+                  { value: 'traffic-light', icon: '●', title: 'Traffic Light', desc: 'Color status indicators', example: 'Green/Red', color: 'bg-red-50 border-red-200 text-red-700' }
+                ].map((type) => (
+                  <div 
+                    key={type.value}
+                    className={`relative p-4 border-2 rounded-xl cursor-pointer transition-all hover:shadow-md ${
+                      formData.okrType === type.value 
+                        ? 'border-primary-500 bg-primary-50 shadow-sm' 
+                        : 'border-neutral-200 hover:border-neutral-300'
+                    }`}
+                    onClick={() => setFormData(prev => ({...prev, okrType: type.value}))}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-lg flex items-center justify-center text-lg font-semibold ${type.color}`}>
+                        {type.icon}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-medium text-neutral-900">{type.title}</h4>
+                          <span className="text-xs text-neutral-500 bg-neutral-100 px-2 py-1 rounded-md">{type.example}</span>
+                        </div>
+                        <p className="text-sm text-neutral-600 mt-1">{type.desc}</p>
+                      </div>
+                      {formData.okrType === type.value && (
+                        <div className="w-5 h-5 bg-primary-500 text-white rounded-full flex items-center justify-center">
+                          <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                          </svg>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                ))}
               </div>
             </div>
 
-            {/* Target & Measurement Section - Dynamically adapts based on OKR type */}
-            {formData.okrType && formData.okrType !== 'traffic-light' && (
-              <div className="space-y-4">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-sm font-semibold text-gray-900">Target & Measurement</h3>
-                  <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">Optional</span>
-                </div>
-                <p className="text-xs text-gray-500">
-                  {formData.okrType === 'checkbox' 
-                    ? "For checkbox OKRs, completion is tracked as Done/Not Done. No numerical target needed."
-                    : "Define target values for this OKR. If no target is set here, it can be defined later when assigned to specific entities."
-                  }
-                </p>
-                
-                {formData.okrType !== 'checkbox' && (
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <input 
-                        type="checkbox" 
-                        id="has-target" 
-                        checked={formData.hasTarget}
-                        onChange={(e) => setFormData(prev => ({...prev, hasTarget: e.target.checked}))}
-                        className="rounded border-gray-300" 
-                      />
-                      <label htmlFor="has-target" className="text-sm font-medium text-gray-700">
-                        Set target value for this template
+            {/* Progressive Disclosure: Only show after type is selected */}
+            {formData.okrType && (
+              <>
+                {/* Step 2: Essential Information */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 bg-primary-500 text-white rounded-full flex items-center justify-center text-sm font-medium">2</div>
+                    <h3 className="text-lg font-semibold text-neutral-900">Essential details</h3>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 gap-4">
+                    {/* Name Field with Smart Placeholder */}
+                    <div className="space-y-2">
+                      <label htmlFor="okr-name" className="text-sm font-semibold text-neutral-900 flex items-center gap-1">
+                        OKR Name 
+                        <span className="text-red-500">*</span>
                       </label>
+                      <Input 
+                        id="okr-name"
+                        value={formData.name}
+                        onChange={(e) => setFormData(prev => ({...prev, name: e.target.value}))}
+                        placeholder={
+                          formData.okrType === 'currency' ? "e.g., Increase annual revenue" :
+                          formData.okrType === 'percent' ? "e.g., Improve customer satisfaction" :
+                          formData.okrType === 'number' ? "e.g., Acquire new customers" :
+                          formData.okrType === 'checkbox' ? "e.g., Complete market research" :
+                          formData.okrType === 'traffic-light' ? "e.g., Project delivery status" :
+                          "e.g., Increase Annual Revenue"
+                        }
+                        className="text-base border-neutral-300 focus:border-primary-500 focus:ring-primary-500 bg-white"
+                      />
                     </div>
+
+                    {/* Context-Aware Tag Field */}
+                    {!isCreatingActivity && (
+                      <div className="space-y-2">
+                        <label htmlFor="okr-tag" className="text-sm font-medium text-neutral-700 flex items-center gap-2">
+                          Plan Category
+                          <span className="text-xs text-neutral-500 bg-neutral-100 px-2 py-1 rounded-md">Optional</span>
+                        </label>
+                        <Select value={formData.tag} onValueChange={(value) => setFormData(prev => ({...prev, tag: value}))}>
+                          <SelectTrigger id="okr-tag" className="border-neutral-300 focus:border-primary-500 bg-white">
+                            <SelectValue placeholder="Choose a category to organize this OKR" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Revenue Growth">💰 Revenue Growth</SelectItem>
+                            <SelectItem value="Product Innovation">🚀 Product Innovation</SelectItem>
+                            <SelectItem value="Customer Experience">😊 Customer Experience</SelectItem>
+                            <SelectItem value="Operational Excellence">⚙️ Operational Excellence</SelectItem>
+                            <SelectItem value="Market Expansion">🌍 Market Expansion</SelectItem>
+                            <SelectItem value="Team Development">👥 Team Development</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    )}
                     
-                    {formData.hasTarget && (
-                      <div className="ml-6 space-y-4">
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-1">
-                            <label htmlFor="target-value" className="text-sm font-medium text-gray-700">
-                              Target Value
-                            </label>
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <svg className="w-4 h-4 text-gray-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <circle cx="12" cy="12" r="10"></circle>
-                                    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-                                    <path d="M12 17h.01"></path>
-                                  </svg>
-                                </TooltipTrigger>
-                                <TooltipContent>
-                                  <p>
-                                    {formData.okrType === 'currency' && "Enter amount in euros (e.g., 1000 for €1,000)"}
-                                    {formData.okrType === 'percent' && "Enter percentage value (e.g., 75 for 75%)"}
-                                    {formData.okrType === 'number' && "Enter numeric target (e.g., 50 for 50 units)"}
-                                  </p>
-                                </TooltipContent>
-                              </Tooltip>
-                            </TooltipProvider>
-                          </div>
-                          <div className="relative">
-                            {formData.okrType === 'currency' && (
-                              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <span className="text-gray-500 text-sm">€</span>
-                              </div>
-                            )}
-                            <Input 
-                              id="target-value"
-                              type="number" 
-                              value={formData.targetValue}
-                              onChange={(e) => setFormData(prev => ({...prev, targetValue: e.target.value}))}
-                              placeholder={
-                                formData.okrType === 'currency' ? "1000" :
-                                formData.okrType === 'percent' ? "75" :
-                                formData.okrType === 'number' ? "50" : ""
-                              }
-                              className={`border-gray-300 ${formData.okrType === 'currency' ? 'pl-8' : ''}`}
-                            />
-                            {formData.okrType === 'percent' && (
-                              <div className="absolute inset-y-0 right-0 pr-3 flex items-center pointer-events-none">
-                                <span className="text-gray-500 text-sm">%</span>
-                              </div>
-                            )}
+                    {/* Show inherited tag when creating activity */}
+                    {isCreatingActivity && (
+                      <div className="space-y-2">
+                        <label className="text-sm font-medium text-neutral-700">Plan Category</label>
+                        <div className="p-3 bg-primary-50 border border-primary-200 rounded-lg">
+                          <div className="flex items-center gap-2">
+                            <svg className="w-4 h-4 text-primary-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+                            </svg>
+                            <span className="text-sm text-primary-700">
+                              Inherited: <strong>{parentObjective?.tag || "No category"}</strong>
+                            </span>
                           </div>
                         </div>
                       </div>
                     )}
-                  </div>
-                )}
-              </div>
-            )}
 
-            {/* Timeline Section */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <h3 className="text-sm font-semibold text-gray-900">Timeline</h3>
-                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">Optional but recommended</span>
-              </div>
-              
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label htmlFor="start-date" className="text-sm font-medium text-gray-700">
-                    Start Date
-                  </label>
-                  <Input 
-                    id="start-date"
-                    type="date" 
-                    className="border-gray-300"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <label htmlFor="end-date" className="text-sm font-medium text-gray-700">
-                    End Date
-                  </label>
-                  <Input 
-                    id="end-date"
-                    type="date" 
-                    className="border-gray-300"
-                  />
-                </div>
-              </div>
-              
-              <div className="space-y-2">
-                <label htmlFor="frequency" className="text-sm font-medium text-gray-700">
-                  Review Frequency
-                </label>
-                <p className="text-xs text-gray-500">
-                  How often the target resets and progress is recorded separately
-                </p>
-                <Select>
-                  <SelectTrigger id="frequency" className="border-gray-300">
-                    <SelectValue placeholder="How often to review progress" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="weekly">Weekly</SelectItem>
-                    <SelectItem value="monthly">Monthly</SelectItem>
-                    <SelectItem value="quarterly">Quarterly</SelectItem>
-                    <SelectItem value="annually">Annually</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            {/* Configuration Options */}
-            {formData.okrType && (
-              <div className="space-y-4">
-                <h3 className="text-sm font-semibold text-gray-900">Configuration Options</h3>
-                
-                {/* Traffic Lights - Always show for traffic-light type, optional for others */}
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <input 
-                      type="checkbox" 
-                      id="traffic-lights" 
-                      checked={formData.okrType === 'traffic-light' ? true : formData.trafficLights}
-                      onChange={(e) => setFormData(prev => ({...prev, trafficLights: e.target.checked}))}
-                      disabled={formData.okrType === 'traffic-light'}
-                      className="rounded border-gray-300" 
-                    />
-                    <label htmlFor="traffic-lights" className="text-sm font-medium text-gray-700">
-                      {formData.okrType === 'traffic-light' ? 'Traffic Light Status (Primary Feature)' : 'Enable Traffic Lights'}
-                    </label>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <svg className="w-4 h-4 text-gray-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <circle cx="12" cy="12" r="10"></circle>
-                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-                            <path d="M12 17h.01"></path>
-                          </svg>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          <p>
-                            {formData.okrType === 'traffic-light' 
-                              ? 'This OKR type is specifically designed for traffic light status tracking'
-                              : 'Visual indicators showing progress status with colors'
-                            }
-                          </p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
-                
-                {(formData.okrType === 'traffic-light' || formData.trafficLights) && (
-                  <div className="ml-6 space-y-3">
+                    {/* Description Field */}
                     <div className="space-y-2">
-                      <label className="text-sm font-medium text-gray-700">Traffic Light Configuration</label>
-                      <Select value={formData.trafficLightConfig} onValueChange={(value) => setFormData(prev => ({...prev, trafficLightConfig: value}))}>
-                        <SelectTrigger className="border-gray-300">
-                          <SelectValue placeholder="Choose configuration method" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="system">
-                            <div className="space-y-1">
-                              <div className="font-medium">System</div>
-                              <div className="text-xs text-gray-500">Automatic calculation based on progress vs target</div>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="custom">
-                            <div className="space-y-1">
-                              <div className="font-medium">Custom Thresholds (Advanced)</div>
-                              <div className="text-xs text-gray-500">Define custom ranges for each color</div>
-                            </div>
-                          </SelectItem>
-                          <SelectItem value="manual">
-                            <div className="space-y-1">
-                              <div className="font-medium">Manual</div>
-                              <div className="text-xs text-gray-500">Update colors manually or via upload/integration</div>
-                            </div>
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                    
-                    <div className="text-xs text-gray-500 bg-gray-50 p-3 rounded-lg">
-                      <div className="font-medium mb-2">Traffic Light Colors:</div>
-                      <div className="space-y-1">
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
-                          <span>Grey → Not defined</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                          <span>Red → At risk</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-                          <span>Orange → Behind</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                          <span>Green → On track</span>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <div className="w-3 h-3 bg-green-700 rounded-full"></div>
-                          <span>Dark Green → Complete (100%)</span>
-                        </div>
-                      </div>
+                      <label htmlFor="okr-description" className="text-sm font-medium text-neutral-700">
+                        Description
+                      </label>
+                      <Textarea 
+                        id="okr-description"
+                        value={formData.description}
+                        onChange={(e) => setFormData(prev => ({...prev, description: e.target.value}))}
+                        placeholder="Provide context and explain what success looks like..."
+                        rows={3}
+                        className="resize-none border-neutral-300 focus:border-primary-500 focus:ring-primary-500 bg-white"
+                      />
                     </div>
                   </div>
-                )}
-              </div>
-
-              {/* Progress Bar - Only show for types that can have progress */}
-              {(formData.okrType === 'currency' || formData.okrType === 'percent' || formData.okrType === 'number') && (
-                <div className="flex items-center gap-2">
-                  <input 
-                    type="checkbox" 
-                    id="progress-bar" 
-                    checked={formData.progressBar}
-                    onChange={(e) => setFormData(prev => ({...prev, progressBar: e.target.checked}))}
-                    className="rounded border-gray-300" 
-                  />
-                  <label htmlFor="progress-bar" className="text-sm font-medium text-gray-700">
-                    Enable Progress Bar
-                  </label>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <svg className="w-4 h-4 text-gray-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <circle cx="12" cy="12" r="10"></circle>
-                          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-                          <path d="M12 17h.01"></path>
-                        </svg>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Visual progress indicator showing completion percentage</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
                 </div>
-              )}
-
-              {/* Due Date */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <input 
-                    type="checkbox" 
-                    id="due-date-required" 
-                    checked={formData.dueDateRequired}
-                    onChange={(e) => setFormData(prev => ({...prev, dueDateRequired: e.target.checked}))}
-                    className="rounded border-gray-300" 
-                  />
-                  <label htmlFor="due-date-required" className="text-sm font-medium text-gray-700">
-                    Require Due Date
-                  </label>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <svg className="w-4 h-4 text-gray-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <circle cx="12" cy="12" r="10"></circle>
-                          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-                          <path d="M12 17h.01"></path>
-                        </svg>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Make due date mandatory when this OKR is assigned</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-              </div>
-
-              {/* Responsible Person */}
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <input 
-                    type="checkbox" 
-                    id="responsible-required" 
-                    checked={formData.responsibleRequired}
-                    onChange={(e) => setFormData(prev => ({...prev, responsibleRequired: e.target.checked}))}
-                    className="rounded border-gray-300" 
-                  />
-                  <label htmlFor="responsible-required" className="text-sm font-medium text-gray-700">
-                    Require Responsible Person
-                  </label>
-                  <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <svg className="w-4 h-4 text-gray-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <circle cx="12" cy="12" r="10"></circle>
-                          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-                          <path d="M12 17h.01"></path>
-                        </svg>
-                      </TooltipTrigger>
-                      <TooltipContent>
-                        <p>Make assigning a responsible person mandatory when this OKR is assigned</p>
-                      </TooltipContent>
-                    </Tooltip>
-                  </TooltipProvider>
-                </div>
-              </div>
-            </div>
+              </>
             )}
           </div>
 
