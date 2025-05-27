@@ -2145,7 +2145,7 @@ export default function MetricsPage() {
                     {okrsInGroup.map((okr) => (
                       <TableRow key={okr.id} className="hover:bg-[#F5F6FA] border-b group" style={{ borderColor: '#E6E7F1' }}>
                         <TableCell className="w-12 px-1 py-3">
-                          <div className="flex items-center" style={{ gap: '4px' }}>
+                          <div className="flex items-center justify-center">
                             <input
                               type="checkbox"
                               checked={selectedOKRs.includes(okr.id)}
@@ -2159,34 +2159,37 @@ export default function MetricsPage() {
                               className="rounded border-gray-300 opacity-0 group-hover:opacity-100 transition-opacity"
                               style={{ opacity: selectedOKRs.includes(okr.id) ? 1 : undefined }}
                             />
-                            
-                            {/* Expansion controls group - chevron with hierarchy indicator */}
-                            <div className="flex items-center gap-1">
-                              {/* Expand/collapse chevron */}
-                              {okr.nestedCount > 0 ? (
+                          </div>
+                        </TableCell>
+
+                        
+                        {/* Name Column with compact hierarchy controls */}
+                        <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
+                          <div className="flex items-center w-full gap-2">
+                            {/* Compact hierarchy controls */}
+                            <div className="flex items-center gap-1 flex-shrink-0">
+                              {/* Expand/collapse chevron - only for items with children */}
+                              {okr.nestedCount > 0 && (
                                 <button
                                   onClick={() => toggleExpansion(okr.id)}
-                                  className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
+                                  className="p-1 hover:bg-gray-100 rounded transition-colors"
                                 >
                                   {okr.isExpanded ? (
-                                    <svg width="8" height="13" viewBox="0 0 8 13" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ transform: 'rotate(90deg)' }}>
-                                      <path d="M6.83984 6.28516C7.08594 6.55859 7.08594 6.96875 6.83984 7.21484L1.58984 12.4648C1.31641 12.7383 0.90625 12.7383 0.660156 12.4648C0.386719 12.2188 0.386719 11.8086 0.660156 11.5625L5.44531 6.77734L0.660156 1.96484C0.386719 1.71875 0.386719 1.30859 0.660156 1.0625C0.90625 0.789062 1.31641 0.789062 1.5625 1.0625L6.83984 6.28516Z" fill="#696C8C"/>
+                                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-gray-400">
+                                      <path d="M3 4.5L6 7.5L9 4.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                                     </svg>
                                   ) : (
-                                    <svg width="8" height="13" viewBox="0 0 8 13" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                      <path d="M6.83984 6.28516C7.08594 6.55859 7.08594 6.96875 6.83984 7.21484L1.58984 12.4648C1.31641 12.7383 0.90625 12.7383 0.660156 12.4648C0.386719 12.2188 0.386719 11.8086 0.660156 11.5625L5.44531 6.77734L0.660156 1.96484C0.386719 1.71875 0.386719 1.30859 0.660156 1.0625C0.90625 0.789062 1.31641 0.789062 1.5625 1.0625L6.83984 6.28516Z" fill="#696C8C"/>
+                                    <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-gray-400">
+                                      <path d="M4.5 3L7.5 6L4.5 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
                                     </svg>
                                   )}
                                 </button>
-                              ) : (
-                                /* Empty space for non-nested items */
-                                <div style={{ width: '20px', height: '20px' }}></div>
                               )}
                               
-                              {/* Hierarchy icon and count - grouped with chevron */}
+                              {/* Hierarchy indicator with count - right next to chevron */}
                               {okr.nestedCount > 0 && (
                                 <div className="flex items-center gap-1">
-                                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-gray-400">
+                                  <svg width="12" height="12" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-gray-400">
                                     <circle cx="4" cy="4" r="1.5" fill="currentColor"/>
                                     <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
                                     <path d="M4 6C4 8 6 10 10 12" stroke="currentColor" strokeWidth="1" fill="none" strokeLinecap="round"/>
@@ -2195,16 +2198,10 @@ export default function MetricsPage() {
                                 </div>
                               )}
                             </div>
-                          </div>
-                        </TableCell>
-
-                        
-                        {/* Name Column */}
-                        <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
-                          <div className="flex items-center w-full">
-                            {/* Title - consistent styling for all OKRs */}
+                            
+                            {/* Title */}
                             <span 
-                              className="text-[#282A3F]"
+                              className="text-[#282A3F] flex-1"
                               style={{ 
                                 fontFamily: 'Poppins', 
                                 fontWeight: '500', 
@@ -2214,7 +2211,7 @@ export default function MetricsPage() {
                               {okr.title}
                             </span>
                             
-                            {/* Description icon - 4px from text */}
+                            {/* Description icon */}
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger asChild>
@@ -2225,7 +2222,6 @@ export default function MetricsPage() {
                                     viewBox="0 0 14 8" 
                                     fill="none" 
                                     className="text-gray-400 hover:text-gray-600 cursor-help flex-shrink-0"
-                                    style={{ minWidth: '14px', minHeight: '8px', marginLeft: '4px' }}
                                   >
                                     <rect width="14" height="1" fill="currentColor"/>
                                     <rect y="3.5" width="14" height="1" fill="currentColor"/>
