@@ -2512,130 +2512,57 @@ export default function MetricsPage() {
           
           <div className="space-y-6">
             {/* OKR Type Field */}
-            <div className="space-y-4">
-              <div className="text-center">
-                <h3 className="text-lg font-semibold text-gray-900 flex items-center justify-center gap-2">
-                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+            <div className="space-y-3">
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-semibold text-gray-900">
+                  Measurement Type <span className="text-red-500">*</span>
+                </label>
+                <div className="flex items-center gap-1 text-xs text-gray-500 bg-blue-50 px-2 py-1 rounded-full">
+                  <svg className="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                   </svg>
-                  Choose Measurement Type
-                  <span className="text-red-500 text-sm">*</span>
-                </h3>
-                <p className="text-sm text-gray-600 mt-1">
-                  Select how you want to track and measure progress for this OKR
-                </p>
+                  Fields below adapt based on your selection
+                </div>
               </div>
               
-              <div className="grid grid-cols-1 gap-3">
+              <div className="grid grid-cols-5 gap-2">
                 {[
-                  { 
-                    value: 'currency', 
-                    icon: '💰', 
-                    title: 'Currency', 
-                    description: 'Track monetary values and financial targets',
-                    example: '€1,000, $500K, £250',
-                    color: 'from-green-400 to-emerald-500',
-                    borderColor: 'border-green-200',
-                    bgColor: 'bg-green-50'
-                  },
-                  { 
-                    value: 'percent', 
-                    icon: '📊', 
-                    title: 'Percentage', 
-                    description: 'Track completion rates and percentage goals',
-                    example: '75%, 95%, 100%',
-                    color: 'from-blue-400 to-indigo-500',
-                    borderColor: 'border-blue-200',
-                    bgColor: 'bg-blue-50'
-                  },
-                  { 
-                    value: 'number', 
-                    icon: '🔢', 
-                    title: 'Number', 
-                    description: 'Track numeric counts and quantities',
-                    example: '50 leads, 10 deals, 25 customers',
-                    color: 'from-purple-400 to-violet-500',
-                    borderColor: 'border-purple-200',
-                    bgColor: 'bg-purple-50'
-                  },
-                  { 
-                    value: 'checkbox', 
-                    icon: '✅', 
-                    title: 'Checkbox', 
-                    description: 'Track completion status for binary goals',
-                    example: 'Done/Not Done, Complete/Incomplete',
-                    color: 'from-orange-400 to-amber-500',
-                    borderColor: 'border-orange-200',
-                    bgColor: 'bg-orange-50'
-                  },
-                  { 
-                    value: 'traffic-light', 
-                    icon: '🚦', 
-                    title: 'Traffic Light', 
-                    description: 'Track status with color-coded indicators',
-                    example: 'Red/Orange/Green status',
-                    color: 'from-red-400 to-pink-500',
-                    borderColor: 'border-red-200',
-                    bgColor: 'bg-red-50'
-                  }
+                  { value: 'currency', icon: '💰', title: 'Currency', color: 'border-green-200 bg-green-50', example: '€1,000' },
+                  { value: 'percent', icon: '📊', title: 'Percentage', color: 'border-blue-200 bg-blue-50', example: '75%' },
+                  { value: 'number', icon: '🔢', title: 'Number', color: 'border-purple-200 bg-purple-50', example: '50 units' },
+                  { value: 'checkbox', icon: '✅', title: 'Checkbox', color: 'border-orange-200 bg-orange-50', example: 'Done/Not Done' },
+                  { value: 'traffic-light', icon: '🚦', title: 'Traffic Light', color: 'border-red-200 bg-red-50', example: 'Red/Green' }
                 ].map((type) => (
                   <div 
                     key={type.value}
-                    className={`relative p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-[1.02] ${
+                    className={`relative p-3 border-2 rounded-lg cursor-pointer transition-all duration-200 hover:shadow-sm ${
                       formData.okrType === type.value 
-                        ? `${type.borderColor} ${type.bgColor} shadow-lg scale-[1.02] ring-2 ring-blue-500 ring-opacity-50` 
+                        ? `${type.color} shadow-md ring-2 ring-blue-500 ring-opacity-50` 
                         : 'border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50'
                     }`}
                     onClick={() => setFormData(prev => ({...prev, okrType: type.value}))}
                   >
-                    <div className="flex items-start gap-4">
-                      {/* Icon */}
-                      <div className={`w-12 h-12 rounded-lg flex items-center justify-center text-2xl bg-gradient-to-br ${type.color} shadow-sm`}>
-                        {type.icon}
-                      </div>
-                      
-                      {/* Content */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center justify-between">
-                          <h4 className="font-semibold text-gray-900 text-base">{type.title}</h4>
-                          {formData.okrType === type.value && (
-                            <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center flex-shrink-0">
-                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                              </svg>
-                            </div>
-                          )}
-                        </div>
-                        <p className="text-sm text-gray-600 mt-1">{type.description}</p>
-                        <div className="mt-2 flex items-center gap-2">
-                          <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
-                            Examples:
-                          </span>
-                          <span className="text-xs text-gray-600">{type.example}</span>
-                        </div>
-                      </div>
+                    <div className="text-center">
+                      <div className="text-lg mb-1">{type.icon}</div>
+                      <div className="text-xs font-medium text-gray-900 mb-1">{type.title}</div>
+                      <div className="text-xs text-gray-600 leading-tight">{type.example}</div>
                     </div>
                     
-                    {/* Selection indicator */}
                     {formData.okrType === type.value && (
-                      <div className="absolute inset-0 rounded-xl border-2 border-blue-500 pointer-events-none">
-                        <div className="absolute top-2 right-2 w-3 h-3 bg-blue-600 rounded-full animate-pulse"></div>
+                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-blue-600 text-white rounded-full flex items-center justify-center">
+                        <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
                       </div>
                     )}
                   </div>
                 ))}
               </div>
               
-              {/* Helper text */}
               {!formData.okrType && (
-                <div className="text-center p-4 bg-gray-50 rounded-lg border border-gray-200">
-                  <svg className="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.732 15.5c-.77.833.192 2.5 1.732 2.5z" />
-                  </svg>
-                  <p className="text-sm text-gray-600">
-                    Please select a measurement type to continue. This will determine how your OKR tracks progress.
-                  </p>
-                </div>
+                <p className="text-xs text-gray-500 bg-yellow-50 border border-yellow-200 p-2 rounded text-center">
+                  👆 Choose a measurement type to see how the form adapts
+                </p>
               )}
             </div>
 
