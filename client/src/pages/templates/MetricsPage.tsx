@@ -2439,7 +2439,13 @@ export default function MetricsPage() {
               
               <div className="space-y-3">
                 <div className="flex items-center gap-2">
-                  <input type="checkbox" id="has-target" className="rounded border-gray-300" />
+                  <input 
+                    type="checkbox" 
+                    id="has-target" 
+                    checked={formData.hasTarget}
+                    onChange={(e) => setFormData(prev => ({...prev, hasTarget: e.target.checked}))}
+                    className="rounded border-gray-300" 
+                  />
                   <label htmlFor="has-target" className="text-sm font-medium text-gray-700">
                     This OKR has measurable targets
                   </label>
@@ -2731,10 +2737,7 @@ export default function MetricsPage() {
             </Button>
             <Button 
               className="bg-blue-600 hover:bg-blue-700 px-4 py-2"
-              onClick={() => {
-                // Handle form submission here
-                setIsCreateOKROpen(false);
-              }}
+              onClick={handleCreateOKR}
             >
               Create Template
             </Button>
