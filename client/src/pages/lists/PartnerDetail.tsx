@@ -1433,6 +1433,80 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
   const [selectedMeasureUnit, setSelectedMeasureUnit] = useState("");
   const [assignedOKRs, setAssignedOKRs] = useState<any[]>([]);
   const [advancedTimeframe, setAdvancedTimeframe] = useState("");
+  const [quickActionInput, setQuickActionInput] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
+
+  // Simulated AI generation function
+  const generateOKR = async () => {
+    if (!quickActionInput.trim()) return;
+    
+    setIsGenerating(true);
+    
+    // Simulate AI processing delay
+    await new Promise(resolve => setTimeout(resolve, 2000));
+    
+    // Generate a structured OKR based on input
+    const newOKR = {
+      id: Date.now(),
+      title: extractObjectiveFromInput(quickActionInput),
+      description: `Generated from: "${quickActionInput}"`,
+      tag: inferTagFromInput(quickActionInput),
+      unit: inferUnitFromInput(quickActionInput),
+      targetValue: generateTargetValue(quickActionInput),
+      realizedValue: null,
+      startDate: new Date(),
+      endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days from now
+      milestoneFrequency: "Monthly",
+      nestedCount: 0
+    };
+    
+    // Add to assigned OKRs
+    setAssignedOKRs(prev => [...prev, newOKR]);
+    
+    // Clear input
+    setQuickActionInput('');
+    setIsGenerating(false);
+  };
+
+  const extractObjectiveFromInput = (input: string): string => {
+    const lowerInput = input.toLowerCase();
+    if (lowerInput.includes('increase') || lowerInput.includes('grow')) {
+      return input.split(/with|through|by|via/)[0].trim();
+    }
+    if (lowerInput.includes('improve') || lowerInput.includes('enhance')) {
+      return input.split(/with|through|by|via/)[0].trim();
+    }
+    return input.split('.')[0].trim() || "New Objective";
+  };
+
+  const inferTagFromInput = (input: string): string => {
+    const lowerInput = input.toLowerCase();
+    if (lowerInput.includes('sales') || lowerInput.includes('revenue')) return 'Sales';
+    if (lowerInput.includes('marketing') || lowerInput.includes('campaign')) return 'Marketing';
+    if (lowerInput.includes('training') || lowerInput.includes('education')) return 'Training';
+    if (lowerInput.includes('digital') || lowerInput.includes('online')) return 'Digital';
+    if (lowerInput.includes('customer') || lowerInput.includes('client')) return 'Customer';
+    if (lowerInput.includes('partner')) return 'Partner';
+    return 'Financial';
+  };
+
+  const inferUnitFromInput = (input: string): string => {
+    if (input.includes('%') || input.includes('percent')) return 'percentage';
+    if (input.includes('$') || input.includes('€') || input.includes('revenue') || input.includes('sales')) return 'currency';
+    return 'number';
+  };
+
+  const generateTargetValue = (input: string): number => {
+    const numbers = input.match(/(\d+)/g);
+    if (numbers) {
+      const firstNumber = parseInt(numbers[0]);
+      if (input.includes('%')) return firstNumber;
+      if (input.includes('million') || input.includes('M')) return firstNumber * 1000000;
+      if (input.includes('thousand') || input.includes('K')) return firstNumber * 1000;
+      return firstNumber;
+    }
+    return 100; // Default target
+  };
 
   // TagBadge component - exact from Coming Soon tab
   const TagBadgeLocal = ({ tag }: { tag: string }) => {
@@ -1581,11 +1655,28 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
               placeholder="Example: Increase insurance sales by 25% with activities like digital marketing campaigns, client outreach, and product training..."
               className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none text-sm"
               rows={2}
+              value={quickActionInput}
+              onChange={(e) => setQuickActionInput(e.target.value)}
+              disabled={isGenerating}
             />
           </div>
           <div className="flex gap-2">
-            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm">
-              Generate
+            <button 
+              onClick={generateOKR}
+              disabled={isGenerating || !quickActionInput.trim()}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium text-sm disabled:bg-gray-400 disabled:cursor-not-allowed flex items-center gap-2"
+            >
+              {isGenerating ? (
+                <>
+                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  Generating...
+                </>
+              ) : (
+                'Generate'
+              )}
             </button>
             <button className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors font-medium text-sm">
               Templates
