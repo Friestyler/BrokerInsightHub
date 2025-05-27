@@ -143,4 +143,26 @@
   [role="textbox"]:focus {
     @apply bg-white border-[#D6D7E4] !important;
   }
+
+  /* Dialog-specific overrides */
+  [data-radix-popper-content-wrapper] input,
+  [data-radix-popper-content-wrapper] textarea,
+  [data-radix-popper-content-wrapper] select,
+  [data-radix-popper-content-wrapper] [role="combobox"],
+  .dialog-content input,
+  .dialog-content textarea,
+  .dialog-content select,
+  .dialog-content [role="combobox"] {
+    @apply bg-white border-[#D6D7E4] !important;
+  }
+
+  /* Radix UI dialog content */
+  [data-radix-dialog-content] {
+    @apply bg-white !important;
+  }
+
+  /* Radix UI select content */
+  [data-radix-select-content] {
+    @apply bg-white border-[#D6D7E4] !important;
+  }
 }
