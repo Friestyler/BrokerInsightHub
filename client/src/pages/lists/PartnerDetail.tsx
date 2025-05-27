@@ -1716,7 +1716,7 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                         Name
                       </TableHead>
                       <TableHead 
-                        className="px-3 py-2 min-w-[120px]"
+                        className="text-right px-3 py-2 min-w-[120px]"
                         style={{ 
                           fontFamily: 'Poppins', 
                           fontWeight: '500', 
@@ -1724,18 +1724,7 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                           color: '#696C8C' 
                         }}
                       >
-                        Timeframe
-                      </TableHead>
-                      <TableHead 
-                        className="px-3 py-2 min-w-[150px]"
-                        style={{ 
-                          fontFamily: 'Poppins', 
-                          fontWeight: '500', 
-                          fontSize: '13px', 
-                          color: '#696C8C' 
-                        }}
-                      >
-                        Milestone Frequency
+                        Target
                       </TableHead>
                       <TableHead 
                         className="text-right px-3 py-2 min-w-[120px]"
@@ -1746,7 +1735,51 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                           color: '#696C8C' 
                         }}
                       >
-                        Target
+                        Realized
+                      </TableHead>
+                      <TableHead 
+                        className="px-3 py-2 min-w-[150px]"
+                        style={{ 
+                          fontFamily: 'Poppins', 
+                          fontWeight: '500', 
+                          fontSize: '13px', 
+                          color: '#696C8C' 
+                        }}
+                      >
+                        Current Milestone
+                      </TableHead>
+                      <TableHead 
+                        className="px-3 py-2 min-w-[120px]"
+                        style={{ 
+                          fontFamily: 'Poppins', 
+                          fontWeight: '500', 
+                          fontSize: '13px', 
+                          color: '#696C8C' 
+                        }}
+                      >
+                        Due Date
+                      </TableHead>
+                      <TableHead 
+                        className="px-3 py-2 min-w-[100px]"
+                        style={{ 
+                          fontFamily: 'Poppins', 
+                          fontWeight: '500', 
+                          fontSize: '13px', 
+                          color: '#696C8C' 
+                        }}
+                      >
+                        Traffic Lights
+                      </TableHead>
+                      <TableHead 
+                        className="px-3 py-2 min-w-[120px]"
+                        style={{ 
+                          fontFamily: 'Poppins', 
+                          fontWeight: '500', 
+                          fontSize: '13px', 
+                          color: '#696C8C' 
+                        }}
+                      >
+                        Progress
                       </TableHead>
                       <TableHead 
                         className="text-right px-3 py-2 min-w-[80px]"
@@ -1784,7 +1817,7 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                         </TableCell>
 
                         
-                        {/* Name Column - Exact from Coming Soon */}
+                        {/* Name Column with hierarchy and description icons */}
                         <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
                           <div className="flex items-center w-full">
                             <span 
@@ -1797,56 +1830,119 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                             >
                               {okr.title}
                             </span>
+                            
+                            {/* Hierarchy nesting icon */}
+                            {okr.nestedCount > 0 && (
+                              <div className="flex items-center" style={{ marginLeft: '4px' }}>
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                  <circle cx="4" cy="4" r="2" fill="#666666"/>
+                                  <circle cx="12" cy="12" r="2" fill="#666666"/>
+                                  <path d="M4 6C4 8 6 10 10 12" stroke="#666666" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+                                </svg>
+                                <span className="text-xs text-gray-500 ml-1">{okr.nestedCount}</span>
+                              </div>
+                            )}
+                            
+                            {/* Description icon */}
+                            {okr.description && (
+                              <svg 
+                                xmlns="http://www.w3.org/2000/svg" 
+                                width="14" 
+                                height="8" 
+                                viewBox="0 0 14 8" 
+                                fill="none" 
+                                className="text-gray-400 hover:text-gray-600 cursor-help flex-shrink-0"
+                                style={{ minWidth: '14px', minHeight: '8px', marginLeft: '4px' }}
+                                title={okr.description}
+                              >
+                                <rect width="14" height="1" fill="currentColor"/>
+                                <rect y="3.5" width="14" height="1" fill="currentColor"/>
+                                <rect y="7" width="7" height="1" fill="currentColor"/>
+                              </svg>
+                            )}
                           </div>
                         </TableCell>
                         
-                        {/* Timeframe Column - Exact from Coming Soon */}
-                        <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
-                          <span className="text-sm">
-                            {(() => {
-                              const formatDate = (date: any) => {
-                                if (!date) return '';
-                                const dateObj = date instanceof Date ? date : new Date(date);
-                                if (isNaN(dateObj.getTime())) return '';
-                                return dateObj.toLocaleDateString('en-US', { 
-                                  month: 'short', 
-                                  day: 'numeric', 
-                                  year: 'numeric' 
-                                });
-                              };
-                              
-                              if (okr.startDate && okr.endDate) {
-                                const start = formatDate(okr.startDate);
-                                const end = formatDate(okr.endDate);
-                                return start && end ? `${start} - ${end}` : 'Date range';
-                              } else if (okr.startDate) {
-                                const start = formatDate(okr.startDate);
-                                return start ? `From ${start}` : 'Start date';
-                              } else if (okr.endDate) {
-                                const end = formatDate(okr.endDate);
-                                return end ? `Until ${end}` : 'End date';
-                              }
-                              return 'Not set';
-                            })()}
-                          </span>
-                        </TableCell>
-                        
-                        {/* Milestone Frequency Column - Exact from Coming Soon */}
-                        <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
-                          <span className="text-sm">
-                            {okr.milestoneFrequency || 'Once'}
-                          </span>
-                        </TableCell>
-                        
-                        {/* Target Column - Exact from Coming Soon */}
+                        {/* Target Column - Editable */}
                         <TableCell className="text-right p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
-                          <div className="font-medium">
+                          <div className="font-medium cursor-pointer hover:bg-gray-50 p-1 rounded">
                             {okr.unit === 'currency' 
-                              ? `$${(okr.targetValue / 1000000).toFixed(1)}M`
+                              ? `€${(okr.targetValue / 1000000).toFixed(1)}M`
                               : okr.unit === 'percentage'
                               ? `${okr.targetValue}%`
-                              : okr.targetValue?.toString() || "-"
+                              : okr.targetValue?.toString() || "—"
                             }
+                          </div>
+                        </TableCell>
+                        
+                        {/* Realized Column - Editable */}
+                        <TableCell className="text-right p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
+                          <div className="font-medium cursor-pointer hover:bg-gray-50 p-1 rounded">
+                            {okr.unit === 'currency' 
+                              ? `€${((okr.realizedValue || 0) / 1000000).toFixed(1)}M`
+                              : okr.unit === 'percentage'
+                              ? `${okr.realizedValue || 0}%`
+                              : (okr.realizedValue?.toString() || "—")
+                            }
+                          </div>
+                        </TableCell>
+                        
+                        {/* Current Milestone Column */}
+                        <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
+                          <div className="flex items-center gap-2">
+                            <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">
+                              {(() => {
+                                const now = new Date();
+                                const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                                return monthNames[now.getMonth()];
+                              })()}
+                            </span>
+                            <button className="text-gray-400 hover:text-gray-600">
+                              <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor">
+                                <path d="M6 3l3 3-3 3V3z"/>
+                              </svg>
+                            </button>
+                          </div>
+                        </TableCell>
+                        
+                        {/* Due Date Column - Editable */}
+                        <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
+                          <div className="cursor-pointer hover:bg-gray-50 p-1 rounded text-sm">
+                            {okr.endDate ? new Date(okr.endDate).toLocaleDateString('en-US', { 
+                              month: 'short', 
+                              day: 'numeric', 
+                              year: 'numeric' 
+                            }) : '—'}
+                          </div>
+                        </TableCell>
+                        
+                        {/* Traffic Lights Column */}
+                        <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
+                          <div className="flex items-center gap-1">
+                            <div className="w-3 h-3 rounded-full bg-green-500 cursor-pointer hover:scale-110 transition-transform" title="On track"></div>
+                            <div className="w-3 h-3 rounded-full bg-gray-200 cursor-pointer hover:scale-110 transition-transform" title="At risk"></div>
+                            <div className="w-3 h-3 rounded-full bg-gray-200 cursor-pointer hover:scale-110 transition-transform" title="Off track"></div>
+                          </div>
+                        </TableCell>
+                        
+                        {/* Progress Column */}
+                        <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
+                          <div className="flex items-center gap-2">
+                            <div className="flex-1 bg-gray-200 rounded-full h-2">
+                              <div 
+                                className="bg-blue-500 h-2 rounded-full transition-all duration-300"
+                                style={{ 
+                                  width: `${okr.targetValue && okr.realizedValue 
+                                    ? Math.min((okr.realizedValue / okr.targetValue) * 100, 100)
+                                    : 0}%`
+                                }}
+                              ></div>
+                            </div>
+                            <span className="text-xs text-gray-600 min-w-[30px]">
+                              {okr.targetValue && okr.realizedValue 
+                                ? `${Math.round((okr.realizedValue / okr.targetValue) * 100)}%`
+                                : '0%'}
+                            </span>
                           </div>
                         </TableCell>
 
