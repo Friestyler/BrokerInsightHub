@@ -817,6 +817,10 @@ export default function MetricsPage() {
   // State for creating activities linked to an objective
   const [isCreatingActivity, setIsCreatingActivity] = useState(false);
   const [parentObjective, setParentObjective] = useState<any>(null);
+  
+  // State for editing existing OKRs
+  const [isEditing, setIsEditing] = useState(false);
+  const [editingOKR, setEditingOKR] = useState<any>(null);
 
   // Filtered metrics based on search and selected tags
   const filteredMetrics = mockMetrics.filter(metric => {
@@ -1082,7 +1086,33 @@ export default function MetricsPage() {
   // All unique tags
   const allTags = Array.from(new Set(filteredMetrics.flatMap(m => m.tags))).sort();
 
-  // Handle form submission for creating new OKR template
+  // Handle editing an existing OKR
+  const handleEditOKR = (okr: any) => {
+    setEditingOKR(okr);
+    setIsEditing(true);
+    
+    // Pre-fill form with existing data
+    setFormData({
+      tag: okr.tag || "",
+      name: okr.title || "",
+      description: okr.description || "",
+      hasTarget: okr.targetValue !== undefined,
+      measureUnit: okr.unit || "",
+      targetValue: okr.targetValue?.toString() || "",
+      startDate: okr.startDate ? new Date(okr.startDate).toISOString().split('T')[0] : "",
+      endDate: okr.endDate ? new Date(okr.endDate).toISOString().split('T')[0] : "",
+      frequency: okr.frequency || "",
+      trafficLights: okr.trafficLights || false,
+      trafficLightConfig: okr.trafficLightConfig || "",
+      progressBar: okr.progressBar || false,
+      dueDateRequired: okr.dueDateRequired || false,
+      responsibleRequired: okr.responsibleRequired || false
+    });
+    
+    setIsCreateOKROpen(true);
+  };
+
+  // Handle form submission for creating new OKR template or updating existing one
   const handleCreateOKR = () => {
     if (!formData.name.trim()) {
       alert("Please enter an OKR name");
@@ -1092,15 +1122,15 @@ export default function MetricsPage() {
     const baseOKR = {
       title: formData.name,
       description: formData.description,
-      type: isCreatingActivity ? "Activity" : "Objective",
-      hierarchy: isCreatingActivity ? "activity" : "objective",
-      parent: isCreatingActivity ? parentObjective?.id : null,
-      progress: 0,
+      type: isCreatingActivity ? "Activity" : (isEditing ? editingOKR.type : "Objective"),
+      hierarchy: isCreatingActivity ? "activity" : (isEditing ? editingOKR.hierarchy : "objective"),
+      parent: isCreatingActivity ? parentObjective?.id : (isEditing ? editingOKR.parent : null),
+      progress: isEditing ? editingOKR.progress : 0,
       targetValue: formData.hasTarget && formData.targetValue ? parseFloat(formData.targetValue) : undefined,
-      currentValue: 0,
+      currentValue: isEditing ? editingOKR.currentValue : 0,
       unit: formData.hasTarget ? formData.measureUnit : undefined,
-      status: "Not Started",
-      owner: "",
+      status: isEditing ? editingOKR.status : "Not Started",
+      owner: isEditing ? editingOKR.owner : "",
       dueDate: formData.endDate ? new Date(formData.endDate) : undefined,
       startDate: formData.startDate ? new Date(formData.startDate) : undefined,
       endDate: formData.endDate ? new Date(formData.endDate) : undefined,
@@ -1113,14 +1143,25 @@ export default function MetricsPage() {
       responsibleRequired: formData.responsibleRequired
     };
 
-    // Create the main objective/activity
-    const newOKR = {
-      ...baseOKR,
-      id: okrTemplates.length > 0 ? Math.max(...okrTemplates.map(o => o.id)) + 1 : 1,
-    };
-    
-    // Add the new OKR to the templates list
-    setOkrTemplates(prev => [...prev, newOKR]);
+    if (isEditing) {
+      // Update existing OKR
+      const updatedOKR = {
+        ...baseOKR,
+        id: editingOKR.id,
+      };
+      
+      setOkrTemplates(prev => prev.map(okr => 
+        okr.id === editingOKR.id ? updatedOKR : okr
+      ));
+    } else {
+      // Create new OKR
+      const newOKR = {
+        ...baseOKR,
+        id: okrTemplates.length > 0 ? Math.max(...okrTemplates.map(o => o.id)) + 1 : 1,
+      };
+      
+      setOkrTemplates(prev => [...prev, newOKR]);
+    }
     
     // Reset form and close dialog
     resetForm();
@@ -1191,8 +1232,14 @@ export default function MetricsPage() {
     if (isCreatingActivity) {
       setIsCreatingActivity(false);
       setParentObjective(null);
-      setIsCreateOKROpen(false);
     }
+    
+    if (isEditing) {
+      setIsEditing(false);
+      setEditingOKR(null);
+    }
+    
+    setIsCreateOKROpen(false);
   };
 
   // Filtered OKRs based on search, measure unit, target range, timeframe, and no target
@@ -2239,7 +2286,7 @@ export default function MetricsPage() {
                               </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                              <DropdownMenuItem>
+                              <DropdownMenuItem onClick={() => handleEditOKR(okr)}>
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
                                   <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
                                   <path d="m15 5 4 4"/>
@@ -2431,10 +2478,13 @@ export default function MetricsPage() {
         <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto">
           <DialogHeader className="pb-6">
             <DialogTitle className="text-xl font-semibold text-gray-900">
-              {isCreatingActivity ? `Add Activity to "${parentObjective?.title}"` : "Add OKR Template"}
+              {isEditing ? `Edit "${editingOKR?.title}"` : 
+               isCreatingActivity ? `Add Activity to "${parentObjective?.title}"` : "Add OKR Template"}
             </DialogTitle>
             <DialogDescription className="text-sm text-gray-600 mt-1">
-              {isCreatingActivity 
+              {isEditing 
+                ? `Edit the details and configuration of this ${editingOKR?.type?.toLowerCase()}`
+                : isCreatingActivity 
                 ? `Create a new activity under the objective "${parentObjective?.title}". This activity will inherit the tag "${parentObjective?.tag}".`
                 : "Create a new OKR template that can be assigned to partners, opportunities, and customers"
               }
@@ -2817,11 +2867,7 @@ export default function MetricsPage() {
             <Button 
               variant="outline" 
               onClick={() => {
-                if (isCreatingActivity) {
-                  setIsCreatingActivity(false);
-                  setParentObjective(null);
-                }
-                setIsCreateOKROpen(false);
+                resetForm();
               }}
               className="px-4 py-2"
             >
@@ -2829,7 +2875,15 @@ export default function MetricsPage() {
             </Button>
             
             <div className="flex gap-3">
-              {isCreatingActivity ? (
+              {isEditing ? (
+                // When editing an existing OKR
+                <Button 
+                  className="bg-blue-600 hover:bg-blue-700 px-4 py-2"
+                  onClick={handleCreateOKR}
+                >
+                  Save Changes
+                </Button>
+              ) : isCreatingActivity ? (
                 // When creating an activity
                 <Button 
                   className="bg-blue-600 hover:bg-blue-700 px-4 py-2"
