@@ -1690,17 +1690,7 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                           }}
                         />
                       </TableHead>
-                      <TableHead 
-                        className="px-3 py-2 w-[70px]"
-                        style={{ 
-                          fontFamily: 'Poppins', 
-                          fontWeight: '500', 
-                          fontSize: '13px', 
-                          color: '#696C8C' 
-                        }}
-                      >
-                        Type
-                      </TableHead>
+
                       <TableHead 
                         className="px-3 py-2 min-w-[300px]"
                         style={{ 
@@ -1779,13 +1769,7 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                             />
                           </div>
                         </TableCell>
-                        
-                        {/* Type Column - Exact from Coming Soon */}
-                        <TableCell className="px-1 py-3">
-                          <span className="inline-flex items-center text-xs font-medium text-gray-600">
-                            {okr.hierarchy === 'objective' ? 'Objective' : okr.hierarchy === 'activity' ? 'Key Result' : 'Key Result'}
-                          </span>
-                        </TableCell>
+
                         
                         {/* Name Column - Exact from Coming Soon */}
                         <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
