@@ -2512,25 +2512,131 @@ export default function MetricsPage() {
           
           <div className="space-y-6">
             {/* OKR Type Field */}
-            <div className="space-y-2">
-              <label htmlFor="okr-type" className="text-sm font-medium text-gray-900">
-                OKR Type <span className="text-red-500">*</span>
-              </label>
-              <p className="text-xs text-gray-500 mb-2">
-                Select the measurement type for this OKR. This determines how values will be tracked and displayed.
-              </p>
-              <Select value={formData.okrType} onValueChange={(value) => setFormData(prev => ({...prev, okrType: value}))}>
-                <SelectTrigger id="okr-type" className="border-gray-300 focus:border-blue-500">
-                  <SelectValue placeholder="Choose measurement type" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="currency">Currency - Track monetary values (€1,000)</SelectItem>
-                  <SelectItem value="percent">Percent - Track percentage values (75%)</SelectItem>
-                  <SelectItem value="number">Number - Track numeric counts (50 units)</SelectItem>
-                  <SelectItem value="checkbox">Checkbox - Track completion status (Done/Not Done)</SelectItem>
-                  <SelectItem value="traffic-light">Traffic Light - Track status with color indicators</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="space-y-4">
+              <div className="text-center">
+                <h3 className="text-lg font-semibold text-gray-900 flex items-center justify-center gap-2">
+                  <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                  </svg>
+                  Choose Measurement Type
+                  <span className="text-red-500 text-sm">*</span>
+                </h3>
+                <p className="text-sm text-gray-600 mt-1">
+                  Select how you want to track and measure progress for this OKR
+                </p>
+              </div>
+              
+              <div className="grid grid-cols-1 gap-3">
+                {[
+                  { 
+                    value: 'currency', 
+                    icon: '💰', 
+                    title: 'Currency', 
+                    description: 'Track monetary values and financial targets',
+                    example: '€1,000, $500K, £250',
+                    color: 'from-green-400 to-emerald-500',
+                    borderColor: 'border-green-200',
+                    bgColor: 'bg-green-50'
+                  },
+                  { 
+                    value: 'percent', 
+                    icon: '📊', 
+                    title: 'Percentage', 
+                    description: 'Track completion rates and percentage goals',
+                    example: '75%, 95%, 100%',
+                    color: 'from-blue-400 to-indigo-500',
+                    borderColor: 'border-blue-200',
+                    bgColor: 'bg-blue-50'
+                  },
+                  { 
+                    value: 'number', 
+                    icon: '🔢', 
+                    title: 'Number', 
+                    description: 'Track numeric counts and quantities',
+                    example: '50 leads, 10 deals, 25 customers',
+                    color: 'from-purple-400 to-violet-500',
+                    borderColor: 'border-purple-200',
+                    bgColor: 'bg-purple-50'
+                  },
+                  { 
+                    value: 'checkbox', 
+                    icon: '✅', 
+                    title: 'Checkbox', 
+                    description: 'Track completion status for binary goals',
+                    example: 'Done/Not Done, Complete/Incomplete',
+                    color: 'from-orange-400 to-amber-500',
+                    borderColor: 'border-orange-200',
+                    bgColor: 'bg-orange-50'
+                  },
+                  { 
+                    value: 'traffic-light', 
+                    icon: '🚦', 
+                    title: 'Traffic Light', 
+                    description: 'Track status with color-coded indicators',
+                    example: 'Red/Orange/Green status',
+                    color: 'from-red-400 to-pink-500',
+                    borderColor: 'border-red-200',
+                    bgColor: 'bg-red-50'
+                  }
+                ].map((type) => (
+                  <div 
+                    key={type.value}
+                    className={`relative p-4 border-2 rounded-xl cursor-pointer transition-all duration-200 hover:shadow-md hover:scale-[1.02] ${
+                      formData.okrType === type.value 
+                        ? `${type.borderColor} ${type.bgColor} shadow-lg scale-[1.02] ring-2 ring-blue-500 ring-opacity-50` 
+                        : 'border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50'
+                    }`}
+                    onClick={() => setFormData(prev => ({...prev, okrType: type.value}))}
+                  >
+                    <div className="flex items-start gap-4">
+                      {/* Icon */}
+                      <div className={`w-12 h-12 rounded-lg flex items-center justify-center text-2xl bg-gradient-to-br ${type.color} shadow-sm`}>
+                        {type.icon}
+                      </div>
+                      
+                      {/* Content */}
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-semibold text-gray-900 text-base">{type.title}</h4>
+                          {formData.okrType === type.value && (
+                            <div className="w-6 h-6 bg-blue-600 text-white rounded-full flex items-center justify-center flex-shrink-0">
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                              </svg>
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-600 mt-1">{type.description}</p>
+                        <div className="mt-2 flex items-center gap-2">
+                          <span className="text-xs font-medium text-gray-500 bg-gray-100 px-2 py-1 rounded-full">
+                            Examples:
+                          </span>
+                          <span className="text-xs text-gray-600">{type.example}</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Selection indicator */}
+                    {formData.okrType === type.value && (
+                      <div className="absolute inset-0 rounded-xl border-2 border-blue-500 pointer-events-none">
+                        <div className="absolute top-2 right-2 w-3 h-3 bg-blue-600 rounded-full animate-pulse"></div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+              
+              {/* Helper text */}
+              {!formData.okrType && (
+                <div className="text-center p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <svg className="w-8 h-8 text-gray-400 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L4.732 15.5c-.77.833.192 2.5 1.732 2.5z" />
+                  </svg>
+                  <p className="text-sm text-gray-600">
+                    Please select a measurement type to continue. This will determine how your OKR tracks progress.
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Divider */}
