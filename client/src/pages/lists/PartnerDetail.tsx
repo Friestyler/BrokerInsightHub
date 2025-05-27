@@ -23,6 +23,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { AdvancedTimeframeFilter } from "@/components/ui/advanced-timeframe-filter";
 
 
 // Partner data interface
@@ -1431,6 +1432,7 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedMeasureUnit, setSelectedMeasureUnit] = useState("");
   const [assignedOKRs, setAssignedOKRs] = useState<any[]>([]);
+  const [advancedTimeframe, setAdvancedTimeframe] = useState("");
 
   // TagBadge component - exact from Coming Soon tab
   const TagBadgeLocal = ({ tag }: { tag: string }) => {
@@ -1533,6 +1535,7 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
     setSearchTerm("");
     setSelectedTags([]);
     setSelectedMeasureUnit("");
+    setAdvancedTimeframe("");
   };
 
   // Group OKRs by tag, same as Coming Soon tab
@@ -1600,8 +1603,18 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
             </SelectContent>
           </Select>
 
+          {/* Advanced Timeframe Filter */}
+          <AdvancedTimeframeFilter
+            value={advancedTimeframe}
+            onValueChange={(value, dateRange) => {
+              setAdvancedTimeframe(value);
+              console.log('Advanced timeframe filter selected:', value, dateRange);
+            }}
+            className="w-[200px]"
+          />
+
           {/* Clear Filters */}
-          {(searchTerm || selectedTags.length > 0 || selectedMeasureUnit) && (
+          {(searchTerm || selectedTags.length > 0 || selectedMeasureUnit || advancedTimeframe) && (
             <Button variant="outline" onClick={clearFilters} className="flex items-center gap-2">
               <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
                 <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clipRule="evenodd" />
