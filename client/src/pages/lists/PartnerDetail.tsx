@@ -22,6 +22,7 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 
 // Partner data interface
@@ -1760,6 +1761,7 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                   <TableBody>
                     {okrsInGroup.map((okr) => (
                       <TableRow key={okr.id} className="hover:bg-[#F5F6FA] border-b group" style={{ borderColor: '#E6E7F1' }}>
+                        {/* Checkbox Column - Exact from Coming Soon */}
                         <TableCell className="w-12 px-1 py-3">
                           <div className="flex items-center" style={{ gap: '4px' }}>
                             <input
@@ -1777,83 +1779,111 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                             />
                           </div>
                         </TableCell>
-                        <TableCell className="px-3 py-3" style={{ fontFamily: 'Poppins', fontSize: '13px', fontWeight: '500' }}>
-                          <span 
-                            className="px-2 py-1 text-xs font-medium rounded-full capitalize"
-                            style={{
-                              backgroundColor: okr.type === 'Objective' ? '#EEF2FF' : okr.type === 'Activity' ? '#F0FDF4' : '#FEF3F2',
-                              color: okr.type === 'Objective' ? '#3730A3' : okr.type === 'Activity' ? '#166534' : '#991B1B'
-                            }}
-                          >
-                            {okr.type}
+                        
+                        {/* Type Column - Exact from Coming Soon */}
+                        <TableCell className="px-1 py-3">
+                          <span className="inline-flex items-center text-xs font-medium text-gray-600">
+                            {okr.hierarchy === 'objective' ? 'Objective' : okr.hierarchy === 'activity' ? 'Key Result' : 'Key Result'}
                           </span>
                         </TableCell>
-                        <TableCell className="px-3 py-3 min-w-[300px]" style={{ fontFamily: 'Poppins', fontSize: '13px' }}>
-                          <div className="text-[#282A3F] font-medium">{okr.title}</div>
-                          {okr.description && (
-                            <div className="text-xs text-[#696C8C] mt-1">{okr.description}</div>
-                          )}
+                        
+                        {/* Name Column - Exact from Coming Soon */}
+                        <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
+                          <div className="flex items-center w-full">
+                            <span 
+                              className="text-[#282A3F]"
+                              style={{ 
+                                fontFamily: 'Poppins', 
+                                fontWeight: '500', 
+                                fontSize: '14px' 
+                              }}
+                            >
+                              {okr.title}
+                            </span>
+                          </div>
                         </TableCell>
-                        <TableCell className="px-3 py-3" style={{ fontFamily: 'Poppins', fontSize: '13px', color: '#696C8C' }}>
-                          {(() => {
-                            const formatDate = (date: any) => {
-                              if (!date) return '';
-                              const dateObj = date instanceof Date ? date : new Date(date);
-                              if (isNaN(dateObj.getTime())) return '';
-                              return dateObj.toLocaleDateString('en-US', { 
-                                month: 'short', 
-                                day: 'numeric', 
-                                year: 'numeric' 
-                              });
-                            };
-                            
-                            if (okr.startDate && okr.endDate) {
-                              const start = formatDate(okr.startDate);
-                              const end = formatDate(okr.endDate);
-                              return start && end ? `${start} - ${end}` : 'Date range';
-                            } else if (okr.startDate) {
-                              const start = formatDate(okr.startDate);
-                              return start ? `From ${start}` : 'Start date';
-                            } else if (okr.endDate) {
-                              const end = formatDate(okr.endDate);
-                              return end ? `Until ${end}` : 'End date';
-                            }
-                            return 'Not set';
-                          })()}
+                        
+                        {/* Timeframe Column - Exact from Coming Soon */}
+                        <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
+                          <span className="text-sm">
+                            {(() => {
+                              const formatDate = (date: any) => {
+                                if (!date) return '';
+                                const dateObj = date instanceof Date ? date : new Date(date);
+                                if (isNaN(dateObj.getTime())) return '';
+                                return dateObj.toLocaleDateString('en-US', { 
+                                  month: 'short', 
+                                  day: 'numeric', 
+                                  year: 'numeric' 
+                                });
+                              };
+                              
+                              if (okr.startDate && okr.endDate) {
+                                const start = formatDate(okr.startDate);
+                                const end = formatDate(okr.endDate);
+                                return start && end ? `${start} - ${end}` : 'Date range';
+                              } else if (okr.startDate) {
+                                const start = formatDate(okr.startDate);
+                                return start ? `From ${start}` : 'Start date';
+                              } else if (okr.endDate) {
+                                const end = formatDate(okr.endDate);
+                                return end ? `Until ${end}` : 'End date';
+                              }
+                              return 'Not set';
+                            })()}
+                          </span>
                         </TableCell>
-                        <TableCell className="px-3 py-3" style={{ fontFamily: 'Poppins', fontSize: '13px', color: '#696C8C' }}>
-                          {okr.milestoneFrequency || 'Once'}
+                        
+                        {/* Milestone Frequency Column - Exact from Coming Soon */}
+                        <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
+                          <span className="text-sm">
+                            {okr.milestoneFrequency || 'Once'}
+                          </span>
                         </TableCell>
-                        <TableCell className="text-right px-3 py-3" style={{ fontFamily: 'Poppins', fontSize: '13px', fontWeight: '500' }}>
+                        
+                        {/* Target Column - Exact from Coming Soon */}
+                        <TableCell className="text-right p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
                           <div className="font-medium">
                             {okr.unit === 'currency' 
                               ? `$${(okr.targetValue / 1000000).toFixed(1)}M`
-                              : okr.unit === 'percent' 
+                              : okr.unit === 'percentage'
                               ? `${okr.targetValue}%`
-                              : okr.unit === 'number'
-                              ? `${okr.targetValue}`
-                              : okr.unit === 'checkbox' 
-                              ? 'Complete'
-                              : okr.targetValue || '—'
+                              : okr.targetValue?.toString() || "-"
                             }
                           </div>
                         </TableCell>
-                        <TableCell className="text-right px-3 py-3">
-                          <div className="flex gap-1 justify-end">
-                            <button className="p-1 hover:bg-gray-100 rounded">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
-                                <path d="m15 5 4 4"/>
-                              </svg>
-                            </button>
-                            <button className="p-1 hover:bg-gray-100 rounded text-red-600">
-                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                <path d="M3 6h18"></path>
-                                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-                                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-                              </svg>
-                            </button>
-                          </div>
+
+                        {/* Actions Column - Exact from Coming Soon */}
+                        <TableCell className="text-right p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                  <circle cx="12" cy="12" r="1" />
+                                  <circle cx="12" cy="5" r="1" />
+                                  <circle cx="12" cy="19" r="1" />
+                                </svg>
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                                  <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                                  <path d="m15 5 4 4"/>
+                                </svg>
+                                Edit
+                              </DropdownMenuItem>
+                              <DropdownMenuItem>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                                  <circle cx="9" cy="7" r="4" />
+                                  <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                                </svg>
+                                Assign
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
                         </TableCell>
                       </TableRow>
                     ))}
