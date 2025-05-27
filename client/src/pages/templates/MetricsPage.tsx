@@ -1157,7 +1157,7 @@ export default function MetricsPage() {
       
       switch (groupBy) {
         case "tag":
-          groupKey = okr.tag || "No Tag";
+          groupKey = okr.tags && okr.tags.length > 0 ? okr.tags[0] : "No Tag";
           break;
         case "type":
           groupKey = okr.type || "No Type";
