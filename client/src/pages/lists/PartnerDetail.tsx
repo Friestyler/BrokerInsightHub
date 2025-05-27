@@ -1445,27 +1445,158 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
     // Simulate AI processing delay
     await new Promise(resolve => setTimeout(resolve, 2000));
     
-    // Generate a structured OKR based on input
-    const newOKR = {
-      id: Date.now(),
-      title: extractObjectiveFromInput(quickActionInput),
-      description: `Generated from: "${quickActionInput}"`,
-      tag: inferTagFromInput(quickActionInput),
-      unit: inferUnitFromInput(quickActionInput),
-      targetValue: generateTargetValue(quickActionInput),
-      realizedValue: null,
-      startDate: new Date(),
-      endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000), // 90 days from now
-      milestoneFrequency: "Monthly",
-      nestedCount: 0
-    };
+    // Generate structured OKRs with activities based on input
+    const generatedOKRs = generateStructuredOKRs(quickActionInput);
     
     // Add to assigned OKRs
-    setAssignedOKRs(prev => [...prev, newOKR]);
+    setAssignedOKRs(prev => [...prev, ...generatedOKRs]);
     
     // Clear input
     setQuickActionInput('');
     setIsGenerating(false);
+  };
+
+  const generateStructuredOKRs = (input: string): any[] => {
+    const results = [];
+    const baseId = Date.now();
+    const tag = inferTagFromInput(input);
+    const unit = inferUnitFromInput(input);
+    const targetValue = generateTargetValue(input);
+    
+    // Create main objective
+    const objective = {
+      id: baseId,
+      title: extractObjectiveFromInput(input),
+      description: `Generated from: "${input}"`,
+      tag,
+      unit,
+      targetValue,
+      realizedValue: null,
+      startDate: new Date(),
+      endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
+      milestoneFrequency: "Monthly",
+      nestedCount: 0
+    };
+    
+    results.push(objective);
+    
+    // Generate activities if requested
+    const activityCount = extractActivityCount(input);
+    if (activityCount > 0) {
+      const activities = generateActivities(input, activityCount, baseId, tag);
+      results.push(...activities);
+      
+      // Update nested count for objective
+      objective.nestedCount = activityCount;
+    }
+    
+    return results;
+  };
+
+  const extractActivityCount = (input: string): number => {
+    const matches = input.match(/(\d+)\s+activit/i);
+    return matches ? parseInt(matches[1]) : 0;
+  };
+
+  const generateActivities = (input: string, count: number, parentId: number, tag: string): any[] => {
+    const activities = [];
+    const lowerInput = input.toLowerCase();
+    
+    // Activity suggestions based on context
+    const activitySuggestions = getActivitySuggestions(lowerInput, tag);
+    
+    for (let i = 0; i < count && i < activitySuggestions.length; i++) {
+      activities.push({
+        id: parentId + i + 1,
+        title: activitySuggestions[i].title,
+        description: activitySuggestions[i].description,
+        tag,
+        unit: activitySuggestions[i].unit,
+        targetValue: activitySuggestions[i].target,
+        realizedValue: null,
+        startDate: new Date(),
+        endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
+        milestoneFrequency: "Monthly",
+        nestedCount: 0
+      });
+    }
+    
+    return activities;
+  };
+
+  const getActivitySuggestions = (input: string, tag: string) => {
+    if (tag === 'Marketing' || input.includes('marketing')) {
+      return [
+        {
+          title: "Launch Digital Marketing Campaign",
+          description: "Create and execute targeted digital marketing campaigns across social media and search platforms",
+          unit: "number",
+          target: 5
+        },
+        {
+          title: "Content Marketing Strategy",
+          description: "Develop and publish engaging content to attract and retain customers",
+          unit: "number",
+          target: 20
+        },
+        {
+          title: "Email Marketing Campaigns",
+          description: "Design and send targeted email campaigns to nurture leads",
+          unit: "percentage",
+          target: 15
+        }
+      ];
+    }
+    
+    if (tag === 'Sales' || input.includes('sales')) {
+      return [
+        {
+          title: "Lead Generation Activities",
+          description: "Implement strategies to generate qualified sales leads",
+          unit: "number",
+          target: 50
+        },
+        {
+          title: "Client Outreach Program",
+          description: "Systematic outreach to potential and existing clients",
+          unit: "number",
+          target: 100
+        }
+      ];
+    }
+    
+    if (tag === 'Training' || input.includes('training')) {
+      return [
+        {
+          title: "Product Training Sessions",
+          description: "Conduct comprehensive product training for team members",
+          unit: "number",
+          target: 8
+        },
+        {
+          title: "Skills Development Program",
+          description: "Implement ongoing skills development and certification programs",
+          unit: "number",
+          target: 12
+        }
+      ];
+    }
+    
+    // Default activities
+    return [
+      {
+        title: "Strategic Planning Sessions",
+        description: "Regular planning and review sessions to track progress",
+        unit: "number",
+        target: 10
+      },
+      {
+        title: "Performance Monitoring",
+        description: "Continuous monitoring and optimization of key performance indicators",
+        unit: "percentage",
+        target: 20
+      }
+    ];
   };
 
   const extractObjectiveFromInput = (input: string): string => {
