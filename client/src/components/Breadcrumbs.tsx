@@ -13,7 +13,7 @@ export default function Breadcrumbs() {
   
   // Parse current location to get entity type and ID
   const paths = location.split('/').filter(Boolean);
-  const isPartnerDetail = paths[0] === 'partners' && paths[1];
+  const isPartnerDetail = paths[0] === 'partners' && !!paths[1];
   const partnerId = isPartnerDetail ? paths[1] : null;
   
   // Fetch partner data if we're on a partner detail page
