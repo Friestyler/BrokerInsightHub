@@ -2301,6 +2301,29 @@ export default function MetricsPage() {
           </DialogHeader>
           
           <div className="space-y-6">
+            {/* Tag Field */}
+            <div className="space-y-2">
+              <label htmlFor="okr-tag" className="text-sm font-medium text-gray-900">
+                Tag
+              </label>
+              <p className="text-xs text-gray-500 mb-2">
+                Add a tag if you want to add this OKR to a plan.
+              </p>
+              <Select>
+                <SelectTrigger id="okr-tag" className="border-gray-300 focus:border-blue-500">
+                  <SelectValue placeholder="Choose tag (optional)" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Revenue Growth">Revenue Growth</SelectItem>
+                  <SelectItem value="Product Innovation">Product Innovation</SelectItem>
+                  <SelectItem value="Customer Experience">Customer Experience</SelectItem>
+                  <SelectItem value="Operational Excellence">Operational Excellence</SelectItem>
+                  <SelectItem value="Market Expansion">Market Expansion</SelectItem>
+                  <SelectItem value="Team Development">Team Development</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
             {/* Essential Fields */}
             <div className="space-y-4">
               {/* Name Field */}
@@ -2327,65 +2350,40 @@ export default function MetricsPage() {
                   className="resize-none border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
-
-              {/* Type and Tag Row */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label htmlFor="okr-type" className="text-sm font-medium text-gray-900">
-                    Type <span className="text-red-500">*</span>
-                  </label>
-                  <Select>
-                    <SelectTrigger id="okr-type" className="border-gray-300 focus:border-blue-500">
-                      <SelectValue placeholder="Select type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="objective">Objective</SelectItem>
-                      <SelectItem value="activity">Activity</SelectItem>
-                      <SelectItem value="subactivity">Subactivity</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <label htmlFor="okr-tag" className="text-sm font-medium text-gray-900">
-                    Tag <span className="text-red-500">*</span>
-                  </label>
-                  <Select>
-                    <SelectTrigger id="okr-tag" className="border-gray-300 focus:border-blue-500">
-                      <SelectValue placeholder="Choose tag" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Revenue Growth">Revenue Growth</SelectItem>
-                      <SelectItem value="Product Innovation">Product Innovation</SelectItem>
-                      <SelectItem value="Customer Experience">Customer Experience</SelectItem>
-                      <SelectItem value="Operational Excellence">Operational Excellence</SelectItem>
-                      <SelectItem value="Market Expansion">Market Expansion</SelectItem>
-                      <SelectItem value="Team Development">Team Development</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
             </div>
 
-            {/* Measurement Section */}
+            {/* Target & Measurement Section */}
             <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <h3 className="text-sm font-semibold text-gray-900">Target & Measurement</h3>
-                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">Optional</span>
-              </div>
+              <h3 className="text-sm font-semibold text-gray-900">How can this objective be measured?</h3>
               
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <label htmlFor="measure-unit" className="text-sm font-medium text-gray-700">
-                    Measure Unit
-                  </label>
+                  <div className="flex items-center gap-1">
+                    <label htmlFor="measure-unit" className="text-sm font-medium text-gray-700">
+                      Measure Unit <span className="text-red-500">*</span>
+                    </label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <svg className="w-4 h-4 text-gray-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                            <path d="M12 17h.01"></path>
+                          </svg>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>Choose how this OKR will be measured:<br/>Currency: €1,000<br/>Percentage: 75%<br/>Number: 50 units<br/>Checkbox: Complete/Incomplete</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                   <Select>
                     <SelectTrigger id="measure-unit" className="border-gray-300">
                       <SelectValue placeholder="Select unit" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="currency">Currency</SelectItem>
-                      <SelectItem value="percentage">Percentage</SelectItem>
+                      <SelectItem value="currency">Currency (€)</SelectItem>
+                      <SelectItem value="percentage">Percentage (%)</SelectItem>
                       <SelectItem value="number">Number</SelectItem>
                       <SelectItem value="checkbox">Checkbox</SelectItem>
                     </SelectContent>
@@ -2393,25 +2391,29 @@ export default function MetricsPage() {
                 </div>
                 
                 <div className="space-y-2">
-                  <label htmlFor="target-value" className="text-sm font-medium text-gray-700">
-                    Target Value
-                  </label>
+                  <div className="flex items-center gap-1">
+                    <label htmlFor="target-value" className="text-sm font-medium text-gray-700">
+                      Target Value
+                    </label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <svg className="w-4 h-4 text-gray-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="10"></circle>
+                            <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                            <path d="M12 17h.01"></path>
+                          </svg>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p>The target value you want to achieve for this OKR</p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                   <Input 
                     id="target-value"
                     type="number" 
-                    placeholder="0" 
-                    className="border-gray-300"
-                  />
-                </div>
-                
-                <div className="space-y-2">
-                  <label htmlFor="current-value" className="text-sm font-medium text-gray-700">
-                    Current Value
-                  </label>
-                  <Input 
-                    id="current-value"
-                    type="number" 
-                    placeholder="0" 
+                    placeholder="Enter target value" 
                     className="border-gray-300"
                   />
                 </div>
@@ -2422,7 +2424,7 @@ export default function MetricsPage() {
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <h3 className="text-sm font-semibold text-gray-900">Timeline</h3>
-                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">Optional</span>
+                <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">Optional but recommended</span>
               </div>
               
               <div className="grid grid-cols-2 gap-4">
@@ -2453,6 +2455,9 @@ export default function MetricsPage() {
                 <label htmlFor="frequency" className="text-sm font-medium text-gray-700">
                   Review Frequency
                 </label>
+                <p className="text-xs text-gray-500">
+                  How often the target resets and progress is recorded separately
+                </p>
                 <Select>
                   <SelectTrigger id="frequency" className="border-gray-300">
                     <SelectValue placeholder="How often to review progress" />
@@ -2464,6 +2469,162 @@ export default function MetricsPage() {
                     <SelectItem value="annually">Annually</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+            </div>
+
+            {/* Configuration Options */}
+            <div className="space-y-4">
+              <h3 className="text-sm font-semibold text-gray-900">Configuration Options</h3>
+              
+              {/* Traffic Lights */}
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" id="traffic-lights" className="rounded border-gray-300" />
+                  <label htmlFor="traffic-lights" className="text-sm font-medium text-gray-700">
+                    Enable Traffic Lights
+                  </label>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <svg className="w-4 h-4 text-gray-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <circle cx="12" cy="12" r="10"></circle>
+                          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                          <path d="M12 17h.01"></path>
+                        </svg>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Visual indicators showing progress status with colors</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+                
+                <div className="ml-6 space-y-3">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-gray-700">Traffic Light Configuration</label>
+                    <Select>
+                      <SelectTrigger className="border-gray-300">
+                        <SelectValue placeholder="Choose configuration method" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="system">
+                          <div className="space-y-1">
+                            <div className="font-medium">System</div>
+                            <div className="text-xs text-gray-500">Automatic calculation based on progress vs target</div>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="custom">
+                          <div className="space-y-1">
+                            <div className="font-medium">Custom Thresholds (Advanced)</div>
+                            <div className="text-xs text-gray-500">Define custom ranges for each color</div>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="manual">
+                          <div className="space-y-1">
+                            <div className="font-medium">Manual</div>
+                            <div className="text-xs text-gray-500">Update colors manually or via upload/integration</div>
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="text-xs text-gray-500 bg-gray-50 p-3 rounded-lg">
+                    <div className="font-medium mb-2">Traffic Light Colors:</div>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
+                        <span>Grey → Not defined</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                        <span>Red → At risk</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                        <span>Orange → Behind</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                        <span>Green → On track</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 bg-green-700 rounded-full"></div>
+                        <span>Dark Green → Complete (100%)</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Progress Bar */}
+              <div className="flex items-center gap-2">
+                <input type="checkbox" id="progress-bar" className="rounded border-gray-300" />
+                <label htmlFor="progress-bar" className="text-sm font-medium text-gray-700">
+                  Enable Progress Bar
+                </label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <svg className="w-4 h-4 text-gray-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                        <path d="M12 17h.01"></path>
+                      </svg>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p>Visual progress indicator showing completion percentage</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
+              </div>
+
+              {/* Due Date */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" id="due-date-required" className="rounded border-gray-300" />
+                  <label htmlFor="due-date-required" className="text-sm font-medium text-gray-700">
+                    Require Due Date
+                  </label>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <svg className="w-4 h-4 text-gray-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <circle cx="12" cy="12" r="10"></circle>
+                          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                          <path d="M12 17h.01"></path>
+                        </svg>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Make due date mandatory when this OKR is assigned</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              </div>
+
+              {/* Responsible Person */}
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <input type="checkbox" id="responsible-required" className="rounded border-gray-300" />
+                  <label htmlFor="responsible-required" className="text-sm font-medium text-gray-700">
+                    Require Responsible Person
+                  </label>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <svg className="w-4 h-4 text-gray-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <circle cx="12" cy="12" r="10"></circle>
+                          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                          <path d="M12 17h.01"></path>
+                        </svg>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Make assigning a responsible person mandatory when this OKR is assigned</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
               </div>
             </div>
           </div>
