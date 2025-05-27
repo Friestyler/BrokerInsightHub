@@ -1941,10 +1941,10 @@ export default function MetricsPage() {
                             {/* Nested count icon - 4px from text */}
                             {okr.nestedCount > 0 && (
                               <div className="flex items-center" style={{ marginLeft: '4px' }}>
-                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-gray-400">
-                                  <circle cx="5" cy="5" r="3" stroke="currentColor" strokeWidth="1" fill="none"/>
-                                  <circle cx="11" cy="11" r="3" stroke="currentColor" strokeWidth="1" fill="none"/>
-                                  <line x1="7.5" y1="7.5" x2="8.5" y2="8.5" stroke="currentColor" strokeWidth="1"/>
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                  <circle cx="4" cy="4" r="3" fill="#808080"/>
+                                  <circle cx="12" cy="12" r="3" fill="#808080"/>
+                                  <path d="M6.5 6.5C7.5 7.5 8.5 8.5 9.5 9.5" stroke="#808080" strokeWidth="2" strokeLinecap="round"/>
                                 </svg>
                                 <span className="text-xs text-gray-500 ml-1">{okr.nestedCount}</span>
                               </div>
