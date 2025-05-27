@@ -1581,96 +1581,184 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
         <div className="space-y-8">
           {sortedGroups.map(([tag, okrs]) => (
             <div key={tag} className="space-y-4">
-              {/* Tag Header */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Badge variant="secondary" className="px-3 py-1 text-sm font-medium">
-                    {tag} ({okrs.length})
-                  </Badge>
+              {/* Tag Header - Exact styling from Coming Soon tab */}
+              <div className="mb-6">
+                <div 
+                  className="inline-flex items-center px-3 py-1.5 rounded-full text-sm font-medium" 
+                  style={{ 
+                    background: 'linear-gradient(135deg, #6366F1 0%, #8B5CF6 100%)',
+                    color: 'white'
+                  }}
+                >
+                  {tag} ({okrs.length})
                 </div>
               </div>
 
-              {/* OKR Table */}
-              <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
+              {/* OKR Table - Exact structure from Coming Soon tab */}
+              <div className="bg-white rounded-lg border overflow-hidden" style={{ borderColor: '#E6E7F1' }}>
                 <Table>
-                  <TableHeader className="bg-gray-50">
-                    <TableRow>
-                      <TableHead className="w-[40px] text-center">
-                        <Checkbox
-                          checked={okrs.every(okr => selectedOKRs.includes(okr.id)) && okrs.length > 0}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
+                  <TableHeader style={{ background: '#F9FAFB' }}>
+                    <TableRow className="border-b group" style={{ borderColor: '#E6E7F1' }}>
+                      <TableHead className="w-12 px-1 py-3">
+                        <input
+                          type="checkbox"
+                          checked={okrs.length > 0 && okrs.every(okr => selectedOKRs.includes(okr.id))}
+                          onChange={(e) => {
+                            if (e.target.checked) {
                               setSelectedOKRs(prev => [...new Set([...prev, ...okrs.map(okr => okr.id)])]);
                             } else {
-                              setSelectedOKRs(prev => prev.filter(id => !okrs.some(okr => okr.id === id)));
+                              setSelectedOKRs(prev => prev.filter(id => !okrs.map(okr => okr.id).includes(id)));
                             }
+                          }}
+                          className="rounded border-gray-300 opacity-0 group-hover:opacity-100 transition-opacity"
+                          style={{ 
+                            opacity: okrs.some(okr => selectedOKRs.includes(okr.id)) ? 1 : undefined 
                           }}
                         />
                       </TableHead>
-                      <TableHead>Title</TableHead>
-                      <TableHead>Type</TableHead>
-                      <TableHead>Target</TableHead>
-                      <TableHead>Progress</TableHead>
-                      <TableHead>Status</TableHead>
-                      <TableHead>Due Date</TableHead>
+                      <TableHead 
+                        className="px-3 py-2 w-[70px]"
+                        style={{ 
+                          fontFamily: 'Poppins', 
+                          fontWeight: '500', 
+                          fontSize: '13px', 
+                          color: '#696C8C' 
+                        }}
+                      >
+                        Type
+                      </TableHead>
+                      <TableHead 
+                        className="px-3 py-2 min-w-[300px]"
+                        style={{ 
+                          fontFamily: 'Poppins', 
+                          fontWeight: '500', 
+                          fontSize: '13px', 
+                          color: '#696C8C' 
+                        }}
+                      >
+                        Name
+                      </TableHead>
+                      <TableHead 
+                        className="px-3 py-2 min-w-[120px]"
+                        style={{ 
+                          fontFamily: 'Poppins', 
+                          fontWeight: '500', 
+                          fontSize: '13px', 
+                          color: '#696C8C' 
+                        }}
+                      >
+                        Timeframe
+                      </TableHead>
+                      <TableHead 
+                        className="px-3 py-2 min-w-[150px]"
+                        style={{ 
+                          fontFamily: 'Poppins', 
+                          fontWeight: '500', 
+                          fontSize: '13px', 
+                          color: '#696C8C' 
+                        }}
+                      >
+                        Milestone Frequency
+                      </TableHead>
+                      <TableHead 
+                        className="text-right px-3 py-2 min-w-[120px]"
+                        style={{ 
+                          fontFamily: 'Poppins', 
+                          fontWeight: '500', 
+                          fontSize: '13px', 
+                          color: '#696C8C' 
+                        }}
+                      >
+                        Target
+                      </TableHead>
+                      <TableHead 
+                        className="text-right px-3 py-2 min-w-[80px]"
+                        style={{ 
+                          fontFamily: 'Poppins', 
+                          fontWeight: '500', 
+                          fontSize: '13px', 
+                          color: '#696C8C' 
+                        }}
+                      >
+                        Actions
+                      </TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {okrs.map((okr) => (
-                      <TableRow key={okr.id} className="hover:bg-gray-50">
-                        <TableCell className="text-center">
-                          <Checkbox
-                            checked={selectedOKRs.includes(okr.id)}
-                            onCheckedChange={() => {
-                              setSelectedOKRs(prev => 
-                                prev.includes(okr.id) ? prev.filter(id => id !== okr.id) : [...prev, okr.id]
-                              );
-                            }}
-                          />
+                      <TableRow key={okr.id} className="hover:bg-[#F5F6FA] border-b group" style={{ borderColor: '#E6E7F1' }}>
+                        <TableCell className="w-12 px-1 py-3">
+                          <div className="flex items-center" style={{ gap: '4px' }}>
+                            <input
+                              type="checkbox"
+                              checked={selectedOKRs.includes(okr.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedOKRs(prev => [...prev, okr.id]);
+                                } else {
+                                  setSelectedOKRs(prev => prev.filter(id => id !== okr.id));
+                                }
+                              }}
+                              className="rounded border-gray-300 opacity-0 group-hover:opacity-100 transition-opacity"
+                              style={{ opacity: selectedOKRs.includes(okr.id) ? 1 : undefined }}
+                            />
+                          </div>
                         </TableCell>
-                        <TableCell>
-                          <div className="font-medium text-gray-900">{okr.title}</div>
+                        <TableCell className="px-3 py-3" style={{ fontFamily: 'Poppins', fontSize: '13px', fontWeight: '500' }}>
+                          <span 
+                            className="px-2 py-1 text-xs font-medium rounded-full capitalize"
+                            style={{
+                              backgroundColor: okr.type === 'Objective' ? '#EEF2FF' : okr.type === 'Activity' ? '#F0FDF4' : '#FEF3F2',
+                              color: okr.type === 'Objective' ? '#3730A3' : okr.type === 'Activity' ? '#166534' : '#991B1B'
+                            }}
+                          >
+                            {okr.type}
+                          </span>
+                        </TableCell>
+                        <TableCell className="px-3 py-3 min-w-[300px]" style={{ fontFamily: 'Poppins', fontSize: '13px' }}>
+                          <div className="text-[#282A3F] font-medium">{okr.title}</div>
                           {okr.description && (
-                            <div className="text-sm text-gray-500 mt-1">{okr.description}</div>
+                            <div className="text-xs text-[#696C8C] mt-1">{okr.description}</div>
                           )}
                         </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="capitalize">{okr.type}</Badge>
+                        <TableCell className="px-3 py-3" style={{ fontFamily: 'Poppins', fontSize: '13px', color: '#696C8C' }}>
+                          {okr.startDate && okr.endDate ? (
+                            `${new Date(okr.startDate).toLocaleDateString()} - ${new Date(okr.endDate).toLocaleDateString()}`
+                          ) : (
+                            'Not set'
+                          )}
                         </TableCell>
-                        <TableCell>
+                        <TableCell className="px-3 py-3" style={{ fontFamily: 'Poppins', fontSize: '13px', color: '#696C8C' }}>
+                          {okr.frequency || 'Once'}
+                        </TableCell>
+                        <TableCell className="text-right px-3 py-3" style={{ fontFamily: 'Poppins', fontSize: '13px', fontWeight: '500' }}>
                           {okr.targetValue && okr.unit && (
-                            <span className="font-medium">
+                            <span>
                               {okr.targetValue}{
                                 okr.unit === 'Number' ? '#' :
                                 okr.unit === 'Currency' ? '€' :
                                 okr.unit === 'Percent' ? '%' :
                                 okr.unit === 'Checkbox' ? ' complete' : ''
-                              }{okr.frequency ? ` ${okr.frequency.toLowerCase()}` : ''}
+                              }{okr.frequency && okr.frequency !== 'Once' ? ` ${okr.frequency.toLowerCase()}` : ''}
                             </span>
                           )}
                         </TableCell>
-                        <TableCell>
-                          <div className="flex items-center gap-2">
-                            <div className="w-20 bg-gray-200 rounded-full h-2">
-                              <div 
-                                className="bg-blue-600 h-2 rounded-full" 
-                                style={{width: '0%'}}
-                              ></div>
-                            </div>
-                            <span className="text-sm text-gray-600">0%</span>
+                        <TableCell className="text-right px-3 py-3">
+                          <div className="flex gap-1 justify-end">
+                            <button className="p-1 hover:bg-gray-100 rounded">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                                <path d="m15 5 4 4"/>
+                              </svg>
+                            </button>
+                            <button className="p-1 hover:bg-gray-100 rounded text-red-600">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M3 6h18"></path>
+                                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                              </svg>
+                            </button>
                           </div>
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="secondary">Not Started</Badge>
-                        </TableCell>
-                        <TableCell>
-                          {okr.endDate ? (
-                            <span className="text-sm text-gray-600">
-                              {new Date(okr.endDate).toLocaleDateString()}
-                            </span>
-                          ) : (
-                            <span className="text-sm text-gray-400">No due date</span>
-                          )}
                         </TableCell>
                       </TableRow>
                     ))}
