@@ -93,4 +93,54 @@
   .tab-content.active {
     @apply block;
   }
+
+  /* Global input field styling */
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="number"],
+  input[type="search"],
+  input[type="tel"],
+  input[type="url"],
+  input[type="date"],
+  input[type="datetime-local"],
+  input[type="month"],
+  input[type="week"],
+  input[type="time"],
+  textarea,
+  select,
+  .input-field,
+  [role="combobox"],
+  [role="textbox"] {
+    @apply bg-white border-[#D6D7E4] !important;
+  }
+
+  /* Specific component overrides */
+  .input,
+  input.input,
+  textarea.textarea,
+  select.select {
+    @apply bg-white border-[#D6D7E4] !important;
+  }
+
+  /* Focus states maintain the specific border color */
+  input[type="text"]:focus,
+  input[type="email"]:focus,
+  input[type="password"]:focus,
+  input[type="number"]:focus,
+  input[type="search"]:focus,
+  input[type="tel"]:focus,
+  input[type="url"]:focus,
+  input[type="date"]:focus,
+  input[type="datetime-local"]:focus,
+  input[type="month"]:focus,
+  input[type="week"]:focus,
+  input[type="time"]:focus,
+  textarea:focus,
+  select:focus,
+  .input-field:focus,
+  [role="combobox"]:focus,
+  [role="textbox"]:focus {
+    @apply bg-white border-[#D6D7E4] !important;
+  }
 }
