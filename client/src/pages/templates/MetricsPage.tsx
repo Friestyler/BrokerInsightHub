@@ -811,8 +811,13 @@ export default function MetricsPage() {
     trafficLightConfig: "",
     progressBar: false,
     dueDateRequired: false,
-    responsibleRequired: false
+    responsibleRequired: false,
+    activities: [] as Array<{name: string, description: string}>
   });
+
+  // State for creating activities linked to an objective
+  const [isCreatingActivity, setIsCreatingActivity] = useState(false);
+  const [parentObjective, setParentObjective] = useState<any>(null);
 
   // Filtered metrics based on search and selected tags
   const filteredMetrics = mockMetrics.filter(metric => {
@@ -1085,7 +1090,72 @@ export default function MetricsPage() {
       return;
     }
     
+    const baseOKR = {
+      title: formData.name,
+      description: formData.description,
+      type: isCreatingActivity ? "Activity" : "Objective",
+      hierarchy: isCreatingActivity ? "activity" : "objective",
+      parent: isCreatingActivity ? parentObjective?.id : null,
+      progress: 0,
+      targetValue: formData.hasTarget && formData.targetValue ? parseFloat(formData.targetValue) : undefined,
+      currentValue: 0,
+      unit: formData.hasTarget ? formData.measureUnit : undefined,
+      status: "Not Started",
+      owner: "",
+      dueDate: formData.endDate ? new Date(formData.endDate) : undefined,
+      startDate: formData.startDate ? new Date(formData.startDate) : undefined,
+      endDate: formData.endDate ? new Date(formData.endDate) : undefined,
+      tag: isCreatingActivity ? parentObjective?.tag : (formData.tag || undefined),
+      frequency: formData.frequency || undefined,
+      trafficLights: formData.trafficLights,
+      trafficLightConfig: formData.trafficLightConfig,
+      progressBar: formData.progressBar,
+      dueDateRequired: formData.dueDateRequired,
+      responsibleRequired: formData.responsibleRequired
+    };
+
+    // Create the main objective/activity
     const newOKR = {
+      ...baseOKR,
+      id: okrTemplates.length > 0 ? Math.max(...okrTemplates.map(o => o.id)) + 1 : 1,
+    };
+    
+    const newOKRs = [newOKR];
+    
+    // If creating an objective with activities, create the activities too
+    if (!isCreatingActivity && formData.activities.length > 0) {
+      formData.activities.forEach((activity, index) => {
+        if (activity.name.trim()) {
+          const newActivity = {
+            ...baseOKR,
+            id: newOKR.id + index + 1,
+            title: activity.name,
+            description: activity.description,
+            type: "Activity",
+            hierarchy: "activity",
+            parent: newOKR.id,
+            tag: formData.tag || undefined
+          };
+          newOKRs.push(newActivity);
+        }
+      });
+    }
+    
+    // Add all new OKRs to the templates list
+    setOkrTemplates(prev => [...prev, ...newOKRs]);
+    
+    // Reset form and close dialog
+    resetForm();
+  };
+
+  // Handle saving objective and creating activity
+  const handleSaveAndCreateActivity = () => {
+    if (!formData.name.trim()) {
+      alert("Please enter an OKR name");
+      return;
+    }
+    
+    const newObjective = {
       id: okrTemplates.length > 0 ? Math.max(...okrTemplates.map(o => o.id)) + 1 : 1,
       title: formData.name,
       description: formData.description,
@@ -1110,10 +1180,19 @@ export default function MetricsPage() {
       responsibleRequired: formData.responsibleRequired
     };
     
-    // Add the new OKR to the templates list
-    setOkrTemplates(prev => [...prev, newOKR]);
+    // Save the objective
+    setOkrTemplates(prev => [...prev, newObjective]);
     
-    // Reset form and close dialog
+    // Set up for creating activity
+    setParentObjective(newObjective);
+    setIsCreatingActivity(true);
+    
+    // Reset form for activity creation
+    resetForm();
+  };
+
+  // Reset form function
+  const resetForm = () => {
     setFormData({
       tag: "",
       name: "",
@@ -1128,9 +1207,15 @@ export default function MetricsPage() {
       trafficLightConfig: "",
       progressBar: false,
       dueDateRequired: false,
-      responsibleRequired: false
+      responsibleRequired: false,
+      activities: []
     });
-    setIsCreateOKROpen(false);
+    
+    if (isCreatingActivity) {
+      setIsCreatingActivity(false);
+      setParentObjective(null);
+      setIsCreateOKROpen(false);
+    }
   };
 
   // Filtered OKRs based on search, measure unit, target range, timeframe, and no target
@@ -2368,35 +2453,54 @@ export default function MetricsPage() {
       <Dialog open={isCreateOKROpen} onOpenChange={setIsCreateOKROpen}>
         <DialogContent className="sm:max-w-[600px] max-h-[85vh] overflow-y-auto">
           <DialogHeader className="pb-6">
-            <DialogTitle className="text-xl font-semibold text-gray-900">Add OKR Template</DialogTitle>
+            <DialogTitle className="text-xl font-semibold text-gray-900">
+              {isCreatingActivity ? `Add Activity to "${parentObjective?.title}"` : "Add OKR Template"}
+            </DialogTitle>
             <DialogDescription className="text-sm text-gray-600 mt-1">
-              Create a new OKR template that can be assigned to partners, opportunities, and customers
+              {isCreatingActivity 
+                ? `Create a new activity under the objective "${parentObjective?.title}". This activity will inherit the tag "${parentObjective?.tag}".`
+                : "Create a new OKR template that can be assigned to partners, opportunities, and customers"
+              }
             </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-6">
-            {/* Tag Field */}
-            <div className="space-y-2">
-              <label htmlFor="okr-tag" className="text-sm font-medium text-gray-900">
-                Tag
-              </label>
-              <p className="text-xs text-gray-500 mb-2">
-                Add a tag if you want to add this OKR to a plan.
-              </p>
-              <Select value={formData.tag} onValueChange={(value) => setFormData(prev => ({...prev, tag: value}))}>
-                <SelectTrigger id="okr-tag" className="border-gray-300 focus:border-blue-500">
-                  <SelectValue placeholder="Choose tag (optional)" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Revenue Growth">Revenue Growth</SelectItem>
-                  <SelectItem value="Product Innovation">Product Innovation</SelectItem>
-                  <SelectItem value="Customer Experience">Customer Experience</SelectItem>
-                  <SelectItem value="Operational Excellence">Operational Excellence</SelectItem>
-                  <SelectItem value="Market Expansion">Market Expansion</SelectItem>
-                  <SelectItem value="Team Development">Team Development</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            {/* Tag Field - Only show when creating objectives */}
+            {!isCreatingActivity && (
+              <div className="space-y-2">
+                <label htmlFor="okr-tag" className="text-sm font-medium text-gray-900">
+                  Tag
+                </label>
+                <p className="text-xs text-gray-500 mb-2">
+                  Add a tag if you want to add this OKR to a plan.
+                </p>
+                <Select value={formData.tag} onValueChange={(value) => setFormData(prev => ({...prev, tag: value}))}>
+                  <SelectTrigger id="okr-tag" className="border-gray-300 focus:border-blue-500">
+                    <SelectValue placeholder="Choose tag (optional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Revenue Growth">Revenue Growth</SelectItem>
+                    <SelectItem value="Product Innovation">Product Innovation</SelectItem>
+                    <SelectItem value="Customer Experience">Customer Experience</SelectItem>
+                    <SelectItem value="Operational Excellence">Operational Excellence</SelectItem>
+                    <SelectItem value="Market Expansion">Market Expansion</SelectItem>
+                    <SelectItem value="Team Development">Team Development</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+            
+            {/* Show inherited tag when creating activity */}
+            {isCreatingActivity && (
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-gray-900">Tag</label>
+                <div className="p-3 bg-gray-50 border border-gray-200 rounded-md">
+                  <span className="text-sm text-gray-700">
+                    Inherited from objective: <strong>{parentObjective?.tag || "No tag"}</strong>
+                  </span>
+                </div>
+              </div>
+            )}
 
             {/* Essential Fields */}
             <div className="space-y-4">
@@ -2573,6 +2677,86 @@ export default function MetricsPage() {
               </div>
             </div>
 
+            {/* Activities Section - Only show when creating objectives */}
+            {!isCreatingActivity && (
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-sm font-semibold text-gray-900">Activities</h3>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      setFormData(prev => ({
+                        ...prev,
+                        activities: [...prev.activities, { name: "", description: "" }]
+                      }));
+                    }}
+                    className="text-xs"
+                  >
+                    Add Activity
+                  </Button>
+                </div>
+                <div className="text-xs text-gray-600 bg-blue-50 p-3 rounded-md">
+                  Activities break down your objective into specific actionable tasks. They inherit the same tag as the objective and help track progress toward achieving the overall goal.
+                </div>
+                
+                {formData.activities.length > 0 && (
+                  <div className="space-y-3 max-h-48 overflow-y-auto">
+                    {formData.activities.map((activity, index) => (
+                      <div key={index} className="border rounded-md p-3 space-y-2">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium text-gray-700">Activity {index + 1}</span>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => {
+                              setFormData(prev => ({
+                                ...prev,
+                                activities: prev.activities.filter((_, i) => i !== index)
+                              }));
+                            }}
+                            className="h-6 w-6 p-0 text-gray-400 hover:text-red-500"
+                          >
+                            ×
+                          </Button>
+                        </div>
+                        <input
+                          type="text"
+                          placeholder="Activity name"
+                          value={activity.name}
+                          onChange={(e) => {
+                            setFormData(prev => ({
+                              ...prev,
+                              activities: prev.activities.map((act, i) => 
+                                i === index ? { ...act, name: e.target.value } : act
+                              )
+                            }));
+                          }}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                        />
+                        <textarea
+                          placeholder="Activity description (optional)"
+                          value={activity.description}
+                          onChange={(e) => {
+                            setFormData(prev => ({
+                              ...prev,
+                              activities: prev.activities.map((act, i) => 
+                                i === index ? { ...act, description: e.target.value } : act
+                              )
+                            }));
+                          }}
+                          className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm"
+                          rows={2}
+                        />
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
+
             {/* Configuration Options */}
             <div className="space-y-4">
               <h3 className="text-sm font-semibold text-gray-900">Configuration Options</h3>
@@ -2730,20 +2914,49 @@ export default function MetricsPage() {
             </div>
           </div>
           
-          <DialogFooter className="pt-6 border-t flex justify-end gap-3">
+          <DialogFooter className="pt-6 border-t flex justify-between">
             <Button 
               variant="outline" 
-              onClick={() => setIsCreateOKROpen(false)}
+              onClick={() => {
+                if (isCreatingActivity) {
+                  setIsCreatingActivity(false);
+                  setParentObjective(null);
+                }
+                setIsCreateOKROpen(false);
+              }}
               className="px-4 py-2"
             >
               Cancel
             </Button>
-            <Button 
-              className="bg-blue-600 hover:bg-blue-700 px-4 py-2"
-              onClick={handleCreateOKR}
-            >
-              Create Template
-            </Button>
+            
+            <div className="flex gap-3">
+              {isCreatingActivity ? (
+                // When creating an activity
+                <Button 
+                  className="bg-blue-600 hover:bg-blue-700 px-4 py-2"
+                  onClick={handleCreateOKR}
+                >
+                  Create Activity
+                </Button>
+              ) : (
+                // When creating an objective
+                <>
+                  <Button 
+                    variant="outline"
+                    className="px-4 py-2 border-blue-600 text-blue-600 hover:bg-blue-50"
+                    onClick={handleSaveAndCreateActivity}
+                  >
+                    Save Objective and Create Activity
+                  </Button>
+                  <Button 
+                    className="bg-blue-600 hover:bg-blue-700 px-4 py-2"
+                    onClick={handleCreateOKR}
+                  >
+                    Create Objective
+                  </Button>
+                </>
+              )}
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
