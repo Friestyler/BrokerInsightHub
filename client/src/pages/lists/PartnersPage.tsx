@@ -1724,19 +1724,17 @@ function PartnersTable() {
 
                     return sortedGroups.map(([tag, templates]) => (
                       <div key={tag} className="space-y-3">
-                        {/* Tag Group Header */}
-                        <div className="flex items-center gap-2 pt-3 pb-2 first:pt-0">
-                          <div className="h-px bg-gray-200 flex-1"></div>
+                        {/* Tag Group Header - Left Aligned like Coming Soon tab */}
+                        <div className="pt-4 pb-2 first:pt-0">
                           <span className="px-3 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full">
                             {tag} ({templates.length})
                           </span>
-                          <div className="h-px bg-gray-200 flex-1"></div>
                         </div>
                         
                         {/* Templates in this group */}
-                        <div className="space-y-3">
+                        <div className="space-y-2">
                           {templates.map((template: any) => (
-                            <div key={template.id} className="flex items-start p-3 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
+                            <div key={template.id} className="flex items-start p-2 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors">
                               <input
                                 type="checkbox"
                                 id={`template-${template.id}`}
@@ -1748,26 +1746,21 @@ function PartnersTable() {
                                     setSelectedOKRTemplates([...selectedOKRTemplates, template.id]);
                                   }
                                 }}
-                                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 mt-1"
+                                className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 mt-0.5"
                               />
                               <div className="ml-3 flex-1">
                                 <div className="flex items-center gap-2 mb-1">
-                                  <label htmlFor={`template-${template.id}`} className="font-medium text-gray-900 cursor-pointer">
+                                  <label htmlFor={`template-${template.id}`} className="font-medium text-gray-900 cursor-pointer text-sm">
                                     {template.title}
                                   </label>
-                                  <span className="px-2 py-1 text-xs font-medium bg-gray-100 text-gray-700 rounded-full">
+                                  <span className="px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-700 rounded-full">
                                     {template.type}
                                   </span>
-                                  {template.tag && (
-                                    <span className="px-2 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full">
-                                      {template.tag}
-                                    </span>
-                                  )}
                                 </div>
                                 {template.description && (
-                                  <p className="text-sm text-gray-600 mb-2">{template.description}</p>
+                                  <p className="text-xs text-gray-600 mb-1">{template.description}</p>
                                 )}
-                                <div className="flex items-center gap-4 text-xs text-gray-500">
+                                <div className="flex items-center gap-3 text-xs text-gray-500">
                                   {template.unit && (
                                     <span>📊 {template.unit}</span>
                                   )}
