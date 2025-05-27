@@ -1933,12 +1933,7 @@ export default function MetricsPage() {
                                 {okr.title}
                               </span>
                               
-                              {/* Parent context - clean and subtle */}
-                              {okr.hierarchy !== 'objective' && (
-                                <div className="text-xs text-gray-500">
-                                  <span className="text-gray-400">↳</span> {filteredOKRs.find(o => o.id === okr.parent)?.title}
-                                </div>
-                              )}
+
                             </div>
                             
                             {/* Nested count icon with count */}
