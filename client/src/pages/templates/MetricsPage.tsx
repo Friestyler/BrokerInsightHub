@@ -808,6 +808,14 @@ export default function MetricsPage() {
   React.useEffect(() => {
     localStorage.setItem('okrTemplates', JSON.stringify(okrTemplates));
   }, [okrTemplates]);
+
+  // Initialize localStorage with mock data if it's empty
+  React.useEffect(() => {
+    const stored = localStorage.getItem('okrTemplates');
+    if (!stored) {
+      localStorage.setItem('okrTemplates', JSON.stringify(mockOKRs));
+    }
+  }, []);
   
   // Form state for OKR creation
   const [formData, setFormData] = useState({
