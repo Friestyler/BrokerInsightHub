@@ -1801,7 +1801,7 @@ export default function MetricsPage() {
                         />
                       </TableHead>
                       <TableHead 
-                        className="px-3 py-2 min-w-[80px]"
+                        className="px-3 py-2 w-[70px]"
                         style={{ 
                           fontFamily: 'Poppins', 
                           fontWeight: '500', 
@@ -1896,18 +1896,18 @@ export default function MetricsPage() {
                               ? 'text-blue-700'
                               : 'text-gray-600'
                           }`}>
-                            {okr.hierarchy === 'objective' ? 'Objective' : okr.hierarchy === 'activity' ? 'Activity' : 'Task'}
+                            {okr.hierarchy === 'objective' ? 'Objective' : okr.hierarchy === 'activity' ? 'Activity' : 'Subactivity'}
                           </span>
                         </TableCell>
                         
                         {/* Name Column */}
                         <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
-                          <div className="flex items-center gap-3 w-full">
-                            {/* Expand/collapse for items with children - simple disclosure triangle */}
-                            {okr.nestedCount > 0 ? (
+                          <div className="flex items-center w-full">
+                            {/* Expand/collapse for items with children - only show when needed */}
+                            {okr.nestedCount > 0 && (
                               <button
                                 onClick={() => toggleExpansion(okr.id)}
-                                className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
+                                className="p-1 hover:bg-gray-100 rounded flex-shrink-0 mr-3"
                               >
                                 {okr.isExpanded ? (
                                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
@@ -1919,8 +1919,6 @@ export default function MetricsPage() {
                                   </svg>
                                 )}
                               </button>
-                            ) : (
-                              <div className="w-6"></div>
                             )}
                             
                             <div className="flex flex-col gap-1 flex-1">
