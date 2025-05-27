@@ -1872,8 +1872,8 @@ export default function MetricsPage() {
                   <TableBody>
                     {okrsInGroup.map((okr) => (
                       <TableRow key={okr.id} className="hover:bg-[#F5F6FA] border-b group" style={{ borderColor: '#E6E7F1' }}>
-                        <TableCell className="w-16 px-3 py-3">
-                          <div className="flex items-center gap-2">
+                        <TableCell className="w-12 px-3 py-3">
+                          <div className="flex items-center" style={{ gap: '4px' }}>
                             <input
                               type="checkbox"
                               checked={selectedOKRs.includes(okr.id)}
@@ -1887,12 +1887,11 @@ export default function MetricsPage() {
                               className="rounded border-gray-300 opacity-0 group-hover:opacity-100 transition-opacity"
                               style={{ opacity: selectedOKRs.includes(okr.id) ? 1 : undefined }}
                             />
-                            {/* Expand/collapse arrows - positioned next to checkbox */}
-                            {okr.nestedCount > 0 && (
+                            {/* Expand/collapse arrows - visible by default for nested items */}
+                            {okr.nestedCount > 0 ? (
                               <button
                                 onClick={() => toggleExpansion(okr.id)}
-                                className="p-1 hover:bg-gray-100 rounded flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                                style={{ opacity: selectedOKRs.includes(okr.id) ? 1 : undefined }}
+                                className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
                               >
                                 {okr.isExpanded ? (
                                   <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
@@ -1903,6 +1902,16 @@ export default function MetricsPage() {
                                     <path d="m9 18 6-6-6-6"/>
                                   </svg>
                                 )}
+                              </button>
+                            ) : (
+                              /* Empty space for non-nested items - arrows only on hover */
+                              <button
+                                className="p-1 hover:bg-gray-100 rounded flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                style={{ width: '20px', height: '20px' }}
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                                  <path d="m9 18 6-6-6-6"/>
+                                </svg>
                               </button>
                             )}
                           </div>
@@ -1923,15 +1932,16 @@ export default function MetricsPage() {
                         {/* Name Column */}
                         <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
                           <div className="flex items-center w-full">
-                            {/* Title with typography hierarchy - flush left, no indentation */}
+                            {/* Title - consistent styling for all OKRs */}
                             <div className="flex-1">
-                              <span className={`${
-                                okr.hierarchy === 'objective' 
-                                  ? 'font-semibold text-gray-900 text-sm' 
-                                  : okr.hierarchy === 'activity'
-                                  ? 'font-medium text-gray-800 text-sm'
-                                  : 'font-normal text-gray-700 text-sm'
-                              }`}>
+                              <span 
+                                className="text-[#282A3F]"
+                                style={{ 
+                                  fontFamily: 'Poppins', 
+                                  fontWeight: '500', 
+                                  fontSize: '14px' 
+                                }}
+                              >
                                 {okr.title}
                               </span>
                             </div>
