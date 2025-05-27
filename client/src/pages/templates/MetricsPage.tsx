@@ -1872,20 +1872,40 @@ export default function MetricsPage() {
                   <TableBody>
                     {okrsInGroup.map((okr) => (
                       <TableRow key={okr.id} className="hover:bg-[#F5F6FA] border-b group" style={{ borderColor: '#E6E7F1' }}>
-                        <TableCell className="w-12 px-3 py-3">
-                          <input
-                            type="checkbox"
-                            checked={selectedOKRs.includes(okr.id)}
-                            onChange={(e) => {
-                              if (e.target.checked) {
-                                setSelectedOKRs(prev => [...prev, okr.id]);
-                              } else {
-                                setSelectedOKRs(prev => prev.filter(id => id !== okr.id));
-                              }
-                            }}
-                            className="rounded border-gray-300 opacity-0 group-hover:opacity-100 transition-opacity"
-                            style={{ opacity: selectedOKRs.includes(okr.id) ? 1 : undefined }}
-                          />
+                        <TableCell className="w-16 px-3 py-3">
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="checkbox"
+                              checked={selectedOKRs.includes(okr.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedOKRs(prev => [...prev, okr.id]);
+                                } else {
+                                  setSelectedOKRs(prev => prev.filter(id => id !== okr.id));
+                                }
+                              }}
+                              className="rounded border-gray-300 opacity-0 group-hover:opacity-100 transition-opacity"
+                              style={{ opacity: selectedOKRs.includes(okr.id) ? 1 : undefined }}
+                            />
+                            {/* Expand/collapse arrows - positioned next to checkbox */}
+                            {okr.nestedCount > 0 && (
+                              <button
+                                onClick={() => toggleExpansion(okr.id)}
+                                className="p-1 hover:bg-gray-100 rounded flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                style={{ opacity: selectedOKRs.includes(okr.id) ? 1 : undefined }}
+                              >
+                                {okr.isExpanded ? (
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                                    <path d="m6 9 6 6 6-6"/>
+                                  </svg>
+                                ) : (
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                                    <path d="m9 18 6-6-6-6"/>
+                                  </svg>
+                                )}
+                              </button>
+                            )}
+                          </div>
                         </TableCell>
                         {/* Type Column */}
                         <TableCell className="px-3 py-3">
@@ -1919,31 +1939,13 @@ export default function MetricsPage() {
                             {/* Nested count icon with count */}
                             {okr.nestedCount > 0 && (
                               <div className="flex items-center ml-2">
-                                <div 
-                                  className="flex items-center justify-center w-4 h-4 bg-gray-100 rounded text-xs font-medium text-gray-600"
-                                  style={{ minWidth: '16px' }}
-                                >
-                                  {okr.nestedCount}
-                                </div>
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-gray-400">
+                                  <circle cx="5" cy="5" r="3" stroke="currentColor" strokeWidth="1" fill="none"/>
+                                  <circle cx="11" cy="11" r="3" stroke="currentColor" strokeWidth="1" fill="none"/>
+                                  <line x1="7.5" y1="7.5" x2="8.5" y2="8.5" stroke="currentColor" strokeWidth="1"/>
+                                </svg>
+                                <span className="text-xs text-gray-500 ml-1">{okr.nestedCount}</span>
                               </div>
-                            )}
-                            
-                            {/* Expand/collapse arrows - positioned on the right next to hamburger */}
-                            {okr.nestedCount > 0 && (
-                              <button
-                                onClick={() => toggleExpansion(okr.id)}
-                                className="p-1 hover:bg-gray-100 rounded flex-shrink-0 ml-1"
-                              >
-                                {okr.isExpanded ? (
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                                    <path d="m6 9 6 6 6-6"/>
-                                  </svg>
-                                ) : (
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                                    <path d="m9 18 6-6-6-6"/>
-                                  </svg>
-                                )}
-                              </button>
                             )}
                             
                             {/* Hamburger menu icon */}
