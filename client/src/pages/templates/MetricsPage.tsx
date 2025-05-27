@@ -2778,90 +2778,106 @@ export default function MetricsPage() {
                     </TooltipProvider>
                   </div>
                 
-                <div className="ml-6 space-y-3">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-gray-700">Traffic Light Configuration</label>
-                    <Select>
-                      <SelectTrigger className="border-gray-300">
-                        <SelectValue placeholder="Choose configuration method" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="system">
-                          <div className="space-y-1">
-                            <div className="font-medium">System</div>
-                            <div className="text-xs text-gray-500">Automatic calculation based on progress vs target</div>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="custom">
-                          <div className="space-y-1">
-                            <div className="font-medium">Custom Thresholds (Advanced)</div>
-                            <div className="text-xs text-gray-500">Define custom ranges for each color</div>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="manual">
-                          <div className="space-y-1">
-                            <div className="font-medium">Manual</div>
-                            <div className="text-xs text-gray-500">Update colors manually or via upload/integration</div>
-                          </div>
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  
-                  <div className="text-xs text-gray-500 bg-gray-50 p-3 rounded-lg">
-                    <div className="font-medium mb-2">Traffic Light Colors:</div>
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
-                        <span>Grey → Not defined</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-red-500 rounded-full"></div>
-                        <span>Red → At risk</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
-                        <span>Orange → Behind</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-                        <span>Green → On track</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 bg-green-700 rounded-full"></div>
-                        <span>Dark Green → Complete (100%)</span>
+                {(formData.okrType === 'traffic-light' || formData.trafficLights) && (
+                  <div className="ml-6 space-y-3">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium text-gray-700">Traffic Light Configuration</label>
+                      <Select value={formData.trafficLightConfig} onValueChange={(value) => setFormData(prev => ({...prev, trafficLightConfig: value}))}>
+                        <SelectTrigger className="border-gray-300">
+                          <SelectValue placeholder="Choose configuration method" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="system">
+                            <div className="space-y-1">
+                              <div className="font-medium">System</div>
+                              <div className="text-xs text-gray-500">Automatic calculation based on progress vs target</div>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="custom">
+                            <div className="space-y-1">
+                              <div className="font-medium">Custom Thresholds (Advanced)</div>
+                              <div className="text-xs text-gray-500">Define custom ranges for each color</div>
+                            </div>
+                          </SelectItem>
+                          <SelectItem value="manual">
+                            <div className="space-y-1">
+                              <div className="font-medium">Manual</div>
+                              <div className="text-xs text-gray-500">Update colors manually or via upload/integration</div>
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div className="text-xs text-gray-500 bg-gray-50 p-3 rounded-lg">
+                      <div className="font-medium mb-2">Traffic Light Colors:</div>
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 bg-gray-400 rounded-full"></div>
+                          <span>Grey → Not defined</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                          <span>Red → At risk</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 bg-orange-500 rounded-full"></div>
+                          <span>Orange → Behind</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                          <span>Green → On track</span>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 bg-green-700 rounded-full"></div>
+                          <span>Dark Green → Complete (100%)</span>
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
+                )}
               </div>
 
-              {/* Progress Bar */}
-              <div className="flex items-center gap-2">
-                <input type="checkbox" id="progress-bar" className="rounded border-gray-300" />
-                <label htmlFor="progress-bar" className="text-sm font-medium text-gray-700">
-                  Enable Progress Bar
-                </label>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <svg className="w-4 h-4 text-gray-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <circle cx="12" cy="12" r="10"></circle>
-                        <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
-                        <path d="M12 17h.01"></path>
-                      </svg>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p>Visual progress indicator showing completion percentage</p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-              </div>
+              {/* Progress Bar - Only show for types that can have progress */}
+              {(formData.okrType === 'currency' || formData.okrType === 'percent' || formData.okrType === 'number') && (
+                <div className="flex items-center gap-2">
+                  <input 
+                    type="checkbox" 
+                    id="progress-bar" 
+                    checked={formData.progressBar}
+                    onChange={(e) => setFormData(prev => ({...prev, progressBar: e.target.checked}))}
+                    className="rounded border-gray-300" 
+                  />
+                  <label htmlFor="progress-bar" className="text-sm font-medium text-gray-700">
+                    Enable Progress Bar
+                  </label>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <svg className="w-4 h-4 text-gray-400 cursor-help" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <circle cx="12" cy="12" r="10"></circle>
+                          <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path>
+                          <path d="M12 17h.01"></path>
+                        </svg>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p>Visual progress indicator showing completion percentage</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              )}
 
               {/* Due Date */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <input type="checkbox" id="due-date-required" className="rounded border-gray-300" />
+                  <input 
+                    type="checkbox" 
+                    id="due-date-required" 
+                    checked={formData.dueDateRequired}
+                    onChange={(e) => setFormData(prev => ({...prev, dueDateRequired: e.target.checked}))}
+                    className="rounded border-gray-300" 
+                  />
                   <label htmlFor="due-date-required" className="text-sm font-medium text-gray-700">
                     Require Due Date
                   </label>
@@ -2885,7 +2901,13 @@ export default function MetricsPage() {
               {/* Responsible Person */}
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <input type="checkbox" id="responsible-required" className="rounded border-gray-300" />
+                  <input 
+                    type="checkbox" 
+                    id="responsible-required" 
+                    checked={formData.responsibleRequired}
+                    onChange={(e) => setFormData(prev => ({...prev, responsibleRequired: e.target.checked}))}
+                    className="rounded border-gray-300" 
+                  />
                   <label htmlFor="responsible-required" className="text-sm font-medium text-gray-700">
                     Require Responsible Person
                   </label>
@@ -2906,6 +2928,7 @@ export default function MetricsPage() {
                 </div>
               </div>
             </div>
+            )}
           </div>
 
 
