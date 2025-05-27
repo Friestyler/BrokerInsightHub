@@ -2078,49 +2078,63 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                         </TableCell>
 
                         
-                        {/* Name Column with hierarchy and description icons */}
+                        {/* Name Column with improved hierarchy grouping */}
                         <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
-                          <div className="flex items-center w-full">
-                            <span 
-                              className="text-[#282A3F]"
-                              style={{ 
-                                fontFamily: 'Poppins', 
-                                fontWeight: '500', 
-                                fontSize: '14px' 
-                              }}
-                            >
-                              {okr.title}
-                            </span>
+                          <div className="flex items-center w-full gap-2">
+                            {/* Expansion controls group */}
+                            <div className="flex items-center gap-1 flex-shrink-0">
+                              {/* Chevron for expansion */}
+                              {okr.nestedCount > 0 && (
+                                <button className="p-1 hover:bg-gray-100 rounded transition-colors">
+                                  <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-gray-400">
+                                    <path d="M4.5 3L7.5 6L4.5 9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                                  </svg>
+                                </button>
+                              )}
+                              
+                              {/* Hierarchy nesting icon and count - grouped with chevron */}
+                              {okr.nestedCount > 0 && (
+                                <div className="flex items-center gap-1">
+                                  <svg width="14" height="14" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-gray-400">
+                                    <circle cx="4" cy="4" r="1.5" fill="currentColor"/>
+                                    <circle cx="12" cy="12" r="1.5" fill="currentColor"/>
+                                    <path d="M4 6C4 8 6 10 10 12" stroke="currentColor" strokeWidth="1" fill="none" strokeLinecap="round"/>
+                                  </svg>
+                                  <span className="text-xs text-gray-500 font-medium">{okr.nestedCount}</span>
+                                </div>
+                              )}
+                            </div>
                             
-                            {/* Hierarchy nesting icon */}
-                            {okr.nestedCount > 0 && (
-                              <div className="flex items-center" style={{ marginLeft: '4px' }}>
-                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                  <circle cx="4" cy="4" r="2" fill="#666666"/>
-                                  <circle cx="12" cy="12" r="2" fill="#666666"/>
-                                  <path d="M4 6C4 8 6 10 10 12" stroke="#666666" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
-                                </svg>
-                                <span className="text-xs text-gray-500 ml-1">{okr.nestedCount}</span>
-                              </div>
-                            )}
-                            
-                            {/* Description icon */}
-                            {okr.description && (
-                              <svg 
-                                xmlns="http://www.w3.org/2000/svg" 
-                                width="14" 
-                                height="8" 
-                                viewBox="0 0 14 8" 
-                                fill="none" 
-                                className="text-gray-400 hover:text-gray-600 cursor-help flex-shrink-0"
-                                style={{ minWidth: '14px', minHeight: '8px', marginLeft: '4px' }}
-                                title={okr.description}
+                            {/* Title and description */}
+                            <div className="flex items-center gap-2 flex-1">
+                              <span 
+                                className="text-[#282A3F]"
+                                style={{ 
+                                  fontFamily: 'Poppins', 
+                                  fontWeight: '500', 
+                                  fontSize: '14px' 
+                                }}
                               >
-                                <rect width="14" height="1" fill="currentColor"/>
-                                <rect y="3.5" width="14" height="1" fill="currentColor"/>
-                                <rect y="7" width="7" height="1" fill="currentColor"/>
-                              </svg>
-                            )}
+                                {okr.title}
+                              </span>
+                              
+                              {/* Description icon */}
+                              {okr.description && (
+                                <svg 
+                                  xmlns="http://www.w3.org/2000/svg" 
+                                  width="14" 
+                                  height="8" 
+                                  viewBox="0 0 14 8" 
+                                  fill="none" 
+                                  className="text-gray-400 hover:text-gray-600 cursor-help flex-shrink-0"
+                                  style={{ minWidth: '14px', minHeight: '8px' }}
+                                >
+                                  <rect width="14" height="1" fill="currentColor"/>
+                                  <rect y="3.5" width="14" height="1" fill="currentColor"/>
+                                  <rect y="7" width="7" height="1" fill="currentColor"/>
+                                </svg>
+                              )}
+                            </div>
                           </div>
                         </TableCell>
                         
