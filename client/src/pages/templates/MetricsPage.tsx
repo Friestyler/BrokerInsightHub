@@ -236,7 +236,6 @@ const mockMetricGroups = [
 
 // Sample OKR data grouped by tags
 const mockOKRs = [
-  // Revenue Growth hierarchy
   {
     id: 1,
     title: "Increase Annual Recurring Revenue by 40%",
@@ -249,218 +248,6 @@ const mockOKRs = [
     status: "On Track",
     owner: "Sarah Chen",
     dueDate: new Date('2024-12-31'),
-    hierarchy: "objective",
-    level: 0,
-    parent: null,
-    tags: ["Revenue Growth"],
-    startDate: new Date('2024-01-01'),
-    endDate: new Date('2024-12-31'),
-    milestoneFrequency: "Quarterly"
-  },
-  {
-    id: 11,
-    title: "Implement Sales Training Program",
-    description: "Develop comprehensive sales training to improve conversion rates",
-    type: "Activity",
-    progress: 45,
-    targetValue: 100,
-    currentValue: 45,
-    unit: "percentage",
-    status: "In Progress",
-    owner: "Mike Rodriguez",
-    dueDate: new Date('2024-06-30'),
-    hierarchy: "activity",
-    level: 1,
-    parent: 1,
-    tags: ["Revenue Growth"],
-    startDate: new Date('2024-01-15'),
-    endDate: new Date('2024-06-30'),
-    milestoneFrequency: "Monthly"
-  },
-  {
-    id: 12,
-    title: "Create Training Materials",
-    description: "Develop comprehensive training materials for sales team",
-    type: "Subactivity",
-    progress: 80,
-    targetValue: 1,
-    currentValue: 0.8,
-    unit: "boolean",
-    status: "On Track",
-    owner: "Lisa Wang",
-    dueDate: new Date('2024-03-31'),
-    hierarchy: "subactivity",
-    level: 2,
-    parent: 11,
-    tags: ["Revenue Growth"],
-    startDate: new Date('2024-01-20'),
-    endDate: new Date('2024-03-31'),
-    milestoneFrequency: "Weekly"
-  },
-  {
-    id: 13,
-    title: "Optimize Sales Process Automation",
-    description: "Streamline and automate key parts of the sales funnel",
-    type: "Activity",
-    progress: 30,
-    targetValue: 15,
-    currentValue: 4.5,
-    unit: "number",
-    status: "Behind",
-    owner: "David Kim",
-    dueDate: new Date('2024-08-31'),
-    hierarchy: "activity",
-    level: 1,
-    parent: 1,
-    tags: ["Revenue Growth"],
-    startDate: new Date('2024-03-01'),
-    endDate: new Date('2024-08-31'),
-    milestoneFrequency: "Biweekly"
-  },
-  {
-    id: 14,
-    title: "Configure CRM Automation Rules",
-    description: "Set up automated workflows in CRM system",
-    type: "Subactivity",
-    progress: 25,
-    targetValue: 1,
-    currentValue: 0.25,
-    unit: "boolean",
-    status: "Behind",
-    owner: "Emma Thompson",
-    dueDate: new Date('2024-05-31'),
-    hierarchy: "subactivity",
-    level: 2,
-    parent: 13,
-    tags: ["Revenue Growth"],
-    startDate: new Date('2024-03-15'),
-    endDate: new Date('2024-05-31'),
-    milestoneFrequency: "Weekly"
-  },
-  {
-    id: 15,
-    title: "Launch Customer Success Initiatives",
-    description: "Implement proactive customer success programs to reduce churn",
-    type: "Activity",
-    progress: 55,
-    targetValue: 85,
-    currentValue: 46.75,
-    unit: "percentage",
-    status: "On Track",
-    owner: "Jennifer Liu",
-    dueDate: new Date('2024-10-31'),
-    hierarchy: "activity",
-    level: 1,
-    parent: 1,
-    tags: ["Revenue Growth"],
-    startDate: new Date('2024-02-01'),
-    endDate: new Date('2024-10-31'),
-    milestoneFrequency: "Monthly"
-  },
-  {
-    id: 16,
-    title: "Design Onboarding Experience",
-    description: "Create streamlined onboarding process for new customers",
-    type: "Subactivity",
-    progress: 70,
-    targetValue: 1,
-    currentValue: 0.7,
-    unit: "boolean",
-    status: "On Track",
-    owner: "Alex Chen",
-    dueDate: new Date('2024-04-30'),
-    hierarchy: "subactivity",
-    level: 2,
-    parent: 15,
-    tags: ["Revenue Growth"],
-    startDate: new Date('2024-02-15'),
-    endDate: new Date('2024-04-30'),
-    milestoneFrequency: "Weekly"
-  },
-  // Product Innovation hierarchy
-  {
-    id: 2,
-    title: "Launch New Product Features",
-    description: "Develop and release innovative features to enhance user experience",
-    type: "Objective",
-    progress: 75,
-    targetValue: 8,
-    currentValue: 6,
-    unit: "number",
-    status: "On Track",
-    owner: "Alex Johnson",
-    dueDate: new Date('2024-09-30'),
-    hierarchy: "objective",
-    level: 0,
-    parent: null,
-    tags: ["Product Innovation"],
-    startDate: new Date('2024-02-01'),
-    endDate: new Date('2024-09-30'),
-    milestoneFrequency: "Monthly"
-  },
-  {
-    id: 17,
-    title: "AI-Powered Analytics Dashboard",
-    description: "Build intelligent analytics dashboard with machine learning insights",
-    type: "Activity",
-    progress: 60,
-    targetValue: 1,
-    currentValue: 0.6,
-    unit: "boolean",
-    status: "On Track",
-    owner: "Priya Patel",
-    dueDate: new Date('2024-07-31'),
-    hierarchy: "activity",
-    level: 1,
-    parent: 2,
-    tags: ["Product Innovation"],
-    startDate: new Date('2024-03-01'),
-    endDate: new Date('2024-07-31'),
-    milestoneFrequency: "Biweekly"
-  },
-  {
-    id: 18,
-    title: "User Interface Redesign",
-    description: "Complete overhaul of user interface for better usability",
-    type: "Activity", 
-    progress: 85,
-    targetValue: 1,
-    currentValue: 0.85,
-    unit: "boolean",
-    status: "On Track",
-    owner: "Carlos Santos",
-    dueDate: new Date('2024-06-15'),
-    hierarchy: "activity",
-    level: 1,
-    parent: 2,
-    tags: ["Product Innovation"],
-    startDate: new Date('2024-02-15'),
-    endDate: new Date('2024-06-15'),
-    milestoneFrequency: "Weekly"
-  },
-  {
-    id: 19,
-    title: "Mobile App Performance Optimization",
-    description: "Optimize mobile app for faster loading and better performance",
-    type: "Subactivity",
-    progress: 40,
-    targetValue: 2,
-    currentValue: 0.8,
-    unit: "number",
-    status: "Behind",
-    owner: "Rachel Green",
-    dueDate: new Date('2024-05-31'),
-    hierarchy: "subactivity",
-    level: 2,
-    parent: 18,
-    tags: ["Product Innovation"],
-    startDate: new Date('2024-03-01'),
-    endDate: new Date('2024-05-31'),
-    milestoneFrequency: "Weekly"
-  },
-  // Legacy data for other sections
-  {
-    id: 3,
     startDate: new Date('2024-01-01'),
     endDate: new Date('2024-12-31'),
     tag: "Revenue Growth"
@@ -1157,7 +944,7 @@ export default function MetricsPage() {
       
       switch (groupBy) {
         case "tag":
-          groupKey = okr.tags && okr.tags.length > 0 ? okr.tags[0] : "No Tag";
+          groupKey = okr.tag || "No Tag";
           break;
         case "type":
           groupKey = okr.type || "No Type";
@@ -2091,40 +1878,38 @@ export default function MetricsPage() {
                         </TableCell>
                         <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
                           <div className="flex items-center" style={{ paddingLeft: `${(okr.level || 0) * 24}px` }}>
-                            {/* Special hierarchical rendering for Revenue Growth */}
-                            {groupName === "Revenue Growth" && (
-                              <>
-                                {/* Connection lines and hierarchy indicators */}
-                                {okr.level > 0 && (
-                                  <div className="w-4 h-4 border-l-2 border-b-2 border-gray-300 mr-2"></div>
+                            {/* Expand/Collapse button for objectives and activities with children */}
+                            {(okr.hierarchy === 'objective' || okr.hierarchy === 'activity') && okr.nestedCount > 0 && (
+                              <button
+                                onClick={() => toggleExpansion(okr.id)}
+                                className="mr-2 p-1 hover:bg-gray-100 rounded"
+                              >
+                                {okr.isExpanded ? (
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="m6 9 6 6 6-6"/>
+                                  </svg>
+                                ) : (
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <path d="m9 18 6-6-6-6"/>
+                                  </svg>
                                 )}
-                                
-                                {/* Hierarchy type indicator with color coding */}
-                                <div className="flex items-center mr-3">
-                                  {okr.hierarchy === 'objective' && (
-                                    <div className="w-3 h-3 bg-indigo-500 rounded-full mr-2"></div>
-                                  )}
-                                  {okr.hierarchy === 'activity' && (
-                                    <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-                                  )}
-                                  {okr.hierarchy === 'subactivity' && (
-                                    <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                                  )}
-                                </div>
-                                
-                                {/* Variable text size based on hierarchy */}
-                                <span className={`font-medium ${okr.hierarchy === 'objective' ? 'text-lg' : okr.hierarchy === 'activity' ? 'text-base' : 'text-sm'}`}>
-                                  {okr.title}
-                                </span>
-                              </>
+                              </button>
                             )}
                             
-                            {/* Default flat rendering for other tags */}
-                            {groupName !== "Revenue Growth" && (
-                              <span className="font-medium">{okr.title}</span>
+                            <span className="font-medium">{okr.title}</span>
+                            
+                            {/* Nested count icon with count */}
+                            {okr.nestedCount > 0 && (
+                              <div className="flex items-center ml-2">
+                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-gray-400">
+                                  <circle cx="5" cy="5" r="3" stroke="currentColor" strokeWidth="1" fill="none"/>
+                                  <circle cx="11" cy="11" r="3" stroke="currentColor" strokeWidth="1" fill="none"/>
+                                  <line x1="7.5" y1="7.5" x2="8.5" y2="8.5" stroke="currentColor" strokeWidth="1"/>
+                                </svg>
+                                <span className="text-xs text-gray-500 ml-1">{okr.nestedCount}</span>
+                              </div>
                             )}
                             
-                            {/* Hamburger menu icon */}
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger asChild>
@@ -2182,10 +1967,11 @@ export default function MetricsPage() {
                               ? `$${(okr.targetValue / 1000000).toFixed(1)}M`
                               : okr.unit === 'percentage'
                               ? `${okr.targetValue}%`
-                              : okr.targetValue?.toString() || '-'
+                              : okr.targetValue.toString()
                             }
                           </div>
                         </TableCell>
+
                         <TableCell className="text-right p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -2203,29 +1989,23 @@ export default function MetricsPage() {
                                   <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
                                   <path d="m15 5 4 4"/>
                                 </svg>
-                                Edit OKR
+                                Edit
                               </DropdownMenuItem>
                               <DropdownMenuItem>
                                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                                  <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
-                                  <rect width="8" height="4" x="8" y="2" rx="1" ry="1"/>
+                                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                                  <circle cx="9" cy="7" r="4" />
+                                  <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
                                 </svg>
-                                Duplicate
-                              </DropdownMenuItem>
-                              <DropdownMenuItem className="text-red-600">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                                  <path d="M3 6h18"/>
-                                  <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
-                                  <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
-                                </svg>
-                                Delete
+                                Assign
                               </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
                         </TableCell>
                       </TableRow>
                     ))}
-                  </TableBody>
+                    </TableBody>
                   </Table>
                 </div>
               </div>
