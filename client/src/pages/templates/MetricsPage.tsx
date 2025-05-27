@@ -1080,7 +1080,10 @@ export default function MetricsPage() {
 
   // Handle form submission for creating new OKR template
   const handleCreateOKR = () => {
-    if (!formData.name.trim()) return;
+    if (!formData.name.trim()) {
+      alert("Please enter an OKR name");
+      return;
+    }
     
     const newOKR = {
       id: okrTemplates.length > 0 ? Math.max(...okrTemplates.map(o => o.id)) + 1 : 1,
