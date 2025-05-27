@@ -1,4 +1,4 @@
-import { useState, useRef, DragEvent } from 'react';
+import { useState, useRef, DragEvent, useEffect } from 'react';
 import { useParams, Link, useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronLeft } from 'lucide-react';
@@ -21,6 +21,7 @@ import {
 } from "@/components/ui/dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 
 // Partner data interface
@@ -729,62 +730,7 @@ export default function PartnerDetail() {
             
           {/* Tab Contents */}
           <TabsContent value="okr" className="mt-4">
-            <div className="space-y-6">
-              {mockOKRs.map((plan) => (
-                <Card key={plan.id} className="overflow-hidden">
-                  <CardContent className="p-0">
-                    <div className="bg-indigo-50 p-4 border-b">
-                      <h2 className="font-semibold text-lg">{plan.title}</h2>
-                    </div>
-                    
-                    <div className="p-4">
-                      <div className="space-y-6">
-                        {plan.objectives.map((objective) => (
-                          <div key={objective.id} className="border-b pb-4 last:border-0 last:pb-0">
-                            <div className="flex justify-between mb-2">
-                              <div>
-                                <h3 className="font-medium">{objective.title}</h3>
-                                <div className="flex items-center mt-1 text-sm text-gray-600">
-                                  <span className="mr-1">Owner:</span>
-                                  <OwnerAvatar owner={objective.owner} />
-                                  <span className="ml-2 mr-4">{objective.owner.name}</span>
-                                  
-                                  <span className="mr-1">Due:</span>
-                                  <span>{format(objective.dueDate, 'MMM dd, yyyy')}</span>
-                                </div>
-                              </div>
-                              
-                              <div className="text-right">
-                                <div className="mb-1">
-                                  <Badge variant={objective.type === 'financial' ? "default" : "outline"} className="capitalize">
-                                    {objective.type}
-                                  </Badge>
-                                </div>
-                                <div className="text-sm">
-                                  <span className="font-medium">{objective.realized}</span>
-                                  <span className="text-gray-500"> / {objective.target}</span>
-                                </div>
-                              </div>
-                            </div>
-                            
-                            <div className="mt-2">
-                              <ProgressBar 
-                                progress={objective.progress} 
-                                type={
-                                  objective.progress >= 80 ? "success" : 
-                                  objective.progress >= 50 ? "default" : 
-                                  objective.progress >= 25 ? "warning" : "danger"
-                                } 
-                              />
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
+            <OKRPlansSection partnerId={id} />
           </TabsContent>
             
           <TabsContent value="opportunities" className="mt-4">
@@ -1435,6 +1381,306 @@ export default function PartnerDetail() {
           </TabsContent>
         </Tabs>
       </div>
+    </div>
+  );
+}
+
+// OKR Plans Section Component
+function OKRPlansSection({ partnerId }: { partnerId: string }) {
+  const [selectedOKRs, setSelectedOKRs] = useState<number[]>([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  const [selectedMeasureUnit, setSelectedMeasureUnit] = useState("");
+  const [assignedOKRs, setAssignedOKRs] = useState<any[]>([]);
+
+  // Load assigned OKR templates for this partner from localStorage
+  useEffect(() => {
+    const loadAssignedOKRs = () => {
+      const storedAssignments = localStorage.getItem('partnerOKRAssignments');
+      if (storedAssignments) {
+        try {
+          const assignments = JSON.parse(storedAssignments);
+          const partnerAssignments = assignments[partnerId] || [];
+          
+          // Get the full template data
+          const storedTemplates = localStorage.getItem('okrTemplates');
+          if (storedTemplates) {
+            const templates = JSON.parse(storedTemplates);
+            const assignedTemplates = templates.filter((template: any) => 
+              partnerAssignments.includes(template.id)
+            );
+            setAssignedOKRs(assignedTemplates);
+          }
+        } catch (error) {
+          console.error('Error loading assigned OKRs:', error);
+          setAssignedOKRs([]);
+        }
+      } else {
+        setAssignedOKRs([]);
+      }
+    };
+
+    loadAssignedOKRs();
+
+    // Listen for storage changes
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'partnerOKRAssignments' || e.key === 'okrTemplates') {
+        loadAssignedOKRs();
+      }
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
+  }, [partnerId]);
+
+  // Filter OKRs based on search and filters
+  const filteredOKRs = assignedOKRs.filter(okr => {
+    const matchesSearch = searchTerm === "" || 
+      okr.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      okr.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    const matchesTags = selectedTags.length === 0 || 
+      selectedTags.includes(okr.tag);
+    
+    const matchesMeasureUnit = selectedMeasureUnit === "" || 
+      okr.unit === selectedMeasureUnit.toLowerCase();
+
+    return matchesSearch && matchesTags && matchesMeasureUnit;
+  });
+
+  // Get available tags from assigned OKRs
+  const availableTags = [...new Set(assignedOKRs.map(okr => okr.tag).filter(Boolean))];
+
+  // Clear all filters
+  const clearFilters = () => {
+    setSearchTerm("");
+    setSelectedTags([]);
+    setSelectedMeasureUnit("");
+  };
+
+  // Group OKRs by tag, same as Coming Soon tab
+  const groupedOKRs = filteredOKRs.reduce((groups: Record<string, any[]>, okr: any) => {
+    const tag = okr.tag || 'No Tag';
+    if (!groups[tag]) groups[tag] = [];
+    groups[tag].push(okr);
+    return groups;
+  }, {});
+
+  // Sort groups by tag name, with "No Tag" at the end
+  const sortedGroups = Object.entries(groupedOKRs).sort(([a], [b]) => {
+    if (a === 'No Tag') return 1;
+    if (b === 'No Tag') return -1;
+    return a.localeCompare(b);
+  });
+
+  return (
+    <div className="space-y-6">
+      {/* Filters Section */}
+      <div className="space-y-4">
+        <div className="flex flex-wrap gap-3">
+          {/* Search */}
+          <div className="relative min-w-[250px]">
+            <input
+              type="text"
+              placeholder="Search OKR templates..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center">
+              <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clipRule="evenodd" />
+              </svg>
+            </div>
+          </div>
+
+          {/* Tag Filter */}
+          {availableTags.length > 0 && (
+            <Select value={selectedTags[0] || ""} onValueChange={(value) => setSelectedTags(value ? [value] : [])}>
+              <SelectTrigger className="w-[150px]">
+                <SelectValue placeholder="Filter by tag" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">All Tags</SelectItem>
+                {availableTags.map(tag => (
+                  <SelectItem key={tag} value={tag}>{tag}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          )}
+
+          {/* Measure Unit Filter */}
+          <Select value={selectedMeasureUnit} onValueChange={setSelectedMeasureUnit}>
+            <SelectTrigger className="w-[150px]">
+              <SelectValue placeholder="Measure unit" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">All Units</SelectItem>
+              <SelectItem value="number">Number</SelectItem>
+              <SelectItem value="currency">Currency</SelectItem>
+              <SelectItem value="percent">Percent</SelectItem>
+              <SelectItem value="checkbox">Checkbox</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Clear Filters */}
+          {(searchTerm || selectedTags.length > 0 || selectedMeasureUnit) && (
+            <Button variant="outline" onClick={clearFilters} className="flex items-center gap-2">
+              <svg className="h-4 w-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.28 7.22a.75.75 0 00-1.06 1.06L8.94 10l-1.72 1.72a.75.75 0 101.06 1.06L10 11.06l1.72 1.72a.75.75 0 101.06-1.06L11.06 10l1.72-1.72a.75.75 0 00-1.06-1.06L10 8.94 8.28 7.22z" clipRule="evenodd" />
+              </svg>
+              Clear Filters
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Selection Actions */}
+      {selectedOKRs.length > 0 && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex justify-between items-center">
+          <div className="flex items-center">
+            <span className="text-blue-700 font-medium mr-2">{selectedOKRs.length} OKR{selectedOKRs.length !== 1 ? 's' : ''} selected</span>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="text-gray-500 hover:text-gray-700 p-1 h-auto"
+              onClick={() => setSelectedOKRs([])}
+            >
+              Clear selection
+            </Button>
+          </div>
+          <div className="flex gap-2">
+            <Button variant="ghost" size="sm" className="text-blue-700">
+              Update Progress
+            </Button>
+            <Button variant="ghost" size="sm" className="text-blue-700">
+              Export
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* OKR Tables Grouped by Tag */}
+      {assignedOKRs.length === 0 ? (
+        <div className="text-center py-12 bg-gray-50 rounded-lg border-2 border-dashed border-gray-300">
+          <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="mx-auto text-gray-400 mb-4">
+            <path d="M9 12l2 2 4-4"></path>
+            <path d="M21 12c-1 0-3-1-3-3s2-3 3-3 3 1 3 3-2 3-3 3"></path>
+            <path d="M3 12c1 0 3-1 3-3s-2-3-3-3-3 1-3 3 2 3 3 3"></path>
+            <path d="M10.5 2.25V6a1.5 1.5 0 001.5 1.5h3.75"></path>
+          </svg>
+          <p className="text-lg font-medium mb-1 text-gray-900">No OKR Templates Assigned</p>
+          <p className="text-sm text-gray-500">This partner doesn't have any OKR templates assigned yet. Assign templates from the Partners page to track objectives and key results.</p>
+        </div>
+      ) : filteredOKRs.length === 0 ? (
+        <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
+          <p className="text-gray-500">No OKRs match your current filters.</p>
+          <Button variant="outline" onClick={clearFilters} className="mt-2">Clear Filters</Button>
+        </div>
+      ) : (
+        <div className="space-y-8">
+          {sortedGroups.map(([tag, okrs]) => (
+            <div key={tag} className="space-y-4">
+              {/* Tag Header */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Badge variant="secondary" className="px-3 py-1 text-sm font-medium">
+                    {tag} ({okrs.length})
+                  </Badge>
+                </div>
+              </div>
+
+              {/* OKR Table */}
+              <div className="bg-white rounded-lg border shadow-sm overflow-hidden">
+                <Table>
+                  <TableHeader className="bg-gray-50">
+                    <TableRow>
+                      <TableHead className="w-[40px] text-center">
+                        <Checkbox
+                          checked={okrs.every(okr => selectedOKRs.includes(okr.id)) && okrs.length > 0}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedOKRs(prev => [...new Set([...prev, ...okrs.map(okr => okr.id)])]);
+                            } else {
+                              setSelectedOKRs(prev => prev.filter(id => !okrs.some(okr => okr.id === id)));
+                            }
+                          }}
+                        />
+                      </TableHead>
+                      <TableHead>Title</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Target</TableHead>
+                      <TableHead>Progress</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Due Date</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {okrs.map((okr) => (
+                      <TableRow key={okr.id} className="hover:bg-gray-50">
+                        <TableCell className="text-center">
+                          <Checkbox
+                            checked={selectedOKRs.includes(okr.id)}
+                            onCheckedChange={() => {
+                              setSelectedOKRs(prev => 
+                                prev.includes(okr.id) ? prev.filter(id => id !== okr.id) : [...prev, okr.id]
+                              );
+                            }}
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <div className="font-medium text-gray-900">{okr.title}</div>
+                          {okr.description && (
+                            <div className="text-sm text-gray-500 mt-1">{okr.description}</div>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="outline" className="capitalize">{okr.type}</Badge>
+                        </TableCell>
+                        <TableCell>
+                          {okr.targetValue && okr.unit && (
+                            <span className="font-medium">
+                              {okr.targetValue}{
+                                okr.unit === 'Number' ? '#' :
+                                okr.unit === 'Currency' ? '€' :
+                                okr.unit === 'Percent' ? '%' :
+                                okr.unit === 'Checkbox' ? ' complete' : ''
+                              }{okr.frequency ? ` ${okr.frequency.toLowerCase()}` : ''}
+                            </span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center gap-2">
+                            <div className="w-20 bg-gray-200 rounded-full h-2">
+                              <div 
+                                className="bg-blue-600 h-2 rounded-full" 
+                                style={{width: '0%'}}
+                              ></div>
+                            </div>
+                            <span className="text-sm text-gray-600">0%</span>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <Badge variant="secondary">Not Started</Badge>
+                        </TableCell>
+                        <TableCell>
+                          {okr.endDate ? (
+                            <span className="text-sm text-gray-600">
+                              {new Date(okr.endDate).toLocaleDateString()}
+                            </span>
+                          ) : (
+                            <span className="text-sm text-gray-400">No due date</span>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
