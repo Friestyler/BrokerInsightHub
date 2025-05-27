@@ -1903,11 +1903,36 @@ export default function MetricsPage() {
                         {/* Name Column */}
                         <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
                           <div className="flex items-center w-full">
-                            {/* Expand/collapse for items with children - only show when needed */}
+                            {/* Title with typography hierarchy - flush left, no indentation */}
+                            <div className="flex-1">
+                              <span className={`${
+                                okr.hierarchy === 'objective' 
+                                  ? 'font-semibold text-gray-900 text-sm' 
+                                  : okr.hierarchy === 'activity'
+                                  ? 'font-medium text-gray-800 text-sm'
+                                  : 'font-normal text-gray-700 text-sm'
+                              }`}>
+                                {okr.title}
+                              </span>
+                            </div>
+                            
+                            {/* Nested count icon with count */}
+                            {okr.nestedCount > 0 && (
+                              <div className="flex items-center ml-2">
+                                <div 
+                                  className="flex items-center justify-center w-4 h-4 bg-gray-100 rounded text-xs font-medium text-gray-600"
+                                  style={{ minWidth: '16px' }}
+                                >
+                                  {okr.nestedCount}
+                                </div>
+                              </div>
+                            )}
+                            
+                            {/* Expand/collapse arrows - positioned on the right next to hamburger */}
                             {okr.nestedCount > 0 && (
                               <button
                                 onClick={() => toggleExpansion(okr.id)}
-                                className="p-1 hover:bg-gray-100 rounded flex-shrink-0 mr-3"
+                                className="p-1 hover:bg-gray-100 rounded flex-shrink-0 ml-1"
                               >
                                 {okr.isExpanded ? (
                                   <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
@@ -1921,33 +1946,7 @@ export default function MetricsPage() {
                               </button>
                             )}
                             
-                            <div className="flex flex-col gap-1 flex-1">
-                              {/* Title with typography hierarchy */}
-                              <span className={`${
-                                okr.hierarchy === 'objective' 
-                                  ? 'font-semibold text-gray-900 text-sm' 
-                                  : okr.hierarchy === 'activity'
-                                  ? 'font-medium text-gray-800 text-sm'
-                                  : 'font-normal text-gray-700 text-sm'
-                              }`}>
-                                {okr.title}
-                              </span>
-                              
-
-                            </div>
-                            
-                            {/* Nested count icon with count */}
-                            {okr.nestedCount > 0 && (
-                              <div className="flex items-center ml-2">
-                                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="text-gray-400">
-                                  <circle cx="5" cy="5" r="3" stroke="currentColor" strokeWidth="1" fill="none"/>
-                                  <circle cx="11" cy="11" r="3" stroke="currentColor" strokeWidth="1" fill="none"/>
-                                  <line x1="7.5" y1="7.5" x2="8.5" y2="8.5" stroke="currentColor" strokeWidth="1"/>
-                                </svg>
-                                <span className="text-xs text-gray-500 ml-1">{okr.nestedCount}</span>
-                              </div>
-                            )}
-                            
+                            {/* Hamburger menu icon */}
                             <TooltipProvider>
                               <Tooltip>
                                 <TooltipTrigger asChild>
