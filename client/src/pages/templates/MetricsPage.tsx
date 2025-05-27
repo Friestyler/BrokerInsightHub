@@ -2260,8 +2260,11 @@ export default function MetricsPage() {
                         <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
                           <span className="text-sm">
                             {(() => {
-                              const formatDate = (date: Date) => {
-                                return date.toLocaleDateString('en-US', { 
+                              const formatDate = (date: any) => {
+                                if (!date) return '';
+                                const dateObj = date instanceof Date ? date : new Date(date);
+                                if (isNaN(dateObj.getTime())) return '';
+                                return dateObj.toLocaleDateString('en-US', { 
                                   month: 'short', 
                                   day: 'numeric', 
                                   year: 'numeric' 
@@ -2269,11 +2272,15 @@ export default function MetricsPage() {
                               };
                               
                               if (okr.startDate && okr.endDate) {
-                                return `${formatDate(okr.startDate)} - ${formatDate(okr.endDate)}`;
+                                const start = formatDate(okr.startDate);
+                                const end = formatDate(okr.endDate);
+                                return start && end ? `${start} - ${end}` : 'Date range';
                               } else if (okr.startDate) {
-                                return `From ${formatDate(okr.startDate)}`;
+                                const start = formatDate(okr.startDate);
+                                return start ? `From ${start}` : 'Start date';
                               } else if (okr.endDate) {
-                                return `Until ${formatDate(okr.endDate)}`;
+                                const end = formatDate(okr.endDate);
+                                return end ? `Until ${end}` : 'End date';
                               }
                               return 'Ongoing';
                             })()}
