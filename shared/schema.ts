@@ -113,6 +113,18 @@ export const customerPartners = pgTable("customer_partners", {
   partnerId: integer("partner_id").notNull().references(() => clients.id),
 });
 
+// Products catalog for De Goudse environment
+export const productCatalog = pgTable("product_catalog", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description").notNull().default(""),
+  category: text("category").notNull(),
+  colorCode: text("color_code").notNull().default("#3B82F6"),
+  aiContext: text("ai_context").notNull().default(""),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Define relationships
 export const opportunitiesRelations = relations(opportunities, ({ one }) => ({
   client: one(clients, {
@@ -229,6 +241,14 @@ export const insertCustomerPartnerSchema = createInsertSchema(customerPartners).
   partnerId: true,
 });
 
+export const insertProductCatalogSchema = createInsertSchema(productCatalog).pick({
+  name: true,
+  description: true,
+  category: true,
+  colorCode: true,
+  aiContext: true,
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -262,6 +282,9 @@ export type CustomerTeamMember = typeof customerTeamMembers.$inferSelect;
 
 export type InsertCustomerPartner = z.infer<typeof insertCustomerPartnerSchema>;
 export type CustomerPartner = typeof customerPartners.$inferSelect;
+
+export type InsertProduct = z.infer<typeof insertProductSchema>;
+export type Product = typeof products.$inferSelect;
 
 // Vendor model
 export const vendors = pgTable("vendors", {
