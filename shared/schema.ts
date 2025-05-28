@@ -55,7 +55,7 @@ export const opportunities = pgTable("opportunities", {
   stage: text("stage").notNull().default("discovery"), // discovery, proposal, negotiation, closed
   type: text("type").notNull().default("new_business"), // new_business, cross_sell, upsell, renewal
   probability: integer("probability").notNull(),
-  estimatedValue: integer("estimated_value").notNull(),
+  value: integer("value").notNull(),
   ownerId: integer("owner_id").references(() => users.id),
   partnerId: integer("partner_id").references(() => customers.id),
   description: text("description"),
@@ -187,7 +187,7 @@ export const insertOpportunitySchema = createInsertSchema(opportunities).pick({
   stage: true,
   type: true,
   probability: true,
-  estimatedValue: true,
+  value: true,
   ownerId: true,
   partnerId: true,
   description: true,

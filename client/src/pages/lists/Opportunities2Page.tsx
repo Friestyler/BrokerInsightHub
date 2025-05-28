@@ -68,11 +68,11 @@ function calculateOpportunityStats(opportunities: Opportunity[]) {
   const totalOpportunities = opportunities.length;
   
   // Calculate total value of all opportunities
-  const totalValueOpportunities = opportunities.reduce((sum, opp) => sum + (opp.estimatedValue || 0), 0);
+  const totalValueOpportunities = opportunities.reduce((sum, opp) => sum + (opp.value || 0), 0);
   
   // Calculate weighted value using probability
   const weightedValueOpportunities = opportunities.reduce((sum, opp) => {
-    const value = opp.estimatedValue || 0;
+    const value = opp.value || 0;
     const probability = opp.probability || 0;
     return sum + (value * (probability / 100));
   }, 0);
@@ -1363,7 +1363,7 @@ function OpportunitiesTable() {
                     {opportunity.status || 'Active'}
                   </Badge>
                 </td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">€{opportunity.estimatedValue?.toLocaleString() || '0'}</td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">€{opportunity.value?.toLocaleString() || '0'}</td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
                   <TemplateBadges type={opportunity.type} status={opportunity.status} />
                 </td>
