@@ -78,7 +78,6 @@ export default function CustomersPageClean() {
   const [isEditingList, setIsEditingList] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCustomers, setSelectedCustomers] = useState<number[]>([]);
-  const [isFilterExpanded, setIsFilterExpanded] = useState(false);
   const [activeFilters, setActiveFilters] = useState({
     industry: [] as string[],
     size: [] as string[],
@@ -92,7 +91,7 @@ export default function CustomersPageClean() {
   
   // Data fetching
   const { data: customers = [], isLoading, error } = useCustomersData();
-  
+
   // Filter and search logic
   const filteredCustomers = customers.filter((customer: any) => {
     const matchesSearch = customer.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -116,7 +115,7 @@ export default function CustomersPageClean() {
     if (selectedCustomers.length === filteredCustomers.length) {
       setSelectedCustomers([]);
     } else {
-      setSelectedCustomers(filteredCustomers.map(c => c.id));
+      setSelectedCustomers(filteredCustomers.map((c: any) => c.id));
     }
   };
 
@@ -139,205 +138,192 @@ export default function CustomersPageClean() {
   return (
     <ListEditingContext.Provider value={{ isEditingList, setIsEditingList }}>
       <div className="p-6 space-y-6">
+        {/* Header */}
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold">Customers</h1>
-            <p className="text-muted-foreground">
-              Manage your customer relationships and track opportunities
-            </p>
-          </div>
-          
-          <div className="flex items-center space-x-2">
-            <Button variant="outline" onClick={() => setIsFilterExpanded(!isFilterExpanded)}>
-              Filter
-            </Button>
-            <Button onClick={() => setIsNewListDialogOpen(true)}>
-              Save as List
-            </Button>
-          </div>
+          <h1 className="text-3xl font-bold">Customers</h1>
+          <Button className="bg-blue-600 hover:bg-blue-700">
+            + Create new customer
+          </Button>
         </div>
 
-        {/* Search and Filters */}
-        <div className="space-y-4">
-          <Input
-            placeholder="Search customers..."
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="max-w-md"
-          />
-          
-          {isFilterExpanded && (
-            <Card>
-              <CardContent className="p-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div>
-                    <Label className="text-sm font-medium">Industry</Label>
-                    <div className="space-y-2 mt-2">
-                      {['Insurance', 'Technology', 'Healthcare', 'Finance'].map((industry) => (
-                        <div key={industry} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`industry-${industry}`}
-                            checked={activeFilters.industry.includes(industry)}
-                            onCheckedChange={(checked) => {
-                              setActiveFilters(prev => ({
-                                ...prev,
-                                industry: checked
-                                  ? [...prev.industry, industry]
-                                  : prev.industry.filter(i => i !== industry)
-                              }));
-                            }}
-                          />
-                          <Label htmlFor={`industry-${industry}`} className="text-sm">
-                            {industry}
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <Label className="text-sm font-medium">Size</Label>
-                    <div className="space-y-2 mt-2">
-                      {['small', 'medium', 'large', 'enterprise'].map((size) => (
-                        <div key={size} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`size-${size}`}
-                            checked={activeFilters.size.includes(size)}
-                            onCheckedChange={(checked) => {
-                              setActiveFilters(prev => ({
-                                ...prev,
-                                size: checked
-                                  ? [...prev.size, size]
-                                  : prev.size.filter(s => s !== size)
-                              }));
-                            }}
-                          />
-                          <Label htmlFor={`size-${size}`} className="text-sm">
-                            {size}
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                  
-                  <div>
-                    <Label className="text-sm font-medium">Status</Label>
-                    <div className="space-y-2 mt-2">
-                      {['active', 'inactive', 'pending'].map((status) => (
-                        <div key={status} className="flex items-center space-x-2">
-                          <Checkbox
-                            id={`status-${status}`}
-                            checked={activeFilters.status.includes(status)}
-                            onCheckedChange={(checked) => {
-                              setActiveFilters(prev => ({
-                                ...prev,
-                                status: checked
-                                  ? [...prev.status, status]
-                                  : prev.status.filter(s => s !== status)
-                              }));
-                            }}
-                          />
-                          <Label htmlFor={`status-${status}`} className="text-sm">
-                            {status}
-                          </Label>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-        </div>
-
-        {/* Selection Controls */}
-        {selectedCustomers.length > 0 && (
-          <div className="flex items-center justify-between bg-blue-50 p-4 rounded-lg">
-            <span className="text-sm text-blue-700">
-              {selectedCustomers.length} customer{selectedCustomers.length !== 1 ? 's' : ''} selected
-            </span>
+        {/* Lists and Controls */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
             <div className="flex items-center space-x-2">
-              <Button variant="outline" size="sm" onClick={() => setSelectedCustomers([])}>
-                Clear Selection
-              </Button>
-              <Button size="sm" onClick={() => setIsNewListDialogOpen(true)}>
-                Save Selected as List
-              </Button>
+              <span className="text-sm font-medium">Lists</span>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="outline" size="sm">
+                    📋 All Customers
+                    <span className="ml-2">▼</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent>
+                  <DropdownMenuItem>All Customers</DropdownMenuItem>
+                  <DropdownMenuItem>Active Customers</DropdownMenuItem>
+                  <DropdownMenuItem>Recent Customers</DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
           </div>
-        )}
+          
+          <Button variant="outline" size="sm">
+            📤 Export
+          </Button>
+        </div>
 
-        {/* Customers Grid */}
-        <div className="space-y-4">
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              checked={selectedCustomers.length === filteredCustomers.length && filteredCustomers.length > 0}
-              onCheckedChange={handleSelectAll}
+        {/* Search and Filter Row */}
+        <div className="flex items-center space-x-4">
+          <div className="relative flex-1 max-w-md">
+            <Input
+              placeholder="Search by name, industry..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="pr-10"
             />
-            <Label className="text-sm">Select All ({filteredCustomers.length})</Label>
+            <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">🔍</span>
           </div>
           
-          <div className="grid gap-4">
-            {filteredCustomers.map((customer) => (
-              <Card key={customer.id} className="hover:shadow-md transition-shadow">
-                <CardContent className="p-6">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center space-x-4">
-                      <Checkbox
-                        checked={selectedCustomers.includes(customer.id)}
-                        onCheckedChange={() => handleCustomerSelect(customer.id)}
-                      />
-                      <Avatar className="h-12 w-12">
-                        <AvatarFallback className="bg-blue-100 text-blue-600 font-semibold">
-                          {customer.initials || customer.name.charAt(0)}
-                        </AvatarFallback>
-                      </Avatar>
-                      <div>
-                        <h3 className="font-semibold text-lg">{customer.name}</h3>
-                        <p className="text-sm text-muted-foreground">
-                          {customer.description}
-                        </p>
-                        <div className="flex items-center space-x-2 mt-1">
-                          <Badge variant="outline" className="text-xs">
-                            {customer.industry}
-                          </Badge>
-                          <Badge variant="outline" className="text-xs">
-                            {customer.size}
-                          </Badge>
-                          <Badge variant="outline" className="text-xs">
-                            {customer.type}
-                          </Badge>
-                        </div>
-                      </div>
-                    </div>
-                    
-                    <div className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="sm">
-                            Actions
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent>
-                          <DropdownMenuItem>
-                            View Details
-                          </DropdownMenuItem>
-                          <DropdownMenuItem>
-                            Edit Customer
-                          </DropdownMenuItem>
-                          <DropdownMenuSeparator />
-                          <DropdownMenuItem className="text-red-600">
-                            Remove
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                📌 Select a view
+                <span className="ml-2">▼</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem>Standard View</DropdownMenuItem>
+              <DropdownMenuItem>Compact View</DropdownMenuItem>
+              <DropdownMenuItem>Detailed View</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                🔽 Status
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem>Active</DropdownMenuItem>
+              <DropdownMenuItem>Inactive</DropdownMenuItem>
+              <DropdownMenuItem>Pending</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                🔽 Industry
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem>Insurance</DropdownMenuItem>
+              <DropdownMenuItem>Technology</DropdownMenuItem>
+              <DropdownMenuItem>Healthcare</DropdownMenuItem>
+              <DropdownMenuItem>Finance</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" size="sm">
+                🔽 Type
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent>
+              <DropdownMenuItem>Customer</DropdownMenuItem>
+              <DropdownMenuItem>Prospect</DropdownMenuItem>
+              <DropdownMenuItem>Lead</DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
+
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-4 gap-6">
+          <Card>
+            <CardContent className="p-6 text-center">
+              <div className="text-3xl font-bold">{filteredCustomers.length}</div>
+              <div className="text-sm text-muted-foreground">Total Customers</div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-6 text-center">
+              <div className="text-3xl font-bold">0</div>
+              <div className="text-sm text-muted-foreground">Active Customers</div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-6 text-center">
+              <div className="text-3xl font-bold">NaN</div>
+              <div className="text-sm text-muted-foreground">Total Partners</div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardContent className="p-6 text-center">
+              <div className="text-3xl font-bold">NaN</div>
+              <div className="text-sm text-muted-foreground">Total Opportunities</div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Table */}
+        <Card>
+          <CardContent className="p-0">
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="border-b bg-gray-50">
+                  <tr>
+                    <th className="text-left p-4 font-medium text-gray-600">
+                      <Checkbox
+                        checked={selectedCustomers.length === filteredCustomers.length && filteredCustomers.length > 0}
+                        onCheckedChange={handleSelectAll}
+                      />
+                    </th>
+                    <th className="text-left p-4 font-medium text-gray-600">Customer ↕</th>
+                    <th className="text-left p-4 font-medium text-gray-600">Industry ↕</th>
+                    <th className="text-left p-4 font-medium text-gray-600">Type ↕</th>
+                    <th className="text-left p-4 font-medium text-gray-600">Size ↕</th>
+                    <th className="text-left p-4 font-medium text-gray-600">Status ↕</th>
+                    <th className="text-left p-4 font-medium text-gray-600">Partners ↕</th>
+                    <th className="text-left p-4 font-medium text-gray-600">Opportunities</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredCustomers.map((customer: any) => (
+                    <tr key={customer.id} className="border-b hover:bg-gray-50">
+                      <td className="p-4">
+                        <Checkbox
+                          checked={selectedCustomers.includes(customer.id)}
+                          onCheckedChange={() => handleCustomerSelect(customer.id)}
+                        />
+                      </td>
+                      <td className="p-4">
+                        <div className="flex items-center space-x-3">
+                          <Avatar className="h-8 w-8">
+                            <AvatarFallback className="bg-blue-100 text-blue-600 text-sm font-semibold">
+                              {customer.initials || customer.name.charAt(0)}
+                            </AvatarFallback>
+                          </Avatar>
+                          <span className="font-medium">{customer.name}</span>
+                        </div>
+                      </td>
+                      <td className="p-4 text-gray-600">{customer.industry || 'Insurance'}</td>
+                      <td className="p-4 text-gray-600">{customer.type || 'Customer'}</td>
+                      <td className="p-4 text-gray-600">{customer.size || 'Medium'}</td>
+                      <td className="p-4 text-gray-600">{customer.status || 'Active'}</td>
+                      <td className="p-4 text-gray-600">-</td>
+                      <td className="p-4 text-gray-600">-</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* New List Dialog */}
         <Dialog open={isNewListDialogOpen} onOpenChange={setIsNewListDialogOpen}>
