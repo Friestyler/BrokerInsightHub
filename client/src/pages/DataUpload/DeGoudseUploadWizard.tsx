@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Upload, FileSpreadsheet, CheckCircle, AlertCircle, Settings, Save } from "lucide-react";
+import { Upload, FileSpreadsheet, CheckCircle, AlertCircle, Settings, Save, Target, Users, User, Package, X } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import * as XLSX from 'xlsx';
 
@@ -21,7 +21,7 @@ interface UploadedFile {
 
 interface ColumnMapping {
   columnName: string;
-  mappingType: 'attribute' | 'relationship' | 'skip';
+  mappingType: 'attribute' | 'relationship' | 'contact' | 'product' | 'skip';
   targetField?: string;
   entityType?: 'customer' | 'partner' | 'opportunity';
   isRequired?: boolean;
@@ -46,6 +46,22 @@ const ENTITY_RELATIONSHIP_FIELDS = [
   { value: 'partner_email', label: 'Partner Email', entityType: 'partner' },
   { value: 'customer_phone', label: 'Customer Phone', entityType: 'customer' },
   { value: 'partner_phone', label: 'Partner Phone', entityType: 'partner' }
+];
+
+const CONTACT_FIELDS = [
+  'name', 'email', 'phone', 'company', 'position', 'notes'
+];
+
+const PRODUCT_FIELDS = [
+  'name', 'category', 'description', 'price', 'sku'
+];
+
+const MAPPING_OPTIONS = [
+  { value: "opportunity_attribute", label: "Opportunity Attribute", icon: Target },
+  { value: "entity_relationship", label: "Entity Relationship", icon: Users },
+  { value: "contact", label: "Contact", icon: User },
+  { value: "product", label: "Product", icon: Package },
+  { value: "skip", label: "Skip Column", icon: X }
 ];
 
 export default function DeGoudseUploadWizard() {
