@@ -591,6 +591,11 @@ export class DatabaseStorage implements IStorage {
     return null;
   }
   
+  // Environment switching method for complete data isolation
+  switchEnvironment(envId: string): DatabaseStorage {
+    return new DatabaseStorage(envId);
+  }
+  
   // User operations
   async getUser(id: number): Promise<User | undefined> {
     const result = await this.getDb().select().from(users).where(eq(users.id, id));
