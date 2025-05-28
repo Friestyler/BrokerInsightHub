@@ -774,27 +774,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Partners API - Working solution
-  app.get('/api/partners', async (req, res) => {
-    try {
-      const partners = [
-        {
-          id: 1,
-          name: "Sample Customer",
-          description: "Demo customer record for UI testing",
-          initials: "SC",
-          industry: "Insurance",
-          type: "Customer",
-          size: "medium"
-        }
-      ];
-      
-      res.json(partners);
-    } catch (error) {
-      console.error('Error fetching partners:', error);
-      res.json([]);
-    }
-  });
+
 
   // Customers API - Clean version with one dummy record
   app.get('/api/customers', async (req, res) => {
