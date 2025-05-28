@@ -1,0 +1,93 @@
+Here is a **structured Replit prompt** you can use to clearly brief your development environment or collaborators. It rebuilds the foundation while keeping your existing pages and functionality intact:
+
+---
+
+**Prompt: Rebuild and Streamline Core Data Architecture (Replit)**
+
+We are rebuilding the data foundation of our prototype while **preserving all existing front-end pages and functional UI components**. This is strictly a **data layer and routing rework**. Below are the requirements and constraints that must be followed precisely:
+
+### ✅ Scope
+
+* **DO NOT delete or modify** any existing pages or page-specific functionalities (especially partner detail pages, OKR modules, etc.)
+* The focus is on **fixing database structure, routing, and entity relationships**.
+* One **dummy record per entity type** is allowed to preserve page logic and UI rendering.
+* All **real data must be created through:**
+
+  1. The **data upload wizard**
+  2. **Manual creation via UI**
+
+---
+
+### 🔧 Core Entities
+
+The system consists of the following entities:
+
+* `Customers`
+* `Partners`
+* `Opportunities`
+* `Products`
+* `Contacts`
+* `Users`
+
+Each entity:
+
+* Has **attributes** (flat fields like name, email, etc.)
+* Can have **relationships** to other entities (e.g., Opportunities → Partner, Opportunity → Customer)
+
+---
+
+### 🧩 Data Upload Wizard Logic
+
+The wizard should:
+
+1. Allow uploading of Excel files.
+2. For each file:
+
+   * A new `Saved List` item is created under Opportunities, named after the file.
+   * Each row = one Opportunity.
+3. For each column in the upload:
+
+   * The user **maps** the column as either:
+
+     * An **attribute** of the Opportunity
+     * A **relationship** to an existing or new entity (Customer, Partner, etc.)
+     * The system should **create** those entities if they don’t exist, and link them if they do.
+4. After mapping, the **correct data** must be written to the **central, unified database**, not to a temporary or isolated data store.
+
+---
+
+### 📂 Data Structure & Visibility
+
+Each entity has:
+
+* Its **own list view** (e.g., `/partners`, `/customers`, `/opportunities`, etc.)
+* Each list shows:
+
+  * The entity's attributes
+  * Any linked entities (e.g., a Partner list shows linked Opportunities)
+  * Clicking a linked item navigates to its **detail page**.
+
+Detail pages (especially for `Partner`) already contain embedded features (e.g., OKRs, customer tabs, etc.) — **these must stay untouched**.
+
+---
+
+### 🔁 Routing & Navigation
+
+* All entity list pages must include clickable links to related entities.
+* All detail pages must route correctly and show full relationship context.
+* Example: From the Partner list → click a Partner → see linked Opportunities → click an Opportunity → go to its detail page.
+
+---
+
+### 🧪 Dummy Data
+
+* Include **one dummy record** per entity type to retain UI rendering and test logic during rebuild.
+* All other data should come from the wizard or manual entry only.
+
+---
+
+**End goal**: A clean, unified, production-ready data structure that supports seamless navigation, correct entity relationships, and consistent data loading via the wizard and UI.
+
+---
+
+Let me know if you want this in a downloadable format (Markdown or PDF).
