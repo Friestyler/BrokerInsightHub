@@ -150,9 +150,9 @@ export default function OKRsPage() {
   const [selectedOKRs, setSelectedOKRs] = useState<number[]>([]);
   const [expandedItems, setExpandedItems] = useState<number[]>([]);
   const [isCreateOKROpen, setIsCreateOKROpen] = useState(false);
-  const [selectedMeasureUnit, setSelectedMeasureUnit] = useState("");
-  const [selectedTargetRange, setSelectedTargetRange] = useState("");
-  const [selectedTimeframe, setSelectedTimeframe] = useState("");
+  const [selectedMeasureUnit, setSelectedMeasureUnit] = useState("all-units");
+  const [selectedTargetRange, setSelectedTargetRange] = useState("all-ranges");
+  const [selectedTimeframe, setSelectedTimeframe] = useState("all-frequencies");
   const [advancedTimeframe, setAdvancedTimeframe] = useState("");
   const [showNoTarget, setShowNoTarget] = useState(false);
   const [groupBy, setGroupBy] = useState("tag");
@@ -197,12 +197,12 @@ export default function OKRsPage() {
     const matchesTags = selectedTags.length === 0 || 
       selectedTags.includes(okr.tag || "");
       
-    const matchesMeasureUnit = selectedMeasureUnit === "" || okr.unit === selectedMeasureUnit;
-    const matchesTimeframe = selectedTimeframe === "" || okr.frequency === selectedTimeframe;
+    const matchesMeasureUnit = selectedMeasureUnit === "all-units" || okr.unit === selectedMeasureUnit;
+    const matchesTimeframe = selectedTimeframe === "all-frequencies" || okr.frequency === selectedTimeframe;
     
     // Target range filtering
     let matchesTargetRange = true;
-    if (selectedTargetRange && okr.targetValue !== undefined) {
+    if (selectedTargetRange && selectedTargetRange !== "all-ranges" && okr.targetValue !== undefined) {
       switch (selectedTargetRange) {
         case "0-100":
           matchesTargetRange = okr.targetValue >= 0 && okr.targetValue <= 100;
@@ -662,7 +662,7 @@ export default function OKRsPage() {
               <SelectValue placeholder="Measure Unit" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Units</SelectItem>
+              <SelectItem value="all-units">All Units</SelectItem>
               {measureUnits.map(unit => (
                 <SelectItem key={unit} value={unit}>{unit}</SelectItem>
               ))}
@@ -674,7 +674,7 @@ export default function OKRsPage() {
               <SelectValue placeholder="Target Range" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Ranges</SelectItem>
+              <SelectItem value="all-ranges">All Ranges</SelectItem>
               <SelectItem value="0-100">0 - 100</SelectItem>
               <SelectItem value="100-1000">100 - 1,000</SelectItem>
               <SelectItem value="1000+">1,000+</SelectItem>
@@ -686,7 +686,7 @@ export default function OKRsPage() {
               <SelectValue placeholder="Frequency" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Frequencies</SelectItem>
+              <SelectItem value="all-frequencies">All Frequencies</SelectItem>
               {frequencyOptions.map(freq => (
                 <SelectItem key={freq} value={freq}>{freq}</SelectItem>
               ))}
