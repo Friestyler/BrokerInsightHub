@@ -144,6 +144,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Opportunities API endpoint - fetch opportunities with calculated statistics
+  app.get('/api/opportunities', async (req, res) => {
+    try {
+      console.log('Opportunities API called');
+      const { db } = await import('./db');
+      const { opportunities } = await import('../shared/schema');
+      
+      const opportunityRecords = await db.select().from(opportunities);
+      console.log('Opportunities fetched from DB:', opportunityRecords.length);
+      
+      res.setHeader('Content-Type', 'application/json');
+      return res.json(opportunityRecords);
+    } catch (error) {
+      console.error('Error fetching opportunities:', error);
+      res.status(500).json({ message: 'Failed to fetch opportunities' });
+    }
+  });
+
   // Helper functions to extract partner info from existing data
   function getIndustryFromDescription(description: string): string {
     if (!description) return 'Other';

@@ -736,353 +736,7 @@ export default function PartnerDetail() {
           </TabsContent>
             
           <TabsContent value="opportunities" className="mt-4">
-            <div>
-
-              
-              <div className="flex justify-between items-center mb-4">
-                <Button variant="outline" size="sm" className="flex items-center gap-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-                  </svg>
-                  <span>Saved Lists</span>
-                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="6 9 12 15 18 9"></polyline>
-                  </svg>
-                </Button>
-                
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" className="text-sm">
-                    <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M21 15V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
-                      <polyline points="17 8 21 12 17 16"></polyline>
-                      <line x1="21" y1="12" x2="9" y2="12"></line>
-                    </svg>
-                    Export
-                  </Button>
-                  
-                  <Button size="sm" className="text-sm bg-indigo-600 hover:bg-indigo-700">
-                    <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <line x1="12" y1="5" x2="12" y2="19"></line>
-                      <line x1="5" y1="12" x2="19" y2="12"></line>
-                    </svg>
-                    New
-                  </Button>
-                </div>
-              </div>
-              
-              <div className="mb-4">
-                <div className="flex gap-2">
-                  <div className="relative">
-                    <input 
-                      type="text" 
-                      placeholder="Search opportunities..." 
-                      className="w-[230px] border border-gray-300 rounded-md py-2 pl-10 pr-4 text-sm"
-                      value={searchTerm}
-                      onChange={(e) => setSearchTerm(e.target.value)}
-                    />
-                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                      <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <circle cx="11" cy="11" r="8"></circle>
-                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                      </svg>
-                    </div>
-                  </div>
-                  
-                  <Button variant="outline" size="sm" className="flex items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                    </svg>
-                    <span>Status</span>
-                  </Button>
-                  
-                  <Button variant="outline" size="sm" className="flex items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
-                      <rect x="9" y="9" width="6" height="6"></rect>
-                      <line x1="9" y1="1" x2="9" y2="4"></line>
-                      <line x1="15" y1="1" x2="15" y2="4"></line>
-                      <line x1="9" y1="20" x2="9" y2="23"></line>
-                      <line x1="15" y1="20" x2="15" y2="23"></line>
-                      <line x1="20" y1="9" x2="23" y2="9"></line>
-                      <line x1="20" y1="14" x2="23" y2="14"></line>
-                      <line x1="1" y1="9" x2="4" y2="9"></line>
-                      <line x1="1" y1="14" x2="4" y2="14"></line>
-                    </svg>
-                    <span>Type</span>
-                  </Button>
-                </div>
-              </div>
-            
-              {/* Selected items actions */}
-              {selectedItems.length > 0 && (
-                <div className="bg-indigo-50 rounded p-3 mb-4 flex justify-between items-center">
-                  <div className="flex items-center">
-                    <span className="text-indigo-700 font-medium mr-2">{selectedItems.length} opportunities selected</span>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="text-gray-500 hover:text-gray-700 p-1 h-auto"
-                      onClick={clearSelection}
-                    >
-                      Clear selection
-                    </Button>
-                  </div>
-                  
-                  <div className="flex gap-2">
-                    <Button variant="ghost" size="sm" className="text-indigo-700" onClick={() => handleSaveList()}>
-                      Create List
-                    </Button>
-                    
-                    <Button variant="ghost" size="sm" className="text-indigo-700" onClick={() => handleAddToCampaign()}>
-                      Add to Campaign
-                    </Button>
-                  </div>
-                </div>
-              )}
-              
-              {/* Stat cards */}
-              <div className="grid grid-cols-4 gap-4 mb-6">
-                <div className="bg-white p-4 rounded-md border border-gray-200">
-                  <div className="text-2xl font-semibold">
-                    3
-                  </div>
-                  <div className="text-gray-500 text-sm">Total Opportunities</div>
-                </div>
-                
-                <div className="bg-white p-4 rounded-md border border-gray-200">
-                  <div className="text-2xl font-semibold">
-                    1
-                  </div>
-                  <div className="text-gray-500 text-sm">Closed Won</div>
-                </div>
-                
-                <div className="bg-white p-4 rounded-md border border-gray-200">
-                  <div className="text-2xl font-semibold">
-                    €280,000
-                  </div>
-                  <div className="text-gray-500 text-sm">Total Value</div>
-                </div>
-                
-                <div className="bg-white p-4 rounded-md border border-gray-200">
-                  <div className="text-2xl font-semibold">
-                    €150,000
-                  </div>
-                  <div className="text-gray-500 text-sm">Weighted Value</div>
-                </div>
-              </div>
-              
-              {/* Opportunities table */}
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[40px]">
-                      <Checkbox />
-                    </TableHead>
-                    <TableHead>Title</TableHead>
-                    <TableHead>Customer</TableHead>
-                    <TableHead>Partner</TableHead>
-                    <TableHead>Type</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead>Value</TableHead>
-                    <TableHead>Due Date</TableHead>
-                    <TableHead>Template</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  <TableRow>
-                    <TableCell>
-                      <Checkbox />
-                    </TableCell>
-                    <TableCell>
-                      <Link href={`/lists/opportunities/1?from=partner/${id}`} className="inline-block">
-                        <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
-                          Koppelen van hypotheek aan verduurzamingslening
-                        </span>
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      <Link href={`/lists/clients/1`} className="inline-block">
-                        <span className="text-indigo-600 hover:underline cursor-pointer">
-                          Van Dijk Familie
-                        </span>
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      <Link href={`/lists/partners/1`} className="inline-block">
-                        <span className="text-indigo-600 hover:underline cursor-pointer">
-                          Jeroen Hypotheek Advies
-                        </span>
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      New Business
-                    </TableCell>
-                    <TableCell>
-                      <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
-                        Proposal
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      €250,000
-                    </TableCell>
-                    <TableCell>
-                      15/07/2025
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-1">
-                        <div className="h-6 w-6 rounded-full bg-indigo-100 text-indigo-700 text-xs flex items-center justify-center">
-                          VL
-                        </div>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                  
-                  <TableRow>
-                    <TableCell>
-                      <Checkbox />
-                    </TableCell>
-                    <TableCell>
-                      <Link href={`/lists/opportunities/2?from=partner/${id}`} className="inline-block">
-                        <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
-                          Verduurzamingslening
-                        </span>
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      <Link href={`/lists/clients/2`} className="inline-block">
-                        <span className="text-indigo-600 hover:underline cursor-pointer">
-                          Jansen Gezin
-                        </span>
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      <Link href={`/lists/partners/1`} className="inline-block">
-                        <span className="text-indigo-600 hover:underline cursor-pointer">
-                          Jeroen Hypotheek Advies
-                        </span>
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      New Business
-                    </TableCell>
-                    <TableCell>
-                      <span className="px-2 py-1 rounded-full text-xs bg-purple-100 text-purple-800">
-                        Discovery
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      €35,000
-                    </TableCell>
-                    <TableCell>
-                      30/06/2025
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-1">
-                        <div className="h-6 w-6 rounded-full bg-green-100 text-green-700 text-xs flex items-center justify-center">
-                          VL
-                        </div>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                  
-                  <TableRow>
-                    <TableCell>
-                      <Checkbox />
-                    </TableCell>
-                    <TableCell>
-                      <Link href={`/lists/opportunities/3?from=partner/${id}`} className="inline-block">
-                        <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
-                          Verkoop van aanvullende producten
-                        </span>
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      <Link href={`/lists/clients/3`} className="inline-block">
-                        <span className="text-indigo-600 hover:underline cursor-pointer">
-                          De Groot BV
-                        </span>
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      <Link href={`/lists/partners/1`} className="inline-block">
-                        <span className="text-indigo-600 hover:underline cursor-pointer">
-                          Jeroen Hypotheek Advies
-                        </span>
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      Upsell
-                    </TableCell>
-                    <TableCell>
-                      <span className="px-2 py-1 rounded-full text-xs bg-amber-100 text-amber-800">
-                        Negotiation
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      €42,000
-                    </TableCell>
-                    <TableCell>
-                      10/08/2025
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-1">
-                        <div className="h-6 w-6 rounded-full bg-cyan-100 text-cyan-700 text-xs flex items-center justify-center">
-                          AP
-                        </div>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                  
-                  <TableRow>
-                    <TableCell>
-                      <Checkbox />
-                    </TableCell>
-                    <TableCell>
-                      <Link href={`/lists/opportunities/4?from=partner/${id}`} className="inline-block">
-                        <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
-                          Proactief contact bij levensgebeurtenissen
-                        </span>
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      <Link href={`/lists/clients/4`} className="inline-block">
-                        <span className="text-indigo-600 hover:underline cursor-pointer">
-                          Visser Familie
-                        </span>
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      <Link href={`/lists/partners/1`} className="inline-block">
-                        <span className="text-indigo-600 hover:underline cursor-pointer">
-                          Jeroen Hypotheek Advies
-                        </span>
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      Renewal
-                    </TableCell>
-                    <TableCell>
-                      <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
-                        Closed Won
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      €28,000
-                    </TableCell>
-                    <TableCell>
-                      05/05/2025
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-1">
-                        <div className="h-6 w-6 rounded-full bg-purple-100 text-purple-700 text-xs flex items-center justify-center">
-                          PC
-                        </div>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                </TableBody>
-              </Table>
-            </div>
+            <PartnerOpportunitiesSection partnerId={id} />
           </TabsContent>
           
           <TabsContent value="customers" className="mt-4">
@@ -1424,6 +1078,297 @@ const TagBadge = ({ tag }: { tag: string }) => {
     </div>
   );
 };
+
+// Partner Opportunities Section Component
+function PartnerOpportunitiesSection({ partnerId }: { partnerId: string | undefined }) {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedOpportunities, setSelectedOpportunities] = useState<number[]>([]);
+  const [statusFilter, setStatusFilter] = useState("");
+  const [typeFilter, setTypeFilter] = useState("");
+
+  // Fetch opportunities for this specific partner
+  const { data: opportunities = [], isLoading } = useQuery({
+    queryKey: ['/api/opportunities', partnerId],
+    queryFn: async () => {
+      const response = await fetch('/api/opportunities');
+      if (!response.ok) {
+        throw new Error('Failed to fetch opportunities');
+      }
+      const allOpportunities = await response.json();
+      // Filter opportunities for this partner
+      return allOpportunities.filter((opp: any) => opp.partnerId === parseInt(partnerId || '0'));
+    },
+    enabled: !!partnerId
+  });
+
+  // Filter opportunities based on search and filters
+  const filteredOpportunities = opportunities.filter((opp: any) => {
+    const matchesSearch = opp.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         opp.description?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus = !statusFilter || opp.status === statusFilter;
+    const matchesType = !typeFilter || opp.type === typeFilter;
+    return matchesSearch && matchesStatus && matchesType;
+  });
+
+  // Calculate statistics
+  const stats = {
+    totalOpportunities: filteredOpportunities.length,
+    closedWon: filteredOpportunities.filter((opp: any) => opp.status === 'closed' && opp.stage === 'closed').length,
+    totalValue: filteredOpportunities.reduce((sum: number, opp: any) => sum + (opp.value || 0), 0),
+    weightedValue: filteredOpportunities.reduce((sum: number, opp: any) => {
+      const value = opp.value || 0;
+      const probability = opp.probability || 0;
+      return sum + (value * (probability / 100));
+    }, 0)
+  };
+
+  const toggleSelectOpportunity = (id: number) => {
+    if (selectedOpportunities.includes(id)) {
+      setSelectedOpportunities(selectedOpportunities.filter(oppId => oppId !== id));
+    } else {
+      setSelectedOpportunities([...selectedOpportunities, id]);
+    }
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedOpportunities.length === filteredOpportunities.length) {
+      setSelectedOpportunities([]);
+    } else {
+      setSelectedOpportunities(filteredOpportunities.map((opp: any) => opp.id));
+    }
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('nl-NL', {
+      style: 'currency',
+      currency: 'EUR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(amount);
+  };
+
+  const getStatusBadge = (status: string, stage: string) => {
+    if (status === 'closed' && stage === 'closed') {
+      return <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">Closed Won</span>;
+    }
+    switch (stage) {
+      case 'discovery':
+        return <span className="px-2 py-1 rounded-full text-xs bg-purple-100 text-purple-800">Discovery</span>;
+      case 'proposal':
+        return <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">Proposal</span>;
+      case 'negotiation':
+        return <span className="px-2 py-1 rounded-full text-xs bg-amber-100 text-amber-800">Negotiation</span>;
+      default:
+        return <span className="px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800">{stage}</span>;
+    }
+  };
+
+  return (
+    <div>
+      {/* Header with actions */}
+      <div className="flex justify-between items-center mb-4">
+        <Button variant="outline" size="sm" className="flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+          </svg>
+          <span>Saved Lists</span>
+          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="6 9 12 15 18 9"></polyline>
+          </svg>
+        </Button>
+        
+        <div className="flex gap-2">
+          <Button variant="outline" size="sm" className="text-sm">
+            <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M21 15V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
+              <polyline points="17 8 21 12 17 16"></polyline>
+              <line x1="21" y1="12" x2="9" y2="12"></line>
+            </svg>
+            Export
+          </Button>
+          
+          <Button size="sm" className="text-sm bg-indigo-600 hover:bg-indigo-700">
+            <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+            New
+          </Button>
+        </div>
+      </div>
+      
+      {/* Search and filters */}
+      <div className="mb-4">
+        <div className="flex gap-2">
+          <div className="relative">
+            <input 
+              type="text" 
+              placeholder="Search opportunities..." 
+              className="w-[230px] border border-gray-300 rounded-md py-2 pl-10 pr-4 text-sm"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+              <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </div>
+          </div>
+          
+          <Button variant="outline" size="sm" className="flex items-center gap-1">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+            </svg>
+            <span>Status</span>
+          </Button>
+          
+          <Button variant="outline" size="sm" className="flex items-center gap-1">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
+              <rect x="9" y="9" width="6" height="6"></rect>
+              <line x1="9" y1="1" x2="9" y2="4"></line>
+              <line x1="15" y1="1" x2="15" y2="4"></line>
+              <line x1="9" y1="20" x2="9" y2="23"></line>
+              <line x1="15" y1="20" x2="15" y2="23"></line>
+              <line x1="20" y1="9" x2="23" y2="9"></line>
+              <line x1="20" y1="14" x2="23" y2="14"></line>
+              <line x1="1" y1="9" x2="4" y2="9"></line>
+              <line x1="1" y1="14" x2="4" y2="14"></line>
+            </svg>
+            <span>Type</span>
+          </Button>
+        </div>
+      </div>
+    
+      {/* Selected items actions */}
+      {selectedOpportunities.length > 0 && (
+        <div className="bg-indigo-50 rounded p-3 mb-4 flex justify-between items-center">
+          <div className="flex items-center">
+            <span className="text-indigo-700 font-medium mr-2">{selectedOpportunities.length} opportunities selected</span>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="text-gray-500 hover:text-gray-700 p-1 h-auto"
+              onClick={() => setSelectedOpportunities([])}
+            >
+              Clear selection
+            </Button>
+          </div>
+          
+          <div className="flex gap-2">
+            <Button variant="ghost" size="sm" className="text-indigo-700">
+              Create List
+            </Button>
+            
+            <Button variant="ghost" size="sm" className="text-indigo-700">
+              Add to Campaign
+            </Button>
+          </div>
+        </div>
+      )}
+      
+      {/* Statistics cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+          <div style={{ fontFamily: 'Poppins, sans-serif' }} className="text-2xl font-semibold text-[#282A3F]">
+            {stats.totalOpportunities}
+          </div>
+          <div style={{ fontFamily: 'Poppins, sans-serif' }} className="text-sm text-[#696C8C] mt-1">Total Opportunities</div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+          <div style={{ fontFamily: 'Poppins, sans-serif' }} className="text-2xl font-semibold text-[#282A3F]">
+            {stats.closedWon}
+          </div>
+          <div style={{ fontFamily: 'Poppins, sans-serif' }} className="text-sm text-[#696C8C] mt-1">Closed Won</div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+          <div style={{ fontFamily: 'Poppins, sans-serif' }} className="text-2xl font-semibold text-[#282A3F]">
+            {formatCurrency(stats.totalValue)}
+          </div>
+          <div style={{ fontFamily: 'Poppins, sans-serif' }} className="text-sm text-[#696C8C] mt-1">Total Value</div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+          <div style={{ fontFamily: 'Poppins, sans-serif' }} className="text-2xl font-semibold text-[#282A3F]">
+            {formatCurrency(stats.weightedValue)}
+          </div>
+          <div style={{ fontFamily: 'Poppins, sans-serif' }} className="text-sm text-[#696C8C] mt-1">Weighted Value</div>
+        </div>
+      </div>
+      
+      {/* Opportunities table */}
+      {isLoading ? (
+        <div className="flex items-center justify-center py-8">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+        </div>
+      ) : (
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[40px]">
+                <Checkbox 
+                  checked={selectedOpportunities.length === filteredOpportunities.length && filteredOpportunities.length > 0}
+                  onCheckedChange={toggleSelectAll}
+                />
+              </TableHead>
+              <TableHead>Title</TableHead>
+              <TableHead>Customer</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Value</TableHead>
+              <TableHead>Probability</TableHead>
+              <TableHead>Due Date</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredOpportunities.map((opportunity: any) => (
+              <TableRow key={opportunity.id}>
+                <TableCell>
+                  <Checkbox 
+                    checked={selectedOpportunities.includes(opportunity.id)}
+                    onCheckedChange={() => toggleSelectOpportunity(opportunity.id)}
+                  />
+                </TableCell>
+                <TableCell>
+                  <Link href={`/lists/opportunities/${opportunity.id}?from=partner/${partnerId}`} className="inline-block">
+                    <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
+                      {opportunity.title}
+                    </span>
+                  </Link>
+                </TableCell>
+                <TableCell>
+                  <Link href={`/lists/customers/${opportunity.clientId}`} className="inline-block">
+                    <span className="text-indigo-600 hover:underline cursor-pointer">
+                      Customer {opportunity.clientId}
+                    </span>
+                  </Link>
+                </TableCell>
+                <TableCell>
+                  {opportunity.type}
+                </TableCell>
+                <TableCell>
+                  {getStatusBadge(opportunity.status, opportunity.stage)}
+                </TableCell>
+                <TableCell>
+                  {formatCurrency(opportunity.value || 0)}
+                </TableCell>
+                <TableCell>
+                  {opportunity.probability}%
+                </TableCell>
+                <TableCell>
+                  {opportunity.expectedCloseDate ? format(new Date(opportunity.expectedCloseDate), 'dd/MM/yyyy') : '-'}
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      )}
+    </div>
+  );
+}
 
 // OKR Plans Section Component
 function OKRPlansSection({ partnerId }: { partnerId: string }) {
