@@ -48,9 +48,10 @@ export default function Clients() {
   const [filter, setFilter] = useState("all");
   
   const { data: customers = [], isLoading } = useQuery<Customer[]>({
-    queryKey: ['/api/customers', 'clean-data'],
+    queryKey: ['/api/customers', Date.now()],
     refetchOnWindowFocus: false,
-    staleTime: 0
+    staleTime: 0,
+    cacheTime: 0
   });
   
   const filteredCustomers = useCallback(() => {
