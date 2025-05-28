@@ -378,6 +378,11 @@ export default function PartnerDetail() {
   });
 
   const partner = partners.find((p: any) => p.id === parseInt(partnerId || '0'));
+  
+  // Debug logging
+  console.log('Partner ID from URL:', partnerId);
+  console.log('Partners data:', partners);
+  console.log('Found partner:', partner);
 
   if (isLoading) {
     return (
