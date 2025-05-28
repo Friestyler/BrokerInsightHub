@@ -737,7 +737,7 @@ export default function PartnerDetail() {
           </TabsContent>
             
           <TabsContent value="opportunities" className="mt-4">
-            {/* Content removed as requested */}
+            <PartnerOpportunitiesSection partnerId={id} />
           </TabsContent>
           
           <TabsContent value="customers" className="mt-4">
@@ -1080,246 +1080,266 @@ const TagBadge = ({ tag }: { tag: string }) => {
   );
 };
 
-// Partner Opportunities Section Component with full list and views functionality
+// Partner Opportunities Section Component - simplified working version
 function PartnerOpportunitiesSection({ partnerId }: { partnerId: string | undefined }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedOpportunities, setSelectedOpportunities] = useState<number[]>([]);
-  const [statusFilter, setStatusFilter] = useState("");
-  const [typeFilter, setTypeFilter] = useState("");
-  const [stageFilter, setStageFilter] = useState("");
-
-  // List and Views functionality - exactly like main pages
-  const [savedLists, setSavedLists] = useState<any[]>([
-    {
-      id: 'all-opportunities',
-      name: 'All Opportunities',
-      type: 'filter',
-      filters: { },
-      isShared: false,
-      createdBy: 'System',
-      createdAt: new Date('2025-01-01'),
-      isDefault: true
-    }
-  ]);
-  const [activeList, setActiveList] = useState<any>(null);
-  const [showSaveListModal, setShowSaveListModal] = useState(false);
-  const [showListsDropdown, setShowListsDropdown] = useState(false);
-  const [newListName, setNewListName] = useState("");
-  const [isCreatingNewList, setIsCreatingNewList] = useState(false);
-  const [selectedExistingList, setSelectedExistingList] = useState<string | null>(null);
-
-  // Views functionality
-  const [savedViews, setSavedViews] = useState<any[]>([
-    {
-      id: 'view-1',
-      name: 'Active Opportunities',
-      filters: {
-        status: 'open'
-      },
-      createdBy: 'John Smith',
-      createdAt: new Date('2025-05-01')
-    }
-  ]);
-  const [activeView, setActiveView] = useState<any>(null);
-  const [showSaveViewModal, setShowSaveViewModal] = useState(false);
-  const [showViewsDropdown, setShowViewsDropdown] = useState(false);
-  const [viewNameInput, setViewNameInput] = useState('');
-
+  
   // Fetch opportunities for this specific partner
   const { data: opportunities = [], isLoading } = useQuery({
     queryKey: ['/api/opportunities', partnerId],
     queryFn: async () => {
-      const response = await fetch('/api/opportunities');
-      if (!response.ok) {
-        throw new Error('Failed to fetch opportunities');
+      try {
+        const response = await fetch('/api/opportunities');
+        if (!response.ok) {
+          throw new Error('Failed to fetch opportunities');
+        }
+        const allOpportunities = await response.json();
+        // Filter opportunities for this partner
+        return allOpportunities.filter((opp: any) => opp.partnerId === parseInt(partnerId || '0'));
+      } catch (error) {
+        console.error('Error fetching opportunities:', error);
+        return [];
       }
-      const allOpportunities = await response.json();
-      // Filter opportunities for this partner
-      return allOpportunities.filter((opp: any) => opp.partnerId === parseInt(partnerId || '0'));
     },
     enabled: !!partnerId
   });
 
-  // Apply filters from active list or view
-  const getActiveFilters = () => {
-    if (activeList && activeList.type === 'filter') {
-      return activeList.filters;
-    }
-    if (activeView) {
-      return activeView.filters;
-    }
-    return {
-      searchText: searchTerm,
-      status: statusFilter,
-      type: typeFilter,
-      stage: stageFilter
-    };
-  };
-
-  // Filter opportunities based on search, filters, and active list/view
+  // Filter opportunities based on search
   const filteredOpportunities = opportunities.filter((opp: any) => {
-    const filters = getActiveFilters();
+    const matchesSearch = !searchTerm || 
+      opp.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      opp.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      opp.customer?.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesSearch = !filters.searchText || 
-      opp.title?.toLowerCase().includes(filters.searchText.toLowerCase()) ||
-      opp.description?.toLowerCase().includes(filters.searchText.toLowerCase());
-    
-    const matchesStatus = !filters.status || filters.status === 'all' || opp.status === filters.status;
-    const matchesType = !filters.type || filters.type === 'all' || opp.type === filters.type;
-    const matchesStage = !filters.stage || filters.stage === 'all' || opp.stage === filters.stage;
-    
-    return matchesSearch && matchesStatus && matchesType && matchesStage;
+    return matchesSearch;
   });
-
-  // If active list is a selection type, show only selected opportunities
-  const displayedOpportunities = activeList?.type === 'selection' 
-    ? opportunities.filter((opp: any) => activeList.members?.includes(opp.id))
-    : filteredOpportunities;
 
   // Calculate statistics
   const stats = {
-    totalOpportunities: displayedOpportunities.length,
-    closedWon: displayedOpportunities.filter((opp: any) => opp.status === 'closed' && opp.stage === 'closed').length,
-    totalValue: displayedOpportunities.reduce((sum: number, opp: any) => sum + (opp.value || 0), 0),
-    weightedValue: displayedOpportunities.reduce((sum: number, opp: any) => {
+    totalOpportunities: filteredOpportunities.length,
+    closedWon: filteredOpportunities.filter((opp: any) => opp.status === 'closed').length,
+    totalValue: filteredOpportunities.reduce((sum: number, opp: any) => sum + (opp.value || 0), 0),
+    weightedValue: filteredOpportunities.reduce((sum: number, opp: any) => {
       const value = opp.value || 0;
       const probability = opp.probability || 0;
       return sum + (value * (probability / 100));
     }, 0)
   };
 
-  const toggleSelectOpportunity = (id: number) => {
-    if (selectedOpportunities.includes(id)) {
-      setSelectedOpportunities(selectedOpportunities.filter(oppId => oppId !== id));
-    } else {
-      setSelectedOpportunities([...selectedOpportunities, id]);
-    }
-  };
-
-  const toggleSelectAll = () => {
-    if (selectedOpportunities.length === displayedOpportunities.length) {
-      setSelectedOpportunities([]);
-    } else {
-      setSelectedOpportunities(displayedOpportunities.map((opp: any) => opp.id));
-    }
-  };
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('nl-NL', {
+  // Format currency function
+  const formatCurrency = (amount: number): string => {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'EUR',
+      currency: 'USD',
       minimumFractionDigits: 0,
       maximumFractionDigits: 0,
     }).format(amount);
   };
 
-  const getStatusBadge = (status: string, stage: string) => {
-    if (status === 'closed' && stage === 'closed') {
-      return <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">Closed Won</span>;
-    }
-    switch (stage) {
-      case 'discovery':
-        return <span className="px-2 py-1 rounded-full text-xs bg-purple-100 text-purple-800">Discovery</span>;
-      case 'proposal':
-        return <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">Proposal</span>;
-      case 'negotiation':
-        return <span className="px-2 py-1 rounded-full text-xs bg-amber-100 text-amber-800">Negotiation</span>;
-      default:
-        return <span className="px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800">{stage}</span>;
-    }
-  };
-
-  const handleSaveList = () => {
-    if (selectedOpportunities.length === 0) return;
-    
-    setShowSaveListModal(true);
-  };
-
-  const handleSaveView = () => {
-    setShowSaveViewModal(true);
-  };
-
-  const createNewList = () => {
-    if (!newListName.trim()) return;
-    
-    const newList = {
-      id: Date.now().toString(),
-      name: newListName,
-      type: 'selection',
-      filters: {},
-      members: selectedOpportunities,
-      isShared: false,
-      createdBy: 'Current User',
-      createdAt: new Date()
+  // Status badge component
+  const StatusBadge = ({ status }: { status: string }) => {
+    const getStatusColor = (status: string) => {
+      switch (status?.toLowerCase()) {
+        case 'open':
+          return 'bg-green-100 text-green-800';
+        case 'closed':
+          return 'bg-gray-100 text-gray-800';
+        case 'on_hold':
+          return 'bg-yellow-100 text-yellow-800';
+        default:
+          return 'bg-gray-100 text-gray-800';
+      }
     };
-    
-    setSavedLists(prev => [...prev, newList]);
-    setSelectedOpportunities([]);
-    setNewListName("");
-    setShowSaveListModal(false);
+
+    return (
+      <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(status)}`}>
+        {status?.replace('_', ' ') || 'Unknown'}
+      </span>
+    );
   };
 
-  const createNewView = () => {
-    if (!viewNameInput.trim()) return;
-    
-    const newView = {
-      id: Date.now().toString(),
-      name: viewNameInput,
-      filters: {
-        searchText: searchTerm,
-        status: statusFilter,
-        type: typeFilter,
-        stage: stageFilter
-      },
-      createdBy: 'Current User',
-      createdAt: new Date()
-    };
-    
-    setSavedViews(prev => [...prev, newView]);
-    setViewNameInput("");
-    setShowSaveViewModal(false);
-  };
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="text-gray-500">Loading opportunities...</div>
+      </div>
+    );
+  }
 
   return (
-    <div>
-      {/* Header section with Saved Lists and right-side buttons - exact from Partners page */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
-        {/* Left side: Active list title and user action info */}
-        <div className="flex items-start gap-4">
-          {/* Saved Lists dropdown button */}
-          <div className="relative">
-            <button 
-              className="flex items-center gap-2 px-4 py-2 text-[#282A3F] rounded-md border border-gray-300 hover:bg-[#F5F6FE]"
-              style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px', fontWeight: 500 }}
-              onClick={() => setShowListsDropdown(!showListsDropdown)}
-            >
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M5.25 1.5V4.25H12.6875V2C12.6875 1.725 12.4906 1.5 12.25 1.5H5.25ZM3.9375 1.5H1.75C1.50937 1.5 1.3125 1.725 1.3125 2V4.25H3.9375V1.5ZM1.3125 5.75V8.25H3.9375V5.75H1.3125ZM1.3125 9.75V12C1.3125 12.275 1.50937 12.5 1.75 12.5H3.9375V9.75H1.3125ZM5.25 12.5H12.25C12.4906 12.5 12.6875 12.275 12.6875 12V9.75H5.25V12.5ZM12.6875 8.25V5.75H5.25V8.25H12.6875ZM0 2C0 0.896875 0.784766 0 1.75 0H12.25C13.2152 0 14 0.896875 14 2V12C14 13.1031 13.2152 14 12.25 14H1.75C0.784766 14 0 13.1031 0 12V2Z" fill="#3E4DC4"/>
+    <div className="space-y-4">
+      {/* Search and action bar */}
+      <div className="bg-white p-4 rounded-lg shadow-sm">
+        <div className="flex justify-between items-center mb-4">
+          <div className="relative w-60">
+            <input
+              type="text"
+              placeholder="Search opportunities..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
+            />
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+              <circle cx="11" cy="11" r="8"></circle>
+              <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+            </svg>
+          </div>
+          
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm">
+              Export
+            </Button>
+            <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700">
+              <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="12" y1="5" x2="12" y2="19"></line>
+                <line x1="5" y1="12" x2="19" y2="12"></line>
               </svg>
-              <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
-                {activeList ? activeList.name : "All Opportunities"}
-              </span>
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                width="14" 
-                height="14" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                className={`transition-transform ${showListsDropdown ? 'rotate-180' : ''}`}
-              >
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
-            </button>
-            
-            {/* Saved Lists dropdown menu - exact from Partners page */}
-            {showListsDropdown && (
-              <div className="absolute z-50 mt-1.5 w-80 rounded-md border border-slate-200 bg-white text-slate-950 shadow-md animate-in fade-in-80">
-                <div className="max-h-[300px] overflow-y-auto p-1">
-                  {savedLists.map(list => (
+              New
+            </Button>
+          </div>
+        </div>
+      </div>
+
+      {/* Statistics cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="bg-white p-6 rounded-lg border border-gray-200">
+          <div className="text-2xl font-semibold text-[#282A3F] mb-1" style={{ fontFamily: 'Poppins, sans-serif' }}>
+            {stats.totalOpportunities}
+          </div>
+          <div className="text-sm text-[#696C8C]" style={{ fontFamily: 'Poppins, sans-serif' }}>
+            Total Opportunities
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-lg border border-gray-200">
+          <div className="text-2xl font-semibold text-[#282A3F] mb-1" style={{ fontFamily: 'Poppins, sans-serif' }}>
+            {stats.closedWon}
+          </div>
+          <div className="text-sm text-[#696C8C]" style={{ fontFamily: 'Poppins, sans-serif' }}>
+            Closed Won
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-lg border border-gray-200">
+          <div className="text-2xl font-semibold text-[#282A3F] mb-1" style={{ fontFamily: 'Poppins, sans-serif' }}>
+            {formatCurrency(stats.totalValue)}
+          </div>
+          <div className="text-sm text-[#696C8C]" style={{ fontFamily: 'Poppins, sans-serif' }}>
+            Total Value
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-lg border border-gray-200">
+          <div className="text-2xl font-semibold text-[#282A3F] mb-1" style={{ fontFamily: 'Poppins, sans-serif' }}>
+            {formatCurrency(stats.weightedValue)}
+          </div>
+          <div className="text-sm text-[#696C8C]" style={{ fontFamily: 'Poppins, sans-serif' }}>
+            Weighted Value
+          </div>
+        </div>
+      </div>
+
+      {/* Opportunities table */}
+      <div className="bg-white rounded-lg border border-gray-200">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[40px]">
+                <Checkbox />
+              </TableHead>
+              <TableHead>Opportunity</TableHead>
+              <TableHead>Customer</TableHead>
+              <TableHead>Status</TableHead>
+              <TableHead>Type</TableHead>
+              <TableHead>Stage</TableHead>
+              <TableHead>Value</TableHead>
+              <TableHead>Probability</TableHead>
+              <TableHead>Close Date</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredOpportunities.map((opportunity: any) => (
+              <TableRow key={opportunity.id}>
+                <TableCell>
+                  <Checkbox />
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center">
+                    <div className="h-8 w-8 mr-3 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center font-medium text-xs">
+                      {opportunity.title?.substring(0, 2).toUpperCase() || 'OP'}
+                    </div>
+                    <div>
+                      <div className="font-medium text-gray-900">
+                        {opportunity.title || 'Untitled Opportunity'}
+                      </div>
+                      <div className="text-sm text-gray-500">
+                        {opportunity.description || 'No description'}
+                      </div>
+                    </div>
+                  </div>
+                </TableCell>
+                <TableCell className="text-indigo-600">
+                  {opportunity.customer || 'No customer assigned'}
+                </TableCell>
+                <TableCell>
+                  <StatusBadge status={opportunity.status} />
+                </TableCell>
+                <TableCell>
+                  <span className="text-gray-700">
+                    {opportunity.type?.replace('_', ' ') || 'Unknown'}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <span className="text-gray-700">
+                    {opportunity.stage?.charAt(0).toUpperCase() + opportunity.stage?.slice(1) || 'Unknown'}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <span className="font-medium">
+                    {formatCurrency(opportunity.value || 0)}
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <span className="text-gray-700">
+                    {opportunity.probability || 0}%
+                  </span>
+                </TableCell>
+                <TableCell>
+                  <span className="text-gray-700">
+                    {opportunity.closeDate ? new Date(opportunity.closeDate).toLocaleDateString() : 'Not set'}
+                  </span>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+        
+        {filteredOpportunities.length === 0 && (
+          <div className="text-center py-8 text-gray-500">
+            {searchTerm ? 'No opportunities match your search.' : 'No opportunities found for this partner.'}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+// OKR Plans Section Component  
+function PartnerOKRSection({ partnerId }: { partnerId: string | undefined }) {
+  return (
+    <div className="space-y-4">
+      <div className="text-center py-8 text-gray-500">
+        OKR Plans functionality will be implemented here.
+      </div>
+    </div>
+  );
+}
+
+// Partner Detail Main Component
+export default function PartnerDetail() {
+  const params = useRoute('/partners/:id')[1];
+  const partnerId = params?.id;
                     <div 
                       key={list.id}
                       className="relative"
