@@ -737,7 +737,7 @@ export default function PartnerDetail() {
           </TabsContent>
             
           <TabsContent value="opportunities" className="mt-4">
-            <PartnerOpportunitiesSection partnerId={id} />
+            {/* Content removed as requested */}
           </TabsContent>
           
           <TabsContent value="customers" className="mt-4">
