@@ -1,12 +1,13 @@
 import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { CalendarIcon, Search, Plus, Target, TrendingUp, Users, DollarSign } from "lucide-react";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
+import { CalendarIcon, Search, Plus, Target, TrendingUp, Users, DollarSign, MoreHorizontal } from "lucide-react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import type { DateRange } from "react-day-picker";
@@ -401,97 +402,139 @@ export default function MetricsPage() {
         </div>
       )}
 
-      {/* OKR Templates Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredOkrs.map(okr => (
-          <Card 
-            key={okr.id} 
-            className={cn(
-              "cursor-pointer transition-all duration-200 hover:shadow-md",
-              selectedOkrs.has(okr.id) && "ring-2 ring-indigo-500 bg-indigo-50"
-            )}
-            onClick={() => toggleOkrSelection(okr.id)}
-          >
-            <CardHeader className="pb-3">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center gap-2">
-                  <div 
-                    className="w-3 h-3 rounded-full flex-shrink-0"
-                    style={{ backgroundColor: categoryColors[okr.category as keyof typeof categoryColors] || "#6B7280" }}
-                  />
-                  <Badge variant="outline" className="text-xs">
-                    {okr.category}
-                  </Badge>
-                </div>
-                <div className="flex items-center gap-1 text-gray-500">
-                  {getProgressIcon(okr.category)}
-                </div>
-              </div>
-              <CardTitle className="text-lg font-semibold line-clamp-2">
-                {okr.title}
-              </CardTitle>
-              <CardDescription className="text-sm line-clamp-2">
-                {okr.description}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              {/* Progress bar */}
-              <div className="space-y-2">
-                <div className="flex justify-between items-center text-sm">
-                  <span className="text-gray-600">Progress</span>
-                  <span className="font-medium">{okr.progress}%</span>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
-                    className={cn("h-2 rounded-full transition-all duration-300", getProgressColor(okr.progress))}
-                    style={{ width: `${okr.progress}%` }}
-                  />
-                </div>
-              </div>
-
-              {/* Key Results preview */}
-              <div className="space-y-2">
-                <div className="text-sm font-medium text-gray-700">Key Results:</div>
-                <div className="space-y-1">
-                  {okr.keyResults.slice(0, 2).map(kr => (
-                    <div key={kr.id} className="text-xs text-gray-600 flex justify-between">
-                      <span className="line-clamp-1">{kr.title}</span>
-                      <span className="text-gray-500 ml-2">{kr.current}/{kr.target}</span>
-                    </div>
-                  ))}
-                  {okr.keyResults.length > 2 && (
-                    <div className="text-xs text-gray-500">
-                      +{okr.keyResults.length - 2} more...
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Meta information */}
-              <div className="flex justify-between items-center text-xs text-gray-500 pt-2 border-t">
-                <div className="flex items-center gap-3">
-                  <span>{okr.difficulty}</span>
-                  <span>{okr.timeframe}</span>
-                </div>
-                <span>{okr.owner}</span>
-              </div>
-
-              {/* Tags */}
-              <div className="flex flex-wrap gap-1 pt-2">
-                {okr.tags.slice(0, 3).map(tag => (
-                  <Badge key={tag} variant="secondary" className="text-xs">
-                    {tag}
-                  </Badge>
-                ))}
-                {okr.tags.length > 3 && (
-                  <Badge variant="secondary" className="text-xs">
-                    +{okr.tags.length - 3}
-                  </Badge>
+      {/* OKR Templates Table */}
+      <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead className="w-[50px]">
+                <Checkbox 
+                  checked={selectedOkrs.size === filteredOkrs.length && filteredOkrs.length > 0}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      setSelectedOkrs(new Set(filteredOkrs.map(okr => okr.id)));
+                    } else {
+                      setSelectedOkrs(new Set());
+                    }
+                  }}
+                />
+              </TableHead>
+              <TableHead>OKR Template</TableHead>
+              <TableHead>Category</TableHead>
+              <TableHead>Progress</TableHead>
+              <TableHead>Key Results</TableHead>
+              <TableHead>Difficulty</TableHead>
+              <TableHead>Timeframe</TableHead>
+              <TableHead>Owner</TableHead>
+              <TableHead>Tags</TableHead>
+              <TableHead className="w-[50px]"></TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {filteredOkrs.map(okr => (
+              <TableRow 
+                key={okr.id}
+                className={cn(
+                  "cursor-pointer hover:bg-gray-50",
+                  selectedOkrs.has(okr.id) && "bg-indigo-50"
                 )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+                onClick={() => toggleOkrSelection(okr.id)}
+              >
+                <TableCell>
+                  <Checkbox 
+                    checked={selectedOkrs.has(okr.id)}
+                    onCheckedChange={(checked) => {
+                      if (checked) {
+                        setSelectedOkrs(new Set([...selectedOkrs, okr.id]));
+                      } else {
+                        const newSelected = new Set(selectedOkrs);
+                        newSelected.delete(okr.id);
+                        setSelectedOkrs(newSelected);
+                      }
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </TableCell>
+                <TableCell>
+                  <div className="space-y-1">
+                    <div className="font-medium text-gray-900">{okr.title}</div>
+                    <div className="text-sm text-gray-500 line-clamp-2">{okr.description}</div>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="flex items-center gap-2">
+                    <div 
+                      className="w-3 h-3 rounded-full flex-shrink-0"
+                      style={{ backgroundColor: categoryColors[okr.category as keyof typeof categoryColors] || "#6B7280" }}
+                    />
+                    <span className="text-sm">{okr.category}</span>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="space-y-1">
+                    <div className="flex justify-between items-center text-sm">
+                      <span className="font-medium">{okr.progress}%</span>
+                    </div>
+                    <div className="w-20 bg-gray-200 rounded-full h-2">
+                      <div 
+                        className={cn("h-2 rounded-full transition-all duration-300", getProgressColor(okr.progress))}
+                        style={{ width: `${okr.progress}%` }}
+                      />
+                    </div>
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <div className="space-y-1">
+                    {okr.keyResults.slice(0, 2).map(kr => (
+                      <div key={kr.id} className="text-xs text-gray-600 flex justify-between">
+                        <span className="truncate max-w-[150px]">{kr.title}</span>
+                        <span className="text-gray-500 ml-2">{kr.current}/{kr.target}</span>
+                      </div>
+                    ))}
+                    {okr.keyResults.length > 2 && (
+                      <div className="text-xs text-gray-500">
+                        +{okr.keyResults.length - 2} more...
+                      </div>
+                    )}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <Badge 
+                    variant={okr.difficulty === "High" ? "destructive" : okr.difficulty === "Medium" ? "default" : "secondary"}
+                    className="text-xs"
+                  >
+                    {okr.difficulty}
+                  </Badge>
+                </TableCell>
+                <TableCell>
+                  <span className="text-sm">{okr.timeframe}</span>
+                </TableCell>
+                <TableCell>
+                  <span className="text-sm text-gray-600">{okr.owner}</span>
+                </TableCell>
+                <TableCell>
+                  <div className="flex flex-wrap gap-1">
+                    {okr.tags.slice(0, 2).map(tag => (
+                      <Badge key={tag} variant="outline" className="text-xs">
+                        {tag}
+                      </Badge>
+                    ))}
+                    {okr.tags.length > 2 && (
+                      <Badge variant="outline" className="text-xs">
+                        +{okr.tags.length - 2}
+                      </Badge>
+                    )}
+                  </div>
+                </TableCell>
+                <TableCell>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <MoreHorizontal className="h-4 w-4" />
+                  </Button>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
       </div>
 
       {/* Empty state */}
