@@ -111,46 +111,40 @@ const mockMetricGroups = [
   }
 ];
 
-// Mock OKR data for Coming Soon tab
+// Mock OKR data for Coming Soon tab - original format
 const mockOKRs = [
   {
     id: 1,
-    title: "Increase Partner Network Growth",
-    description: "Expand our partner network by onboarding new strategic partners",
-    tag: "Growth",
-    unit: "number",
-    targetValue: 25,
-    realizedValue: 18,
-    startDate: new Date("2025-01-01"),
-    endDate: new Date("2025-12-31"),
-    milestoneFrequency: "Quarterly",
-    nestedCount: 3
+    title: "Increase Annual Recurring Revenue by 40%",
+    description: "Grow our subscription revenue through new customer acquisition and expansion of existing accounts",
+    tag: "Revenue Growth",
+    unit: "currency", 
+    targetValue: 5000000,
+    realizedValue: null,
+    timeframe: "",
+    nestedCount: 0
   },
   {
     id: 2,
-    title: "Revenue Target Achievement",
-    description: "Achieve annual revenue target through improved sales processes",
-    tag: "Financial",
-    unit: "currency",
-    targetValue: 5000000,
-    realizedValue: 3200000,
-    startDate: new Date("2025-01-01"),
-    endDate: new Date("2025-12-31"),
-    milestoneFrequency: "Monthly",
+    title: "Launch 3 Major Product Features",
+    description: "Deliver key features to improve customer satisfaction and competitive positioning",
+    tag: "Product Innovation",
+    unit: "number",
+    targetValue: 3,
+    realizedValue: null,
+    timeframe: "",
     nestedCount: 0
   },
   {
     id: 3,
-    title: "Customer Satisfaction Excellence",
-    description: "Maintain high customer satisfaction scores across all touchpoints",
-    tag: "Customer",
+    title: "Achieve 95% Customer Satisfaction Score", 
+    description: "Maintain high customer satisfaction through improved support and product quality",
+    tag: "Customer Success",
     unit: "percent",
     targetValue: 95,
-    realizedValue: 92,
-    startDate: new Date("2025-01-01"),
-    endDate: new Date("2025-12-31"),
-    milestoneFrequency: "Monthly",
-    nestedCount: 2
+    realizedValue: null,
+    timeframe: "",
+    nestedCount: 0
   }
 ];
 
