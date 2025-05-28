@@ -373,10 +373,11 @@ export default function PartnerDetail() {
   const [activeTab, setActiveTab] = useState('overview');
 
   // Fetch partner data
-  const { data: partner, isLoading } = useQuery({
-    queryKey: ['/api/partners', partnerId],
-    enabled: !!partnerId
+  const { data: partners = [], isLoading } = useQuery({
+    queryKey: ['/api/partners']
   });
+
+  const partner = partners.find((p: any) => p.id === parseInt(partnerId || '0'));
 
   if (isLoading) {
     return (
