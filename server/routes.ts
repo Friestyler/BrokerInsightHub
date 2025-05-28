@@ -45,39 +45,25 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Partners Endpoints - MUST BE FIRST to avoid routing conflicts
+  // Partners API - Clean version with one dummy record
   app.get('/api/partners', async (req, res) => {
     try {
-      console.log('Partners API called');
-      // Use direct database query to avoid storage method issues
-      const { db } = await import('./db');
-      const { customers } = await import('../shared/schema');
+      const partners = [
+        {
+          id: 1,
+          name: "Sample Customer",
+          description: "Demo customer record for UI testing",
+          initials: "SC",
+          industry: "Insurance",
+          type: "Customer",
+          size: "medium"
+        }
+      ];
       
-      const customerRecords = await db.select().from(customers);
-      console.log('Customers fetched from DB:', customerRecords.length);
-      
-      // Transform customers into partners format with required fields
-      const partners = customerRecords.map((customer: any) => ({
-        id: customer.id,
-        name: customer.name,
-        description: customer.description,
-        initials: customer.name.split(' ').map((word: string) => word[0]).join('').toUpperCase().slice(0, 2),
-        industry: getIndustryFromDescription(customer.description || ''),
-        type: getTypeFromDescription(customer.description || ''),
-        size: getSizeFromDescription(customer.description || ''),
-        status: customer.ownerId ? 'active' : 'inactive',
-        customers: Math.floor(Math.random() * 50) + 10,
-        opportunities: Math.floor(Math.random() * 20) + 5,
-        createdAt: customer.createdAt,
-        updatedAt: customer.updatedAt
-      }));
-      
-      console.log('Partners transformed:', partners.length);
-      res.setHeader('Content-Type', 'application/json');
-      return res.json(partners);
+      res.json(partners);
     } catch (error) {
       console.error('Error fetching partners:', error);
-      res.status(500).json({ message: 'Failed to fetch partners' });
+      res.json([]);
     }
   });
 
