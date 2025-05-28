@@ -383,7 +383,7 @@ export default function DeGoudseUploadWizard() {
 
                       <Select
                         value={mapping.mappingType}
-                        onValueChange={(value: 'attribute' | 'relationship' | 'skip') =>
+                        onValueChange={(value: 'attribute' | 'relationship' | 'contact' | 'product' | 'skip') =>
                           updateColumnMapping(index, { mappingType: value, targetField: undefined })
                         }
                       >
@@ -391,9 +391,17 @@ export default function DeGoudseUploadWizard() {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="attribute">Opportunity Attribute</SelectItem>
-                          <SelectItem value="relationship">Entity Relationship</SelectItem>
-                          <SelectItem value="skip">Skip Column</SelectItem>
+                          {MAPPING_OPTIONS.map(option => {
+                            const Icon = option.icon;
+                            return (
+                              <SelectItem key={option.value} value={option.value}>
+                                <div className="flex items-center gap-2">
+                                  <Icon className="h-4 w-4" />
+                                  {option.label}
+                                </div>
+                              </SelectItem>
+                            );
+                          })}
                         </SelectContent>
                       </Select>
 
@@ -433,6 +441,42 @@ export default function DeGoudseUploadWizard() {
                             {ENTITY_RELATIONSHIP_FIELDS.map(field => (
                               <SelectItem key={field.value} value={field.value}>
                                 {field.label}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+
+                      {mapping.mappingType === 'contact' && (
+                        <Select
+                          value={mapping.targetField || ''}
+                          onValueChange={(value) => updateColumnMapping(index, { targetField: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select contact field" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {CONTACT_FIELDS.map(field => (
+                              <SelectItem key={field} value={field}>
+                                {field.charAt(0).toUpperCase() + field.slice(1)}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      )}
+
+                      {mapping.mappingType === 'product' && (
+                        <Select
+                          value={mapping.targetField || ''}
+                          onValueChange={(value) => updateColumnMapping(index, { targetField: value })}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select product field" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {PRODUCT_FIELDS.map(field => (
+                              <SelectItem key={field} value={field}>
+                                {field.charAt(0).toUpperCase() + field.slice(1)}
                               </SelectItem>
                             ))}
                           </SelectContent>

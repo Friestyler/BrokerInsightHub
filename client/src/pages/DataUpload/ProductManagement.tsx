@@ -81,10 +81,10 @@ export default function ProductManagement({ onProductsChange }: ProductManagemen
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.name || !formData.category) {
+    if (!formData.name) {
       toast({
         title: "Validation Error",
-        description: "Please fill in all required fields.",
+        description: "Please enter a product name.",
         variant: "destructive"
       });
       return;
@@ -237,13 +237,13 @@ export default function ProductManagement({ onProductsChange }: ProductManagemen
                   </div>
 
                   <div>
-                    <Label htmlFor="category">Category *</Label>
+                    <Label htmlFor="category">Category</Label>
                     <Select 
                       value={formData.category} 
                       onValueChange={(value) => setFormData({ ...formData, category: value })}
                     >
                       <SelectTrigger>
-                        <SelectValue placeholder="Select category" />
+                        <SelectValue placeholder="Select category (optional)" />
                       </SelectTrigger>
                       <SelectContent>
                         {PRODUCT_CATEGORIES.map(category => (
