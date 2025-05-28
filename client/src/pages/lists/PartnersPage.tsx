@@ -95,16 +95,16 @@ const usePartnersData = () => {
 
 // Mock opportunities data to calculate total values
 const mockOpportunities = [
-  { id: 1, partnerId: 1, amount: 250000, partner: "Jeroen Hypotheek Advies" },
-  { id: 2, partnerId: 1, amount: 35000, partner: "Jeroen Hypotheek Advies" },
-  { id: 3, partnerId: 1, amount: 42000, partner: "Jeroen Hypotheek Advies" },
-  { id: 4, partnerId: 1, amount: 28000, partner: "Jeroen Hypotheek Advies" },
-  { id: 5, partnerId: 2, amount: 125000, partner: "ABC Insurance Brokers" },
-  { id: 6, partnerId: 2, amount: 75000, partner: "ABC Insurance Brokers" },
-  { id: 7, partnerId: 3, amount: 150000, partner: "Global Insurance Partners" },
-  { id: 8, partnerId: 3, amount: 225000, partner: "Global Insurance Partners" },
-  { id: 9, partnerId: 4, amount: 90000, partner: "Premier Insurance Agency" },
-  { id: 10, partnerId: 5, amount: 185000, partner: "Secure Financial Services" }
+  { id: 1, partnerId: 1, amount: 250000, probability: 80, partner: "Jeroen Hypotheek Advies" },
+  { id: 2, partnerId: 1, amount: 35000, probability: 60, partner: "Jeroen Hypotheek Advies" },
+  { id: 3, partnerId: 1, amount: 42000, probability: 75, partner: "Jeroen Hypotheek Advies" },
+  { id: 4, partnerId: 1, amount: 28000, probability: 100, partner: "Jeroen Hypotheek Advies" },
+  { id: 5, partnerId: 2, amount: 125000, probability: 80, partner: "ABC Insurance Brokers" },
+  { id: 6, partnerId: 2, amount: 75000, probability: 40, partner: "ABC Insurance Brokers" },
+  { id: 7, partnerId: 3, amount: 150000, probability: 60, partner: "Global Insurance Partners" },
+  { id: 8, partnerId: 3, amount: 225000, probability: 70, partner: "Global Insurance Partners" },
+  { id: 9, partnerId: 4, amount: 90000, probability: 50, partner: "Premier Insurance Agency" },
+  { id: 10, partnerId: 5, amount: 185000, probability: 65, partner: "Secure Financial Services" }
 ];
 
 // Keep the original mock structure for fallback compatibility
@@ -202,34 +202,44 @@ function calculatePartnerStats(partners: any[], allOpportunities: any[] = []) {
   const totalOpportunities = partners.reduce((sum, partner) => sum + partner.opportunities, 0);
   const activePartners = partners.filter(p => p.status === 'active').length;
   
-  // Calculate total value of opportunities for partners in this list
+  // Get opportunities for partners in this list
   const partnerIds = partners.map(p => p.id);
-  const totalOpportunityValue = allOpportunities
-    .filter(opp => {
-      // Check if opportunity is connected to any partner in the current list
-      // Handle different data structures: partnerId, partners array, or partner name
-      if (opp.partnerId && partnerIds.includes(opp.partnerId)) return true;
-      if (opp.partners && Array.isArray(opp.partners)) {
-        return opp.partners.some((p: any) => partnerIds.includes(p.id));
-      }
-      if (opp.partner) {
-        const matchingPartner = partners.find(p => p.name === opp.partner);
-        return matchingPartner && partnerIds.includes(matchingPartner.id);
-      }
-      return false;
-    })
-    .reduce((sum, opp) => {
-      // Handle different attribute names for opportunity value
-      const value = opp.amount || opp.value || opp.estimatedValue || 0;
-      return sum + value;
-    }, 0);
+  const relevantOpportunities = allOpportunities.filter(opp => {
+    // Check if opportunity is connected to any partner in the current list
+    // Handle different data structures: partnerId, partners array, or partner name
+    if (opp.partnerId && partnerIds.includes(opp.partnerId)) return true;
+    if (opp.partners && Array.isArray(opp.partners)) {
+      return opp.partners.some((p: any) => partnerIds.includes(p.id));
+    }
+    if (opp.partner) {
+      const matchingPartner = partners.find(p => p.name === opp.partner);
+      return matchingPartner && partnerIds.includes(matchingPartner.id);
+    }
+    return false;
+  });
+  
+  // Calculate total value of opportunities
+  const totalOpportunityValue = relevantOpportunities.reduce((sum, opp) => {
+    // Handle different attribute names for opportunity value
+    const value = opp.amount || opp.value || opp.estimatedValue || 0;
+    return sum + value;
+  }, 0);
+  
+  // Calculate weighted opportunity value using probability
+  const weightedOpportunityValue = relevantOpportunities.reduce((sum, opp) => {
+    // Handle different attribute names for opportunity value and probability
+    const value = opp.amount || opp.value || opp.estimatedValue || 0;
+    const probability = opp.probability || 0;
+    return sum + (value * (probability / 100));
+  }, 0);
   
   return {
     totalPartners,
     totalCustomers,
     totalOpportunities,
     activePartners,
-    totalOpportunityValue
+    totalOpportunityValue,
+    weightedOpportunityValue
   };
 }
 
@@ -1308,6 +1318,11 @@ function PartnersTable() {
         <div className="bg-white p-4 rounded-md border border-gray-200 w-fit">
           <div className="text-xl text-[#282A3F] font-medium" style={{fontFamily: 'Poppins'}}>{stats.totalOpportunityValue.toLocaleString()}€</div>
           <div className="text-sm text-[#696C8C]" style={{fontFamily: 'Poppins', fontWeight: 400}}>Total Value Opportunities</div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-md border border-gray-200 w-fit">
+          <div className="text-xl text-[#282A3F] font-medium" style={{fontFamily: 'Poppins'}}>{Math.round(stats.weightedOpportunityValue).toLocaleString()}€</div>
+          <div className="text-sm text-[#696C8C]" style={{fontFamily: 'Poppins', fontWeight: 400}}>Weighted Amount Opportunities</div>
         </div>
         
         <div className="bg-white p-4 rounded-md border border-gray-200 w-fit">
