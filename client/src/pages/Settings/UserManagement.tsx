@@ -39,7 +39,7 @@ const DEPARTMENTS = [
 ];
 
 export default function UserManagement() {
-  const { currentEnvironment } = useEnvironment();
+  const { environment } = useEnvironment();
   const [users, setUsers] = useState<User[]>([]);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<User | null>(null);
@@ -52,11 +52,11 @@ export default function UserManagement() {
 
   useEffect(() => {
     loadUsers();
-  }, [currentEnvironment]);
+  }, [environment]);
 
   const loadUsers = async () => {
     try {
-      const response = await fetch(`/api/${currentEnvironment}/users`);
+      const response = await fetch(`/api/${environment}/users`);
       if (response.ok) {
         const data = await response.json();
         setUsers(data);
@@ -80,8 +80,8 @@ export default function UserManagement() {
 
     try {
       const url = editingUser 
-        ? `/api/${currentEnvironment}/users/${editingUser.id}` 
-        : `/api/${currentEnvironment}/users`;
+        ? `/api/${environment}/users/${editingUser.id}` 
+        : `/api/${environment}/users`;
       
       const method = editingUser ? 'PUT' : 'POST';
       
