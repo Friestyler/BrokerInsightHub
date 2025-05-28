@@ -176,17 +176,10 @@ export class DatabaseStorage implements IStorage {
 
   // Opportunity operations
   async getAllOpportunities(): Promise<Opportunity[]> {
-    const db = this.getDb();
-    console.log(`Querying opportunities from schema: ${this.currentSchema}`);
-    
     try {
-      // Simple query without quotes around column names
-      const result = await db.execute(sql.raw(`
-        SELECT * FROM ${this.currentSchema}.opportunities ORDER BY createdAt DESC
-      `));
-      
+      const result = await this.getDb().select().from(opportunities).orderBy(opportunities.createdAt);
       console.log(`Found ${result?.length || 0} opportunities in ${this.currentSchema} schema`);
-      return (result as any[]) || [];
+      return result || [];
     } catch (error) {
       console.error('Error fetching opportunities:', error);
       return [];
