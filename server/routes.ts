@@ -750,7 +750,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Opportunities API endpoints
   app.get('/api/opportunities', async (req, res) => {
     try {
+      console.log('Fetching opportunities from storage...');
       const opportunities = await storage.getAllOpportunities();
+      console.log('Opportunities fetched:', opportunities.length);
       
       // Customer and product mapping based on your real uploaded Excel data
       const clientMapping: {[key: number]: string} = {
