@@ -428,43 +428,43 @@ function ProgressBar({ progress, type = "default" }: { progress: number, type?: 
 // Fetch specific partner data from database
 const usePartnerData = (id: string) => {
   return useQuery({
-    queryKey: ['/api/customers', id],
+    queryKey: ['/api/partners', id],
     queryFn: async () => {
       console.log('Fetching partner detail for ID:', id);
-      const response = await fetch('/api/customers');
+      const response = await fetch('/api/partners');
       if (!response.ok) {
-        throw new Error('Failed to fetch customer data');
+        throw new Error('Failed to fetch partner data');
       }
-      const customers = await response.json();
-      console.log('All customers:', customers.length);
+      const partners = await response.json();
+      console.log('All partners:', partners.length);
       
-      // Find the specific customer by ID
-      const customer = customers.find((c: any) => c.id.toString() === id);
-      if (!customer) {
+      // Find the specific partner by ID
+      const partner = partners.find((p: any) => p.id.toString() === id);
+      if (!partner) {
         throw new Error('Partner not found');
       }
       
-      console.log('Found customer:', customer.name);
+      console.log('Found partner:', partner.name);
       
-      // Transform customer to partner format
+      // Return partner data directly
       return {
-        id: customer.id,
-        name: customer.name,
-        description: customer.description || 'No description available',
-        segment: customer.description?.includes('broker') ? 'broker' : 'partner',
-        address: 'Address not available', // Add when customer schema includes address
-        customers: Math.floor(Math.random() * 50) + 10,
-        opportunities: Math.floor(Math.random() * 20) + 5,
-        initials: customer.name.split(' ').map((word: string) => word[0]).join('').toUpperCase().slice(0, 2),
+        id: partner.id,
+        name: partner.name,
+        description: partner.description || 'No description available',
+        segment: partner.type?.toLowerCase() || 'partner',
+        address: 'Address not available',
+        customers: partner.customers || 0,
+        opportunities: partner.opportunities || 0,
+        initials: partner.initials,
         owner: {
-          id: customer.ownerId || 1,
+          id: 1,
           name: 'Owner not assigned',
           initials: 'NA',
           avatar: '',
         },
         team: [],
-        createdAt: new Date(customer.createdAt),
-        updatedAt: new Date(customer.updatedAt),
+        createdAt: new Date(),
+        updatedAt: new Date(),
       };
     }
   });
