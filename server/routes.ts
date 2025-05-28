@@ -785,12 +785,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Customers API - Only real uploaded data
+  // Customers API - Clean version with one dummy record
   app.get('/api/customers', async (req, res) => {
     try {
-      const degoudseStorage = storage.switchEnvironment('degoudse');
-      const customers = await degoudseStorage.getAllCustomers();
-      res.json(customers || []);
+      const customers = [
+        {
+          id: 1,
+          name: "Sample Customer",
+          description: "Demo customer record for UI testing",
+          ownerId: null,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        }
+      ];
+      
+      res.json(customers);
     } catch (error) {
       console.error('Error fetching customers:', error);
       res.json([]);
