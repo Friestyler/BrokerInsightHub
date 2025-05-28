@@ -56,8 +56,7 @@ export const opportunities = pgTable("opportunities", {
   type: text("type").notNull().default("new_business"), // new_business, cross_sell, upsell, renewal
   probability: integer("probability").notNull(),
   estimatedValue: integer("estimated_value").notNull(),
-  ownerId: integer("owner_id").references(() => users.id),
-  partnerId: integer("partner_id").references(() => customers.id),
+  // Remove problematic foreign key references that don't match database structure
   description: text("description"),
   notes: text("notes"),
   expectedCloseDate: timestamp("expected_close_date"),
