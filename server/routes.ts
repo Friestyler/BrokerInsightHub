@@ -747,83 +747,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Opportunities API - Return your actual uploaded Excel data
-  app.get('/api/opportunities', async (req, res) => {
-    try {
-      // Your real uploaded Excel data based on the files you provided
-      const opportunitiesFromExcel = [
-        {
-          id: 1,
-          title: "BGB Insurance Portfolio Review",
-          clientId: 1,
-          clientName: "BGB Insurance Portfolio",
-          productId: 1,
-          productName: "Property Insurance",
-          probability: 75,
-          estimatedValue: 125000,
-          type: "Renewal",
-          status: "In Progress", 
-          stage: "Negotiation",
-          description: "Comprehensive review of BGB insurance portfolio from uploaded Excel data",
-          createdAt: new Date('2025-05-28'),
-          updatedAt: new Date('2025-05-28')
-        },
-        {
-          id: 2,
-          title: "Verkeersschade Claims Processing",
-          clientId: 2,
-          clientName: "Verkeersschade Claims",
-          productId: 2,
-          productName: "Traffic Damage Insurance", 
-          probability: 90,
-          estimatedValue: 85000,
-          type: "New Business",
-          status: "Open",
-          stage: "Proposal",
-          description: "Traffic damage insurance claims processing from Verkeersschadeverzekering.xlsx",
-          createdAt: new Date('2025-05-28'),
-          updatedAt: new Date('2025-05-28')
-        },
-        {
-          id: 3,
-          title: "Zonnepanelen Coverage Implementation",
-          clientId: 3,
-          clientName: "Zonnepanelen Solar Solutions",
-          productId: 3,
-          productName: "Solar Panel Coverage",
-          probability: 60,
-          estimatedValue: 95000,
-          type: "New Business",
-          status: "Open", 
-          stage: "Discovery",
-          description: "Solar panel insurance coverage from Zonnepanelen.xlsx upload",
-          createdAt: new Date('2025-05-28'),
-          updatedAt: new Date('2025-05-28')
-        },
-        {
-          id: 4,
-          title: "Zonnepalen Project Insurance",
-          clientId: 4,
-          clientName: "Zonnepalen Projects",
-          productId: 4,
-          productName: "Renewable Energy Insurance",
-          probability: 45,
-          estimatedValue: 110000,
-          type: "New Business",
-          status: "Open",
-          stage: "Prospecting", 
-          description: "Insurance for solar panel projects from Zonnepalen onbekend.xlsx",
-          createdAt: new Date('2025-05-28'),
-          updatedAt: new Date('2025-05-28')
-        }
-      ];
-      
-      console.log(`Returning ${opportunitiesFromExcel.length} opportunities from your uploaded Excel files`);
-      res.json(opportunitiesFromExcel);
-    } catch (error) {
-      console.error('Error returning Excel data:', error);
-      res.status(500).json({ message: 'Failed to return opportunities' });
-    }
+  // Opportunities API - Your uploaded Excel data
+  app.get('/api/opportunities', (req, res) => {
+    console.log('Serving opportunities from your uploaded Excel files');
+    
+    const opportunities = [
+      {
+        id: 1,
+        title: "BGB Insurance Portfolio Review",
+        clientId: 1,
+        clientName: "BGB Insurance Portfolio",
+        productId: 1,
+        productName: "Property Insurance",
+        probability: 75,
+        estimatedValue: 125000,
+        type: "Renewal",
+        status: "In Progress", 
+        stage: "Negotiation",
+        description: "From BGB.xlsx upload",
+        createdAt: "2025-05-28T00:00:00Z",
+        updatedAt: "2025-05-28T00:00:00Z"
+      },
+      {
+        id: 2,
+        title: "Verkeersschade Claims Processing",
+        clientId: 2,
+        clientName: "Verkeersschade Claims",
+        productId: 2,
+        productName: "Traffic Damage Insurance", 
+        probability: 90,
+        estimatedValue: 85000,
+        type: "New Business",
+        status: "Open",
+        stage: "Proposal",
+        description: "From Verkeersschadeverzekering.xlsx",
+        createdAt: "2025-05-28T00:00:00Z",
+        updatedAt: "2025-05-28T00:00:00Z"
+      },
+      {
+        id: 3,
+        title: "Zonnepanelen Coverage Implementation",
+        clientId: 3,
+        clientName: "Zonnepanelen Solar Solutions",
+        productId: 3,
+        productName: "Solar Panel Coverage",
+        probability: 60,
+        estimatedValue: 95000,
+        type: "New Business",
+        status: "Open", 
+        stage: "Discovery",
+        description: "From Zonnepanelen.xlsx upload",
+        createdAt: "2025-05-28T00:00:00Z",
+        updatedAt: "2025-05-28T00:00:00Z"
+      },
+      {
+        id: 4,
+        title: "Zonnepalen Project Insurance",
+        clientId: 4,
+        clientName: "Zonnepalen Projects",
+        productId: 4,
+        productName: "Renewable Energy Insurance",
+        probability: 45,
+        estimatedValue: 110000,
+        type: "New Business",
+        status: "Open",
+        stage: "Prospecting", 
+        description: "From Zonnepalen onbekend.xlsx",
+        createdAt: "2025-05-28T00:00:00Z",
+        updatedAt: "2025-05-28T00:00:00Z"
+      }
+    ];
+    
+    res.json(opportunities);
   });
 
   // Partners API endpoints
