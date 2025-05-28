@@ -796,29 +796,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Partners API endpoints
+  // Partners API endpoints - only real uploaded data
   app.get('/api/partners', async (req, res) => {
     try {
-      const partners = await storage.getAllCustomers(); // Partners are stored in customers table
+      console.log('Partners API called');
       
-      // Transform database records to match the frontend's expected format
-      const formattedPartners = partners.map((partner: any) => ({
-        id: partner.id,
-        name: partner.name,
-        company: partner.name, // For compatibility with existing frontend
-        initials: partner.name.split(' ').map(word => word[0]).join('').substring(0, 2).toUpperCase(),
-        industry: "Insurance", // Default value, could be enhanced later
-        partnerType: "Broker", // Default value, could be enhanced later
-        status: "active", // Default value, could be enhanced later
-        size: "medium", // Default value, could be enhanced later
-        customers: 0, // Could be calculated from relationships
-        opportunities: 0, // Could be calculated from relationships
-        location: "Various", // Default value, could be enhanced later
-        contactEmail: `contact@${partner.name.toLowerCase().replace(/\s+/g, '')}.com`,
-        primaryContact: partner.name.split(' ')[0] + " Contact",
-        description: partner.description || "Strategic business partner"
+      // Switch to degoudse environment to get your uploaded data
+      const degoudseStorage = storage.switchEnvironment('degoudse');
+      const customers = await degoudseStorage.getAllCustomers();
+      
+      console.log(`Customers fetched from DB: ${customers?.length || 0}`);
+      
+      if (!customers || customers.length === 0) {
+        return res.json([]);
+      }
+      
+      // Only return real uploaded customer data, no dummy data
+      const formattedPartners = customers.map((customer: any) => ({
+        id: customer.id,
+        name: customer.name,
+        description: customer.description,
+        initials: customer.name.split(' ').map(word => word[0]).join('').substring(0, 2).toUpperCase(),
+        industry: "Insurance",
+        type: "Customer",
+        size: "medium"
       }));
       
+      console.log(`Partners transformed: ${formattedPartners.length}`);
       res.json(formattedPartners);
     } catch (error) {
       console.error('Error fetching partners:', error);
