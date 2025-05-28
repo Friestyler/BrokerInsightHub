@@ -48,139 +48,7 @@ import { AdvancedTimeframeFilter } from "@/components/ui/advanced-timeframe-filt
 import { format } from "date-fns";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
-// Mock data for metrics
-const mockMetrics = [
-  {
-    id: 1,
-    title: "Revenue Goal",
-    description: "Revenue target for the partnership",
-    unit: "currency",
-    targetValue: 1000000,
-    hierarchy: "objective",
-    tags: ["Financial", "Revenue", "Partner"],
-    parent: null,
-    children: [3, 4],
-    createdAt: new Date("2025-03-10"),
-    updatedAt: new Date("2025-04-15"),
-  },
-  {
-    id: 2,
-    title: "Pipeline New Business",
-    description: "Target for pipeline of new business opportunities",
-    unit: "currency",
-    targetValue: 2000000,
-    hierarchy: "objective",
-    tags: ["Financial", "Pipeline", "Sales"],
-    parent: null,
-    children: [],
-    createdAt: new Date("2025-03-12"),
-    updatedAt: new Date("2025-04-16"),
-  },
-  {
-    id: 3,
-    title: "Training & Certification",
-    description: "Complete required training and certification courses",
-    unit: "boolean",
-    targetValue: 1,
-    hierarchy: "activity",
-    tags: ["Training", "Certification", "People"],
-    parent: 1,
-    children: [9],
-    createdAt: new Date("2025-03-15"),
-    updatedAt: new Date("2025-04-10"),
-  },
-  {
-    id: 4,
-    title: "Marketing Development Funds",
-    description: "Allocated marketing development funds",
-    unit: "currency",
-    targetValue: 100000,
-    hierarchy: "activity",
-    tags: ["Financial", "Marketing", "Budget"],
-    parent: 1,
-    children: [],
-    createdAt: new Date("2025-03-18"),
-    updatedAt: new Date("2025-04-12"),
-  },
-  {
-    id: 5,
-    title: "Co-branded Campaigns",
-    description: "Number of co-branded campaigns to launch",
-    unit: "number",
-    targetValue: 4,
-    hierarchy: "objective",
-    tags: ["Marketing", "Campaign", "Brand"],
-    parent: null,
-    children: [6],
-    createdAt: new Date("2025-02-15"),
-    updatedAt: new Date("2025-04-10"),
-  },
-  {
-    id: 6,
-    title: "Website Overhaul",
-    description: "Complete website redesign project",
-    unit: "boolean",
-    targetValue: 1,
-    hierarchy: "activity",
-    tags: ["Digital", "Website", "Marketing"],
-    parent: 5,
-    children: [],
-    createdAt: new Date("2025-02-20"),
-    updatedAt: new Date("2025-04-05"),
-  },
-  {
-    id: 7,
-    title: "Customer Satisfaction",
-    description: "CSAT score target",
-    unit: "percentage",
-    targetValue: 95,
-    hierarchy: "objective",
-    tags: ["Customer", "Support", "Quality"],
-    parent: null,
-    children: [8],
-    createdAt: new Date("2025-01-20"),
-    updatedAt: new Date("2025-03-05"),
-  },
-  {
-    id: 8,
-    title: "Response Time",
-    description: "Average time to first response in hours",
-    unit: "number",
-    targetValue: 4,
-    hierarchy: "activity",
-    tags: ["Support", "Service", "Quality"],
-    parent: 7,
-    children: [10],
-    createdAt: new Date("2025-01-22"),
-    updatedAt: new Date("2025-03-10"),
-  },
-  {
-    id: 9,
-    title: "Document Review Sessions",
-    description: "Number of document review sessions with team",
-    unit: "number",
-    targetValue: 6,
-    hierarchy: "subactivity",
-    tags: ["Training", "Certification"],
-    parent: 3,
-    children: [],
-    createdAt: new Date("2025-03-16"),
-    updatedAt: new Date("2025-04-11"),
-  },
-  {
-    id: 10,
-    title: "Customer Support Scripts",
-    description: "Creation of standard customer support scripts",
-    unit: "boolean",
-    targetValue: 1,
-    hierarchy: "subactivity",
-    tags: ["Support", "Service"],
-    parent: 8,
-    children: [],
-    createdAt: new Date("2025-01-25"),
-    updatedAt: new Date("2025-03-12"),
-  }
-];
+
 
 // Mock data for tags
 const mockTags = [
@@ -776,12 +644,8 @@ const formatTargetValue = (value: number | undefined, unit: string) => {
 export default function MetricsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [selectedMetrics, setSelectedMetrics] = useState<number[]>([]);
-  const [expandedItems, setExpandedItems] = useState<number[]>([]);
-  const [activeTab, setActiveTab] = useState("metrics");
+  const [activeTab, setActiveTab] = useState("groups");
   const [isManageTagsOpen, setIsManageTagsOpen] = useState(false);
-  const [isCreateMetricOpen, setIsCreateMetricOpen] = useState(false);
-  const [isCreateGroupOpen, setIsCreateGroupOpen] = useState(false);
   const [isCreateOKROpen, setIsCreateOKROpen] = useState(false);
   const [selectedMeasureUnit, setSelectedMeasureUnit] = useState("");
   const [selectedTargetRange, setSelectedTargetRange] = useState("");
@@ -1381,8 +1245,7 @@ export default function MetricsPage() {
       </div>
       {/* Tabs for Metrics and Metric Groups */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-3 w-96 mb-6">
-          <TabsTrigger value="metrics">Metrics</TabsTrigger>
+        <TabsList className="grid grid-cols-2 w-64 mb-6">
           <TabsTrigger value="groups">Metric Groups</TabsTrigger>
           <TabsTrigger value="okrs">Coming Soon</TabsTrigger>
         </TabsList>
