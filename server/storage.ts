@@ -779,6 +779,47 @@ export class DatabaseStorage implements IStorage {
     const result = await this.getDb().insert(documents).values(document).returning();
     return result[0];
   }
+
+  // Vendor operations
+  async getAllVendors(): Promise<Vendor[]> {
+    const db = this.getDb();
+    return await db.select().from(vendors);
+  }
+
+  async getVendor(id: number): Promise<Vendor | undefined> {
+    const db = this.getDb();
+    const [vendor] = await db.select().from(vendors).where(eq(vendors.id, id));
+    return vendor;
+  }
+
+  async createVendor(vendorData: InsertVendor): Promise<Vendor> {
+    const db = this.getDb();
+    const [vendor] = await db.insert(vendors).values(vendorData).returning();
+    return vendor;
+  }
+
+  // Product operations
+  async getAllProducts(): Promise<Product[]> {
+    const db = this.getDb();
+    return await db.select().from(products);
+  }
+
+  async getProduct(id: number): Promise<Product | undefined> {
+    const db = this.getDb();
+    const [product] = await db.select().from(products).where(eq(products.id, id));
+    return product;
+  }
+
+  async createProduct(productData: InsertProduct): Promise<Product> {
+    const db = this.getDb();
+    const [product] = await db.insert(products).values(productData).returning();
+    return product;
+  }
+
+  async getVendorProducts(vendorId: number): Promise<Product[]> {
+    const db = this.getDb();
+    return await db.select().from(products).where(eq(products.vendorId, vendorId));
+  }
   
   // File comparison operations
   async getFileComparisons(userId: number): Promise<FileComparison[]> {
