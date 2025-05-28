@@ -133,16 +133,6 @@ export const opportunitiesRelations = relations(opportunities, ({ one }) => ({
     fields: [opportunities.productId],
     references: [insuranceProducts.id],
   }),
-  owner: one(users, {
-    fields: [opportunities.ownerId],
-    references: [users.id],
-    relationName: "opportunityOwner",
-  }),
-  partner: one(customers, {
-    fields: [opportunities.partnerId],
-    references: [customers.id],
-    relationName: "opportunityPartner",
-  }),
 }));
 
 export const customersRelations = relations(customers, ({ one, many }) => ({
