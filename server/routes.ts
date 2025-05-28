@@ -1015,6 +1015,137 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // De Goudse upload processing endpoint
+  app.post('/api/degoudse/upload-opportunities', async (req, res) => {
+    try {
+      const { fileName, columnMappings, data, headers } = req.body;
+      
+      if (!fileName || !columnMappings || !data) {
+        return res.status(400).json({ message: 'Missing required upload data' });
+      }
+
+      const degoudseStorage = storage.switchEnvironment('degoudse');
+      let opportunitiesCreated = 0;
+      let entitiesCreated = 0;
+      const createdOpportunities = [];
+
+      // Process each row of data
+      for (let i = 0; i < data.length; i++) {
+        const rowData = data[i];
+        if (!rowData || rowData.length === 0) continue;
+
+        const opportunityData: any = {
+          title: `${fileName} - Row ${i + 1}`,
+          status: 'open',
+          stage: 'discovery',
+          type: 'nieuwe_business',
+          probability: 50,
+          estimatedValue: 0,
+          description: `Opportunity created from ${fileName}`,
+          expectedCloseDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
+        };
+
+        let customerId = null;
+        let partnerId = null;
+
+        // Process column mappings
+        for (let j = 0; j < columnMappings.length && j < rowData.length; j++) {
+          const mapping = columnMappings[j];
+          const cellValue = rowData[j];
+
+          if (!cellValue || mapping.mappingType === 'skip') continue;
+
+          if (mapping.mappingType === 'attribute' && mapping.targetField) {
+            // Map to opportunity attribute
+            if (mapping.targetField === 'probability') {
+              opportunityData.probability = parseInt(cellValue) || 50;
+            } else if (mapping.targetField === 'estimatedValue') {
+              opportunityData.estimatedValue = parseFloat(cellValue) || 0;
+            } else if (mapping.targetField === 'title') {
+              opportunityData.title = cellValue;
+            } else {
+              opportunityData[mapping.targetField] = cellValue;
+            }
+          } else if (mapping.mappingType === 'relationship' && mapping.entityType) {
+            // Handle entity relationships
+            if (mapping.entityType === 'customer' && mapping.targetField === 'customer_name') {
+              // Find or create customer
+              try {
+                const existingCustomers = await degoudseStorage.getAllCustomers();
+                let customer = existingCustomers.find(c => 
+                  c.name.toLowerCase() === cellValue.toLowerCase()
+                );
+
+                if (!customer) {
+                  customer = await degoudseStorage.createCustomer({
+                    name: cellValue,
+                    description: `Customer created from ${fileName}`,
+                    ownerId: 1
+                  });
+                  entitiesCreated++;
+                }
+                customerId = customer.id;
+              } catch (error) {
+                console.log('Customer creation skipped:', error.message);
+              }
+            } else if (mapping.entityType === 'partner' && mapping.targetField === 'partner_name') {
+              // Handle partner creation (using customers table for now)
+              try {
+                const existingCustomers = await degoudseStorage.getAllCustomers();
+                let partner = existingCustomers.find(c => 
+                  c.name.toLowerCase() === cellValue.toLowerCase()
+                );
+
+                if (!partner) {
+                  partner = await degoudseStorage.createCustomer({
+                    name: cellValue,
+                    description: `Partner created from ${fileName}`,
+                    ownerId: 1
+                  });
+                  entitiesCreated++;
+                }
+                partnerId = partner.id;
+              } catch (error) {
+                console.log('Partner creation skipped:', error.message);
+              }
+            }
+          }
+        }
+
+        // Set default customer/partner relationships
+        opportunityData.clientId = customerId || 1;
+        opportunityData.productId = 1; // Default product
+
+        try {
+          // Create the opportunity in De Goudse environment
+          const opportunity = await degoudseStorage.createOpportunity(opportunityData);
+          createdOpportunities.push(opportunity);
+          opportunitiesCreated++;
+        } catch (error) {
+          console.log(`Skipped opportunity for row ${i + 1}:`, error.message);
+        }
+      }
+
+      // Create a saved list entry for this upload
+      // This would be stored in a savedLists table in a complete implementation
+      
+      res.json({
+        success: true,
+        opportunitiesCreated,
+        entitiesCreated,
+        savedListName: fileName,
+        message: `Successfully processed ${opportunitiesCreated} opportunities from ${fileName}`
+      });
+
+    } catch (error) {
+      console.error('De Goudse upload processing error:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to process upload for De Goudse environment' 
+      });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

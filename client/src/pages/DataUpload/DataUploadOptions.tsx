@@ -8,7 +8,8 @@ import {
   Cloud, 
   Database, 
   RefreshCw,
-  ArrowLeft 
+  ArrowLeft,
+  FileSpreadsheet 
 } from "lucide-react";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { 
@@ -45,7 +46,33 @@ export default function DataUploadOptions() {
         <p className="text-gray-600">Choose a data source to import customer information for intelligent campaign creation</p>
       </div>
       
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+        {environment.id === 'degoudse' && (
+          <Card 
+            className="hover:shadow-md transition-shadow cursor-pointer border-2 border-orange-100"
+            onClick={() => setLocation("/data-upload/degoudse")}
+          >
+            <CardHeader>
+              <div className="flex justify-between items-start">
+                <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center">
+                  <FileSpreadsheet className="h-5 w-5 text-orange-600" />
+                </div>
+              </div>
+              <CardTitle className="text-lg mt-2">De Goudse Data Use Case Upload</CardTitle>
+              <CardDescription>
+                Upload Excel files to create opportunities with intelligent entity mapping
+              </CardDescription>
+            </CardHeader>
+            <CardFooter>
+              <Button 
+                className="w-full bg-orange-600 hover:bg-orange-700"
+              >
+                Upload Excel File
+              </Button>
+            </CardFooter>
+          </Card>
+        )}
+        
         <Card 
           className="hover:shadow-md transition-shadow cursor-pointer border-2 border-indigo-100"
           onClick={() => setLocation("/data-upload/brio")}
