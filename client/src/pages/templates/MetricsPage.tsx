@@ -111,46 +111,85 @@ const mockMetricGroups = [
   }
 ];
 
-// Mock OKR data for Coming Soon tab
+// Mock OKR data for Coming Soon tab - restored original content
 const mockOKRs = [
   {
     id: 1,
-    title: "Increase Partner Network Growth",
-    description: "Expand our partner network by onboarding new strategic partners",
-    tag: "Growth",
-    unit: "number",
-    targetValue: 25,
-    realizedValue: 18,
+    title: "Increase Annual Recurring Revenue by 40%",
+    description: "Grow our subscription revenue through new customer acquisition and expansion strategies",
+    tag: "Revenue Growth",
+    unit: "currency",
+    targetValue: 5000000,
+    realizedValue: null,
     startDate: new Date("2025-01-01"),
     endDate: new Date("2025-12-31"),
     milestoneFrequency: "Quarterly",
-    nestedCount: 3
+    nestedCount: 0
   },
   {
     id: 2,
-    title: "Revenue Target Achievement",
-    description: "Achieve annual revenue target through improved sales processes",
-    tag: "Financial",
-    unit: "currency",
-    targetValue: 5000000,
-    realizedValue: 3200000,
+    title: "Launch 3 Major Product Features",
+    description: "Deliver key features to improve customer experience and competitive position",
+    tag: "Product Innovation",
+    unit: "number",
+    targetValue: 3,
+    realizedValue: null,
+    startDate: new Date("2025-01-01"),
+    endDate: new Date("2025-12-31"),
+    milestoneFrequency: "Quarterly",
+    nestedCount: 0
+  },
+  {
+    id: 3,
+    title: "Achieve 95% Customer Satisfaction Score",
+    description: "Maintain high customer satisfaction through improved support and service delivery",
+    tag: "Customer Success",
+    unit: "percent",
+    targetValue: 95,
+    realizedValue: null,
     startDate: new Date("2025-01-01"),
     endDate: new Date("2025-12-31"),
     milestoneFrequency: "Monthly",
     nestedCount: 0
   },
   {
-    id: 3,
-    title: "Customer Satisfaction Excellence",
-    description: "Maintain high customer satisfaction scores across all touchpoints",
-    tag: "Customer",
-    unit: "percent",
-    targetValue: 95,
-    realizedValue: 92,
+    id: 4,
+    title: "Reduce Customer Acquisition Cost by 25%",
+    description: "Optimize marketing channels and improve conversion rates to reduce CAC",
+    tag: "Efficiency",
+    unit: "currency",
+    targetValue: 850,
+    realizedValue: null,
     startDate: new Date("2025-01-01"),
     endDate: new Date("2025-12-31"),
     milestoneFrequency: "Monthly",
-    nestedCount: 2
+    nestedCount: 0
+  },
+  {
+    id: 5,
+    title: "Expand to 2 New Geographic Markets",
+    description: "Enter new regional markets to drive business growth and market share",
+    tag: "Market Expansion",
+    unit: "number",
+    targetValue: 2,
+    realizedValue: null,
+    startDate: new Date("2025-01-01"),
+    endDate: new Date("2025-12-31"),
+    milestoneFrequency: "Quarterly",
+    nestedCount: 0
+  },
+  {
+    id: 6,
+    title: "Achieve 98% System Uptime",
+    description: "Maintain high system reliability and minimize downtime for customers",
+    tag: "Operations",
+    unit: "percent",
+    targetValue: 98,
+    realizedValue: null,
+    startDate: new Date("2025-01-01"),
+    endDate: new Date("2025-12-31"),
+    milestoneFrequency: "Monthly",
+    nestedCount: 0
   }
 ];
 
