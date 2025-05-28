@@ -180,10 +180,17 @@ export class DatabaseStorage implements IStorage {
     console.log(`Querying opportunities from schema: ${this.currentSchema}`);
     
     try {
-      // Use Drizzle ORM with proper schema reference
-      const result = await db.select().from(opportunities).orderBy(opportunities.createdAt);
+      // Direct SQL query to fetch from the correct schema
+      const result = await db.execute(sql.raw(`
+        SELECT id, title, "clientId", "productId", probability, "estimatedValue", 
+               type, status, stage, "ownerId", description, "partnerId", 
+               "createdAt", "updatedAt", "expectedCloseDate"
+        FROM "${this.currentSchema}".opportunities
+        ORDER BY "createdAt" DESC
+      `));
+      
       console.log(`Found ${result?.length || 0} opportunities in ${this.currentSchema} schema`);
-      return result || [];
+      return (result as any[]) || [];
     } catch (error) {
       console.error('Error fetching opportunities:', error);
       return [];
