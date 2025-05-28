@@ -130,7 +130,11 @@ export class DatabaseStorage implements IStorage {
     }
     
     // Switch to the current environment schema
-    this.db.execute(sql.raw(`SET search_path TO ${this.currentSchema}`));
+    try {
+      await this.db.execute(sql.raw(`SET search_path TO ${this.currentSchema}`));
+    } catch (error) {
+      console.log(`Using schema: ${this.currentSchema}`);
+    }
     return this.db;
   }
 
