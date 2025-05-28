@@ -93,6 +93,20 @@ const usePartnersData = () => {
   });
 };
 
+// Mock opportunities data to calculate total values
+const mockOpportunities = [
+  { id: 1, partnerId: 1, amount: 250000, partner: "Jeroen Hypotheek Advies" },
+  { id: 2, partnerId: 1, amount: 35000, partner: "Jeroen Hypotheek Advies" },
+  { id: 3, partnerId: 1, amount: 42000, partner: "Jeroen Hypotheek Advies" },
+  { id: 4, partnerId: 1, amount: 28000, partner: "Jeroen Hypotheek Advies" },
+  { id: 5, partnerId: 2, amount: 125000, partner: "ABC Insurance Brokers" },
+  { id: 6, partnerId: 2, amount: 75000, partner: "ABC Insurance Brokers" },
+  { id: 7, partnerId: 3, amount: 150000, partner: "Global Insurance Partners" },
+  { id: 8, partnerId: 3, amount: 225000, partner: "Global Insurance Partners" },
+  { id: 9, partnerId: 4, amount: 90000, partner: "Premier Insurance Agency" },
+  { id: 10, partnerId: 5, amount: 185000, partner: "Secure Financial Services" }
+];
+
 // Keep the original mock structure for fallback compatibility
 const mockPartners = [
   {
@@ -182,17 +196,40 @@ const mockPartners = [
 ];
 
 // Calculate partner statistics
-function calculatePartnerStats(partners: any[]) {
+function calculatePartnerStats(partners: any[], allOpportunities: any[] = []) {
   const totalPartners = partners.length;
   const totalCustomers = partners.reduce((sum, partner) => sum + partner.customers, 0);
   const totalOpportunities = partners.reduce((sum, partner) => sum + partner.opportunities, 0);
   const activePartners = partners.filter(p => p.status === 'active').length;
   
+  // Calculate total value of opportunities for partners in this list
+  const partnerIds = partners.map(p => p.id);
+  const totalOpportunityValue = allOpportunities
+    .filter(opp => {
+      // Check if opportunity is connected to any partner in the current list
+      // Handle different data structures: partnerId, partners array, or partner name
+      if (opp.partnerId && partnerIds.includes(opp.partnerId)) return true;
+      if (opp.partners && Array.isArray(opp.partners)) {
+        return opp.partners.some((p: any) => partnerIds.includes(p.id));
+      }
+      if (opp.partner) {
+        const matchingPartner = partners.find(p => p.name === opp.partner);
+        return matchingPartner && partnerIds.includes(matchingPartner.id);
+      }
+      return false;
+    })
+    .reduce((sum, opp) => {
+      // Handle different attribute names for opportunity value
+      const value = opp.amount || opp.value || opp.estimatedValue || 0;
+      return sum + value;
+    }, 0);
+  
   return {
     totalPartners,
     totalCustomers,
     totalOpportunities,
-    activePartners
+    activePartners,
+    totalOpportunityValue
   };
 }
 
@@ -540,7 +577,7 @@ function PartnersTable() {
 
 
   // Calculate stats based on filtered partners
-  const stats = calculatePartnerStats(displayedPartners);
+  const stats = calculatePartnerStats(displayedPartners, mockOpportunities);
   
   // Function to toggle partner selection
   const toggleSelectPartner = (id: number) => {
@@ -1269,8 +1306,8 @@ function PartnersTable() {
         </div>
         
         <div className="bg-white p-4 rounded-md border border-gray-200">
-          <div className="text-xl font-semibold">{stats.activePartners}</div>
-          <div className="text-sm text-gray-500">Active Partners</div>
+          <div className="text-xl font-semibold">{stats.totalOpportunityValue.toLocaleString()}€</div>
+          <div className="text-sm text-gray-500">Total Value Opportunities</div>
         </div>
         
         <div className="bg-white p-4 rounded-md border border-gray-200">
