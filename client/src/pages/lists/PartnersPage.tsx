@@ -2099,8 +2099,8 @@ function PartnersTable() {
                     {partner.status}
                   </Badge>
                 </td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{partner.customers}</td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{partner.opportunities}</td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{partner.customers || 0}</td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{partner.opportunities || 0}</td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
                   <TemplateBadges industry={partner.industry} type={partner.type} />
                 </td>

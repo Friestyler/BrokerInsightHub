@@ -45,20 +45,38 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Partners API - Clean version with one dummy record
+  // Partners API - Returns customers formatted as partners with business relationships
   app.get('/api/partners', async (req, res) => {
     try {
-      const partners = [
-        {
-          id: 1,
-          name: "Sample Customer",
-          description: "Demo customer record for UI testing",
-          initials: "SC",
-          industry: "Insurance",
-          type: "Customer",
-          size: "medium"
-        }
-      ];
+      const customers = await storage.getAllCustomers();
+      const opportunities = await storage.getAllOpportunities();
+      
+      const partners = customers.map(customer => {
+        // Count relationships for this partner
+        const partnerOpportunities = opportunities.filter(opp => 
+          opp.clientId === customer.id || opp.partnerId === customer.id
+        );
+        
+        // Count unique customers this partner has brought opportunities for
+        const uniqueCustomers = new Set(
+          partnerOpportunities
+            .filter(opp => opp.partnerId === customer.id)
+            .map(opp => opp.clientId)
+        ).size;
+        
+        return {
+          id: customer.id,
+          name: customer.name,
+          description: customer.description,
+          initials: customer.name.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 2),
+          industry: getIndustryFromDescription(customer.description),
+          type: "Partner",
+          size: getSizeFromDescription(customer.description),
+          status: "active",
+          customers: uniqueCustomers,
+          opportunities: partnerOpportunities.length
+        };
+      });
       
       res.json(partners);
     } catch (error) {
