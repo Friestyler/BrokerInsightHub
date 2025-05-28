@@ -1560,18 +1560,18 @@ function OpportunitiesTable() {
                 </td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
                   <Link 
-                    href={`/lists/customers/${opportunity.customerId}`}
+                    href={`/lists/customers/${opportunity.clientId}`}
                     className="text-indigo-600 hover:text-indigo-800 hover:underline"
                   >
-                    {opportunity.customerName}
+                    {opportunity.clientName}
                   </Link>
                 </td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
                   <Link 
-                    href={`/lists/partners/${opportunity.partnerId}`}
+                    href={`/lists/partners/${opportunity.productId}`}
                     className="text-indigo-600 hover:text-indigo-800 hover:underline"
                   >
-                    {opportunity.partnerName}
+                    {opportunity.productName}
                   </Link>
                 </td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{opportunity.type}</td>
@@ -1580,9 +1580,9 @@ function OpportunitiesTable() {
                     {opportunity.status}
                   </span>
                 </td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{formatCurrency(opportunity.value)}</td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{formatCurrency(opportunity.estimatedValue)}</td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
-                  {new Date(opportunity.dueDate).toLocaleDateString()}
+                  {opportunity.expectedCloseDate ? new Date(opportunity.expectedCloseDate).toLocaleDateString() : 'TBD'}
                 </td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
                   <TemplateBadges type={opportunity.type} status={opportunity.status} />
