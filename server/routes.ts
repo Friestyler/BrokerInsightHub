@@ -729,28 +729,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Opportunities API - Working solution
+  // Opportunities API - Returns real data from database
   app.get('/api/opportunities', async (req, res) => {
     try {
-      const opportunities = [
-        {
-          id: 1,
-          title: "Sample Opportunity",
-          clientId: 1,
-          clientName: "Sample Customer",
-          productId: 1,
-          productName: "Sample Product",
-          probability: 50,
-          estimatedValue: 10000,
-          type: "New Business",
-          status: "Open",
-          stage: "Discovery",
-          description: "Demo opportunity for UI testing",
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }
-      ];
-      
+      const opportunities = await storage.getAllOpportunities();
       console.log(`Returning ${opportunities.length} opportunities`);
       res.json(opportunities);
     } catch (error) {
