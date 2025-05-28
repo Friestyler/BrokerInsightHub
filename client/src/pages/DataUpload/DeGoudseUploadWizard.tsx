@@ -21,9 +21,9 @@ interface UploadedFile {
 
 interface ColumnMapping {
   columnName: string;
-  mappingType: 'attribute' | 'relationship' | 'contact' | 'product' | 'user' | 'skip';
+  mappingType: 'opportunity_attribute' | 'entity_relationship' | 'skip';
   targetField?: string;
-  entityType?: 'customer' | 'partner' | 'opportunity';
+  entityType?: 'customer' | 'partner' | 'vendor' | 'contact' | 'product' | 'user';
   isRequired?: boolean;
   validationStatus: 'valid' | 'invalid' | 'pending';
 }
@@ -39,33 +39,27 @@ const OPPORTUNITY_FIELDS = [
   'expectedCloseDate', 'notes', 'priority', 'source', 'tags'
 ];
 
-const ENTITY_RELATIONSHIP_FIELDS = [
-  { value: 'customer_name', label: 'Customer Name', entityType: 'customer' },
-  { value: 'partner_name', label: 'Partner Name', entityType: 'partner' },
-  { value: 'customer_email', label: 'Customer Email', entityType: 'customer' },
-  { value: 'partner_email', label: 'Partner Email', entityType: 'partner' },
-  { value: 'customer_phone', label: 'Customer Phone', entityType: 'customer' },
-  { value: 'partner_phone', label: 'Partner Phone', entityType: 'partner' }
+const ENTITY_TYPES = [
+  { value: 'customer', label: 'Customer', icon: '👤' },
+  { value: 'partner', label: 'Partner', icon: '🤝' },
+  { value: 'vendor', label: 'Vendor', icon: '🏢' },
+  { value: 'contact', label: 'Contact', icon: '📞' },
+  { value: 'product', label: 'Product', icon: '📦' },
+  { value: 'user', label: 'User', icon: '👥' }
 ];
 
-const CONTACT_FIELDS = [
-  'name', 'email', 'phone', 'company', 'position', 'notes'
-];
-
-const PRODUCT_FIELDS = [
-  'name', 'category', 'description', 'price', 'sku'
-];
-
-const USER_FIELDS = [
-  'name', 'email', 'role', 'department'
-];
+const ENTITY_ATTRIBUTES = {
+  customer: ['name', 'email', 'phone', 'company', 'website', 'address', 'notes'],
+  partner: ['name', 'email', 'phone', 'company', 'website', 'address', 'notes'],
+  vendor: ['name', 'email', 'phone', 'company', 'website', 'address', 'notes'],
+  contact: ['name', 'email', 'phone', 'company', 'position', 'notes'],
+  product: ['name', 'category', 'description', 'price', 'sku'],
+  user: ['name', 'email', 'role', 'department']
+};
 
 const MAPPING_OPTIONS = [
   { value: "opportunity_attribute", label: "Opportunity Attribute", icon: Target },
   { value: "entity_relationship", label: "Entity Relationship", icon: Users },
-  { value: "contact", label: "Contact", icon: User },
-  { value: "product", label: "Product", icon: Package },
-  { value: "user", label: "User", icon: UserCheck },
   { value: "skip", label: "Skip Column", icon: X }
 ];
 
@@ -114,7 +108,7 @@ export default function DeGoudseUploadWizard() {
       // Initialize column mappings
       const initialMappings: ColumnMapping[] = headers.map(header => ({
         columnName: header,
-        mappingType: 'attribute',
+        mappingType: 'opportunity_attribute',
         validationStatus: 'pending'
       }));
       
