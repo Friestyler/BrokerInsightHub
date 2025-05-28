@@ -54,27 +54,24 @@ const mockPartners = [
   },
 ];
 
-// Sample data for customer entities - tied to specific partners
+// Clean customer data - single dummy record
 const mockCustomers = [
   {
     id: 1,
-    name: "Acme Corporation",
+    name: "Sample Customer",
     partnerId: 1,
-    partnerName: "ABC Insurance Brokers",
-    industry: "Manufacturing",
-    size: "enterprise",
+    partnerName: "Sample Partner",
+    industry: "Insurance",
+    size: "medium",
     status: "active",
-    products: 5,
-    opportunities: 2,
-    initials: "AC",
-    lastContact: "2025-05-01",
-    annualRevenue: "$25M-$50M",
-    location: "New York, NY"
-  },
-  {
-    id: 2,
-    name: "Globex Industries",
-    partnerId: 3,
+    products: 1,
+    opportunities: 0,
+    initials: "SC",
+    lastContact: "2025-05-28",
+    annualRevenue: "$1M-$5M",
+    location: "Demo Location"
+  }
+];
     partnerName: "Global Risk Partners",
     industry: "Technology",
     size: "large",
