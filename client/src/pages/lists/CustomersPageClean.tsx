@@ -294,94 +294,158 @@ export default function CustomersPageClean() {
 
 
 
-        {/* Statistics Cards - exact match to Opportunities layout */}
-        <div className="grid grid-cols-4 gap-6">
-          <div>
-            <div className="text-3xl font-bold text-black">{filteredCustomers.length}</div>
+        {/* Statistics overview - exact match to Opportunities */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-white p-4 rounded-md border border-gray-200">
+            <div className="text-xl font-semibold">{filteredCustomers.length}</div>
             <div className="text-sm text-gray-500">Total Customers</div>
           </div>
           
-          <div>
-            <div className="text-3xl font-bold text-black">0</div>
+          <div className="bg-white p-4 rounded-md border border-gray-200">
+            <div className="text-xl font-semibold">1</div>
             <div className="text-sm text-gray-500">Active</div>
           </div>
           
-          <div>
-            <div className="text-3xl font-bold text-black">€10K</div>
+          <div className="bg-white p-4 rounded-md border border-gray-200">
+            <div className="text-xl font-semibold">€10K</div>
             <div className="text-sm text-gray-500">Total Value</div>
           </div>
           
-          <div>
-            <div className="text-3xl font-bold text-black">€5K</div>
+          <div className="bg-white p-4 rounded-md border border-gray-200">
+            <div className="text-xl font-semibold">€5K</div>
             <div className="text-sm text-gray-500">Weighted Value</div>
           </div>
         </div>
 
-        {/* Table - exact match to Opportunities */}
-        <div className="bg-white rounded-lg border border-gray-200">
-          <div className="overflow-x-auto">
-            <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
-                <tr>
-                  <th className="text-left p-4 text-sm font-medium text-gray-500 w-12">
-                    <Checkbox
+        {/* Customers table - exact match to Opportunities */}
+        <div className="overflow-hidden bg-white sm:rounded-lg">
+          <table className="min-w-full">
+            <thead className="bg-gray-50">
+              <tr>
+                <th scope="col" className="relative px-3 py-3.5 w-10 pt-[12px] pb-[12px]">
+                  <div className="flex items-center justify-center">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-gray-300"
                       checked={selectedCustomers.length === filteredCustomers.length && filteredCustomers.length > 0}
-                      onCheckedChange={handleSelectAll}
+                      onChange={handleSelectAll}
                     />
-                  </th>
-                  <th className="text-left p-4 text-sm font-medium text-gray-500">Customer <span className="text-gray-400">↕</span></th>
-                  <th className="text-left p-4 text-sm font-medium text-gray-500">Partner <span className="text-gray-400">↕</span></th>
-                  <th className="text-left p-4 text-sm font-medium text-gray-500">Industry <span className="text-gray-400">↕</span></th>
-                  <th className="text-left p-4 text-sm font-medium text-gray-500">Type <span className="text-gray-400">↕</span></th>
-                  <th className="text-left p-4 text-sm font-medium text-gray-500">Status <span className="text-gray-400">↕</span></th>
-                  <th className="text-left p-4 text-sm font-medium text-gray-500">Value <span className="text-gray-400">↕</span></th>
-                  <th className="text-left p-4 text-sm font-medium text-gray-500">Template</th>
+                  </div>
+                </th>
+                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold w-[250px] text-[#696C8C] pt-[12px] pb-[12px]">
+                  <div className="flex items-center text-[#696C8C] text-[13px] font-medium">
+                    Customer
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                      <path d="M8 9l4-4 4 4"></path>
+                      <path d="M16 15l-4 4-4-4"></path>
+                    </svg>
+                  </div>
+                </th>
+                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-[#696C8C] pt-[12px] pb-[12px]">
+                  <div className="flex items-center text-[13px] font-medium text-[#696C8C]">
+                    Partner
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                      <path d="M8 9l4-4 4 4"></path>
+                      <path d="M16 15l-4 4-4-4"></path>
+                    </svg>
+                  </div>
+                </th>
+                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-[#696C8C] pt-[12px] pb-[12px]">
+                  <div className="flex items-center text-[13px] font-medium text-[#696C8C]">
+                    Industry
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                      <path d="M8 9l4-4 4 4"></path>
+                      <path d="M16 15l-4 4-4-4"></path>
+                    </svg>
+                  </div>
+                </th>
+                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-[#696C8C]">
+                  <div className="flex items-center text-[13px] font-medium text-[#696C8C]">
+                    Type
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                      <path d="M8 9l4-4 4 4"></path>
+                      <path d="M16 15l-4 4-4-4"></path>
+                    </svg>
+                  </div>
+                </th>
+                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                  <div className="flex items-center text-[13px] font-medium text-[#696C8C]">
+                    Status
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                      <path d="M8 9l4-4 4 4"></path>
+                      <path d="M16 15l-4 4-4-4"></path>
+                    </svg>
+                  </div>
+                </th>
+                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                  <div className="flex items-center text-[13px] font-medium text-[#696C8C]">
+                    Value
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                      <path d="M8 9l4-4 4 4"></path>
+                      <path d="M16 15l-4 4-4-4"></path>
+                    </svg>
+                  </div>
+                </th>
+                <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                  <div className="flex items-center text-[#696C8C] text-[13px] font-medium">
+                    Template
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white">
+              {filteredCustomers.map((customer: any) => (
+                <tr 
+                  key={customer.id} 
+                  className="hover:bg-gray-50 group"
+                >
+                  <td className="relative whitespace-nowrap py-4 pl-3 pr-3 text-sm w-10">
+                    <input
+                      type="checkbox"
+                      className="h-4 w-4 rounded border-gray-300 opacity-0 group-hover:opacity-100 transition-opacity"
+                      checked={selectedCustomers.includes(customer.id)}
+                      onChange={() => handleCustomerSelect(customer.id)}
+                    />
+                  </td>
+                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm font-medium w-[250px]">
+                    <div className="flex items-center">
+                      <div className="flex-shrink-0 h-10 w-10">
+                        <Avatar className="h-10 w-10">
+                          <AvatarFallback className="bg-indigo-100 text-indigo-700 text-sm font-medium">
+                            {customer.name.substring(0, 2).toUpperCase()}
+                          </AvatarFallback>
+                        </Avatar>
+                      </div>
+                      <div className="ml-3">
+                        <div className="font-medium text-gray-900">
+                          {customer.name}
+                        </div>
+                      </div>
+                    </div>
+                  </td>
+                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">No Partner</td>
+                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">Insurance</td>
+                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm capitalize">Customer</td>
+                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">Active</td>
+                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">€10,000</td>
+                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                    <div className="flex space-x-1">
+                      <Avatar className="h-6 w-6">
+                        <AvatarFallback className="bg-green-100 text-green-600 text-xs font-medium">
+                          NB
+                        </AvatarFallback>
+                      </Avatar>
+                      <Avatar className="h-6 w-6">
+                        <AvatarFallback className="bg-purple-100 text-purple-600 text-xs font-medium">
+                          PR
+                        </AvatarFallback>
+                      </Avatar>
+                    </div>
+                  </td>
                 </tr>
-              </thead>
-              <tbody className="divide-y divide-gray-200">
-                {filteredCustomers.map((customer: any) => (
-                  <tr key={customer.id} className="hover:bg-gray-50">
-                    <td className="p-4">
-                      <Checkbox
-                        checked={selectedCustomers.includes(customer.id)}
-                        onCheckedChange={() => handleCustomerSelect(customer.id)}
-                      />
-                    </td>
-                    <td className="p-4">
-                      <div className="flex items-center space-x-3">
-                        <Avatar className="h-8 w-8">
-                          <AvatarFallback className="bg-blue-100 text-blue-600 text-sm font-medium">
-                            {customer.initials || customer.name.substring(0, 2).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
-                        <span className="text-sm font-medium text-gray-900">{customer.name}</span>
-                      </div>
-                    </td>
-                    <td className="p-4 text-sm text-gray-900">Van Damme BVBA</td>
-                    <td className="p-4 text-sm text-gray-900">No Partner</td>
-                    <td className="p-4 text-sm text-gray-900">Customer</td>
-                    <td className="p-4 text-sm text-gray-900">Discovery</td>
-                    <td className="p-4 text-sm text-gray-900">Open</td>
-                    <td className="p-4 text-sm text-gray-900">€10,000</td>
-                    <td className="p-4">
-                      <div className="flex space-x-1">
-                        <Avatar className="h-6 w-6">
-                          <AvatarFallback className="bg-green-100 text-green-600 text-xs font-medium">
-                            NB
-                          </AvatarFallback>
-                        </Avatar>
-                        <Avatar className="h-6 w-6">
-                          <AvatarFallback className="bg-purple-100 text-purple-600 text-xs font-medium">
-                            PR
-                          </AvatarFallback>
-                        </Avatar>
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+              ))}
+            </tbody>
+          </table>
         </div>
 
         {/* New List Dialog */}
