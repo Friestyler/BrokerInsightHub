@@ -404,13 +404,14 @@ export default function DeGoudseUploadWizard() {
                         </SelectContent>
                       </Select>
 
-                      {mapping.mappingType === 'attribute' && (
+                      {/* Step 2: If Opportunity Attribute, show opportunity fields */}
+                      {mapping.mappingType === 'opportunity_attribute' && (
                         <Select
                           value={mapping.targetField || ''}
                           onValueChange={(value) => updateColumnMapping(index, { targetField: value })}
                         >
                           <SelectTrigger>
-                            <SelectValue placeholder="Select field" />
+                            <SelectValue placeholder="Select opportunity field" />
                           </SelectTrigger>
                           <SelectContent>
                             {OPPORTUNITY_FIELDS.map(field => (
@@ -422,82 +423,71 @@ export default function DeGoudseUploadWizard() {
                         </Select>
                       )}
 
-                      {mapping.mappingType === 'relationship' && (
+                      {/* Step 2: If Entity Relationship, show entity types */}
+                      {mapping.mappingType === 'entity_relationship' && !mapping.entityType && (
                         <Select
-                          value={mapping.targetField || ''}
-                          onValueChange={(value) => {
-                            const relationship = ENTITY_RELATIONSHIP_FIELDS.find(r => r.value === value);
-                            updateColumnMapping(index, { 
-                              targetField: value,
-                              entityType: relationship?.entityType as 'customer' | 'partner'
-                            });
-                          }}
+                          value={mapping.entityType || ''}
+                          onValueChange={(value) => updateColumnMapping(index, { 
+                            entityType: value as 'customer' | 'partner' | 'vendor' | 'contact' | 'product' | 'user',
+                            targetField: undefined // Reset target field when entity changes
+                          })}
                         >
                           <SelectTrigger>
-                            <SelectValue placeholder="Select relationship" />
+                            <SelectValue placeholder="Select entity type" />
                           </SelectTrigger>
                           <SelectContent>
-                            {ENTITY_RELATIONSHIP_FIELDS.map(field => (
-                              <SelectItem key={field.value} value={field.value}>
-                                {field.label}
+                            {ENTITY_TYPES.map(entity => (
+                              <SelectItem key={entity.value} value={entity.value}>
+                                <div className="flex items-center gap-2">
+                                  <span>{entity.icon}</span>
+                                  <span>{entity.label}</span>
+                                </div>
                               </SelectItem>
                             ))}
                           </SelectContent>
                         </Select>
                       )}
 
-                      {mapping.mappingType === 'contact' && (
-                        <Select
-                          value={mapping.targetField || ''}
-                          onValueChange={(value) => updateColumnMapping(index, { targetField: value })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select contact field" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {CONTACT_FIELDS.map(field => (
-                              <SelectItem key={field} value={field}>
-                                {field.charAt(0).toUpperCase() + field.slice(1)}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-
-                      {mapping.mappingType === 'product' && (
-                        <Select
-                          value={mapping.targetField || ''}
-                          onValueChange={(value) => updateColumnMapping(index, { targetField: value })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select product field" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {PRODUCT_FIELDS.map(field => (
-                              <SelectItem key={field} value={field}>
-                                {field.charAt(0).toUpperCase() + field.slice(1)}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      )}
-
-                      {mapping.mappingType === 'user' && (
-                        <Select
-                          value={mapping.targetField || ''}
-                          onValueChange={(value) => updateColumnMapping(index, { targetField: value })}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select user field" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {USER_FIELDS.map(field => (
-                              <SelectItem key={field} value={field}>
-                                {field.charAt(0).toUpperCase() + field.slice(1)}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
+                      {/* Step 3: If Entity Relationship with entity selected, show entity attributes */}
+                      {mapping.mappingType === 'entity_relationship' && mapping.entityType && (
+                        <div className="flex gap-2">
+                          <Select
+                            value={mapping.entityType}
+                            onValueChange={(value) => updateColumnMapping(index, { 
+                              entityType: value as 'customer' | 'partner' | 'vendor' | 'contact' | 'product' | 'user',
+                              targetField: undefined
+                            })}
+                          >
+                            <SelectTrigger className="w-32">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {ENTITY_TYPES.map(entity => (
+                                <SelectItem key={entity.value} value={entity.value}>
+                                  <div className="flex items-center gap-2">
+                                    <span>{entity.icon}</span>
+                                    <span>{entity.label}</span>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                          <Select
+                            value={mapping.targetField || ''}
+                            onValueChange={(value) => updateColumnMapping(index, { targetField: value })}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder={`Select ${mapping.entityType} field`} />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {ENTITY_ATTRIBUTES[mapping.entityType]?.map(field => (
+                                <SelectItem key={field} value={field}>
+                                  {field.charAt(0).toUpperCase() + field.slice(1)}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
                       )}
 
                       {mapping.mappingType === 'skip' && (
