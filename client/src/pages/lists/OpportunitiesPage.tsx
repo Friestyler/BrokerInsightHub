@@ -353,22 +353,55 @@ function OpportunitiesTable() {
   const [pendingListAction, setPendingListAction] = useState<any>(null);
   const [showUnsavedChangesModal, setShowUnsavedChangesModal] = useState(false);
   
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading opportunities...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">Failed to load opportunities</p>
+          <button 
+            onClick={() => window.location.reload()} 
+            className="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   // Enhanced filtering logic for both filter and selection-based lists
   const displayedOpportunities = (() => {
     let opportunitiesData = opportunities;
     
     // If we have an active list that's selection-based, use its members
     if (activeList && activeList.type === 'selection' && activeList.members) {
-      opportunitiesData = opportunities.filter(opp => activeList.members!.includes(opp.id));
+      opportunitiesData = opportunities.filter((opp: any) => activeList.members!.includes(opp.id));
     }
     
     // Apply current filters (from UI or active list/view)
-    return opportunities.filter(opportunity => {
-      // Text search
+    return opportunitiesData.filter((opportunity: any) => {
+      // Text search - handle both database format and mock format
+      const title = opportunity.title || '';
+      const customerName = opportunity.customerName || opportunity.client?.name || '';
+      const partnerName = opportunity.partnerName || opportunity.partner?.name || '';
+      
       const matchesText = !filterText || 
-        opportunity.title.toLowerCase().includes(filterText.toLowerCase()) ||
-        opportunity.customerName.toLowerCase().includes(filterText.toLowerCase()) ||
-        opportunity.partnerName.toLowerCase().includes(filterText.toLowerCase());
+        title.toLowerCase().includes(filterText.toLowerCase()) ||
+        customerName.toLowerCase().includes(filterText.toLowerCase()) ||
+        partnerName.toLowerCase().includes(filterText.toLowerCase());
         
       // Status filter (from UI or active list/view)
       const activeStatus = selectedStatus || activeList?.filters.status || activeView?.filters.status;
@@ -379,10 +412,13 @@ function OpportunitiesTable() {
       const matchesType = !activeType || opportunity.type === activeType;
       
       // Customer/Partner filters from active list
+      const customerId = opportunity.customerId || opportunity.clientId;
+      const partnerId = opportunity.partnerId || opportunity.partner?.id;
+      
       const matchesCustomerId = !activeList?.filters.customerId || 
-        String(opportunity.customerId) === activeList.filters.customerId;
+        String(customerId) === activeList.filters.customerId;
       const matchesPartnerId = !activeList?.filters.partnerId || 
-        String(opportunity.partnerId) === activeList.filters.partnerId;
+        String(partnerId) === activeList.filters.partnerId;
       
       return matchesText && matchesStatus && matchesType && matchesCustomerId && matchesPartnerId;
     });
