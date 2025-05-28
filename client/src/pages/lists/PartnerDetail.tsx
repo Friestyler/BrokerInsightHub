@@ -1462,62 +1462,288 @@ function PartnerOpportunitiesSection({ partnerId }: { partnerId: string | undefi
         </div>
       </div>
       
-      {/* Search and filters */}
-      <div className="mb-4">
-        <div className="flex gap-2">
-          <div className="relative">
-            <input 
-              type="text" 
-              placeholder="Search opportunities..." 
-              className="w-[230px] border border-gray-300 rounded-md py-2 pl-10 pr-4 text-sm"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <circle cx="11" cy="11" r="8"></circle>
-                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-              </svg>
+      {/* Search and filters section - exact from Partners page */}
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
+        <div className="p-4">
+          {/* Top row: Search bar and Saved Views */}
+          <div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center mb-4">
+            {/* Left side: Search and Views */}
+            <div className="flex items-center gap-4 flex-1">
+              {/* Search input */}
+              <div className="relative flex-1 max-w-md">
+                <input 
+                  type="text" 
+                  placeholder="Search opportunities..." 
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                />
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                  </svg>
+                </div>
+              </div>
+
+              {/* Saved Views dropdown - positioned to the right of search */}
+              <div className="relative">
+                <button 
+                  className="flex items-center gap-2 px-4 py-2 text-[#282A3F] rounded-md border border-gray-300 hover:bg-[#F5F6FE]"
+                  style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px', fontWeight: 500 }}
+                  onClick={() => setShowViewsDropdown(!showViewsDropdown)}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                    <circle cx="12" cy="12" r="3"></circle>
+                  </svg>
+                  <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
+                    {activeView ? activeView.name : "Views"}
+                  </span>
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width="14" 
+                    height="14" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    className={`transition-transform ${showViewsDropdown ? 'rotate-180' : ''}`}
+                  >
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </button>
+                
+                {/* Saved Views dropdown menu - exact from Partners page */}
+                {showViewsDropdown && (
+                  <div className="absolute z-50 mt-1 w-64 rounded-md border border-slate-200 bg-white shadow-md">
+                    <div className="p-2 border-b">
+                      {savedViews.map(view => (
+                        <div 
+                          key={view.id}
+                          className={`flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 ${activeView?.id === view.id ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700'}`}
+                          onClick={() => {
+                            setActiveView(view);
+                            setSearchTerm(view.filters.searchText || '');
+                            setStatusFilter(view.filters.status || '');
+                            setTypeFilter(view.filters.type || '');
+                            setStageFilter(view.filters.stage || '');
+                            setShowViewsDropdown(false);
+                          }}
+                        >
+                          <div className="flex items-center">
+                            {view.name}
+                          </div>
+                          {activeView?.id === view.id && (
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                              <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                    {activeView && (
+                      <div className="p-2">
+                        <button 
+                          className="flex w-full items-center p-2 text-sm rounded-md text-indigo-600 hover:bg-indigo-50"
+                          onClick={() => {
+                            setShowViewsDropdown(false);
+                            setActiveView(null);
+                            setSearchTerm('');
+                            setStatusFilter('');
+                            setTypeFilter('');
+                            setStageFilter('');
+                          }}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                            <path d="M18 6L6 18"></path>
+                            <path d="M6 6l12 12"></path>
+                          </svg>
+                          Clear view
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+              
+              {/* Filter buttons next to the views dropdown */}
+              <div className="flex items-center gap-2">
+                <button 
+                  className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${statusFilter && statusFilter !== 'all' ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+                  onClick={() => setStatusFilter(statusFilter && statusFilter !== 'all' ? '' : 'open')}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                  </svg>
+                  <span>{statusFilter && statusFilter !== 'all' ? `Status: ${statusFilter.charAt(0).toUpperCase() + statusFilter.slice(1)}` : 'Status'}</span>
+                  {statusFilter && statusFilter !== 'all' && (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  )}
+                </button>
+                
+                <button 
+                  className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${typeFilter && typeFilter !== 'all' ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+                  onClick={() => setTypeFilter(typeFilter && typeFilter !== 'all' ? '' : 'new_business')}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                  </svg>
+                  <span>{typeFilter && typeFilter !== 'all' ? `Type: ${typeFilter.replace('_', ' ')}` : 'Type'}</span>
+                  {typeFilter && typeFilter !== 'all' && (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  )}
+                </button>
+                
+                <button 
+                  className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${stageFilter && stageFilter !== 'all' ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+                  onClick={() => setStageFilter(stageFilter && stageFilter !== 'all' ? '' : 'discovery')}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                  </svg>
+                  <span>{stageFilter && stageFilter !== 'all' ? `Stage: ${stageFilter.charAt(0).toUpperCase() + stageFilter.slice(1)}` : 'Stage'}</span>
+                  {stageFilter && stageFilter !== 'all' && (
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
+                      <line x1="18" y1="6" x2="6" y2="18"></line>
+                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                  )}
+                </button>
+              </div>
+            </div>
+
+            {/* Right side: View action buttons - exact from Partners page */}
+            <div className="flex items-center gap-2">
+              {(() => {
+                // Check if current filters differ from active view filters
+                const hasViewChanges = activeView && (
+                  (searchTerm || '') !== (activeView.filters.searchText || '') ||
+                  (statusFilter || '') !== (activeView.filters.status || '') ||
+                  (typeFilter || '') !== (activeView.filters.type || '') ||
+                  (stageFilter || '') !== (activeView.filters.stage || '')
+                );
+
+                return (
+                  <div className="flex items-center gap-2">
+                    {/* Show view action buttons when a view is active and has changes */}
+                    {activeView && hasViewChanges && (
+                      <>
+                        {/* Revert changes button */}
+                        <button 
+                          className="flex items-center rounded-md px-4 py-2 text-gray-600 hover:bg-gray-100"
+                          onClick={() => {
+                            setSearchTerm(activeView.filters.searchText || '');
+                            setStatusFilter(activeView.filters.status || '');
+                            setTypeFilter(activeView.filters.type || '');
+                            setStageFilter(activeView.filters.stage || '');
+                          }}
+                          style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5F6585" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                            <path d="M3 7v6h6"></path>
+                            <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"></path>
+                          </svg>
+                          <span className="text-[#5F6585]">Revert changes</span>
+                        </button>
+                        
+                        {/* Save button - updates the current view */}
+                        <button 
+                          className="flex items-center rounded-md bg-[#EBEEFB] px-4 py-2 hover:bg-[#E3E6F7]"
+                          onClick={() => {
+                            const updatedViews = savedViews.map(view => {
+                              if (view.id === activeView.id) {
+                                return {
+                                  ...view,
+                                  filters: {
+                                    searchText: searchTerm || undefined,
+                                    status: statusFilter || undefined,
+                                    type: typeFilter || undefined,
+                                    stage: stageFilter || undefined
+                                  }
+                                };
+                              }
+                              return view;
+                            });
+                            setSavedViews(updatedViews);
+                            setActiveView(updatedViews.find(view => view.id === activeView.id) || null);
+                          }}
+                          style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                            <polyline points="7 3 7 8 15 8"></polyline>
+                          </svg>
+                          <span className="text-[#3E4DC4] font-medium">Save</span>
+                        </button>
+                        
+                        {/* Save as new view button */}
+                        <button 
+                          className="flex items-center rounded-md bg-[#EBEEFB] px-4 py-2 hover:bg-[#E3E6F7]"
+                          onClick={() => setShowSaveViewModal(true)}
+                          style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                            <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                            <polyline points="7 3 7 8 15 8"></polyline>
+                          </svg>
+                          <span className="text-[#3E4DC4] font-medium">Save as new view</span>
+                        </button>
+                      </>
+                    )}
+                    
+                    {/* Show Save as new view button only when no view is active but filters are applied */}
+                    {!activeView && (searchTerm || statusFilter || typeFilter || stageFilter) && (
+                      <button 
+                        className="flex items-center rounded-md bg-[#EBEEFB] px-4 py-2 hover:bg-[#E3E6F7]"
+                        onClick={() => setShowSaveViewModal(true)}
+                        style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                          <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                          <polyline points="7 3 7 8 15 8"></polyline>
+                        </svg>
+                        <span className="text-[#3E4DC4] font-medium">Save as new view</span>
+                      </button>
+                    )}
+                  </div>
+                );
+              })()}
             </div>
           </div>
           
-          <Select value={statusFilter} onValueChange={setStatusFilter}>
-            <SelectTrigger className="w-[120px]">
-              <SelectValue placeholder="Status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="open">Open</SelectItem>
-              <SelectItem value="closed">Closed</SelectItem>
-              <SelectItem value="on_hold">On Hold</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          <Select value={typeFilter} onValueChange={setTypeFilter}>
-            <SelectTrigger className="w-[120px]">
-              <SelectValue placeholder="Type" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="new_business">New Business</SelectItem>
-              <SelectItem value="cross_sell">Cross Sell</SelectItem>
-              <SelectItem value="upsell">Upsell</SelectItem>
-              <SelectItem value="renewal">Renewal</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select value={stageFilter} onValueChange={setStageFilter}>
-            <SelectTrigger className="w-[120px]">
-              <SelectValue placeholder="Stage" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Stages</SelectItem>
-              <SelectItem value="discovery">Discovery</SelectItem>
-              <SelectItem value="proposal">Proposal</SelectItem>
-              <SelectItem value="negotiation">Negotiation</SelectItem>
-              <SelectItem value="closed">Closed</SelectItem>
-            </SelectContent>
-          </Select>
+          {/* Clear filters button - shown when any filters are applied */}
+          {(searchTerm || statusFilter || typeFilter || stageFilter) && (
+            <div className="mt-2">
+              <button 
+                className="flex items-center text-sm text-gray-500 hover:text-gray-700"
+                onClick={() => {
+                  setSearchTerm('');
+                  setStatusFilter('');
+                  setTypeFilter('');
+                  setStageFilter('');
+                  setActiveView(null);
+                }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                  <path d="M18 6L6 18"></path>
+                  <path d="M6 6l12 12"></path>
+                </svg>
+                Clear all filters
+              </button>
+            </div>
+          )}
         </div>
       </div>
     
