@@ -267,6 +267,28 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
             <span className={`ml-3 text-sm ${collapsed ? "hidden" : "hidden md:inline-block"}`}>Campaigns</span>
           </button>
         )}
+        
+        {/* OKRs Menu Item */}
+        <Link 
+          href="/okrs"
+          className={`flex items-center py-2.5 px-4 rounded-md ${location === "/okrs" ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-center" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M9 12l2 2 4-4"></path>
+            <path d="M21 12c.552 0 1-.448 1-1s-.448-1-1-1-1 .448-1 1 .448 1 1 1"></path>
+            <path d="M3 12c.552 0 1-.448 1-1s-.448-1-1-1-1 .448-1 1 .448 1 1 1"></path>
+            <path d="M12 21c.552 0 1-.448 1-1s-.448-1-1-1-1 .448-1 1 .448 1 1 1"></path>
+            <path d="M12 3c.552 0 1-.448 1-1s-.448-1-1-1-1 .448-1 1 .448 1 1 1"></path>
+            <path d="M21 12h-6"></path>
+            <path d="M9 12H3"></path>
+            <path d="M12 15v6"></path>
+            <path d="M12 9V3"></path>
+          </svg>
+          <span className={`ml-3 text-sm ${collapsed ? "hidden" : "hidden md:inline-block"}`}>
+            OKRs
+          </span>
+        </Link>
+        
         <div className="relative">
           <button 
             className={`flex items-center py-2.5 px-4 rounded-md w-full text-left ${location.startsWith("/templates") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
