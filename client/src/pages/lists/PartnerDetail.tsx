@@ -367,7 +367,7 @@ function PartnerOKRSection({ partnerId }: { partnerId: string | undefined }) {
 
 // Partner Detail Main Component
 export default function PartnerDetail() {
-  const params = useRoute('/partners/:id')[1];
+  const params = useRoute('/lists/partners/:id')[1];
   const partnerId = params?.id;
   
   const [activeTab, setActiveTab] = useState('overview');
