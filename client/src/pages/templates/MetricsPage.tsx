@@ -774,14 +774,7 @@ const formatTargetValue = (value: number | undefined, unit: string) => {
 };
 
 export default function MetricsPage() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [selectedMetrics, setSelectedMetrics] = useState<number[]>([]);
-  const [expandedItems, setExpandedItems] = useState<number[]>([]);
-  const [activeTab, setActiveTab] = useState("metrics");
-  const [isManageTagsOpen, setIsManageTagsOpen] = useState(false);
-  const [isCreateMetricOpen, setIsCreateMetricOpen] = useState(false);
-  const [isCreateGroupOpen, setIsCreateGroupOpen] = useState(false);
+  // State needed for the OKR functionality
   const [isCreateOKROpen, setIsCreateOKROpen] = useState(false);
   const [selectedMeasureUnit, setSelectedMeasureUnit] = useState("");
   const [selectedTargetRange, setSelectedTargetRange] = useState("");
@@ -845,56 +838,8 @@ export default function MetricsPage() {
   const [isEditing, setIsEditing] = useState(false);
   const [editingOKR, setEditingOKR] = useState<any>(null);
 
-  // Filtered metrics based on search and selected tags
-  const filteredMetrics = mockMetrics.filter(metric => {
-    const matchesSearch = searchTerm === "" || 
-      metric.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      metric.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesTags = selectedTags.length === 0 || 
-      selectedTags.some(tag => metric.tags.includes(tag));
-    
-    return matchesSearch && matchesTags;
-  });
-
-  // Filter groups based on search and tags
-  const filteredGroups = mockMetricGroups.filter(group => {
-    const matchesSearch = searchTerm === "" || 
-      group.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      group.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesTags = selectedTags.length === 0 || 
-      selectedTags.some(tag => group.tags.includes(tag));
-    
-    return matchesSearch && matchesTags;
-  });
-
-  // Toggle metric selection
-  const toggleMetricSelection = (id: number) => {
-    setSelectedMetrics(prev => 
-      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
-    );
-  };
-
-  // Toggle expansion of a metric
-  const toggleExpand = (id: number) => {
-    setExpandedItems(prev => 
-      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
-    );
-  };
-
-  // Select all metrics
-  const handleSelectAllMetrics = (checked: boolean) => {
-    if (checked) {
-      setSelectedMetrics(filteredMetrics.map(m => m.id));
-    } else {
-      setSelectedMetrics([]);
-    }
-  };
-
   // Clear filters
   const clearFilters = () => {
-    setSearchTerm("");
     setSelectedTags([]);
     setSelectedMeasureUnit("");
     setSelectedTargetRange("");
