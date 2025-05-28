@@ -349,8 +349,6 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
   const [showSaveListModal, setShowSaveListModal] = useState(false);
   const [showShareListModal, setShowShareListModal] = useState(false);
   const [showListsDropdown, setShowListsDropdown] = useState(false);
-  const [showCreateOpportunityModal, setShowCreateOpportunityModal] = useState(false);
-  const [opportunityName, setOpportunityName] = useState('');
   
   // Apply filtering based on the partnerId if provided
   const filteredCustomers = partnerId
@@ -394,191 +392,171 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
   
   return (
     <div className="space-y-4">
-      {/* Unified toolbar with more emphasis on saved lists */}
-      <div className="bg-white p-4 rounded-lg shadow-sm">
-        <div className="flex flex-col gap-4">
-          {/* Top row with saved lists and action buttons */}
-          <div className="flex flex-wrap items-center justify-between">
-            {/* Left side - Saved Lists with actions */}
-            <div className="flex items-center gap-3">
-              {/* Saved Lists dropdown - now more prominent */}
-              <div className="relative">
-                <button 
-                  className={`flex items-center space-x-2 px-4 py-2.5 border-2 rounded-md text-sm font-medium ${activeList ? 'bg-indigo-50 border-indigo-400 text-indigo-700' : 'border-gray-300 hover:border-gray-400'}`}
-                  onClick={() => setShowListsDropdown(!showListsDropdown)}
+      {/* Unified toolbar */}
+      <div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+        <div className="flex flex-col gap-3">
+          {/* Top row with search, lists, and actions */}
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Search field */}
+            <div className="relative max-w-md flex-grow">
+              <input
+                type="text"
+                placeholder="Search by name, industry..."
+                value={filterText}
+                onChange={(e) => setFilterText(e.target.value)}
+                className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
+              />
+              <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                  <circle cx="11" cy="11" r="8"></circle>
+                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                </svg>
+              </button>
+            </div>
+            
+            {/* Saved Lists dropdown */}
+            <div className="relative">
+              <button 
+                className={`flex items-center space-x-2 px-3 py-2 border rounded-md text-sm font-medium ${activeList ? 'bg-indigo-50 border-indigo-300 text-indigo-700' : 'border-gray-300'}`}
+                onClick={() => setShowListsDropdown(!showListsDropdown)}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={activeList ? 'text-indigo-600' : 'text-gray-500'}>
+                  <path d="M2 7V1h20v6"></path>
+                  <path d="M11 9h10v6H11z"></path>
+                  <path d="M2 9h6v6H2z"></path>
+                  <path d="M2 23v-6h20v6"></path>
+                </svg>
+                <span className="max-w-[160px] truncate">{activeList ? activeList.name : 'Saved Lists'}</span>
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  width="14" 
+                  height="14" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round" 
+                  className={`transition-transform ${showListsDropdown ? 'rotate-180' : ''}`}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={activeList ? 'text-indigo-600' : 'text-gray-500'}>
-                    <path d="M19 21l-7-4-7 4V5a2 2 0 012-2h10a2 2 0 012 2v16z"/>
-                  </svg>
-                  <span className="max-w-[180px] truncate font-medium">{activeList ? activeList.name : 'Saved Lists'}</span>
-                  <svg 
-                    xmlns="http://www.w3.org/2000/svg" 
-                    width="14" 
-                    height="14" 
-                    viewBox="0 0 24 24" 
-                    fill="none" 
-                    stroke="currentColor" 
-                    strokeWidth="2" 
-                    strokeLinecap="round" 
-                    strokeLinejoin="round" 
-                    className={`transition-transform ${showListsDropdown ? 'rotate-180' : ''}`}
-                  >
-                    <polyline points="6 9 12 15 18 9" />
-                  </svg>
-                </button>
-                
-                {/* Saved Lists dropdown menu */}
-                {showListsDropdown && (
-                  <div className="absolute z-40 mt-1 w-80 bg-white rounded-md shadow-lg border border-gray-200 overflow-hidden">
-                    <div className="p-2 border-b">
-                      <div className="text-sm font-medium mb-1">Saved Lists</div>
-                      <div className="relative">
-                        <input
-                          type="text"
-                          placeholder="Search saved lists..."
-                          className="w-full pl-3 pr-10 py-1.5 text-xs border border-gray-300 rounded-md"
-                        />
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-                          <circle cx="11" cy="11" r="8"></circle>
-                          <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                        </svg>
-                      </div>
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              </button>
+              
+              {/* Saved Lists dropdown menu */}
+              {showListsDropdown && (
+                <div className="absolute z-40 mt-1 w-80 bg-white rounded-md shadow-lg border border-gray-200 overflow-hidden">
+                  <div className="p-2 border-b">
+                    <div className="text-sm font-medium mb-1">Saved Lists</div>
+                    <div className="relative">
+                      <input
+                        type="text"
+                        placeholder="Search saved lists..."
+                        className="w-full pl-3 pr-10 py-1.5 text-xs border border-gray-300 rounded-md"
+                      />
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                      </svg>
                     </div>
-                    
-                    <div className="max-h-60 overflow-y-auto">
-                      {savedLists.map(list => (
-                        <button
-                          key={list.id}
-                          className={`w-full text-left py-2 px-3 hover:bg-gray-50 flex items-center justify-between ${activeList?.id === list.id ? 'bg-indigo-50' : ''}`}
-                          onClick={() => {
-                            setActiveList(list);
-                            if (list.filters.searchText) setFilterText(list.filters.searchText);
-                            if (list.filters.status) setSelectedStatus(list.filters.status);
-                            if (list.filters.industry) setSelectedIndustry(list.filters.industry);
-                            if (list.filters.size) setSelectedSize(list.filters.size);
-                            setShowListsDropdown(false);
-                          }}
-                        >
-                          <div>
-                            <div className="font-medium text-sm">{list.name}</div>
-                            <div className="text-xs text-gray-500 mt-0.5">
-                              {Object.entries(list.filters)
-                                .filter(([_, value]) => value)
-                                .map(([key]) => key)
-                                .join(', ')}
-                            </div>
-                          </div>
-                          {list.isShared && (
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-500">
-                              <circle cx="18" cy="5" r="3"></circle>
-                              <circle cx="6" cy="12" r="3"></circle>
-                              <circle cx="18" cy="19" r="3"></circle>
-                              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                            </svg>
-                          )}
-                        </button>
-                      ))}
-                    </div>
-                    
-                    <div className="p-2 border-t">
+                  </div>
+                  
+                  <div className="max-h-60 overflow-y-auto">
+                    {savedLists.map(list => (
                       <button
-                        className="w-full text-left py-1.5 px-3 text-indigo-600 hover:bg-indigo-50 rounded-md text-sm flex items-center"
+                        key={list.id}
+                        className={`w-full text-left py-2 px-3 hover:bg-gray-50 flex items-center justify-between ${activeList?.id === list.id ? 'bg-indigo-50' : ''}`}
                         onClick={() => {
-                          setActiveList(null);
-                          setFilterText('');
-                          setSelectedStatus('');
-                          setSelectedIndustry('');
-                          setSelectedSize('');
-                          setShowSaveListModal(true);
+                          setActiveList(list);
+                          if (list.filters.searchText) setFilterText(list.filters.searchText);
+                          if (list.filters.status) setSelectedStatus(list.filters.status);
+                          if (list.filters.industry) setSelectedIndustry(list.filters.industry);
+                          if (list.filters.size) setSelectedSize(list.filters.size);
                           setShowListsDropdown(false);
                         }}
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                          <line x1="12" y1="5" x2="12" y2="19"></line>
-                          <line x1="5" y1="12" x2="19" y2="12"></line>
-                        </svg>
-                        Create New List
+                        <div>
+                          <div className="font-medium text-sm">{list.name}</div>
+                          <div className="text-xs text-gray-500 mt-0.5">
+                            {Object.entries(list.filters)
+                              .filter(([_, value]) => value)
+                              .map(([key]) => key)
+                              .join(', ')}
+                          </div>
+                        </div>
+                        {list.isShared && (
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-500">
+                            <circle cx="18" cy="5" r="3"></circle>
+                            <circle cx="6" cy="12" r="3"></circle>
+                            <circle cx="18" cy="19" r="3"></circle>
+                            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                          </svg>
+                        )}
                       </button>
-                    </div>
+                    ))}
                   </div>
-                )}
-              </div>
-              
-              {/* List actions - Share/Clear when a list is active */}
-              {activeList && (
-                <div className="flex items-center gap-2">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className="text-indigo-600"
-                    onClick={() => setShowShareListModal(true)}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                      <circle cx="18" cy="5" r="3"></circle>
-                      <circle cx="6" cy="12" r="3"></circle>
-                      <circle cx="18" cy="19" r="3"></circle>
-                      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                    </svg>
-                    Share
-                  </Button>
                   
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    className="text-indigo-600"
-                    onClick={() => {
-                      // All customers in this list become selected
-                      const listCustomers = displayedCustomers.map(c => c.id);
-                      setSelectedCustomers(listCustomers);
-                      setShowCreateOpportunityModal(true);
-                      setOpportunityName('');
-                    }}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <line x1="12" y1="8" x2="12" y2="16"></line>
-                      <line x1="8" y1="12" x2="16" y2="12"></line>
-                    </svg>
-                    Create {displayedCustomers.length === 1 ? 'Opportunity' : 'Opportunities'}
-                  </Button>
-                  
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    className="text-indigo-600"
-                    onClick={() => {
-                      // Show campaign options modal
-                      // This would be implemented with a proper modal in the final version
-                      alert('This list can be added to a campaign in the Campaigns section');
-                    }}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                      <path d="M22 2 11 13" />
-                      <path d="M22 2 15 22 11 13 2 9 22 2z" />
-                    </svg>
-                    Add to Campaign
-                  </Button>
-                  
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    className="text-gray-600"
-                    onClick={() => setActiveList(null)}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                      <path d="M18 6 6 18"></path>
-                      <path d="m6 6 12 12"></path>
-                    </svg>
-                    Clear
-                  </Button>
+                  <div className="p-2 border-t">
+                    <button
+                      className="w-full text-left py-1.5 px-3 text-indigo-600 hover:bg-indigo-50 rounded-md text-sm flex items-center"
+                      onClick={() => {
+                        setActiveList(null);
+                        setFilterText('');
+                        setSelectedStatus('');
+                        setSelectedIndustry('');
+                        setSelectedSize('');
+                        setShowSaveListModal(true);
+                        setShowListsDropdown(false);
+                      }}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                      </svg>
+                      Create New List
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
             
+            {/* List actions - Share/Clear when a list is active */}
+            {activeList && (
+              <div className="flex items-center gap-2">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-indigo-600"
+                  onClick={() => setShowShareListModal(true)}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                    <circle cx="18" cy="5" r="3"></circle>
+                    <circle cx="6" cy="12" r="3"></circle>
+                    <circle cx="18" cy="19" r="3"></circle>
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                  </svg>
+                  Share
+                </Button>
+                
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  className="text-gray-600"
+                  onClick={() => setActiveList(null)}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                    <path d="M18 6 6 18"></path>
+                    <path d="m6 6 12 12"></path>
+                  </svg>
+                  Clear
+                </Button>
+              </div>
+            )}
+            
             {/* Right-side action buttons */}
-            <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2 ml-auto">
               {/* Save button - only shown when filters are applied */}
               {(filterText || selectedStatus || selectedIndustry || selectedSize) && (
                 <Button 
@@ -615,205 +593,63 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
             </div>
           </div>
           
-          {/* Bottom row with search and filters */}
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex flex-wrap items-center gap-3 flex-grow">
-              {/* Search field - moved to second row */}
-              <div className="relative w-60">
-                <input
-                  type="text"
-                  placeholder="Search by name, industry..."
-                  value={filterText}
-                  onChange={(e) => setFilterText(e.target.value)}
-                  className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
-                />
-                <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                  </svg>
-                </button>
-              </div>
-              
-              {/* Filters - placed alongside search */}
-              <div className="flex gap-2 flex-wrap">
-                <button 
-                  className={`flex items-center space-x-1 px-3 py-2 border rounded-md text-sm ${selectedStatus ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
-                  onClick={() => setSelectedStatus(selectedStatus ? '' : 'active')}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={selectedStatus ? 'text-indigo-500' : 'text-gray-500'}>
-                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                  </svg>
-                  <span>Status{selectedStatus ? ': Active' : ''}</span>
-                  {selectedStatus && (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                      <path d="M18 6 6 18"></path>
-                      <path d="m6 6 12 12"></path>
-                    </svg>
-                  )}
-                </button>
-                
-                <button 
-                  className={`flex items-center space-x-1 px-3 py-2 border rounded-md text-sm ${selectedIndustry ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
-                  onClick={() => setSelectedIndustry(selectedIndustry ? '' : 'Manufacturing')}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={selectedIndustry ? 'text-indigo-500' : 'text-gray-500'}>
-                    <circle cx="12" cy="12" r="10"></circle>
-                    <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
-                  </svg>
-                  <span>Industry{selectedIndustry ? `: ${selectedIndustry}` : ''}</span>
-                  {selectedIndustry && (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                      <path d="M18 6 6 18"></path>
-                      <path d="m6 6 12 12"></path>
-                    </svg>
-                  )}
-                </button>
-                
-                <button 
-                  className={`flex items-center space-x-1 px-3 py-2 border rounded-md text-sm ${selectedSize ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
-                  onClick={() => setSelectedSize(selectedSize ? '' : 'enterprise')}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={selectedSize ? 'text-indigo-500' : 'text-gray-500'}>
-                    <path d="M12 22V8"></path>
-                    <path d="M5 12H2a10 10 0 0 0 20 0h-3"></path>
-                  </svg>
-                  <span>Size{selectedSize ? `: ${selectedSize}` : ''}</span>
-                  {selectedSize && (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                      <path d="M18 6 6 18"></path>
-                      <path d="m6 6 12 12"></path>
-                    </svg>
-                  )}
-                </button>
-              </div>
-            </div>
-            
-            {/* Clear filters button - only shown when at least one filter is applied */}
-            {(filterText || selectedStatus || selectedIndustry || selectedSize) && (
+          {/* Bottom row with filters */}
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="flex gap-2 flex-wrap">
               <button 
-                onClick={() => {
-                  setFilterText('');
-                  setSelectedStatus('');
-                  setSelectedIndustry('');
-                  setSelectedSize('');
-                  if (activeList) setActiveList(null);
-                }}
-                className="text-xs text-gray-500 hover:text-gray-700 flex items-center px-2 py-1 hover:bg-gray-50 rounded-md transition-colors"
+                className={`flex items-center space-x-1 px-3 py-2 border rounded-md text-sm ${selectedStatus ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+                onClick={() => setSelectedStatus(selectedStatus ? '' : 'active')}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                  <path d="M18 6L6 18"></path>
-                  <path d="M6 6l12 12"></path>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={selectedStatus ? 'text-indigo-500' : 'text-gray-500'}>
+                  <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
                 </svg>
-                Clear filters
+                <span>Status{selectedStatus ? ': Active' : ''}</span>
+                {selectedStatus && (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                    <path d="M18 6 6 18"></path>
+                    <path d="m6 6 12 12"></path>
+                  </svg>
+                )}
               </button>
-            )}
+              
+              <button 
+                className={`flex items-center space-x-1 px-3 py-2 border rounded-md text-sm ${selectedIndustry ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+                onClick={() => setSelectedIndustry(selectedIndustry ? '' : 'Manufacturing')}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={selectedIndustry ? 'text-indigo-500' : 'text-gray-500'}>
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon>
+                </svg>
+                <span>Industry{selectedIndustry ? `: ${selectedIndustry}` : ''}</span>
+                {selectedIndustry && (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                    <path d="M18 6 6 18"></path>
+                    <path d="m6 6 12 12"></path>
+                  </svg>
+                )}
+              </button>
+              
+              <button 
+                className={`flex items-center space-x-1 px-3 py-2 border rounded-md text-sm ${selectedSize ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+                onClick={() => setSelectedSize(selectedSize ? '' : 'enterprise')}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={selectedSize ? 'text-indigo-500' : 'text-gray-500'}>
+                  <path d="M12 22V8"></path>
+                  <path d="M5 12H2a10 10 0 0 0 20 0h-3"></path>
+                </svg>
+                <span>Size{selectedSize ? `: ${selectedSize}` : ''}</span>
+                {selectedSize && (
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                    <path d="M18 6 6 18"></path>
+                    <path d="m6 6 12 12"></path>
+                  </svg>
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </div>
       
-      {/* Selection actions bar - visible when items are selected */}
-      {selectedCustomers.length > 0 && (
-        <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between mb-4">
-          <div className="flex items-center">
-            <span className="text-indigo-700 font-medium mr-2">{selectedCustomers.length} customers selected</span>
-            <Button 
-              variant="ghost" 
-              size="sm"
-              className="text-gray-600"
-              onClick={() => setSelectedCustomers([])}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                <path d="M18 6 6 18"></path>
-                <path d="m6 6 12 12"></path>
-              </svg>
-              Clear selection
-            </Button>
-          </div>
-          
-          <div className="flex items-center gap-2 flex-wrap">
-            <Button 
-              variant="outline" 
-              size="sm"
-              className="text-indigo-600"
-              onClick={() => setShowSaveListModal(true)}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                <polyline points="7 3 7 8 15 8"></polyline>
-              </svg>
-              Create List
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              size="sm"
-              className="text-indigo-600"
-              onClick={() => {
-                setShowCreateOpportunityModal(true);
-                setOpportunityName('');
-              }}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                <circle cx="12" cy="12" r="10"></circle>
-                <line x1="12" y1="8" x2="12" y2="16"></line>
-                <line x1="8" y1="12" x2="16" y2="12"></line>
-              </svg>
-              Create Opportunity
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              size="sm"
-              className="text-indigo-600"
-              onClick={() => {
-                // TODO: Implement campaign creation
-                alert('Selected customers can be added to a campaign. This will be available in the Campaigns section');
-              }}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                <path d="M22 2 11 13" />
-                <path d="M22 2 15 22 11 13 2 9 22 2z" />
-              </svg>
-              Add to Campaign
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => {
-                // TODO: Implement partner assignment
-                alert('Assign to partner functionality will be implemented here');
-              }}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                <circle cx="9" cy="7" r="4"></circle>
-                <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-              </svg>
-              Assign to Partner
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => {
-                // TODO: Implement template assignment
-                alert('Assign template functionality will be implemented in future');
-              }}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                <polyline points="22 4 12 14.01 9 11.01"></polyline>
-              </svg>
-              Assign Template
-            </Button>
-          </div>
-        </div>
-      )}
-
       {/* Statistics overview */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white p-4 rounded-md border border-gray-200">
@@ -836,90 +672,6 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
           <div className="text-sm text-gray-500">Total Opportunities</div>
         </div>
       </div>
-      
-      {/* Create Opportunity Modal */}
-      <Dialog open={showCreateOpportunityModal} onOpenChange={setShowCreateOpportunityModal}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Create New Opportunities</DialogTitle>
-            <DialogDescription>
-              You're creating opportunities for {selectedCustomers.length} customer(s). The standard name will be applied to each customer.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="opportunityName">Opportunity Name <span className="text-red-500">*</span></Label>
-              <Input 
-                id="opportunityName" 
-                placeholder="Enter a standard name for these opportunities"
-                value={opportunityName}
-                onChange={(e) => setOpportunityName(e.target.value)}
-                required
-              />
-              <p className="text-xs text-gray-500">
-                This name will be used for all selected customers. Each opportunity will be clearly labeled with the customer name.
-              </p>
-            </div>
-            
-            <div className="mt-2">
-              <div className="text-sm font-medium mb-2">Selected Customers ({selectedCustomers.length})</div>
-              <div className="max-h-48 overflow-y-auto border border-gray-200 rounded-md p-2">
-                {displayedCustomers.filter(c => selectedCustomers.includes(c.id)).map(customer => (
-                  <div key={customer.id} className="flex items-center py-1.5 px-2 hover:bg-gray-50 rounded-md">
-                    <div className="w-6 h-6 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-xs mr-2">
-                      {customer.initials}
-                    </div>
-                    <div className="text-sm">{customer.name}</div>
-                  </div>
-                ))}
-              </div>
-              <p className="text-xs text-gray-500 mt-2">
-                Each opportunity will be created with format: "{opportunityName || '[Standard Name]'} - {displayedCustomers[0]?.name || 'Customer Name'}"
-              </p>
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
-            </DialogClose>
-            <Button
-              onClick={() => {
-                if (!opportunityName.trim()) {
-                  alert('Please enter an opportunity name');
-                  return;
-                }
-                
-                // Create opportunities for each selected customer
-                const selectedCustomerDetails = displayedCustomers.filter(c => selectedCustomers.includes(c.id));
-                
-                // Format: show what would be created in a real implementation
-                const createdOpportunities = selectedCustomerDetails.map(customer => {
-                  const formattedName = `${opportunityName} - ${customer.name}`;
-                  return {
-                    id: Date.now() + customer.id, // mock ID
-                    name: formattedName,
-                    customerId: customer.id,
-                    customerName: customer.name,
-                    status: 'New',
-                    createdAt: new Date()
-                  };
-                });
-                
-                // In a real implementation, these would be saved to the database
-                alert(`Created ${createdOpportunities.length} opportunities:\n\n${createdOpportunities.map(o => o.name).join('\n')}`);
-                
-                setShowCreateOpportunityModal(false);
-                setOpportunityName('');
-              }}
-              disabled={!opportunityName.trim()}
-            >
-              Create Opportunities
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
       
       {/* Save List Modal */}
       <Dialog open={showSaveListModal} onOpenChange={setShowSaveListModal}>
@@ -1206,7 +958,7 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
       </Dialog>
       
       {/* Table section without a border */}
-      <div className="bg-white overflow-x-auto rounded-lg">
+      <div className="bg-white overflow-x-auto rounded-lg border border-gray-200">
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-gray-50">
             <tr>
@@ -1307,7 +1059,7 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
                     <Avatar className="h-9 w-9 mr-3 bg-indigo-100 text-indigo-600">
                       <AvatarFallback>{customer.initials}</AvatarFallback>
                     </Avatar>
-                    <Link href={`/lists/customers/${customer.id}`} className="font-medium text-gray-900 hover:text-indigo-700">{customer.name}</Link>
+                    <div className="font-medium text-gray-900">{customer.name}</div>
                   </div>
                 </td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
@@ -1546,6 +1298,7 @@ function CustomersCardView({ partnerId }: { partnerId?: number }) {
 
 export default function CustomersPage() {
   const { environment } = useEnvironment();
+  const [viewType, setViewType] = useState<'table' | 'cards'>('table');
   
   // Get URL search parameters - extract partnerId if present
   // Format example: /lists/customers?partnerId=1
@@ -1566,6 +1319,44 @@ export default function CustomersPage() {
             ? `${partnerName || 'Partner'} Customers` 
             : "Customers"}
         </h1>
+        
+        {/* View switcher */}
+        <div className="flex items-center space-x-4">
+          <button
+            onClick={() => setViewType('table')}
+            className={`flex items-center px-3 py-1.5 text-sm font-medium rounded transition-colors ${
+              viewType === 'table' 
+                ? 'bg-indigo-100 text-indigo-700' 
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <line x1="3" y1="9" x2="21" y2="9"></line>
+              <line x1="3" y1="15" x2="21" y2="15"></line>
+              <line x1="9" y1="3" x2="9" y2="21"></line>
+              <line x1="15" y1="3" x2="15" y2="21"></line>
+            </svg>
+            Table
+          </button>
+          
+          <button
+            onClick={() => setViewType('cards')}
+            className={`flex items-center px-3 py-1.5 text-sm font-medium rounded transition-colors ${
+              viewType === 'cards' 
+                ? 'bg-indigo-100 text-indigo-700' 
+                : 'text-gray-600 hover:bg-gray-100'
+            }`}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="3" width="7" height="7"></rect>
+              <rect x="14" y="3" width="7" height="7"></rect>
+              <rect x="14" y="14" width="7" height="7"></rect>
+              <rect x="3" y="14" width="7" height="7"></rect>
+            </svg>
+            Cards
+          </button>
+        </div>
       </div>
       
       {/* Partner filter indicator */}
@@ -1585,7 +1376,7 @@ export default function CustomersPage() {
         </div>
       )}
       
-      <CustomersTable partnerId={partnerId} />
+      {viewType === 'table' ? <CustomersTable partnerId={partnerId} /> : <CustomersCardView partnerId={partnerId} />}
     </div>
   );
 }
