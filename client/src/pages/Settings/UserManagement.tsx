@@ -56,7 +56,7 @@ export default function UserManagement() {
 
   const loadUsers = async () => {
     try {
-      const response = await fetch(`/api/${environment}/users`);
+      const response = await fetch(`/api/${environment.id}/users`);
       if (response.ok) {
         const data = await response.json();
         setUsers(data);
@@ -80,8 +80,8 @@ export default function UserManagement() {
 
     try {
       const url = editingUser 
-        ? `/api/${environment}/users/${editingUser.id}` 
-        : `/api/${environment}/users`;
+        ? `/api/${environment.id}/users/${editingUser.id}` 
+        : `/api/${environment.id}/users`;
       
       const method = editingUser ? 'PUT' : 'POST';
       
@@ -130,7 +130,7 @@ export default function UserManagement() {
     if (!confirm('Are you sure you want to delete this user?')) return;
 
     try {
-      const response = await fetch(`/api/${environment}/users/${userId}`, {
+      const response = await fetch(`/api/${environment.id}/users/${userId}`, {
         method: 'DELETE',
       });
 
