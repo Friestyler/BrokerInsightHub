@@ -1381,9 +1381,8 @@ export default function MetricsPage() {
       </div>
       {/* Tabs for Metrics and Metric Groups */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-3 w-96 mb-6">
+        <TabsList className="grid grid-cols-2 w-64 mb-6">
           <TabsTrigger value="metrics">Metrics</TabsTrigger>
-          <TabsTrigger value="groups">Metric Groups</TabsTrigger>
           <TabsTrigger value="okrs">Coming Soon</TabsTrigger>
         </TabsList>
         

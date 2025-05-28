@@ -1,5 +1,6 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useEnvironment } from "@/contexts/EnvironmentContext";
+import { useQuery } from "@tanstack/react-query";
 import {
   Card,
   CardContent,
@@ -245,6 +246,7 @@ interface SavedView {
 // Main opportunity list component
 function OpportunitiesTable() {
   const { toast } = useToast();
+  const { environment } = useEnvironment();
   const [filterText, setFilterText] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedType, setSelectedType] = useState('');
@@ -252,6 +254,18 @@ function OpportunitiesTable() {
   const [bulkStatusValue, setBulkStatusValue] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
+  
+  // Fetch real opportunities from the API
+  const { data: opportunities = [], isLoading, error } = useQuery({
+    queryKey: ['opportunities', environment],
+    queryFn: async () => {
+      const response = await fetch('/api/opportunities');
+      if (!response.ok) {
+        throw new Error('Failed to fetch opportunities');
+      }
+      return response.json();
+    }
+  });
   
   // Enhanced state management
   const [isCreatingNewList, setIsCreatingNewList] = useState(true);
@@ -341,11 +355,11 @@ function OpportunitiesTable() {
   
   // Enhanced filtering logic for both filter and selection-based lists
   const displayedOpportunities = (() => {
-    let opportunities = mockOpportunities;
+    let opportunitiesData = opportunities;
     
     // If we have an active list that's selection-based, use its members
     if (activeList && activeList.type === 'selection' && activeList.members) {
-      opportunities = mockOpportunities.filter(opp => activeList.members!.includes(opp.id));
+      opportunitiesData = opportunities.filter(opp => activeList.members!.includes(opp.id));
     }
     
     // Apply current filters (from UI or active list/view)
