@@ -747,86 +747,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Opportunities API - Your uploaded Excel data
+  // Opportunities API - Only real uploaded data
   app.get('/api/opportunities', async (req, res) => {
     try {
-      console.log('Fetching real opportunities from degoudse database...');
+      console.log('Fetching opportunities from degoudse database...');
       
-      // Switch to degoudse environment to get your uploaded data
       const degoudseStorage = storage.switchEnvironment('degoudse');
       const opportunities = await degoudseStorage.getAllOpportunities();
       
-      console.log(`Found ${opportunities?.length || 0} opportunities in degoudse database`);
-      
-      if (!opportunities || !Array.isArray(opportunities)) {
-        console.log('No valid opportunities array found in degoudse environment');
-        return res.json([]);
-      }
-      
-      // Add customer and product names by fetching related data
-      const enrichedOpportunities = await Promise.all(opportunities.map(async (opp) => {
-        let clientName = 'Unknown Client';
-        let productName = 'Unknown Product';
-        
-        try {
-          if (opp.clientId) {
-            const customer = await degoudseStorage.getCustomer(opp.clientId);
-            clientName = customer?.name || 'Unknown Client';
-          }
-          if (opp.productId) {
-            const product = await degoudseStorage.getProduct(opp.productId);
-            productName = product?.name || 'Unknown Product';
-          }
-        } catch (error) {
-          console.log('Error enriching opportunity data:', error);
-        }
-        
-        return {
-          ...opp,
-          clientName,
-          productName
-        };
-      }));
-      
-      console.log(`Returning ${enrichedOpportunities.length} real opportunities from degoudse database`);
-      res.json(enrichedOpportunities);
+      console.log(`Found ${opportunities?.length || 0} opportunities`);
+      res.json(opportunities || []);
     } catch (error) {
-      console.error('Error fetching opportunities from degoudse:', error);
-      res.status(500).json({ message: 'Failed to fetch opportunities' });
+      console.error('Error fetching opportunities:', error);
+      res.json([]);
     }
   });
 
-  // Partners API endpoints - only real uploaded data
+  // Partners API - Only real uploaded data
   app.get('/api/partners', async (req, res) => {
     try {
-      console.log('Partners API called');
-      
-      // Switch to degoudse environment to get your uploaded data
       const degoudseStorage = storage.switchEnvironment('degoudse');
       const customers = await degoudseStorage.getAllCustomers();
-      
-      console.log(`Customers fetched from DB: ${customers?.length || 0}`);
-      
-      if (!customers || customers.length === 0) {
-        return res.json([]);
-      }
-      
-      // Only return real uploaded customer data, no dummy data
-      const formattedPartners = customers.map((customer: any) => ({
-        id: customer.id,
-        name: customer.name,
-        description: customer.description,
-        initials: customer.name.split(' ').map(word => word[0]).join('').substring(0, 2).toUpperCase(),
-        industry: "Insurance",
-        type: "Customer",
-        size: "medium"
-      }));
-      
-      console.log(`Partners transformed: ${formattedPartners.length}`);
-      res.json(formattedPartners);
+      res.json(customers || []);
     } catch (error) {
       console.error('Error fetching partners:', error);
-      res.status(500).json({ message: 'Failed to fetch partners' });
+      res.json([]);
+    }
+  });
+
+  // Customers API - Only real uploaded data
+  app.get('/api/customers', async (req, res) => {
+    try {
+      const degoudseStorage = storage.switchEnvironment('degoudse');
+      const customers = await degoudseStorage.getAllCustomers();
+      res.json(customers || []);
+    } catch (error) {
+      console.error('Error fetching customers:', error);
+      res.json([]);
     }
   });
 
