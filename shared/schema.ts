@@ -45,23 +45,22 @@ export const clientProducts = pgTable("client_products", {
   productId: integer("product_id").notNull(),
 });
 
-// Opportunity model
+// Opportunity model - matches actual database structure
 export const opportunities = pgTable("opportunities", {
   id: serial("id").primaryKey(),
-  title: text("title").notNull(),
   clientId: integer("client_id").notNull(),
   productId: integer("product_id").notNull(),
-  status: text("status").notNull().default("open"), // open, closed, on_hold
-  stage: text("stage").notNull().default("discovery"), // discovery, proposal, negotiation, closed
-  type: text("type").notNull().default("new_business"), // new_business, cross_sell, upsell, renewal
   probability: integer("probability").notNull(),
   estimatedValue: integer("estimated_value").notNull(),
-  // Remove problematic foreign key references that don't match database structure
+  title: text("title"),
+  status: text("status"),
+  stage: text("stage"),
+  type: text("type"),
   description: text("description"),
   notes: text("notes"),
   expectedCloseDate: timestamp("expected_close_date"),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+  createdAt: timestamp("created_at"),
+  updatedAt: timestamp("updated_at"),
 });
 
 // Document model for file comparison

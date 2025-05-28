@@ -1059,8 +1059,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             clientId: customerId || 1,
             productId: 1,
             probability: opportunityData.probability || 50,
-            estimatedValue: opportunityData.estimatedValue || 0,
-            ownerId: 1
+            estimatedValue: opportunityData.estimatedValue || 0
           });
           createdOpportunities.push(opportunity);
           opportunitiesCreated++;
