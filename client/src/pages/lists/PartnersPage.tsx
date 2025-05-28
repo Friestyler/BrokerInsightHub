@@ -215,60 +215,15 @@ const mockPartners = [
 ];
 
 // Calculate partner statistics
-function calculatePartnerStats(partners: any[], allOpportunities: any[] = [], allCustomers: any[] = []) {
+function calculatePartnerStats(partners: any[]) {
   const totalPartners = partners.length;
   const activePartners = partners.filter(p => p.status === 'active').length;
   
-  // Get partner IDs for filtering
-  const partnerIds = partners.map(p => p.id);
-  
-  // Get opportunities for partners in this list
-  const relevantOpportunities = allOpportunities.filter(opp => {
-    // Check if opportunity is connected to any partner in the current list
-    // Handle different data structures: partnerId, partners array, or partner name
-    if (opp.partnerId && partnerIds.includes(opp.partnerId)) return true;
-    if (opp.partners && Array.isArray(opp.partners)) {
-      return opp.partners.some((p: any) => partnerIds.includes(p.id));
-    }
-    if (opp.partner) {
-      const matchingPartner = partners.find(p => p.name === opp.partner);
-      return matchingPartner && partnerIds.includes(matchingPartner.id);
-    }
-    return false;
-  });
-  
-  // Get customers for partners in this list (same logic as opportunities)
-  const relevantCustomers = allCustomers.filter(customer => {
-    // Check if customer is connected to any partner in the current list
-    if (customer.partnerId && partnerIds.includes(customer.partnerId)) return true;
-    if (customer.partners && Array.isArray(customer.partners)) {
-      return customer.partners.some((p: any) => partnerIds.includes(p.id));
-    }
-    if (customer.partner) {
-      const matchingPartner = partners.find(p => p.name === customer.partner);
-      return matchingPartner && partnerIds.includes(matchingPartner.id);
-    }
-    return false;
-  });
-  
-  // Count totals
-  const totalOpportunities = relevantOpportunities.length;
-  const totalCustomers = relevantCustomers.length;
-  
-  // Calculate total value of opportunities
-  const totalOpportunityValue = relevantOpportunities.reduce((sum, opp) => {
-    // Handle different attribute names for opportunity value
-    const value = opp.amount || opp.value || opp.estimatedValue || 0;
-    return sum + value;
-  }, 0);
-  
-  // Calculate weighted opportunity value using probability
-  const weightedOpportunityValue = relevantOpportunities.reduce((sum, opp) => {
-    // Handle different attribute names for opportunity value and probability
-    const value = opp.amount || opp.value || opp.estimatedValue || 0;
-    const probability = opp.probability || 0;
-    return sum + (value * (probability / 100));
-  }, 0);
+  // Sum up the database-calculated statistics from each partner
+  const totalOpportunities = partners.reduce((sum, partner) => sum + (partner.opportunities || 0), 0);
+  const totalCustomers = partners.reduce((sum, partner) => sum + (partner.customers || 0), 0);
+  const totalOpportunityValue = partners.reduce((sum, partner) => sum + (partner.totalValueOpportunities || 0), 0);
+  const weightedOpportunityValue = partners.reduce((sum, partner) => sum + (partner.weightedValueOpportunities || 0), 0);
   
   return {
     totalPartners,
@@ -624,7 +579,7 @@ function PartnersTable() {
 
 
   // Calculate stats based on filtered partners
-  const stats = calculatePartnerStats(displayedPartners, mockOpportunities, mockCustomers);
+  const stats = calculatePartnerStats(displayedPartners);
   
   // Function to toggle partner selection
   const toggleSelectPartner = (id: number) => {

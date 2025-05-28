@@ -55,25 +55,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const customerRecords = await db.select().from(customers);
       console.log('Customers fetched from DB:', customerRecords.length);
       
-      // Transform customers into partners format with required fields
-      const partners = customerRecords.map((customer: any) => ({
-        id: customer.id,
-        name: customer.name,
-        description: customer.description,
-        initials: customer.name.split(' ').map((word: string) => word[0]).join('').toUpperCase().slice(0, 2),
-        industry: getIndustryFromDescription(customer.description || ''),
-        type: getTypeFromDescription(customer.description || ''),
-        size: getSizeFromDescription(customer.description || ''),
-        status: customer.ownerId ? 'active' : 'inactive',
-        customers: Math.floor(Math.random() * 50) + 10,
-        opportunities: Math.floor(Math.random() * 20) + 5,
-        createdAt: customer.createdAt,
-        updatedAt: customer.updatedAt
+      // Get opportunities for each partner to calculate actual statistics
+      const partnersWithStats = await Promise.all(customerRecords.map(async (customer: any) => {
+        const partnerOpportunities = await db.select().from(opportunities).where(eq(opportunities.partnerId, customer.id));
+        
+        // Calculate statistics from actual opportunity records
+        const totalOpportunities = partnerOpportunities.length;
+        const totalValueOpportunities = partnerOpportunities.reduce((sum, opp) => sum + (opp.value || 0), 0);
+        const weightedValueOpportunities = partnerOpportunities.reduce((sum, opp) => {
+          const value = opp.value || 0;
+          const probability = opp.probability || 0;
+          return sum + (value * (probability / 100));
+        }, 0);
+        
+        return {
+          id: customer.id,
+          name: customer.name,
+          description: customer.description,
+          initials: customer.name.split(' ').map((word: string) => word[0]).join('').toUpperCase().slice(0, 2),
+          industry: getIndustryFromDescription(customer.description || ''),
+          type: getTypeFromDescription(customer.description || ''),
+          size: getSizeFromDescription(customer.description || ''),
+          status: customer.ownerId ? 'active' : 'inactive',
+          customers: Math.floor(Math.random() * 50) + 10, // Keep as mock for now
+          opportunities: totalOpportunities,
+          totalValueOpportunities,
+          weightedValueOpportunities,
+          createdAt: customer.createdAt,
+          updatedAt: customer.updatedAt
+        };
       }));
       
-      console.log('Partners transformed:', partners.length);
+      console.log('Partners with stats:', partnersWithStats.length);
       res.setHeader('Content-Type', 'application/json');
-      return res.json(partners);
+      return res.json(partnersWithStats);
     } catch (error) {
       console.error('Error fetching partners:', error);
       res.status(500).json({ message: 'Failed to fetch partners' });
