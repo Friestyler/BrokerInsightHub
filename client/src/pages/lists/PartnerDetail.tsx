@@ -1282,46 +1282,87 @@ function PartnerOpportunitiesSection({ partnerId }: { partnerId: string | undefi
 
   return (
     <div>
-      {/* Header with Saved Lists and Views */}
-      <div className="flex justify-between items-center mb-4">
-        <div className="flex gap-2">
-          {/* Saved Lists Dropdown */}
+      {/* Header section with Saved Lists and right-side buttons - exact from Partners page */}
+      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
+        {/* Left side: Active list title and user action info */}
+        <div className="flex items-start gap-4">
+          {/* Saved Lists dropdown button */}
           <div className="relative">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="flex items-center gap-2"
+            <button 
+              className="flex items-center gap-2 px-4 py-2 text-[#282A3F] rounded-md border border-gray-300 hover:bg-[#F5F6FE]"
+              style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px', fontWeight: 500 }}
               onClick={() => setShowListsDropdown(!showListsDropdown)}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M5.25 1.5V4.25H12.6875V2C12.6875 1.725 12.4906 1.5 12.25 1.5H5.25ZM3.9375 1.5H1.75C1.50937 1.5 1.3125 1.725 1.3125 2V4.25H3.9375V1.5ZM1.3125 5.75V8.25H3.9375V5.75H1.3125ZM1.3125 9.75V12C1.3125 12.275 1.50937 12.5 1.75 12.5H3.9375V9.75H1.3125ZM5.25 12.5H12.25C12.4906 12.5 12.6875 12.275 12.6875 12V9.75H5.25V12.5ZM12.6875 8.25V5.75H5.25V8.25H12.6875ZM0 2C0 0.896875 0.784766 0 1.75 0H12.25C13.2152 0 14 0.896875 14 2V12C14 13.1031 13.2152 14 12.25 14H1.75C0.784766 14 0 13.1031 0 12V2Z" fill="#3E4DC4"/>
               </svg>
-              <span>{activeList ? activeList.name : 'Saved Lists'}</span>
-              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="6 9 12 15 18 9"></polyline>
+              <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
+                {activeList ? activeList.name : "All Opportunities"}
+              </span>
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="14" 
+                height="14" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                className={`transition-transform ${showListsDropdown ? 'rotate-180' : ''}`}
+              >
+                <polyline points="6 9 12 15 18 9" />
               </svg>
-            </Button>
+            </button>
             
+            {/* Saved Lists dropdown menu - exact from Partners page */}
             {showListsDropdown && (
-              <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-50">
-                <div className="p-2">
-                  <div className="text-xs font-medium text-gray-500 mb-2">SAVED LISTS</div>
-                  {savedLists.map((list) => (
+              <div className="absolute z-50 mt-1.5 w-80 rounded-md border border-slate-200 bg-white text-slate-950 shadow-md animate-in fade-in-80">
+                <div className="max-h-[300px] overflow-y-auto p-1">
+                  {savedLists.map(list => (
                     <div 
                       key={list.id}
-                      className="flex items-center justify-between p-2 hover:bg-gray-50 rounded cursor-pointer"
-                      onClick={() => {
-                        setActiveList(list);
-                        setActiveView(null);
-                        setShowListsDropdown(false);
-                      }}
+                      className="relative"
                     >
-                      <span className="text-sm">{list.name}</span>
-                      {activeList?.id === list.id && (
-                        <svg className="w-4 h-4 text-indigo-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="20 6 9 17 4 12"></polyline>
-                        </svg>
-                      )}
+                      <div
+                        className={`relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 ${activeList?.id === list.id ? 'bg-indigo-50 text-indigo-900' : 'text-slate-700'}`}
+                        onClick={() => {
+                          if (activeList?.id === list.id) {
+                            setShowListsDropdown(false);
+                            return;
+                          }
+                          
+                          if (list.isDefault && list.name === "All Opportunities") {
+                            setActiveList(null);
+                            setSearchTerm('');
+                            setStatusFilter('');
+                            setTypeFilter('');
+                            setStageFilter('');
+                          } else {
+                            setActiveList(list);
+                            setSearchTerm(list.filters.searchText || '');
+                            setStatusFilter(list.filters.status || '');
+                            setTypeFilter(list.filters.type || '');
+                            setStageFilter(list.filters.stage || '');
+                          }
+                          
+                          setActiveView(null);
+                          setShowListsDropdown(false);
+                        }}
+                      >
+                        <div className="flex flex-1 items-center">
+                          <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>{list.name}</span>
+                          {list.isShared && (
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2 text-indigo-500">
+                              <circle cx="18" cy="5" r="3"></circle>
+                              <circle cx="6" cy="12" r="3"></circle>
+                              <circle cx="18" cy="19" r="3"></circle>
+                              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                            </svg>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -1329,51 +1370,60 @@ function PartnerOpportunitiesSection({ partnerId }: { partnerId: string | undefi
             )}
           </div>
 
-          {/* Saved Views Dropdown */}
+          {/* Saved Views dropdown - positioned to the right of lists */}
           <div className="relative">
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="flex items-center gap-2"
+            <button 
+              className="flex items-center gap-2 px-4 py-2 text-[#282A3F] rounded-md border border-gray-300 hover:bg-[#F5F6FE]"
+              style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px', fontWeight: 500 }}
               onClick={() => setShowViewsDropdown(!showViewsDropdown)}
             >
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                 <circle cx="12" cy="12" r="3"></circle>
               </svg>
-              <span>{activeView ? activeView.name : 'Views'}</span>
-              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <polyline points="6 9 12 15 18 9"></polyline>
+              <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
+                {activeView ? activeView.name : "Views"}
+              </span>
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="14" 
+                height="14" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                className={`transition-transform ${showViewsDropdown ? 'rotate-180' : ''}`}
+              >
+                <polyline points="6 9 12 15 18 9" />
               </svg>
-            </Button>
+            </button>
             
+            {/* Views dropdown menu */}
             {showViewsDropdown && (
-              <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-50">
-                <div className="p-2">
-                  <div className="text-xs font-medium text-gray-500 mb-2">SAVED VIEWS</div>
-                  {savedViews.map((view) => (
+              <div className="absolute z-50 mt-1.5 w-64 rounded-md border border-slate-200 bg-white text-slate-950 shadow-md animate-in fade-in-80">
+                <div className="max-h-[300px] overflow-y-auto p-1">
+                  {savedViews.map(view => (
                     <div 
                       key={view.id}
-                      className="flex items-center justify-between p-2 hover:bg-gray-50 rounded cursor-pointer"
+                      className={`relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 ${activeView?.id === view.id ? 'bg-indigo-50 text-indigo-900' : 'text-slate-700'}`}
                       onClick={() => {
                         setActiveView(view);
                         setActiveList(null);
+                        setSearchTerm(view.filters.searchText || '');
+                        setStatusFilter(view.filters.status || '');
+                        setTypeFilter(view.filters.type || '');
+                        setStageFilter(view.filters.stage || '');
                         setShowViewsDropdown(false);
                       }}
                     >
-                      <span className="text-sm">{view.name}</span>
-                      {activeView?.id === view.id && (
-                        <svg className="w-4 h-4 text-indigo-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <polyline points="20 6 9 17 4 12"></polyline>
-                        </svg>
-                      )}
+                      <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>{view.name}</span>
                     </div>
                   ))}
-                  <div className="border-t pt-2 mt-2">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="w-full text-left justify-start text-indigo-600"
+                  <div className="border-t pt-1 mt-1">
+                    <div 
+                      className="relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 text-indigo-600"
                       onClick={() => {
                         setShowViewsDropdown(false);
                         handleSaveView();
@@ -1384,7 +1434,7 @@ function PartnerOpportunitiesSection({ partnerId }: { partnerId: string | undefi
                         <line x1="5" y1="12" x2="19" y2="12"></line>
                       </svg>
                       Save Current View
-                    </Button>
+                    </div>
                   </div>
                 </div>
               </div>
