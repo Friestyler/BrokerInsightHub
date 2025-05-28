@@ -504,7 +504,7 @@ export default function DeGoudseUploadWizard() {
               </div>
 
               <p className="text-gray-600">
-                A new saved list "{uploadedFile?.name}" has been created under Opportunities > Collaborate.
+                A new saved list "{uploadedFile?.name}" has been created under Opportunities &gt; Collaborate.
               </p>
 
               <div className="flex justify-center gap-4">

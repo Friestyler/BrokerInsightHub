@@ -16,6 +16,7 @@ import CampaignBuilder from "@/pages/Campaigns/CampaignBuilder";
 import CampaignDetail from "@/pages/Campaigns/CampaignDetail";
 import DataUploadOptions from "@/pages/DataUpload/DataUploadOptions";
 import BrioUploadFlow from "@/pages/DataUpload/BrioUploadFlow";
+import DeGoudseUploadWizard from "@/pages/DataUpload/DeGoudseUploadWizard";
 import ReportsPage from "@/pages/Reports/ReportsPage";
 import Clients from "@/pages/Clients";
 import ClientDetail from "@/pages/ClientDetail";
@@ -98,6 +99,14 @@ function Router() {
           {() => (
             <EnvironmentRouteGuard
               component={BrioUploadFlow} 
+              excludedEnvironments={[]} 
+            />
+          )}
+        </Route>
+        <Route path="/data-upload/degoudse">
+          {() => (
+            <EnvironmentRouteGuard
+              component={DeGoudseUploadWizard} 
               excludedEnvironments={[]} 
             />
           )}
