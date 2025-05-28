@@ -144,13 +144,16 @@ export default function DeGoudseUploadWizard() {
       const newMappings = [...prev];
       newMappings[index] = { ...newMappings[index], ...updates };
       
-      // Validate mapping
-      if (updates.mappingType && updates.targetField) {
-        newMappings[index].validationStatus = 'valid';
-      } else if (updates.mappingType === 'skip') {
-        newMappings[index].validationStatus = 'valid';
+      // Validate mapping based on the new structure
+      const mapping = newMappings[index];
+      if (mapping.mappingType === 'skip') {
+        mapping.validationStatus = 'valid';
+      } else if (mapping.mappingType === 'opportunity_attribute' && mapping.targetField) {
+        mapping.validationStatus = 'valid';
+      } else if (mapping.mappingType === 'entity_relationship' && mapping.entityType && mapping.targetField) {
+        mapping.validationStatus = 'valid';
       } else {
-        newMappings[index].validationStatus = 'invalid';
+        mapping.validationStatus = 'invalid';
       }
       
       return newMappings;
@@ -192,7 +195,7 @@ export default function DeGoudseUploadWizard() {
         const templateMapping = template.mappings.find(m => m.columnName === header);
         return templateMapping || {
           columnName: header,
-          mappingType: 'attribute' as const,
+          mappingType: 'opportunity_attribute' as const,
           validationStatus: 'pending' as const
         };
       });
