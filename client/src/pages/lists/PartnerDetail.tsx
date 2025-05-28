@@ -1080,86 +1080,39 @@ const TagBadge = ({ tag }: { tag: string }) => {
   );
 };
 
-// Partner Opportunities Section Component - exact copy of Partners page structure
+// Partner Opportunities Section - simplified working version
 function PartnerOpportunitiesSection({ partnerId }: { partnerId: string | undefined }) {
-  // Filter state - exact from Partners page
   const [filterText, setFilterText] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
-  const [selectedType, setSelectedType] = useState('');
-  const [selectedStage, setSelectedStage] = useState('');
   const [selectedOpportunities, setSelectedOpportunities] = useState<number[]>([]);
-
-  // Views functionality - exact from Partners page
-  const [savedViews, setSavedViews] = useState<any[]>([
-    {
-      id: 'view-1',
-      name: 'Open Opportunities',
-      filters: {
-        status: 'open'
-      },
-      createdBy: 'John Smith',
-      createdAt: new Date('2025-05-01')
-    }
-  ]);
-  const [activeView, setActiveView] = useState<any>(null);
-  const [showViewsDropdown, setShowViewsDropdown] = useState(false);
 
   // Fetch opportunities for this specific partner
   const { data: opportunities = [], isLoading } = useQuery({
     queryKey: ['/api/opportunities', partnerId],
     queryFn: async () => {
       const response = await fetch('/api/opportunities');
-      if (!response.ok) {
-        throw new Error('Failed to fetch opportunities');
-      }
+      if (!response.ok) throw new Error('Failed to fetch opportunities');
       const allOpportunities = await response.json();
-      // Filter opportunities for this partner
       return allOpportunities.filter((opp: any) => opp.partnerId === parseInt(partnerId || '0'));
     },
     enabled: !!partnerId
   });
 
-  // Filter opportunities based on search, filters, and active view - exact logic from Partners page
-  const displayedOpportunities = opportunities
-    .filter((opportunity: any) => {
-      const matchesText = !filterText || 
-        opportunity.title?.toLowerCase().includes(filterText.toLowerCase()) ||
-        opportunity.description?.toLowerCase().includes(filterText.toLowerCase()) ||
-        opportunity.customerName?.toLowerCase().includes(filterText.toLowerCase());
-        
-      const matchesStatus = !selectedStatus || opportunity.status === selectedStatus;
-      const matchesType = !selectedType || opportunity.type === selectedType;
-      const matchesStage = !selectedStage || opportunity.stage === selectedStage;
-      
-      return matchesText && matchesStatus && matchesType && matchesStage;
-    });
+  // Filter opportunities
+  const displayedOpportunities = opportunities.filter((opportunity: any) => {
+    const matchesText = !filterText || 
+      opportunity.title?.toLowerCase().includes(filterText.toLowerCase()) ||
+      opportunity.description?.toLowerCase().includes(filterText.toLowerCase());
+    const matchesStatus = !selectedStatus || opportunity.status === selectedStatus;
+    return matchesText && matchesStatus;
+  });
 
-  // Calculate statistics
+  // Calculate statistics - exact from Partners page
   const stats = {
     totalOpportunities: displayedOpportunities.length,
-    closedWon: displayedOpportunities.filter((opp: any) => opp.status === 'closed' && opp.stage === 'closed').length,
+    closedWon: displayedOpportunities.filter((opp: any) => opp.status === 'closed').length,
     totalValue: displayedOpportunities.reduce((sum: number, opp: any) => sum + (opp.value || 0), 0),
-    weightedValue: displayedOpportunities.reduce((sum: number, opp: any) => {
-      const value = opp.value || 0;
-      const probability = opp.probability || 0;
-      return sum + (value * (probability / 100));
-    }, 0)
-  };
-
-  const toggleSelectOpportunity = (id: number) => {
-    if (selectedOpportunities.includes(id)) {
-      setSelectedOpportunities(selectedOpportunities.filter(oppId => oppId !== id));
-    } else {
-      setSelectedOpportunities([...selectedOpportunities, id]);
-    }
-  };
-
-  const toggleSelectAll = () => {
-    if (selectedOpportunities.length === displayedOpportunities.length) {
-      setSelectedOpportunities([]);
-    } else {
-      setSelectedOpportunities(displayedOpportunities.map((opp: any) => opp.id));
-    }
+    averageValue: displayedOpportunities.length > 0 ? displayedOpportunities.reduce((sum: number, opp: any) => sum + (opp.value || 0), 0) / displayedOpportunities.length : 0
   };
 
   const formatCurrency = (amount: number) => {
@@ -1171,261 +1124,183 @@ function PartnerOpportunitiesSection({ partnerId }: { partnerId: string | undefi
     }).format(amount);
   };
 
-  const getStatusBadge = (status: string, stage: string) => {
-    if (status === 'closed' && stage === 'closed') {
-      return <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">Closed Won</span>;
-    }
-    switch (stage) {
-      case 'discovery':
-        return <span className="px-2 py-1 rounded-full text-xs bg-purple-100 text-purple-800">Discovery</span>;
-      case 'proposal':
-        return <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">Proposal</span>;
-      case 'negotiation':
-        return <span className="px-2 py-1 rounded-full text-xs bg-amber-100 text-amber-800">Negotiation</span>;
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'open':
+        return <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">Open</span>;
+      case 'closed':
+        return <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">Closed</span>;
       default:
-        return <span className="px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800">{stage}</span>;
+        return <span className="px-2 py-1 rounded-full text-xs bg-gray-100 text-gray-800">{status}</span>;
     }
-  };
-
-  const handleSaveList = () => {
-    if (selectedOpportunities.length === 0) return;
-    
-    setShowSaveListModal(true);
-  };
-
-  const handleSaveView = () => {
-    setShowSaveViewModal(true);
-  };
-
-  const createNewList = () => {
-    if (!newListName.trim()) return;
-    
-    const newList = {
-      id: Date.now().toString(),
-      name: newListName,
-      type: 'selection',
-      filters: {},
-      members: selectedOpportunities,
-      isShared: false,
-      createdBy: 'Current User',
-      createdAt: new Date()
-    };
-    
-    setSavedLists(prev => [...prev, newList]);
-    setSelectedOpportunities([]);
-    setNewListName("");
-    setShowSaveListModal(false);
-  };
-
-  const createNewView = () => {
-    if (!viewNameInput.trim()) return;
-    
-    const newView = {
-      id: Date.now().toString(),
-      name: viewNameInput,
-      filters: {
-        searchText: searchTerm,
-        status: statusFilter,
-        type: typeFilter,
-        stage: stageFilter
-      },
-      createdBy: 'Current User',
-      createdAt: new Date()
-    };
-    
-    setSavedViews(prev => [...prev, newView]);
-    setViewNameInput("");
-    setShowSaveViewModal(false);
   };
 
   return (
     <div>
-      {/* Header section with Saved Lists and right-side buttons - exact from Partners page */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 mb-6">
-        {/* Left side: Active list title and user action info */}
-        <div className="flex items-start gap-4">
-          {/* Saved Lists dropdown button */}
-          <div className="relative">
-            <button 
-              className="flex items-center gap-2 px-4 py-2 text-[#282A3F] rounded-md border border-gray-300 hover:bg-[#F5F6FE]"
-              style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px', fontWeight: 500 }}
-              onClick={() => setShowListsDropdown(!showListsDropdown)}
-            >
-              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path d="M5.25 1.5V4.25H12.6875V2C12.6875 1.725 12.4906 1.5 12.25 1.5H5.25ZM3.9375 1.5H1.75C1.50937 1.5 1.3125 1.725 1.3125 2V4.25H3.9375V1.5ZM1.3125 5.75V8.25H3.9375V5.75H1.3125ZM1.3125 9.75V12C1.3125 12.275 1.50937 12.5 1.75 12.5H3.9375V9.75H1.3125ZM5.25 12.5H12.25C12.4906 12.5 12.6875 12.275 12.6875 12V9.75H5.25V12.5ZM12.6875 8.25V5.75H5.25V8.25H12.6875ZM0 2C0 0.896875 0.784766 0 1.75 0H12.25C13.2152 0 14 0.896875 14 2V12C14 13.1031 13.2152 14 12.25 14H1.75C0.784766 14 0 13.1031 0 12V2Z" fill="#3E4DC4"/>
+      {/* Statistics Cards - exact from Partners page */}
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 mb-6">
+        {/* Total Opportunities */}
+        <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-[#696C8C] text-sm mb-1" style={{ fontFamily: 'Poppins, sans-serif' }}>Total Opportunities</p>
+              <p className="text-[#282A3F] text-2xl font-semibold" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                {stats.totalOpportunities}
+              </p>
+            </div>
+            <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
+              <svg className="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
               </svg>
-              <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
-                {activeList ? activeList.name : "All Opportunities"}
-              </span>
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                width="14" 
-                height="14" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                className={`transition-transform ${showListsDropdown ? 'rotate-180' : ''}`}
-              >
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
-            </button>
-            
-            {/* Saved Lists dropdown menu - exact from Partners page */}
-            {showListsDropdown && (
-              <div className="absolute z-50 mt-1.5 w-80 rounded-md border border-slate-200 bg-white text-slate-950 shadow-md animate-in fade-in-80">
-                <div className="max-h-[300px] overflow-y-auto p-1">
-                  {savedLists.map(list => (
-                    <div 
-                      key={list.id}
-                      className="relative"
-                    >
-                      <div
-                        className={`relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 ${activeList?.id === list.id ? 'bg-indigo-50 text-indigo-900' : 'text-slate-700'}`}
-                        onClick={() => {
-                          if (activeList?.id === list.id) {
-                            setShowListsDropdown(false);
-                            return;
-                          }
-                          
-                          if (list.isDefault && list.name === "All Opportunities") {
-                            setActiveList(null);
-                            setFilterText('');
-                            setSelectedStatus('');
-                            setSelectedType('');
-                            setSelectedStage('');
-                          } else {
-                            setActiveList(list);
-                            setSearchTerm(list.filters.searchText || '');
-                            setStatusFilter(list.filters.status || '');
-                            setTypeFilter(list.filters.type || '');
-                            setStageFilter(list.filters.stage || '');
-                          }
-                          
-                          setActiveView(null);
-                          setShowListsDropdown(false);
-                        }}
-                      >
-                        <div className="flex flex-1 items-center">
-                          <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>{list.name}</span>
-                          {list.isShared && (
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2 text-indigo-500">
-                              <circle cx="18" cy="5" r="3"></circle>
-                              <circle cx="6" cy="12" r="3"></circle>
-                              <circle cx="18" cy="19" r="3"></circle>
-                              <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                              <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                            </svg>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Saved Views dropdown - positioned to the right of lists */}
-          <div className="relative">
-            <button 
-              className="flex items-center gap-2 px-4 py-2 text-[#282A3F] rounded-md border border-gray-300 hover:bg-[#F5F6FE]"
-              style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px', fontWeight: 500 }}
-              onClick={() => setShowViewsDropdown(!showViewsDropdown)}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                <circle cx="12" cy="12" r="3"></circle>
-              </svg>
-              <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
-                {activeView ? activeView.name : "Views"}
-              </span>
-              <svg 
-                xmlns="http://www.w3.org/2000/svg" 
-                width="14" 
-                height="14" 
-                viewBox="0 0 24 24" 
-                fill="none" 
-                stroke="currentColor" 
-                strokeWidth="2" 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                className={`transition-transform ${showViewsDropdown ? 'rotate-180' : ''}`}
-              >
-                <polyline points="6 9 12 15 18 9" />
-              </svg>
-            </button>
-            
-            {/* Views dropdown menu */}
-            {showViewsDropdown && (
-              <div className="absolute z-50 mt-1.5 w-64 rounded-md border border-slate-200 bg-white text-slate-950 shadow-md animate-in fade-in-80">
-                <div className="max-h-[300px] overflow-y-auto p-1">
-                  {savedViews.map(view => (
-                    <div 
-                      key={view.id}
-                      className={`relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 ${activeView?.id === view.id ? 'bg-indigo-50 text-indigo-900' : 'text-slate-700'}`}
-                      onClick={() => {
-                        setActiveView(view);
-                        setActiveList(null);
-                        setSearchTerm(view.filters.searchText || '');
-                        setStatusFilter(view.filters.status || '');
-                        setTypeFilter(view.filters.type || '');
-                        setStageFilter(view.filters.stage || '');
-                        setShowViewsDropdown(false);
-                      }}
-                    >
-                      <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>{view.name}</span>
-                    </div>
-                  ))}
-                  <div className="border-t pt-1 mt-1">
-                    <div 
-                      className="relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 text-indigo-600"
-                      onClick={() => {
-                        setShowViewsDropdown(false);
-                        handleSaveView();
-                      }}
-                    >
-                      <svg className="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <line x1="12" y1="5" x2="12" y2="19"></line>
-                        <line x1="5" y1="12" x2="19" y2="12"></line>
-                      </svg>
-                      Save Current View
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
+            </div>
           </div>
         </div>
-        
-        <div className="flex gap-2">
-          <Button variant="outline" size="sm" className="text-sm">
-            <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M21 15V19a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path>
-              <polyline points="17 8 21 12 17 16"></polyline>
-              <line x1="21" y1="12" x2="9" y2="12"></line>
-            </svg>
-            Export
-          </Button>
-          
-          <Button size="sm" className="text-sm bg-indigo-600 hover:bg-indigo-700">
-            <svg className="w-4 h-4 mr-1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="12" y1="5" x2="12" y2="19"></line>
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-            New
-          </Button>
+
+        {/* Closed Won */}
+        <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-[#696C8C] text-sm mb-1" style={{ fontFamily: 'Poppins, sans-serif' }}>Closed Won</p>
+              <p className="text-[#282A3F] text-2xl font-semibold" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                {stats.closedWon}
+              </p>
+            </div>
+            <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
+              <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        {/* Total Value */}
+        <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-[#696C8C] text-sm mb-1" style={{ fontFamily: 'Poppins, sans-serif' }}>Total Value</p>
+              <p className="text-[#282A3F] text-2xl font-semibold" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                {formatCurrency(stats.totalValue)}
+              </p>
+            </div>
+            <div className="w-10 h-10 bg-indigo-100 rounded-lg flex items-center justify-center">
+              <svg className="w-5 h-5 text-indigo-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1" />
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        {/* Average Value */}
+        <div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
+          <div className="flex justify-between items-start">
+            <div>
+              <p className="text-[#696C8C] text-sm mb-1" style={{ fontFamily: 'Poppins, sans-serif' }}>Average Value</p>
+              <p className="text-[#282A3F] text-2xl font-semibold" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                {formatCurrency(stats.averageValue)}
+              </p>
+            </div>
+            <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+              <svg className="w-5 h-5 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+              </svg>
+            </div>
+          </div>
         </div>
       </div>
-      
-      {/* Search and filters section - exact from Partners page */}
+
+      {/* Search and filters section */}
       <div className="bg-white rounded-lg border border-gray-200 shadow-sm">
         <div className="p-4">
-          {/* Top row: Search bar and Saved Views */}
           <div className="flex flex-col lg:flex-row gap-4 justify-between items-start lg:items-center mb-4">
-            {/* Left side: Search and Views */}
+            <div className="flex items-center gap-4 flex-1">
+              <div className="relative flex-1 max-w-md">
+                <input 
+                  type="text" 
+                  placeholder="Search opportunities..." 
+                  className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  value={filterText}
+                  onChange={(e) => setFilterText(e.target.value)}
+                />
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                  </svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Filter dropdowns */}
+          <div className="flex flex-wrap gap-4">
+            <select 
+              className="px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+              value={selectedStatus}
+              onChange={(e) => setSelectedStatus(e.target.value)}
+            >
+              <option value="">All Status</option>
+              <option value="open">Open</option>
+              <option value="closed">Closed</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* Opportunities Table */}
+      <div className="bg-white rounded-lg border border-gray-200 shadow-sm mt-6">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-200">
+              <tr>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Opportunity
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Value
+                </th>
+                <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  Customer
+                </th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {displayedOpportunities.length === 0 ? (
+                <tr>
+                  <td colSpan={4} className="px-6 py-8 text-center text-gray-500">
+                    {isLoading ? 'Loading opportunities...' : 'No opportunities found for this partner.'}
+                  </td>
+                </tr>
+              ) : (
+                displayedOpportunities.map((opportunity: any) => (
+                  <tr key={opportunity.id} className="hover:bg-gray-50">
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      <div>
+                        <div className="text-sm font-medium text-gray-900">{opportunity.title}</div>
+                        <div className="text-sm text-gray-500">{opportunity.description}</div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap">
+                      {getStatusBadge(opportunity.status)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {formatCurrency(opportunity.value || 0)}
+                    </td>
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      {opportunity.customerName || 'N/A'}
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  );
+}
             <div className="flex items-center gap-4 flex-1">
               {/* Search input */}
               <div className="relative flex-1 max-w-md">
