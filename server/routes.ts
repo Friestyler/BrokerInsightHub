@@ -748,77 +748,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Opportunities API - Your uploaded Excel data
-  app.get('/api/opportunities', (req, res) => {
-    console.log('Serving opportunities from your uploaded Excel files');
-    
-    const opportunities = [
-      {
-        id: 1,
-        title: "BGB Insurance Portfolio Review",
-        clientId: 1,
-        clientName: "BGB Insurance Portfolio",
-        productId: 1,
-        productName: "Property Insurance",
-        probability: 75,
-        estimatedValue: 125000,
-        type: "Renewal",
-        status: "In Progress", 
-        stage: "Negotiation",
-        description: "From BGB.xlsx upload",
-        createdAt: "2025-05-28T00:00:00Z",
-        updatedAt: "2025-05-28T00:00:00Z"
-      },
-      {
-        id: 2,
-        title: "Verkeersschade Claims Processing",
-        clientId: 2,
-        clientName: "Verkeersschade Claims",
-        productId: 2,
-        productName: "Traffic Damage Insurance", 
-        probability: 90,
-        estimatedValue: 85000,
-        type: "New Business",
-        status: "Open",
-        stage: "Proposal",
-        description: "From Verkeersschadeverzekering.xlsx",
-        createdAt: "2025-05-28T00:00:00Z",
-        updatedAt: "2025-05-28T00:00:00Z"
-      },
-      {
-        id: 3,
-        title: "Zonnepanelen Coverage Implementation",
-        clientId: 3,
-        clientName: "Zonnepanelen Solar Solutions",
-        productId: 3,
-        productName: "Solar Panel Coverage",
-        probability: 60,
-        estimatedValue: 95000,
-        type: "New Business",
-        status: "Open", 
-        stage: "Discovery",
-        description: "From Zonnepanelen.xlsx upload",
-        createdAt: "2025-05-28T00:00:00Z",
-        updatedAt: "2025-05-28T00:00:00Z"
-      },
-      {
-        id: 4,
-        title: "Zonnepalen Project Insurance",
-        clientId: 4,
-        clientName: "Zonnepalen Projects",
-        productId: 4,
-        productName: "Renewable Energy Insurance",
-        probability: 45,
-        estimatedValue: 110000,
-        type: "New Business",
-        status: "Open",
-        stage: "Prospecting", 
-        description: "From Zonnepalen onbekend.xlsx",
-        createdAt: "2025-05-28T00:00:00Z",
-        updatedAt: "2025-05-28T00:00:00Z"
-      }
-    ];
-    
-    res.json(opportunities);
+  app.get('/api/opportunities', async (req, res) => {
+    try {
+      console.log('Fetching real opportunities from database...');
+      const opportunities = await storage.getAllOpportunities();
+      
+      // Add customer and product names by fetching related data
+      const enrichedOpportunities = await Promise.all(opportunities.map(async (opp) => {
+        let clientName = 'Unknown Client';
+        let productName = 'Unknown Product';
+        
+        try {
+          if (opp.clientId) {
+            const customer = await storage.getCustomer(opp.clientId);
+            clientName = customer?.name || 'Unknown Client';
+          }
+          if (opp.productId) {
+            const product = await storage.getProduct(opp.productId);
+            productName = product?.name || 'Unknown Product';
+          }
+        } catch (error) {
+          console.log('Error enriching opportunity data:', error);
+        }
+        
+        return {
+          ...opp,
+          clientName,
+          productName
+        };
+      }));
+      
+      console.log(`Returning ${enrichedOpportunities.length} real opportunities from database`);
+      res.json(enrichedOpportunities);
+    } catch (error) {
+      console.error('Error fetching opportunities:', error);
+      res.status(500).json({ message: 'Failed to fetch opportunities' });
+    }
   });
 
   // Partners API endpoints
