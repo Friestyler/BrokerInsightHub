@@ -20,6 +20,13 @@ export const ENVIRONMENTS: Environment[] = [
     databaseId: "qollabi_db"
   },
   { 
+    id: "degoudse", 
+    name: "De Goudse", 
+    logo: qollabiLogo,
+    apiBaseUrl: "/api/degoudse",
+    databaseId: "degoudse_db"
+  },
+  { 
     id: "acme", 
     name: "ACME CO", 
     logo: acmeLogo,

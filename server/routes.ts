@@ -4,6 +4,7 @@ import { storage } from "./storage";
 import { opportunities, clients, insuranceProducts } from '@shared/schema';
 import { eq } from 'drizzle-orm';
 import multer from 'multer';
+import { copyEnvironmentData } from './initDatabase';
 import path from 'path';
 import fs from 'fs';
 import { promises as fsPromises } from 'fs';
@@ -909,6 +910,108 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error bulk updating opportunity status:', error);
       res.status(500).json({ message: 'Failed to update opportunity status' });
+    }
+  });
+
+  // Environment management API endpoints
+  app.post('/api/environments/copy', async (req, res) => {
+    try {
+      const { sourceEnv, targetEnv } = req.body;
+      
+      if (!sourceEnv || !targetEnv) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Source and target environments are required' 
+        });
+      }
+      
+      // Copy data from source to target environment
+      await copyEnvironmentData(sourceEnv, targetEnv);
+      
+      res.json({ 
+        success: true, 
+        message: `Environment copied successfully: ${sourceEnv} → ${targetEnv}` 
+      });
+    } catch (error) {
+      console.error('Environment copy error:', error);
+      res.status(500).json({ 
+        success: false, 
+        message: 'Failed to copy environment data' 
+      });
+    }
+  });
+
+  // De Goudse environment API routes (completely independent)
+  app.get('/api/degoudse/partners', async (req, res) => {
+    try {
+      const degoudseStorage = storage.switchEnvironment('degoudse');
+      const customers = await degoudseStorage.getAllCustomers();
+      
+      const partners = customers.map(customer => ({
+        id: customer.id,
+        name: customer.name,
+        description: customer.description || `${customer.name} - Insurance partner`,
+        initials: customer.name.split(' ').map(word => word[0]).join('').substring(0, 2).toUpperCase(),
+        industry: "Insurance",
+        type: "Partner",
+        size: "medium",
+        location: customer.location || "Netherlands",
+        email: customer.email,
+        phone: customer.phone,
+        website: customer.website
+      }));
+      
+      res.json(partners);
+    } catch (error) {
+      console.error('De Goudse partners API error:', error);
+      res.status(500).json({ message: 'Failed to fetch partners for De Goudse environment' });
+    }
+  });
+
+  app.get('/api/degoudse/opportunities', async (req, res) => {
+    try {
+      // Independent opportunities data for De Goudse environment
+      const degoudseOpportunities = [
+        {
+          id: 1,
+          title: "Digitale Verzekeringen voor Tech Startup BV",
+          clientId: 1,
+          clientName: "Tech Startup BV",
+          productId: 3,
+          productName: "Digitale Verzekeringen",
+          probability: 80,
+          estimatedValue: 3500,
+          status: "open",
+          stage: "voorstel",
+          type: "nieuwe_business",
+          description: "Digitale verzekeringspakket voor tech bedrijf",
+          expectedCloseDate: "2025-07-20T00:00:00.000Z",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        },
+        {
+          id: 2,
+          title: "Bedrijfsverzekering voor Handelsonderneming De Goudse",
+          clientId: 2,
+          clientName: "Handelsonderneming De Goudse",
+          productId: 1,
+          productName: "Bedrijfsverzekering",
+          probability: 90,
+          estimatedValue: 5200,
+          status: "open",
+          stage: "onderhandeling",
+          type: "vernieuwing",
+          description: "Uitbreiding bedrijfsverzekering voor handelsonderneming",
+          expectedCloseDate: "2025-06-25T00:00:00.000Z",
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        }
+      ];
+      
+      res.json(degoudseOpportunities);
+    } catch (error) {
+      console.error('De Goudse opportunities API error:', error);
+      res.status(500).json({ message: 'Failed to fetch opportunities for De Goudse environment' });
     }
   });
 

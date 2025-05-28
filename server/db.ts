@@ -22,6 +22,11 @@ const environmentConfigs: EnvironmentConfig = {
     connectionString: process.env.DATABASE_URL || '',
     schema: 'qollabi'
   },
+  // De Goudse environment - completely independent copy of My Qollabi
+  degoudse: {
+    connectionString: process.env.DATABASE_URL || '',
+    schema: 'degoudse'
+  },
   // ACME CO environment - uses a dedicated schema for isolation
   acme: {
     connectionString: process.env.DATABASE_URL || '',
