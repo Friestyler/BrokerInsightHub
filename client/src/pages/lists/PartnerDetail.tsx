@@ -32,7 +32,7 @@ interface PartnerData {
 }
 
 // Partner Overview Section Component
-function PartnerOverviewSection({ partner }: { partner: PartnerData }) {
+function PartnerOverviewSection({ partner }: { partner: any }) {
   return (
     <div className="space-y-6">
       {/* Partner Details Cards */}
@@ -41,16 +41,16 @@ function PartnerOverviewSection({ partner }: { partner: PartnerData }) {
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Partner Information</h3>
           <div className="space-y-3">
             <div>
-              <span className="text-sm text-gray-500">Segment</span>
-              <p className="font-medium text-gray-900">{partner.segment}</p>
+              <span className="text-sm text-gray-500">Industry</span>
+              <p className="font-medium text-gray-900">{partner.industry || 'Not specified'}</p>
             </div>
             <div>
-              <span className="text-sm text-gray-500">Address</span>
-              <p className="font-medium text-gray-900">{partner.address}</p>
+              <span className="text-sm text-gray-500">Type</span>
+              <p className="font-medium text-gray-900">{partner.type || 'Not specified'}</p>
             </div>
             <div>
               <span className="text-sm text-gray-500">Description</span>
-              <p className="font-medium text-gray-900">{partner.description}</p>
+              <p className="font-medium text-gray-900">{partner.description || 'No description available'}</p>
             </div>
           </div>
         </div>
