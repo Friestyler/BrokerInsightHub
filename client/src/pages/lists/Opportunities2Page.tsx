@@ -66,15 +66,21 @@ interface Opportunity {
 // Calculate opportunity statistics
 function calculateOpportunityStats(opportunities: Opportunity[]) {
   const totalOpportunities = opportunities.length;
-  const totalValue = opportunities.reduce((sum, opp) => sum + opp.estimatedValue, 0);
-  const weightedValue = opportunities.reduce((sum, opp) => sum + (opp.estimatedValue * opp.probability / 100), 0);
-  const closedWon = opportunities.filter(o => o.status === 'closed' && o.stage === 'closed').length;
+  
+  // Calculate total value of all opportunities
+  const totalValueOpportunities = opportunities.reduce((sum, opp) => sum + (opp.estimatedValue || 0), 0);
+  
+  // Calculate weighted value using probability
+  const weightedValueOpportunities = opportunities.reduce((sum, opp) => {
+    const value = opp.estimatedValue || 0;
+    const probability = opp.probability || 0;
+    return sum + (value * (probability / 100));
+  }, 0);
   
   return {
     totalOpportunities,
-    totalValue: `€${(totalValue / 1000).toFixed(0)}K`,
-    weightedValue: `€${(weightedValue / 1000).toFixed(0)}K`,
-    closedWon
+    totalValueOpportunities,
+    weightedValueOpportunities
   };
 }
 
@@ -1166,25 +1172,20 @@ function OpportunitiesTable() {
       )}
 
       {/* Statistics overview */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <div className="bg-white p-4 rounded-md border border-gray-200">
-          <div className="text-xl font-semibold">{stats.totalOpportunities}</div>
-          <div className="text-sm text-gray-500">Total Opportunities</div>
+          <div className="text-xl text-[#282A3F] font-medium" style={{fontFamily: 'Poppins'}}>{stats.totalOpportunities}</div>
+          <div className="text-sm text-[#696C8C]" style={{fontFamily: 'Poppins', fontWeight: 400}}>Total Opportunities</div>
         </div>
         
         <div className="bg-white p-4 rounded-md border border-gray-200">
-          <div className="text-xl font-semibold">{stats.closedWon}</div>
-          <div className="text-sm text-gray-500">Closed Won</div>
+          <div className="text-xl text-[#282A3F] font-medium" style={{fontFamily: 'Poppins'}}>{stats.totalValueOpportunities.toLocaleString()}€</div>
+          <div className="text-sm text-[#696C8C]" style={{fontFamily: 'Poppins', fontWeight: 400}}>Total Value Opportunities</div>
         </div>
         
         <div className="bg-white p-4 rounded-md border border-gray-200">
-          <div className="text-xl font-semibold">{stats.totalValue}</div>
-          <div className="text-sm text-gray-500">Total Value</div>
-        </div>
-        
-        <div className="bg-white p-4 rounded-md border border-gray-200">
-          <div className="text-xl font-semibold">{stats.weightedValue}</div>
-          <div className="text-sm text-gray-500">Weighted Value</div>
+          <div className="text-xl text-[#282A3F] font-medium" style={{fontFamily: 'Poppins'}}>{Math.round(stats.weightedValueOpportunities).toLocaleString()}€</div>
+          <div className="text-sm text-[#696C8C]" style={{fontFamily: 'Poppins', fontWeight: 400}}>Weighted Value Opportunities</div>
         </div>
       </div>
       
