@@ -118,14 +118,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  app.get('/api/customers', async (req, res) => {
-    try {
-      const customers = await storage.getAllCustomers();
-      res.json(customers);
-    } catch (error) {
-      res.status(500).json({ message: 'Failed to fetch customers' });
-    }
-  });
+
   
   app.post('/api/customers', async (req, res) => {
     try {
