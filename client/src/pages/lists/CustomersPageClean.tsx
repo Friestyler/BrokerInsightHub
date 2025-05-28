@@ -292,31 +292,6 @@ export default function CustomersPageClean() {
           </div>
         </div>
 
-
-
-        {/* Statistics overview - exact match to Opportunities */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-white p-4 rounded-md border border-gray-200">
-            <div className="text-xl font-semibold">{filteredCustomers.length}</div>
-            <div className="text-sm text-gray-500">Total Customers</div>
-          </div>
-          
-          <div className="bg-white p-4 rounded-md border border-gray-200">
-            <div className="text-xl font-semibold">1</div>
-            <div className="text-sm text-gray-500">Active</div>
-          </div>
-          
-          <div className="bg-white p-4 rounded-md border border-gray-200">
-            <div className="text-xl font-semibold">€10K</div>
-            <div className="text-sm text-gray-500">Total Value</div>
-          </div>
-          
-          <div className="bg-white p-4 rounded-md border border-gray-200">
-            <div className="text-xl font-semibold">€5K</div>
-            <div className="text-sm text-gray-500">Weighted Value</div>
-          </div>
-        </div>
-
         {/* Selection actions bar - visible when items are selected */}
         {selectedCustomers.length > 0 && (
           <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between mb-4">
@@ -397,6 +372,31 @@ export default function CustomersPageClean() {
             </div>
           </div>
         )}
+
+        {/* Statistics overview - exact match to Opportunities */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="bg-white p-4 rounded-md border border-gray-200">
+            <div className="text-xl font-semibold">{filteredCustomers.length}</div>
+            <div className="text-sm text-gray-500">Total Customers</div>
+          </div>
+          
+          <div className="bg-white p-4 rounded-md border border-gray-200">
+            <div className="text-xl font-semibold">1</div>
+            <div className="text-sm text-gray-500">Active</div>
+          </div>
+          
+          <div className="bg-white p-4 rounded-md border border-gray-200">
+            <div className="text-xl font-semibold">€10K</div>
+            <div className="text-sm text-gray-500">Total Value</div>
+          </div>
+          
+          <div className="bg-white p-4 rounded-md border border-gray-200">
+            <div className="text-xl font-semibold">€5K</div>
+            <div className="text-sm text-gray-500">Weighted Value</div>
+          </div>
+        </div>
+
+
 
         {/* Customers table - exact match to Opportunities */}
         <div className="overflow-hidden bg-white sm:rounded-lg">
