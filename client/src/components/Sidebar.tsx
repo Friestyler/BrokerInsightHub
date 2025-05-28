@@ -14,6 +14,7 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
   const [isMobile, setIsMobile] = useState(false);
   const [dataMenuOpen, setDataMenuOpen] = useState(false);
   const [templatesMenuOpen, setTemplatesMenuOpen] = useState(false);
+  const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
   const dataMenuRef = useRef<HTMLDivElement>(null);
   const { environment } = useEnvironment();
   
@@ -22,9 +23,15 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
     if (location.startsWith('/partners') || location.startsWith('/customers') || location.startsWith('/opportunities') || location.startsWith('/vendors') || location.startsWith('/products') || location.startsWith('/projects') || location.startsWith('/contacts')) {
       setDataMenuOpen(true);
       setTemplatesMenuOpen(false);
+      setSettingsMenuOpen(false);
     } else if (location.startsWith('/templates')) {
       setTemplatesMenuOpen(true);
       setDataMenuOpen(false);
+      setSettingsMenuOpen(false);
+    } else if (location.startsWith('/settings')) {
+      setSettingsMenuOpen(true);
+      setDataMenuOpen(false);
+      setTemplatesMenuOpen(false);
     }
   }, [location]);
 
@@ -325,16 +332,51 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
           )}
         </div>
       </div>
-      <div className="mt-auto mb-4 flex-shrink-0">
+      <div className="mt-auto mb-4 flex-shrink-0 relative">
         <button 
-          className={`flex items-center py-2.5 px-4 rounded-md w-full text-left text-gray-700 hover:bg-indigo-50 hover:text-indigo-600`}
+          className={`flex items-center py-2.5 px-4 rounded-md w-full text-left ${settingsMenuOpen ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
+          onClick={() => setSettingsMenuOpen(!settingsMenuOpen)}
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-center" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
             <circle cx="12" cy="12" r="3" />
           </svg>
           <span className={`ml-3 text-sm ${collapsed ? "hidden" : "hidden md:inline-block"}`}>Settings</span>
+          {!collapsed && (
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              width="14" 
+              height="14" 
+              viewBox="0 0 24 24" 
+              fill="none" 
+              stroke="currentColor" 
+              strokeWidth="2" 
+              strokeLinecap="round" 
+              strokeLinejoin="round"
+              className={`ml-auto transition-transform ${settingsMenuOpen ? 'rotate-180' : ''} ${collapsed ? "hidden" : "hidden md:inline-block"}`}
+            >
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          )}
         </button>
+
+        {/* Settings dropdown menu */}
+        {settingsMenuOpen && (
+          <div className={`${collapsed ? "absolute left-16 bottom-0 bg-white border border-gray-200 rounded-md shadow-md py-1 z-50 w-48" : "mt-0.5"}`}>
+            <button
+              onClick={() => navigateTo('/settings/users')}
+              className={`flex py-2 text-sm ${collapsed ? "px-4" : "pl-12"} w-full text-left ${location.startsWith("/settings/users") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+              </svg>
+              User Management
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
