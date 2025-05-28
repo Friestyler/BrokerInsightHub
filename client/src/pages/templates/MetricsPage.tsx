@@ -1354,96 +1354,12 @@ export default function MetricsPage() {
     <div className="container mx-auto px-4 py-6">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold tracking-tight">OKR Metrics</h1>
-        
-        <div className="flex gap-2">
-          <Button 
-            variant="outline"
-            onClick={() => setIsManageTagsOpen(true)}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-              <path d="M9 5H2v7l6.29 6.29c.94.94 2.48.94 3.42 0l3.58-3.58c.94-.94.94-2.48 0-3.42L9 5Z"></path>
-              <path d="M6 9.01V9"></path>
-            </svg>
-            Manage Tags
-          </Button>
-          
-          <Button 
-            onClick={() => setIsCreateMetricOpen(true)}
-            className="bg-indigo-600 hover:bg-indigo-700"
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-              <line x1="12" y1="5" x2="12" y2="19"></line>
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-            Create Metric
-          </Button>
-        </div>
       </div>
-      {/* Tabs for Metrics and Metric Groups */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-3 w-96 mb-6">
-          <TabsTrigger value="metrics">Metrics</TabsTrigger>
-          <TabsTrigger value="groups">Metric Groups</TabsTrigger>
-          <TabsTrigger value="okrs">Coming Soon</TabsTrigger>
-        </TabsList>
-        
-        {/* Search and filter section - only show for metrics and groups tabs */}
-        {activeTab !== "okrs" && (
-          <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-            <div className="flex flex-wrap gap-3 items-center">
-              <div className="relative flex-grow">
-                <Input
-                  placeholder={`Search ${activeTab === "metrics" ? "metrics" : "groups"}...`}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                  </svg>
-                </div>
-              </div>
-              
-              <div className="flex gap-2">
-                <Select 
-                  value={selectedTags.length === 1 ? selectedTags[0] : "all_tags"}
-                  onValueChange={(value) => {
-                    if (value && value !== "all_tags") {
-                      setSelectedTags([value]);
-                    } else {
-                      setSelectedTags([]);
-                    }
-                  }}
-                >
-                  <SelectTrigger className="w-[160px]">
-                    <SelectValue placeholder="Filter by tag" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all_tags">All Tags</SelectItem>
-                    {allTags.map(tag => (
-                      <SelectItem key={tag} value={tag}>
-                        {tag}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              {(selectedTags.length > 0 || searchTerm) && (
-                <Button variant="ghost" onClick={clearFilters} className="h-10">
-                  Clear filters
-                </Button>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Coming Soon tab search and filter section */}
-        {activeTab === "okrs" && (
-          <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-            <div className="flex flex-wrap items-center gap-3">
+      
+      {/* OKR Content - Coming Soon content only */}
+      <div className="w-full">
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+          <div className="flex flex-wrap items-center gap-3">
               {/* Search field */}
               <div className="relative w-60">
                 <input

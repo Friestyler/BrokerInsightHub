@@ -27,7 +27,7 @@ import Opportunities2Page from "@/pages/lists/Opportunities2Page";
 import OpportunityDetail from "@/pages/lists/OpportunityDetail";
 import VendorsPage from "@/pages/lists/VendorsPage";
 import ProductsPage from "@/pages/lists/ProductsPage";
-import MetricsPage from "@/pages/templates/MetricsPage";
+import MetricsPage from "@/pages/templates/MetricsPageSimple";
 import GroupDetail from "@/pages/templates/GroupDetail";
 
 import NotFound from "@/pages/not-found";
