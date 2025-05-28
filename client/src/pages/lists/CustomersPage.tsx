@@ -222,17 +222,49 @@ const mockOpportunities = [
 ];
 
 // Calculate customer statistics
-function calculateCustomerStats(customers: typeof mockCustomers) {
+function calculateCustomerStats(customers: typeof mockCustomers, allOpportunities: any[] = []) {
   const totalCustomers = customers.length;
-  const totalProducts = customers.reduce((sum, customer) => sum + customer.products, 0);
-  const totalOpportunities = customers.reduce((sum, customer) => sum + customer.opportunities, 0);
-  const activeCustomers = customers.filter(c => c.status === 'active').length;
+  
+  // Get customer IDs for filtering
+  const customerIds = customers.map(c => c.id);
+  
+  // Get opportunities for customers in this list
+  const relevantOpportunities = allOpportunities.filter(opp => {
+    // Check if opportunity is connected to any customer in the current list
+    if (opp.customerId && customerIds.includes(opp.customerId)) return true;
+    if (opp.customers && Array.isArray(opp.customers)) {
+      return opp.customers.some((c: any) => customerIds.includes(c.id));
+    }
+    if (opp.customerName) {
+      const matchingCustomer = customers.find(c => c.name === opp.customerName);
+      return matchingCustomer && customerIds.includes(matchingCustomer.id);
+    }
+    return false;
+  });
+  
+  // Count totals
+  const totalOpportunities = relevantOpportunities.length;
+  
+  // Calculate total value of opportunities
+  const totalOpportunityValue = relevantOpportunities.reduce((sum, opp) => {
+    // Handle different attribute names for opportunity value
+    const value = opp.amount || opp.value || opp.estimatedValue || 0;
+    return sum + value;
+  }, 0);
+  
+  // Calculate weighted opportunity value using probability
+  const weightedOpportunityValue = relevantOpportunities.reduce((sum, opp) => {
+    // Handle different attribute names for opportunity value and probability
+    const value = opp.amount || opp.value || opp.estimatedValue || 0;
+    const probability = opp.probability || 0;
+    return sum + (value * (probability / 100));
+  }, 0);
   
   return {
     totalCustomers,
-    totalProducts,
     totalOpportunities,
-    activeCustomers
+    totalOpportunityValue,
+    weightedOpportunityValue
   };
 }
 
@@ -372,7 +404,7 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
   });
   
   // Calculate stats based on filtered customers
-  const stats = calculateCustomerStats(displayedCustomers);
+  const stats = calculateCustomerStats(displayedCustomers, mockOpportunities);
   
   // Function to toggle customer selection
   const toggleSelectCustomer = (id: number) => {
@@ -815,25 +847,25 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
       )}
 
       {/* Statistics overview */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-white p-4 rounded-md border border-gray-200">
-          <div className="text-xl font-semibold">{stats.totalCustomers}</div>
-          <div className="text-sm text-gray-500">Total Customers</div>
+          <div className="text-xl text-[#282A3F] font-medium" style={{fontFamily: 'Poppins'}}>{stats.totalCustomers}</div>
+          <div className="text-sm text-[#696C8C]" style={{fontFamily: 'Poppins', fontWeight: 400}}>Total Customers</div>
         </div>
         
         <div className="bg-white p-4 rounded-md border border-gray-200">
-          <div className="text-xl font-semibold">{stats.activeCustomers}</div>
-          <div className="text-sm text-gray-500">Active Customers</div>
+          <div className="text-xl text-[#282A3F] font-medium" style={{fontFamily: 'Poppins'}}>{stats.totalOpportunities}</div>
+          <div className="text-sm text-[#696C8C]" style={{fontFamily: 'Poppins', fontWeight: 400}}>Total Opportunities</div>
         </div>
         
         <div className="bg-white p-4 rounded-md border border-gray-200">
-          <div className="text-xl font-semibold">{stats.totalProducts}</div>
-          <div className="text-sm text-gray-500">Total Products</div>
+          <div className="text-xl text-[#282A3F] font-medium" style={{fontFamily: 'Poppins'}}>{stats.totalOpportunityValue.toLocaleString()}€</div>
+          <div className="text-sm text-[#696C8C]" style={{fontFamily: 'Poppins', fontWeight: 400}}>Total Value Opportunities</div>
         </div>
         
         <div className="bg-white p-4 rounded-md border border-gray-200">
-          <div className="text-xl font-semibold">{stats.totalOpportunities}</div>
-          <div className="text-sm text-gray-500">Total Opportunities</div>
+          <div className="text-xl text-[#282A3F] font-medium" style={{fontFamily: 'Poppins'}}>{Math.round(stats.weightedOpportunityValue).toLocaleString()}€</div>
+          <div className="text-sm text-[#696C8C]" style={{fontFamily: 'Poppins', fontWeight: 400}}>Weighted Value Opportunities</div>
         </div>
       </div>
       
