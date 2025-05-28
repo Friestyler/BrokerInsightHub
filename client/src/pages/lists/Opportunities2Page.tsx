@@ -52,8 +52,9 @@ interface Opportunity {
   status: string;
   stage: string;
   probability: number;
-  estimatedValue: number;
+  value: number;
   ownerId: number | null;
+  partnerId: number | null;
   description: string | null;
   notes: string | null;
   expectedCloseDate: Date | null;

@@ -221,44 +221,14 @@ const mockOpportunities = [
   }
 ];
 
-// Calculate customer statistics
-function calculateCustomerStats(customers: typeof mockCustomers, allOpportunities: any[] = []) {
+// Calculate customer statistics from database-calculated values
+function calculateCustomerStats(customers: any[]) {
   const totalCustomers = customers.length;
   
-  // Get customer IDs for filtering
-  const customerIds = customers.map(c => c.id);
-  
-  // Get opportunities for customers in this list
-  const relevantOpportunities = allOpportunities.filter(opp => {
-    // Check if opportunity is connected to any customer in the current list
-    if (opp.customerId && customerIds.includes(opp.customerId)) return true;
-    if (opp.customers && Array.isArray(opp.customers)) {
-      return opp.customers.some((c: any) => customerIds.includes(c.id));
-    }
-    if (opp.customerName) {
-      const matchingCustomer = customers.find(c => c.name === opp.customerName);
-      return matchingCustomer && customerIds.includes(matchingCustomer.id);
-    }
-    return false;
-  });
-  
-  // Count totals
-  const totalOpportunities = relevantOpportunities.length;
-  
-  // Calculate total value of opportunities
-  const totalOpportunityValue = relevantOpportunities.reduce((sum, opp) => {
-    // Handle different attribute names for opportunity value
-    const value = opp.amount || opp.value || opp.estimatedValue || 0;
-    return sum + value;
-  }, 0);
-  
-  // Calculate weighted opportunity value using probability
-  const weightedOpportunityValue = relevantOpportunities.reduce((sum, opp) => {
-    // Handle different attribute names for opportunity value and probability
-    const value = opp.amount || opp.value || opp.estimatedValue || 0;
-    const probability = opp.probability || 0;
-    return sum + (value * (probability / 100));
-  }, 0);
+  // Sum up the database-calculated statistics from each customer
+  const totalOpportunities = customers.reduce((sum, customer) => sum + (customer.opportunities || 0), 0);
+  const totalOpportunityValue = customers.reduce((sum, customer) => sum + (customer.totalValueOpportunities || 0), 0);
+  const weightedOpportunityValue = customers.reduce((sum, customer) => sum + (customer.weightedValueOpportunities || 0), 0);
   
   return {
     totalCustomers,
@@ -404,7 +374,7 @@ function CustomersTable({ partnerId }: { partnerId?: number }) {
   });
   
   // Calculate stats based on filtered customers
-  const stats = calculateCustomerStats(displayedCustomers, mockOpportunities);
+  const stats = calculateCustomerStats(displayedCustomers);
   
   // Function to toggle customer selection
   const toggleSelectCustomer = (id: number) => {

@@ -95,6 +95,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Customers API endpoint - fetch customers (clients) with calculated statistics
+  app.get('/api/customers', async (req, res) => {
+    try {
+      console.log('Customers API called');
+      const { db } = await import('./db');
+      const { clients } = await import('../shared/schema');
+      
+      const clientRecords = await db.select().from(clients);
+      console.log('Clients fetched from DB:', clientRecords.length);
+      
+      // Get opportunities for each customer to calculate actual statistics
+      const customersWithStats = await Promise.all(clientRecords.map(async (client: any) => {
+        const customerOpportunities = await db.select().from(opportunities).where(eq(opportunities.clientId, client.id));
+        
+        // Calculate statistics from actual opportunity records
+        const totalOpportunities = customerOpportunities.length;
+        const totalValueOpportunities = customerOpportunities.reduce((sum, opp) => sum + (opp.value || 0), 0);
+        const weightedValueOpportunities = customerOpportunities.reduce((sum, opp) => {
+          const value = opp.value || 0;
+          const probability = opp.probability || 0;
+          return sum + (value * (probability / 100));
+        }, 0);
+        
+        return {
+          id: client.id,
+          name: client.name,
+          type: client.type,
+          initials: client.initials,
+          industry: client.type === 'Commercial Client' ? 'Manufacturing' : 'Individual',
+          size: client.type === 'Commercial Client' ? 'enterprise' : 'individual',
+          status: 'active',
+          products: Math.floor(Math.random() * 10) + 1, // Keep as mock for now
+          opportunities: totalOpportunities,
+          totalValueOpportunities,
+          weightedValueOpportunities,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        };
+      }));
+      
+      console.log('Customers with stats:', customersWithStats.length);
+      res.setHeader('Content-Type', 'application/json');
+      return res.json(customersWithStats);
+    } catch (error) {
+      console.error('Error fetching customers:', error);
+      res.status(500).json({ message: 'Failed to fetch customers' });
+    }
+  });
+
   // Helper functions to extract partner info from existing data
   function getIndustryFromDescription(description: string): string {
     if (!description) return 'Other';
