@@ -107,6 +107,25 @@ const mockOpportunities = [
   { id: 10, partnerId: 5, amount: 185000, probability: 65, partner: "Secure Financial Services" }
 ];
 
+// Mock customer data to calculate total customers
+const mockCustomers = [
+  { id: 1, partnerId: 1, name: "John Smith", partner: "Jeroen Hypotheek Advies" },
+  { id: 2, partnerId: 1, name: "Maria Garcia", partner: "Jeroen Hypotheek Advies" },
+  { id: 3, partnerId: 1, name: "David Chen", partner: "Jeroen Hypotheek Advies" },
+  { id: 4, partnerId: 1, name: "Sarah Johnson", partner: "Jeroen Hypotheek Advies" },
+  { id: 5, partnerId: 2, name: "Robert Wilson", partner: "ABC Insurance Brokers" },
+  { id: 6, partnerId: 2, name: "Lisa Anderson", partner: "ABC Insurance Brokers" },
+  { id: 7, partnerId: 2, name: "Michael Brown", partner: "ABC Insurance Brokers" },
+  { id: 8, partnerId: 3, name: "Jennifer Davis", partner: "Global Insurance Partners" },
+  { id: 9, partnerId: 3, name: "Thomas Miller", partner: "Global Insurance Partners" },
+  { id: 10, partnerId: 3, name: "Amanda Taylor", partner: "Global Insurance Partners" },
+  { id: 11, partnerId: 3, name: "Kevin Moore", partner: "Global Insurance Partners" },
+  { id: 12, partnerId: 4, name: "Rachel White", partner: "Premier Insurance Agency" },
+  { id: 13, partnerId: 4, name: "Daniel Martin", partner: "Premier Insurance Agency" },
+  { id: 14, partnerId: 5, name: "Emily Thompson", partner: "Secure Financial Services" },
+  { id: 15, partnerId: 5, name: "James Lee", partner: "Secure Financial Services" }
+];
+
 // Keep the original mock structure for fallback compatibility
 const mockPartners = [
   {
@@ -196,14 +215,14 @@ const mockPartners = [
 ];
 
 // Calculate partner statistics
-function calculatePartnerStats(partners: any[], allOpportunities: any[] = []) {
+function calculatePartnerStats(partners: any[], allOpportunities: any[] = [], allCustomers: any[] = []) {
   const totalPartners = partners.length;
-  const totalCustomers = partners.reduce((sum, partner) => sum + partner.customers, 0);
-  const totalOpportunities = partners.reduce((sum, partner) => sum + partner.opportunities, 0);
   const activePartners = partners.filter(p => p.status === 'active').length;
   
-  // Get opportunities for partners in this list
+  // Get partner IDs for filtering
   const partnerIds = partners.map(p => p.id);
+  
+  // Get opportunities for partners in this list
   const relevantOpportunities = allOpportunities.filter(opp => {
     // Check if opportunity is connected to any partner in the current list
     // Handle different data structures: partnerId, partners array, or partner name
@@ -217,6 +236,24 @@ function calculatePartnerStats(partners: any[], allOpportunities: any[] = []) {
     }
     return false;
   });
+  
+  // Get customers for partners in this list (same logic as opportunities)
+  const relevantCustomers = allCustomers.filter(customer => {
+    // Check if customer is connected to any partner in the current list
+    if (customer.partnerId && partnerIds.includes(customer.partnerId)) return true;
+    if (customer.partners && Array.isArray(customer.partners)) {
+      return customer.partners.some((p: any) => partnerIds.includes(p.id));
+    }
+    if (customer.partner) {
+      const matchingPartner = partners.find(p => p.name === customer.partner);
+      return matchingPartner && partnerIds.includes(matchingPartner.id);
+    }
+    return false;
+  });
+  
+  // Count totals
+  const totalOpportunities = relevantOpportunities.length;
+  const totalCustomers = relevantCustomers.length;
   
   // Calculate total value of opportunities
   const totalOpportunityValue = relevantOpportunities.reduce((sum, opp) => {
@@ -587,7 +624,7 @@ function PartnersTable() {
 
 
   // Calculate stats based on filtered partners
-  const stats = calculatePartnerStats(displayedPartners, mockOpportunities);
+  const stats = calculatePartnerStats(displayedPartners, mockOpportunities, mockCustomers);
   
   // Function to toggle partner selection
   const toggleSelectPartner = (id: number) => {
