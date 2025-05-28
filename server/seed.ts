@@ -46,13 +46,27 @@ async function seedDatabase() {
       console.log(`Created news article: ${article.title}`);
     }
     
-    // Create sample clients
-    const clientNames = ['Van Damme BVBA', 'Laura Martens', 'Green Tech SA'];
-    const clientTypes = ['Commercial Client', 'Individual Client', 'Commercial Client'];
-    const clientInitials = ['VD', 'LM', 'GT'];
+    // Create sample partner using the existing customer table structure
+    const samplePartner = await storage.createCustomer({
+      name: 'Jeroen Hypotheek Advies',
+      description: 'Leading mortgage and insurance advisory firm specializing in comprehensive financial solutions'
+    });
+    console.log(`Created sample partner: ${samplePartner.name}`);
+
+    // Create sample customer 
+    const sampleCustomer = await storage.createCustomer({
+      name: 'Van Damme BVBA',
+      description: 'Manufacturing company specializing in precision metal components'
+    });
+    console.log(`Created sample customer: ${sampleCustomer.name}`);
+
+    // Create additional clients for variety
+    const clientNames = ['Laura Martens', 'Green Tech SA'];
+    const clientTypes = ['Individual Client', 'Commercial Client'];
+    const clientInitials = ['LM', 'GT'];
     
     const createdClients = [];
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < clientNames.length; i++) {
       const client = await storage.createClient({
         name: clientNames[i],
         type: clientTypes[i],
@@ -84,22 +98,36 @@ async function seedDatabase() {
     await storage.addClientProduct({ clientId: createdClients[2].id, productId: createdProducts[0].id }); // Green Tech has Property
     console.log('Created client products associations');
     
-    // Create sample opportunities with rich data
-    const opportunities = [
-      {
-        title: "Cyber Insurance for Van Damme BVBA",
-        clientId: createdClients[0].id,
-        productId: createdProducts[2].id,
-        status: "open",
-        stage: "proposal",
-        type: "cross_sell",
-        probability: 85,
-        estimatedValue: 2450,
-        ownerId: user.id,
-        description: "Cyber insurance opportunity for manufacturing company",
-        notes: "Client expressed interest after recent cyber attack news",
-        expectedCloseDate: new Date(2025, 6, 15)
-      },
+    // Create sample opportunity that connects partner (ID 1) and customer (ID 2)
+    const sampleOpportunity = await storage.createOpportunity({
+      title: "Cyber Insurance for Van Damme BVBA",
+      clientId: sampleCustomer.id,
+      partnerId: samplePartner.id,
+      productId: createdProducts[2].id,
+      status: "open",
+      stage: "proposal",
+      type: "cross_sell",
+      probability: 85,
+      estimatedValue: 12500,
+      ownerId: user.id,
+      description: "Cyber insurance opportunity for manufacturing company brought by partner Jeroen Hypotheek Advies",
+      notes: "Partner identified opportunity during client review. Client expressed interest after recent cyber attack news in manufacturing sector.",
+      expectedCloseDate: new Date(2025, 6, 15)
+    });
+    console.log(`Created sample opportunity connecting partner "${samplePartner.name}" (ID: ${samplePartner.id}) and customer "${sampleCustomer.name}" (ID: ${sampleCustomer.id})`);
+
+    // Create client product associations for the sample customer
+    await storage.addClientProduct({ 
+      clientId: sampleCustomer.id, 
+      productId: createdProducts[0].id 
+    }); // Van Damme has Property Insurance
+    await storage.addClientProduct({ 
+      clientId: sampleCustomer.id, 
+      productId: createdProducts[1].id 
+    }); // Van Damme has Liability Insurance
+
+    // Create additional opportunities for variety
+    const additionalOpportunities = [
       {
         title: "Life Insurance for Laura Martens",
         clientId: createdClients[1].id,
