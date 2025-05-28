@@ -71,6 +71,98 @@ const mockTags = [
   { id: 20, name: "Market Expansion", color: "stone" }
 ];
 
+// Mock data for individual metrics
+const mockMetrics = [
+  {
+    id: 1,
+    title: "Monthly Revenue",
+    description: "Track monthly recurring revenue from partnerships",
+    tags: ["Financial", "Revenue"],
+    unit: "currency",
+    targetValue: 50000,
+    realizedValue: 42000,
+    parent: null,
+    group: 1
+  },
+  {
+    id: 2,
+    title: "Revenue Growth Rate",
+    description: "Month-over-month revenue growth percentage",
+    tags: ["Financial", "Revenue"],
+    unit: "percentage",
+    targetValue: 15,
+    realizedValue: 12,
+    parent: null,
+    group: 1
+  },
+  {
+    id: 3,
+    title: "New Partnerships",
+    description: "Number of new partnerships established this quarter",
+    tags: ["Partner", "Growth"],
+    unit: "number",
+    targetValue: 5,
+    realizedValue: 3,
+    parent: null,
+    group: 2
+  },
+  {
+    id: 4,
+    title: "Partnership ROI",
+    description: "Return on investment from partnership activities",
+    tags: ["Partner", "Growth"],
+    unit: "percentage",
+    targetValue: 25,
+    realizedValue: 22,
+    parent: null,
+    group: 2
+  },
+  {
+    id: 5,
+    title: "Website Traffic",
+    description: "Monthly unique visitors to company website",
+    tags: ["Digital", "Marketing"],
+    unit: "number",
+    targetValue: 10000,
+    realizedValue: 8500,
+    parent: null,
+    group: 3
+  },
+  {
+    id: 6,
+    title: "Conversion Rate",
+    description: "Percentage of website visitors who become leads",
+    tags: ["Digital", "Marketing", "Campaign"],
+    unit: "percentage",
+    targetValue: 3.5,
+    realizedValue: 2.8,
+    parent: null,
+    group: 3
+  },
+  {
+    id: 7,
+    title: "Customer Satisfaction Score",
+    description: "Average customer satisfaction rating (1-10 scale)",
+    tags: ["Customer", "Quality"],
+    unit: "number",
+    targetValue: 8.5,
+    realizedValue: 8.2,
+    parent: null,
+    group: 4
+  },
+  {
+    id: 8,
+    title: "Support Response Time",
+    description: "Average time to respond to customer support tickets",
+    tags: ["Customer", "Support"],
+    unit: "number",
+    targetValue: 2,
+    realizedValue: 2.5,
+    parent: null,
+    group: 4
+  }
+];
+
 // Mock data for metric groups
 const mockMetricGroups = [
   {
