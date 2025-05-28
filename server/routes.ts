@@ -45,34 +45,23 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Partners API - Returns customers formatted as partners with business relationships
+  // Partners API - Returns one clean sample partner
   app.get('/api/partners', async (req, res) => {
     try {
       const customers = await storage.getAllCustomers();
       
-      const partners = customers.map(customer => {
-        // For now, provide meaningful business relationship counts
-        // Later we can connect to actual opportunities when schema is fixed
-        const partnerCounts = {
-          1: { customers: 1, opportunities: 2 }, // Jeroen Hypotheek Advies - brings referrals
-          2: { customers: 0, opportunities: 1 }  // Van Damme Manufacturing - direct customer
-        };
-        
-        const counts = partnerCounts[customer.id] || { customers: 0, opportunities: 0 };
-        
-        return {
-          id: customer.id,
-          name: customer.name,
-          description: customer.description,
-          initials: customer.name.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 2),
-          industry: getIndustryFromDescription(customer.description),
-          type: "Partner",
-          size: getSizeFromDescription(customer.description),
-          status: "active",
-          customers: counts.customers,
-          opportunities: counts.opportunities
-        };
-      });
+      const partners = customers.map(customer => ({
+        id: customer.id,
+        name: customer.name,
+        description: customer.description,
+        initials: customer.name.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 2),
+        industry: "Insurance",
+        type: "Partner", 
+        size: "medium",
+        status: "active",
+        customers: 1,
+        opportunities: 1
+      }));
       
       res.json(partners);
     } catch (error) {
