@@ -1079,12 +1079,50 @@ const TagBadge = ({ tag }: { tag: string }) => {
   );
 };
 
-// Partner Opportunities Section Component
+// Partner Opportunities Section Component with full list and views functionality
 function PartnerOpportunitiesSection({ partnerId }: { partnerId: string | undefined }) {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedOpportunities, setSelectedOpportunities] = useState<number[]>([]);
   const [statusFilter, setStatusFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
+  const [stageFilter, setStageFilter] = useState("");
+
+  // List and Views functionality - exactly like main pages
+  const [savedLists, setSavedLists] = useState<any[]>([
+    {
+      id: 'all-opportunities',
+      name: 'All Opportunities',
+      type: 'filter',
+      filters: { },
+      isShared: false,
+      createdBy: 'System',
+      createdAt: new Date('2025-01-01'),
+      isDefault: true
+    }
+  ]);
+  const [activeList, setActiveList] = useState<any>(null);
+  const [showSaveListModal, setShowSaveListModal] = useState(false);
+  const [showListsDropdown, setShowListsDropdown] = useState(false);
+  const [newListName, setNewListName] = useState("");
+  const [isCreatingNewList, setIsCreatingNewList] = useState(false);
+  const [selectedExistingList, setSelectedExistingList] = useState<string | null>(null);
+
+  // Views functionality
+  const [savedViews, setSavedViews] = useState<any[]>([
+    {
+      id: 'view-1',
+      name: 'Active Opportunities',
+      filters: {
+        status: 'open'
+      },
+      createdBy: 'John Smith',
+      createdAt: new Date('2025-05-01')
+    }
+  ]);
+  const [activeView, setActiveView] = useState<any>(null);
+  const [showSaveViewModal, setShowSaveViewModal] = useState(false);
+  const [showViewsDropdown, setShowViewsDropdown] = useState(false);
+  const [viewNameInput, setViewNameInput] = useState('');
 
   // Fetch opportunities for this specific partner
   const { data: opportunities = [], isLoading } = useQuery({
@@ -1101,21 +1139,48 @@ function PartnerOpportunitiesSection({ partnerId }: { partnerId: string | undefi
     enabled: !!partnerId
   });
 
-  // Filter opportunities based on search and filters
+  // Apply filters from active list or view
+  const getActiveFilters = () => {
+    if (activeList && activeList.type === 'filter') {
+      return activeList.filters;
+    }
+    if (activeView) {
+      return activeView.filters;
+    }
+    return {
+      searchText: searchTerm,
+      status: statusFilter,
+      type: typeFilter,
+      stage: stageFilter
+    };
+  };
+
+  // Filter opportunities based on search, filters, and active list/view
   const filteredOpportunities = opportunities.filter((opp: any) => {
-    const matchesSearch = opp.title?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         opp.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesStatus = !statusFilter || opp.status === statusFilter;
-    const matchesType = !typeFilter || opp.type === typeFilter;
-    return matchesSearch && matchesStatus && matchesType;
+    const filters = getActiveFilters();
+    
+    const matchesSearch = !filters.searchText || 
+      opp.title?.toLowerCase().includes(filters.searchText.toLowerCase()) ||
+      opp.description?.toLowerCase().includes(filters.searchText.toLowerCase());
+    
+    const matchesStatus = !filters.status || opp.status === filters.status;
+    const matchesType = !filters.type || opp.type === filters.type;
+    const matchesStage = !filters.stage || opp.stage === filters.stage;
+    
+    return matchesSearch && matchesStatus && matchesType && matchesStage;
   });
+
+  // If active list is a selection type, show only selected opportunities
+  const displayedOpportunities = activeList?.type === 'selection' 
+    ? opportunities.filter((opp: any) => activeList.members?.includes(opp.id))
+    : filteredOpportunities;
 
   // Calculate statistics
   const stats = {
-    totalOpportunities: filteredOpportunities.length,
-    closedWon: filteredOpportunities.filter((opp: any) => opp.status === 'closed' && opp.stage === 'closed').length,
-    totalValue: filteredOpportunities.reduce((sum: number, opp: any) => sum + (opp.value || 0), 0),
-    weightedValue: filteredOpportunities.reduce((sum: number, opp: any) => {
+    totalOpportunities: displayedOpportunities.length,
+    closedWon: displayedOpportunities.filter((opp: any) => opp.status === 'closed' && opp.stage === 'closed').length,
+    totalValue: displayedOpportunities.reduce((sum: number, opp: any) => sum + (opp.value || 0), 0),
+    weightedValue: displayedOpportunities.reduce((sum: number, opp: any) => {
       const value = opp.value || 0;
       const probability = opp.probability || 0;
       return sum + (value * (probability / 100));
@@ -1131,10 +1196,10 @@ function PartnerOpportunitiesSection({ partnerId }: { partnerId: string | undefi
   };
 
   const toggleSelectAll = () => {
-    if (selectedOpportunities.length === filteredOpportunities.length) {
+    if (selectedOpportunities.length === displayedOpportunities.length) {
       setSelectedOpportunities([]);
     } else {
-      setSelectedOpportunities(filteredOpportunities.map((opp: any) => opp.id));
+      setSelectedOpportunities(displayedOpportunities.map((opp: any) => opp.id));
     }
   };
 
@@ -1163,19 +1228,168 @@ function PartnerOpportunitiesSection({ partnerId }: { partnerId: string | undefi
     }
   };
 
+  const handleSaveList = () => {
+    if (selectedOpportunities.length === 0) return;
+    
+    setShowSaveListModal(true);
+  };
+
+  const handleSaveView = () => {
+    setShowSaveViewModal(true);
+  };
+
+  const createNewList = () => {
+    if (!newListName.trim()) return;
+    
+    const newList = {
+      id: Date.now().toString(),
+      name: newListName,
+      type: 'selection',
+      filters: {},
+      members: selectedOpportunities,
+      isShared: false,
+      createdBy: 'Current User',
+      createdAt: new Date()
+    };
+    
+    setSavedLists(prev => [...prev, newList]);
+    setSelectedOpportunities([]);
+    setNewListName("");
+    setShowSaveListModal(false);
+  };
+
+  const createNewView = () => {
+    if (!viewNameInput.trim()) return;
+    
+    const newView = {
+      id: Date.now().toString(),
+      name: viewNameInput,
+      filters: {
+        searchText: searchTerm,
+        status: statusFilter,
+        type: typeFilter,
+        stage: stageFilter
+      },
+      createdBy: 'Current User',
+      createdAt: new Date()
+    };
+    
+    setSavedViews(prev => [...prev, newView]);
+    setViewNameInput("");
+    setShowSaveViewModal(false);
+  };
+
   return (
     <div>
-      {/* Header with actions */}
+      {/* Header with Saved Lists and Views */}
       <div className="flex justify-between items-center mb-4">
-        <Button variant="outline" size="sm" className="flex items-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
-          </svg>
-          <span>Saved Lists</span>
-          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="6 9 12 15 18 9"></polyline>
-          </svg>
-        </Button>
+        <div className="flex gap-2">
+          {/* Saved Lists Dropdown */}
+          <div className="relative">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex items-center gap-2"
+              onClick={() => setShowListsDropdown(!showListsDropdown)}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+              </svg>
+              <span>{activeList ? activeList.name : 'Saved Lists'}</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </Button>
+            
+            {showListsDropdown && (
+              <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                <div className="p-2">
+                  <div className="text-xs font-medium text-gray-500 mb-2">SAVED LISTS</div>
+                  {savedLists.map((list) => (
+                    <div 
+                      key={list.id}
+                      className="flex items-center justify-between p-2 hover:bg-gray-50 rounded cursor-pointer"
+                      onClick={() => {
+                        setActiveList(list);
+                        setActiveView(null);
+                        setShowListsDropdown(false);
+                      }}
+                    >
+                      <span className="text-sm">{list.name}</span>
+                      {activeList?.id === list.id && (
+                        <svg className="w-4 h-4 text-indigo-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Saved Views Dropdown */}
+          <div className="relative">
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="flex items-center gap-2"
+              onClick={() => setShowViewsDropdown(!showViewsDropdown)}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                <circle cx="12" cy="12" r="3"></circle>
+              </svg>
+              <span>{activeView ? activeView.name : 'Views'}</span>
+              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </Button>
+            
+            {showViewsDropdown && (
+              <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                <div className="p-2">
+                  <div className="text-xs font-medium text-gray-500 mb-2">SAVED VIEWS</div>
+                  {savedViews.map((view) => (
+                    <div 
+                      key={view.id}
+                      className="flex items-center justify-between p-2 hover:bg-gray-50 rounded cursor-pointer"
+                      onClick={() => {
+                        setActiveView(view);
+                        setActiveList(null);
+                        setShowViewsDropdown(false);
+                      }}
+                    >
+                      <span className="text-sm">{view.name}</span>
+                      {activeView?.id === view.id && (
+                        <svg className="w-4 h-4 text-indigo-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                      )}
+                    </div>
+                  ))}
+                  <div className="border-t pt-2 mt-2">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="w-full text-left justify-start text-indigo-600"
+                      onClick={() => {
+                        setShowViewsDropdown(false);
+                        handleSaveView();
+                      }}
+                    >
+                      <svg className="w-4 h-4 mr-2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <line x1="12" y1="5" x2="12" y2="19"></line>
+                        <line x1="5" y1="12" x2="19" y2="12"></line>
+                      </svg>
+                      Save Current View
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
         
         <div className="flex gap-2">
           <Button variant="outline" size="sm" className="text-sm">
@@ -1216,28 +1430,43 @@ function PartnerOpportunitiesSection({ partnerId }: { partnerId: string | undefi
             </div>
           </div>
           
-          <Button variant="outline" size="sm" className="flex items-center gap-1">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-            </svg>
-            <span>Status</span>
-          </Button>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[120px]">
+              <SelectValue placeholder="Status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">All Status</SelectItem>
+              <SelectItem value="open">Open</SelectItem>
+              <SelectItem value="closed">Closed</SelectItem>
+              <SelectItem value="on_hold">On Hold</SelectItem>
+            </SelectContent>
+          </Select>
           
-          <Button variant="outline" size="sm" className="flex items-center gap-1">
-            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect>
-              <rect x="9" y="9" width="6" height="6"></rect>
-              <line x1="9" y1="1" x2="9" y2="4"></line>
-              <line x1="15" y1="1" x2="15" y2="4"></line>
-              <line x1="9" y1="20" x2="9" y2="23"></line>
-              <line x1="15" y1="20" x2="15" y2="23"></line>
-              <line x1="20" y1="9" x2="23" y2="9"></line>
-              <line x1="20" y1="14" x2="23" y2="14"></line>
-              <line x1="1" y1="9" x2="4" y2="9"></line>
-              <line x1="1" y1="14" x2="4" y2="14"></line>
-            </svg>
-            <span>Type</span>
-          </Button>
+          <Select value={typeFilter} onValueChange={setTypeFilter}>
+            <SelectTrigger className="w-[120px]">
+              <SelectValue placeholder="Type" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">All Types</SelectItem>
+              <SelectItem value="new_business">New Business</SelectItem>
+              <SelectItem value="cross_sell">Cross Sell</SelectItem>
+              <SelectItem value="upsell">Upsell</SelectItem>
+              <SelectItem value="renewal">Renewal</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select value={stageFilter} onValueChange={setStageFilter}>
+            <SelectTrigger className="w-[120px]">
+              <SelectValue placeholder="Stage" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">All Stages</SelectItem>
+              <SelectItem value="discovery">Discovery</SelectItem>
+              <SelectItem value="proposal">Proposal</SelectItem>
+              <SelectItem value="negotiation">Negotiation</SelectItem>
+              <SelectItem value="closed">Closed</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
     
@@ -1257,7 +1486,7 @@ function PartnerOpportunitiesSection({ partnerId }: { partnerId: string | undefi
           </div>
           
           <div className="flex gap-2">
-            <Button variant="ghost" size="sm" className="text-indigo-700">
+            <Button variant="ghost" size="sm" className="text-indigo-700" onClick={handleSaveList}>
               Create List
             </Button>
             
@@ -1310,7 +1539,7 @@ function PartnerOpportunitiesSection({ partnerId }: { partnerId: string | undefi
             <TableRow>
               <TableHead className="w-[40px]">
                 <Checkbox 
-                  checked={selectedOpportunities.length === filteredOpportunities.length && filteredOpportunities.length > 0}
+                  checked={selectedOpportunities.length === displayedOpportunities.length && displayedOpportunities.length > 0}
                   onCheckedChange={toggleSelectAll}
                 />
               </TableHead>
@@ -1324,7 +1553,7 @@ function PartnerOpportunitiesSection({ partnerId }: { partnerId: string | undefi
             </TableRow>
           </TableHeader>
           <TableBody>
-            {filteredOpportunities.map((opportunity: any) => (
+            {displayedOpportunities.map((opportunity: any) => (
               <TableRow key={opportunity.id}>
                 <TableCell>
                   <Checkbox 
@@ -1366,6 +1595,62 @@ function PartnerOpportunitiesSection({ partnerId }: { partnerId: string | undefi
           </TableBody>
         </Table>
       )}
+
+      {/* Save List Modal */}
+      <Dialog open={showSaveListModal} onOpenChange={setShowSaveListModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Save Opportunities List</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="listName">List Name</Label>
+              <Input
+                id="listName"
+                value={newListName}
+                onChange={(e) => setNewListName(e.target.value)}
+                placeholder="Enter list name..."
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowSaveListModal(false)}>
+                Cancel
+              </Button>
+              <Button onClick={createNewList}>
+                Save List
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Save View Modal */}
+      <Dialog open={showSaveViewModal} onOpenChange={setShowSaveViewModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Save Current View</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="viewName">View Name</Label>
+              <Input
+                id="viewName"
+                value={viewNameInput}
+                onChange={(e) => setViewNameInput(e.target.value)}
+                placeholder="Enter view name..."
+              />
+            </div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setShowSaveViewModal(false)}>
+                Cancel
+              </Button>
+              <Button onClick={createNewView}>
+                Save View
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
