@@ -750,8 +750,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Opportunities API - Your uploaded Excel data
   app.get('/api/opportunities', async (req, res) => {
     try {
-      console.log('Fetching real opportunities from database...');
-      const opportunities = await storage.getAllOpportunities();
+      console.log('Fetching real opportunities from degoudse database...');
+      
+      // Switch to degoudse environment to get your uploaded data
+      const degoudseStorage = storage.switchEnvironment('degoudse');
+      const opportunities = await degoudseStorage.getAllOpportunities();
+      
+      console.log(`Found ${opportunities?.length || 0} opportunities in degoudse database`);
+      
+      if (!opportunities || !Array.isArray(opportunities)) {
+        console.log('No valid opportunities array found in degoudse environment');
+        return res.json([]);
+      }
       
       // Add customer and product names by fetching related data
       const enrichedOpportunities = await Promise.all(opportunities.map(async (opp) => {
@@ -760,11 +770,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         try {
           if (opp.clientId) {
-            const customer = await storage.getCustomer(opp.clientId);
+            const customer = await degoudseStorage.getCustomer(opp.clientId);
             clientName = customer?.name || 'Unknown Client';
           }
           if (opp.productId) {
-            const product = await storage.getProduct(opp.productId);
+            const product = await degoudseStorage.getProduct(opp.productId);
             productName = product?.name || 'Unknown Product';
           }
         } catch (error) {
@@ -778,10 +788,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         };
       }));
       
-      console.log(`Returning ${enrichedOpportunities.length} real opportunities from database`);
+      console.log(`Returning ${enrichedOpportunities.length} real opportunities from degoudse database`);
       res.json(enrichedOpportunities);
     } catch (error) {
-      console.error('Error fetching opportunities:', error);
+      console.error('Error fetching opportunities from degoudse:', error);
       res.status(500).json({ message: 'Failed to fetch opportunities' });
     }
   });
