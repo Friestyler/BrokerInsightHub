@@ -1070,13 +1070,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           }
         }
 
-        // Set default customer/partner relationships
-        opportunityData.clientId = customerId || 1;
-        opportunityData.productId = 1; // Default product
-
         try {
-          // Create the opportunity in De Goudse environment
-          const opportunity = await degoudseStorage.createOpportunity(opportunityData);
+          // Create the opportunity with only essential fields
+          const opportunity = await degoudseStorage.createOpportunity({
+            title: opportunityData.title || `Opportunity from ${fileName} - Row ${i + 1}`,
+            clientId: customerId || 1,
+            productId: 1,
+            probability: opportunityData.probability || 50,
+            estimatedValue: opportunityData.estimatedValue || 0,
+            ownerId: 1
+          });
           createdOpportunities.push(opportunity);
           opportunitiesCreated++;
         } catch (error) {
