@@ -292,76 +292,7 @@ export default function CustomersPageClean() {
           </div>
         </div>
 
-        {/* Remove old search section */}
-        <div className="flex items-center space-x-3">
-          <div className="relative">
-            <Input
-              placeholder="Search customers..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-64 text-sm border-gray-300 text-gray-500 placeholder-gray-400"
-            />
-            <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400">🔍</span>
-          </div>
-          
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="text-sm text-gray-700 border-gray-300 hover:bg-gray-50">
-                <span className="text-blue-600 mr-2">📌</span>
-                Select a view
-                <span className="ml-2 text-gray-400">▼</span>
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem>Standard View</DropdownMenuItem>
-              <DropdownMenuItem>Compact View</DropdownMenuItem>
-              <DropdownMenuItem>Detailed View</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="text-sm text-gray-700 border-gray-300 hover:bg-gray-50">
-                <span className="text-blue-600 mr-2">🔽</span>
-                Status
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem>Active</DropdownMenuItem>
-              <DropdownMenuItem>Inactive</DropdownMenuItem>
-              <DropdownMenuItem>Pending</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="text-sm text-gray-700 border-gray-300 hover:bg-gray-50">
-                <span className="text-blue-600 mr-2">🔽</span>
-                Type
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem>Customer</DropdownMenuItem>
-              <DropdownMenuItem>Prospect</DropdownMenuItem>
-              <DropdownMenuItem>Lead</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-          
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
-              <Button variant="outline" className="text-sm text-gray-700 border-gray-300 hover:bg-gray-50">
-                <span className="text-blue-600 mr-2">🔽</span>
-                Industry
-              </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent>
-              <DropdownMenuItem>Insurance</DropdownMenuItem>
-              <DropdownMenuItem>Technology</DropdownMenuItem>
-              <DropdownMenuItem>Healthcare</DropdownMenuItem>
-              <DropdownMenuItem>Finance</DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
-        </div>
+
 
         {/* Statistics Cards - exact match to Opportunities layout */}
         <div className="grid grid-cols-4 gap-6">
