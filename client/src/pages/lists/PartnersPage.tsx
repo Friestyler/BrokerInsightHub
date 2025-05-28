@@ -1346,28 +1346,28 @@ function PartnersTable() {
         </div>
       )}
       {/* Statistics overview */}
-      <div className="flex flex-wrap gap-4">
-        <div className="bg-white p-4 rounded-md border border-gray-200 w-fit">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+        <div className="bg-white p-4 rounded-md border border-gray-200">
           <div className="text-xl text-[#282A3F] font-medium" style={{fontFamily: 'Poppins'}}>{stats.totalPartners}</div>
           <div className="text-sm text-[#696C8C]" style={{fontFamily: 'Poppins', fontWeight: 400}}>Total Partners</div>
         </div>
         
-        <div className="bg-white p-4 rounded-md border border-gray-200 w-fit">
+        <div className="bg-white p-4 rounded-md border border-gray-200">
           <div className="text-xl text-[#282A3F] font-medium" style={{fontFamily: 'Poppins'}}>{stats.totalOpportunityValue.toLocaleString()}€</div>
           <div className="text-sm text-[#696C8C]" style={{fontFamily: 'Poppins', fontWeight: 400}}>Total Amount Opportunities</div>
         </div>
         
-        <div className="bg-white p-4 rounded-md border border-gray-200 w-fit">
+        <div className="bg-white p-4 rounded-md border border-gray-200">
           <div className="text-xl text-[#282A3F] font-medium" style={{fontFamily: 'Poppins'}}>{Math.round(stats.weightedOpportunityValue).toLocaleString()}€</div>
           <div className="text-sm text-[#696C8C]" style={{fontFamily: 'Poppins', fontWeight: 400}}>Weighted Amount Opportunities</div>
         </div>
         
-        <div className="bg-white p-4 rounded-md border border-gray-200 w-fit">
+        <div className="bg-white p-4 rounded-md border border-gray-200">
           <div className="text-xl text-[#282A3F] font-medium" style={{fontFamily: 'Poppins'}}>{stats.totalOpportunities}</div>
           <div className="text-sm text-[#696C8C]" style={{fontFamily: 'Poppins', fontWeight: 400}}>Total Opportunities</div>
         </div>
         
-        <div className="bg-white p-4 rounded-md border border-gray-200 w-fit">
+        <div className="bg-white p-4 rounded-md border border-gray-200">
           <div className="text-xl text-[#282A3F] font-medium" style={{fontFamily: 'Poppins'}}>{stats.totalCustomers}</div>
           <div className="text-sm text-[#696C8C]" style={{fontFamily: 'Poppins', fontWeight: 400}}>Total Customers</div>
         </div>
