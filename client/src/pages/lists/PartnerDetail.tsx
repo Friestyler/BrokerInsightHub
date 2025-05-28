@@ -1164,9 +1164,9 @@ function PartnerOpportunitiesSection({ partnerId }: { partnerId: string | undefi
       opp.title?.toLowerCase().includes(filters.searchText.toLowerCase()) ||
       opp.description?.toLowerCase().includes(filters.searchText.toLowerCase());
     
-    const matchesStatus = !filters.status || opp.status === filters.status;
-    const matchesType = !filters.type || opp.type === filters.type;
-    const matchesStage = !filters.stage || opp.stage === filters.stage;
+    const matchesStatus = !filters.status || filters.status === 'all' || opp.status === filters.status;
+    const matchesType = !filters.type || filters.type === 'all' || opp.type === filters.type;
+    const matchesStage = !filters.stage || filters.stage === 'all' || opp.stage === filters.stage;
     
     return matchesSearch && matchesStatus && matchesType && matchesStage;
   });
@@ -1436,7 +1436,7 @@ function PartnerOpportunitiesSection({ partnerId }: { partnerId: string | undefi
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Status</SelectItem>
+              <SelectItem value="all">All Status</SelectItem>
               <SelectItem value="open">Open</SelectItem>
               <SelectItem value="closed">Closed</SelectItem>
               <SelectItem value="on_hold">On Hold</SelectItem>
@@ -1448,7 +1448,7 @@ function PartnerOpportunitiesSection({ partnerId }: { partnerId: string | undefi
               <SelectValue placeholder="Type" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Types</SelectItem>
+              <SelectItem value="all">All Types</SelectItem>
               <SelectItem value="new_business">New Business</SelectItem>
               <SelectItem value="cross_sell">Cross Sell</SelectItem>
               <SelectItem value="upsell">Upsell</SelectItem>
@@ -1461,7 +1461,7 @@ function PartnerOpportunitiesSection({ partnerId }: { partnerId: string | undefi
               <SelectValue placeholder="Stage" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Stages</SelectItem>
+              <SelectItem value="all">All Stages</SelectItem>
               <SelectItem value="discovery">Discovery</SelectItem>
               <SelectItem value="proposal">Proposal</SelectItem>
               <SelectItem value="negotiation">Negotiation</SelectItem>
