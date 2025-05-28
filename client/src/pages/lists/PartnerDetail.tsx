@@ -737,7 +737,7 @@ export default function PartnerDetail() {
           </TabsContent>
             
           <TabsContent value="opportunities" className="mt-4">
-            {/* Content removed as requested */}
+            <PartnerOpportunitiesSection partnerId={id} />
           </TabsContent>
           
           <TabsContent value="customers" className="mt-4">
@@ -1080,39 +1080,20 @@ const TagBadge = ({ tag }: { tag: string }) => {
   );
 };
 
-// Partner Opportunities Section Component with full list and views functionality
+// Partner Opportunities Section Component - exact copy of Partners page structure
 function PartnerOpportunitiesSection({ partnerId }: { partnerId: string | undefined }) {
-  const [searchTerm, setSearchTerm] = useState("");
+  // Filter state - exact from Partners page
+  const [filterText, setFilterText] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('');
+  const [selectedType, setSelectedType] = useState('');
+  const [selectedStage, setSelectedStage] = useState('');
   const [selectedOpportunities, setSelectedOpportunities] = useState<number[]>([]);
-  const [statusFilter, setStatusFilter] = useState("");
-  const [typeFilter, setTypeFilter] = useState("");
-  const [stageFilter, setStageFilter] = useState("");
 
-  // List and Views functionality - exactly like main pages
-  const [savedLists, setSavedLists] = useState<any[]>([
-    {
-      id: 'all-opportunities',
-      name: 'All Opportunities',
-      type: 'filter',
-      filters: { },
-      isShared: false,
-      createdBy: 'System',
-      createdAt: new Date('2025-01-01'),
-      isDefault: true
-    }
-  ]);
-  const [activeList, setActiveList] = useState<any>(null);
-  const [showSaveListModal, setShowSaveListModal] = useState(false);
-  const [showListsDropdown, setShowListsDropdown] = useState(false);
-  const [newListName, setNewListName] = useState("");
-  const [isCreatingNewList, setIsCreatingNewList] = useState(false);
-  const [selectedExistingList, setSelectedExistingList] = useState<string | null>(null);
-
-  // Views functionality
+  // Views functionality - exact from Partners page
   const [savedViews, setSavedViews] = useState<any[]>([
     {
       id: 'view-1',
-      name: 'Active Opportunities',
+      name: 'Open Opportunities',
       filters: {
         status: 'open'
       },
@@ -1121,9 +1102,7 @@ function PartnerOpportunitiesSection({ partnerId }: { partnerId: string | undefi
     }
   ]);
   const [activeView, setActiveView] = useState<any>(null);
-  const [showSaveViewModal, setShowSaveViewModal] = useState(false);
   const [showViewsDropdown, setShowViewsDropdown] = useState(false);
-  const [viewNameInput, setViewNameInput] = useState('');
 
   // Fetch opportunities for this specific partner
   const { data: opportunities = [], isLoading } = useQuery({
@@ -1140,41 +1119,20 @@ function PartnerOpportunitiesSection({ partnerId }: { partnerId: string | undefi
     enabled: !!partnerId
   });
 
-  // Apply filters from active list or view
-  const getActiveFilters = () => {
-    if (activeList && activeList.type === 'filter') {
-      return activeList.filters;
-    }
-    if (activeView) {
-      return activeView.filters;
-    }
-    return {
-      searchText: searchTerm,
-      status: statusFilter,
-      type: typeFilter,
-      stage: stageFilter
-    };
-  };
-
-  // Filter opportunities based on search, filters, and active list/view
-  const filteredOpportunities = opportunities.filter((opp: any) => {
-    const filters = getActiveFilters();
-    
-    const matchesSearch = !filters.searchText || 
-      opp.title?.toLowerCase().includes(filters.searchText.toLowerCase()) ||
-      opp.description?.toLowerCase().includes(filters.searchText.toLowerCase());
-    
-    const matchesStatus = !filters.status || filters.status === 'all' || opp.status === filters.status;
-    const matchesType = !filters.type || filters.type === 'all' || opp.type === filters.type;
-    const matchesStage = !filters.stage || filters.stage === 'all' || opp.stage === filters.stage;
-    
-    return matchesSearch && matchesStatus && matchesType && matchesStage;
-  });
-
-  // If active list is a selection type, show only selected opportunities
-  const displayedOpportunities = activeList?.type === 'selection' 
-    ? opportunities.filter((opp: any) => activeList.members?.includes(opp.id))
-    : filteredOpportunities;
+  // Filter opportunities based on search, filters, and active view - exact logic from Partners page
+  const displayedOpportunities = opportunities
+    .filter((opportunity: any) => {
+      const matchesText = !filterText || 
+        opportunity.title?.toLowerCase().includes(filterText.toLowerCase()) ||
+        opportunity.description?.toLowerCase().includes(filterText.toLowerCase()) ||
+        opportunity.customerName?.toLowerCase().includes(filterText.toLowerCase());
+        
+      const matchesStatus = !selectedStatus || opportunity.status === selectedStatus;
+      const matchesType = !selectedType || opportunity.type === selectedType;
+      const matchesStage = !selectedStage || opportunity.stage === selectedStage;
+      
+      return matchesText && matchesStatus && matchesType && matchesStage;
+    });
 
   // Calculate statistics
   const stats = {
@@ -1334,10 +1292,10 @@ function PartnerOpportunitiesSection({ partnerId }: { partnerId: string | undefi
                           
                           if (list.isDefault && list.name === "All Opportunities") {
                             setActiveList(null);
-                            setSearchTerm('');
-                            setStatusFilter('');
-                            setTypeFilter('');
-                            setStageFilter('');
+                            setFilterText('');
+                            setSelectedStatus('');
+                            setSelectedType('');
+                            setSelectedStage('');
                           } else {
                             setActiveList(list);
                             setSearchTerm(list.filters.searchText || '');
