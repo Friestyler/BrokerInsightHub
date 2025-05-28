@@ -120,15 +120,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Opportunities Endpoints
-  app.get('/api/opportunities', async (req, res) => {
-    try {
-      const opportunities = await storage.getAllOpportunities();
-      res.json(opportunities);
-    } catch (error) {
-      res.status(500).json({ message: 'Failed to fetch opportunities' });
-    }
-  });
+  // Opportunities Endpoints - removed duplicate, using the enhanced version below
 
   // Clients Endpoints
   app.get('/api/clients', async (req, res) => {
@@ -760,19 +752,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const opportunities = await storage.getAllOpportunities();
       
-      // Customer and product mapping based on database values
+      // Customer and product mapping based on your real uploaded Excel data
       const clientMapping: {[key: number]: string} = {
-        1: "Van Damme BVBA",
-        2: "Laura Martens", 
-        3: "Green Tech SA"
+        1: "BGB Insurance Portfolio",
+        2: "Verkeersschade Claims", 
+        3: "Zonnepanelen Solar Solutions",
+        4: "Zonnepalen Projects",
+        5: "De Goudse Insurance Group"
       };
       
       const productMapping: {[key: number]: string} = {
         1: "Property Insurance",
-        3: "Cyber Insurance",
-        4: "Auto Insurance", 
-        6: "Life Insurance",
-        7: "Business Interruption"
+        2: "Traffic Damage Insurance",
+        3: "Solar Panel Coverage", 
+        4: "Renewable Energy Insurance",
+        5: "Commercial Insurance"
       };
       
       // Add client and product names to each opportunity
