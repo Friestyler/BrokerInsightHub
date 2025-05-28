@@ -70,38 +70,25 @@ function PartnerOverviewSection({ partner }: { partner: any }) {
         </div>
 
         <div className="bg-white p-6 rounded-lg border border-gray-200">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">Team</h3>
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">Partner Details</h3>
           <div className="space-y-3">
             <div>
-              <span className="text-sm text-gray-500 block mb-2">Owner</span>
-              <div className="flex items-center space-x-2">
+              <span className="text-sm text-gray-500">Partner Initials</span>
+              <div className="flex items-center space-x-2 mt-1">
                 <div className="w-8 h-8 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center text-sm font-medium">
-                  {partner.owner.initials}
+                  {partner.initials}
                 </div>
-                <span className="font-medium text-gray-900">{partner.owner.name}</span>
+                <span className="font-medium text-gray-900">{partner.name}</span>
               </div>
             </div>
-            {partner.team.length > 0 && (
-              <div>
-                <span className="text-sm text-gray-500 block mb-2">Team Members</span>
-                <div className="flex -space-x-2">
-                  {partner.team.slice(0, 3).map((member) => (
-                    <div 
-                      key={member.id}
-                      className="w-8 h-8 bg-gray-100 text-gray-600 rounded-full flex items-center justify-center text-sm font-medium border-2 border-white"
-                      title={member.name}
-                    >
-                      {member.initials}
-                    </div>
-                  ))}
-                  {partner.team.length > 3 && (
-                    <div className="w-8 h-8 bg-gray-200 text-gray-500 rounded-full flex items-center justify-center text-xs font-medium border-2 border-white">
-                      +{partner.team.length - 3}
-                    </div>
-                  )}
-                </div>
-              </div>
-            )}
+            <div>
+              <span className="text-sm text-gray-500">Status</span>
+              <p className="font-medium text-gray-900 capitalize">{partner.status}</p>
+            </div>
+            <div>
+              <span className="text-sm text-gray-500">Size</span>
+              <p className="font-medium text-gray-900 capitalize">{partner.size}</p>
+            </div>
           </div>
         </div>
       </div>
@@ -378,11 +365,6 @@ export default function PartnerDetail() {
   });
 
   const partner = partners.find((p: any) => p.id === parseInt(partnerId || '0'));
-  
-  // Debug logging
-  console.log('Partner ID from URL:', partnerId);
-  console.log('Partners data:', partners);
-  console.log('Found partner:', partner);
 
   if (isLoading) {
     return (
