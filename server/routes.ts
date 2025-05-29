@@ -1365,7 +1365,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
         is_archived, is_shared, hierarchy, tags 
       } = req.body;
       
-      const tagsJson = tags ? JSON.stringify(tags) : '[]';
       const result = await db.execute(sql`
         INSERT INTO myqollabi.okr_metrics (
           name, description, realized_value, target_value, measure_unit,
@@ -1379,7 +1378,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ${measure_unit || 'number'},
           ${frequency || 'none'}, 
           ${hierarchy || 'metric'}, 
-          ${tagsJson}::jsonb, 
+          ${tags || []}, 
           1
         )
         RETURNING *
