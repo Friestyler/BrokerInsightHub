@@ -86,8 +86,10 @@ export default function OKRMetricsPage() {
   const { toast } = useToast();
   const [selectedMetrics, setSelectedMetrics] = useState<number[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedFrequency, setSelectedFrequency] = useState('all');
+  const [selectedTag, setSelectedTag] = useState('all');
   const [selectedUnit, setSelectedUnit] = useState('all');
+  const [selectedRange, setSelectedRange] = useState('all');
+  const [selectedTimeframe, setSelectedTimeframe] = useState('all');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isTagDialogOpen, setIsTagDialogOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -118,10 +120,22 @@ export default function OKRMetricsPage() {
   const displayMetrics = (metrics as OKRMetric[]).filter((metric: OKRMetric) => {
     const matchesSearch = metric.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          metric.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesFrequency = selectedFrequency === 'all' || metric.frequency === selectedFrequency;
+    
+    const matchesTag = selectedTag === 'all' || metric.tags.includes(selectedTag);
     const matchesUnit = selectedUnit === 'all' || metric.measure_unit === selectedUnit;
     
-    return matchesSearch && matchesFrequency && matchesUnit;
+    const matchesRange = selectedRange === 'all' || 
+      (selectedRange === '0-50' && metric.target_value !== null && metric.target_value <= 50) ||
+      (selectedRange === '50-100' && metric.target_value !== null && metric.target_value > 50 && metric.target_value <= 100) ||
+      (selectedRange === '100+' && metric.target_value !== null && metric.target_value > 100);
+    
+    const matchesTimeframe = selectedTimeframe === 'all' || 
+      (selectedTimeframe === 'current' && metric.timeframe_start && metric.timeframe_end && 
+       new Date() >= new Date(metric.timeframe_start) && new Date() <= new Date(metric.timeframe_end)) ||
+      (selectedTimeframe === 'upcoming' && metric.timeframe_start && new Date() < new Date(metric.timeframe_start)) ||
+      (selectedTimeframe === 'past' && metric.timeframe_end && new Date() > new Date(metric.timeframe_end));
+    
+    return matchesSearch && matchesTag && matchesUnit && matchesRange && matchesTimeframe;
   });
 
   // Group metrics by tags or none
@@ -195,8 +209,10 @@ export default function OKRMetricsPage() {
 
   const clearFilters = () => {
     setSearchTerm('');
-    setSelectedFrequency('all');
+    setSelectedTag('all');
     setSelectedUnit('all');
+    setSelectedRange('all');
+    setSelectedTimeframe('all');
     setCurrentPage(1);
   };
 
@@ -227,6 +243,73 @@ export default function OKRMetricsPage() {
 
         {/* Content */}
         <div className="min-h-screen bg-white px-6 py-6">
+          
+          {/* Filters */}
+          <div className="flex items-center gap-4 mb-6">
+            {/* Search */}
+            <div className="relative flex-1 max-w-sm">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+              <Input
+                placeholder="Search OKR templates..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            
+            {/* Tag Filter */}
+            <Select value={selectedTag} onValueChange={setSelectedTag}>
+              <SelectTrigger className="w-32">
+                <SelectValue placeholder="Tag" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Tags</SelectItem>
+                <SelectItem value="Customer Success">Customer Success</SelectItem>
+                <SelectItem value="Market Expansion">Market Expansion</SelectItem>
+                <SelectItem value="Product Innovation">Product Innovation</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            {/* Unit Filter */}
+            <Select value={selectedUnit} onValueChange={setSelectedUnit}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Measure Unit" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Units</SelectItem>
+                <SelectItem value="number">Number</SelectItem>
+                <SelectItem value="percent">Percentage</SelectItem>
+                <SelectItem value="currency">Currency</SelectItem>
+                <SelectItem value="checkbox">Checkbox</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            {/* Target Range Filter */}
+            <Select value={selectedRange} onValueChange={setSelectedRange}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Target Range" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Ranges</SelectItem>
+                <SelectItem value="0-50">0-50</SelectItem>
+                <SelectItem value="50-100">50-100</SelectItem>
+                <SelectItem value="100+">100+</SelectItem>
+              </SelectContent>
+            </Select>
+            
+            {/* Timeframe Filter */}
+            <Select value={selectedTimeframe} onValueChange={setSelectedTimeframe}>
+              <SelectTrigger className="w-48">
+                <SelectValue placeholder="Select timeframe" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Timeframes</SelectItem>
+                <SelectItem value="current">Current</SelectItem>
+                <SelectItem value="upcoming">Upcoming</SelectItem>
+                <SelectItem value="past">Past</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
           {/* Group By */}
           <div className="flex items-center space-x-2 mb-6">
