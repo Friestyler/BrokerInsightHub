@@ -1369,6 +1369,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name, description, realized_value, target_value, measure_unit, frequency, hierarchy, tags
       });
 
+      // Format tags as PostgreSQL array literal
+      const tagsArray = tags && Array.isArray(tags) ? `{${tags.map(tag => `"${tag}"`).join(',')}}` : '{}';
+      console.log('Formatted tags array:', tagsArray);
+
       const result = await db.execute(sql`
         INSERT INTO myqollabi.okr_metrics (
           name, description, realized_value, target_value, measure_unit,
@@ -1382,7 +1386,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ${measure_unit || 'number'},
           ${frequency || 'none'}, 
           ${hierarchy || 'metric'}, 
-          ${tags || []}, 
+          ${tagsArray}::text[], 
           1
         )
         RETURNING *
@@ -1422,6 +1426,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error updating OKR metric:', error);
       res.status(500).json({ error: 'Failed to update OKR metric' });
+    }
+  });
+
+  // Debug endpoint for testing database connection
+  app.get('/api/debug/test-insert', async (req, res) => {
+    try {
+      console.log('Testing direct database insert...');
+      
+      const result = await db.execute(sql`
+        INSERT INTO myqollabi.okr_metrics (
+          name, description, realized_value, target_value, measure_unit,
+          frequency, hierarchy, tags, created_by
+        )
+        VALUES (
+          'Test Metric', 
+          'Test description', 
+          '0', 
+          '100', 
+          'number',
+          'monthly', 
+          'metric', 
+          '{}', 
+          1
+        )
+        RETURNING *
+      `);
+      
+      console.log('Insert successful:', result.rows[0]);
+      res.json({ success: true, data: result.rows[0] });
+    } catch (error) {
+      console.error('Insert failed:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Debug endpoint to check database structure
+  app.get('/api/debug/check-table', async (req, res) => {
+    try {
+      const result = await db.execute(sql`
+        SELECT column_name, data_type, is_nullable 
+        FROM information_schema.columns 
+        WHERE table_schema = 'myqollabi' AND table_name = 'okr_metrics'
+        ORDER BY ordinal_position
+      `);
+      
+      res.json({ columns: result.rows });
+    } catch (error) {
+      console.error('Error checking table:', error);
+      res.status(500).json({ error: error.message });
+    }
+  });
+
+  // Get all OKR metrics
+  app.get('/api/okr-metrics', async (req, res) => {
+    try {
+      const result = await db.execute(sql`SELECT * FROM myqollabi.okr_metrics ORDER BY created_at DESC`);
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching OKR metrics:', error);
+      res.status(500).json({ error: 'Failed to fetch OKR metrics' });
     }
   });
 
