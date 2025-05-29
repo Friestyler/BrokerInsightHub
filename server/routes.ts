@@ -1369,9 +1369,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name, description, realized_value, target_value, measure_unit, frequency, hierarchy, tags
       });
 
-      // Format tags as PostgreSQL array literal
-      const tagsArray = tags && Array.isArray(tags) ? `{${tags.map(tag => `"${tag}"`).join(',')}}` : '{}';
-      console.log('Formatted tags array:', tagsArray);
+      // Format tags as PostgreSQL array - use direct array value
+      const tagsValue = tags && Array.isArray(tags) && tags.length > 0 ? tags : [];
+      console.log('Using tags array:', tagsValue);
 
       const result = await db.execute(sql`
         INSERT INTO myqollabi.okr_metrics (
@@ -1386,7 +1386,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           ${measure_unit || 'number'},
           ${frequency || 'none'}, 
           ${hierarchy || 'metric'}, 
-          ${tagsArray}::text[], 
+          ${tagsValue}, 
           1
         )
         RETURNING *
