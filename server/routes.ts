@@ -811,9 +811,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const result = await db.execute(sql`
         SELECT c.*, 
-               COUNT(o.id) as opportunity_count
+               COUNT(DISTINCT o.id) as opportunity_count,
+               COUNT(DISTINCT pc.partner_id) as partner_count,
+               STRING_AGG(DISTINCT p.name, ', ') as partner_names
         FROM myqollabi.customers c
         LEFT JOIN myqollabi.opportunities o ON o.client_id = c.id
+        LEFT JOIN myqollabi.partner_customers pc ON pc.customer_id = c.id
+        LEFT JOIN myqollabi.partners p ON p.id = pc.partner_id
         GROUP BY c.id, c.name, c.description, c.owner_id, c.created_at, c.updated_at, 
                  c.contact_name, c.contact_email, c.contact_phone, c.assigned_partner_id
         ORDER BY c.id
@@ -831,7 +835,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         contactEmail: customer.contact_email,
         contactPhone: customer.contact_phone,
         assignedPartnerId: customer.assigned_partner_id,
-        opportunityCount: customer.opportunity_count || 0
+        opportunityCount: customer.opportunity_count || 0,
+        partnerCount: customer.partner_count || 0,
+        partnerNames: customer.partner_names || ''
       }));
       
       res.json(customers);
