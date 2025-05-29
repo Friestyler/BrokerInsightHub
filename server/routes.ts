@@ -46,10 +46,10 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Partners API - Returns data from clean partners table
+  // Partners API - Returns data from clean partners_clean table
   app.get('/api/partners', async (req, res) => {
     try {
-      const result = await db.execute(sql`SELECT * FROM public.partners ORDER BY id`);
+      const result = await db.execute(sql`SELECT * FROM public.partners_clean ORDER BY id`);
       
       const partners = result.rows.map((partner: any) => ({
         id: partner.id,
@@ -226,12 +226,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
 
 
-  // Vendor Endpoints
+  // Vendors API - Returns data from clean vendors_clean table
   app.get('/api/vendors', async (req, res) => {
     try {
-      const vendors = await storage.getAllVendors();
+      const result = await db.execute(sql`SELECT * FROM public.vendors_clean ORDER BY id`);
+      
+      const vendors = result.rows.map((vendor: any) => ({
+        id: vendor.id,
+        name: vendor.name,
+        description: vendor.description,
+        createdAt: vendor.created_at,
+        updatedAt: vendor.updated_at
+      }));
+      
       res.json(vendors);
     } catch (error) {
+      console.error('Error fetching vendors:', error);
       res.status(500).json({ message: 'Failed to fetch vendors' });
     }
   });
@@ -277,12 +287,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
-  // Product Endpoints
+  // Products API - Returns data from clean products_clean table
   app.get('/api/products', async (req, res) => {
     try {
-      const products = await storage.getAllProducts();
+      const result = await db.execute(sql`SELECT * FROM public.products_clean ORDER BY id`);
+      
+      const products = result.rows.map((product: any) => ({
+        id: product.id,
+        name: product.name,
+        description: product.description,
+        createdAt: product.created_at,
+        updatedAt: product.updated_at
+      }));
+      
       res.json(products);
     } catch (error) {
+      console.error('Error fetching products:', error);
       res.status(500).json({ message: 'Failed to fetch products' });
     }
   });
