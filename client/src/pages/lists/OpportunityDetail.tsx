@@ -44,7 +44,7 @@ export default function OpportunityDetail() {
       <div className="flex items-center justify-center h-64">
         <div className="text-center">
           <p className="text-red-600 mb-4">Failed to load opportunity details</p>
-          <Link href="/lists/opportunities">
+          <Link href="/opportunities">
             <Button variant="outline">Back to Opportunities</Button>
           </Link>
         </div>
@@ -76,7 +76,7 @@ export default function OpportunityDetail() {
     <div className="container mx-auto px-4 py-6">
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
-        <Link href="/lists/opportunities">
+        <Link href="/opportunities">
           <Button variant="ghost" size="sm">
             <ChevronLeft className="h-4 w-4" />
             Back
