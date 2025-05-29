@@ -99,10 +99,7 @@ export default function PartnerDetailClean() {
       }, {})
     : { 'All Metrics': filteredMetrics };
 
-  // Debug logging to check tag data
-  console.log('Tags from API:', tags);
-  console.log('Grouped metrics:', groupedMetrics);
-  console.log('Sample metric tags:', attachedMetrics[0]?.tags);
+
 
   // Selection handlers
   const handleMetricSelect = (metricId: number, checked: boolean) => {
@@ -275,9 +272,18 @@ export default function PartnerDetailClean() {
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center space-x-3">
                         <span 
-                          className="text-lg font-medium"
+                          className="inline-block px-3 py-1 text-sm font-medium rounded-full"
                           style={{ 
-                            color: tags?.find((tag: any) => tag.name === tagName)?.color || '#6B7280'
+                            backgroundColor: tagName === 'Customer Success' ? '#d1fae5' : 
+                                           tagName === 'Market Expansion' ? '#fef3c7' : 
+                                           tagName === 'Product Innovation' ? '#dbeafe' : 
+                                           tagName === 'Revenue Growth' ? '#fee2e2' :
+                                           tagName === 'Marketing' ? '#f3e8ff' : '#f3f4f6',
+                            color: tagName === 'Customer Success' ? '#065f46' : 
+                                   tagName === 'Market Expansion' ? '#92400e' : 
+                                   tagName === 'Product Innovation' ? '#1e40af' : 
+                                   tagName === 'Revenue Growth' ? '#991b1b' :
+                                   tagName === 'Marketing' ? '#581c87' : '#374151'
                           }}
                         >
                           {tagName}
