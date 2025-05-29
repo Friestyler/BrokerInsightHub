@@ -49,7 +49,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Partners API - Returns data from authentic myqollabi partners table
   app.get('/api/partners', async (req, res) => {
     try {
-      const result = await db.execute(sql`SELECT * FROM myqollabi.partners ORDER BY id`);
+      const result = await db.execute(sql`
+        SELECT p.*, 
+               COUNT(DISTINCT pc.customer_id) as customer_count,
+               COUNT(DISTINCT po.opportunity_id) as opportunity_count,
+               STRING_AGG(DISTINCT c.name, ', ') as customer_names
+        FROM myqollabi.partners p
+        LEFT JOIN myqollabi.partner_customers pc ON p.id = pc.partner_id
+        LEFT JOIN myqollabi.partner_opportunities po ON p.id = po.partner_id
+        LEFT JOIN myqollabi.customers c ON c.id = pc.customer_id
+        GROUP BY p.id, p.name, p.description, p.status, p.location, p.contact_email, 
+                 p.primary_contact, p.partner_type, p.region, p.assigned_user_ids, 
+                 p.linked_opportunity_ids, p.created_at, p.updated_at
+        ORDER BY p.id
+      `);
       
       const partners = result.rows.map((partner: any) => ({
         id: partner.id,
@@ -60,8 +73,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         type: partner.partner_type || "Partner", 
         size: "medium",
         status: partner.status,
-        customers: partner.customers_count,
-        opportunities: partner.opportunities_count,
+        customers: partner.customer_count || 0,
+        opportunities: partner.opportunity_count || 0,
         location: partner.location,
         contactEmail: partner.contact_email,
         primaryContact: partner.primary_contact,
@@ -71,9 +84,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         assigned_user_ids: partner.assigned_user_ids,
         linked_opportunity_ids: partner.linked_opportunity_ids,
         createdAt: partner.created_at,
-        updatedAt: partner.updated_at
+        updatedAt: partner.updated_at,
+        customerNames: partner.customer_names || ''
       }));
       
+      console.log(`Returning ${partners.length} partners with relationship counts from myqollabi schema`);
       res.json(partners);
     } catch (error) {
       console.error('Error fetching partners:', error);
