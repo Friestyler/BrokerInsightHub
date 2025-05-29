@@ -1130,7 +1130,7 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
         }
       } else {
         newSet.add(okrId);
-        setCreatingUnderOKR(okrId);
+        // Don't automatically start creating - just show the button options
       }
       return newSet;
     });
