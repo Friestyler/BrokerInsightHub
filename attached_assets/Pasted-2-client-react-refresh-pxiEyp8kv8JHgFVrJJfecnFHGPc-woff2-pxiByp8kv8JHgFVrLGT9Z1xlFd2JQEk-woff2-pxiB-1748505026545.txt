@@ -1,0 +1,95 @@
+2
+client
+@react-refresh
+pxiEyp8kv8JHgFVrJJfecnFHGPc.woff2
+pxiByp8kv8JHgFVrLGT9Z1xlFd2JQEk.woff2
+pxiByp8kv8JHgFVrLEj6Z1xlFd2JQEk.woff2
+pxiByp8kv8JHgFVrLCz7Z1xlFd2JQEk.woff2
+gps.js
+env.mjs
+205 requests
+6.7 MB transferred
+18.1 MB resources
+Finish: 9.41 s
+DOMContentLoaded: 2.26 s
+<!DOCTYPE html>
+                    e[17] = i & 255,
+                    e
+                }
+                var oe = 112, le = 72, ae = 89, ce = 115, W;
+                function De() {
+                    let e = new Int32Array(256);
+                    for (let i = 0; i < 256; i++) {
+                        let t = i;
+                        for (let n = 0; n < 8; n++)
+                            t = t & 1 ? 3988292384 ^ t >>> 1 : t >>> 1;
+                        e[i] = t
+                    }
+                    return e
+                }
+                function Ie(e) {
+                    let i = -1;
+                    W || (W = De());
+                    for (let t = 0; t < e.length; t++)
+                        i = W[(i ^ e[t]) & 255] ^ i >>> 8;
+                    return i ^ -1
+                }
+                function Me(e) {
+                    let i = e.length - 1;
+                    for (let t = i; t >= 4; t--)
+                        if (e[t - 4] === 9 && e[t - 3] === oe && e[t - 2] === le && e[t - 1] === ae && e[t] === ce)
+                            return t - 3;
+                    return 0
+                }
+                function _e(e, i, t=!1) {
+                    let n = new Uint8Array(13);
+                    i *= 39.3701,
+                    n[0] = oe,
+                    n[1] = le,
+                    n[2] = ae,
+                    n[3] = ce,
+                    n[4] = i >>> 24,
+                    n[5] = i >>> 16,
+                    n[6] = i >>> 8,
+                    n[7] = i & 255,
+                    n[8] = n[4],
+                    n[9] = n[5],
+                    n[10] = n[6],
+                    n[11] = n[7],
+                    n[12] = 1;
+                    let o = Ie(n)
+                      , r = new Uint8Array(4);
+                    if (r[0] = o >>> 24,
+                    r[1] = o >>> 16,
+                    r[2] = o >>> 8,
+                    r[3] = o & 255,
+                    t) {
+                        let l = Me(e);
+                        return e.set(n, l),
+                        e.set(r, l + 13),
+                        e
+                    } else {
+                        let l = new Uint8Array(4);
+                        l[0] = 0,
+                        l[1] = 0,
+                        l[2] = 0,
+                        l[3] = 9;
+                        let s = new Uint8Array(54);
+                        return s.set(e, 0),
+                        s.set(l, 33),
+                        s.set(n, 37),
+                        s.set(r, 50),
+                        s
+                    }
+                }
+                var he = "[modern-screenshot]"
+                  , H = typeof window < "u"
+                  , Re = H && "Worker"in window
+                  , Oe = H && "atob"in window
+                  , jt = H && "btoa"in window
+                  , V = H ? window.navigator?.userAgent : ""
+                  , de = V.includes("Chrome")
+                  , F = V.includes("AppleWebKit") && !de
+                  , j = V.includes("Firefox")
+
+

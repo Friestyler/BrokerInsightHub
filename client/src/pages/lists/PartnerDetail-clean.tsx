@@ -15,13 +15,13 @@ export default function PartnerDetailClean() {
 
   // Fetch related customers for this partner
   const { data: relatedCustomers, isLoading: customersLoading } = useQuery({
-    queryKey: ['/api/partners', id, 'customers'],
+    queryKey: [`/api/partners/${id}/customers`],
     enabled: !!id,
   });
 
   // Fetch related opportunities for this partner
   const { data: relatedOpportunities, isLoading: opportunitiesLoading } = useQuery({
-    queryKey: ['/api/partners', id, 'opportunities'],
+    queryKey: [`/api/partners/${id}/opportunities`],
     enabled: !!id,
   });
 
