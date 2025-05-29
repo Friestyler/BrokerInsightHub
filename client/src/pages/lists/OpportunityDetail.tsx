@@ -1,479 +1,199 @@
-import { useState } from "react";
+import { useState } from 'react';
 import { useParams, Link } from "wouter";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
-} from "@/components/ui/table";
-import { Progress } from "@/components/ui/progress";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { useEnvironment } from "@/contexts/EnvironmentContext";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
+import { Progress } from "@/components/ui/progress";
 import { ChevronLeft } from "lucide-react";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Checkbox } from "@/components/ui/checkbox";
 
-// Mock opportunity data
-const opportunities = {
-  "1": {
-    id: 1,
-    name: "Koppelen van hypotheek aan verduurzamingslening",
-    description: "Combinatie van hypotheek met verduurzamingslening voor energiebesparende maatregelen",
-    amount: 250000,
-    probability: 80,
-    stage: "Proposal",
-    customer: {
-      id: 1,
-      name: "Van Dijk Familie",
-      link: "/lists/customers/1"
-    },
-    partners: [
-      {
-        id: 1,
-        name: "Jeroen Hypotheek Advies",
-        link: "/lists/partners/1"
+// Fetch opportunity from database
+const useOpportunityData = (id: string) => {
+  return useQuery({
+    queryKey: ['/api/opportunities', id],
+    queryFn: async () => {
+      const response = await fetch(`/api/opportunities/${id}`);
+      if (!response.ok) {
+        throw new Error('Failed to fetch opportunity');
       }
-    ],
-    owner: {
-      name: "Maarten V.",
-      initials: "MV"
+      return response.json();
     }
-  },
-  "2": {
-    id: 2,
-    name: "Verduurzamingslening",
-    description: "Financiering voor zonnepanelen en isolatie van de woning",
-    amount: 35000,
-    probability: 60,
-    stage: "Discovery",
-    customer: {
-      id: 2,
-      name: "Jansen Gezin",
-      link: "/lists/customers/2"
-    },
-    partners: [
-      {
-        id: 1,
-        name: "Jeroen Hypotheek Advies",
-        link: "/lists/partners/1"
-      }
-    ],
-    owner: {
-      name: "Sophie J.",
-      initials: "SJ"
-    }
-  },
-  "3": {
-    id: 3,
-    name: "Verkoop van aanvullende producten",
-    description: "Overlijdensrisicoverzekering en woonlastenverzekering bij hypotheek",
-    amount: 42000,
-    probability: 75,
-    stage: "Negotiation",
-    customer: {
-      id: 3,
-      name: "De Groot BV",
-      link: "/lists/customers/3"
-    },
-    partners: [
-      {
-        id: 1,
-        name: "Jeroen Hypotheek Advies",
-        link: "/lists/partners/1"
-      }
-    ],
-    owner: {
-      name: "Maarten V.",
-      initials: "MV"
-    }
-  },
-  "4": {
-    id: 4,
-    name: "Proactief contact bij levensgebeurtenissen",
-    description: "Contact met klanten bij verhuizing, gezinsuitbreiding of scheiding",
-    amount: 28000,
-    probability: 100,
-    stage: "Closed Won",
-    customer: {
-      id: 4,
-      name: "Visser Familie",
-      link: "/lists/customers/4"
-    },
-    partners: [
-      {
-        id: 1,
-        name: "Jeroen Hypotheek Advies",
-        link: "/lists/partners/1"
-      }
-    ],
-    owner: {
-      name: "Sophie J.",
-      initials: "SJ"
-    }
-  }
+  });
 };
 
-// Define type for opportunity
-type Opportunity = {
-  id: number;
-  name: string;
-  description: string;
-  amount: number;
-  probability: number;
-  stage: string;
-  customer: {
-    id: number;
-    name: string;
-    link: string;
-  };
-  partners: {
-    id: number;
-    name: string;
-    link: string;
-  }[];
-  owner: {
-    name: string;
-    initials: string;
-  };
-};
-
-// Get the current opportunity based on ID
-const getOpportunity = (id?: string): Opportunity => {
-  return id && opportunities[id as keyof typeof opportunities] 
-    ? opportunities[id as keyof typeof opportunities] 
-    : opportunities["1"];
-};
-
-// Mock metrics data for this opportunity
-const metrics = [
-  {
-    id: 1,
-    title: "New contracts signed",
-    status: "on_track",
-    progress: 75,
-    dueDate: new Date("2025-06-30"),
-    targetValue: 1,
-    realizedValue: 0,
-    unit: "contracts",
-    tags: ["Sales", "Contract"]
-  },
-  {
-    id: 2,
-    title: "Client meetings conducted",
-    status: "on_track",
-    progress: 100,
-    dueDate: new Date("2025-05-15"),
-    targetValue: 3,
-    realizedValue: 3,
-    unit: "meetings",
-    tags: ["Client", "Meeting"]
-  },
-  {
-    id: 3,
-    title: "Requirements documentation completion",
-    status: "at_risk",
-    progress: 60,
-    dueDate: new Date("2025-05-20"),
-    targetValue: 100,
-    realizedValue: 60,
-    unit: "%",
-    tags: ["Documentation", "Requirements"]
-  },
-  {
-    id: 4,
-    title: "Technical proposal submission",
-    status: "not_started",
-    progress: 0,
-    dueDate: new Date("2025-06-10"),
-    targetValue: 1,
-    realizedValue: 0,
-    unit: "proposals",
-    tags: ["Proposal", "Technical"]
-  },
-  {
-    id: 5,
-    title: "Budget approval",
-    status: "not_started",
-    progress: 0,
-    dueDate: new Date("2025-06-20"),
-    targetValue: 1,
-    realizedValue: 0,
-    unit: "approvals",
-    tags: ["Budget", "Approval"]
-  }
-];
-
-// Status badge variant helper
-function getStatusBadgeVariant(status: string): string {
-  const statusClasses: {[key: string]: string} = {
-    "on_track": "bg-green-100 text-green-800",
-    "at_risk": "bg-amber-100 text-amber-800",
-    "off_track": "bg-red-100 text-red-800",
-    "not_started": "bg-gray-100 text-gray-800",
-    "completed": "bg-blue-100 text-blue-800",
-    "Discovery": "bg-indigo-100 text-indigo-800",
-    "Qualification": "bg-purple-100 text-purple-800",
-    "Proposal": "bg-amber-100 text-amber-800",
-    "Negotiation": "bg-blue-100 text-blue-800",
-    "Closed Won": "bg-green-100 text-green-800",
-    "Closed Lost": "bg-red-100 text-red-800"
-  };
-  
-  return statusClasses[status] || "bg-gray-100 text-gray-800";
-}
-
-// Tag badge component
-const TagBadge = ({ tag }: { tag: string }) => {
-  // Get a consistent color for each tag
-  const getTagColor = (tag: string) => {
-    const tagColors: {[key: string]: string} = {
-      "Financial": "bg-emerald-100 text-emerald-800",
-      "Revenue": "bg-green-100 text-green-800",
-      "Partner": "bg-blue-100 text-blue-800",
-      "Pipeline": "bg-amber-100 text-amber-800",
-      "Sales": "bg-orange-100 text-orange-800",
-      "Training": "bg-indigo-100 text-indigo-800",
-      "Certification": "bg-violet-100 text-violet-800",
-      "People": "bg-pink-100 text-pink-800",
-      "Marketing": "bg-purple-100 text-purple-800",
-      "Budget": "bg-lime-100 text-lime-800",
-      "Digital": "bg-sky-100 text-sky-800",
-      "Contract": "bg-cyan-100 text-cyan-800",
-      "Proposal": "bg-amber-100 text-amber-800",
-      "Technical": "bg-blue-100 text-blue-800",
-      "Client": "bg-teal-100 text-teal-800",
-      "Meeting": "bg-slate-100 text-slate-800",
-      "Documentation": "bg-gray-100 text-gray-800",
-      "Requirements": "bg-yellow-100 text-yellow-800",
-      "Approval": "bg-red-100 text-red-800"
-    };
-    
-    return tagColors[tag] || "bg-gray-100 text-gray-800";
-  };
-  
-  return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium mr-2 ${getTagColor(tag)}`}>
-      {tag}
-    </span>
-  );
-};
-
-// Date formatter
-const formatDate = (date: Date) => {
-  return new Intl.DateTimeFormat('en-US', { 
-    day: 'numeric', 
-    month: 'short', 
-    year: 'numeric' 
-  }).format(new Date(date));
-};
-
-// Main opportunity component
 export default function OpportunityDetail() {
-  const { id } = useParams();
-  const { environment } = useEnvironment();
-  const [selectedMetrics, setSelectedMetrics] = useState<number[]>([]);
-  
-  // Get the current opportunity based on the ID parameter
-  const opportunity = getOpportunity(id);
-  
-  // Toggle selection of a metric
-  const toggleMetricSelection = (id: number) => {
-    if (selectedMetrics.includes(id)) {
-      setSelectedMetrics(selectedMetrics.filter(m => m !== id));
-    } else {
-      setSelectedMetrics([...selectedMetrics, id]);
-    }
+  const { id } = useParams<{ id: string }>();
+  const { data: opportunity, isLoading, error } = useOpportunityData(id!);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading opportunity...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !opportunity) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-center">
+          <p className="text-red-600 mb-4">Failed to load opportunity details</p>
+          <Link href="/lists/opportunities">
+            <Button variant="outline">Back to Opportunities</Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  const getStatusColor = (status: string) => {
+    const statusColors: { [key: string]: string } = {
+      'active': 'bg-green-100 text-green-800',
+      'discovery': 'bg-blue-100 text-blue-800',
+      'proposal': 'bg-yellow-100 text-yellow-800',
+      'negotiation': 'bg-orange-100 text-orange-800',
+      'closed_won': 'bg-green-100 text-green-800',
+      'closed_lost': 'bg-red-100 text-red-800'
+    };
+    return statusColors[status] || 'bg-gray-100 text-gray-800';
   };
-  
-  // Toggle all metrics
-  const toggleAllMetrics = () => {
-    if (selectedMetrics.length === metrics.length) {
-      setSelectedMetrics([]);
-    } else {
-      setSelectedMetrics(metrics.map(m => m.id));
-    }
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-US', { 
+      style: 'currency', 
+      currency: 'USD',
+      maximumFractionDigits: 0
+    }).format(value);
   };
 
   return (
     <div className="container mx-auto px-4 py-6">
-      {/* Header with back navigation */}
-      <div className="mb-6">
-        <div className="flex justify-between items-center">
-          <div className="flex items-center">
-            <Link href="/opportunities2" className="inline-flex items-center text-indigo-600 hover:text-indigo-800 mr-2">
-              <ChevronLeft className="h-4 w-4" />
-            </Link>
-            <h1 className="text-2xl font-bold tracking-tight">{opportunity.name}</h1>
-            <div className="ml-4 flex items-center">
-              <Avatar className="h-8 w-8">
-                <AvatarFallback className="bg-indigo-100 text-indigo-600">
-                  {opportunity.owner.initials}
-                </AvatarFallback>
-              </Avatar>
-              <span className="ml-2 text-gray-600">{opportunity.owner.name}</span>
-            </div>
-          </div>
-          
-          <div className="flex space-x-3">
-            <Button variant="outline">Edit</Button>
-            <Button className="bg-indigo-600 hover:bg-indigo-700">Actions</Button>
-          </div>
-        </div>
-        
-        <p className="text-gray-600 mt-2">{opportunity.description}</p>
-      </div>
-      
-      {/* Key metrics section - similar to screenshot */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-x-6 mb-6">
-        <div className="border-r border-gray-200 pr-6">
-          <span className="text-sm text-gray-500 block">Amount</span>
-          <span className="text-xl font-bold">€ {(opportunity.amount / 1000).toFixed(0)}.000</span>
-        </div>
-        
-        <div className="border-r border-gray-200 px-6">
-          <span className="text-sm text-gray-500 block">Probability</span>
-          <span className="text-xl font-bold">{opportunity.probability}%</span>
-        </div>
-        
-        <div className="pl-6">
-          <span className="text-sm text-gray-500 block">Stage</span>
-          <span className={`px-2.5 py-1 rounded-full text-xs ${getStatusBadgeVariant(opportunity.stage)}`}>
-            {opportunity.stage}
-          </span>
+      {/* Header */}
+      <div className="flex items-center gap-4 mb-6">
+        <Link href="/lists/opportunities">
+          <Button variant="ghost" size="sm">
+            <ChevronLeft className="h-4 w-4" />
+            Back
+          </Button>
+        </Link>
+        <div>
+          <h1 className="text-2xl font-bold">{opportunity.title}</h1>
+          <p className="text-gray-600">{opportunity.description}</p>
         </div>
       </div>
-      
-      {/* Related records section */}
-      <div className="mb-8">
-        <h2 className="text-base font-medium mb-3">Related Records</h2>
-        <div className="bg-gray-50 p-4 rounded-md">
-          <div className="flex flex-wrap gap-x-8 gap-y-2">
-            <div>
-              <span className="text-sm text-gray-500 mr-2">Customer:</span>
-              <Link href={opportunity.customer.link} className="text-indigo-600 hover:underline">
-                {opportunity.customer.name}
-              </Link>
-            </div>
-            
-            {opportunity.partners.map((partner: {id: number, name: string, link: string}, index: number) => (
-              <div key={partner.id}>
-                <span className="text-sm text-gray-500 mr-2">Partner{opportunity.partners.length > 1 ? ` ${index + 1}` : ''}:</span>
-                <Link href={partner.link} className="text-indigo-600 hover:underline">
-                  {partner.name}
-                </Link>
+
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Content */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Overview Card */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Opportunity Overview</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Value</label>
+                  <p className="text-lg font-semibold">{formatCurrency(opportunity.estimatedValue || 0)}</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Probability</label>
+                  <p className="text-lg font-semibold">{opportunity.probability}%</p>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Stage</label>
+                  <Badge className={getStatusColor(opportunity.stage || 'active')}>
+                    {opportunity.stage || 'Active'}
+                  </Badge>
+                </div>
+                <div>
+                  <label className="text-sm font-medium text-gray-500">Type</label>
+                  <p className="text-lg">{opportunity.type || 'Opportunity'}</p>
+                </div>
               </div>
-            ))}
-          </div>
-        </div>
-      </div>
-      
-      {/* OKR Metrics Table */}
-      <div className="mt-8">
-        <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">OKR Metrics</h2>
-          <div className="flex gap-2">
-            <Button variant="outline" size="sm">Export</Button>
-            <Button className="bg-indigo-600 hover:bg-indigo-700" size="sm">Add Metric</Button>
-          </div>
-        </div>
-        
-        {selectedMetrics.length > 0 && (
-          <div className="bg-indigo-50 rounded p-3 mb-4 flex justify-between items-center">
-            <div className="flex items-center">
-              <span className="text-indigo-700 font-medium mr-2">{selectedMetrics.length} metrics selected</span>
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="text-gray-500 hover:text-gray-700 p-1 h-auto"
-                onClick={() => setSelectedMetrics([])}
-              >
-                Clear selection
-              </Button>
-            </div>
-            
-            <div className="flex gap-2">
-              <Button variant="ghost" size="sm" className="text-indigo-700">
-                Assign
-              </Button>
               
-              <Button variant="ghost" size="sm" className="text-indigo-700">
-                Change Status
-              </Button>
-            </div>
-          </div>
-        )}
-        
-        <div className="border rounded-md overflow-hidden">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-[40px]">
-                  <Checkbox 
-                    checked={selectedMetrics.length === metrics.length && metrics.length > 0}
-                    onCheckedChange={toggleAllMetrics}
-                  />
-                </TableHead>
-                <TableHead>Metric</TableHead>
-                <TableHead>Status</TableHead>
-                <TableHead>Progress</TableHead>
-                <TableHead>Target</TableHead>
-                <TableHead>Current</TableHead>
-                <TableHead>Due Date</TableHead>
-                <TableHead>Tags</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {metrics.map((metric) => (
-                <TableRow key={metric.id}>
-                  <TableCell>
-                    <Checkbox 
-                      checked={selectedMetrics.includes(metric.id)}
-                      onCheckedChange={() => toggleMetricSelection(metric.id)}
-                    />
-                  </TableCell>
-                  <TableCell className="font-medium">{metric.title}</TableCell>
-                  <TableCell>
-                    <span className={`px-2.5 py-1 rounded-full text-xs ${getStatusBadgeVariant(metric.status)}`}>
-                      {metric.status.replace('_', ' ')}
-                    </span>
-                  </TableCell>
-                  <TableCell>
-                    <div className="w-[100px]">
-                      <Progress value={metric.progress} className="h-2" />
-                      <div className="text-xs text-right mt-1">{metric.progress}%</div>
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {metric.targetValue} {metric.unit}
-                  </TableCell>
-                  <TableCell>
-                    {metric.realizedValue} {metric.unit}
-                  </TableCell>
-                  <TableCell>{formatDate(metric.dueDate)}</TableCell>
-                  <TableCell>
-                    <div className="flex flex-wrap">
-                      {metric.tags.map((tag, i) => (
-                        <TagBadge key={i} tag={tag} />
-                      ))}
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
+              <Separator />
               
-              {metrics.length === 0 && (
-                <TableRow>
-                  <TableCell colSpan={8} className="text-center py-8">
-                    <p className="text-gray-500">No metrics assigned to this opportunity</p>
-                    <Button className="mt-4 bg-indigo-600 hover:bg-indigo-700">
-                      Assign Metrics
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
+              <div>
+                <label className="text-sm font-medium text-gray-500">Progress</label>
+                <Progress value={opportunity.probability || 0} className="mt-2" />
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Client Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Client Information</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="flex items-center gap-4">
+                <Avatar>
+                  <AvatarFallback>
+                    {opportunity.clientName ? opportunity.clientName.split(' ').map((n: string) => n[0]).join('').toUpperCase() : 'CL'}
+                  </AvatarFallback>
+                </Avatar>
+                <div>
+                  <p className="font-medium">{opportunity.clientName || 'Unknown Client'}</p>
+                  <p className="text-sm text-gray-500">Client ID: {opportunity.clientId}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Sidebar */}
+        <div className="space-y-6">
+          {/* Key Details */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Key Details</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div>
+                <label className="text-sm font-medium text-gray-500">Expected Close Date</label>
+                <p>{opportunity.expected_close_date ? new Date(opportunity.expected_close_date).toLocaleDateString() : 'Not set'}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500">Partner</label>
+                <p>{opportunity.partnerName || 'No partner assigned'}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500">Location</label>
+                <p>{opportunity.location || 'Not specified'}</p>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-gray-500">Priority</label>
+                <Badge variant={opportunity.priority === 'high' ? 'destructive' : 'secondary'}>
+                  {opportunity.priority || 'Medium'}
+                </Badge>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Actions */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Actions</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              <Button className="w-full" variant="outline">
+                Edit Opportunity
+              </Button>
+              <Button className="w-full" variant="outline">
+                View Client Details
+              </Button>
+              <Button className="w-full" variant="outline">
+                Contact Partner
+              </Button>
+            </CardContent>
+          </Card>
         </div>
       </div>
     </div>

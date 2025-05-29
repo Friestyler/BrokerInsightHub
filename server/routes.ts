@@ -843,11 +843,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/opportunities/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const opportunity = await storage.getOpportunity(id);
-      if (!opportunity) {
+      const result = await db.execute(sql`SELECT * FROM public.opportunities_clean WHERE id = ${id}`);
+      
+      if (result.rows.length === 0) {
         return res.status(404).json({ message: 'Opportunity not found' });
       }
-      res.json(opportunity);
+
+      const opportunity = result.rows[0];
+      const formattedOpportunity = {
+        id: opportunity.id,
+        title: opportunity.title || opportunity.name,
+        clientId: opportunity.customer_id,
+        clientName: opportunity.client_name,
+        productId: 1,
+        productName: "Insurance Product",
+        probability: opportunity.probability,
+        estimatedValue: opportunity.value,
+        status: opportunity.status,
+        stage: opportunity.stage, 
+        type: opportunity.type,
+        priority: opportunity.priority,
+        description: opportunity.description,
+        location: opportunity.location,
+        partnerName: opportunity.partner_name,
+        lastActivityDate: opportunity.last_activity_date,
+        assignedUserId: opportunity.assigned_user_id,
+        createdAt: opportunity.created_at,
+        updatedAt: opportunity.updated_at,
+        expected_close_date: opportunity.expected_close_date,
+        delivery_date: opportunity.delivery_date,
+        customer_id: opportunity.customer_id,
+        partner_id: opportunity.partner_id,
+        linked_product_ids: opportunity.linked_product_ids,
+        linked_contact_ids: opportunity.linked_contact_ids,
+        created_by: opportunity.created_by
+      };
+
+      res.json(formattedOpportunity);
     } catch (error) {
       console.error('Error fetching opportunity:', error);
       res.status(500).json({ message: 'Failed to fetch opportunity' });
