@@ -28,7 +28,7 @@ import Opportunities2Page from "@/pages/lists/Opportunities2Page";
 import OpportunityDetail from "@/pages/lists/OpportunityDetail";
 import VendorsPage from "@/pages/lists/VendorsPage";
 import ProductsPage from "@/pages/lists/ProductsPage";
-import MetricsPage from "@/pages/templates/MetricsPageClean";
+import OKRTemplatesPage from "@/pages/templates/OKRTemplatesPage";
 import GroupDetail from "@/pages/templates/GroupDetail";
 import UserManagement from "@/pages/Settings/UserManagement";
 import DeveloperPage from "@/pages/Settings/DeveloperPage";
@@ -117,7 +117,7 @@ function Router() {
         <Route path="/reports" component={ReportsPage} />
         
         {/* Templates section routes */}
-        <Route path="/templates/metrics" component={MetricsPage} />
+        <Route path="/templates/metrics" component={OKRTemplatesPage} />
         <Route path="/templates/groups/:id" component={GroupDetail} />
         
         {/* Settings routes */}
