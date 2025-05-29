@@ -808,21 +808,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         id: customer.id,
         name: customer.name,
         description: customer.description,
-        ownerId: null,
+        initials: customer.name.split(' ').map((word: string) => word[0]).join('').toUpperCase().slice(0, 2),
+        ownerId: customer.owner_id,
         createdAt: customer.created_at,
         updatedAt: customer.updated_at,
         industry: customer.industry,
         size: customer.size,
         region: customer.region,
-        assigned_partner_id: customer.assigned_partner_id,
-        linked_contact_ids: customer.linked_contact_ids,
-        linked_opportunity_ids: customer.linked_opportunity_ids
+        status: customer.status,
+        opportunities: customer.opportunities_count,
+        revenue: customer.revenue,
+        location: customer.location,
+        contactEmail: customer.contact_email,
+        primaryContact: customer.primary_contact,
+        phone: customer.phone,
+        website: customer.website,
+        assignedPartnerId: customer.assigned_partner_id,
+        linkedContactIds: customer.linked_contact_ids,
+        linkedOpportunityIds: customer.linked_opportunity_ids
       }));
       
       res.json(customers);
     } catch (error) {
       console.error('Error fetching customers:', error);
-      res.json([]);
+      res.status(500).json({ error: 'Failed to fetch customers' });
     }
   });
 
