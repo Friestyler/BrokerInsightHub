@@ -1,5 +1,6 @@
 import { useState, useEffect, createContext, useContext } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useMutation } from '@tanstack/react-query';
+import { queryClient } from '@/lib/queryClient';
 
 // Create a context for list editing state
 interface ListEditingContextType {
@@ -80,45 +81,48 @@ function calculatePartnerStats(partners: any[]) {
   };
 }
 
-// Template badges component for partners
-function TemplateBadges({ industry, type }: { industry: string, type: string }) {
-  // Mock template badges based on industry and type
-  const getBadges = (industry: string, type: string) => {
-    if (industry === 'Insurance' && type === 'Broker') {
-      return [
-        { code: 'IB', color: 'bg-blue-200 text-blue-800' },
-        { code: 'PR', color: 'bg-purple-200 text-purple-800' }
-      ];
-    } else if (industry === 'Insurance' && type === 'Agency') {
-      return [
-        { code: 'IA', color: 'bg-teal-200 text-teal-800' },
-        { code: 'SM', color: 'bg-blue-200 text-blue-800' }
-      ];
-    } else if (industry === 'Consulting') {
-      return [
-        { code: 'CO', color: 'bg-amber-200 text-amber-800' },
-        { code: 'AD', color: 'bg-purple-200 text-purple-800' }
-      ];
-    } else if (industry === 'Finance') {
-      return [
-        { code: 'FS', color: 'bg-green-200 text-green-800' }
-      ];
-    } else {
-      return [
-        { code: 'GP', color: 'bg-gray-200 text-gray-800' }
-      ];
-    }
-  };
+// Template badges component for partners  
+function TemplateBadges({ partnerId, templateAssignments }: { partnerId: number, templateAssignments: any[] }) {
+  const partnerAssignments = templateAssignments.filter((assignment: any) => assignment.partnerId === partnerId);
   
-  const badges = getBadges(industry, type);
+  if (partnerAssignments.length === 0) {
+    return (
+      <span className="text-gray-400 text-xs">No templates</span>
+    );
+  }
   
   return (
-    <div className="flex space-x-2">
-      {badges.map((badge, index) => (
-        <div key={index} className={`${badge.color} w-8 h-8 rounded-lg flex items-center justify-center text-xs font-medium`}>
-          {badge.code}
+    <div className="flex flex-wrap gap-1">
+      {partnerAssignments.slice(0, 2).map((assignment: any) => {
+        // Get the first tag and its color
+        const firstTag = assignment.tags && assignment.tags.length > 0 ? assignment.tags[0] : null;
+        const tagColor = firstTag || '#6b7280';
+        
+        // Create initials from template name
+        const initials = assignment.template_name ? 
+          assignment.template_name.split(' ').map((word: string) => word[0]).join('').slice(0, 2).toUpperCase() : 
+          'T';
+        
+        return (
+          <div 
+            key={assignment.id} 
+            className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-medium"
+            style={{
+              backgroundColor: `${tagColor}20`,
+              color: tagColor,
+              border: `1px solid ${tagColor}40`
+            }}
+            title={assignment.template_name}
+          >
+            {initials}
+          </div>
+        );
+      })}
+      {partnerAssignments.length > 2 && (
+        <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-medium bg-gray-100 text-gray-600 border border-gray-200">
+          +{partnerAssignments.length - 2}
         </div>
-      ))}
+      )}
     </div>
   );
 }
@@ -341,6 +345,47 @@ function PartnersTable() {
     parentId: null, // OKR metrics are flat structure for now
     realizedValue: metric.realized_value || '0'
   }));
+
+  // Mutation for assigning templates
+  const assignTemplatesMutation = useMutation({
+    mutationFn: async ({ templateIds, partnerIds }: { templateIds: number[], partnerIds: number[] }) => {
+      const results = [];
+      for (const partnerId of partnerIds) {
+        const response = await fetch('/api/template-assignments', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            templateIds,
+            entityType: 'partner',
+            entityId: partnerId,
+            assignedBy: 1, // Current user ID (hardcoded for now)
+            notes: 'Assigned from Partners page'
+          })
+        });
+        if (!response.ok) throw new Error('Failed to assign templates');
+        const result = await response.json();
+        results.push(...result);
+      }
+      return results;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/template-assignments/partner'] });
+      toast({
+        title: "Templates assigned",
+        description: `Successfully assigned ${selectedOKRTemplates.length} template(s) to ${selectedPartners.length} partner(s)`,
+      });
+      setShowAssignTemplateModal(false);
+      setSelectedOKRTemplates([]);
+      setSelectedPartners([]);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error assigning templates",
+        description: "Failed to assign templates. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
     
   // Filter partners based on search text, filter selections, and list membership
   const displayedPartners = partners
@@ -2013,7 +2058,7 @@ function PartnersTable() {
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{partner.customers || 0}</td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{partner.opportunities || 0}</td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
-                  <TemplateBadges industry={partner.industry} type={partner.type} />
+                  <TemplateBadges partnerId={partner.id} templateAssignments={templateAssignments} />
                 </td>
               </tr>
             ))}
