@@ -362,6 +362,35 @@ export class DatabaseStorage implements IStorage {
     return partner;
   }
 
+  // OKR Tags operations
+  async getAllOkrTags(): Promise<OkrTag[]> {
+    return this.getDb().select().from(okrTags);
+  }
+
+  async getOkrTag(id: number): Promise<OkrTag | undefined> {
+    const [tag] = await this.getDb().select().from(okrTags).where(eq(okrTags.id, id));
+    return tag;
+  }
+
+  async createOkrTag(tag: InsertOkrTag): Promise<OkrTag> {
+    const [newTag] = await this.getDb().insert(okrTags).values(tag).returning();
+    return newTag;
+  }
+
+  async updateOkrTag(id: number, updates: Partial<InsertOkrTag>): Promise<OkrTag | undefined> {
+    const [updatedTag] = await this.getDb()
+      .update(okrTags)
+      .set(updates)
+      .where(eq(okrTags.id, id))
+      .returning();
+    return updatedTag;
+  }
+
+  async deleteOkrTag(id: number): Promise<boolean> {
+    const result = await this.getDb().delete(okrTags).where(eq(okrTags.id, id));
+    return result.rowCount > 0;
+  }
+
   // OKR Metric operations
   async getAllOkrMetrics(): Promise<OkrMetric[]> {
     return this.getDb().select().from(okrMetrics);

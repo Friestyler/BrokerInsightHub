@@ -1420,6 +1420,81 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // OKR Tags API endpoints
+  
+  // Get all OKR tags
+  app.get('/api/okr-tags', async (req, res) => {
+    try {
+      const result = await db.execute(sql`SELECT * FROM myqollabi.okr_tags ORDER BY name ASC`);
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching OKR tags:', error);
+      res.status(500).json({ error: 'Failed to fetch OKR tags' });
+    }
+  });
+
+  // Create OKR tag
+  app.post('/api/okr-tags', async (req, res) => {
+    try {
+      const { name, color } = req.body;
+      
+      const result = await db.execute(sql`
+        INSERT INTO myqollabi.okr_tags (name, color)
+        VALUES (${name}, ${color || '#3B82F6'})
+        RETURNING *
+      `);
+      
+      res.status(201).json(result.rows[0]);
+    } catch (error) {
+      console.error('Error creating OKR tag:', error);
+      res.status(500).json({ error: 'Failed to create OKR tag' });
+    }
+  });
+
+  // Update OKR tag
+  app.put('/api/okr-tags/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { name, color } = req.body;
+      
+      const result = await db.execute(sql`
+        UPDATE myqollabi.okr_tags 
+        SET name = ${name}, color = ${color}, updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING *
+      `);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'OKR tag not found' });
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error updating OKR tag:', error);
+      res.status(500).json({ error: 'Failed to update OKR tag' });
+    }
+  });
+
+  // Delete OKR tag
+  app.delete('/api/okr-tags/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      const result = await db.execute(sql`
+        DELETE FROM myqollabi.okr_tags WHERE id = ${id}
+      `);
+      
+      if (result.rowCount === 0) {
+        return res.status(404).json({ message: 'OKR tag not found' });
+      }
+      
+      res.json({ message: 'OKR tag deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting OKR tag:', error);
+      res.status(500).json({ error: 'Failed to delete OKR tag' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
