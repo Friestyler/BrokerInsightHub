@@ -1985,6 +1985,15 @@ function PartnersTable() {
               </th>
               <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                 <div className="flex items-center text-[13px] font-medium text-[#696C8C]">
+                  Region
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                    <path d="M8 9l4-4 4 4"></path>
+                    <path d="M16 15l-4 4-4-4"></path>
+                  </svg>
+                </div>
+              </th>
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                <div className="flex items-center text-[13px] font-medium text-[#696C8C]">
                   Status
                   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
                     <path d="M8 9l4-4 4 4"></path>
@@ -2064,6 +2073,7 @@ function PartnersTable() {
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{partner.industry}</td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{partner.type}</td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm capitalize">{partner.size}</td>
+                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm capitalize">{partner.region}</td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
                   <Badge variant={partner.status === 'active' ? 'outline' : 'secondary'} className="capitalize">
                     {partner.status}
