@@ -346,37 +346,37 @@ export default function OKRMetricsPageNew() {
         )}
 
         {/* OKR Metrics Table */}
-        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
+        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
           <table className="w-full">
-            <tbody>
-              {Object.entries(groupedMetrics).map(([groupName, groupMetrics]: [string, any], groupIndex) => (
-                <React.Fragment key={groupName}>
-                  {/* Group Header Row */}
-                  <tr>
+            <thead className="bg-gray-50">
+              <tr>
+                <th className="w-12 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                  <Checkbox />
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Timeframe</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Milestone Frequency</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Target</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="bg-white divide-y divide-gray-200">
+              {Object.entries(groupedMetrics).map(([groupName, groupMetrics]: [string, any]) => (
+                <>
+                  {/* Tag Group Header */}
+                  <tr key={`header-${groupName}`}>
                     <td 
                       colSpan={6} 
-                      className="px-4 py-3 text-sm font-medium border-b"
-                      style={{ backgroundColor: getTagColor(groupName) + '15', color: getTagColor(groupName) }}
+                      className="px-4 py-3 text-sm font-medium text-white"
+                      style={{ backgroundColor: getTagColor(groupName) }}
                     >
                       {groupName}
                     </td>
                   </tr>
                   
-                  {/* Column Headers Row */}
-                  <tr className="bg-gray-50">
-                    <th className="w-12 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      <Checkbox />
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Timeframe</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Milestone Frequency</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Target</th>
-                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
-                  </tr>
-                  
-                  {/* Data Rows */}
-                  {groupMetrics.map((metric: OKRMetric, metricIndex: number) => (
-                    <tr key={metric.id} className="border-b border-gray-100 hover:bg-gray-50">
+                  {/* Metrics for this tag */}
+                  {groupMetrics.map((metric: OKRMetric) => (
+                    <tr key={metric.id} className="hover:bg-gray-50">
                       <td className="px-4 py-4 whitespace-nowrap">
                         <Checkbox
                           checked={selectedMetrics.includes(metric.id)}
@@ -389,16 +389,16 @@ export default function OKRMetricsPageNew() {
                           }}
                         />
                       </td>
-                      <td className="px-4 py-4">
-                        <div className="text-sm font-medium text-gray-900">{metric.name}</div>
+                      <td className="px-4 py-4 text-sm font-medium text-gray-900">
+                        {metric.name}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-700">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
                         {formatTimeframe(metric.timeframe_start, metric.timeframe_end)}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-700 capitalize">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
                         {metric.frequency}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
                         {metric.target_value || '-'}
                         {metric.measure_unit === 'percent' && '%'}
                         {metric.measure_unit === 'currency' && ` ${metric.currency_type || 'USD'}`}
@@ -410,7 +410,7 @@ export default function OKRMetricsPageNew() {
                       </td>
                     </tr>
                   ))}
-                </React.Fragment>
+                </>
               ))}
             </tbody>
           </table>
