@@ -2057,7 +2057,7 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                                       <Button
                                         variant="outline"
                                         size="sm"
-                                        className="border-[#E6E7F1] text-[#282A3F] hover:bg-[#F5F6FA] hover:border-[#D4D7E3] px-3 py-1 h-8 flex items-center gap-2"
+                                        className="border-[#E6E7F1] text-[#282A3F] hover:bg-[#F5F6FA] hover:border-[#D4D7E3] hover:text-[#282A3F] px-3 py-1 h-8 flex items-center gap-2"
                                         style={{ fontFamily: 'Poppins', fontSize: '12px' }}
                                       >
                                         {newOKRType === 'currency' && (
