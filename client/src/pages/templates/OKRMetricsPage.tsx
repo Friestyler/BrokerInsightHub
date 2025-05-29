@@ -426,7 +426,7 @@ export default function OKRMetricsPage() {
 
                       return (
                         <tr key={`metric-${metric.id}-${tagName}-${metricIndex}`} 
-                            className={`hover:bg-gray-50 ${!isLastInGroup || !isLastGroup ? 'border-b border-gray-100' : ''}`}>
+                            className="hover:bg-gray-50">
                           <td className="px-6 py-4 whitespace-nowrap">
                             <Checkbox
                               checked={selectedMetrics.includes(metric.id)}
