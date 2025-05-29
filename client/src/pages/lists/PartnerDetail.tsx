@@ -868,53 +868,53 @@ export default function PartnerDetail() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  <TableRow>
-                    <TableCell>
-                      <Checkbox />
-                    </TableCell>
-                    <TableCell>
-                      <Link href={`/lists/opportunities/1?from=partner/${id}`} className="inline-block">
-                        <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
-                          Koppelen van hypotheek aan verduurzamingslening
+                  {opportunities.map((opportunity: any) => (
+                    <TableRow key={opportunity.id}>
+                      <TableCell>
+                        <Checkbox />
+                      </TableCell>
+                      <TableCell>
+                        <Link href={`/lists/opportunities/${opportunity.id}?from=partner/${id}`} className="inline-block">
+                          <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
+                            {opportunity.title}
+                          </span>
+                        </Link>
+                      </TableCell>
+                      <TableCell>
+                        <Link href={`/lists/clients/${opportunity.customer_id}`} className="inline-block">
+                          <span className="text-indigo-600 hover:underline cursor-pointer">
+                            {opportunity.clientName}
+                          </span>
+                        </Link>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-indigo-600">
+                          {opportunity.partnerName}
                         </span>
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      <Link href={`/lists/clients/1`} className="inline-block">
-                        <span className="text-indigo-600 hover:underline cursor-pointer">
-                          NEW Sample Customer
+                      </TableCell>
+                      <TableCell>
+                        {opportunity.type}
+                      </TableCell>
+                      <TableCell>
+                        <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+                          {opportunity.stage}
                         </span>
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      <Link href={`/lists/partners/1`} className="inline-block">
-                        <span className="text-indigo-600 hover:underline cursor-pointer">
-                          Jeroen Hypotheek Advies
-                        </span>
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      New Business
-                    </TableCell>
-                    <TableCell>
-                      <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
-                        Proposal
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      €250,000
-                    </TableCell>
-                    <TableCell>
-                      15/07/2025
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-1">
-                        <div className="h-6 w-6 rounded-full bg-indigo-100 text-indigo-700 text-xs flex items-center justify-center">
-                          VL
+                      </TableCell>
+                      <TableCell>
+                        {formatCurrency(opportunity.estimatedValue || 0)}
+                      </TableCell>
+                      <TableCell>
+                        {opportunity.expected_close_date ? new Date(opportunity.expected_close_date).toLocaleDateString() : 'Not set'}
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex space-x-1">
+                          <div className="h-6 w-6 rounded-full bg-indigo-100 text-indigo-700 text-xs flex items-center justify-center">
+                            {opportunity.clientName ? opportunity.clientName.charAt(0).toUpperCase() : 'C'}
+                          </div>
                         </div>
-                      </div>
-                    </TableCell>
-                  </TableRow>
+                      </TableCell>
+                    </TableRow>
+                  ))}
                   
                   <TableRow>
                     <TableCell>
