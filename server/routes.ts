@@ -839,17 +839,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get customers for a specific partner
+  // Get customers for a specific partner using many-to-many relationship
   app.get('/api/partners/:id/customers', async (req, res) => {
     try {
       const partnerId = parseInt(req.params.id);
       const result = await db.execute(sql`
         SELECT c.*, COUNT(o.id) as opportunity_count
         FROM myqollabi.customers c
+        INNER JOIN myqollabi.partner_customers pc ON c.id = pc.customer_id
         LEFT JOIN myqollabi.opportunities o ON o.client_id = c.id
-        WHERE c.assigned_partner_id = ${partnerId}
+        WHERE pc.partner_id = ${partnerId}
         GROUP BY c.id, c.name, c.description, c.owner_id, c.created_at, c.updated_at, 
-                 c.contact_name, c.contact_email, c.contact_phone, c.assigned_partner_id
+                 c.contact_name, c.contact_email, c.contact_phone
         ORDER BY c.id
       `);
       
