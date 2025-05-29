@@ -46,16 +46,16 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Partners API - Returns one clean sample partner
+  // Partners API - Returns data from clean partners table
   app.get('/api/partners', async (req, res) => {
     try {
-      const customers = await storage.getAllCustomers();
+      const result = await db.execute(sql`SELECT * FROM public.partners ORDER BY id`);
       
-      const partners = customers.map(customer => ({
-        id: customer.id,
-        name: customer.name,
-        description: customer.description,
-        initials: customer.name.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 2),
+      const partners = result.rows.map((partner: any) => ({
+        id: partner.id,
+        name: partner.name,
+        description: partner.description,
+        initials: partner.name.split(' ').map((word: string) => word[0]).join('').toUpperCase().slice(0, 2),
         industry: "Insurance",
         type: "Partner", 
         size: "medium",
@@ -730,31 +730,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Opportunities API - Returns your actual Excel data
+  // Opportunities API - Returns data from clean opportunities_clean table
   app.get('/api/opportunities', async (req, res) => {
     try {
-      // Return your actual uploaded Excel data directly
-      const realOpportunities = [
-        {
-          id: 4,
-          title: "Verkeersschade Claim",
-          clientId: 2,
-          clientName: "Excel Upload Customer",
-          productId: 1,
-          productName: "Insurance Product",
-          probability: 75,
-          estimatedValue: 10000,
-          status: "open",
-          stage: "discovery", 
-          type: "new_business",
-          description: "Created from Verkeersschadeverzekering.xlsx",
-          createdAt: "2025-05-28T20:07:12.052Z",
-          updatedAt: "2025-05-28T20:07:12.052Z"
-        }
-      ];
+      const result = await db.execute(sql`SELECT * FROM public.opportunities_clean ORDER BY id`);
       
-      console.log(`Returning ${realOpportunities.length} opportunities from Excel upload`);
-      res.json(realOpportunities);
+      const opportunities = result.rows.map((opportunity: any) => ({
+        id: opportunity.id,
+        title: opportunity.name,
+        clientId: 1,
+        clientName: "Demo Client",
+        productId: 1,
+        productName: "Demo Product",
+        probability: 50,
+        estimatedValue: 5000,
+        status: "open",
+        stage: "discovery", 
+        type: "new_business",
+        description: opportunity.description,
+        createdAt: opportunity.created_at,
+        updatedAt: opportunity.updated_at
+      }));
+      
+      console.log(`Returning ${opportunities.length} opportunities from clean table`);
+      res.json(opportunities);
     } catch (error) {
       console.error('Error fetching opportunities:', error);
       res.json([]);
@@ -763,19 +762,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
-  // Customers API - Clean version with one dummy record
+  // Customers API - Returns data from clean customers_clean table
   app.get('/api/customers', async (req, res) => {
     try {
-      const customers = [
-        {
-          id: 1,
-          name: "Sample Customer",
-          description: "Demo customer record for UI testing",
-          ownerId: null,
-          createdAt: new Date(),
-          updatedAt: new Date()
-        }
-      ];
+      const result = await db.execute(sql`SELECT * FROM public.customers_clean ORDER BY id`);
+      
+      const customers = result.rows.map((customer: any) => ({
+        id: customer.id,
+        name: customer.name,
+        description: customer.description,
+        ownerId: null,
+        createdAt: customer.created_at,
+        updatedAt: customer.updated_at
+      }));
       
       res.json(customers);
     } catch (error) {
