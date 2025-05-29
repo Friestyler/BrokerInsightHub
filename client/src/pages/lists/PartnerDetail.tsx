@@ -1762,17 +1762,6 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                           color: '#696C8C' 
                         }}
                       >
-                        Realized
-                      </TableHead>
-                      <TableHead 
-                        className="text-right px-3 py-2 min-w-[120px]"
-                        style={{ 
-                          fontFamily: 'Poppins', 
-                          fontWeight: '500', 
-                          fontSize: '13px', 
-                          color: '#696C8C' 
-                        }}
-                      >
                         Target
                       </TableHead>
                       <TableHead 
