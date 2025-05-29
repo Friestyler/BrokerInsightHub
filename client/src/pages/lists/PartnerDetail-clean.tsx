@@ -86,11 +86,9 @@ export default function PartnerDetailClean() {
                       </Link>
                     </TableCell>
                     <TableCell>
-                      <Link href={`/lists/clients/${opportunity.client_id}`}>
-                        <span className="text-indigo-600 hover:underline cursor-pointer">
-                          {customers?.find((c: any) => c.id === opportunity.client_id)?.name || 'Unknown Customer'}
-                        </span>
-                      </Link>
+                      <span className="text-gray-900">
+                        {opportunity.clientName || 'Unknown Customer'}
+                      </span>
                     </TableCell>
                     <TableCell>
                       <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
@@ -125,7 +123,7 @@ export default function PartnerDetailClean() {
               </TableHeader>
               <TableBody>
                 {relatedCustomers.map((customer: any) => {
-                  const customerOpportunities = opportunities?.filter((o: any) => o.client_id === customer.id) || [];
+                  const customerOpportunities = relatedOpportunities?.filter((o: any) => o.clientName === customer.name) || [];
                   return (
                     <TableRow key={customer.id}>
                       <TableCell><Checkbox /></TableCell>
