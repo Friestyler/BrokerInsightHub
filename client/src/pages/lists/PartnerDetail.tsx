@@ -2047,7 +2047,7 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                                     onChange={(e) => setNewOKRName(e.target.value)}
                                     onKeyDown={handleKeyPress}
                                     placeholder="Enter activity name..."
-                                    className="flex-1 border-0 focus:border-0 focus:ring-0 shadow-none text-sm bg-transparent p-0"
+                                    className="flex-1 border-0 focus:border-0 focus:ring-0 focus-visible:ring-0 focus-visible:border-0 active:border-0 shadow-none text-sm bg-transparent p-0 outline-none"
                                     autoFocus
                                   />
                                   <Button
