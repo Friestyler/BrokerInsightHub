@@ -244,7 +244,7 @@ export default function OKRMetricsPage() {
 
           {/* Selection Bar */}
           {selectedMetrics.length > 0 && (
-            <div className="flex items-center space-x-4 p-4 bg-blue-50 border border-blue-200 rounded-lg mb-6">
+            <div className="flex items-center space-x-4 p-4 bg-blue-50 mb-6">
               <span className="text-sm font-medium text-blue-900">
                 {selectedMetrics.length} OKR selected
               </span>
@@ -301,7 +301,7 @@ export default function OKRMetricsPage() {
                     // Tag Header Row (only show for tag grouping)
                     ...(groupBy === 'tag' ? [
                       <tr key={`header-${tagName}-${groupIndex}`} className="border-b border-gray-200">
-                        <td colSpan={6} className="px-6 py-3 bg-gray-50">
+                        <td colSpan={6} className="px-6 py-3">
                           <span 
                             className="inline-block px-3 py-1 text-sm font-medium rounded-full"
                             style={{ 
