@@ -357,23 +357,132 @@ export default function OKRTemplatesPage() {
         </div>
       </div>
 
+      {/* Header */}
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">OKR Metrics</h1>
+          <p className="text-gray-500 text-sm mt-1">Coming Soon</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <Button
+            variant="outline"
+            onClick={() => setIsTagDialogOpen(true)}
+            className="flex items-center gap-2 text-gray-600 border-gray-300"
+          >
+            <Tag className="w-4 h-4" />
+            Manage Tags
+          </Button>
+          <Button
+            onClick={() => setIsCreateDialogOpen(true)}
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700"
+          >
+            <Plus className="w-4 h-4" />
+            Create Metric
+          </Button>
+        </div>
+      </div>
+
+      {/* Filters and Controls */}
+      <div className="mb-6 space-y-4">
+        {/* Search and Filter Row */}
+        <div className="flex items-center gap-4 flex-wrap">
+          <div className="relative flex-1 min-w-64">
+            <Input
+              placeholder="Search OKR templates..."
+              className="pl-4 pr-10 h-10"
+            />
+            <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+              <svg className="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+              </svg>
+            </div>
+          </div>
+          
+          <Select defaultValue="tag">
+            <SelectTrigger className="w-32">
+              <SelectValue placeholder="Tag" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="tag">Tag</SelectItem>
+              <SelectItem value="name">Name</SelectItem>
+              <SelectItem value="target">Target</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select defaultValue="measure-unit">
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Measure Unit" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="measure-unit">Measure Unit</SelectItem>
+              <SelectItem value="number">Number</SelectItem>
+              <SelectItem value="percent">Percentage</SelectItem>
+              <SelectItem value="currency">Currency</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Select defaultValue="target-range">
+            <SelectTrigger className="w-36">
+              <SelectValue placeholder="Target Range" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="target-range">Target Range</SelectItem>
+              <SelectItem value="0-50">0-50</SelectItem>
+              <SelectItem value="50-100">50-100</SelectItem>
+              <SelectItem value="100+">100+</SelectItem>
+            </SelectContent>
+          </Select>
+
+          <Button variant="outline" className="text-gray-600 border-gray-300">
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            Select timeframe 1
+          </Button>
+
+          <Button variant="outline" className="text-gray-600 border-gray-300">
+            <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+            </svg>
+            Select timeframe 2
+          </Button>
+
+          <div className="flex items-center gap-2">
+            <Checkbox id="no-target" />
+            <Label htmlFor="no-target" className="text-sm text-gray-600">No target set</Label>
+          </div>
+        </div>
+
+        {/* Group By and Add Button Row */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-gray-600">Group by:</span>
+            <Select defaultValue="tag">
+              <SelectTrigger className="w-24">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="tag">Tag</SelectItem>
+                <SelectItem value="none">None</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <Button 
+            onClick={() => setIsCreateDialogOpen(true)}
+            className="bg-blue-600 hover:bg-blue-700"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add OKR Metric
+          </Button>
+        </div>
+      </div>
+
       {/* Content */}
-      <div className="flex-1 p-6">
-        {/* Simple OKR Metrics Table */}
+      <div className="flex-1">
+        {/* OKR Metrics Table */}
         <div className="bg-white rounded-lg border border-gray-200">
           <table className="w-full">
-            <thead>
-              <tr className="border-b bg-gray-50">
-                <th className="w-8 px-4 py-3 text-left text-xs font-medium text-gray-500">
-                  <Checkbox />
-                </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Name</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Timeframe</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Milestone Frequency</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Target</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Actions</th>
-              </tr>
-            </thead>
             <tbody>
               {Object.entries(groupedMetrics).map(([groupName, groupMetrics]: [string, any]) => (
                 <>
@@ -381,17 +490,29 @@ export default function OKRTemplatesPage() {
                   <tr key={`tag-${groupName}`}>
                     <td 
                       colSpan={6} 
-                      className="px-4 py-2 text-sm font-medium text-white"
+                      className="px-4 py-3 text-sm font-medium text-white"
                       style={{ backgroundColor: getTagColor(groupName) }}
                     >
                       {groupName}
                     </td>
                   </tr>
                   
+                  {/* Column Headers - shown only for first group */}
+                  {Object.keys(groupedMetrics).indexOf(groupName) === 0 && (
+                    <tr className="border-b bg-gray-50">
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 w-8"></th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Name</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Timeframe</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Milestone Frequency</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Target</th>
+                      <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Actions</th>
+                    </tr>
+                  )}
+                  
                   {/* Metric Rows */}
                   {groupMetrics.map((metric: OKRMetric) => (
                     <tr key={metric.id} className="border-b hover:bg-gray-50">
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-3 w-8">
                         <Checkbox
                           checked={selectedMetrics.includes(metric.id)}
                           onCheckedChange={(checked) => {
