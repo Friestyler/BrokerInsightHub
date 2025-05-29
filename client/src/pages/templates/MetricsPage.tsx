@@ -1379,69 +1379,9 @@ export default function MetricsPage() {
           </Button>
         </div>
       </div>
-      {/* Tabs for Metrics and Metric Groups */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-1 w-32 mb-6">
-          <TabsTrigger value="okrs">Coming Soon</TabsTrigger>
-        </TabsList>
-        
-        {/* Search and filter section - only show for metrics and groups tabs */}
-        {activeTab !== "okrs" && (
-          <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-            <div className="flex flex-wrap gap-3 items-center">
-              <div className="relative flex-grow">
-                <Input
-                  placeholder={`Search ${activeTab === "metrics" ? "metrics" : "groups"}...`}
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                  </svg>
-                </div>
-              </div>
-              
-              <div className="flex gap-2">
-                <Select 
-                  value={selectedTags.length === 1 ? selectedTags[0] : "all_tags"}
-                  onValueChange={(value) => {
-                    if (value && value !== "all_tags") {
-                      setSelectedTags([value]);
-                    } else {
-                      setSelectedTags([]);
-                    }
-                  }}
-                >
-                  <SelectTrigger className="w-[160px]">
-                    <SelectValue placeholder="Filter by tag" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all_tags">All Tags</SelectItem>
-                    {allTags.map(tag => (
-                      <SelectItem key={tag} value={tag}>
-                        {tag}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              {(selectedTags.length > 0 || searchTerm) && (
-                <Button variant="ghost" onClick={clearFilters} className="h-10">
-                  Clear filters
-                </Button>
-              )}
-            </div>
-          </div>
-        )}
-
-        {/* Coming Soon tab search and filter section */}
-        {activeTab === "okrs" && (
-          <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
-            <div className="flex flex-wrap items-center gap-3">
+      {/* Search and filter section for OKR templates */}
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <div className="flex flex-wrap items-center gap-3">
               {/* Search field */}
               <div className="relative w-60">
                 <input
@@ -1738,42 +1678,91 @@ export default function MetricsPage() {
               </Button>
             </div>
           </div>
-        )}
+        </div>
         
-        {/* Selection action bar */}
-        {activeTab === "metrics" && selectedMetrics.length > 0 && (
-          <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-3 mb-6 flex justify-between items-center">
-            <div className="text-sm">
-              <span className="font-medium">{selectedMetrics.length}</span> metrics selected
-            </div>
-            <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={clearSelection}
+        {/* Bulk Actions Bar - positioned underneath filters */}
+        {selectedOKRs.length > 0 && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-medium text-blue-900">
+                  {selectedOKRs.length} OKR{selectedOKRs.length > 1 ? 's' : ''} selected
+                </span>
+                  <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 border border-gray-300 rounded-md transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M8 2v4"/>
+                      <path d="M16 2v4"/>
+                      <rect width="18" height="18" x="3" y="4" rx="2"/>
+                      <path d="M3 10h18"/>
+                    </svg>
+                    Assign to entity
+                  </button>
+                  <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 border border-gray-300 rounded-md transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+                      <rect width="8" height="4" x="8" y="2" rx="1" ry="1"/>
+                    </svg>
+                    Duplicate
+                  </button>
+                  <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 6h18"/>
+                      <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                      <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                    </svg>
+                    Delete
+                  </button>
+                </div>
+              </div>
+              <button 
+                onClick={() => setSelectedOKRs([])}
+                className="p-2 hover:bg-blue-100 rounded-md transition-colors"
+                title="Close"
               >
-                Clear Selection
-              </Button>
-              <Button 
-                className="bg-indigo-600 hover:bg-indigo-700"
-                size="sm"
-                onClick={() => setIsCreateGroupOpen(true)}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                  <circle cx="9" cy="7" r="4" />
-                  <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-700">
+                  <path d="M18 6L6 18"/>
+                  <path d="M6 6l12 12"/>
                 </svg>
-                Create Group
-              </Button>
+              </button>
             </div>
           </div>
         )}
-        
-        {/* Metrics tab content */}
-        <TabsContent value="metrics" className="space-y-4">
-          <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+
+        {/* Group OKRs and display in sections */}
+        {Object.entries(groupOKRs(filteredOKRs)).map(([groupName, okrsInGroup]) => {
+          
+          return (
+            <div key={groupName} className="bg-white" style={{ marginBottom: '32px' }}>
+              <div className="px-6 pb-0 pt-3 bg-[#ffffff] text-[#282A3F]">
+                <div className="flex items-center">
+                  {groupBy === "tag" ? (
+                    groupName === "No Tag" ? (
+                      <div className="px-3 py-1 bg-gray-200 text-gray-600 rounded-lg text-sm font-medium border border-dashed border-gray-400">
+                        {groupName}
+                      </div>
+                    ) : (
+                      <TagBadge tag={groupName} />
+                    )
+                  ) : groupBy === "none" ? null : (
+                    groupName.startsWith("No ") ? (
+                      <div className="px-3 py-1 bg-gray-200 text-gray-600 rounded-lg text-sm font-medium border border-dashed border-gray-400">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline mr-1">
+                          <circle cx="12" cy="12" r="10"></circle>
+                          <line x1="15" y1="9" x2="9" y2="15"></line>
+                          <line x1="9" y1="9" x2="15" y2="15"></line>
+                        </svg>
+                        {groupName}
+                      </div>
+                    ) : (
+                      <div className="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium">
+                        {groupName}
+                      </div>
+                    )
+                  )}
+                </div>
+              </div>
+              <div className="overflow-x-auto">
+                <Table className="border-b min-w-full" style={{ borderColor: '#E6E7F1' }}>
             <Table>
               <TableHeader>
                 <TableRow>

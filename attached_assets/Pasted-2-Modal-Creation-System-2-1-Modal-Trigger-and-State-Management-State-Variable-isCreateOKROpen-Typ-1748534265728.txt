@@ -1,0 +1,140 @@
+2. Modal Creation System
+2.1 Modal Trigger and State Management
+State Variable: isCreateOKROpen
+
+Type: boolean
+Default value: false
+Controls modal visibility
+Managed by parent component state
+Modal Opening Process:
+
+User clicks "Add OKR Metric" button
+setIsCreateOKROpen(true) is called
+Modal component renders with form
+Focus automatically moves to first form field
+Background becomes non-scrollable
+Escape key listener activated
+Modal Closing Mechanisms:
+
+Close button (X) in modal header
+Escape key press
+Click outside modal area (backdrop)
+Cancel button in modal footer
+Successful form submission
+2.2 Modal Component Structure
+Modal Container:
+
+Fixed positioning covering full viewport
+Z-index: 50 (above all other content)
+Background: rgba(0, 0, 0, 0.5) semi-transparent overlay
+Animation: Fade in over 200ms
+Modal Dialog:
+
+Centered horizontally and vertically
+Width: 600px on desktop, full-width-20px on mobile
+Max-height: 90vh with scroll if needed
+Background: White
+Border radius: 12px
+Box shadow: Large elevation shadow
+Animation: Scale from 0.95 to 1.0 with fade
+Modal Structure:
+
+<Modal open={isCreateOKROpen} onOpenChange={setIsCreateOKROpen}>
+  <ModalHeader>
+    <ModalTitle>Create New OKR Template</ModalTitle>
+    <ModalClose />
+  </ModalHeader>
+  <ModalContent>
+    {/* Form content */}
+  </ModalContent>
+  <ModalFooter>
+    <Button variant="outline" onClick={() => setIsCreateOKROpen(false)}>
+      Cancel
+    </Button>
+    <Button type="submit">Create Template</Button>
+  </ModalFooter>
+</Modal>
+3. Form Implementation and Validation
+3.1 Form Structure and Fields
+Template Name Field:
+
+Input type: text
+Label: "Template Name"
+Placeholder: "Enter template name..."
+Required: Yes
+Validation: 3-100 characters, unique within system
+Error states: Real-time validation with red border
+Success states: Green border when valid
+Template Description Field:
+
+Input type: textarea
+Label: "Description (Optional)"
+Placeholder: "Describe this OKR template..."
+Required: No
+Max length: 500 characters
+Character counter: Shows remaining/used characters
+Auto-resize: Grows with content up to 150px height
+Tag Selection Field:
+
+Input type: Select dropdown with multi-select
+Label: "Tags"
+Options: Existing tags from system + "Create new tag"
+Required: At least one tag
+New tag creation: Inline input with color picker
+Visual: Tag badges show selected tags
+OKR Type Field:
+
+Input type: Radio buttons with visual previews
+Label: "OKR Type"
+Options:
+Currency (€) - #10B981
+Percentage (%) - #3B82F6
+Number (#) - #8B5CF6
+Checkbox (✓) - #F59E0B
+Traffic Light (●) - #EF4444
+Required: Yes
+Default: Number type
+Visual: Large radio cards with icons and examples
+Target Value Field:
+
+Input type: Number (varies by OKR type)
+Label: "Target Value"
+Validation: Type-specific (0-100 for %, positive numbers for others)
+Required: Yes
+Format hints: Shows expected format for each type
+Real-time formatting: Auto-formats as user types
+Timeline Fields:
+
+Start Date: Date picker, defaults to current date
+End Date: Date picker, required, must be after start date
+Duration: Auto-calculated, displayed as read-only
+Milestones: Auto-generated based on duration
+3.2 Form Validation System
+Client-Side Validation:
+
+Real-time validation on field blur
+Form-level validation before submission
+Visual error indicators with descriptive messages
+Prevention of submission with invalid data
+Validation Rules:
+
+Name: Required, 3-100 chars, unique check
+Description: Optional, max 500 chars
+Tags: At least one tag required
+Type: Required selection
+Target: Required, type-appropriate format
+Dates: End date after start date, realistic timeframes
+Error Handling:
+
+Field-level errors show below inputs
+Form-level errors show at top of modal
+Network errors show with retry options
+Validation errors prevent form submission
+Clear error messages with correction guidance
+Success Handling:
+
+Form submission shows loading state
+Success message confirms creation
+Modal closes automatically after success
+New template appears in list immediately
+Optional redirect to template detail view
