@@ -226,7 +226,7 @@ export default function OKRMetricsPage() {
         </div>
 
         {/* Content */}
-        <div className="px-6 py-6">
+        <div className="min-h-screen bg-gray-50 px-6 py-6">
           {/* Filters and Search */}
           <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
             <div className="flex flex-col lg:flex-row gap-4">
