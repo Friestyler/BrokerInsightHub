@@ -28,6 +28,7 @@ import { AdvancedTimeframeFilter } from "@/components/ui/advanced-timeframe-filt
 import { Calendar as CalendarComponent } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { OKRTable } from "@/components/OKRTable";
 import { CalendarIcon } from "lucide-react";
 
 
@@ -1735,38 +1736,23 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                 </div>
               </div>
               <div className="overflow-x-auto">
-                <Table className="border-b min-w-full" style={{ borderColor: '#E6E7F1' }}>
-                  <TableHeader>
-                    <TableRow className="border-b hover:bg-[#F5F6FA] group" style={{ borderColor: '#E6E7F1' }}>
-                      <TableHead className="w-12 px-3 py-2">
-                        <input
-                          type="checkbox"
-                          checked={okrsInGroup.length > 0 && okrsInGroup.every(okr => selectedOKRs.includes(okr.id))}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedOKRs(prev => [...new Set([...prev, ...okrsInGroup.map(okr => okr.id)])]);
-                            } else {
-                              setSelectedOKRs(prev => prev.filter(id => !okrsInGroup.map(okr => okr.id).includes(id)));
-                            }
-                          }}
-                          className="rounded border-gray-300 opacity-0 group-hover:opacity-100 transition-opacity"
-                          style={{ 
-                            opacity: okrsInGroup.some(okr => selectedOKRs.includes(okr.id)) ? 1 : undefined 
-                          }}
-                        />
-                      </TableHead>
-
-                      <TableHead 
-                        className="px-3 py-2 min-w-[300px]"
-                        style={{ 
-                          fontFamily: 'Poppins', 
-                          fontWeight: '500', 
-                          fontSize: '13px', 
-                          color: '#696C8C' 
-                        }}
-                      >
-                        Name
-                      </TableHead>
+                <OKRTable
+                  okrs={okrsInGroup}
+                  selectedOKRs={selectedOKRs}
+                  onSelectionChange={setSelectedOKRs}
+                  expandedOKRs={expandedOKRs}
+                  onToggleExpansion={toggleOKRExpansion}
+                  showInlineCreation={true}
+                  onCreateOKR={handleOKRCreation}
+                  creatingUnderOKR={creatingUnderOKR}
+                  onStartCreation={startOKRCreation}
+                  onCancelCreation={cancelOKRCreation}
+                  newOKRName={newOKRName}
+                  onNewOKRNameChange={setNewOKRName}
+                  newOKRType={newOKRType}
+                  onNewOKRTypeChange={setNewOKRType}
+                  className="border-b min-w-full"
+                />
                       <TableHead 
                         className="text-right px-3 py-2 min-w-[120px]"
                         style={{ 
