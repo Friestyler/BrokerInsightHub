@@ -1369,32 +1369,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name, description, realized_value, target_value, measure_unit, frequency, hierarchy, tags
       });
 
-      // Handle PostgreSQL array insertion using the working syntax
+      // Use the exact same approach that worked in direct SQL
       const tagsArray = tags && Array.isArray(tags) && tags.length > 0 ? tags : [];
       console.log('Using tags array:', tagsArray);
 
-      // Use direct SQL with ARRAY syntax that we confirmed works
-      const tagsValue = tagsArray.length > 0 ? `ARRAY[${tagsArray.map(tag => `'${tag.replace(/'/g, "''")}'`).join(', ')}]` : 'ARRAY[]::text[]';
-      
-      const query = `
+      // Build the SQL query with proper array handling
+      const tagsLiteral = tagsArray.length > 0 
+        ? `ARRAY[${tagsArray.map(tag => `'${tag.replace(/'/g, "''")}'`).join(', ')}]`
+        : `ARRAY[]::text[]`;
+
+      console.log('Generated tags literal:', tagsLiteral);
+
+      const insertQuery = `
         INSERT INTO myqollabi.okr_metrics (
           name, description, realized_value, target_value, measure_unit,
           frequency, hierarchy, tags, created_by
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, ${tagsValue}, $8)
+        VALUES (
+          '${name.replace(/'/g, "''")}',
+          '${(description || '').replace(/'/g, "''")}',
+          '${String(realized_value || 0)}',
+          ${target_value ? `'${String(target_value)}'` : 'NULL'},
+          '${measure_unit || 'number'}',
+          '${frequency || 'none'}',
+          '${hierarchy || 'metric'}',
+          ${tagsLiteral},
+          1
+        )
         RETURNING *
       `;
 
-      const result = await db.execute(sql.raw(query, [
-        name,
-        description || '',
-        String(realized_value || 0),
-        target_value ? String(target_value) : null,
-        measure_unit || 'number',
-        frequency || 'none',
-        hierarchy || 'metric',
-        1
-      ]));
+      console.log('Executing query:', insertQuery);
+      const result = await db.execute(sql.raw(insertQuery));
       
       res.status(201).json(result.rows[0]);
     } catch (error) {
