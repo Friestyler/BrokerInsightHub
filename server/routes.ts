@@ -62,12 +62,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: "active",
         customers: 1,
         opportunities: 1,
+        // Database fields
         partner_type: partner.partner_type,
         region: partner.region,
         assigned_user_ids: partner.assigned_user_ids,
         linked_opportunity_ids: partner.linked_opportunity_ids,
-        created_at: partner.created_at,
-        updated_at: partner.updated_at
+        createdAt: partner.created_at,
+        updatedAt: partner.updated_at
       }));
       
       res.json(partners);

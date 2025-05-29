@@ -56,39 +56,9 @@ const usePartnersData = () => {
         throw new Error('Failed to fetch partners');
       }
       
-      const text = await response.text();
-      console.log('Response text preview:', text.substring(0, 200));
-      
-      // Try to parse as JSON
-      try {
-        return JSON.parse(text);
-      } catch (error) {
-        console.error('Failed to parse response as JSON:', error);
-        // If API fails, use the customers endpoint directly
-        console.log('Falling back to customers endpoint...');
-        const customersResponse = await fetch('/api/customers');
-        if (customersResponse.ok) {
-          const customers = await customersResponse.json();
-          console.log('Got customers:', customers.length);
-          
-          // Transform customers to partners format
-          return customers.map((customer: any) => ({
-            id: customer.id,
-            name: customer.name,
-            description: customer.description,
-            initials: customer.name.split(' ').map((word: string) => word[0]).join('').toUpperCase().slice(0, 2),
-            industry: customer.description?.includes('insurance') ? 'Insurance' : 'Financial Services',
-            type: customer.description?.includes('broker') ? 'Broker' : 'Partner',
-            size: 'medium',
-            status: 'active',
-            customers: Math.floor(Math.random() * 50) + 10,
-            opportunities: Math.floor(Math.random() * 20) + 5,
-            createdAt: customer.createdAt,
-            updatedAt: customer.updatedAt
-          }));
-        }
-        throw new Error('Both partners and customers endpoints failed');
-      }
+      const partners = await response.json();
+      console.log('Got partners from API:', partners);
+      return partners;
     }
   });
 };
