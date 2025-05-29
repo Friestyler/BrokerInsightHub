@@ -1587,8 +1587,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           tm.name as template_name,
           tm.description as template_description,
           tm.tags,
-          u1.username as assigned_by_name,
-          u2.username as responsible_user_name
+          u1.name as assigned_by_name,
+          u2.name as responsible_user_name
         FROM myqollabi.okr_template_assignments ta
         LEFT JOIN myqollabi.okr_metrics tm ON ta.template_id = tm.id
         LEFT JOIN myqollabi.users u1 ON ta.assigned_by = u1.id
