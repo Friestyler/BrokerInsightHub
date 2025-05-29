@@ -320,31 +320,33 @@ export default function OKRMetricsPage() {
           <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-gray-50 border-b">
-                  <tr>
-                    <th className="w-12 px-6 py-3 text-left">
-                      <Checkbox
-                        checked={selectedMetrics.length > 0}
-                        onCheckedChange={handleSelectAll}
-                      />
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Name
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Timeframe
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Milestone Frequency
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Target
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
+                {groupBy === 'none' && (
+                  <thead className="bg-gray-50 border-b">
+                    <tr>
+                      <th className="w-12 px-6 py-3 text-left">
+                        <Checkbox
+                          checked={selectedMetrics.length > 0}
+                          onCheckedChange={handleSelectAll}
+                        />
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Name
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Timeframe
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Milestone Frequency
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Target
+                      </th>
+                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                        Actions
+                      </th>
+                    </tr>
+                  </thead>
+                )}
                 <tbody className="bg-white">
                   {Object.entries(groupedMetrics).map(([tagName, tagMetrics]: [string, any], groupIndex) => [
                     // Tag Header Row (only show for tag grouping)
