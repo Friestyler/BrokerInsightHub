@@ -220,7 +220,7 @@ export default function OKRMetricsPage() {
     <ListEditingProvider>
       <div className="min-h-screen bg-gray-50">
         {/* Header */}
-        <div className="bg-white border-b border-gray-200">
+        <div className="bg-white">
           <div className="px-6 py-4">
             <div className="flex items-center justify-between">
               <div>
@@ -426,7 +426,7 @@ export default function OKRMetricsPage() {
 
                       return (
                         <tr key={`metric-${metric.id}-${tagName}-${metricIndex}`} 
-                            className="hover:bg-gray-50">
+                            className={`hover:bg-gray-50 ${!isLastInGroup || !isLastGroup ? 'border-b border-gray-100' : ''}`}>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <Checkbox
                               checked={selectedMetrics.includes(metric.id)}
