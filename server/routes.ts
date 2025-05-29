@@ -1589,6 +1589,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // OKR Comments API endpoints
+  
+  // Get comments for a metric
+  app.get('/api/okr-metrics/:id/comments', async (req, res) => {
+    try {
+      const metricId = parseInt(req.params.id);
+      
+      const result = await db.execute(sql`
+        SELECT c.*, u.username as user_name
+        FROM myqollabi.okr_comments c
+        LEFT JOIN myqollabi.users u ON c.user_id = u.id
+        WHERE c.metric_id = ${metricId}
+        ORDER BY c.created_at DESC
+      `);
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching OKR comments:', error);
+      res.status(500).json({ error: 'Failed to fetch OKR comments' });
+    }
+  });
+
+  // Create comment for a metric
+  app.post('/api/okr-metrics/:id/comments', async (req, res) => {
+    try {
+      const metricId = parseInt(req.params.id);
+      const { comment, user_id, contact_id } = req.body;
+      
+      const result = await db.execute(sql`
+        INSERT INTO myqollabi.okr_comments (metric_id, user_id, contact_id, comment)
+        VALUES (${metricId}, ${user_id || 1}, ${contact_id}, ${comment})
+        RETURNING *
+      `);
+      
+      res.status(201).json(result.rows[0]);
+    } catch (error) {
+      console.error('Error creating OKR comment:', error);
+      res.status(500).json({ error: 'Failed to create OKR comment' });
+    }
+  });
+
   // OKR Template Assignments API endpoints
   
   // Get template assignments for an entity
