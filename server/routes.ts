@@ -46,10 +46,10 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Partners API - Returns data from clean partners_clean table
+  // Partners API - Returns data from authentic myqollabi partners table
   app.get('/api/partners', async (req, res) => {
     try {
-      const result = await db.execute(sql`SELECT * FROM public.partners_clean ORDER BY id`);
+      const result = await db.execute(sql`SELECT * FROM myqollabi.partners ORDER BY id`);
       
       const partners = result.rows.map((partner: any) => ({
         id: partner.id,
@@ -806,7 +806,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
 
 
-  // Customers API - Returns data from clean customers_clean table
+  // Customers API - Returns data from authentic myqollabi customers table
   app.get('/api/customers', async (req, res) => {
     try {
       const result = await db.execute(sql`
@@ -965,7 +965,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/opportunities/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const result = await db.execute(sql`SELECT * FROM public.opportunities_clean WHERE id = ${id}`);
+      const result = await db.execute(sql`SELECT * FROM myqollabi.opportunities WHERE id = ${id}`);
       
       if (result.rows.length === 0) {
         return res.status(404).json({ message: 'Opportunity not found' });
