@@ -169,14 +169,7 @@ export class DatabaseStorage implements IStorage {
 
   // Opportunity operations
   async getAllOpportunities(): Promise<Opportunity[]> {
-    try {
-      const result = await this.getDb().select().from(opportunities).orderBy(opportunities.createdAt);
-      console.log(`Found ${result?.length || 0} opportunities in ${this.currentSchema} schema`);
-      return result || [];
-    } catch (error) {
-      console.error('Error fetching opportunities:', error);
-      return [];
-    }
+    return this.getDb().select().from(opportunities);
   }
 
   async getOpportunity(id: number): Promise<Opportunity | undefined> {
@@ -192,7 +185,7 @@ export class DatabaseStorage implements IStorage {
   async updateOpportunity(id: number, updates: Partial<InsertOpportunity>): Promise<Opportunity | undefined> {
     const [updatedOpportunity] = await this.getDb()
       .update(opportunities)
-      .set({ ...updates, updatedAt: new Date() })
+      .set(updates)
       .where(eq(opportunities.id, id))
       .returning();
     return updatedOpportunity;
@@ -200,7 +193,7 @@ export class DatabaseStorage implements IStorage {
 
   async deleteOpportunity(id: number): Promise<boolean> {
     const result = await this.getDb().delete(opportunities).where(eq(opportunities.id, id));
-    return (result as any).rowCount > 0;
+    return result.rowCount > 0;
   }
 
   async getOpportunitiesForClient(clientId: number): Promise<Opportunity[]> {
@@ -237,20 +230,24 @@ export class DatabaseStorage implements IStorage {
     return newProduct;
   }
 
-  // Client product operations
   async getClientProducts(clientId: number): Promise<InsuranceProduct[]> {
-    const clientProductRecords = await this.getDb()
-      .select()
+    const clientProductsData = await this.getDb()
+      .select({
+        id: insuranceProducts.id,
+        name: insuranceProducts.name,
+        type: insuranceProducts.type,
+        provider: insuranceProducts.provider,
+        premium: insuranceProducts.premium,
+        coverage: insuranceProducts.coverage,
+        deductible: insuranceProducts.deductible,
+        startDate: insuranceProducts.startDate,
+        endDate: insuranceProducts.endDate
+      })
       .from(clientProducts)
+      .innerJoin(insuranceProducts, eq(clientProducts.productId, insuranceProducts.id))
       .where(eq(clientProducts.clientId, clientId));
-    
-    const productIds = clientProductRecords.map(cp => cp.productId);
-    if (productIds.length === 0) return [];
-    
-    return this.getDb()
-      .select()
-      .from(insuranceProducts)
-      .where(sql`${insuranceProducts.id} = ANY(${productIds})`);
+
+    return clientProductsData.map((cp: any) => cp);
   }
 
   async addClientProduct(data: InsertClientProduct): Promise<ClientProduct> {
@@ -284,8 +281,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createVendor(vendorData: InsertVendor): Promise<Vendor> {
-    const [vendor] = await this.getDb().insert(vendors).values(vendorData).returning();
-    return vendor;
+    const [newVendor] = await this.getDb().insert(vendors).values(vendorData).returning();
+    return newVendor;
   }
 
   // Product operations
@@ -299,8 +296,8 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createProduct(productData: InsertProduct): Promise<Product> {
-    const [product] = await this.getDb().insert(products).values(productData).returning();
-    return product;
+    const [newProduct] = await this.getDb().insert(products).values(productData).returning();
+    return newProduct;
   }
 
   async getVendorProducts(vendorId: number): Promise<Product[]> {
@@ -333,19 +330,21 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createCustomer(customerData: InsertCustomer): Promise<Customer> {
-    const [customer] = await this.getDb().insert(customers).values(customerData).returning();
-    return customer;
+    const [newCustomer] = await this.getDb().insert(customers).values(customerData).returning();
+    return newCustomer;
   }
 
+  // Customer team members operations
   async getCustomerTeamMembers(customerId: number): Promise<CustomerTeamMember[]> {
     return this.getDb().select().from(customerTeamMembers).where(eq(customerTeamMembers.customerId, customerId));
   }
 
   async addCustomerTeamMember(data: InsertCustomerTeamMember): Promise<CustomerTeamMember> {
-    const [teamMember] = await this.getDb().insert(customerTeamMembers).values(data).returning();
-    return teamMember;
+    const [member] = await this.getDb().insert(customerTeamMembers).values(data).returning();
+    return member;
   }
 
+  // Customer partners operations
   async getCustomerPartners(customerId: number): Promise<CustomerPartner[]> {
     return this.getDb().select().from(customerPartners).where(eq(customerPartners.customerId, customerId));
   }
@@ -355,28 +354,9 @@ export class DatabaseStorage implements IStorage {
     return partner;
   }
 
-  // OKR Template operations
-  async getAllOkrTemplates(): Promise<OkrTemplate[]> {
-    return this.getDb().select().from(okrTemplates);
-  }
-
-  async getOkrTemplate(id: number): Promise<OkrTemplate | undefined> {
-    const [template] = await this.getDb().select().from(okrTemplates).where(eq(okrTemplates.id, id));
-    return template;
-  }
-
-  async createOkrTemplate(template: InsertOkrTemplate): Promise<OkrTemplate> {
-    const [newTemplate] = await this.getDb().insert(okrTemplates).values(template).returning();
-    return newTemplate;
-  }
-
-  async getOkrTemplatesByTags(tags: string[]): Promise<OkrTemplate[]> {
-    return this.getDb().select().from(okrTemplates).where(sql`${okrTemplates.tags} && ${tags}`);
-  }
-
   // OKR Metric operations
-  async getOkrMetrics(templateId: number): Promise<OkrMetric[]> {
-    return this.getDb().select().from(okrMetrics).where(eq(okrMetrics.templateId, templateId));
+  async getAllOkrMetrics(): Promise<OkrMetric[]> {
+    return this.getDb().select().from(okrMetrics);
   }
 
   async getOkrMetric(id: number): Promise<OkrMetric | undefined> {
