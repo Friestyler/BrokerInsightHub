@@ -1574,6 +1574,114 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // OKR Template Assignments API endpoints
+  
+  // Get template assignments for an entity
+  app.get('/api/template-assignments/:entityType/:entityId', async (req, res) => {
+    try {
+      const { entityType, entityId } = req.params;
+      
+      const result = await db.execute(sql`
+        SELECT 
+          ta.*,
+          tm.name as template_name,
+          tm.description as template_description,
+          tm.tags,
+          u1.username as assigned_by_name,
+          u2.username as responsible_user_name
+        FROM myqollabi.okr_template_assignments ta
+        LEFT JOIN myqollabi.okr_metrics tm ON ta.template_id = tm.id
+        LEFT JOIN myqollabi.users u1 ON ta.assigned_by = u1.id
+        LEFT JOIN myqollabi.users u2 ON ta.responsible_user_id = u2.id
+        WHERE ta.entity_type = ${entityType} AND ta.entity_id = ${parseInt(entityId)}
+        ORDER BY ta.assigned_at DESC
+      `);
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching template assignments:', error);
+      res.status(500).json({ error: 'Failed to fetch template assignments' });
+    }
+  });
+
+  // Assign templates to entities
+  app.post('/api/template-assignments', async (req, res) => {
+    try {
+      const { templateIds, entityType, entityId, assignedBy, responsibleUserId, notes } = req.body;
+      
+      if (!templateIds || !Array.isArray(templateIds) || templateIds.length === 0) {
+        return res.status(400).json({ error: 'Template IDs are required' });
+      }
+      
+      const assignments = [];
+      
+      for (const templateId of templateIds) {
+        const result = await db.execute(sql`
+          INSERT INTO myqollabi.okr_template_assignments 
+          (template_id, entity_type, entity_id, assigned_by, responsible_user_id, notes)
+          VALUES (${templateId}, ${entityType}, ${parseInt(entityId)}, ${assignedBy || 1}, ${responsibleUserId || null}, ${notes || ''})
+          RETURNING *
+        `);
+        assignments.push(result.rows[0]);
+      }
+      
+      res.status(201).json(assignments);
+    } catch (error) {
+      console.error('Error creating template assignments:', error);
+      res.status(500).json({ error: 'Failed to create template assignments' });
+    }
+  });
+
+  // Update template assignment status
+  app.put('/api/template-assignments/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { status, notes, responsibleUserId, dueDate } = req.body;
+      
+      const result = await db.execute(sql`
+        UPDATE myqollabi.okr_template_assignments 
+        SET 
+          status = ${status || 'active'},
+          notes = ${notes || ''},
+          responsible_user_id = ${responsibleUserId || null},
+          due_date = ${dueDate || null}
+        WHERE id = ${id}
+        RETURNING *
+      `);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Template assignment not found' });
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error updating template assignment:', error);
+      res.status(500).json({ error: 'Failed to update template assignment' });
+    }
+  });
+
+  // Remove template assignment
+  app.delete('/api/template-assignments/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      
+      const result = await db.execute(sql`
+        DELETE FROM myqollabi.okr_template_assignments 
+        WHERE id = ${id}
+        RETURNING *
+      `);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Template assignment not found' });
+      }
+      
+      res.json({ message: 'Template assignment removed successfully' });
+    } catch (error) {
+      console.error('Error deleting template assignment:', error);
+      res.status(500).json({ error: 'Failed to delete template assignment' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
