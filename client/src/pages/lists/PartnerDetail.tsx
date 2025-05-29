@@ -2258,20 +2258,20 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                                   </TooltipProvider>
                                   
                                   <Button
-                                    onClick={saveNewOKR}
-                                    size="sm"
-                                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 h-8"
-                                    disabled={!newOKRName.trim()}
-                                  >
-                                    Save
-                                  </Button>
-                                  <Button
                                     onClick={cancelOKRCreation}
                                     variant="ghost"
                                     size="sm"
                                     className="text-gray-500 hover:text-gray-700 px-2 py-1 h-8"
                                   >
                                     Cancel
+                                  </Button>
+                                  <Button
+                                    onClick={saveNewOKR}
+                                    size="sm"
+                                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 h-8"
+                                    disabled={!newOKRName.trim()}
+                                  >
+                                    Save
                                   </Button>
                                 </div>
                               </TableCell>
