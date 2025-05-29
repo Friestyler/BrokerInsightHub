@@ -21,7 +21,7 @@ import ReportsPage from "@/pages/Reports/ReportsPage";
 import Clients from "@/pages/Clients";
 import ClientDetail from "@/pages/ClientDetail";
 import PartnersPage from "@/pages/lists/PartnersPage";
-import PartnerDetailClean from "@/pages/lists/PartnerDetail-clean";
+import PartnerDetailNew from "@/pages/lists/PartnerDetailNew";
 import CustomersPageClean from "@/pages/lists/CustomersPageClean";
 import OpportunitiesPage from "@/pages/lists/OpportunitiesPage";
 import Opportunities2Page from "@/pages/lists/Opportunities2Page";
@@ -51,7 +51,7 @@ function Router() {
         
         {/* Primary entity routes */}
         <Route path="/partners" component={PartnersPage} />
-        <Route path="/lists/partners/:id" component={PartnerDetailClean} />
+        <Route path="/lists/partners/:id" component={PartnerDetailNew} />
         <Route path="/customers" component={CustomersPageClean} />
         <Route path="/opportunities" component={OpportunitiesPage} />
         <Route path="/opportunities/:id" component={OpportunityDetail} />
