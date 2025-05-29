@@ -2062,31 +2062,31 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                                       >
                                         {newOKRType === 'currency' && (
                                           <>
-                                            <span className="text-[#10B981] font-bold">€</span>
+                                            <span className="text-[#696C8C] font-bold">€</span>
                                             <span>Currency</span>
                                           </>
                                         )}
                                         {newOKRType === 'percentage' && (
                                           <>
-                                            <span className="text-[#3B82F6] font-bold">%</span>
+                                            <span className="text-[#696C8C] font-bold">%</span>
                                             <span>Percentage</span>
                                           </>
                                         )}
                                         {newOKRType === 'number' && (
                                           <>
-                                            <span className="text-[#8B5CF6] font-bold">#</span>
+                                            <span className="text-[#696C8C] font-bold">#</span>
                                             <span>Number</span>
                                           </>
                                         )}
                                         {newOKRType === 'checkbox' && (
                                           <>
-                                            <span className="text-[#F59E0B] font-bold">✓</span>
+                                            <span className="text-[#696C8C] font-bold">✓</span>
                                             <span>Checkbox</span>
                                           </>
                                         )}
                                         {newOKRType === 'traffic-light' && (
                                           <>
-                                            <span className="text-[#EF4444] font-bold">●</span>
+                                            <span className="text-[#696C8C] font-bold">●</span>
                                             <span>Traffic Light</span>
                                           </>
                                         )}
