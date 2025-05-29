@@ -25,7 +25,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { AdvancedTimeframeFilter } from "@/components/ui/advanced-timeframe-filter";
-import { Calendar as CalendarComponent } from "@/components/ui/calendar";
+import { Calendar as CalendarComponent, DateRange } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { CalendarIcon } from "lucide-react";
@@ -2152,9 +2152,9 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                                   
                                   {/* Timeframe Calendar Button */}
                                   <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <Popover>
+                                    <Popover>
+                                      <Tooltip>
+                                        <TooltipTrigger asChild>
                                           <PopoverTrigger asChild>
                                             <Button
                                               variant="outline"
@@ -2180,72 +2180,81 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                                               ) : null}
                                             </Button>
                                           </PopoverTrigger>
-                                          <PopoverContent className="w-auto p-0" align="start">
-                                            <div className="flex">
-                                              {/* Left side - preset options */}
-                                              <div className="w-48 border-r border-gray-200 p-2">
-                                                <div className="space-y-1">
-                                                  {[
-                                                    { value: "this-week", label: "This Week" },
-                                                    { value: "next-week", label: "Next Week" },
-                                                    { value: "this-month", label: "This Month" },
-                                                    { value: "next-month", label: "Next Month" },
-                                                    { value: "this-quarter", label: "This Quarter" },
-                                                    { value: "next-quarter", label: "Next Quarter" },
-                                                    { value: "this-year", label: "This Year" },
-                                                    { value: "next-year", label: "Next Year" },
-                                                    { value: "custom", label: "Custom" }
-                                                  ].map((option) => (
-                                                    <button
-                                                      key={option.value}
-                                                      onClick={() => {
-                                                        setSelectedTimeframe(option.value);
-                                                        if (option.value !== "custom") {
-                                                          setDateRange({ from: undefined, to: undefined });
-                                                        }
-                                                      }}
-                                                      className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 ${
-                                                        selectedTimeframe === option.value ? 'bg-blue-50 text-blue-600' : ''
-                                                      }`}
-                                                      style={{ fontFamily: 'Poppins' }}
-                                                    >
-                                                      {option.label}
-                                                    </button>
-                                                  ))}
-                                                  {selectedTimeframe && (
-                                                    <button
-                                                      onClick={() => {
-                                                        setSelectedTimeframe('');
-                                                        setDateRange({ from: undefined, to: undefined });
-                                                      }}
-                                                      className="w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 text-red-600"
-                                                      style={{ fontFamily: 'Poppins' }}
-                                                    >
-                                                      Remove Timeframe
-                                                    </button>
-                                                  )}
-                                                </div>
-                                              </div>
-                                              
-                                              {/* Right side - calendar (only show when Custom is selected) */}
-                                              {selectedTimeframe === "custom" && (
-                                                <div className="p-2">
-                                                  <CalendarComponent
-                                                    mode="range"
-                                                    selected={dateRange}
-                                                    onSelect={(range) => setDateRange(range || { from: undefined, to: undefined })}
-                                                    numberOfMonths={2}
-                                                  />
-                                                </div>
+                                        </TooltipTrigger>
+                                        <TooltipContent>
+                                          <p>Timeframe</p>
+                                        </TooltipContent>
+                                      </Tooltip>
+                                      <PopoverContent className="w-auto p-0" align="start">
+                                        <div className="flex">
+                                          {/* Left side - preset options */}
+                                          <div className="w-48 border-r border-gray-200 p-2">
+                                            <div className="space-y-1">
+                                              {[
+                                                { value: "this-week", label: "This Week" },
+                                                { value: "next-week", label: "Next Week" },
+                                                { value: "this-month", label: "This Month" },
+                                                { value: "next-month", label: "Next Month" },
+                                                { value: "this-quarter", label: "This Quarter" },
+                                                { value: "next-quarter", label: "Next Quarter" },
+                                                { value: "this-year", label: "This Year" },
+                                                { value: "next-year", label: "Next Year" },
+                                                { value: "custom", label: "Custom" }
+                                              ].map((option) => (
+                                                <button
+                                                  key={option.value}
+                                                  onClick={() => {
+                                                    setSelectedTimeframe(option.value);
+                                                    if (option.value !== "custom") {
+                                                      setDateRange({ from: undefined, to: undefined });
+                                                    }
+                                                  }}
+                                                  className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 ${
+                                                    selectedTimeframe === option.value ? 'bg-blue-50 text-blue-600' : ''
+                                                  }`}
+                                                  style={{ fontFamily: 'Poppins' }}
+                                                >
+                                                  {option.label}
+                                                </button>
+                                              ))}
+                                              {selectedTimeframe && (
+                                                <button
+                                                  onClick={() => {
+                                                    setSelectedTimeframe('');
+                                                    setDateRange({ from: undefined, to: undefined });
+                                                  }}
+                                                  className="w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 text-red-600"
+                                                  style={{ fontFamily: 'Poppins' }}
+                                                >
+                                                  Remove Timeframe
+                                                </button>
                                               )}
                                             </div>
-                                          </PopoverContent>
-                                        </Popover>
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p>Timeframe</p>
-                                      </TooltipContent>
-                                    </Tooltip>
+                                          </div>
+                                          
+                                          {/* Right side - calendar (only show when Custom is selected) */}
+                                          {selectedTimeframe === "custom" && (
+                                            <div className="p-2">
+                                              <CalendarComponent
+                                                mode="range"
+                                                selected={dateRange}
+                                                onSelect={(range) => {
+                                                  if (range) {
+                                                    setDateRange({
+                                                      from: range.from,
+                                                      to: range.to
+                                                    });
+                                                  } else {
+                                                    setDateRange({ from: undefined, to: undefined });
+                                                  }
+                                                }}
+                                                numberOfMonths={2}
+                                              />
+                                            </div>
+                                          )}
+                                        </div>
+                                      </PopoverContent>
+                                    </Popover>
                                   </TooltipProvider>
                                   
                                   <Button
