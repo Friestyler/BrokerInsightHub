@@ -2031,11 +2031,47 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                       </TableRow>
                     ))}
                     
+                    {/* Inline Add Activity Row */}
+                    {Array.from(expandedOKRs).map(okrId => {
+                      const parentOKR = okrsInGroup.find(okr => okr.id === okrId);
+                      if (!parentOKR) return null;
+                      
+                      return (
+                        <TableRow key={`add-${okrId}`} className="border-b" style={{ borderColor: '#E6E7F1' }}>
+                          {/* Empty checkbox column */}
+                          <TableCell className="w-12 px-1 py-3"></TableCell>
+                          
+                          {/* Name Column */}
+                          <TableCell className="p-4 align-middle text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
+                            <Button
+                              onClick={() => setCreatingUnderOKR(okrId)}
+                              variant="outline"
+                              className="text-blue-600 border-blue-200 hover:bg-blue-50 hover:border-blue-300"
+                            >
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-2">
+                                <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                              </svg>
+                              Add an activity
+                            </Button>
+                          </TableCell>
+                          
+                          {/* Empty columns to match table structure */}
+                          <TableCell className="p-4"></TableCell>
+                          <TableCell className="p-4"></TableCell>
+                          <TableCell className="p-4"></TableCell>
+                          <TableCell className="p-4"></TableCell>
+                          <TableCell className="p-4"></TableCell>
+                          <TableCell className="p-4"></TableCell>
+                          <TableCell className="p-4"></TableCell>
+                        </TableRow>
+                      );
+                    })}
+                    
                     {/* Inline OKR Creation Form Row */}
-                    {expandedOKRs.size > 0 && creatingUnderOKR && (
+                    {creatingUnderOKR && (
                       <TableRow className="bg-blue-50 border-b" style={{ borderColor: '#E6E7F1' }}>
                         <TableCell className="w-12 px-1 py-3"></TableCell>
-                        <TableCell colSpan={7} className="p-4">
+                        <TableCell colSpan={8} className="p-4">
                           <div className="bg-white rounded-lg border border-blue-200 p-4 shadow-sm">
                             <div className="flex items-center gap-2 mb-3">
                               <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
@@ -2044,7 +2080,7 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                                 </svg>
                               </div>
                               <h4 className="font-medium text-gray-900">
-                                Create new OKR
+                                Create new activity
                               </h4>
                             </div>
                             
@@ -2057,7 +2093,7 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                                   value={newOKRName}
                                   onChange={(e) => setNewOKRName(e.target.value)}
                                   onKeyDown={handleKeyPress}
-                                  placeholder="Enter OKR name..."
+                                  placeholder="Enter activity name..."
                                   className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                                   autoFocus
                                 />
