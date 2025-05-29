@@ -265,41 +265,7 @@ const mockOKRs = [
 ];
 
 // Mock customers data - only customers related to ABC Insurance Brokers
-const mockCustomers = [
-  {
-    id: 1,
-    name: "Acme Corporation",
-    industry: "Manufacturing",
-    size: "enterprise",
-    products: 5,
-    opportunities: 2,
-    status: "active",
-    initials: "AC",
-    partner: "ABC Insurance Brokers"
-  },
-  {
-    id: 4,
-    name: "Umbrella Corporation",
-    industry: "Pharmaceuticals",
-    size: "large",
-    products: 2,
-    opportunities: 0,
-    status: "inactive",
-    initials: "UC",
-    partner: "ABC Insurance Brokers"
-  },
-  {
-    id: 7,
-    name: "Wayne Enterprises",
-    industry: "Manufacturing",
-    size: "enterprise",
-    products: 6,
-    opportunities: 2,
-    status: "active",
-    initials: "WE",
-    partner: "ABC Insurance Brokers"
-  }
-];
+// Mock customers removed - using database queries
 
 // Mock opportunities data - for Jeroen Hypotheek Advies
 // Fetch opportunities from database for this partner
@@ -915,128 +881,13 @@ export default function PartnerDetail() {
                       </TableCell>
                     </TableRow>
                   ))}
-                  
-                  <TableRow>
-                    <TableCell>
-                      <Checkbox />
-                    </TableCell>
-                    <TableCell>
-                      <Link href={`/lists/opportunities/2?from=partner/${id}`} className="inline-block">
-                        <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
-                          Verduurzamingslening
-                        </span>
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      <Link href={`/lists/clients/2`} className="inline-block">
-                        <span className="text-indigo-600 hover:underline cursor-pointer">
-                          NEW Sample Customer
-                        </span>
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      <Link href={`/lists/partners/1`} className="inline-block">
-                        <span className="text-indigo-600 hover:underline cursor-pointer">
-                          Jeroen Hypotheek Advies
-                        </span>
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      New Business
-                    </TableCell>
-                    <TableCell>
-                      <span className="px-2 py-1 rounded-full text-xs bg-purple-100 text-purple-800">
-                        Discovery
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      €35,000
-                    </TableCell>
-                    <TableCell>
-                      30/06/2025
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-1">
-                        <div className="h-6 w-6 rounded-full bg-green-100 text-green-700 text-xs flex items-center justify-center">
-                          VL
-                        </div>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                  
-                  <TableRow>
-                    <TableCell>
-                      <Checkbox />
-                    </TableCell>
-                    <TableCell>
-                      <Link href={`/lists/opportunities/3?from=partner/${id}`} className="inline-block">
-                        <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
-                          Verkoop van aanvullende producten
-                        </span>
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      <Link href={`/lists/clients/3`} className="inline-block">
-                        <span className="text-indigo-600 hover:underline cursor-pointer">
-                          NEW Sample Customer
-                        </span>
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      <Link href={`/lists/partners/1`} className="inline-block">
-                        <span className="text-indigo-600 hover:underline cursor-pointer">
-                          Jeroen Hypotheek Advies
-                        </span>
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      Upsell
-                    </TableCell>
-                    <TableCell>
-                      <span className="px-2 py-1 rounded-full text-xs bg-amber-100 text-amber-800">
-                        Negotiation
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      €42,000
-                    </TableCell>
-                    <TableCell>
-                      10/08/2025
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex space-x-1">
-                        <div className="h-6 w-6 rounded-full bg-cyan-100 text-cyan-700 text-xs flex items-center justify-center">
-                          AP
-                        </div>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                  
-                  <TableRow>
-                    <TableCell>
-                      <Checkbox />
-                    </TableCell>
-                    <TableCell>
-                      <Link href={`/lists/opportunities/4?from=partner/${id}`} className="inline-block">
-                        <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
-                          Proactief contact bij levensgebeurtenissen
-                        </span>
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      <Link href={`/lists/clients/4`} className="inline-block">
-                        <span className="text-indigo-600 hover:underline cursor-pointer">
-                          NEW Sample Customer
-                        </span>
-                      </Link>
-                    </TableCell>
-                    <TableCell>
-                      <Link href={`/lists/partners/1`} className="inline-block">
-                        <span className="text-indigo-600 hover:underline cursor-pointer">
-                          Jeroen Hypotheek Advies
-                        </span>
-                      </Link>
-                    </TableCell>
+                </TableBody>
+              </Table>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="customers" className="mt-4">
+            <div>
                     <TableCell>
                       Renewal
                     </TableCell>
