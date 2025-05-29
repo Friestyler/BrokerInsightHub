@@ -1445,7 +1445,7 @@ function OpportunitiesTable() {
                 </td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm font-medium">
                   <Link 
-                    href={`/lists/opportunities/${opportunity.id}?from=opportunity_list`}
+                    href={`/opportunities/${opportunity.id}`}
                     className="font-medium text-gray-900 hover:text-indigo-600"
                   >
                     {opportunity.title}
