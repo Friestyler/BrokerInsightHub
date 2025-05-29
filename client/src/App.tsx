@@ -28,7 +28,7 @@ import Opportunities2Page from "@/pages/lists/Opportunities2Page";
 import OpportunityDetail from "@/pages/lists/OpportunityDetail";
 import VendorsPage from "@/pages/lists/VendorsPage";
 import ProductsPage from "@/pages/lists/ProductsPage";
-import OKRTemplatesPage from "@/pages/templates/OKRMetricsPageExact";
+import OKRTemplatesPage from "@/pages/templates/OKRMetricsFixed";
 import GroupDetail from "@/pages/templates/GroupDetail";
 import UserManagement from "@/pages/Settings/UserManagement";
 import DeveloperPage from "@/pages/Settings/DeveloperPage";
