@@ -2037,18 +2037,49 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                             {/* Empty checkbox column */}
                             <TableCell className="w-12 px-1 py-3"></TableCell>
                             
-                            {/* Name Column with Add Activity Button */}
+                            {/* Name Column with Add Activity Button or Inline Input */}
                             <TableCell className="p-4 align-middle text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
-                              <Button
-                                onClick={() => setCreatingUnderOKR(okr.id)}
-                                variant="outline"
-                                className="text-blue-600 border-blue-200 hover:bg-blue-50 hover:border-blue-300"
-                              >
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-2">
-                                  <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-                                </svg>
-                                Add an activity
-                              </Button>
+                              {creatingUnderOKR === okr.id ? (
+                                // Inline creation input (ClickUp style)
+                                <div className="flex items-center gap-2">
+                                  <Input
+                                    value={newOKRName}
+                                    onChange={(e) => setNewOKRName(e.target.value)}
+                                    onKeyDown={handleKeyPress}
+                                    placeholder="Enter activity name..."
+                                    className="flex-1 border-gray-300 focus:border-blue-500 focus:ring-blue-500 text-sm"
+                                    autoFocus
+                                  />
+                                  <Button
+                                    onClick={saveNewOKR}
+                                    size="sm"
+                                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 h-8"
+                                    disabled={!newOKRName.trim()}
+                                  >
+                                    Save
+                                  </Button>
+                                  <Button
+                                    onClick={cancelOKRCreation}
+                                    variant="ghost"
+                                    size="sm"
+                                    className="text-gray-500 hover:text-gray-700 px-2 py-1 h-8"
+                                  >
+                                    Cancel
+                                  </Button>
+                                </div>
+                              ) : (
+                                // Add activity button
+                                <Button
+                                  onClick={() => setCreatingUnderOKR(okr.id)}
+                                  variant="ghost"
+                                  className="text-gray-500 hover:text-blue-600 hover:bg-blue-50 border-0 justify-start p-2 h-auto font-normal"
+                                >
+                                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" className="mr-2">
+                                    <path d="M12 5v14M5 12h14" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                                  </svg>
+                                  Add an activity
+                                </Button>
+                              )}
                             </TableCell>
                             
                             {/* Empty columns to match table structure */}
@@ -2063,95 +2094,7 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                         )}
                       </>
                     ))}
-                    
-                    {/* Inline OKR Creation Form Row */}
-                    {creatingUnderOKR && (
-                      <TableRow className="bg-blue-50 border-b" style={{ borderColor: '#E6E7F1' }}>
-                        <TableCell className="w-12 px-1 py-3"></TableCell>
-                        <TableCell colSpan={8} className="p-4">
-                          <div className="bg-white rounded-lg border border-blue-200 p-4 shadow-sm">
-                            <div className="flex items-center gap-2 mb-3">
-                              <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                  <path d="M12 5v14M5 12h14" stroke="#3B82F6" strokeWidth="2" strokeLinecap="round"/>
-                                </svg>
-                              </div>
-                              <h4 className="font-medium text-gray-900">
-                                Create new activity
-                              </h4>
-                            </div>
-                            
-                            <div className="space-y-3">
-                              <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1">
-                                  Name <span className="text-red-500">*</span>
-                                </label>
-                                <Input
-                                  value={newOKRName}
-                                  onChange={(e) => setNewOKRName(e.target.value)}
-                                  onKeyDown={handleKeyPress}
-                                  placeholder="Enter activity name..."
-                                  className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                                  autoFocus
-                                />
-                              </div>
-                              
-                              <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Type
-                                  </label>
-                                  <Select value={newOKRType} onValueChange={setNewOKRType}>
-                                    <SelectTrigger className="border-gray-300">
-                                      <SelectValue placeholder="Select type" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                      <SelectItem value="currency">Currency (€)</SelectItem>
-                                      <SelectItem value="percentage">Percentage (%)</SelectItem>
-                                      <SelectItem value="number">Number (#)</SelectItem>
-                                      <SelectItem value="checkbox">Checkbox (✓)</SelectItem>
-                                      <SelectItem value="traffic-light">Traffic Light (●)</SelectItem>
-                                    </SelectContent>
-                                  </Select>
-                                </div>
-                                
-                                <div>
-                                  <label className="block text-sm font-medium text-gray-700 mb-1">
-                                    Due Date
-                                  </label>
-                                  <Input
-                                    type="date"
-                                    value={newOKRTimeframe}
-                                    onChange={(e) => setNewOKRTimeframe(e.target.value)}
-                                    className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                                  />
-                                </div>
-                              </div>
-                              
-                              <div className="flex items-center gap-2 pt-2">
-                                <Button
-                                  onClick={saveNewOKR}
-                                  className="bg-blue-600 hover:bg-blue-700 text-white"
-                                  disabled={!newOKRName.trim()}
-                                >
-                                  Save
-                                </Button>
-                                <Button
-                                  onClick={cancelOKRCreation}
-                                  variant="outline"
-                                  className="border-gray-300 text-gray-700 hover:bg-gray-50"
-                                >
-                                  Cancel
-                                </Button>
-                                <span className="text-xs text-gray-500 ml-2">
-                                  Press Enter to save, Esc to cancel
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    )}
+
                   </TableBody>
                 </Table>
               </div>
