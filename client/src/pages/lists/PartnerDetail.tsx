@@ -2276,9 +2276,9 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                                 </div>
                               </TableCell>
                             ) : (
-                              <>
-                                {/* Create new activity button */}
-                                <TableCell className="p-4 align-middle text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
+                              <TableCell colSpan={9} className="p-4 align-middle text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
+                                {/* Add activity buttons */}
+                                <div className="flex items-center gap-4">
                                   <Button
                                     onClick={() => setCreatingUnderOKR(okr.id)}
                                     variant="ghost"
@@ -2289,15 +2289,9 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                                     </svg>
                                     Create new activity
                                   </Button>
-                                </TableCell>
-                                
-                                {/* "or" text */}
-                                <TableCell className="p-4 align-middle text-center">
+                                  
                                   <span className="text-gray-400 text-sm">or</span>
-                                </TableCell>
-                                
-                                {/* Select existing activity button */}
-                                <TableCell className="p-4 align-middle text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
+                                  
                                   <Button
                                     onClick={() => {
                                       // TODO: Implement select existing activity functionality
@@ -2312,19 +2306,9 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                                     </svg>
                                     Select existing activity
                                   </Button>
-                                </TableCell>
-                                
-                                {/* Empty columns to fill remaining space */}
-                                <TableCell className="p-4"></TableCell>
-                                <TableCell className="p-4"></TableCell>
-                              </>
+                                </div>
+                              </TableCell>
                             )}
-                            
-                            {/* Remaining columns */}
-                            <TableCell className="p-4"></TableCell>
-                            <TableCell className="p-4"></TableCell>
-                            <TableCell className="p-4"></TableCell>
-                            <TableCell className="p-4"></TableCell>
                           </TableRow>
                         )}
                       </>
