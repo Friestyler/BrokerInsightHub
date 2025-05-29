@@ -658,7 +658,7 @@ export default function OKRMetricsPage() {
                               backgroundColor: tagName === 'No Tag' ? '#6B7280' : getTagColor(tagName)
                             }}
                           >
-                            <ChevronRight className="w-4 h-4 mr-2" />
+                            <span className="mr-2">▶</span>
                             {tagName}
                           </div>
                         </td>
