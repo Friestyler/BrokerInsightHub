@@ -1,7 +1,7 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { opportunities, clients, insuranceProducts } from '@shared/schema';
+import { opportunities, clients, insuranceProducts, okrMetrics, okrTags } from '@shared/schema';
 import { eq, sql } from 'drizzle-orm';
 import { db } from './db';
 import multer from 'multer';
@@ -1365,26 +1365,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         is_archived, is_shared, hierarchy, tags 
       } = req.body;
       
-      const result = await db.execute(sql`
-        INSERT INTO myqollabi.okr_metrics (
-          name, description, realized_value, target_value, measure_unit,
-          frequency, hierarchy, tags, created_by
-        )
-        VALUES (
-          ${name}, 
-          ${description || ''}, 
-          ${realized_value || 0}, 
-          ${target_value || null}, 
-          ${measure_unit || 'number'},
-          ${frequency || 'none'}, 
-          ${hierarchy || 'metric'}, 
-          ${tags || []}, 
-          1
-        )
-        RETURNING *
-      `);
+      console.log('Creating OKR metric with data:', {
+        name, description, realized_value, target_value, measure_unit, frequency, hierarchy, tags
+      });
+
+      const result = await db
+        .insert(okrMetrics)
+        .values({
+          name,
+          description: description || '',
+          realized_value: String(realized_value || 0),
+          target_value: target_value ? String(target_value) : null,
+          measure_unit: measure_unit || 'number',
+          frequency: frequency || 'none',
+          hierarchy: hierarchy || 'metric',
+          tags: tags || [],
+          created_by: 1
+        })
+        .returning();
       
-      res.status(201).json(result.rows[0]);
+      res.status(201).json(result[0]);
     } catch (error) {
       console.error('Error creating OKR metric:', error);
       res.status(500).json({ error: 'Failed to create OKR metric' });
