@@ -1,12 +1,14 @@
+import { useState } from "react";
 import { useParams, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
+import { ArrowLeft } from "lucide-react";
 
 export default function PartnerDetailClean() {
   const { id } = useParams();
+  const [activeTab, setActiveTab] = useState("okr-plans");
 
   // Fetch partner data from database
   const { data: partners, isLoading: partnersLoading } = useQuery({
@@ -36,32 +38,76 @@ export default function PartnerDetailClean() {
   }
 
   return (
-    <div className="p-6">
-      <div className="mb-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">{partner.name}</h1>
-            <p className="text-gray-600">{partner.description}</p>
-            <div className="flex items-center space-x-4 mt-2 text-sm text-gray-500">
-              <span>Location: {partner.location}</span>
-              <span>Contact: {partner.primaryContact}</span>
-              <span>Email: {partner.contactEmail}</span>
+    <div className="min-h-screen bg-white">
+      {/* Header section */}
+      <div className="px-6 py-4">
+        <div className="flex items-center mb-4">
+          <Link href="/partners">
+            <Button variant="ghost" size="sm" className="mr-4 p-2">
+              <ArrowLeft className="w-4 h-4" />
+            </Button>
+          </Link>
+          <div className="flex-1">
+            <h1 className="text-2xl font-bold text-gray-900">{partner.name}</h1>
+            <div className="flex items-center space-x-4 mt-1">
+              <span className="text-gray-600">{partner.description}</span>
+              <div className="flex items-center space-x-2">
+                <span className="text-sm bg-gray-100 text-gray-700 px-2 py-1 rounded">Details</span>
+                <span className="text-sm bg-gray-100 text-gray-700 px-2 py-1 rounded">Partner</span>
+                <span className="text-sm text-gray-500">Owner: <span className="text-blue-600">NA</span></span>
+              </div>
             </div>
           </div>
-          <div className="flex space-x-2">
-            <Button variant="outline">Edit</Button>
-            <Button>Create Opportunity</Button>
-          </div>
+        </div>
+        
+        <p className="text-gray-600 mb-6">Joint action & business plan to drive growth with insurance business</p>
+
+        {/* Custom tab styling to match design */}
+        <div className="border-b border-gray-200">
+          <nav className="-mb-px flex space-x-8">
+            <button 
+              onClick={() => setActiveTab("okr-plans")}
+              className={`py-2 px-4 text-sm font-medium border-b-2 whitespace-nowrap ${
+                activeTab === "okr-plans" 
+                  ? "bg-blue-100 text-blue-700 border-blue-600" 
+                  : "text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300"
+              }`}
+            >
+              OKR plans
+            </button>
+            <button 
+              onClick={() => setActiveTab("opportunities")}
+              className={`py-2 px-1 text-sm font-medium border-b-2 whitespace-nowrap ${
+                activeTab === "opportunities" 
+                  ? "bg-blue-100 text-blue-700 border-blue-600" 
+                  : "text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300"
+              }`}
+            >
+              Opportunities ({relatedOpportunities?.length || 0})
+            </button>
+            <button 
+              onClick={() => setActiveTab("customers")}
+              className={`py-2 px-1 text-sm font-medium border-b-2 whitespace-nowrap ${
+                activeTab === "customers" 
+                  ? "bg-blue-100 text-blue-700 border-blue-600" 
+                  : "text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300"
+              }`}
+            >
+              Customers ({relatedCustomers?.length || 0})
+            </button>
+          </nav>
         </div>
       </div>
 
-      <Tabs defaultValue="opportunities" className="w-full">
-        <TabsList>
-          <TabsTrigger value="opportunities">Opportunities ({relatedOpportunities?.length || 0})</TabsTrigger>
-          <TabsTrigger value="customers">Customers ({relatedCustomers?.length || 0})</TabsTrigger>
-        </TabsList>
+      {/* Content area */}
+      <div className="px-6 py-6">
+        {activeTab === "okr-plans" && (
+          <div className="text-center py-12">
+            <p className="text-gray-500">OKR plans content coming soon...</p>
+          </div>
+        )}
 
-        <TabsContent value="opportunities" className="mt-4">
+        {activeTab === "opportunities" && (
           <div>
             <Table>
               <TableHeader>
@@ -106,9 +152,9 @@ export default function PartnerDetailClean() {
               </TableBody>
             </Table>
           </div>
-        </TabsContent>
+        )}
 
-        <TabsContent value="customers" className="mt-4">
+        {activeTab === "customers" && (
           <div>
             <Table>
               <TableHeader>
@@ -148,8 +194,8 @@ export default function PartnerDetailClean() {
               </TableBody>
             </Table>
           </div>
-        </TabsContent>
-      </Tabs>
+        )}
+      </div>
     </div>
   );
 }
