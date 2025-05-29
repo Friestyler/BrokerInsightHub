@@ -346,38 +346,38 @@ export default function OKRMetricsPageNew() {
         )}
 
         {/* OKR Metrics Table */}
-        <div className="bg-white rounded-lg border overflow-hidden">
+        <div className="bg-white border border-gray-200 rounded-lg overflow-hidden">
           <table className="w-full">
             <tbody>
-              {Object.entries(groupedMetrics).map(([groupName, groupMetrics]: [string, any]) => (
-                <>
+              {Object.entries(groupedMetrics).map(([groupName, groupMetrics]: [string, any], groupIndex) => (
+                <React.Fragment key={groupName}>
                   {/* Group Header Row */}
-                  <tr key={`header-${groupName}`}>
+                  <tr>
                     <td 
                       colSpan={6} 
-                      className="px-4 py-3 text-sm font-medium"
-                      style={{ backgroundColor: getTagColor(groupName) + '20', color: getTagColor(groupName) }}
+                      className="px-4 py-3 text-sm font-medium border-b"
+                      style={{ backgroundColor: getTagColor(groupName) + '15', color: getTagColor(groupName) }}
                     >
                       {groupName}
                     </td>
                   </tr>
                   
-                  {/* Table Headers for this group */}
-                  <tr className="bg-gray-50 border-b">
-                    <th className="w-12 px-4 py-3 text-left">
+                  {/* Column Headers Row */}
+                  <tr className="bg-gray-50">
+                    <th className="w-12 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       <Checkbox />
                     </th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Name</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Timeframe</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Milestone Frequency</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Target</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Actions</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Timeframe</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Milestone Frequency</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Target</th>
+                    <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                   </tr>
                   
-                  {/* Metrics Rows */}
-                  {groupMetrics.map((metric: OKRMetric) => (
-                    <tr key={metric.id} className="hover:bg-gray-50 border-b">
-                      <td className="px-4 py-3">
+                  {/* Data Rows */}
+                  {groupMetrics.map((metric: OKRMetric, metricIndex: number) => (
+                    <tr key={metric.id} className="border-b border-gray-100 hover:bg-gray-50">
+                      <td className="px-4 py-4 whitespace-nowrap">
                         <Checkbox
                           checked={selectedMetrics.includes(metric.id)}
                           onCheckedChange={(checked) => {
@@ -389,38 +389,28 @@ export default function OKRMetricsPageNew() {
                           }}
                         />
                       </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          {metric.hierarchy === 'objective' && (
-                            <ChevronDown className="w-4 h-4 text-gray-400" />
-                          )}
-                          <div>
-                            <div className="font-medium text-gray-900">{metric.name}</div>
-                            {metric.description && (
-                              <div className="text-sm text-gray-500">{metric.description}</div>
-                            )}
-                          </div>
-                        </div>
+                      <td className="px-4 py-4">
+                        <div className="text-sm font-medium text-gray-900">{metric.name}</div>
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-700">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-700">
                         {formatTimeframe(metric.timeframe_start, metric.timeframe_end)}
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-700 capitalize">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-700 capitalize">
                         {metric.frequency}
                       </td>
-                      <td className="px-4 py-3 text-sm text-gray-900 font-medium">
+                      <td className="px-4 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         {metric.target_value || '-'}
                         {metric.measure_unit === 'percent' && '%'}
-                        {metric.measure_unit === 'currency' && ` ${metric.currency_type}`}
+                        {metric.measure_unit === 'currency' && ` ${metric.currency_type || 'USD'}`}
                       </td>
-                      <td className="px-4 py-3">
+                      <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                           <MoreHorizontal className="w-4 h-4" />
                         </Button>
                       </td>
                     </tr>
                   ))}
-                </>
+                </React.Fragment>
               ))}
             </tbody>
           </table>
