@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, Edit2, Tag, Trash2, Save, X } from 'lucide-react';
+import { Plus, Edit2, Tag, Trash2, Save, X, MoreHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -10,6 +10,7 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface OKRMetric {
   id: number;
@@ -18,9 +19,12 @@ interface OKRMetric {
   realized_value: number;
   target_value?: number;
   measure_unit: string;
+  currency_type?: string;
   frequency: string;
   hierarchy: string;
   tags: string[];
+  timeframe_start?: Date | null;
+  timeframe_end?: Date | null;
   created_at: string;
   updated_at: string;
   created_by: number;
@@ -40,10 +44,28 @@ const DEFAULT_TAG_COLORS = [
   '#F97316', '#6366F1', '#14B8A6', '#F43F5E'
 ];
 
+// Utility function to format timeframe
+const formatTimeframe = (start: Date | null | undefined, end: Date | null | undefined): string => {
+  if (!start && !end) return 'Ongoing';
+  if (start && end) {
+    const startStr = new Date(start).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    const endStr = new Date(end).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return `${startStr} - ${endStr}`;
+  }
+  if (start) {
+    return `From ${new Date(start).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+  }
+  if (end) {
+    return `Until ${new Date(end).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+  }
+  return 'Ongoing';
+};
+
 export default function OKRTemplatesPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isTagDialogOpen, setIsTagDialogOpen] = useState(false);
   const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [selectedMetrics, setSelectedMetrics] = useState<number[]>([]);
   const [editingTag, setEditingTag] = useState<OKRTag | null>(null);
   const [newTagName, setNewTagName] = useState('');
   const [newTagColor, setNewTagColor] = useState('#3B82F6');
@@ -337,70 +359,76 @@ export default function OKRTemplatesPage() {
 
       {/* Content */}
       <div className="flex-1 p-6">
-        <Tabs defaultValue="grouped" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="grouped">Grouped by Tags</TabsTrigger>
-            <TabsTrigger value="list">List View</TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="grouped" className="space-y-6">
-            {/* Tag filter */}
-            <div className="flex flex-wrap gap-2">
-              <Button
-                variant={selectedTag === null ? "default" : "outline"}
-                size="sm"
-                onClick={() => setSelectedTag(null)}
-              >
-                All ({metrics.length})
-              </Button>
-              {Object.keys(groupedMetrics).map((tagName) => (
-                <Button
-                  key={tagName}
-                  variant={selectedTag === tagName ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setSelectedTag(tagName)}
-                  style={{ 
-                    backgroundColor: selectedTag === tagName ? getTagColor(tagName) : undefined,
-                    borderColor: getTagColor(tagName)
-                  }}
-                >
-                  {tagName === 'untagged' ? 'Untagged' : tagName} ({groupedMetrics[tagName].length})
-                </Button>
+        {/* Simple OKR Metrics Table */}
+        <div className="bg-white rounded-lg border border-gray-200">
+          <table className="w-full">
+            <thead>
+              <tr className="border-b bg-gray-50">
+                <th className="w-8 px-4 py-3 text-left text-xs font-medium text-gray-500">
+                  <Checkbox />
+                </th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Name</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Timeframe</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Milestone Frequency</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Target</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {Object.entries(groupedMetrics).map(([groupName, groupMetrics]: [string, any]) => (
+                <>
+                  {/* Tag Header */}
+                  <tr key={`tag-${groupName}`}>
+                    <td 
+                      colSpan={6} 
+                      className="px-4 py-2 text-sm font-medium text-white"
+                      style={{ backgroundColor: getTagColor(groupName) }}
+                    >
+                      {groupName}
+                    </td>
+                  </tr>
+                  
+                  {/* Metric Rows */}
+                  {groupMetrics.map((metric: OKRMetric) => (
+                    <tr key={metric.id} className="border-b hover:bg-gray-50">
+                      <td className="px-4 py-3">
+                        <Checkbox
+                          checked={selectedMetrics.includes(metric.id)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedMetrics([...selectedMetrics, metric.id]);
+                            } else {
+                              setSelectedMetrics(selectedMetrics.filter(id => id !== metric.id));
+                            }
+                          }}
+                        />
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-900">
+                        {metric.name}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-500">
+                        {formatTimeframe(metric.timeframe_start, metric.timeframe_end)}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-500">
+                        {metric.frequency}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-900">
+                        {metric.target_value || '-'}
+                        {metric.measure_unit === 'percent' && '%'}
+                        {metric.measure_unit === 'currency' && ` ${metric.currency_type || 'USD'}`}
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <MoreHorizontal className="w-4 h-4" />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </>
               ))}
-            </div>
-
-            {/* Grouped metrics */}
-            <div className="space-y-6">
-              {Object.entries(groupedMetrics).map(([tagName, tagMetrics]: [string, any]) => (
-                <div key={tagName}>
-                  <div className="flex items-center gap-3 mb-4">
-                    <div 
-                      className="w-4 h-4 rounded"
-                      style={{ backgroundColor: getTagColor(tagName) }}
-                    />
-                    <h2 className="text-lg font-semibold">
-                      {tagName === 'untagged' ? 'Untagged Metrics' : tagName}
-                    </h2>
-                    <Badge variant="secondary">{tagMetrics.length}</Badge>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {tagMetrics.map((metric: OKRMetric) => (
-                      <MetricCard key={metric.id} metric={metric} tags={tags} />
-                    ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="list" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {filteredMetrics.map((metric: OKRMetric) => (
-                <MetricCard key={metric.id} metric={metric} tags={tags} />
-              ))}
-            </div>
-          </TabsContent>
-        </Tabs>
+            </tbody>
+          </table>
+        </div>
 
         {metrics.length === 0 && !metricsLoading && (
           <div className="text-center py-12">
