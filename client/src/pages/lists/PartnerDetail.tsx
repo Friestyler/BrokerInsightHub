@@ -305,7 +305,7 @@ const mockCustomers = [
 // Fetch opportunities from database for this partner
 const usePartnerOpportunities = (partnerId: number) => {
   return useQuery({
-    queryKey: ['/api/opportunities'],
+    queryKey: ['/api/opportunities', 'partner', partnerId],
     queryFn: async () => {
       const response = await fetch('/api/opportunities');
       if (!response.ok) {
@@ -313,6 +313,21 @@ const usePartnerOpportunities = (partnerId: number) => {
       }
       const data = await response.json();
       return data.filter((opp: any) => opp.partner_id === partnerId);
+    }
+  });
+};
+
+// Fetch customers from database for this partner
+const usePartnerCustomers = (partnerId: number) => {
+  return useQuery({
+    queryKey: ['/api/customers', 'partner', partnerId],
+    queryFn: async () => {
+      const response = await fetch('/api/customers');
+      if (!response.ok) {
+        throw new Error('Failed to fetch customers');
+      }
+      const data = await response.json();
+      return data.filter((customer: any) => customer.assigned_partner_id === partnerId);
     }
   });
 };
