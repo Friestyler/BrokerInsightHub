@@ -1205,9 +1205,26 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
     }
   };
 
-  // Check if an OKR has no children and can show expand arrow on hover
-  const canShowExpandArrow = (okr: any) => {
-    return !assignedOKRs.some(child => child.parent === okr.id) && okr.type !== 'Subactivity';
+  // Calculate nested count for each OKR
+  const calculateNestedCounts = () => {
+    const countsMap = new Map();
+    assignedOKRs.forEach(okr => {
+      const childrenCount = assignedOKRs.filter(child => child.parent === okr.id).length;
+      countsMap.set(okr.id, childrenCount);
+    });
+    return countsMap;
+  };
+
+  const nestedCounts = calculateNestedCounts();
+
+  // Check if an OKR has children
+  const hasChildren = (okr: any) => {
+    return nestedCounts.get(okr.id) > 0;
+  };
+
+  // Get children of an OKR
+  const getChildren = (parentId: number) => {
+    return assignedOKRs.filter(okr => okr.parent === parentId);
   };
 
   // Simulated AI generation function
@@ -1849,16 +1866,12 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                                 className="rounded border-gray-300 opacity-0 group-hover:opacity-100 transition-opacity"
                                 style={{ opacity: selectedOKRs.includes(okr.id) ? 1 : undefined }}
                               />
-                              {/* Expand/collapse arrow - show on hover for OKRs without children */}
-                              {canShowExpandArrow(okr) && (
+                              {/* Expand/collapse arrows - visible by default for nested items */}
+                              {hasChildren(okr) ? (
                                 <button
                                   onClick={() => toggleOKRExpansion(okr.id)}
-                                  className="p-1 hover:bg-gray-100 rounded flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                                  style={{ 
-                                    width: '20px', 
-                                    height: '20px',
-                                    opacity: expandedOKRs.has(okr.id) ? 1 : undefined 
-                                  }}
+                                  className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
+                                  style={{ width: '20px', height: '20px' }}
                                 >
                                   <svg 
                                     width="8" 
@@ -1870,6 +1883,23 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                                       transform: expandedOKRs.has(okr.id) ? 'rotate(90deg)' : 'rotate(0deg)',
                                       transition: 'transform 0.2s'
                                     }}
+                                  >
+                                    <path d="M6.83984 6.28516C7.08594 6.55859 7.08594 6.96875 6.83984 7.21484L1.58984 12.4648C1.31641 12.7383 0.90625 12.7383 0.660156 12.4648C0.386719 12.2188 0.386719 11.8086 0.660156 11.5625L5.44531 6.77734L0.660156 1.96484C0.386719 1.71875 0.386719 1.30859 0.660156 1.0625C0.90625 0.789062 1.31641 0.789062 1.5625 1.0625L6.83984 6.28516Z" fill="#696C8C"/>
+                                  </svg>
+                                </button>
+                              ) : (
+                                /* Empty space for non-nested items - arrows only on hover */
+                                <button
+                                  onClick={() => toggleOKRExpansion(okr.id)}
+                                  className="p-1 hover:bg-gray-100 rounded flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  style={{ width: '20px', height: '20px' }}
+                                >
+                                  <svg 
+                                    width="8" 
+                                    height="13" 
+                                    viewBox="0 0 8 13" 
+                                    fill="none" 
+                                    xmlns="http://www.w3.org/2000/svg"
                                   >
                                     <path d="M6.83984 6.28516C7.08594 6.55859 7.08594 6.96875 6.83984 7.21484L1.58984 12.4648C1.31641 12.7383 0.90625 12.7383 0.660156 12.4648C0.386719 12.2188 0.386719 11.8086 0.660156 11.5625L5.44531 6.77734L0.660156 1.96484C0.386719 1.71875 0.386719 1.30859 0.660156 1.0625C0.90625 0.789062 1.31641 0.789062 1.5625 1.0625L6.83984 6.28516Z" fill="#696C8C"/>
                                   </svg>
@@ -1893,15 +1923,15 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                                 {okr.title}
                               </span>
                               
-                              {/* Hierarchy nesting icon */}
-                              {okr.nestedCount > 0 && (
+                              {/* Nested count icon */}
+                              {nestedCounts.get(okr.id) > 0 && (
                                 <div className="flex items-center" style={{ marginLeft: '4px' }}>
                                   <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <circle cx="4" cy="4" r="2" fill="#666666"/>
                                     <circle cx="12" cy="12" r="2" fill="#666666"/>
                                     <path d="M4 6C4 8 6 10 10 12" stroke="#666666" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
                                   </svg>
-                                  <span className="text-xs text-gray-500 ml-1">{okr.nestedCount}</span>
+                                  <span className="text-xs text-gray-500 ml-1">{nestedCounts.get(okr.id)}</span>
                                 </div>
                               )}
                               
@@ -2041,6 +2071,192 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                             </DropdownMenu>
                           </TableCell>
                         </TableRow>
+
+                        {/* Child OKRs - show when parent is expanded */}
+                        {expandedOKRs.has(okr.id) && getChildren(okr.id).map((childOKR) => (
+                          <TableRow key={`child-${childOKR.id}`} className="hover:bg-[#F5F6FA] border-b group bg-gray-50/30" style={{ borderColor: '#E6E7F1' }}>
+                            {/* Checkbox Column */}
+                            <TableCell className="w-12 px-1 py-3">
+                              <div className="flex items-center" style={{ gap: '4px' }}>
+                                <input
+                                  type="checkbox"
+                                  checked={selectedOKRs.includes(childOKR.id)}
+                                  onChange={(e) => {
+                                    if (e.target.checked) {
+                                      setSelectedOKRs(prev => [...prev, childOKR.id]);
+                                    } else {
+                                      setSelectedOKRs(prev => prev.filter(id => id !== childOKR.id));
+                                    }
+                                  }}
+                                  className="rounded border-gray-300 opacity-0 group-hover:opacity-100 transition-opacity"
+                                  style={{ opacity: selectedOKRs.includes(childOKR.id) ? 1 : undefined }}
+                                />
+                                {/* Expand arrow for child OKRs if they have children */}
+                                {hasChildren(childOKR) ? (
+                                  <button
+                                    onClick={() => toggleOKRExpansion(childOKR.id)}
+                                    className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
+                                    style={{ width: '20px', height: '20px' }}
+                                  >
+                                    <svg 
+                                      width="8" 
+                                      height="13" 
+                                      viewBox="0 0 8 13" 
+                                      fill="none" 
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      style={{ 
+                                        transform: expandedOKRs.has(childOKR.id) ? 'rotate(90deg)' : 'rotate(0deg)',
+                                        transition: 'transform 0.2s'
+                                      }}
+                                    >
+                                      <path d="M6.83984 6.28516C7.08594 6.55859 7.08594 6.96875 6.83984 7.21484L1.58984 12.4648C1.31641 12.7383 0.90625 12.7383 0.660156 12.4648C0.386719 12.2188 0.386719 11.8086 0.660156 11.5625L5.44531 6.77734L0.660156 1.96484C0.386719 1.71875 0.386719 1.30859 0.660156 1.0625C0.90625 0.789062 1.31641 0.789062 1.5625 1.0625L6.83984 6.28516Z" fill="#696C8C"/>
+                                    </svg>
+                                  </button>
+                                ) : (
+                                  <div style={{ width: '20px', height: '20px' }}></div>
+                                )}
+                              </div>
+                            </TableCell>
+
+                            {/* Name Column with indentation */}
+                            <TableCell className="p-4 align-middle text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
+                              <div className="flex items-center w-full pl-6">
+                                <span 
+                                  className="text-[#282A3F]"
+                                  style={{ 
+                                    fontFamily: 'Poppins', 
+                                    fontWeight: '400', 
+                                    fontSize: '14px' 
+                                  }}
+                                >
+                                  {childOKR.title}
+                                </span>
+                                
+                                {/* Nested count icon for child OKRs */}
+                                {nestedCounts.get(childOKR.id) > 0 && (
+                                  <div className="flex items-center" style={{ marginLeft: '4px' }}>
+                                    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                      <circle cx="4" cy="4" r="2" fill="#666666"/>
+                                      <circle cx="12" cy="12" r="2" fill="#666666"/>
+                                      <path d="M4 6C4 8 6 10 10 12" stroke="#666666" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+                                    </svg>
+                                    <span className="text-xs text-gray-500 ml-1">{nestedCounts.get(childOKR.id)}</span>
+                                  </div>
+                                )}
+                                
+                                {/* Description icon */}
+                                {childOKR.description && (
+                                  <svg 
+                                    xmlns="http://www.w3.org/2000/svg" 
+                                    width="14" 
+                                    height="8" 
+                                    viewBox="0 0 14 8" 
+                                    fill="none" 
+                                    className="text-gray-400 hover:text-gray-600 cursor-help flex-shrink-0"
+                                    style={{ minWidth: '14px', minHeight: '8px', marginLeft: '4px' }}
+                                  >
+                                    <rect width="14" height="1" fill="currentColor"/>
+                                    <rect y="3.5" width="14" height="1" fill="currentColor"/>
+                                    <rect y="7" width="7" height="1" fill="currentColor"/>
+                                  </svg>
+                                )}
+                              </div>
+                            </TableCell>
+
+                            {/* Other columns for child OKRs */}
+                            <TableCell className="text-right p-4 align-middle text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
+                              <div className="font-medium">
+                                {childOKR.realizedValue ? (
+                                  childOKR.unit === 'currency' 
+                                    ? `€${(childOKR.realizedValue / 1000000).toFixed(1)}M`
+                                    : childOKR.unit === 'percentage'
+                                    ? `${childOKR.realizedValue}%`
+                                    : childOKR.realizedValue.toString()
+                                ) : "—"}
+                              </div>
+                            </TableCell>
+
+                            <TableCell className="text-right p-4 align-middle text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
+                              <div className="font-medium">
+                                {childOKR.unit === 'currency' 
+                                  ? `€${(childOKR.targetValue / 1000000).toFixed(1)}M`
+                                  : childOKR.unit === 'percentage'
+                                  ? `${childOKR.targetValue}%`
+                                  : childOKR.targetValue?.toString() || "—"
+                                }
+                              </div>
+                            </TableCell>
+
+                            <TableCell className="p-4 align-middle text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
+                              <div className="flex items-center gap-2">
+                                <span className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">
+                                  {(() => {
+                                    const now = new Date();
+                                    const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                                    return monthNames[now.getMonth()];
+                                  })()}
+                                </span>
+                              </div>
+                            </TableCell>
+
+                            <TableCell className="p-4 align-middle text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
+                              <div className="text-sm">
+                                {childOKR.endDate ? new Date(childOKR.endDate).toLocaleDateString('en-US', { 
+                                  month: 'short', 
+                                  day: 'numeric', 
+                                  year: 'numeric' 
+                                }) : '—'}
+                              </div>
+                            </TableCell>
+
+                            <TableCell className="p-4 align-middle text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
+                              <div className="flex items-center gap-1">
+                                <div className="w-3 h-3 rounded-full bg-green-500"></div>
+                                <div className="w-3 h-3 rounded-full bg-gray-200"></div>
+                                <div className="w-3 h-3 rounded-full bg-gray-200"></div>
+                              </div>
+                            </TableCell>
+
+                            <TableCell className="p-4 align-middle text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
+                              <div className="flex items-center gap-2">
+                                <div className="flex-1 bg-gray-200 rounded-full h-2">
+                                  <div 
+                                    className="bg-blue-500 h-2 rounded-full"
+                                    style={{ 
+                                      width: `${childOKR.targetValue && childOKR.realizedValue 
+                                        ? Math.min((childOKR.realizedValue / childOKR.targetValue) * 100, 100)
+                                        : 0}%`
+                                    }}
+                                  ></div>
+                                </div>
+                                <span className="text-xs text-gray-500 min-w-[35px]">
+                                  {childOKR.targetValue && childOKR.realizedValue 
+                                    ? `${Math.round((childOKR.realizedValue / childOKR.targetValue) * 100)}%`
+                                    : '0%'
+                                  }
+                                </span>
+                              </div>
+                            </TableCell>
+
+                            <TableCell className="text-right p-4 align-middle">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <circle cx="12" cy="12" r="1" />
+                                      <circle cx="12" cy="5" r="1" />
+                                      <circle cx="12" cy="19" r="1" />
+                                    </svg>
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem>Edit</DropdownMenuItem>
+                                  <DropdownMenuItem>Delete</DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </TableCell>
+                          </TableRow>
+                        ))}
 
                         {/* Add Activity Row - appears immediately after this specific OKR if expanded */}
                         {expandedOKRs.has(okr.id) && (
