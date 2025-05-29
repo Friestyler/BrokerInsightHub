@@ -1336,10 +1336,7 @@ function OpportunitiesTable() {
                   </div>
                 </td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
-                  {opportunity.clientName ||
-                   opportunity.clientId === 2 ? "Laura Martens" :
-                   opportunity.clientId === 3 ? "Green Tech SA" :
-                   `Client #${opportunity.clientId}`}
+                  {opportunity.clientName || `Client #${opportunity.clientId}`}
                 </td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
                   {opportunity.partnerId === 1 ? "Jeroen Hypotheek Advies" :
