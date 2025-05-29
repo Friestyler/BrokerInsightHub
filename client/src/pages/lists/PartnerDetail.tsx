@@ -2051,6 +2051,87 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                                     style={{ border: 'none', outline: 'none', boxShadow: 'none' }}
                                     autoFocus
                                   />
+                                  {/* OKR Type Selector */}
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button
+                                        variant="outline"
+                                        size="sm"
+                                        className="border-gray-300 text-gray-700 hover:bg-gray-50 px-3 py-1 h-8 flex items-center gap-2"
+                                      >
+                                        {newOKRType === 'currency' && (
+                                          <>
+                                            <span className="text-green-600">€</span>
+                                            Currency
+                                          </>
+                                        )}
+                                        {newOKRType === 'percentage' && (
+                                          <>
+                                            <span className="text-blue-600">%</span>
+                                            Percentage
+                                          </>
+                                        )}
+                                        {newOKRType === 'number' && (
+                                          <>
+                                            <span className="text-purple-600">#</span>
+                                            Number
+                                          </>
+                                        )}
+                                        {newOKRType === 'checkbox' && (
+                                          <>
+                                            <span className="text-orange-600">✓</span>
+                                            Checkbox
+                                          </>
+                                        )}
+                                        {newOKRType === 'traffic-light' && (
+                                          <>
+                                            <span className="text-red-600">●</span>
+                                            Traffic Light
+                                          </>
+                                        )}
+                                        <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor" className="ml-1">
+                                          <path d="M3 4.5l3 3 3-3"/>
+                                        </svg>
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end" className="w-48">
+                                      <DropdownMenuItem 
+                                        onClick={() => setNewOKRType('currency')}
+                                        className="flex items-center gap-2 cursor-pointer"
+                                      >
+                                        <span className="text-green-600 font-bold">€</span>
+                                        Currency
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem 
+                                        onClick={() => setNewOKRType('percentage')}
+                                        className="flex items-center gap-2 cursor-pointer"
+                                      >
+                                        <span className="text-blue-600 font-bold">%</span>
+                                        Percentage
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem 
+                                        onClick={() => setNewOKRType('number')}
+                                        className="flex items-center gap-2 cursor-pointer"
+                                      >
+                                        <span className="text-purple-600 font-bold">#</span>
+                                        Number
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem 
+                                        onClick={() => setNewOKRType('checkbox')}
+                                        className="flex items-center gap-2 cursor-pointer"
+                                      >
+                                        <span className="text-orange-600 font-bold">✓</span>
+                                        Checkbox
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem 
+                                        onClick={() => setNewOKRType('traffic-light')}
+                                        className="flex items-center gap-2 cursor-pointer"
+                                      >
+                                        <span className="text-red-600 font-bold">●</span>
+                                        Traffic Light
+                                      </DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
                                   <Button
                                     onClick={saveNewOKR}
                                     size="sm"
