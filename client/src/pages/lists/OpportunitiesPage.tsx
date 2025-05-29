@@ -31,124 +31,24 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 
-// Sample data for opportunities
-const mockOpportunities = [
-  {
-    id: 1,
-    title: "Property Insurance Renewal",
-    customerId: 1,
-    customerName: "Acme Corporation",
-    partnerId: 1,
-    partnerName: "ABC Insurance Brokers",
-    type: "Renewal",
-    status: "In Progress",
-    probability: 80,
-    value: 125000,
-    dueDate: "2025-06-15",
-    owner: "Sarah Johnson",
-    ownerInitials: "SJ",
-    createdAt: "2025-04-15"
-  },
-  {
-    id: 2,
-    title: "Cyber Security Coverage",
-    customerId: 1,
-    customerName: "Acme Corporation",
-    partnerId: 1,
-    partnerName: "ABC Insurance Brokers",
-    type: "New Business",
-    status: "Qualification",
-    probability: 40,
-    value: 75000,
-    dueDate: "2025-07-30",
-    owner: "Michael Chen",
-    ownerInitials: "MC",
-    createdAt: "2025-05-01"
-  },
-  {
-    id: 3,
-    title: "D&O Insurance",
-    customerId: 2,
-    customerName: "Globex Industries",
-    partnerId: 3,
-    partnerName: "Global Risk Partners",
-    type: "New Business",
-    status: "Proposal",
-    probability: 60,
-    value: 150000,
-    dueDate: "2025-06-01",
-    owner: "Emma Wilson",
-    ownerInitials: "EW",
-    createdAt: "2025-04-22"
-  },
-  {
-    id: 4,
-    title: "Group Health Insurance",
-    customerId: 3,
-    customerName: "Stark Enterprises",
-    partnerId: 2,
-    partnerName: "XYZ Consulting Group",
-    type: "Renewal",
-    status: "Negotiation",
-    probability: 70,
-    value: 225000,
-    dueDate: "2025-07-01",
-    owner: "Robert Smith",
-    ownerInitials: "RS",
-    createdAt: "2025-05-05"
-  },
-  {
-    id: 5,
-    title: "Workers Compensation",
-    customerId: 4,
-    customerName: "Umbrella Corporation",
-    partnerId: 1,
-    partnerName: "ABC Insurance Brokers",
-    type: "Cross-sell",
-    status: "Closed Lost",
-    probability: 0,
-    value: 80000,
-    dueDate: "2025-05-15",
-    owner: "Sarah Johnson",
-    ownerInitials: "SJ",
-    createdAt: "2025-03-15"
-  },
-  {
-    id: 6,
-    title: "Professional Liability",
-    customerId: 5,
-    customerName: "Oceanic Airlines",
-    partnerId: 4,
-    partnerName: "Premier Insurance Agency",
-    type: "New Business",
-    status: "Closed Won",
-    probability: 100,
-    value: 95000,
-    dueDate: "2025-04-01",
-    owner: "John Davis",
-    ownerInitials: "JD",
-    createdAt: "2025-03-01"
-  },
-  {
-    id: 7,
-    title: "Product Liability Insurance",
-    customerId: 6,
-    customerName: "Wayne Enterprises",
-    partnerId: 2,
-    partnerName: "XYZ Consulting Group",
-    type: "New Business",
-    status: "Discovery",
-    probability: 20,
-    value: 110000,
-    dueDate: "2025-08-15",
-    owner: "Michael Chen",
-    ownerInitials: "MC",
-    createdAt: "2025-05-10"
-  }
-];
+// Fetch opportunities from database
+const useOpportunitiesData = () => {
+  return useQuery({
+    queryKey: ['/api/opportunities'],
+    queryFn: async () => {
+      const response = await fetch('/api/opportunities');
+      if (!response.ok) {
+        throw new Error('Failed to fetch opportunities');
+      }
+      return response.json();
+    }
+  });
+};
+
+// All opportunity data now comes from database - no mock data needed
 
 // Calculate opportunity statistics
-function calculateOpportunityStats(opportunities: typeof mockOpportunities) {
+function calculateOpportunityStats(opportunities: any[]) {
   const totalOpportunities = opportunities.length;
   const totalValue = opportunities.reduce((sum, opportunity) => sum + opportunity.value, 0);
   const weightedValue = opportunities.reduce((sum, opportunity) => sum + (opportunity.value * opportunity.probability / 100), 0);
@@ -247,6 +147,7 @@ interface SavedView {
 function OpportunitiesTable() {
   const { toast } = useToast();
   const { environment } = useEnvironment();
+  const { data: opportunities = [], isLoading, error } = useOpportunitiesData();
   const [filterText, setFilterText] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedType, setSelectedType] = useState('');
