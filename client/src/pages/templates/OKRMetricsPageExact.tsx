@@ -599,13 +599,7 @@ export default function OKRMetricsPage() {
             )}
           </div>
           
-          <Button 
-            onClick={() => setIsCreateDialogOpen(true)}
-            className="bg-blue-600 hover:bg-blue-700"
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Add OKR Metric
-          </Button>
+
         </div>
 
         {/* Metrics List */}
