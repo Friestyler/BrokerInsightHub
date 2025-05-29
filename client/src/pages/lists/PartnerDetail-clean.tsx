@@ -57,8 +57,8 @@ export default function PartnerDetailClean() {
 
       <Tabs defaultValue="opportunities" className="w-full">
         <TabsList>
-          <TabsTrigger value="opportunities">Opportunities ({relatedOpportunities.length})</TabsTrigger>
-          <TabsTrigger value="customers">Customers ({relatedCustomers.length})</TabsTrigger>
+          <TabsTrigger value="opportunities">Opportunities ({relatedOpportunities?.length || 0})</TabsTrigger>
+          <TabsTrigger value="customers">Customers ({relatedCustomers?.length || 0})</TabsTrigger>
         </TabsList>
 
         <TabsContent value="opportunities" className="mt-4">
@@ -75,7 +75,7 @@ export default function PartnerDetailClean() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {relatedOpportunities.map((opportunity: any) => (
+                {relatedOpportunities?.map((opportunity: any) => (
                   <TableRow key={opportunity.id}>
                     <TableCell><Checkbox /></TableCell>
                     <TableCell>
@@ -122,7 +122,7 @@ export default function PartnerDetailClean() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {relatedCustomers.map((customer: any) => {
+                {relatedCustomers?.map((customer: any) => {
                   const customerOpportunities = relatedOpportunities?.filter((o: any) => o.clientName === customer.name) || [];
                   return (
                     <TableRow key={customer.id}>
