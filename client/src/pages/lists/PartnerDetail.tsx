@@ -451,6 +451,10 @@ export default function PartnerDetail() {
   // Fetch the partner data based on ID from URL
   const { data: partner, isLoading, error } = usePartnerData(id || '1');
   
+  // Fetch related opportunities and customers from database
+  const { data: opportunities = [] } = usePartnerOpportunities(parseInt(id || '1'));
+  const { data: customers = [] } = usePartnerCustomers(parseInt(id || '1'));
+  
   // All useState hooks must be called before any conditional returns
   const [isEditingDescription, setIsEditingDescription] = useState(false);
   const [description, setDescription] = useState(partner?.description || '');
