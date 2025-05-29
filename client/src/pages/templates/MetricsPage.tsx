@@ -778,7 +778,7 @@ export default function MetricsPage() {
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedMetrics, setSelectedMetrics] = useState<number[]>([]);
   const [expandedItems, setExpandedItems] = useState<number[]>([]);
-  const [activeTab, setActiveTab] = useState("metrics");
+  const [activeTab, setActiveTab] = useState("okrs");
   const [isManageTagsOpen, setIsManageTagsOpen] = useState(false);
   const [isCreateMetricOpen, setIsCreateMetricOpen] = useState(false);
   const [isCreateGroupOpen, setIsCreateGroupOpen] = useState(false);
