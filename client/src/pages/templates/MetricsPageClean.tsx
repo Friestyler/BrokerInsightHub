@@ -120,10 +120,17 @@ export default function MetricsPage() {
   // Create template mutation
   const createTemplateMutation = useMutation({
     mutationFn: async (templateData: any) => {
-      return apiRequest('/api/okr-templates', {
+      const response = await fetch('/api/okr-templates', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(templateData),
       });
+      if (!response.ok) {
+        throw new Error('Failed to create template');
+      }
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/okr-templates'] });
@@ -135,10 +142,17 @@ export default function MetricsPage() {
   // Create metric mutation
   const createMetricMutation = useMutation({
     mutationFn: async (metricData: any) => {
-      return apiRequest('/api/okr-metrics', {
+      const response = await fetch('/api/okr-metrics', {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(metricData),
       });
+      if (!response.ok) {
+        throw new Error('Failed to create metric');
+      }
+      return response.json();
     },
     onSuccess: () => {
       if (selectedTemplate) {
@@ -281,7 +295,7 @@ export default function MetricsPage() {
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all_tags">All Tags</SelectItem>
-                {allTags.map(tag => (
+                {allTags.map((tag: string) => (
                   <SelectItem key={tag} value={tag}>
                     {tag}
                   </SelectItem>
