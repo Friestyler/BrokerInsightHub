@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Checkbox } from '@/components/ui/checkbox';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { CalendarIcon, ChevronDown, Search, Settings, Plus, MoreHorizontal, Eye, Copy, Trash2 } from 'lucide-react';
+import { CalendarIcon, ChevronDown, Search, Settings, Plus, MoreHorizontal, Eye, Copy, Trash2, Filter } from 'lucide-react';
 import { format } from 'date-fns';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
@@ -176,42 +176,44 @@ export default function OKRMetricsPageNew() {
   };
 
   return (
-    <div className="p-6 max-w-7xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold text-gray-900">OKR Metrics</h1>
-        <div className="flex items-center gap-3">
-          <Button variant="outline" className="flex items-center gap-2">
-            <Settings className="w-4 h-4" />
-            Manage Tags
-          </Button>
-          <Button className="flex items-center gap-2" onClick={() => setShowCreateModal(true)}>
-            <Plus className="w-4 h-4" />
-            Create Metric
-          </Button>
+    <div className="min-h-screen bg-gray-50">
+      <div className="max-w-7xl mx-auto p-6">
+        {/* Header */}
+        <div className="flex items-center justify-between mb-6">
+          <h1 className="text-2xl font-semibold text-gray-900">OKR Metrics</h1>
+          <div className="flex items-center gap-3">
+            <Button variant="outline" className="flex items-center gap-2">
+              <Settings className="w-4 h-4" />
+              Manage Tags
+            </Button>
+            <Button className="flex items-center gap-2" onClick={() => setShowCreateModal(true)}>
+              <Plus className="w-4 h-4" />
+              Create Metric
+            </Button>
+          </div>
         </div>
-      </div>
 
-      {/* Coming Soon Banner */}
-      <div className="bg-gray-50 rounded-lg p-4 mb-6">
-        <p className="text-sm text-gray-600">Coming Soon</p>
-      </div>
+        {/* Coming Soon Banner */}
+        <div className="bg-gray-100 rounded-lg p-3 mb-6">
+          <p className="text-sm text-gray-600">Coming Soon</p>
+        </div>
 
-      {/* Filters */}
-      <div className="bg-white rounded-lg border p-4 mb-6">
-        <div className="flex flex-wrap items-center gap-4 mb-4">
-          <div className="relative flex-1 min-w-64">
+        {/* Filters Row */}
+        <div className="flex flex-wrap items-center gap-3 mb-4">
+          {/* Search */}
+          <div className="relative min-w-64">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
             <Input
               placeholder="Search OKR templates..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
+              className="pl-10 h-9"
             />
           </div>
           
+          {/* Tag Filter */}
           <Select value={selectedTag} onValueChange={setSelectedTag}>
-            <SelectTrigger className="w-32">
+            <SelectTrigger className="w-28 h-9">
               <SelectValue placeholder="Tag" />
             </SelectTrigger>
             <SelectContent>
@@ -222,8 +224,9 @@ export default function OKRMetricsPageNew() {
             </SelectContent>
           </Select>
 
+          {/* Measure Unit Filter */}
           <Select value={selectedMeasureUnit} onValueChange={setSelectedMeasureUnit}>
-            <SelectTrigger className="w-40">
+            <SelectTrigger className="w-36 h-9">
               <SelectValue placeholder="Measure Unit" />
             </SelectTrigger>
             <SelectContent>
@@ -234,18 +237,20 @@ export default function OKRMetricsPageNew() {
             </SelectContent>
           </Select>
 
+          {/* Target Range */}
           <Input
             placeholder="Target Range"
             value={targetRange}
             onChange={(e) => setTargetRange(e.target.value)}
-            className="w-32"
+            className="w-32 h-9"
           />
 
+          {/* Timeframe 1 */}
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" className="w-44 justify-start text-left font-normal">
+              <Button variant="outline" className="w-44 h-9 justify-start text-left font-normal">
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                Select timeframe 1
+                {timeframe1 ? format(timeframe1, 'MMM d, yyyy') : 'Select timeframe 1'}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0">
@@ -258,11 +263,12 @@ export default function OKRMetricsPageNew() {
             </PopoverContent>
           </Popover>
 
+          {/* Timeframe 2 */}
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" className="w-44 justify-start text-left font-normal">
+              <Button variant="outline" className="w-44 h-9 justify-start text-left font-normal">
                 <CalendarIcon className="mr-2 h-4 w-4" />
-                Select timeframe 2
+                {timeframe2 ? format(timeframe2, 'MMM d, yyyy') : 'Select timeframe 2'}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-auto p-0">
@@ -275,21 +281,23 @@ export default function OKRMetricsPageNew() {
             </PopoverContent>
           </Popover>
 
+          {/* No target checkbox */}
           <div className="flex items-center space-x-2">
             <Checkbox
               id="no-target"
               checked={noTargetSet}
-              onCheckedChange={setNoTargetSet}
+              onCheckedChange={(checked) => setNoTargetSet(Boolean(checked))}
             />
             <Label htmlFor="no-target" className="text-sm">No target set</Label>
           </div>
         </div>
 
-        <div className="flex items-center justify-between">
+        {/* Group By and Add Button Row */}
+        <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Label className="text-sm">Group by:</Label>
             <Select value={groupBy} onValueChange={setGroupBy}>
-              <SelectTrigger className="w-32">
+              <SelectTrigger className="w-28 h-9">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -300,139 +308,138 @@ export default function OKRMetricsPageNew() {
             </Select>
           </div>
 
-          <Button className="flex items-center gap-2">
+          <Button className="flex items-center gap-2 h-9" onClick={() => setShowCreateModal(true)}>
             <Plus className="w-4 h-4" />
             Add OKR Metric
           </Button>
         </div>
-      </div>
 
-      {/* Selection Bar */}
-      {selectedMetrics.length > 0 && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6 flex items-center justify-between">
-          <span className="text-sm text-blue-700">
-            {selectedMetrics.length} OKR selected
-          </span>
-          <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" className="flex items-center gap-2">
-              <Eye className="w-4 h-4" />
-              Assign to entity
-            </Button>
-            <Button variant="outline" size="sm" className="flex items-center gap-2">
-              <Copy className="w-4 h-4" />
-              Duplicate
-            </Button>
-            <Button variant="outline" size="sm" className="flex items-center gap-2 text-red-600 hover:text-red-700">
-              <Trash2 className="w-4 h-4" />
-              Delete
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setSelectedMetrics([])}
-              className="text-gray-500"
-            >
-              ×
-            </Button>
+        {/* Selection Bar */}
+        {selectedMetrics.length > 0 && (
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-4 flex items-center justify-between">
+            <span className="text-sm text-blue-700">
+              {selectedMetrics.length} OKR selected
+            </span>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" className="flex items-center gap-2 h-8">
+                <Eye className="w-4 h-4" />
+                Assign to entity
+              </Button>
+              <Button variant="outline" size="sm" className="flex items-center gap-2 h-8">
+                <Copy className="w-4 h-4" />
+                Duplicate
+              </Button>
+              <Button variant="outline" size="sm" className="flex items-center gap-2 text-red-600 hover:text-red-700 h-8">
+                <Trash2 className="w-4 h-4" />
+                Delete
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setSelectedMetrics([])}
+                className="text-gray-500 h-8 w-8 p-0"
+              >
+                ×
+              </Button>
+            </div>
           </div>
-        </div>
-      )}
+        )}
 
-      {/* Metrics Groups */}
-      <div className="space-y-6">
-        {Object.entries(groupedMetrics).map(([groupName, groupMetrics]: [string, any]) => (
-          <div key={groupName} className="bg-white rounded-lg border overflow-hidden">
-            {/* Group Header */}
-            <div 
-              className="px-4 py-3 border-b flex items-center justify-between"
-              style={{ backgroundColor: getTagColor(groupName) + '20' }}
-            >
-              <div className="flex items-center gap-3">
-                <div
-                  className="w-3 h-3 rounded-full"
-                  style={{ backgroundColor: getTagColor(groupName) }}
-                />
-                <h3 className="font-medium text-gray-900">{groupName}</h3>
+        {/* OKR Metrics Groups */}
+        <div className="space-y-4">
+          {Object.entries(groupedMetrics).map(([groupName, groupMetrics]: [string, any]) => (
+            <div key={groupName} className="bg-white rounded-lg border">
+              {/* Group Header */}
+              <div 
+                className="px-4 py-3 border-b"
+                style={{ backgroundColor: getTagColor(groupName) + '15' }}
+              >
+                <div className="flex items-center gap-3">
+                  <div
+                    className="w-3 h-3 rounded-full"
+                    style={{ backgroundColor: getTagColor(groupName) }}
+                  />
+                  <h3 className="font-medium text-gray-900">{groupName}</h3>
+                </div>
               </div>
-              <ChevronDown className="w-4 h-4 text-gray-500" />
-            </div>
 
-            {/* Metrics Table */}
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="w-8 px-4 py-3">
-                      <Checkbox />
-                    </th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Name</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Timeframe</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Milestone Frequency</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Target</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Actions</th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-200">
-                  {groupMetrics.map((metric: OKRMetric) => (
-                    <tr key={metric.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-3">
-                        <Checkbox
-                          checked={selectedMetrics.includes(metric.id)}
-                          onCheckedChange={(checked) => {
-                            if (checked) {
-                              setSelectedMetrics([...selectedMetrics, metric.id]);
-                            } else {
-                              setSelectedMetrics(selectedMetrics.filter(id => id !== metric.id));
-                            }
-                          }}
-                        />
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="flex items-center gap-2">
-                          {metric.hierarchy === 'objective' && (
-                            <ChevronDown className="w-4 h-4 text-gray-400" />
-                          )}
-                          <div>
-                            <div className="font-medium text-gray-900">{metric.name}</div>
-                            {metric.description && (
-                              <div className="text-sm text-gray-500">{metric.description}</div>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-700">
-                        {formatTimeframe(metric.timeframe_start, metric.timeframe_end)}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-700 capitalize">
-                        {metric.frequency}
-                      </td>
-                      <td className="px-4 py-3 text-sm text-gray-900 font-medium">
-                        {metric.target_value || '-'}
-                        {metric.measure_unit === 'percent' && '%'}
-                        {metric.measure_unit === 'currency' && ` ${metric.currency_type}`}
-                      </td>
-                      <td className="px-4 py-3">
-                        <Button variant="ghost" size="sm">
-                          <MoreHorizontal className="w-4 h-4" />
-                        </Button>
-                      </td>
+              {/* Metrics Table */}
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-gray-50">
+                    <tr>
+                      <th className="w-12 px-4 py-3 text-left">
+                        <Checkbox />
+                      </th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Name</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Timeframe</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Milestone Frequency</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Target</th>
+                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Actions</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100">
+                    {groupMetrics.map((metric: OKRMetric) => (
+                      <tr key={metric.id} className="hover:bg-gray-50">
+                        <td className="px-4 py-3">
+                          <Checkbox
+                            checked={selectedMetrics.includes(metric.id)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setSelectedMetrics([...selectedMetrics, metric.id]);
+                              } else {
+                                setSelectedMetrics(selectedMetrics.filter(id => id !== metric.id));
+                              }
+                            }}
+                          />
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="flex items-center gap-2">
+                            {metric.hierarchy === 'objective' && (
+                              <ChevronDown className="w-4 h-4 text-gray-400" />
+                            )}
+                            <div>
+                              <div className="font-medium text-gray-900">{metric.name}</div>
+                              {metric.description && (
+                                <div className="text-sm text-gray-500">{metric.description}</div>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-700">
+                          {formatTimeframe(metric.timeframe_start, metric.timeframe_end)}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-700 capitalize">
+                          {metric.frequency}
+                        </td>
+                        <td className="px-4 py-3 text-sm text-gray-900 font-medium">
+                          {metric.target_value || '-'}
+                          {metric.measure_unit === 'percent' && '%'}
+                          {metric.measure_unit === 'currency' && ` ${metric.currency_type}`}
+                        </td>
+                        <td className="px-4 py-3">
+                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                            <MoreHorizontal className="w-4 h-4" />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
 
-      {/* Create Metric Modal */}
-      <CreateMetricModal
-        open={showCreateModal}
-        onClose={() => setShowCreateModal(false)}
-        onSubmit={(data) => createMetricMutation.mutate(data)}
-        tags={tags}
-        isLoading={createMetricMutation.isPending}
-      />
+        {/* Create Metric Modal */}
+        <CreateMetricModal
+          open={showCreateModal}
+          onClose={() => setShowCreateModal(false)}
+          onSubmit={(data) => createMetricMutation.mutate(data)}
+          tags={tags}
+          isLoading={createMetricMutation.isPending}
+        />
+      </div>
     </div>
   );
 }
