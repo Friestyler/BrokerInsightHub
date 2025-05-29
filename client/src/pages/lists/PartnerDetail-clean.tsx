@@ -99,6 +99,11 @@ export default function PartnerDetailClean() {
       }, {})
     : { 'All Metrics': filteredMetrics };
 
+  // Debug logging to check tag data
+  console.log('Tags from API:', tags);
+  console.log('Grouped metrics:', groupedMetrics);
+  console.log('Sample metric tags:', attachedMetrics[0]?.tags);
+
   // Selection handlers
   const handleMetricSelect = (metricId: number, checked: boolean) => {
     if (checked) {
