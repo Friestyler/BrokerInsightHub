@@ -1,0 +1,136 @@
+1. OKR (Objectives and Key Results) Component Metric
+Purpose: OKRs help align team or organizational goals with measurable outcomes. They are key to tracking performance against set objectives and key results.
+
+Properties:
+
+Name
+
+Description
+
+Realized
+
+Target
+
+Measure unit of the realized and target
+
+Currency
+
+Number
+
+Percent: A field specifically designed for percentage values (e.g., 50%).
+
+Checkbox (complete/not complete)
+
+Picklist (single-choice)
+
+Picklist (multiple-choice)
+
+Traffic light
+
+A threshold can be defined. For example, when the realized is between x and y, the traffic light color should be w.
+
+Progress bar
+
+A threshold can be defined. For example, when the realized is between x and y, the progress bar should be w.
+
+Trend chart
+
+Responsible
+
+Relationship with users
+
+Relationship with contacts
+
+Timeframe
+
+Frequency/Milestone
+
+Yearly
+
+Quarterly
+
+Monthly
+
+Weekly
+
+None
+
+Custom
+
+Attachment
+
+Due date
+
+Muted/unmuted → product team still defining
+
+Archived → product team still defining
+
+Shared/private → product team still defining
+
+Comments
+
+Relationship with users
+
+Relationship with contacts
+
+Hierarchy
+
+Objective
+
+Activity
+
+Subactivity
+
+Tag
+
+History
+
+ 
+
+A. Name
+
+Text
+
+Name is always required; this can’t be modified.
+
+ 
+
+B. Description
+
+MultilineText
+
+Later, we’ll include a rich text editor. 
+
+When an OKR hs a description, an icon will appear next ot the OKR name. When the user hovers over it, he can read the description.
+
+Can be optional or required
+
+ 
+
+C. Realized
+
+Can be optional or required
+
+The value in the realized field can be updated manually by the users (considering they have permission to do so), by uploading data into Qollabi AI via an Excel or CSV file, or through a data integration.
+
+ 
+
+This field is connected to:
+
+Measure unit: The format of the realized field will change depending on the Measure unit selected.
+
+Target: Realized is measured against the target.
+
+Progress: How much, in %, is the realized out of the target.
+
+Traffic light: How is the realized doing against the target in colored statuses.
+
+Trend chart: Indicates every entry of the realized in a trend-line graph.
+
+Responsible: To identify who needs to work on the OKR.
+
+Due date: To identify when the realized value should reach the target.
+
+Milestone: Represents the amount of times the realized value should reach the target.
+
+History: Log every time the realized changes, either manually or via a data integration.
