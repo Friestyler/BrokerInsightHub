@@ -345,39 +345,39 @@ export default function OKRMetricsPageNew() {
           </div>
         )}
 
-        {/* OKR Metrics Table */}
-        <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+        {/* Simple OKR Metrics Table */}
+        <div className="bg-white rounded-lg border border-gray-200">
           <table className="w-full">
-            <thead className="bg-gray-50">
-              <tr>
-                <th className="w-12 px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+            <thead>
+              <tr className="border-b bg-gray-50">
+                <th className="w-8 px-4 py-3 text-left text-xs font-medium text-gray-500">
                   <Checkbox />
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Timeframe</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Milestone Frequency</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Target</th>
-                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Name</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Timeframe</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Milestone Frequency</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Target</th>
+                <th className="px-4 py-3 text-left text-xs font-medium text-gray-500">Actions</th>
               </tr>
             </thead>
-            <tbody className="bg-white divide-y divide-gray-200">
+            <tbody>
               {Object.entries(groupedMetrics).map(([groupName, groupMetrics]: [string, any]) => (
                 <>
-                  {/* Tag Group Header */}
-                  <tr key={`header-${groupName}`}>
+                  {/* Tag Header */}
+                  <tr key={`tag-${groupName}`}>
                     <td 
                       colSpan={6} 
-                      className="px-4 py-3 text-sm font-medium text-white"
+                      className="px-4 py-2 text-sm font-medium text-white"
                       style={{ backgroundColor: getTagColor(groupName) }}
                     >
                       {groupName}
                     </td>
                   </tr>
                   
-                  {/* Metrics for this tag */}
+                  {/* Metric Rows */}
                   {groupMetrics.map((metric: OKRMetric) => (
-                    <tr key={metric.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-4 whitespace-nowrap">
+                    <tr key={metric.id} className="border-b hover:bg-gray-50">
+                      <td className="px-4 py-3">
                         <Checkbox
                           checked={selectedMetrics.includes(metric.id)}
                           onCheckedChange={(checked) => {
@@ -389,21 +389,21 @@ export default function OKRMetricsPageNew() {
                           }}
                         />
                       </td>
-                      <td className="px-4 py-4 text-sm font-medium text-gray-900">
+                      <td className="px-4 py-3 text-sm text-gray-900">
                         {metric.name}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-4 py-3 text-sm text-gray-500">
                         {formatTimeframe(metric.timeframe_start, metric.timeframe_end)}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-4 py-3 text-sm text-gray-500">
                         {metric.frequency}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-4 py-3 text-sm text-gray-900">
                         {metric.target_value || '-'}
                         {metric.measure_unit === 'percent' && '%'}
                         {metric.measure_unit === 'currency' && ` ${metric.currency_type || 'USD'}`}
                       </td>
-                      <td className="px-4 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <td className="px-4 py-3 text-right">
                         <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
                           <MoreHorizontal className="w-4 h-4" />
                         </Button>
