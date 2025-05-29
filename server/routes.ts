@@ -796,7 +796,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         created_by: opportunity.created_by
       }));
       
-      console.log(`Returning ${opportunities.length} opportunities from clean table`);
+      console.log(`Returning ${opportunities.length} opportunities from myqollabi table`);
       res.json(opportunities);
     } catch (error) {
       console.error('Error fetching opportunities:', error);
@@ -912,7 +912,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const customerId = parseInt(req.params.id);
       const result = await db.execute(sql`
         SELECT p.*
-        FROM public.partners_clean p
+        FROM myqollabi.partners p
         INNER JOIN myqollabi.partner_customers pc ON p.id = pc.partner_id
         WHERE pc.customer_id = ${customerId}
         ORDER BY p.id
@@ -940,7 +940,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const opportunityId = parseInt(req.params.id);
       const result = await db.execute(sql`
         SELECT p.*
-        FROM public.partners_clean p
+        FROM myqollabi.partners p
         INNER JOIN myqollabi.partner_opportunities po ON p.id = po.partner_id
         WHERE po.opportunity_id = ${opportunityId}
         ORDER BY p.id
