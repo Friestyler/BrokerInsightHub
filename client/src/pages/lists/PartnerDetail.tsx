@@ -1107,7 +1107,7 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
   const [expandedOKRs, setExpandedOKRs] = useState<Set<number>>(new Set());
   const [creatingUnderOKR, setCreatingUnderOKR] = useState<number | null>(null);
   const [newOKRName, setNewOKRName] = useState('');
-  const [newOKRType, setNewOKRType] = useState('');
+  const [newOKRType, setNewOKRType] = useState('checkbox');
   const [newOKRTimeframe, setNewOKRTimeframe] = useState('');
 
   // Helper functions for inline OKR creation
@@ -1130,7 +1130,7 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
   const cancelOKRCreation = () => {
     setCreatingUnderOKR(null);
     setNewOKRName('');
-    setNewOKRType('');
+    setNewOKRType('checkbox');
     setNewOKRTimeframe('');
   };
 
