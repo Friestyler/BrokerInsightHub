@@ -871,15 +871,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get opportunities for a specific partner
+  // Get opportunities for a specific partner using many-to-many relationship
   app.get('/api/partners/:id/opportunities', async (req, res) => {
     try {
       const partnerId = parseInt(req.params.id);
       const result = await db.execute(sql`
         SELECT o.*, c.name as client_name
         FROM myqollabi.opportunities o
-        JOIN myqollabi.customers c ON o.client_id = c.id
-        WHERE c.assigned_partner_id = ${partnerId}
+        INNER JOIN myqollabi.partner_opportunities po ON o.id = po.opportunity_id
+        LEFT JOIN myqollabi.customers c ON o.client_id = c.id
+        WHERE po.partner_id = ${partnerId}
         ORDER BY o.id
       `);
       
@@ -888,16 +889,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
         title: opp.title,
         description: opp.description,
         status: opp.status,
-        value: opp.value,
+        stage: opp.stage,
+        estimatedValue: opp.estimated_value,
         clientName: opp.client_name,
         createdAt: opp.created_at,
-        updatedAt: opp.updated_at
+        updatedAt: opp.updated_at,
+        expectedCloseDate: opp.expected_close_date
       }));
       
       res.json(opportunities);
     } catch (error) {
       console.error('Error fetching partner opportunities:', error);
       res.status(500).json({ error: 'Failed to fetch partner opportunities' });
+    }
+  });
+
+  // Get partners for a specific customer using many-to-many relationship
+  app.get('/api/customers/:id/partners', async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.id);
+      const result = await db.execute(sql`
+        SELECT p.*
+        FROM public.partners_clean p
+        INNER JOIN myqollabi.partner_customers pc ON p.id = pc.partner_id
+        WHERE pc.customer_id = ${customerId}
+        ORDER BY p.id
+      `);
+      
+      const partners = result.rows.map((partner: any) => ({
+        id: partner.id,
+        name: partner.name,
+        description: partner.description,
+        location: partner.location,
+        contactEmail: partner.contact_email,
+        primaryContact: partner.primary_contact
+      }));
+      
+      res.json(partners);
+    } catch (error) {
+      console.error('Error fetching customer partners:', error);
+      res.status(500).json({ error: 'Failed to fetch customer partners' });
+    }
+  });
+
+  // Get partners for a specific opportunity using many-to-many relationship
+  app.get('/api/opportunities/:id/partners', async (req, res) => {
+    try {
+      const opportunityId = parseInt(req.params.id);
+      const result = await db.execute(sql`
+        SELECT p.*
+        FROM public.partners_clean p
+        INNER JOIN myqollabi.partner_opportunities po ON p.id = po.partner_id
+        WHERE po.opportunity_id = ${opportunityId}
+        ORDER BY p.id
+      `);
+      
+      const partners = result.rows.map((partner: any) => ({
+        id: partner.id,
+        name: partner.name,
+        description: partner.description,
+        location: partner.location,
+        contactEmail: partner.contact_email,
+        primaryContact: partner.primary_contact
+      }));
+      
+      res.json(partners);
+    } catch (error) {
+      console.error('Error fetching opportunity partners:', error);
+      res.status(500).json({ error: 'Failed to fetch opportunity partners' });
     }
   });
 
