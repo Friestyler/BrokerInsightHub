@@ -278,102 +278,125 @@ export default function OKRMetricsPage() {
 
           {/* Metrics Table */}
           <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-            <div className="space-y-6 p-6">
-              {Object.entries(groupedMetrics).map(([tagName, tagMetrics]: [string, any], groupIndex) => (
-                <div key={`group-${tagName}-${groupIndex}`} className="space-y-2">
-                  {/* Tag Header */}
-                  <div 
-                    className="px-4 py-2 text-sm font-medium rounded-md"
-                    style={{ 
-                      backgroundColor: tagName === 'Customer Success' ? '#d1fae5' : 
-                                     tagName === 'Market Expansion' ? '#fef3c7' : 
-                                     tagName === 'Product Innovation' ? '#dbeafe' : '#f3f4f6',
-                      color: tagName === 'Customer Success' ? '#065f46' : 
-                             tagName === 'Market Expansion' ? '#92400e' : 
-                             tagName === 'Product Innovation' ? '#1e40af' : '#374151'
-                    }}
-                  >
-                    {tagName}
-                  </div>
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead className="bg-gray-50 border-b">
+                  <tr>
+                    <th className="w-12 px-6 py-3 text-left">
+                      <Checkbox
+                        checked={selectedMetrics.length > 0}
+                        onCheckedChange={handleSelectAll}
+                      />
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Name
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Timeframe
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Milestone Frequency
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Target
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Actions
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {Object.entries(groupedMetrics).map(([tagName, tagMetrics]: [string, any], groupIndex) => [
+                    // Tag Header Row
+                    <tr key={`header-${tagName}-${groupIndex}`} className="bg-gray-50">
+                      <td colSpan={6} className="px-6 py-2">
+                        <span 
+                          className="inline-block px-3 py-1 text-sm font-medium rounded-full"
+                          style={{ 
+                            backgroundColor: tagName === 'Customer Success' ? '#d1fae5' : 
+                                           tagName === 'Market Expansion' ? '#fef3c7' : 
+                                           tagName === 'Product Innovation' ? '#dbeafe' : '#f3f4f6',
+                            color: tagName === 'Customer Success' ? '#065f46' : 
+                                   tagName === 'Market Expansion' ? '#92400e' : 
+                                   tagName === 'Product Innovation' ? '#1e40af' : '#374151'
+                          }}
+                        >
+                          {tagName}
+                        </span>
+                      </td>
+                    </tr>,
+                    // Column Headers for this group
+                    <tr key={`subheader-${tagName}-${groupIndex}`} className="bg-white border-b border-gray-200">
+                      <td className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12"></td>
+                      <td className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</td>
+                      <td className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Timeframe</td>
+                      <td className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Milestone Frequency</td>
+                      <td className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Target</td>
+                      <td className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</td>
+                    </tr>,
+                    // Metrics under this tag
+                    ...tagMetrics.map((metric: OKRMetric, metricIndex: number) => {
+                      const formatTimeframe = () => {
+                        if (metric.timeframe_start && metric.timeframe_end) {
+                          const start = new Date(metric.timeframe_start);
+                          const end = new Date(metric.timeframe_end);
+                          return `Until ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+                        }
+                        return 'Ongoing';
+                      };
 
-                  {/* Table for this group */}
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead className="bg-gray-50">
-                        <tr>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-8"></th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Timeframe</th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Milestone Frequency</th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Target</th>
-                          <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                      return (
+                        <tr key={`metric-${metric.id}-${tagName}-${metricIndex}`} className="hover:bg-gray-50">
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <Checkbox
+                              checked={selectedMetrics.includes(metric.id)}
+                              onCheckedChange={(checked) => handleMetricSelect(metric.id, checked as boolean)}
+                            />
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm font-medium text-gray-900">{metric.name}</div>
+                            {metric.description && (
+                              <div className="text-sm text-gray-500">{metric.description}</div>
+                            )}
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-600">
+                              {formatTimeframe()}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-600 capitalize">
+                              {metric.frequency}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap">
+                            <div className="text-sm text-gray-900">
+                              {metric.target_value || '-'}
+                              {metric.measure_unit === 'percent' && metric.target_value ? '%' : ''}
+                              {metric.measure_unit === 'currency' && metric.target_value ? 'M' : ''}
+                            </div>
+                          </td>
+                          <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                  <MoreHorizontal className="w-4 h-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end">
+                                <DropdownMenuItem>Edit</DropdownMenuItem>
+                                <DropdownMenuItem>Duplicate</DropdownMenuItem>
+                                <DropdownMenuSeparator />
+                                <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </td>
                         </tr>
-                      </thead>
-                      <tbody className="bg-white divide-y divide-gray-200">
-                        {tagMetrics.map((metric: OKRMetric, metricIndex: number) => {
-                          const formatTimeframe = () => {
-                            if (metric.timeframe_start && metric.timeframe_end) {
-                              const start = new Date(metric.timeframe_start);
-                              const end = new Date(metric.timeframe_end);
-                              return `Until ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
-                            }
-                            return 'Ongoing';
-                          };
-
-                          return (
-                            <tr key={`metric-${metric.id}-${tagName}-${metricIndex}`} className="hover:bg-gray-50">
-                              <td className="px-4 py-4 whitespace-nowrap w-8">
-                                <Checkbox
-                                  checked={selectedMetrics.includes(metric.id)}
-                                  onCheckedChange={(checked) => handleMetricSelect(metric.id, checked as boolean)}
-                                />
-                              </td>
-                              <td className="px-4 py-4">
-                                <div className="text-sm font-medium text-gray-900">{metric.name}</div>
-                                {metric.description && (
-                                  <div className="text-sm text-gray-500">{metric.description}</div>
-                                )}
-                              </td>
-                              <td className="px-4 py-4 whitespace-nowrap">
-                                <div className="text-sm text-gray-600">
-                                  {formatTimeframe()}
-                                </div>
-                              </td>
-                              <td className="px-4 py-4 whitespace-nowrap">
-                                <div className="text-sm text-gray-600 capitalize">
-                                  {metric.frequency}
-                                </div>
-                              </td>
-                              <td className="px-4 py-4 whitespace-nowrap">
-                                <div className="text-sm text-gray-900">
-                                  {metric.target_value || '-'}
-                                  {metric.measure_unit === 'percent' && metric.target_value ? '%' : ''}
-                                  {metric.measure_unit === 'currency' && metric.target_value ? 'M' : ''}
-                                </div>
-                              </td>
-                              <td className="px-4 py-4 whitespace-nowrap text-right">
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                      <MoreHorizontal className="w-4 h-4" />
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end">
-                                    <DropdownMenuItem>Edit</DropdownMenuItem>
-                                    <DropdownMenuItem>Duplicate</DropdownMenuItem>
-                                    <DropdownMenuSeparator />
-                                    <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              ))}
+                      );
+                    })
+                  ]).flat()}
+                </tbody>
+              </table>
             </div>
           </div>
         </div>
