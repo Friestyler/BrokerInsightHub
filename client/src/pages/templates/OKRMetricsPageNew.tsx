@@ -345,90 +345,85 @@ export default function OKRMetricsPageNew() {
           </div>
         )}
 
-        {/* OKR Metrics Groups */}
-        <div className="space-y-4">
-          {Object.entries(groupedMetrics).map(([groupName, groupMetrics]: [string, any]) => (
-            <div key={groupName} className="bg-white rounded-lg border">
-              {/* Group Header */}
-              <div 
-                className="px-4 py-3 border-b"
-                style={{ backgroundColor: getTagColor(groupName) + '15' }}
-              >
-                <div className="flex items-center gap-3">
-                  <div
-                    className="w-3 h-3 rounded-full"
-                    style={{ backgroundColor: getTagColor(groupName) }}
-                  />
-                  <h3 className="font-medium text-gray-900">{groupName}</h3>
-                </div>
-              </div>
-
-              {/* Metrics Table */}
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-gray-50">
-                    <tr>
-                      <th className="w-12 px-4 py-3 text-left">
-                        <Checkbox />
-                      </th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Name</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Timeframe</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Milestone Frequency</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Target</th>
-                      <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100">
-                    {groupMetrics.map((metric: OKRMetric) => (
-                      <tr key={metric.id} className="hover:bg-gray-50">
-                        <td className="px-4 py-3">
-                          <Checkbox
-                            checked={selectedMetrics.includes(metric.id)}
-                            onCheckedChange={(checked) => {
-                              if (checked) {
-                                setSelectedMetrics([...selectedMetrics, metric.id]);
-                              } else {
-                                setSelectedMetrics(selectedMetrics.filter(id => id !== metric.id));
-                              }
-                            }}
-                          />
-                        </td>
-                        <td className="px-4 py-3">
-                          <div className="flex items-center gap-2">
-                            {metric.hierarchy === 'objective' && (
-                              <ChevronDown className="w-4 h-4 text-gray-400" />
+        {/* OKR Metrics Table */}
+        <div className="bg-white rounded-lg border overflow-hidden">
+          <table className="w-full">
+            <tbody>
+              {Object.entries(groupedMetrics).map(([groupName, groupMetrics]: [string, any]) => (
+                <>
+                  {/* Group Header Row */}
+                  <tr key={`header-${groupName}`}>
+                    <td 
+                      colSpan={6} 
+                      className="px-4 py-3 text-sm font-medium"
+                      style={{ backgroundColor: getTagColor(groupName) + '20', color: getTagColor(groupName) }}
+                    >
+                      {groupName}
+                    </td>
+                  </tr>
+                  
+                  {/* Table Headers for this group */}
+                  <tr className="bg-gray-50 border-b">
+                    <th className="w-12 px-4 py-3 text-left">
+                      <Checkbox />
+                    </th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Name</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Timeframe</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Milestone Frequency</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Target</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-gray-700">Actions</th>
+                  </tr>
+                  
+                  {/* Metrics Rows */}
+                  {groupMetrics.map((metric: OKRMetric) => (
+                    <tr key={metric.id} className="hover:bg-gray-50 border-b">
+                      <td className="px-4 py-3">
+                        <Checkbox
+                          checked={selectedMetrics.includes(metric.id)}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedMetrics([...selectedMetrics, metric.id]);
+                            } else {
+                              setSelectedMetrics(selectedMetrics.filter(id => id !== metric.id));
+                            }
+                          }}
+                        />
+                      </td>
+                      <td className="px-4 py-3">
+                        <div className="flex items-center gap-2">
+                          {metric.hierarchy === 'objective' && (
+                            <ChevronDown className="w-4 h-4 text-gray-400" />
+                          )}
+                          <div>
+                            <div className="font-medium text-gray-900">{metric.name}</div>
+                            {metric.description && (
+                              <div className="text-sm text-gray-500">{metric.description}</div>
                             )}
-                            <div>
-                              <div className="font-medium text-gray-900">{metric.name}</div>
-                              {metric.description && (
-                                <div className="text-sm text-gray-500">{metric.description}</div>
-                              )}
-                            </div>
                           </div>
-                        </td>
-                        <td className="px-4 py-3 text-sm text-gray-700">
-                          {formatTimeframe(metric.timeframe_start, metric.timeframe_end)}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-gray-700 capitalize">
-                          {metric.frequency}
-                        </td>
-                        <td className="px-4 py-3 text-sm text-gray-900 font-medium">
-                          {metric.target_value || '-'}
-                          {metric.measure_unit === 'percent' && '%'}
-                          {metric.measure_unit === 'currency' && ` ${metric.currency_type}`}
-                        </td>
-                        <td className="px-4 py-3">
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                            <MoreHorizontal className="w-4 h-4" />
-                          </Button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          ))}
+                        </div>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-700">
+                        {formatTimeframe(metric.timeframe_start, metric.timeframe_end)}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-700 capitalize">
+                        {metric.frequency}
+                      </td>
+                      <td className="px-4 py-3 text-sm text-gray-900 font-medium">
+                        {metric.target_value || '-'}
+                        {metric.measure_unit === 'percent' && '%'}
+                        {metric.measure_unit === 'currency' && ` ${metric.currency_type}`}
+                      </td>
+                      <td className="px-4 py-3">
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <MoreHorizontal className="w-4 h-4" />
+                        </Button>
+                      </td>
+                    </tr>
+                  ))}
+                </>
+              ))}
+            </tbody>
+          </table>
         </div>
 
         {/* Create Metric Modal */}
