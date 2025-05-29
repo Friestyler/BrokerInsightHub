@@ -31,6 +31,7 @@ import ProductsPage from "@/pages/lists/ProductsPage";
 import MetricsPage from "@/pages/templates/MetricsPage";
 import GroupDetail from "@/pages/templates/GroupDetail";
 import UserManagement from "@/pages/Settings/UserManagement";
+import DeveloperPage from "@/pages/Settings/DeveloperPage";
 
 import NotFound from "@/pages/not-found";
 import EnvironmentRouteGuard from "@/components/EnvironmentRouteGuard";
@@ -122,6 +123,7 @@ function Router() {
         
         {/* Settings routes */}
         <Route path="/settings/users" component={UserManagement} />
+        <Route path="/settings/developer" component={DeveloperPage} />
         
         {/* Legacy routes - will be migrated to new structure */}
         <Route path="/clients" component={Clients} />
