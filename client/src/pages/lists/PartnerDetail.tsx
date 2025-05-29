@@ -1517,13 +1517,39 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
     setAdvancedTimeframe("");
   };
 
-  // Group OKRs by tag, same as Coming Soon tab
+  // Group OKRs by tag and organize hierarchically
   const groupedOKRs = filteredOKRs.reduce((groups: Record<string, any[]>, okr: any) => {
     const tag = okr.tag || 'No Tag';
     if (!groups[tag]) groups[tag] = [];
     groups[tag].push(okr);
     return groups;
   }, {});
+
+  // Helper function to build hierarchical structure within each tag group
+  const buildHierarchy = (okrs: any[]): any[] => {
+    const hierarchy: any[] = [];
+    const okrMap = new Map(okrs.map(okr => [okr.id, { ...okr, children: [] }]));
+    
+    okrs.forEach(okr => {
+      const okrWithChildren = okrMap.get(okr.id);
+      if (okr.parent && okrMap.has(okr.parent)) {
+        // This is a child OKR
+        const parent = okrMap.get(okr.parent);
+        parent.children.push(okrWithChildren);
+      } else {
+        // This is a root OKR
+        hierarchy.push(okrWithChildren);
+      }
+    });
+    
+    return hierarchy;
+  };
+
+  // Build hierarchical structure for each tag group
+  const hierarchicalGroups = Object.entries(groupedOKRs).reduce((result, [tag, okrs]) => {
+    result[tag] = buildHierarchy(okrs);
+    return result;
+  }, {} as Record<string, any[]>);
 
   // Sort groups by tag name, with "No Tag" at the end
   const sortedGroups = Object.entries(groupedOKRs).sort(([a], [b]) => {
