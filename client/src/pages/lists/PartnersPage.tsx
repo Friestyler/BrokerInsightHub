@@ -292,38 +292,29 @@ function PartnersTable() {
   // Assign Template functionality
   const [showAssignTemplateModal, setShowAssignTemplateModal] = useState(false);
   const [selectedOKRTemplates, setSelectedOKRTemplates] = useState<number[]>([]);
-  const [okrTemplatesData, setOkrTemplatesData] = useState<any[]>([]);
+  // Load OKR templates from database API
+  const { data: okrMetricsFromAPI = [] } = useQuery({
+    queryKey: ['/api/okr-metrics'],
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
 
-  // Load OKR templates from localStorage (same as MetricsPage Coming Soon tab)
-  useEffect(() => {
-    const loadTemplates = () => {
-      const storedTemplates = localStorage.getItem('okrTemplates');
-      if (storedTemplates) {
-        try {
-          const templates = JSON.parse(storedTemplates);
-          setOkrTemplatesData(templates);
-        } catch (error) {
-          console.error('Error parsing stored OKR templates:', error);
-          setOkrTemplatesData([]);
-        }
-      } else {
-        setOkrTemplatesData([]);
-      }
-    };
-
-    // Load templates initially
-    loadTemplates();
-
-    // Listen for storage changes to sync between tabs
-    const handleStorageChange = (e: StorageEvent) => {
-      if (e.key === 'okrTemplates') {
-        loadTemplates();
-      }
-    };
-
-    window.addEventListener('storage', handleStorageChange);
-    return () => window.removeEventListener('storage', handleStorageChange);
-  }, []);
+  // Transform API data to match expected template format
+  const okrTemplatesData = okrMetricsFromAPI.map((metric: any) => ({
+    id: metric.id,
+    title: metric.name,
+    description: metric.description || '',
+    type: metric.hierarchy || 'metric',
+    tag: metric.tags && metric.tags.length > 0 ? metric.tags[0] : 'General',
+    targetValue: metric.target_value || '',
+    unit: metric.measure_unit === 'percent' ? 'Percent' : 
+          metric.measure_unit === 'number' ? 'Number' :
+          metric.measure_unit === 'currency' ? 'Currency' : 'Number',
+    frequency: metric.frequency || 'monthly',
+    startDate: null,
+    endDate: null,
+    parentId: null, // OKR metrics are flat structure for now
+    realizedValue: metric.realized_value || '0'
+  }));
     
   // Filter partners based on search text, filter selections, and list membership
   const displayedPartners = partners
