@@ -1369,22 +1369,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name, description, realized_value, target_value, measure_unit, frequency, hierarchy, tags
       });
 
-      const result = await db
-        .insert(okrMetrics)
-        .values({
-          name,
-          description: description || '',
-          realized_value: String(realized_value || 0),
-          target_value: target_value ? String(target_value) : null,
-          measure_unit: measure_unit || 'number',
-          frequency: frequency || 'none',
-          hierarchy: hierarchy || 'metric',
-          tags: tags || [],
-          created_by: 1
-        })
-        .returning();
+      const result = await db.execute(sql`
+        INSERT INTO myqollabi.okr_metrics (
+          name, description, realized_value, target_value, measure_unit,
+          frequency, hierarchy, tags, created_by
+        )
+        VALUES (
+          ${name}, 
+          ${description || ''}, 
+          ${String(realized_value || 0)}, 
+          ${target_value ? String(target_value) : null}, 
+          ${measure_unit || 'number'},
+          ${frequency || 'none'}, 
+          ${hierarchy || 'metric'}, 
+          ${tags || []}, 
+          1
+        )
+        RETURNING *
+      `);
       
-      res.status(201).json(result[0]);
+      res.status(201).json(result.rows[0]);
     } catch (error) {
       console.error('Error creating OKR metric:', error);
       res.status(500).json({ error: 'Failed to create OKR metric' });
