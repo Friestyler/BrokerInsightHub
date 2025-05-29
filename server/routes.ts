@@ -1324,6 +1324,139 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // OKR Templates API endpoints
+  
+  // Get all OKR templates
+  app.get('/api/okr-templates', async (req, res) => {
+    try {
+      const result = await db.execute(sql`SELECT * FROM myqollabi.okr_templates ORDER BY created_at DESC`);
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching OKR templates:', error);
+      res.status(500).json({ error: 'Failed to fetch OKR templates' });
+    }
+  });
+
+  // Get OKR template by ID
+  app.get('/api/okr-templates/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const result = await db.execute(sql`SELECT * FROM myqollabi.okr_templates WHERE id = ${id}`);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'OKR template not found' });
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error fetching OKR template:', error);
+      res.status(500).json({ error: 'Failed to fetch OKR template' });
+    }
+  });
+
+  // Create OKR template
+  app.post('/api/okr-templates', async (req, res) => {
+    try {
+      const { name, description, tags } = req.body;
+      
+      const result = await db.execute(sql`
+        INSERT INTO myqollabi.okr_templates (name, description, tags, created_by)
+        VALUES (${name}, ${description}, ${tags || []}, 1)
+        RETURNING *
+      `);
+      
+      res.status(201).json(result.rows[0]);
+    } catch (error) {
+      console.error('Error creating OKR template:', error);
+      res.status(500).json({ error: 'Failed to create OKR template' });
+    }
+  });
+
+  // Get OKR metrics for a template
+  app.get('/api/okr-templates/:id/metrics', async (req, res) => {
+    try {
+      const templateId = parseInt(req.params.id);
+      const result = await db.execute(sql`
+        SELECT * FROM myqollabi.okr_metrics 
+        WHERE template_id = ${templateId} 
+        ORDER BY hierarchy, created_at
+      `);
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching OKR metrics:', error);
+      res.status(500).json({ error: 'Failed to fetch OKR metrics' });
+    }
+  });
+
+  // Create OKR metric
+  app.post('/api/okr-metrics', async (req, res) => {
+    try {
+      const { 
+        title, description, templateId, targetValue, unit, 
+        timeframe, frequency, parentId, hierarchy, tags 
+      } = req.body;
+      
+      const result = await db.execute(sql`
+        INSERT INTO myqollabi.okr_metrics (
+          title, description, template_id, target_value, unit,
+          timeframe, frequency, parent_id, hierarchy, tags
+        )
+        VALUES (
+          ${title}, ${description}, ${templateId}, ${targetValue}, ${unit},
+          ${timeframe}, ${frequency}, ${parentId}, ${hierarchy}, ${tags || []}
+        )
+        RETURNING *
+      `);
+      
+      res.status(201).json(result.rows[0]);
+    } catch (error) {
+      console.error('Error creating OKR metric:', error);
+      res.status(500).json({ error: 'Failed to create OKR metric' });
+    }
+  });
+
+  // Get template assignments for an entity
+  app.get('/api/entities/:entityType/:entityId/okr-assignments', async (req, res) => {
+    try {
+      const { entityType, entityId } = req.params;
+      
+      const result = await db.execute(sql`
+        SELECT ta.*, t.name as template_name, t.description as template_description
+        FROM myqollabi.okr_template_assignments ta
+        JOIN myqollabi.okr_templates t ON ta.template_id = t.id
+        WHERE ta.entity_type = ${entityType} AND ta.entity_id = ${parseInt(entityId)}
+        ORDER BY ta.assigned_at DESC
+      `);
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching template assignments:', error);
+      res.status(500).json({ error: 'Failed to fetch template assignments' });
+    }
+  });
+
+  // Assign template to entity
+  app.post('/api/entities/:entityType/:entityId/okr-assignments', async (req, res) => {
+    try {
+      const { entityType, entityId } = req.params;
+      const { templateId, targetValue, currentValue } = req.body;
+      
+      const result = await db.execute(sql`
+        INSERT INTO myqollabi.okr_template_assignments (
+          template_id, entity_type, entity_id, target_value, current_value, assigned_by
+        )
+        VALUES (${parseInt(templateId)}, ${entityType}, ${parseInt(entityId)}, ${targetValue}, ${currentValue || 0}, 1)
+        RETURNING *
+      `);
+      
+      res.status(201).json(result.rows[0]);
+    } catch (error) {
+      console.error('Error assigning template:', error);
+      res.status(500).json({ error: 'Failed to assign template' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

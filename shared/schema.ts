@@ -430,11 +430,45 @@ export type OkrTemplate = typeof okrTemplates.$inferSelect;
 export type InsertOkrMetric = z.infer<typeof insertOkrMetricSchema>;
 export type OkrMetric = typeof okrMetrics.$inferSelect;
 
+// OKR template assignments to entities
+export const okrTemplateAssignments = pgTable("okr_template_assignments", {
+  id: serial("id").primaryKey(),
+  templateId: integer("template_id").notNull().references(() => okrTemplates.id),
+  entityType: text("entity_type").notNull(), // 'partner', 'customer', 'opportunity'
+  entityId: integer("entity_id").notNull(),
+  assignedBy: integer("assigned_by").references(() => users.id),
+  assignedAt: timestamp("assigned_at").defaultNow(),
+  currentValue: integer("current_value"),
+  targetValue: integer("target_value"),
+  status: text("status").default("active"), // active, completed, paused
+});
+
+export const okrTemplateAssignmentsRelations = relations(okrTemplateAssignments, ({ one }) => ({
+  template: one(okrTemplates, {
+    fields: [okrTemplateAssignments.templateId],
+    references: [okrTemplates.id],
+  }),
+  assignedBy: one(users, {
+    fields: [okrTemplateAssignments.assignedBy],
+    references: [users.id],
+  }),
+}));
+
+export const insertOkrTemplateAssignmentSchema = createInsertSchema(okrTemplateAssignments).pick({
+  templateId: true,
+  entityType: true,
+  entityId: true,
+  assignedBy: true,
+  currentValue: true,
+  targetValue: true,
+  status: true,
+});
+
+export type InsertOkrTemplateAssignment = z.infer<typeof insertOkrTemplateAssignmentSchema>;
+export type OkrTemplateAssignment = typeof okrTemplateAssignments.$inferSelect;
+
 export type InsertVendor = z.infer<typeof insertVendorSchema>;
 export type Vendor = typeof vendors.$inferSelect;
-
-export type InsertProduct = z.infer<typeof insertProductSchema>;
-export type Product = typeof products.$inferSelect;
 
 // Campaign model
 export const campaigns = pgTable("campaigns", {
