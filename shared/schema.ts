@@ -372,29 +372,51 @@ export const okrTemplateAssignments = pgTable("okr_template_assignments", {
   notes: text("notes")
 });
 
-// OKR templates schema
+// OKR templates schema with comprehensive properties
 export const okrMetrics = pgTable("okr_metrics", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description"),
-  realized_value: numeric("realized_value").default("0"),
-  target_value: numeric("target_value"),
+  
+  // Value fields
+  realized_value: text("realized_value").default("0"),
+  target_value: text("target_value"),
+  
+  // Measure unit types
   measure_unit: text("measure_unit").notNull().default("number"), // currency, number, percent, checkbox, picklist_single, picklist_multiple, traffic_light, progress_bar, trend_chart
-  currency_type: text("currency_type"), // USD, EUR, etc. when measure_unit is currency
+  currency_type: text("currency_type").default("USD"), // USD, EUR, etc.
+  
+  // Configuration for different measure types
   traffic_light_thresholds: json("traffic_light_thresholds"), // {red: {min: 0, max: 30}, yellow: {min: 31, max: 70}, green: {min: 71, max: 100}}
   progress_bar_thresholds: json("progress_bar_thresholds"), // similar structure for progress bar
   picklist_options: text("picklist_options").array().default([]), // options for picklist types
+  
+  // Responsibility
   responsible_user_id: integer("responsible_user_id").references(() => users.id),
-  responsible_contact_id: integer("responsible_contact_id"),
-  timeframe: text("timeframe"), // yearly, quarterly, monthly, weekly, none, custom
+  responsible_contact_ids: integer("responsible_contact_ids").array().default([]), // Array of contact IDs
+  
+  // Timeframe and frequency
+  timeframe_start: timestamp("timeframe_start"),
+  timeframe_end: timestamp("timeframe_end"),
   frequency: text("frequency").notNull().default("none"), // yearly, quarterly, monthly, weekly, none, custom
+  
+  // Additional properties
   attachment_url: text("attachment_url"),
   due_date: timestamp("due_date"),
+  
+  // Status and sharing
   is_muted: boolean("is_muted").default(false),
   is_archived: boolean("is_archived").default(false),
   is_shared: boolean("is_shared").default(true),
+  
+  // Hierarchy
   hierarchy: text("hierarchy").notNull().default("activity"), // objective, activity, subactivity
+  parent_id: integer("parent_id").references(() => okrMetrics.id), // For hierarchical relationships
+  
+  // Tags and categorization
   tags: text("tags").array().default([]),
+  
+  // Audit fields
   created_at: timestamp("created_at").defaultNow().notNull(),
   updated_at: timestamp("updated_at").defaultNow().notNull(),
   created_by: integer("created_by").notNull(),
@@ -432,6 +454,28 @@ export const insertOkrTagSchema = createInsertSchema(okrTags).pick({
   color: true,
 });
 
+// OKR Comments table
+export const okrComments = pgTable("okr_comments", {
+  id: serial("id").primaryKey(),
+  metric_id: integer("metric_id").notNull().references(() => okrMetrics.id),
+  user_id: integer("user_id").notNull().references(() => users.id),
+  contact_id: integer("contact_id"), // for external contacts
+  comment: text("comment").notNull(),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+  updated_at: timestamp("updated_at").defaultNow().notNull(),
+});
+
+export const okrCommentsRelations = relations(okrComments, ({ one }) => ({
+  metric: one(okrMetrics, {
+    fields: [okrComments.metric_id],
+    references: [okrMetrics.id],
+  }),
+  user: one(users, {
+    fields: [okrComments.user_id],
+    references: [users.id],
+  }),
+}));
+
 export const insertOkrMetricSchema = createInsertSchema(okrMetrics).pick({
   name: true,
   description: true,
@@ -443,8 +487,9 @@ export const insertOkrMetricSchema = createInsertSchema(okrMetrics).pick({
   progress_bar_thresholds: true,
   picklist_options: true,
   responsible_user_id: true,
-  responsible_contact_id: true,
-  timeframe: true,
+  responsible_contact_ids: true,
+  timeframe_start: true,
+  timeframe_end: true,
   frequency: true,
   attachment_url: true,
   due_date: true,
@@ -452,8 +497,16 @@ export const insertOkrMetricSchema = createInsertSchema(okrMetrics).pick({
   is_archived: true,
   is_shared: true,
   hierarchy: true,
+  parent_id: true,
   tags: true,
   created_by: true,
+});
+
+export const insertOkrCommentSchema = createInsertSchema(okrComments).pick({
+  metric_id: true,
+  user_id: true,
+  contact_id: true,
+  comment: true,
 });
 
 export const insertOkrTemplateAssignmentSchema = createInsertSchema(okrTemplateAssignments).pick({
