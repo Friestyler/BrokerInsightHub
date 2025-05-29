@@ -763,21 +763,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Opportunities API - Returns data from clean opportunities_clean table
   app.get('/api/opportunities', async (req, res) => {
     try {
-      const result = await db.execute(sql`SELECT * FROM public.opportunities_clean ORDER BY id`);
+      const result = await db.execute(sql`
+        SELECT o.*, c.name as client_name 
+        FROM myqollabi.opportunities o
+        LEFT JOIN myqollabi.customers c ON o.client_id = c.id
+        ORDER BY o.id
+      `);
       
       const opportunities = result.rows.map((opportunity: any) => ({
         id: opportunity.id,
-        title: opportunity.title || opportunity.name,
-        clientId: opportunity.customer_id,
+        title: opportunity.title,
+        clientId: opportunity.client_id,
         clientName: opportunity.client_name,
-        productId: 1,
-        productName: "Insurance Product",
-        probability: opportunity.probability,
-        estimatedValue: opportunity.value,
         status: opportunity.status,
-        stage: opportunity.stage, 
+        stage: opportunity.stage,
         type: opportunity.type,
-        priority: opportunity.priority,
+        estimatedValue: opportunity.estimated_value,
+        probability: opportunity.probability,
         description: opportunity.description,
         location: opportunity.location,
         partnerName: opportunity.partner_name,
