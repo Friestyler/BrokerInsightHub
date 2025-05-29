@@ -90,8 +90,7 @@ const frontendRoutes = {
   entities: [
     { path: '/partners', component: 'PartnersPage', description: 'Main partners list with filtering and search' },
     { path: '/customers', component: 'CustomersPageClean', description: 'Main customers list with partner relationships' },
-    { path: '/opportunities', component: 'OpportunitiesPage', description: 'Main opportunities list with client links' },
-    { path: '/opportunities2', component: 'Opportunities2Page', description: 'Alternative opportunities view' },
+    { path: '/opportunities', component: 'OpportunitiesPage', description: 'Main opportunities list with advanced filtering and list management' },
     { path: '/vendors', component: 'VendorsPage', description: 'Vendors management page' },
     { path: '/products', component: 'ProductsPage', description: 'Products catalog page' },
     { path: '/projects', component: 'ProjectsPage', description: 'Projects list (placeholder)' },
