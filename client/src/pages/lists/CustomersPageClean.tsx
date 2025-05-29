@@ -504,7 +504,9 @@ export default function CustomersPageClean() {
                       </div>
                     </div>
                   </td>
-                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">No Partner</td>
+                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                    {customer.partnerNames || 'No Partner'}
+                  </td>
                   <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">Insurance</td>
                   <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm capitalize">Customer</td>
                   <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">Active</td>
