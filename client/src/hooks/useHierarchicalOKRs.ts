@@ -1,12 +1,12 @@
 import { useState, useMemo } from 'react';
 
-interface OKR {
+interface BaseOKR {
   id: number;
   parent?: number;
   [key: string]: any;
 }
 
-export function useHierarchicalOKRs(okrs: OKR[]) {
+export function useHierarchicalOKRs<T extends BaseOKR>(okrs: T[]) {
   const [expandedOKRs, setExpandedOKRs] = useState<Set<number>>(new Set());
   const [selectedOKRs, setSelectedOKRs] = useState<number[]>([]);
 
@@ -26,12 +26,12 @@ export function useHierarchicalOKRs(okrs: OKR[]) {
   };
 
   // Get children of an OKR
-  const getChildren = (parentId: number) => {
+  const getChildren = (parentId: number): T[] => {
     return okrs.filter(okr => okr.parent === parentId);
   };
 
   // Get only parent OKRs (no parent field)
-  const parentOKRs = useMemo(() => {
+  const parentOKRs = useMemo((): T[] => {
     return okrs.filter(okr => !okr.parent);
   }, [okrs]);
 
