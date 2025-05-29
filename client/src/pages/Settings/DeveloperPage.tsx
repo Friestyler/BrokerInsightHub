@@ -28,6 +28,14 @@ const schemaInfo = {
     partner_opportunities: {
       columns: ['id', 'partner_id', 'opportunity_id', 'created_at'],
       relationships: ['Many-to-many junction table connecting partners and opportunities']
+    },
+    okr_metrics: {
+      columns: ['id', 'name', 'description', 'realized_value', 'target_value', 'measure_unit', 'currency_type', 'traffic_light_thresholds', 'progress_bar_thresholds', 'picklist_options', 'responsible_user_id', 'responsible_contact_id', 'timeframe', 'frequency', 'attachment_url', 'due_date', 'is_muted', 'is_archived', 'is_shared', 'hierarchy', 'tags', 'created_by', 'created_at', 'updated_at'],
+      relationships: ['Tags stored as JSON array', 'Links to users via created_by']
+    },
+    okr_tags: {
+      columns: ['id', 'name', 'color', 'created_at', 'updated_at'],
+      relationships: ['Referenced by okr_metrics.tags JSON array']
     }
   }
 };
@@ -44,6 +52,15 @@ const apiEndpoints = {
     { method: 'GET', path: '/api/insurance-products', description: 'Get insurance-specific products' },
     { method: 'GET', path: '/api/news', description: 'Get insurance news and updates' },
     { method: 'GET', path: '/api/documents', description: 'Get uploaded documents and files' }
+  ],
+  okr: [
+    { method: 'GET', path: '/api/okr-metrics', description: 'Get all OKR metrics with tags and properties' },
+    { method: 'POST', path: '/api/okr-metrics', description: 'Create new OKR metric with tags' },
+    { method: 'PUT', path: '/api/okr-metrics/:id', description: 'Update existing OKR metric' },
+    { method: 'GET', path: '/api/okr-tags', description: 'Get all OKR tags with colors' },
+    { method: 'POST', path: '/api/okr-tags', description: 'Create new OKR tag with color' },
+    { method: 'PUT', path: '/api/okr-tags/:id', description: 'Update OKR tag name and color' },
+    { method: 'DELETE', path: '/api/okr-tags/:id', description: 'Delete OKR tag' }
   ],
   relationships: [
     { method: 'GET', path: '/api/partners/:id/customers', description: 'Get customers for specific partner' },

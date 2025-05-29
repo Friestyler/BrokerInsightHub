@@ -1368,17 +1368,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const result = await db.execute(sql`
         INSERT INTO myqollabi.okr_metrics (
           name, description, realized_value, target_value, measure_unit,
-          currency_type, traffic_light_thresholds, progress_bar_thresholds,
-          picklist_options, responsible_user_id, responsible_contact_id,
-          timeframe, frequency, attachment_url, due_date, is_muted,
-          is_archived, is_shared, hierarchy, tags, created_by
+          frequency, hierarchy, tags, created_by
         )
         VALUES (
-          ${name}, ${description}, ${realized_value || 0}, ${target_value}, ${measure_unit || 'number'},
-          ${currency_type}, ${traffic_light_thresholds}, ${progress_bar_thresholds},
-          ${picklist_options || []}, ${responsible_user_id}, ${responsible_contact_id},
-          ${timeframe}, ${frequency || 'none'}, ${attachment_url}, ${due_date}, ${is_muted || false},
-          ${is_archived || false}, ${is_shared || true}, ${hierarchy || 'activity'}, ${tags || []}, 1
+          ${name}, 
+          ${description || ''}, 
+          ${realized_value || 0}, 
+          ${target_value || null}, 
+          ${measure_unit || 'number'},
+          ${frequency || 'none'}, 
+          ${hierarchy || 'metric'}, 
+          ${JSON.stringify(tags || [])}, 
+          1
         )
         RETURNING *
       `);
