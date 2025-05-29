@@ -406,7 +406,19 @@ export default function OKRMetricsPage() {
                       </tr>,
                       // Column Headers for this group
                       <tr key={`subheader-${tagName}-${groupIndex}`} className="bg-gray-50">
-                        <td className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12"></td>
+                        <td className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12">
+                          <Checkbox
+                            checked={tagMetrics.every((metric: OKRMetric) => selectedMetrics.includes(metric.id))}
+                            onCheckedChange={(checked) => {
+                              const tagMetricIds = tagMetrics.map((metric: OKRMetric) => metric.id);
+                              if (checked) {
+                                setSelectedMetrics([...selectedMetrics, ...tagMetricIds.filter((id: number) => !selectedMetrics.includes(id))]);
+                              } else {
+                                setSelectedMetrics(selectedMetrics.filter((id: number) => !tagMetricIds.includes(id)));
+                              }
+                            }}
+                          />
+                        </td>
                         <td className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</td>
                         <td className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Timeframe</td>
                         <td className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Milestone Frequency</td>
@@ -430,12 +442,14 @@ export default function OKRMetricsPage() {
 
                       return (
                         <tr key={`metric-${metric.id}-${tagName}-${metricIndex}`} 
-                            className={`hover:bg-gray-50 ${!isLastInGroup || !isLastGroup ? 'border-b border-gray-100' : ''}`}>
+                            className={`group hover:bg-gray-50 ${!isLastInGroup || !isLastGroup ? 'border-b border-gray-100' : ''}`}>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <Checkbox
-                              checked={selectedMetrics.includes(metric.id)}
-                              onCheckedChange={(checked) => handleMetricSelect(metric.id, checked as boolean)}
-                            />
+                            <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                              <Checkbox
+                                checked={selectedMetrics.includes(metric.id)}
+                                onCheckedChange={(checked) => handleMetricSelect(metric.id, checked as boolean)}
+                              />
+                            </div>
                           </td>
                           <td className="px-6 py-4">
                             <div className="text-sm font-medium text-gray-900">{metric.name}</div>

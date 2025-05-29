@@ -320,12 +320,14 @@ export default function PartnerDetailClean() {
                       </TableHeader>
                       <TableBody>
                         {tagMetrics.map((metric: any) => (
-                          <TableRow key={metric.id} className="border-b border-gray-100 hover:bg-gray-50">
+                          <TableRow key={metric.id} className="group border-b border-gray-100 hover:bg-gray-50">
                             <TableCell>
-                              <Checkbox
-                                checked={selectedMetrics.includes(metric.id)}
-                                onCheckedChange={(checked) => handleMetricSelect(metric.id, checked as boolean)}
-                              />
+                              <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Checkbox
+                                  checked={selectedMetrics.includes(metric.id)}
+                                  onCheckedChange={(checked) => handleMetricSelect(metric.id, checked as boolean)}
+                                />
+                              </div>
                             </TableCell>
                             <TableCell>
                               <div>
