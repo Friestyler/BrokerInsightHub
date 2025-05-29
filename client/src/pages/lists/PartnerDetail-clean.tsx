@@ -13,14 +13,16 @@ export default function PartnerDetailClean() {
     queryKey: ['/api/partners'],
   });
 
-  // Fetch customers data from database
-  const { data: customers, isLoading: customersLoading } = useQuery({
-    queryKey: ['/api/customers'],
+  // Fetch related customers for this partner
+  const { data: relatedCustomers, isLoading: customersLoading } = useQuery({
+    queryKey: ['/api/partners', id, 'customers'],
+    enabled: !!id,
   });
 
-  // Fetch opportunities data from database
-  const { data: opportunities, isLoading: opportunitiesLoading } = useQuery({
-    queryKey: ['/api/opportunities'],
+  // Fetch related opportunities for this partner
+  const { data: relatedOpportunities, isLoading: opportunitiesLoading } = useQuery({
+    queryKey: ['/api/partners', id, 'opportunities'],
+    enabled: !!id,
   });
 
   if (partnersLoading || customersLoading || opportunitiesLoading) {
@@ -32,17 +34,6 @@ export default function PartnerDetailClean() {
   if (!partner) {
     return <div className="p-4">Partner not found</div>;
   }
-
-  // Filter related opportunities based on actual database relationships
-  const relatedOpportunities = opportunities?.filter((opp: any) => {
-    // Find customers related to this partner
-    const partnerCustomers = customers?.filter((c: any) => c.assigned_partner_id === partner.id);
-    const partnerCustomerIds = partnerCustomers?.map((c: any) => c.id) || [];
-    return partnerCustomerIds.includes(opp.client_id);
-  }) || [];
-
-  // Filter related customers based on actual database relationships
-  const relatedCustomers = customers?.filter((c: any) => c.assigned_partner_id === partner.id) || [];
 
   return (
     <div className="p-6">

@@ -807,7 +807,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Customers API - Returns data from clean customers_clean table
   app.get('/api/customers', async (req, res) => {
     try {
-      const result = await db.execute(sql`SELECT * FROM public.customers_clean ORDER BY id`);
+      const result = await db.execute(sql`
+        SELECT c.*, 
+               COUNT(o.id) as opportunity_count
+        FROM myqollabi.customers c
+        LEFT JOIN myqollabi.opportunities o ON o.client_id = c.id
+        GROUP BY c.id, c.name, c.description, c.owner_id, c.created_at, c.updated_at, 
+                 c.contact_name, c.contact_email, c.contact_phone, c.assigned_partner_id
+        ORDER BY c.id
+      `);
       
       const customers = result.rows.map((customer: any) => ({
         id: customer.id,
@@ -817,26 +825,78 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ownerId: customer.owner_id,
         createdAt: customer.created_at,
         updatedAt: customer.updated_at,
-        industry: customer.industry,
-        size: customer.size,
-        region: customer.region,
-        status: customer.status,
-        opportunities: customer.opportunities_count,
-        revenue: customer.revenue,
-        location: customer.location,
+        contactName: customer.contact_name,
         contactEmail: customer.contact_email,
-        primaryContact: customer.primary_contact,
-        phone: customer.phone,
-        website: customer.website,
+        contactPhone: customer.contact_phone,
         assignedPartnerId: customer.assigned_partner_id,
-        linkedContactIds: customer.linked_contact_ids,
-        linkedOpportunityIds: customer.linked_opportunity_ids
+        opportunityCount: customer.opportunity_count || 0
       }));
       
       res.json(customers);
     } catch (error) {
       console.error('Error fetching customers:', error);
       res.status(500).json({ error: 'Failed to fetch customers' });
+    }
+  });
+
+  // Get customers for a specific partner
+  app.get('/api/partners/:id/customers', async (req, res) => {
+    try {
+      const partnerId = parseInt(req.params.id);
+      const result = await db.execute(sql`
+        SELECT c.*, COUNT(o.id) as opportunity_count
+        FROM myqollabi.customers c
+        LEFT JOIN myqollabi.opportunities o ON o.client_id = c.id
+        WHERE c.assigned_partner_id = ${partnerId}
+        GROUP BY c.id, c.name, c.description, c.owner_id, c.created_at, c.updated_at, 
+                 c.contact_name, c.contact_email, c.contact_phone, c.assigned_partner_id
+        ORDER BY c.id
+      `);
+      
+      const customers = result.rows.map((customer: any) => ({
+        id: customer.id,
+        name: customer.name,
+        description: customer.description,
+        contactName: customer.contact_name,
+        contactEmail: customer.contact_email,
+        contactPhone: customer.contact_phone,
+        opportunityCount: customer.opportunity_count || 0
+      }));
+      
+      res.json(customers);
+    } catch (error) {
+      console.error('Error fetching partner customers:', error);
+      res.status(500).json({ error: 'Failed to fetch partner customers' });
+    }
+  });
+
+  // Get opportunities for a specific partner
+  app.get('/api/partners/:id/opportunities', async (req, res) => {
+    try {
+      const partnerId = parseInt(req.params.id);
+      const result = await db.execute(sql`
+        SELECT o.*, c.name as client_name
+        FROM myqollabi.opportunities o
+        JOIN myqollabi.customers c ON o.client_id = c.id
+        WHERE c.assigned_partner_id = ${partnerId}
+        ORDER BY o.id
+      `);
+      
+      const opportunities = result.rows.map((opp: any) => ({
+        id: opp.id,
+        title: opp.title,
+        description: opp.description,
+        status: opp.status,
+        value: opp.value,
+        clientName: opp.client_name,
+        createdAt: opp.created_at,
+        updatedAt: opp.updated_at
+      }));
+      
+      res.json(opportunities);
+    } catch (error) {
+      console.error('Error fetching partner opportunities:', error);
+      res.status(500).json({ error: 'Failed to fetch partner opportunities' });
     }
   });
 
