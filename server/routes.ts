@@ -57,11 +57,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description: partner.description,
         initials: partner.name.split(' ').map((word: string) => word[0]).join('').toUpperCase().slice(0, 2),
         industry: "Insurance",
-        type: "Partner", 
+        type: partner.partner_type || "Partner", 
         size: "medium",
         status: "active",
         customers: 1,
-        opportunities: 1
+        opportunities: 1,
+        partner_type: partner.partner_type,
+        region: partner.region,
+        assigned_user_ids: partner.assigned_user_ids,
+        linked_opportunity_ids: partner.linked_opportunity_ids,
+        created_at: partner.created_at,
+        updated_at: partner.updated_at
       }));
       
       res.json(partners);
@@ -757,19 +763,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const opportunities = result.rows.map((opportunity: any) => ({
         id: opportunity.id,
-        title: opportunity.name,
-        clientId: 1,
+        title: opportunity.title || opportunity.name,
+        clientId: opportunity.customer_id,
         clientName: "Demo Client",
         productId: 1,
         productName: "Demo Product",
-        probability: 50,
-        estimatedValue: 5000,
-        status: "open",
-        stage: "discovery", 
-        type: "new_business",
+        probability: 75,
+        estimatedValue: opportunity.value,
+        status: opportunity.status,
+        stage: opportunity.stage, 
+        type: opportunity.type,
         description: opportunity.description,
         createdAt: opportunity.created_at,
-        updatedAt: opportunity.updated_at
+        updatedAt: opportunity.updated_at,
+        expected_close_date: opportunity.expected_close_date,
+        delivery_date: opportunity.delivery_date,
+        customer_id: opportunity.customer_id,
+        partner_id: opportunity.partner_id,
+        linked_product_ids: opportunity.linked_product_ids,
+        linked_contact_ids: opportunity.linked_contact_ids,
+        created_by: opportunity.created_by
       }));
       
       console.log(`Returning ${opportunities.length} opportunities from clean table`);
@@ -793,7 +806,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description: customer.description,
         ownerId: null,
         createdAt: customer.created_at,
-        updatedAt: customer.updated_at
+        updatedAt: customer.updated_at,
+        industry: customer.industry,
+        size: customer.size,
+        region: customer.region,
+        assigned_partner_id: customer.assigned_partner_id,
+        linked_contact_ids: customer.linked_contact_ids,
+        linked_opportunity_ids: customer.linked_opportunity_ids
       }));
       
       res.json(customers);
