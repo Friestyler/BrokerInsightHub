@@ -1094,6 +1094,8 @@ function PartnerOpportunitiesSection({ partnerId }: { partnerId: string | undefi
 
 // OKR Plans Section Component
 function OKRPlansSection({ partnerId }: { partnerId: string }) {
+  // Get partner data for this section
+  const { data: partner } = usePartnerData(partnerId);
   const [selectedOKRs, setSelectedOKRs] = useState<number[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
@@ -1102,6 +1104,100 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
   const [advancedTimeframe, setAdvancedTimeframe] = useState("");
   const [quickActionInput, setQuickActionInput] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [expandedOKRs, setExpandedOKRs] = useState<Set<number>>(new Set());
+  const [creatingUnderOKR, setCreatingUnderOKR] = useState<number | null>(null);
+  const [newOKRName, setNewOKRName] = useState('');
+  const [newOKRType, setNewOKRType] = useState('');
+  const [newOKRTimeframe, setNewOKRTimeframe] = useState('');
+
+  // Helper functions for inline OKR creation
+  const toggleOKRExpansion = (okrId: number) => {
+    setExpandedOKRs(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(okrId)) {
+        newSet.delete(okrId);
+        if (creatingUnderOKR === okrId) {
+          setCreatingUnderOKR(null);
+        }
+      } else {
+        newSet.add(okrId);
+        setCreatingUnderOKR(okrId);
+      }
+      return newSet;
+    });
+  };
+
+  const cancelOKRCreation = () => {
+    setCreatingUnderOKR(null);
+    setNewOKRName('');
+    setNewOKRType('');
+    setNewOKRTimeframe('');
+  };
+
+  const saveNewOKR = async () => {
+    if (!newOKRName.trim() || !creatingUnderOKR) return;
+
+    const parentOKR = assignedOKRs.find(okr => okr.id === creatingUnderOKR);
+    if (!parentOKR) return;
+
+    // Determine the new OKR type based on parent
+    let newType = 'Activity';
+    let newHierarchy = 'activity';
+    if (parentOKR.type === 'Objective') {
+      newType = 'Activity';
+      newHierarchy = 'activity';
+    } else if (parentOKR.type === 'Activity') {
+      newType = 'Subactivity';
+      newHierarchy = 'subactivity';
+    }
+
+    // Get the tag from current group if grouping by tag
+    const currentGroup = Object.entries(groupedOKRs).find(([, okrs]) => 
+      okrs.some(okr => okr.id === creatingUnderOKR)
+    );
+    const inheritedTag = currentGroup && currentGroup[0] !== 'No Tag' ? currentGroup[0] : undefined;
+
+    const newOKR = {
+      id: Math.max(...assignedOKRs.map(o => o.id)) + 1,
+      title: newOKRName,
+      description: '',
+      type: newType,
+      hierarchy: newHierarchy,
+      parent: creatingUnderOKR,
+      tag: inheritedTag,
+      targetValue: 0,
+      realizedValue: 0,
+      unit: newOKRType || 'number',
+      status: 'Not Started',
+      owner: partner?.owner?.name || '',
+      dueDate: newOKRTimeframe ? new Date(newOKRTimeframe) : undefined,
+      startDate: new Date(),
+      endDate: newOKRTimeframe ? new Date(newOKRTimeframe) : undefined,
+      nestedCount: 0,
+      isExpanded: false,
+      level: parentOKR.level + 1,
+      partnerId: partner?.id
+    };
+
+    // Add the new OKR to the list
+    setAssignedOKRs(prev => [...prev, newOKR]);
+    
+    // Clear the creation form
+    cancelOKRCreation();
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      saveNewOKR();
+    } else if (e.key === 'Escape') {
+      cancelOKRCreation();
+    }
+  };
+
+  // Check if an OKR has no children and can show expand arrow on hover
+  const canShowExpandArrow = (okr: any) => {
+    return !assignedOKRs.some(child => child.parent === okr.id) && okr.type !== 'Subactivity';
+  };
 
   // Simulated AI generation function
   const generateOKR = async () => {
@@ -1725,7 +1821,7 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                   <TableBody>
                     {okrsInGroup.map((okr) => (
                       <TableRow key={okr.id} className="hover:bg-[#F5F6FA] border-b group" style={{ borderColor: '#E6E7F1' }}>
-                        {/* Checkbox Column - Exact from Coming Soon */}
+                        {/* Checkbox Column with Expand Arrow */}
                         <TableCell className="w-12 px-1 py-3">
                           <div className="flex items-center" style={{ gap: '4px' }}>
                             <input
@@ -1741,6 +1837,32 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                               className="rounded border-gray-300 opacity-0 group-hover:opacity-100 transition-opacity"
                               style={{ opacity: selectedOKRs.includes(okr.id) ? 1 : undefined }}
                             />
+                            {/* Expand/collapse arrow - show on hover for OKRs without children */}
+                            {canShowExpandArrow(okr) && (
+                              <button
+                                onClick={() => toggleOKRExpansion(okr.id)}
+                                className="p-1 hover:bg-gray-100 rounded flex-shrink-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                                style={{ 
+                                  width: '20px', 
+                                  height: '20px',
+                                  opacity: expandedOKRs.has(okr.id) ? 1 : undefined 
+                                }}
+                              >
+                                <svg 
+                                  width="8" 
+                                  height="13" 
+                                  viewBox="0 0 8 13" 
+                                  fill="none" 
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  style={{ 
+                                    transform: expandedOKRs.has(okr.id) ? 'rotate(90deg)' : 'rotate(0deg)',
+                                    transition: 'transform 0.2s'
+                                  }}
+                                >
+                                  <path d="M6.83984 6.28516C7.08594 6.55859 7.08594 6.96875 6.83984 7.21484L1.58984 12.4648C1.31641 12.7383 0.90625 12.7383 0.660156 12.4648C0.386719 12.2188 0.386719 11.8086 0.660156 11.5625L5.44531 6.77734L0.660156 1.96484C0.386719 1.71875 0.386719 1.30859 0.660156 1.0625C0.90625 0.789062 1.31641 0.789062 1.5625 1.0625L6.83984 6.28516Z" fill="#696C8C"/>
+                                </svg>
+                              </button>
+                            )}
                           </div>
                         </TableCell>
 
