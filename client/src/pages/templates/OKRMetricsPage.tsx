@@ -383,7 +383,7 @@ export default function OKRMetricsPage() {
                   {Object.entries(groupedMetrics).map(([tagName, tagMetrics]: [string, any], groupIndex) => [
                     // Tag Header Row (only show for tag grouping)
                     ...(groupBy === 'tag' ? [
-                      <tr key={`header-${tagName}-${groupIndex}`} className="border-b border-gray-200">
+                      <tr key={`header-${tagName}-${groupIndex}`}>
                         <td colSpan={6} className="px-6 py-3">
                           <span 
                             className="inline-block px-3 py-1 text-sm font-medium rounded-full"
@@ -401,7 +401,7 @@ export default function OKRMetricsPage() {
                         </td>
                       </tr>,
                       // Column Headers for this group
-                      <tr key={`subheader-${tagName}-${groupIndex}`} className="border-b border-gray-200 bg-gray-50">
+                      <tr key={`subheader-${tagName}-${groupIndex}`} className="bg-gray-50">
                         <td className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12"></td>
                         <td className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</td>
                         <td className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Timeframe</td>
