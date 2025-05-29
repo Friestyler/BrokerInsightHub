@@ -518,65 +518,8 @@ export default function OKRMetricsPage() {
         </div>
       </div>
 
-      {/* Stats Cards */}
+      {/* Content */}
       <div className="px-6 py-6">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Total Metrics</p>
-                  <p className="text-2xl font-bold text-gray-900">{stats.totalMetrics}</p>
-                </div>
-                <div className="p-2 bg-blue-100 rounded-lg">
-                  <BarChart3 className="w-6 h-6 text-blue-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Completed</p>
-                  <p className="text-2xl font-bold text-green-600">{stats.completedMetrics}</p>
-                </div>
-                <div className="p-2 bg-green-100 rounded-lg">
-                  <Target className="w-6 h-6 text-green-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">In Progress</p>
-                  <p className="text-2xl font-bold text-yellow-600">{stats.inProgressMetrics}</p>
-                </div>
-                <div className="p-2 bg-yellow-100 rounded-lg">
-                  <Calendar className="w-6 h-6 text-yellow-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm text-gray-600">Not Started</p>
-                  <p className="text-2xl font-bold text-gray-600">{stats.notStartedMetrics}</p>
-                </div>
-                <div className="p-2 bg-gray-100 rounded-lg">
-                  <Eye className="w-6 h-6 text-gray-600" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
 
         {/* Filters and Search */}
         <div className="bg-white rounded-lg border border-gray-200 p-4 mb-6">
