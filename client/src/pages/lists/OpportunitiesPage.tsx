@@ -156,17 +156,7 @@ function OpportunitiesTable() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
   
-  // Fetch real opportunities from the API
-  const { data: opportunities = [], isLoading, error } = useQuery({
-    queryKey: ['opportunities', environment],
-    queryFn: async () => {
-      const response = await fetch('/api/opportunities');
-      if (!response.ok) {
-        throw new Error('Failed to fetch opportunities');
-      }
-      return response.json();
-    }
-  });
+  // Database data is already fetched via the hook at the top of the component
   
   // Enhanced state management
   const [isCreatingNewList, setIsCreatingNewList] = useState(true);
@@ -353,9 +343,9 @@ function OpportunitiesTable() {
     
     // In a real application, this would make an API call to update the opportunities
     // For now, we'll update our mock data
-    mockOpportunities.forEach((opportunity, index) => {
+    opportunities.forEach((opportunity, index) => {
       if (selectedOpportunities.includes(opportunity.id)) {
-        mockOpportunities[index].status = newStatus;
+        opportunities[index].status = newStatus;
       }
     });
     
@@ -1034,7 +1024,7 @@ function OpportunitiesTable() {
                 </div>
                 <div className="flex flex-wrap gap-1">
                   {selectedOpportunities.slice(0, 5).map(oppId => {
-                    const opportunity = mockOpportunities.find(o => o.id === oppId);
+                    const opportunity = opportunities.find(o => o.id === oppId);
                     return opportunity ? (
                       <span key={oppId} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
                         {opportunity.title}
@@ -1069,7 +1059,7 @@ function OpportunitiesTable() {
               
               {/* Dynamic list of partners with their contacts */}
               <div className="space-y-3 max-h-80 overflow-y-auto border border-gray-200 rounded-md p-3">
-                {mockOpportunities.reduce((partners, opp) => {
+                {opportunities.reduce((partners, opp) => {
                   if (!partners.some(p => p.id === opp.partnerId)) {
                     partners.push({ id: opp.partnerId, name: opp.partnerName });
                   }
@@ -1198,7 +1188,7 @@ function OpportunitiesTable() {
               const selectedContactEmails: string[] = [];
               const selectedPartnerNames: string[] = [];
               
-              mockOpportunities.reduce((partners, opp) => {
+              opportunities.reduce((partners, opp) => {
                 if (!partners.some(p => p.id === opp.partnerId)) {
                   partners.push({ id: opp.partnerId, name: opp.partnerName });
                 }
@@ -1260,7 +1250,7 @@ function OpportunitiesTable() {
               } else if (isBulkOpportunityShare) {
                 // Sharing selected opportunity records
                 const bulkOpportunityNames = selectedOpportunities
-                  .map(id => mockOpportunities.find(o => o.id === id)?.title)
+                  .map(id => opportunities.find(o => o.id === id)?.title)
                   .filter(Boolean)
                   .slice(0, 3);
 
