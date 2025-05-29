@@ -302,60 +302,20 @@ const mockCustomers = [
 ];
 
 // Mock opportunities data - for Jeroen Hypotheek Advies
-const mockOpportunities = [
-  {
-    id: 1,
-    title: "Koppelen van hypotheek aan verduurzamingslening",
-    customerName: "Van Dijk Familie",
-    customerId: 1,
-    estimatedValue: 250000,
-    probability: 80,
-    status: "in_progress",
-    closingDate: new Date("2025-07-15"),
-    owner: { id: 1, name: "Maarten de Vries", initials: "MV", avatar: "" },
-    type: "new_business",
-    partner: "Jeroen Hypotheek Advies"
-  },
-  {
-    id: 2,
-    title: "Verduurzamingslening",
-    customerName: "Jansen Gezin",
-    customerId: 2,
-    estimatedValue: 35000,
-    probability: 60,
-    status: "qualification",
-    closingDate: new Date("2025-06-30"),
-    owner: { id: 2, name: "Sophie Jansen", initials: "SJ", avatar: "" },
-    type: "new_business",
-    partner: "Jeroen Hypotheek Advies"
-  },
-  {
-    id: 3,
-    title: "Verkoop van aanvullende producten",
-    customerName: "De Groot BV",
-    customerId: 3,
-    estimatedValue: 42000,
-    probability: 75,
-    status: "proposal_sent",
-    closingDate: new Date("2025-08-10"),
-    owner: { id: 1, name: "Maarten de Vries", initials: "MV", avatar: "" },
-    type: "upsell",
-    partner: "Jeroen Hypotheek Advies"
-  },
-  {
-    id: 4,
-    title: "Proactief contact bij levensgebeurtenissen",
-    customerName: "Visser Familie",
-    customerId: 4,
-    estimatedValue: 28000,
-    probability: 100,
-    status: "closed_won",
-    closingDate: new Date("2025-05-05"),
-    owner: { id: 2, name: "Sophie Jansen", initials: "SJ", avatar: "" },
-    type: "renewal",
-    partner: "Jeroen Hypotheek Advies"
-  }
-];
+// Fetch opportunities from database for this partner
+const usePartnerOpportunities = (partnerId: number) => {
+  return useQuery({
+    queryKey: ['/api/opportunities'],
+    queryFn: async () => {
+      const response = await fetch('/api/opportunities');
+      if (!response.ok) {
+        throw new Error('Failed to fetch opportunities');
+      }
+      const data = await response.json();
+      return data.filter((opp: any) => opp.partner_id === partnerId);
+    }
+  });
+};
 
 // Owner avatar component
 function OwnerAvatar({ owner }: { owner: { initials: string, avatar?: string } }) {
@@ -903,7 +863,7 @@ export default function PartnerDetail() {
                     <TableCell>
                       <Link href={`/lists/clients/1`} className="inline-block">
                         <span className="text-indigo-600 hover:underline cursor-pointer">
-                          Van Dijk Familie
+                          NEW Sample Customer
                         </span>
                       </Link>
                     </TableCell>
@@ -951,7 +911,7 @@ export default function PartnerDetail() {
                     <TableCell>
                       <Link href={`/lists/clients/2`} className="inline-block">
                         <span className="text-indigo-600 hover:underline cursor-pointer">
-                          Jansen Gezin
+                          NEW Sample Customer
                         </span>
                       </Link>
                     </TableCell>
@@ -999,7 +959,7 @@ export default function PartnerDetail() {
                     <TableCell>
                       <Link href={`/lists/clients/3`} className="inline-block">
                         <span className="text-indigo-600 hover:underline cursor-pointer">
-                          De Groot BV
+                          NEW Sample Customer
                         </span>
                       </Link>
                     </TableCell>
@@ -1047,7 +1007,7 @@ export default function PartnerDetail() {
                     <TableCell>
                       <Link href={`/lists/clients/4`} className="inline-block">
                         <span className="text-indigo-600 hover:underline cursor-pointer">
-                          Visser Familie
+                          NEW Sample Customer
                         </span>
                       </Link>
                     </TableCell>
