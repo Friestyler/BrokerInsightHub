@@ -53,7 +53,8 @@ function Router() {
         <Route path="/partners" component={PartnersPage} />
         <Route path="/lists/partners/:id" component={PartnerDetailClean} />
         <Route path="/customers" component={CustomersPageClean} />
-        <Route path="/opportunities" component={Opportunities2Page} />
+        <Route path="/opportunities2" component={Opportunities2Page} />
+        <Route path="/opportunities" component={OpportunitiesPage} />
         <Route path="/opportunities/:id" component={OpportunityDetail} />
         <Route path="/vendors" component={VendorsPage} />
         <Route path="/products" component={ProductsPage} />

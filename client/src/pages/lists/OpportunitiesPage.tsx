@@ -1061,14 +1061,16 @@ function OpportunitiesTable() {
               <div className="space-y-3 max-h-80 overflow-y-auto border border-gray-200 rounded-md p-3">
                 {opportunities.reduce((partners, opp) => {
                   if (!partners.some(p => p.id === opp.partnerId)) {
-                    partners.push({ id: opp.partnerId, name: opp.partnerName });
+                    partners.push({ id: opp.partnerId, name: opp.partnerName || 'Unknown Partner' });
                   }
                   return partners;
                 }, [] as { id: number, name: string }[]).map(partner => {
+                  const partnerName = partner.name || 'Unknown Partner';
+                  const partnerFirstName = partnerName.includes(' ') ? partnerName.split(' ')[0] : partnerName;
                   const partnerContacts = [
-                    { id: 1, name: `${partner.name.split(' ')[0]} Manager`, email: `manager@${partner.name.toLowerCase().replace(/\s+/g, '')}.com` },
-                    { id: 2, name: `${partner.name.split(' ')[0]} Sales`, email: `sales@${partner.name.toLowerCase().replace(/\s+/g, '')}.com` },
-                    { id: 3, name: `${partner.name.split(' ')[0]} Admin`, email: `admin@${partner.name.toLowerCase().replace(/\s+/g, '')}.com` }
+                    { id: 1, name: `${partnerFirstName} Manager`, email: `manager@${partnerName.toLowerCase().replace(/\s+/g, '')}.com` },
+                    { id: 2, name: `${partnerFirstName} Sales`, email: `sales@${partnerName.toLowerCase().replace(/\s+/g, '')}.com` },
+                    { id: 3, name: `${partnerFirstName} Admin`, email: `admin@${partnerName.toLowerCase().replace(/\s+/g, '')}.com` }
                   ];
                   
                   return (
