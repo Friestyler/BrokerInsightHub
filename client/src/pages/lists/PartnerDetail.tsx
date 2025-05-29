@@ -2038,9 +2038,9 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                             <TableCell className="w-12 px-1 py-3"></TableCell>
                             
                             {/* Name Column with Add Activity Button or Inline Input */}
-                            <TableCell className="p-4 align-middle text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
-                              {creatingUnderOKR === okr.id ? (
-                                // Inline creation input (ClickUp style)
+                            {creatingUnderOKR === okr.id ? (
+                              // Inline creation input spans multiple columns (60% of row)
+                              <TableCell colSpan={5} className="p-4 align-middle text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
                                 <div className="flex items-center gap-2">
                                   <Input
                                     value={newOKRName}
@@ -2067,8 +2067,10 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                                     Cancel
                                   </Button>
                                 </div>
-                              ) : (
-                                // Add activity button
+                              </TableCell>
+                            ) : (
+                              <TableCell className="p-4 align-middle text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
+                                {/* Add activity button */}
                                 <Button
                                   onClick={() => setCreatingUnderOKR(okr.id)}
                                   variant="ghost"
@@ -2079,13 +2081,20 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                                   </svg>
                                   Add an activity
                                 </Button>
-                              )}
-                            </TableCell>
+                              </TableCell>
+                            )}
                             
-                            {/* Empty columns to match table structure */}
-                            <TableCell className="p-4"></TableCell>
-                            <TableCell className="p-4"></TableCell>
-                            <TableCell className="p-4"></TableCell>
+                            {/* Empty columns to match table structure - only show when not creating */}
+                            {creatingUnderOKR !== okr.id && (
+                              <>
+                                <TableCell className="p-4"></TableCell>
+                                <TableCell className="p-4"></TableCell>
+                                <TableCell className="p-4"></TableCell>
+                                <TableCell className="p-4"></TableCell>
+                              </>
+                            )}
+                            
+                            {/* Remaining columns */}
                             <TableCell className="p-4"></TableCell>
                             <TableCell className="p-4"></TableCell>
                             <TableCell className="p-4"></TableCell>
