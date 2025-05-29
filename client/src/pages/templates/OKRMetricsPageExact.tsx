@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext } from 'react';
+import React, { useState, useEffect, createContext, useContext } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { queryClient } from '@/lib/queryClient';
 
@@ -44,7 +44,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Tag, X, Edit2, Trash2, MoreHorizontal, Filter, Search, Users, Settings, Share, Eye, EyeOff, Pencil, Calendar, Target, BarChart3, ChevronDown } from 'lucide-react';
+import { Plus, Tag, X, Edit2, Trash2, MoreHorizontal, Filter, Search, Users, Settings, Share, Eye, EyeOff, Pencil, Calendar, Target, BarChart3, ChevronDown, ChevronRight } from 'lucide-react';
 
 // Interfaces
 interface OKRMetric {
@@ -615,109 +615,122 @@ export default function OKRMetricsPage() {
                     />
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Metric
+                    Name
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Progress
+                    Timeframe
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Frequency
+                    Milestone Frequency
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Tags
+                    Target
                   </th>
                   <th className="px-4 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {paginatedMetrics.map((metric: OKRMetric) => {
-                  const progress = metric.target_value 
-                    ? Math.min((metric.realized_value / metric.target_value) * 100, 100)
-                    : 0;
-                  
-                  return (
-                    <tr key={metric.id} className="hover:bg-gray-50">
-                      <td className="px-4 py-4">
-                        <Checkbox
-                          checked={selectedMetrics.includes(metric.id)}
-                          onCheckedChange={(checked) => handleMetricSelect(metric.id, checked as boolean)}
-                        />
-                      </td>
-                      <td className="px-4 py-4">
-                        <div className="flex items-center">
-                          <Avatar className="h-10 w-10 mr-3">
-                            <AvatarFallback className="bg-blue-100 text-blue-600">
-                              {metric.name.substring(0, 2).toUpperCase()}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">{metric.name}</div>
-                            {metric.description && (
-                              <div className="text-sm text-gray-500">{metric.description}</div>
-                            )}
+              <tbody className="bg-white">
+                {(() => {
+                  // Group metrics by tags
+                  const groupedMetrics = paginatedMetrics.reduce((acc: any, metric: OKRMetric) => {
+                    if (metric.tags.length === 0) {
+                      if (!acc['No Tag']) acc['No Tag'] = [];
+                      acc['No Tag'].push(metric);
+                    } else {
+                      metric.tags.forEach((tag: string) => {
+                        if (!acc[tag]) acc[tag] = [];
+                        acc[tag].push(metric);
+                      });
+                    }
+                    return acc;
+                  }, {});
+
+                  return Object.entries(groupedMetrics).map(([tagName, tagMetrics]: [string, any]) => (
+                    <React.Fragment key={tagName}>
+                      {/* Tag Header Row */}
+                      <tr>
+                        <td colSpan={6} className="px-0 py-0">
+                          <div 
+                            className="flex items-center px-4 py-2 text-sm font-medium text-white rounded-sm"
+                            style={{ 
+                              backgroundColor: tagName === 'No Tag' ? '#6B7280' : getTagColor(tagName)
+                            }}
+                          >
+                            <ChevronRight className="w-4 h-4 mr-2" />
+                            {tagName}
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-4">
-                        <div className="flex items-center">
-                          <div className="flex-1">
-                            <div className="flex justify-between text-sm mb-1">
-                              <span>{metric.realized_value}</span>
-                              <span>{metric.target_value || '-'}</span>
-                            </div>
-                            {metric.target_value && (
-                              <div className="w-full bg-gray-200 rounded-full h-2">
-                                <div 
-                                  className="bg-blue-600 h-2 rounded-full" 
-                                  style={{ width: `${Math.min(progress, 100)}%` }}
-                                />
+                        </td>
+                      </tr>
+                      
+                      {/* Metrics under this tag */}
+                      {tagMetrics.map((metric: OKRMetric) => {
+                        const formatTimeframe = () => {
+                          if (metric.timeframe_start && metric.timeframe_end) {
+                            const start = new Date(metric.timeframe_start);
+                            const end = new Date(metric.timeframe_end);
+                            return `${start.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })} - ${end.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}`;
+                          }
+                          return 'Ongoing';
+                        };
+
+                        return (
+                          <tr key={metric.id} className="hover:bg-gray-50 border-b border-gray-100">
+                            <td className="px-4 py-4">
+                              <Checkbox
+                                checked={selectedMetrics.includes(metric.id)}
+                                onCheckedChange={(checked) => handleMetricSelect(metric.id, checked as boolean)}
+                              />
+                            </td>
+                            <td className="px-4 py-4">
+                              <div className="flex items-center pl-6">
+                                <div>
+                                  <div className="text-sm font-medium text-gray-900">{metric.name}</div>
+                                  {metric.description && (
+                                    <div className="text-sm text-gray-500">{metric.description}</div>
+                                  )}
+                                </div>
                               </div>
-                            )}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-4 py-4">
-                        <Badge variant="secondary" className="capitalize">
-                          {metric.frequency}
-                        </Badge>
-                      </td>
-                      <td className="px-4 py-4">
-                        <div className="flex flex-wrap gap-1">
-                          {metric.tags.map((tagName: string) => (
-                            <Badge 
-                              key={tagName} 
-                              variant="secondary"
-                              style={{ 
-                                backgroundColor: `${getTagColor(tagName)}20`,
-                                color: getTagColor(tagName),
-                                borderColor: getTagColor(tagName)
-                              }}
-                            >
-                              {tagName}
-                            </Badge>
-                          ))}
-                        </div>
-                      </td>
-                      <td className="px-4 py-4">
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                              <MoreHorizontal className="w-4 h-4" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem>Edit</DropdownMenuItem>
-                            <DropdownMenuItem>Duplicate</DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
-                      </td>
-                    </tr>
-                  );
-                })}
+                            </td>
+                            <td className="px-4 py-4">
+                              <div className="text-sm text-gray-600">
+                                {formatTimeframe()}
+                              </div>
+                            </td>
+                            <td className="px-4 py-4">
+                              <div className="text-sm text-gray-600 capitalize">
+                                {metric.frequency}
+                              </div>
+                            </td>
+                            <td className="px-4 py-4">
+                              <div className="text-sm text-gray-900">
+                                {metric.target_value || '-'}
+                                {metric.measure_unit === 'percent' && metric.target_value ? '%' : ''}
+                                {metric.measure_unit === 'currency' && metric.target_value ? 'M' : ''}
+                              </div>
+                            </td>
+                            <td className="px-4 py-4">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                    <MoreHorizontal className="w-4 h-4" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem>Edit</DropdownMenuItem>
+                                  <DropdownMenuItem>Duplicate</DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem className="text-red-600">Delete</DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                    </React.Fragment>
+                  ));
+                })()}
               </tbody>
             </table>
           </div>
