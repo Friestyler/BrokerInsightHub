@@ -39,7 +39,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Tag, Edit2, Trash2, MoreHorizontal, Filter, Search, Settings, ChevronRight } from 'lucide-react';
+import { Plus, Tag, Edit2, Trash2, MoreHorizontal, Filter, Search, Settings, ChevronRight, Users, Copy } from 'lucide-react';
 
 // Interfaces
 interface OKRMetric {
@@ -91,6 +91,7 @@ export default function OKRMetricsPage() {
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isTagDialogOpen, setIsTagDialogOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const [groupBy, setGroupBy] = useState('tag');
   const itemsPerPage = 10;
   
   // Tag management state
@@ -123,19 +124,21 @@ export default function OKRMetricsPage() {
     return matchesSearch && matchesFrequency && matchesUnit;
   });
 
-  // Group metrics by tags
-  const groupedMetrics = displayMetrics.reduce((acc: any, metric: OKRMetric) => {
-    if (metric.tags.length === 0) {
-      if (!acc['No Tag']) acc['No Tag'] = [];
-      acc['No Tag'].push(metric);
-    } else {
-      metric.tags.forEach((tag: string) => {
-        if (!acc[tag]) acc[tag] = [];
-        acc[tag].push(metric);
-      });
-    }
-    return acc;
-  }, {});
+  // Group metrics by tags or none
+  const groupedMetrics = groupBy === 'tag' 
+    ? displayMetrics.reduce((acc: any, metric: OKRMetric) => {
+        if (metric.tags.length === 0) {
+          if (!acc['No Tag']) acc['No Tag'] = [];
+          acc['No Tag'].push(metric);
+        } else {
+          metric.tags.forEach((tag: string) => {
+            if (!acc[tag]) acc[tag] = [];
+            acc[tag].push(metric);
+          });
+        }
+        return acc;
+      }, {})
+    : { 'All Metrics': displayMetrics };
 
   // Create metric mutation
   const createMetricMutation = useMutation({
@@ -276,6 +279,43 @@ export default function OKRMetricsPage() {
             </div>
           </div>
 
+          {/* Group By */}
+          <div className="flex items-center space-x-2 mb-6">
+            <span className="text-sm text-gray-600">Group by:</span>
+            <Select value={groupBy} onValueChange={setGroupBy}>
+              <SelectTrigger className="w-32">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="tag">Tag</SelectItem>
+                <SelectItem value="none">None</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Selection Bar */}
+          {selectedMetrics.length > 0 && (
+            <div className="flex items-center space-x-4 p-4 bg-blue-50 border border-blue-200 rounded-lg mb-6">
+              <span className="text-sm font-medium text-blue-900">
+                {selectedMetrics.length} OKR selected
+              </span>
+              <div className="flex items-center space-x-2">
+                <Button variant="outline" size="sm" className="border-blue-300 text-blue-700 hover:bg-blue-100">
+                  <Users className="w-4 h-4 mr-2" />
+                  Assign to entity
+                </Button>
+                <Button variant="outline" size="sm" className="border-blue-300 text-blue-700 hover:bg-blue-100">
+                  <Copy className="w-4 h-4 mr-2" />
+                  Duplicate
+                </Button>
+                <Button variant="outline" size="sm" className="border-red-300 text-red-700 hover:bg-red-100">
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Delete
+                </Button>
+              </div>
+            </div>
+          )}
+
           {/* Metrics Table */}
           <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
             <div className="overflow-x-auto">
@@ -305,35 +345,37 @@ export default function OKRMetricsPage() {
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-white">
                   {Object.entries(groupedMetrics).map(([tagName, tagMetrics]: [string, any], groupIndex) => [
-                    // Tag Header Row
-                    <tr key={`header-${tagName}-${groupIndex}`} className="bg-gray-50">
-                      <td colSpan={6} className="px-6 py-2">
-                        <span 
-                          className="inline-block px-3 py-1 text-sm font-medium rounded-full"
-                          style={{ 
-                            backgroundColor: tagName === 'Customer Success' ? '#d1fae5' : 
-                                           tagName === 'Market Expansion' ? '#fef3c7' : 
-                                           tagName === 'Product Innovation' ? '#dbeafe' : '#f3f4f6',
-                            color: tagName === 'Customer Success' ? '#065f46' : 
-                                   tagName === 'Market Expansion' ? '#92400e' : 
-                                   tagName === 'Product Innovation' ? '#1e40af' : '#374151'
-                          }}
-                        >
-                          {tagName}
-                        </span>
-                      </td>
-                    </tr>,
-                    // Column Headers for this group
-                    <tr key={`subheader-${tagName}-${groupIndex}`} className="bg-white border-b border-gray-200">
-                      <td className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12"></td>
-                      <td className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</td>
-                      <td className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Timeframe</td>
-                      <td className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Milestone Frequency</td>
-                      <td className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Target</td>
-                      <td className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</td>
-                    </tr>,
+                    // Tag Header Row (only show for tag grouping)
+                    ...(groupBy === 'tag' ? [
+                      <tr key={`header-${tagName}-${groupIndex}`} className="border-b border-gray-200">
+                        <td colSpan={6} className="px-6 py-3 bg-gray-50">
+                          <span 
+                            className="inline-block px-3 py-1 text-sm font-medium rounded-full"
+                            style={{ 
+                              backgroundColor: tagName === 'Customer Success' ? '#d1fae5' : 
+                                             tagName === 'Market Expansion' ? '#fef3c7' : 
+                                             tagName === 'Product Innovation' ? '#dbeafe' : '#f3f4f6',
+                              color: tagName === 'Customer Success' ? '#065f46' : 
+                                     tagName === 'Market Expansion' ? '#92400e' : 
+                                     tagName === 'Product Innovation' ? '#1e40af' : '#374151'
+                            }}
+                          >
+                            {tagName}
+                          </span>
+                        </td>
+                      </tr>,
+                      // Column Headers for this group
+                      <tr key={`subheader-${tagName}-${groupIndex}`} className="border-b border-gray-200 bg-gray-50">
+                        <td className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-12"></td>
+                        <td className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</td>
+                        <td className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Timeframe</td>
+                        <td className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Milestone Frequency</td>
+                        <td className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Target</td>
+                        <td className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</td>
+                      </tr>
+                    ] : []),
                     // Metrics under this tag
                     ...tagMetrics.map((metric: OKRMetric, metricIndex: number) => {
                       const formatTimeframe = () => {
@@ -345,15 +387,19 @@ export default function OKRMetricsPage() {
                         return 'Ongoing';
                       };
 
+                      const isLastInGroup = metricIndex === tagMetrics.length - 1;
+                      const isLastGroup = groupIndex === Object.keys(groupedMetrics).length - 1;
+
                       return (
-                        <tr key={`metric-${metric.id}-${tagName}-${metricIndex}`} className="hover:bg-gray-50">
+                        <tr key={`metric-${metric.id}-${tagName}-${metricIndex}`} 
+                            className={`hover:bg-gray-50 ${!isLastInGroup || !isLastGroup ? 'border-b border-gray-100' : ''}`}>
                           <td className="px-6 py-4 whitespace-nowrap">
                             <Checkbox
                               checked={selectedMetrics.includes(metric.id)}
                               onCheckedChange={(checked) => handleMetricSelect(metric.id, checked as boolean)}
                             />
                           </td>
-                          <td className="px-6 py-4 whitespace-nowrap">
+                          <td className="px-6 py-4">
                             <div className="text-sm font-medium text-gray-900">{metric.name}</div>
                             {metric.description && (
                               <div className="text-sm text-gray-500">{metric.description}</div>
