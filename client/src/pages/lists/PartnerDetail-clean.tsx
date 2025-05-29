@@ -322,7 +322,7 @@ export default function PartnerDetailClean() {
                         {tagMetrics.map((metric: any) => (
                           <TableRow key={metric.id} className="group border-b border-gray-100 hover:bg-gray-50">
                             <TableCell>
-                              <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                              <div className={`transition-opacity ${selectedMetrics.includes(metric.id) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
                                 <Checkbox
                                   checked={selectedMetrics.includes(metric.id)}
                                   onCheckedChange={(checked) => handleMetricSelect(metric.id, checked as boolean)}

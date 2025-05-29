@@ -444,7 +444,7 @@ export default function OKRMetricsPage() {
                         <tr key={`metric-${metric.id}-${tagName}-${metricIndex}`} 
                             className={`group hover:bg-gray-50 ${!isLastInGroup || !isLastGroup ? 'border-b border-gray-100' : ''}`}>
                           <td className="px-6 py-4 whitespace-nowrap">
-                            <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className={`transition-opacity ${selectedMetrics.includes(metric.id) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
                               <Checkbox
                                 checked={selectedMetrics.includes(metric.id)}
                                 onCheckedChange={(checked) => handleMetricSelect(metric.id, checked as boolean)}
