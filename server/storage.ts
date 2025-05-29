@@ -4,7 +4,7 @@ import { neon } from '@neondatabase/serverless';
 import {
   users, newsArticles, clients, insuranceProducts, clientProducts, opportunities,
   documents, fileComparisons, customers, customerTeamMembers, customerPartners,
-  vendors, products, okrMetrics,
+  vendors, products, okrMetrics, okrTags,
   type User, type InsertUser,
   type NewsArticle, type InsertNewsArticle,
   type Client, type InsertClient,
@@ -18,7 +18,8 @@ import {
   type CustomerPartner, type InsertCustomerPartner,
   type Vendor, type InsertVendor,
   type Product, type InsertProduct,
-  type OkrMetric, type InsertOkrMetric
+  type OkrMetric, type InsertOkrMetric,
+  type OkrTag, type InsertOkrTag
 } from '../shared/schema';
 
 export interface ClientWithDetails extends Client {
@@ -95,6 +96,13 @@ export interface IStorage {
   createProduct(product: InsertProduct): Promise<Product>;
   getVendorProducts(vendorId: number): Promise<Product[]>;
   
+  // OKR Tags operations
+  getAllOkrTags(): Promise<OkrTag[]>;
+  getOkrTag(id: number): Promise<OkrTag | undefined>;
+  createOkrTag(tag: InsertOkrTag): Promise<OkrTag>;
+  updateOkrTag(id: number, updates: Partial<InsertOkrTag>): Promise<OkrTag | undefined>;
+  deleteOkrTag(id: number): Promise<boolean>;
+  
   // OKR Metrics operations
   getAllOkrMetrics(): Promise<OkrMetric[]>;
   getOkrMetric(id: number): Promise<OkrMetric | undefined>;
@@ -117,7 +125,7 @@ export class DatabaseStorage implements IStorage {
         schema: { 
           users, newsArticles, clients, insuranceProducts, clientProducts, opportunities,
           documents, fileComparisons, customers, customerTeamMembers, customerPartners,
-          vendors, products, okrMetrics
+          vendors, products, okrMetrics, okrTags
         }
       });
     }

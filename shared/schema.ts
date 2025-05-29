@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, json, numeric } from "drizzle-orm/pg-core";
+import { pgTable, text, varchar, serial, integer, boolean, timestamp, json, numeric, date } from "drizzle-orm/pg-core";
 import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
@@ -349,6 +349,15 @@ export { customerTeamMembers as contacts };
 export type Contact = CustomerTeamMember;
 export type InsertContact = InsertCustomerTeamMember;
 
+// OKR tags schema
+export const okrTags = pgTable("okr_tags", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 100 }).notNull().unique(),
+  color: varchar("color", { length: 20 }).notNull().default("#3B82F6"),
+  created_at: timestamp("created_at").defaultNow(),
+  updated_at: timestamp("updated_at").defaultNow()
+});
+
 // OKR templates schema
 export const okrMetrics = pgTable("okr_metrics", {
   id: serial("id").primaryKey(),
@@ -388,6 +397,11 @@ export const okrMetricsRelations = relations(okrMetrics, ({ one }) => ({
   }),
 }));
 
+export const insertOkrTagSchema = createInsertSchema(okrTags).pick({
+  name: true,
+  color: true,
+});
+
 export const insertOkrMetricSchema = createInsertSchema(okrMetrics).pick({
   name: true,
   description: true,
@@ -411,6 +425,9 @@ export const insertOkrMetricSchema = createInsertSchema(okrMetrics).pick({
   tags: true,
   created_by: true,
 });
+
+export type InsertOkrTag = z.infer<typeof insertOkrTagSchema>;
+export type OkrTag = typeof okrTags.$inferSelect;
 
 export type InsertOkrMetric = z.infer<typeof insertOkrMetricSchema>;
 export type OkrMetric = typeof okrMetrics.$inferSelect;
