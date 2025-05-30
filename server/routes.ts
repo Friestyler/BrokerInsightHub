@@ -1456,7 +1456,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     [cellValue, `Customer created from ${fileName}`]
                   );
                   customer = insertResult.rows[0];
-                  entitiesCreated++;
+                  entityStats.customers++;
                 }
                 customerId = customer.id;
               
@@ -1474,7 +1474,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                     [cellValue, `Partner created from ${fileName}`]
                   );
                   partner = insertResult.rows[0];
-                  entitiesCreated++;
+                  entityStats.partners++;
                 }
                 partnerId = partner.id;
               
@@ -1490,7 +1490,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                      VALUES ($1, $2, NOW(), NOW())`,
                     [cellValue, `Vendor created from ${fileName}`]
                   );
-                  entitiesCreated++;
+                  entityStats.vendors++;
                 }
               
               } else if (mapping.entityType === 'product') {
@@ -1505,7 +1505,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                      VALUES ($1, $2, $3, NOW(), NOW())`,
                     [cellValue, `Product created from ${fileName}`, 'imported']
                   );
-                  entitiesCreated++;
+                  entityStats.products++;
                 }
               
               } else if (mapping.entityType === 'user') {
@@ -1530,7 +1530,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                        VALUES ($1, $2, $3, $4, $5, NOW(), NOW())`,
                       [userData.username, userData.email, userData.first_name, userData.last_name, userData.is_active]
                     );
-                    entitiesCreated++;
+                    entityStats.users++;
                   }
                 }
               
@@ -1558,7 +1558,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                        VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())`,
                       [contactData.first_name, contactData.last_name, contactData.email, contactData.phone, contactData.company, contactData.position]
                     );
-                    entitiesCreated++;
+                    entityStats.contacts++;
                   }
                 } else {
                   // Create contact without email check
@@ -1567,7 +1567,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
                      VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())`,
                     [contactData.first_name, contactData.last_name, contactData.email, contactData.phone, contactData.company, contactData.position]
                   );
-                  entitiesCreated++;
+                  entityStats.contacts++;
                 }
               }
               
