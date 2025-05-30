@@ -308,19 +308,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
 
 
-  // Vendors API - Returns data from clean vendors_clean table
+  // Vendors API - Returns data from myqollabi schema
   app.get('/api/vendors', async (req, res) => {
     try {
-      const result = await db.execute(sql`SELECT * FROM public.vendors_clean ORDER BY id`);
+      console.log('Fetching vendors from myqollabi schema...');
+      const result = await db.execute(sql`SELECT * FROM myqollabi.vendors ORDER BY id`);
       
       const vendors = result.rows.map((vendor: any) => ({
         id: vendor.id,
         name: vendor.name,
         description: vendor.description,
+        location: vendor.location,
+        contactEmail: vendor.contact_email,
+        contactPhone: vendor.contact_phone,
+        website: vendor.website,
         createdAt: vendor.created_at,
         updatedAt: vendor.updated_at
       }));
       
+      console.log(`Returning ${vendors.length} vendors from myqollabi schema`);
       res.json(vendors);
     } catch (error) {
       console.error('Error fetching vendors:', error);
@@ -346,42 +352,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.post('/api/vendors', async (req, res) => {
     try {
-      // Validate the request body
-      const { name, description, contactName, contactEmail, contactPhone, ownerId } = req.body;
+      console.log('Vendor creation request body:', req.body);
+      
+      // Validate the request body with all vendor fields
+      const { 
+        name, 
+        description, 
+        location,
+        contactEmail,
+        contactPhone,
+        website
+      } = req.body;
       
       if (!name || !description) {
         return res.status(400).json({ message: 'Name and description are required' });
       }
       
-      const vendor = await storage.createVendor({
-        name,
-        description,
-        contactName,
-        contactEmail,
-        contactPhone,
-        ownerId: ownerId || null
-      });
+      console.log('Executing vendor insert query...');
       
+      // Insert into myqollabi.vendors table with all available fields
+      const result = await db.execute(sql`
+        INSERT INTO myqollabi.vendors (
+          name, description, location, contact_email, contact_phone, website,
+          created_at, updated_at
+        ) VALUES (
+          ${name}, ${description}, ${location || null}, ${contactEmail || null}, 
+          ${contactPhone || null}, ${website || null}, NOW(), NOW()
+        ) RETURNING *
+      `);
+      
+      console.log('Vendor insert result:', result.rows[0]);
+      const vendor = result.rows[0];
       res.status(201).json(vendor);
     } catch (error) {
-      console.error('Error creating vendor:', error);
+      console.error('Detailed error creating vendor:', error);
       res.status(500).json({ message: 'Failed to create vendor' });
     }
   });
   
-  // Products API - Returns data from clean products_clean table
+  // Products API - Returns data from myqollabi schema
   app.get('/api/products', async (req, res) => {
     try {
-      const result = await db.execute(sql`SELECT * FROM public.products_clean ORDER BY id`);
+      console.log('Fetching products from myqollabi schema...');
+      const result = await db.execute(sql`SELECT * FROM myqollabi.products ORDER BY id`);
       
       const products = result.rows.map((product: any) => ({
         id: product.id,
         name: product.name,
         description: product.description,
+        category: product.category,
+        sku: product.sku,
+        price: product.price,
+        vendorId: product.vendor_id,
         createdAt: product.created_at,
         updatedAt: product.updated_at
       }));
       
+      console.log(`Returning ${products.length} products from myqollabi schema`);
       res.json(products);
     } catch (error) {
       console.error('Error fetching products:', error);
@@ -407,25 +434,40 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
   app.post('/api/products', async (req, res) => {
     try {
-      // Validate the request body
-      const { name, description, category, sku, price, vendorId } = req.body;
+      console.log('Product creation request body:', req.body);
+      
+      // Validate the request body with all product fields
+      const { 
+        name, 
+        description, 
+        category, 
+        sku, 
+        price, 
+        vendorId 
+      } = req.body;
       
       if (!name || !description || !category || !vendorId) {
-        return res.status(400).json({ message: 'Name, description, category, and vendorId are required' });
+        return res.status(400).json({ message: 'Name, description, category, and vendor are required' });
       }
       
-      const product = await storage.createProduct({
-        name,
-        description,
-        category,
-        sku,
-        price,
-        vendorId
-      });
+      console.log('Executing product insert query...');
       
+      // Insert into myqollabi.products table with all available fields
+      const result = await db.execute(sql`
+        INSERT INTO myqollabi.products (
+          name, description, category, sku, price, vendor_id,
+          created_at, updated_at
+        ) VALUES (
+          ${name}, ${description}, ${category}, ${sku || null}, 
+          ${price || null}, ${parseInt(vendorId)}, NOW(), NOW()
+        ) RETURNING *
+      `);
+      
+      console.log('Product insert result:', result.rows[0]);
+      const product = result.rows[0];
       res.status(201).json(product);
     } catch (error) {
-      console.error('Error creating product:', error);
+      console.error('Detailed error creating product:', error);
       res.status(500).json({ message: 'Failed to create product' });
     }
   });
