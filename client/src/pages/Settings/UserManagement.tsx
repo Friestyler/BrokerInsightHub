@@ -56,7 +56,11 @@ export default function UserManagement() {
 
   const loadUsers = async () => {
     try {
-      const response = await fetch(`/api/${environment.id}/users`);
+      const response = await fetch('/api/users', {
+        headers: {
+          'x-environment-id': environment.id
+        }
+      });
       if (response.ok) {
         const data = await response.json();
         setUsers(data);
@@ -80,17 +84,32 @@ export default function UserManagement() {
 
     try {
       const url = editingUser 
-        ? `/api/${environment.id}/users/${editingUser.id}` 
-        : `/api/${environment.id}/users`;
+        ? `/api/users/${editingUser.id}` 
+        : `/api/users`;
       
       const method = editingUser ? 'PUT' : 'POST';
+      
+      // Map form data to backend schema
+      const userData = {
+        username: formData.email, // Use email as username
+        email: formData.email,
+        password: 'defaultpass123', // Default password for new users
+        fullName: formData.name,
+        firstName: formData.name.split(' ')[0],
+        lastName: formData.name.split(' ').slice(1).join(' '),
+        avatarInitials: formData.name.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase(),
+        role: formData.role,
+        department: formData.department,
+        isActive: true
+      };
       
       const response = await fetch(url, {
         method,
         headers: {
           'Content-Type': 'application/json',
+          'x-environment-id': environment.id
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(userData),
       });
 
       if (response.ok) {
@@ -130,8 +149,11 @@ export default function UserManagement() {
     if (!confirm('Are you sure you want to delete this user?')) return;
 
     try {
-      const response = await fetch(`/api/${environment.id}/users/${userId}`, {
+      const response = await fetch(`/api/users/${userId}`, {
         method: 'DELETE',
+        headers: {
+          'x-environment-id': environment.id
+        }
       });
 
       if (response.ok) {

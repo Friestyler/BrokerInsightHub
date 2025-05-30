@@ -36,6 +36,14 @@ const schemaInfo = {
     okr_tags: {
       columns: ['id', 'name', 'color', 'created_at', 'updated_at'],
       relationships: ['Referenced by okr_metrics.tags JSON array']
+    },
+    users: {
+      columns: ['id', 'username', 'email', 'password', 'full_name', 'first_name', 'last_name', 'avatar_initials', 'role', 'department', 'is_active', 'last_login_at', 'created_at', 'updated_at'],
+      relationships: ['Links to okr_metrics via responsible_user_id', 'Authentication and user management']
+    },
+    contacts: {
+      columns: ['id', 'first_name', 'last_name', 'email', 'phone', 'company', 'position', 'linked_entity_type', 'linked_entity_id', 'notes', 'is_active', 'created_at', 'updated_at'],
+      relationships: ['Polymorphic links to any entity via linked_entity_type/linked_entity_id', 'Links to okr_metrics via responsible_contact_id']
     }
   }
 };
@@ -82,7 +90,19 @@ const apiEndpoints = {
     { method: 'POST', path: '/api/vendors', description: 'Create new vendor' },
     { method: 'POST', path: '/api/products', description: 'Create new product' },
     { method: 'PUT', path: '/api/opportunities/:id', description: 'Update existing opportunity' },
-    { method: 'DELETE', path: '/api/opportunities/:id', description: 'Delete opportunity' }
+    { method: 'DELETE', path: '/api/opportunities/:id', description: 'Delete opportunity' },
+    { method: 'GET', path: '/api/users', description: 'Get all active users (requires x-environment-id header)' },
+    { method: 'GET', path: '/api/users/:id', description: 'Get specific user by ID' },
+    { method: 'POST', path: '/api/users', description: 'Create new user with role and department' },
+    { method: 'PUT', path: '/api/users/:id', description: 'Update existing user' },
+    { method: 'DELETE', path: '/api/users/:id', description: 'Soft delete user (deactivate)' },
+    { method: 'GET', path: '/api/contacts', description: 'Get all contacts with optional entity filtering' },
+    { method: 'GET', path: '/api/contacts/:id', description: 'Get specific contact by ID' },
+    { method: 'POST', path: '/api/contacts', description: 'Create new contact with entity linking' },
+    { method: 'PUT', path: '/api/contacts/:id', description: 'Update existing contact' },
+    { method: 'DELETE', path: '/api/contacts/:id', description: 'Soft delete contact (deactivate)' },
+    { method: 'POST', path: '/api/contacts/:id/link', description: 'Link contact to specific entity' },
+    { method: 'GET', path: '/api/entities/:entityType/:entityId/contacts', description: 'Get contacts for specific entity' }
   ],
   environments: [
     { method: 'GET', path: '/api/degoudse/partners', description: 'Get partners from De Goudse environment' },
