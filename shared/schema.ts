@@ -3,13 +3,45 @@ import { relations } from "drizzle-orm";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
-// User model
+// Enhanced User model with comprehensive user management
 export const users = pgTable("users", {
   id: serial("id").primaryKey(),
   username: text("username").notNull().unique(),
+  email: text("email").notNull().unique(),
   password: text("password").notNull(),
   fullName: text("full_name").notNull(),
+  firstName: text("first_name"),
+  lastName: text("last_name"),
   avatarInitials: text("avatar_initials").notNull(),
+  role: text("role").notNull().default("user"), // admin, manager, user, viewer
+  department: text("department"),
+  jobTitle: text("job_title"),
+  phone: text("phone"),
+  isActive: boolean("is_active").notNull().default(true),
+  lastLoginAt: timestamp("last_login_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Contact model - can be linked to any entity
+export const contacts = pgTable("contacts", {
+  id: serial("id").primaryKey(),
+  firstName: text("first_name").notNull(),
+  lastName: text("last_name").notNull(),
+  fullName: text("full_name").notNull(),
+  email: text("email"),
+  phone: text("phone"),
+  jobTitle: text("job_title"),
+  department: text("department"),
+  company: text("company"),
+  linkedEntityType: text("linked_entity_type"), // partner, customer, vendor, opportunity
+  linkedEntityId: integer("linked_entity_id"),
+  isPrimary: boolean("is_primary").notNull().default(false),
+  notes: text("notes"),
+  tags: text("tags").array(),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
 // News article model
@@ -135,6 +167,21 @@ export const opportunitiesRelations = relations(opportunities, ({ one }) => ({
   }),
 }));
 
+// User relations
+export const usersRelations = relations(users, ({ many }) => ({
+  ownedCustomers: many(customers, { relationName: "customerOwner" }),
+  createdCampaigns: many(campaigns),
+  okrComments: many(okrComments),
+  assignedTemplates: many(okrTemplateAssignments, { relationName: "assignedByUser" }),
+  responsibleTemplates: many(okrTemplateAssignments, { relationName: "responsibleUser" }),
+}));
+
+// Contact relations
+export const contactsRelations = relations(contacts, ({ many }) => ({
+  campaignRecipients: many(campaignRecipients),
+  okrComments: many(okrComments),
+}));
+
 export const customersRelations = relations(customers, ({ one, many }) => ({
   owner: one(users, {
     fields: [customers.ownerId],
@@ -149,9 +196,34 @@ export const customersRelations = relations(customers, ({ one, many }) => ({
 // Insert schemas
 export const insertUserSchema = createInsertSchema(users).pick({
   username: true,
+  email: true,
   password: true,
   fullName: true,
+  firstName: true,
+  lastName: true,
   avatarInitials: true,
+  role: true,
+  department: true,
+  jobTitle: true,
+  phone: true,
+  isActive: true,
+});
+
+export const insertContactSchema = createInsertSchema(contacts).pick({
+  firstName: true,
+  lastName: true,
+  fullName: true,
+  email: true,
+  phone: true,
+  jobTitle: true,
+  department: true,
+  company: true,
+  linkedEntityType: true,
+  linkedEntityId: true,
+  isPrimary: true,
+  notes: true,
+  tags: true,
+  isActive: true,
 });
 
 export const insertNewsArticleSchema = createInsertSchema(newsArticles).pick({
@@ -309,6 +381,9 @@ export const insertSavedViewSchema = createInsertSchema(savedViews).pick({
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
 
+export type InsertContact = z.infer<typeof insertContactSchema>;
+export type Contact = typeof contacts.$inferSelect;
+
 export type InsertNewsArticle = z.infer<typeof insertNewsArticleSchema>;
 export type NewsArticle = typeof newsArticles.$inferSelect;
 
@@ -419,8 +494,7 @@ export { opportunities as projects };
 export type Project = Opportunity;
 export type InsertProject = InsertOpportunity;
 
-export { customerTeamMembers as contacts };
-export type Contact = CustomerTeamMember;
+// Remove old contact alias - we now have a proper contacts table above
 export type InsertContact = InsertCustomerTeamMember;
 
 // OKR tags schema

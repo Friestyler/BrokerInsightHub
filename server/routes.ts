@@ -2071,6 +2071,360 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // User Management API endpoints
+  app.get('/api/users', async (req, res) => {
+    try {
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      
+      const result = await db.execute(sql`
+        SELECT id, username, email, full_name, first_name, last_name, 
+               avatar_initials, role, department, job_title, phone, 
+               is_active, last_login_at, created_at, updated_at
+        FROM ${sql.identifier(envId as string)}.users 
+        WHERE is_active = true
+        ORDER BY full_name ASC
+      `);
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      res.status(500).json({ error: 'Failed to fetch users' });
+    }
+  });
+
+  app.get('/api/users/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      
+      const result = await db.execute(sql`
+        SELECT id, username, email, full_name, first_name, last_name, 
+               avatar_initials, role, department, job_title, phone, 
+               is_active, last_login_at, created_at, updated_at
+        FROM ${sql.identifier(envId as string)}.users 
+        WHERE id = ${id}
+      `);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error fetching user:', error);
+      res.status(500).json({ error: 'Failed to fetch user' });
+    }
+  });
+
+  app.post('/api/users', async (req, res) => {
+    try {
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      const { 
+        username, email, password, fullName, firstName, lastName, 
+        avatarInitials, role, department, jobTitle, phone, isActive 
+      } = req.body;
+      
+      const result = await db.execute(sql`
+        INSERT INTO ${sql.identifier(envId as string)}.users (
+          username, email, password, full_name, first_name, last_name,
+          avatar_initials, role, department, job_title, phone, is_active,
+          created_at, updated_at
+        ) VALUES (
+          ${username}, ${email}, ${password}, ${fullName}, ${firstName || null}, 
+          ${lastName || null}, ${avatarInitials}, ${role || 'user'}, 
+          ${department || null}, ${jobTitle || null}, ${phone || null}, 
+          ${isActive !== false}, NOW(), NOW()
+        ) RETURNING id, username, email, full_name, first_name, last_name, 
+                   avatar_initials, role, department, job_title, phone, 
+                   is_active, created_at, updated_at
+      `);
+      
+      res.status(201).json(result.rows[0]);
+    } catch (error) {
+      console.error('Error creating user:', error);
+      res.status(500).json({ error: 'Failed to create user' });
+    }
+  });
+
+  app.put('/api/users/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      const { 
+        username, email, fullName, firstName, lastName, avatarInitials, 
+        role, department, jobTitle, phone, isActive 
+      } = req.body;
+      
+      const result = await db.execute(sql`
+        UPDATE ${sql.identifier(envId as string)}.users 
+        SET 
+          username = ${username},
+          email = ${email},
+          full_name = ${fullName},
+          first_name = ${firstName || null},
+          last_name = ${lastName || null},
+          avatar_initials = ${avatarInitials},
+          role = ${role},
+          department = ${department || null},
+          job_title = ${jobTitle || null},
+          phone = ${phone || null},
+          is_active = ${isActive !== false},
+          updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING id, username, email, full_name, first_name, last_name, 
+                 avatar_initials, role, department, job_title, phone, 
+                 is_active, created_at, updated_at
+      `);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error updating user:', error);
+      res.status(500).json({ error: 'Failed to update user' });
+    }
+  });
+
+  app.delete('/api/users/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      
+      // Soft delete - set is_active to false
+      const result = await db.execute(sql`
+        UPDATE ${sql.identifier(envId as string)}.users 
+        SET is_active = false, updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING id
+      `);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+      
+      res.json({ message: 'User deactivated successfully' });
+    } catch (error) {
+      console.error('Error deactivating user:', error);
+      res.status(500).json({ error: 'Failed to deactivate user' });
+    }
+  });
+
+  // Contact Management API endpoints
+  app.get('/api/contacts', async (req, res) => {
+    try {
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      const { linkedEntityType, linkedEntityId } = req.query;
+      
+      let queryConditions = sql`WHERE is_active = true`;
+      if (linkedEntityType) {
+        queryConditions = sql`WHERE is_active = true AND linked_entity_type = ${linkedEntityType as string}`;
+        if (linkedEntityId) {
+          queryConditions = sql`WHERE is_active = true AND linked_entity_type = ${linkedEntityType as string} AND linked_entity_id = ${parseInt(linkedEntityId as string)}`;
+        }
+      }
+      
+      const result = await db.execute(sql`
+        SELECT id, first_name, last_name, full_name, email, phone, 
+               job_title, department, company, linked_entity_type, 
+               linked_entity_id, is_primary, notes, tags, is_active, 
+               created_at, updated_at
+        FROM ${sql.identifier(envId as string)}.contacts 
+        ${queryConditions}
+        ORDER BY full_name ASC
+      `);
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching contacts:', error);
+      res.status(500).json({ error: 'Failed to fetch contacts' });
+    }
+  });
+
+  app.get('/api/contacts/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      
+      const result = await db.execute(sql`
+        SELECT id, first_name, last_name, full_name, email, phone, 
+               job_title, department, company, linked_entity_type, 
+               linked_entity_id, is_primary, notes, tags, is_active, 
+               created_at, updated_at
+        FROM ${sql.identifier(envId as string)}.contacts 
+        WHERE id = ${id}
+      `);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Contact not found' });
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error fetching contact:', error);
+      res.status(500).json({ error: 'Failed to fetch contact' });
+    }
+  });
+
+  app.post('/api/contacts', async (req, res) => {
+    try {
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      const { 
+        firstName, lastName, fullName, email, phone, jobTitle, 
+        department, company, linkedEntityType, linkedEntityId, 
+        isPrimary, notes, tags, isActive 
+      } = req.body;
+      
+      const result = await db.execute(sql`
+        INSERT INTO ${sql.identifier(envId as string)}.contacts (
+          first_name, last_name, full_name, email, phone, job_title,
+          department, company, linked_entity_type, linked_entity_id,
+          is_primary, notes, tags, is_active, created_at, updated_at
+        ) VALUES (
+          ${firstName}, ${lastName}, ${fullName}, ${email || null}, 
+          ${phone || null}, ${jobTitle || null}, ${department || null}, 
+          ${company || null}, ${linkedEntityType || null}, 
+          ${linkedEntityId || null}, ${isPrimary || false}, 
+          ${notes || null}, ${tags ? `{${tags.join(',')}}` : '{}'},
+          ${isActive !== false}, NOW(), NOW()
+        ) RETURNING id, first_name, last_name, full_name, email, phone, 
+                   job_title, department, company, linked_entity_type, 
+                   linked_entity_id, is_primary, notes, tags, is_active, 
+                   created_at, updated_at
+      `);
+      
+      res.status(201).json(result.rows[0]);
+    } catch (error) {
+      console.error('Error creating contact:', error);
+      res.status(500).json({ error: 'Failed to create contact' });
+    }
+  });
+
+  app.put('/api/contacts/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      const { 
+        firstName, lastName, fullName, email, phone, jobTitle, 
+        department, company, linkedEntityType, linkedEntityId, 
+        isPrimary, notes, tags, isActive 
+      } = req.body;
+      
+      const result = await db.execute(sql`
+        UPDATE ${sql.identifier(envId as string)}.contacts 
+        SET 
+          first_name = ${firstName},
+          last_name = ${lastName},
+          full_name = ${fullName},
+          email = ${email || null},
+          phone = ${phone || null},
+          job_title = ${jobTitle || null},
+          department = ${department || null},
+          company = ${company || null},
+          linked_entity_type = ${linkedEntityType || null},
+          linked_entity_id = ${linkedEntityId || null},
+          is_primary = ${isPrimary || false},
+          notes = ${notes || null},
+          tags = ${tags ? `{${tags.join(',')}}` : '{}'},
+          is_active = ${isActive !== false},
+          updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING id, first_name, last_name, full_name, email, phone, 
+                 job_title, department, company, linked_entity_type, 
+                 linked_entity_id, is_primary, notes, tags, is_active, 
+                 created_at, updated_at
+      `);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Contact not found' });
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error updating contact:', error);
+      res.status(500).json({ error: 'Failed to update contact' });
+    }
+  });
+
+  app.delete('/api/contacts/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      
+      // Soft delete - set is_active to false
+      const result = await db.execute(sql`
+        UPDATE ${sql.identifier(envId as string)}.contacts 
+        SET is_active = false, updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING id
+      `);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Contact not found' });
+      }
+      
+      res.json({ message: 'Contact deactivated successfully' });
+    } catch (error) {
+      console.error('Error deactivating contact:', error);
+      res.status(500).json({ error: 'Failed to deactivate contact' });
+    }
+  });
+
+  // Link contacts to entities
+  app.post('/api/contacts/:id/link', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      const { linkedEntityType, linkedEntityId, isPrimary } = req.body;
+      
+      const result = await db.execute(sql`
+        UPDATE ${sql.identifier(envId as string)}.contacts 
+        SET 
+          linked_entity_type = ${linkedEntityType},
+          linked_entity_id = ${linkedEntityId},
+          is_primary = ${isPrimary || false},
+          updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING id, first_name, last_name, full_name, linked_entity_type, 
+                 linked_entity_id, is_primary
+      `);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Contact not found' });
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error linking contact:', error);
+      res.status(500).json({ error: 'Failed to link contact' });
+    }
+  });
+
+  // Get contacts for specific entity
+  app.get('/api/entities/:entityType/:entityId/contacts', async (req, res) => {
+    try {
+      const { entityType, entityId } = req.params;
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      
+      const result = await db.execute(sql`
+        SELECT id, first_name, last_name, full_name, email, phone, 
+               job_title, department, company, is_primary, notes, tags, 
+               created_at, updated_at
+        FROM ${sql.identifier(envId as string)}.contacts 
+        WHERE linked_entity_type = ${entityType} 
+          AND linked_entity_id = ${parseInt(entityId)} 
+          AND is_active = true
+        ORDER BY is_primary DESC, full_name ASC
+      `);
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching entity contacts:', error);
+      res.status(500).json({ error: 'Failed to fetch entity contacts' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
