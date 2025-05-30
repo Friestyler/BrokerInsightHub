@@ -133,7 +133,10 @@ export default function CustomersPageClean() {
     const matchesSize = activeFilters.size.length === 0 || activeFilters.size.includes(customer.size);
     const matchesStatus = activeFilters.status.length === 0 || activeFilters.status.includes(customer.status || 'active');
     
-    return matchesSearch && matchesIndustry && matchesSize && matchesStatus;
+    // Apply list filtering if an active list is selected
+    const matchesList = !activeList || (activeList.members && activeList.members.includes(customer.id));
+    
+    return matchesSearch && matchesIndustry && matchesSize && matchesStatus && matchesList;
   });
 
   // Handle customer selection
