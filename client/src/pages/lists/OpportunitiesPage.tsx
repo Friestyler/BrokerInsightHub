@@ -75,6 +75,35 @@ const useCreateSavedList = () => {
   });
 };
 
+const useSavedViews = () => {
+  return useQuery({
+    queryKey: ['/api/saved-views', 'opportunities'],
+    queryFn: async () => {
+      const response = await fetch('/api/saved-views?entity_type=opportunities');
+      if (!response.ok) throw new Error('Failed to fetch saved views');
+      return response.json();
+    }
+  });
+};
+
+const useCreateSavedView = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (newView: any) => {
+      const response = await fetch('/api/saved-views', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newView)
+      });
+      if (!response.ok) throw new Error('Failed to create view');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-views'] });
+    }
+  });
+};
+
 // All opportunity data now comes from database - no mock data needed
 
 // Calculate opportunity statistics
@@ -180,6 +209,8 @@ function OpportunitiesTable() {
   const { data: opportunities = [], isLoading, error } = useOpportunitiesData();
   const { data: savedListsData = [], isLoading: savedListsLoading } = useSavedLists();
   const createSavedListMutation = useCreateSavedList();
+  const { data: savedViewsData = [], isLoading: savedViewsLoading } = useSavedViews();
+  const createSavedViewMutation = useCreateSavedView();
   const [filterText, setFilterText] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedType, setSelectedType] = useState('');
@@ -198,23 +229,7 @@ function OpportunitiesTable() {
   const [isEditingList, setIsEditingList] = useState(false);
   const [editedListMembers, setEditedListMembers] = useState<number[]>([]);
   
-  // Views state
-  const [savedViews, setSavedViews] = useState<SavedView[]>([
-    {
-      id: 'view-1',
-      name: 'Active Renewals',
-      filters: { status: 'In Progress', type: 'Renewal' },
-      createdBy: 'John Smith',
-      createdAt: new Date('2025-05-01')
-    },
-    {
-      id: 'view-2',
-      name: 'New Business Focus',
-      filters: { type: 'New Business' },
-      createdBy: 'John Smith',
-      createdAt: new Date('2025-05-05')
-    }
-  ]);
+  // Views state - using database data
   const [activeView, setActiveView] = useState<SavedView | null>(null);
   const [showSaveViewModal, setShowSaveViewModal] = useState(false);
   const [showViewsDropdown, setShowViewsDropdown] = useState(false);
