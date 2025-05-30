@@ -136,11 +136,11 @@ export default function MetricsPage() {
     
     // Determine timeframe duration in months
     let timeframeDuration = 0;
-    if (timeframe.includes('Q1') || timeframe.includes('Q2') || timeframe.includes('Q3') || timeframe.includes('Q4')) {
+    if (timeframe.includes('quarter') || timeframe.includes('Q1') || timeframe.includes('Q2') || timeframe.includes('Q3') || timeframe.includes('Q4')) {
       timeframeDuration = 3; // Quarter = 3 months
     } else if (timeframe.includes('H1') || timeframe.includes('H2')) {
       timeframeDuration = 6; // Half year = 6 months
-    } else if (timeframe === '2024' || timeframe === '2025' || timeframe === 'This year') {
+    } else if (timeframe === '2024' || timeframe === '2025' || timeframe === 'This year' || timeframe === 'this-year') {
       timeframeDuration = 12; // Full year = 12 months
     }
     
