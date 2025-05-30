@@ -1,4 +1,4 @@
-import { db as myqollabiDb, getEnvironmentDb } from './db';
+import { db as myqollabiDb, getEnvironmentDb, getEnvironmentPool } from './db';
 import { sql } from 'drizzle-orm';
 
 /**
@@ -256,25 +256,25 @@ export async function getEnvironmentCounts(): Promise<Record<string, Record<stri
   for (const envId of ENVIRONMENTS) {
     counts[envId] = {};
     try {
-      const pool = getEnvironmentPool(envId);
-      const schemaName = envId === 'myqollabi' ? 'qollabi' : envId;
+      const db = getEnvironmentDb(envId);
+      const { partners, customers, opportunities, insuranceProducts } = await import('../shared/schema');
 
-      // Use direct SQL queries with proper schema names to get accurate counts
-      const partnersResult = await pool.query(`SELECT COUNT(*) as count FROM ${schemaName}.partners`);
-      counts[envId]['partners'] = parseInt(partnersResult.rows[0]?.count || '0');
+      // Use Drizzle ORM with count aggregation for accurate counts
+      const partnersResult = await db.select({ count: sql<number>`count(*)` }).from(partners);
+      counts[envId]['partners'] = Number(partnersResult[0]?.count || 0);
 
-      const customersResult = await pool.query(`SELECT COUNT(*) as count FROM ${schemaName}.customers`);
-      counts[envId]['customers'] = parseInt(customersResult.rows[0]?.count || '0');
+      const customersResult = await db.select({ count: sql<number>`count(*)` }).from(customers);
+      counts[envId]['customers'] = Number(customersResult[0]?.count || 0);
 
-      const opportunitiesResult = await pool.query(`SELECT COUNT(*) as count FROM ${schemaName}.opportunities`);
-      counts[envId]['opportunities'] = parseInt(opportunitiesResult.rows[0]?.count || '0');
+      const opportunitiesResult = await db.select({ count: sql<number>`count(*)` }).from(opportunities);
+      counts[envId]['opportunities'] = Number(opportunitiesResult[0]?.count || 0);
 
-      const productsResult = await pool.query(`SELECT COUNT(*) as count FROM ${schemaName}.insurance_products`);
-      counts[envId]['products'] = parseInt(productsResult.rows[0]?.count || '0');
+      const productsResult = await db.select({ count: sql<number>`count(*)` }).from(insuranceProducts);
+      counts[envId]['products'] = Number(productsResult[0]?.count || 0);
 
     } catch (error) {
       console.error(`Failed to get counts for ${envId}:`, error);
-      console.error(`Error details:`, JSON.stringify(error, null, 2));
+      // Fallback to zero counts if there's an error
       counts[envId] = { partners: 0, customers: 0, opportunities: 0, products: 0 };
     }
   }
