@@ -20,7 +20,7 @@ const environmentConfigs: EnvironmentConfig = {
   // Default environment (My Qollabi) - uses the main schema
   myqollabi: {
     connectionString: process.env.DATABASE_URL || '',
-    schema: 'qollabi'
+    schema: 'myqollabi'
   },
   // De Goudse environment - completely independent copy of My Qollabi
   degoudse: {
