@@ -112,7 +112,7 @@ export interface IStorage {
 
 export class DatabaseStorage implements IStorage {
   private db: any = null;
-  private currentSchema: string = 'degoudse';
+  private currentSchema: string = 'myqollabi';
 
   private getDb() {
     if (!this.db) {
@@ -128,13 +128,9 @@ export class DatabaseStorage implements IStorage {
           vendors, products, okrMetrics, okrTags
         }
       });
-    }
-    
-    // Switch to the current environment schema
-    try {
-      this.db.execute(sql.raw(`SET search_path TO ${this.currentSchema}`));
-    } catch (error) {
-      console.log(`Using schema: ${this.currentSchema}`);
+      
+      // Set the search path to use the correct schema
+      sql`SET search_path TO ${sql(this.currentSchema)}`.execute();
     }
     return this.db;
   }
