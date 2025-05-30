@@ -760,23 +760,35 @@ function OpportunitiesTable() {
               </div>
             </div>
             
-            {/* Clear filters button - only shown when at least one filter is applied */}
+            {/* Save View and Clear filters buttons - only shown when filters are applied */}
             {(filterText || selectedStatus || selectedType) && (
-              <button 
-                onClick={() => {
-                  setFilterText('');
-                  setSelectedStatus('');
-                  setSelectedType('');
-                  if (activeList) setActiveList(null);
-                }}
-                className="text-xs text-gray-500 hover:text-gray-700 flex items-center px-2 py-1 hover:bg-gray-50 rounded-md transition-colors"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                  <path d="M18 6L6 18"></path>
-                  <path d="M6 6l12 12"></path>
-                </svg>
-                Clear filters
-              </button>
+              <div className="flex items-center gap-2">
+                <Button
+                  onClick={() => setShowSaveViewModal(true)}
+                  className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm"
+                  size="sm"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                    <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                  </svg>
+                  Save View
+                </Button>
+                <button 
+                  onClick={() => {
+                    setFilterText('');
+                    setSelectedStatus('');
+                    setSelectedType('');
+                    if (activeList) setActiveList(null);
+                  }}
+                  className="text-xs text-gray-500 hover:text-gray-700 flex items-center px-2 py-1 hover:bg-gray-50 rounded-md transition-colors"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                    <path d="M18 6L6 18"></path>
+                    <path d="M6 6l12 12"></path>
+                  </svg>
+                  Clear filters
+                </button>
+              </div>
             )}
           </div>
         </div>
