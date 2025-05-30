@@ -135,7 +135,7 @@ export default function MetricsPage() {
       timeframeDuration = 3; // Quarter = 3 months
     } else if (timeframe.includes('H1') || timeframe.includes('H2')) {
       timeframeDuration = 6; // Half year = 6 months
-    } else if (timeframe === '2024' || timeframe === '2025') {
+    } else if (timeframe === '2024' || timeframe === '2025' || timeframe === 'This year') {
       timeframeDuration = 12; // Full year = 12 months
     }
     
