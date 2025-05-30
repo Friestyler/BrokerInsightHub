@@ -278,6 +278,14 @@ export default function MetricsPage() {
                 )}
               </SelectContent>
             </Select>
+            
+            <AdvancedTimeframeFilter
+              value={advancedTimeframe}
+              onChange={setAdvancedTimeframe}
+              placeholder="Timeframe2"
+              dateRange={dateRange}
+              onDateRangeChange={setDateRange}
+            />
           </div>
         </div>
         
