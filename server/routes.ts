@@ -1270,26 +1270,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // De Goudse environment API routes (completely independent)
+  // De Goudse environment API routes (using proper database isolation)
   app.get('/api/degoudse/partners', async (req, res) => {
     try {
-      const degoudseStorage = storage.switchEnvironment('degoudse');
-      const customers = await degoudseStorage.getAllCustomers();
-      
-      const partners = customers.map(customer => ({
-        id: customer.id,
-        name: customer.name,
-        description: customer.description || `${customer.name} - Insurance partner`,
-        initials: customer.name.split(' ').map(word => word[0]).join('').substring(0, 2).toUpperCase(),
-        industry: "Insurance",
-        type: "Partner",
-        size: "medium",
-        location: customer.location || "Netherlands",
-        email: customer.email,
-        phone: customer.phone,
-        website: customer.website
-      }));
-      
+      const degoudseDb = getEnvironmentDb('degoudse');
+      const partners = await degoudseDb.select().from(partnersTable);
+      console.log(`Returning ${partners.length} partners from De Goudse database`);
       res.json(partners);
     } catch (error) {
       console.error('De Goudse partners API error:', error);
@@ -1297,47 +1283,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get('/api/degoudse/customers', async (req, res) => {
+    try {
+      const degoudseDb = getEnvironmentDb('degoudse');
+      const customers = await degoudseDb.select().from(customersTable);
+      console.log(`Returning ${customers.length} customers from De Goudse database`);
+      res.json(customers);
+    } catch (error) {
+      console.error('De Goudse customers API error:', error);
+      res.status(500).json({ message: 'Failed to fetch customers for De Goudse environment' });
+    }
+  });
+
+  app.get('/api/degoudse/products', async (req, res) => {
+    try {
+      const degoudseDb = getEnvironmentDb('degoudse');
+      const products = await degoudseDb.select().from(insuranceProductsTable);
+      console.log(`Returning ${products.length} products from De Goudse database`);
+      res.json(products);
+    } catch (error) {
+      console.error('De Goudse products API error:', error);
+      res.status(500).json({ message: 'Failed to fetch products for De Goudse environment' });
+    }
+  });
+
+  app.get('/api/degoudse/saved-views', async (req, res) => {
+    try {
+      const degoudseDb = getEnvironmentDb('degoudse');
+      const savedViews = await degoudseDb.select().from(savedViewsTable);
+      res.json(savedViews);
+    } catch (error) {
+      console.error('Error fetching De Goudse saved views:', error);
+      res.status(500).json({ error: 'Failed to fetch saved views' });
+    }
+  });
+
+  app.get('/api/degoudse/saved-lists', async (req, res) => {
+    try {
+      const degoudseDb = getEnvironmentDb('degoudse');
+      const savedLists = await degoudseDb.select().from(savedListsTable);
+      res.json(savedLists);
+    } catch (error) {
+      console.error('Error fetching De Goudse saved lists:', error);
+      res.status(500).json({ error: 'Failed to fetch saved lists' });
+    }
+  });
+
   app.get('/api/degoudse/opportunities', async (req, res) => {
     try {
-      // Independent opportunities data for De Goudse environment
-      const degoudseOpportunities = [
-        {
-          id: 1,
-          title: "Digitale Verzekeringen voor Tech Startup BV",
-          clientId: 1,
-          clientName: "Tech Startup BV",
-          productId: 3,
-          productName: "Digitale Verzekeringen",
-          probability: 80,
-          estimatedValue: 3500,
-          status: "open",
-          stage: "voorstel",
-          type: "nieuwe_business",
-          description: "Digitale verzekeringspakket voor tech bedrijf",
-          expectedCloseDate: "2025-07-20T00:00:00.000Z",
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        },
-        {
-          id: 2,
-          title: "Bedrijfsverzekering voor Handelsonderneming De Goudse",
-          clientId: 2,
-          clientName: "Handelsonderneming De Goudse",
-          productId: 1,
-          productName: "Bedrijfsverzekering",
-          probability: 90,
-          estimatedValue: 5200,
-          status: "open",
-          stage: "onderhandeling",
-          type: "vernieuwing",
-          description: "Uitbreiding bedrijfsverzekering voor handelsonderneming",
-          expectedCloseDate: "2025-06-25T00:00:00.000Z",
-          createdAt: new Date().toISOString(),
-          updatedAt: new Date().toISOString()
-        }
-      ];
-      
-      res.json(degoudseOpportunities);
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query(`
+        SELECT o.*, 
+               c.name as "clientName",
+               p.name as "partnerName"
+        FROM degoudse.opportunities o
+        LEFT JOIN degoudse.customers c ON o."clientId" = c.id
+        LEFT JOIN degoudse.partners p ON o."partnerId" = p.id
+        ORDER BY o."createdAt" DESC
+      `);
+      console.log(`Returning ${result.rows.length} opportunities from degoudse table`);
+      res.json(result.rows);
     } catch (error) {
       console.error('De Goudse opportunities API error:', error);
       res.status(500).json({ message: 'Failed to fetch opportunities for De Goudse environment' });

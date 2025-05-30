@@ -17,12 +17,20 @@ function getEnvironmentUrl(url: string): string {
   const envId = getCurrentEnvironmentId();
   
   // Don't modify URLs that already include environment information
-  if (url.includes('/env-')) {
+  if (url.includes('/degoudse') || url.includes('/acme') || url.includes('/globex') || url.includes('/oceanic')) {
     return url;
   }
   
-  // For now, don't add environment prefix - use direct API URLs
-  // TODO: Add environment support when backend routes are ready
+  // If we're in the default environment (myqollabi), use the standard API URLs
+  if (envId === 'myqollabi') {
+    return url;
+  }
+  
+  // For other environments, prefix the URL with the environment path
+  if (url.startsWith('/api/')) {
+    return url.replace('/api/', `/api/${envId}/`);
+  }
+  
   return url;
 }
 

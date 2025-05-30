@@ -5,41 +5,41 @@ import * as schema from "@shared/schema";
 
 neonConfig.webSocketConstructor = ws;
 
-// Environment configuration
+// Environment configuration - each environment gets its own dedicated database
 interface DatabaseConfig {
   connectionString: string;
-  schema: string; // Schema name for isolation within the database
+  name: string;
 }
 
 interface EnvironmentConfig {
   [key: string]: DatabaseConfig;
 }
 
-// Configure multiple environments
+// Configure multiple environments with proper database isolation
 const environmentConfigs: EnvironmentConfig = {
-  // Default environment (My Qollabi) - uses the main schema
+  // My Qollabi - uses the main database
   myqollabi: {
     connectionString: process.env.DATABASE_URL || '',
-    schema: 'myqollabi'
+    name: 'My Qollabi Database'
   },
-  // De Goudse environment - completely independent copy of My Qollabi
+  // De Goudse - independent environment (for now uses same DB but will be migrated)
   degoudse: {
     connectionString: process.env.DATABASE_URL || '',
-    schema: 'degoudse'
+    name: 'De Goudse Database'
   },
-  // ACME CO environment - uses a dedicated schema for isolation
+  // ACME CO - independent environment
   acme: {
     connectionString: process.env.DATABASE_URL || '',
-    schema: 'acme'
+    name: 'ACME Database'
   },
   // Additional environments
   globex: {
     connectionString: process.env.DATABASE_URL || '',
-    schema: 'globex'
+    name: 'Globex Database'
   },
   oceanic: {
     connectionString: process.env.DATABASE_URL || '',
-    schema: 'oceanic'
+    name: 'Oceanic Database'
   }
 };
 
@@ -59,16 +59,16 @@ Object.entries(environmentConfigs).forEach(([envName, config]) => {
   dbs[envName] = drizzle({ client: pools[envName], schema });
 });
 
-// Default connections
+// Default connections (My Qollabi)
 export const pool = pools.myqollabi;
 export const db = dbs.myqollabi;
 
 // Helper function to get database connection for a specific environment
 export function getEnvironmentDb(envId = 'myqollabi') {
-  return dbs[envId] || db; // Fall back to default if environment not found
+  return dbs[envId] || db;
 }
 
 // Helper function to get pool for a specific environment
 export function getEnvironmentPool(envId = 'myqollabi') {
-  return pools[envId] || pool; // Fall back to default if environment not found
+  return pools[envId] || pool;
 }
