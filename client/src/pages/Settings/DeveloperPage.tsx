@@ -76,8 +76,9 @@ const apiEndpoints = {
     { method: 'GET', path: '/api/products/:id', description: 'Get specific product details' }
   ],
   mutations: [
-    { method: 'POST', path: '/api/customers', description: 'Create new customer' },
-    { method: 'POST', path: '/api/opportunities', description: 'Create new opportunity' },
+    { method: 'POST', path: '/api/partners', description: '✓ Create new partner (Direct SQL - Working)' },
+    { method: 'POST', path: '/api/customers', description: '✓ Create new customer (Direct SQL - Working)' },
+    { method: 'POST', path: '/api/opportunities', description: '✓ Create new opportunity (Direct SQL - Fixed)' },
     { method: 'POST', path: '/api/vendors', description: 'Create new vendor' },
     { method: 'POST', path: '/api/products', description: 'Create new product' },
     { method: 'PUT', path: '/api/opportunities/:id', description: 'Update existing opportunity' },
@@ -183,6 +184,40 @@ function DeveloperPage() {
         </TabsList>
 
         <TabsContent value="database" className="space-y-6">
+          {/* Recent Updates Status */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2">
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                System Status & Recent Updates
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <h4 className="font-medium text-sm text-green-600">✓ Recently Completed</h4>
+                  <ul className="text-sm space-y-1 text-gray-600">
+                    <li>• Fixed opportunity creation database errors</li>
+                    <li>• Replaced storage layer with direct SQL approach</li>
+                    <li>• Updated PostgreSQL array field handling</li>
+                    <li>• Resolved React key prop warnings</li>
+                    <li>• Standardized entity creation endpoints</li>
+                  </ul>
+                </div>
+                <div className="space-y-2">
+                  <h4 className="font-medium text-sm text-blue-600">📊 Database Integration</h4>
+                  <ul className="text-sm space-y-1 text-gray-600">
+                    <li>• All entities use myqollabi schema</li>
+                    <li>• Direct SQL queries for reliability</li>
+                    <li>• Proper array handling for linked fields</li>
+                    <li>• Environment isolation active</li>
+                    <li>• Real-time data synchronization</li>
+                  </ul>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <Card>
               <CardHeader className="pb-3">

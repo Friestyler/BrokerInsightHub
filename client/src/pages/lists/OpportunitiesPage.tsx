@@ -157,8 +157,8 @@ function TemplateBadges({ type, status }: { type: string, status: string }) {
   
   return (
     <div className="flex space-x-2">
-      {badges.map((badge, index) => (
-        <div key={index} className={`${badge.color} w-8 h-8 rounded-lg flex items-center justify-center text-xs font-medium`}>
+      {badges.map((badge) => (
+        <div key={badge.code} className={`${badge.color} w-8 h-8 rounded-lg flex items-center justify-center text-xs font-medium`}>
           {badge.code}
         </div>
       ))}
