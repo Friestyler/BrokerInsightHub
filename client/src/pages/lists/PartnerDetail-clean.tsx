@@ -237,27 +237,29 @@ export default function PartnerDetailClean() {
             </div>
 
             {/* Bulk Actions Bar */}
-            {selectedMetrics.length > 0 && (
-              <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <span className="text-sm text-blue-700">
-                  {selectedMetrics.length} metric{selectedMetrics.length > 1 ? 's' : ''} selected
-                </span>
-                <div className="flex items-center space-x-2">
-                  <Button variant="outline" size="sm">
-                    <Users className="w-4 h-4 mr-2" />
-                    Assign to Team
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Copy className="w-4 h-4 mr-2" />
-                    Duplicate
-                  </Button>
-                  <Button variant="outline" size="sm">
-                    <Trash2 className="w-4 h-4 mr-2" />
-                    Remove
-                  </Button>
+            <div className="h-16">
+              {selectedMetrics.length > 0 && (
+                <div className="flex items-center justify-between bg-blue-50 border border-blue-200 rounded-lg p-4 h-full">
+                  <span className="text-sm text-blue-700">
+                    {selectedMetrics.length} metric{selectedMetrics.length > 1 ? 's' : ''} selected
+                  </span>
+                  <div className="flex items-center space-x-2">
+                    <Button variant="outline" size="sm">
+                      <Users className="w-4 h-4 mr-2" />
+                      Assign to Team
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <Copy className="w-4 h-4 mr-2" />
+                      Duplicate
+                    </Button>
+                    <Button variant="outline" size="sm">
+                      <Trash2 className="w-4 h-4 mr-2" />
+                      Remove
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+            </div>
 
             {/* Metrics Table - Exact same structure as template page */}
             {attachedMetrics.length === 0 ? (

@@ -326,27 +326,29 @@ export default function OKRMetricsPage() {
           </div>
 
           {/* Selection Bar */}
-          {selectedMetrics.length > 0 && (
-            <div className="flex items-center space-x-4 p-4 bg-blue-50 mb-6">
-              <span className="text-sm font-medium text-blue-900">
-                {selectedMetrics.length} OKR selected
-              </span>
-              <div className="flex items-center space-x-2">
-                <Button variant="outline" size="sm" className="border-blue-300 text-blue-700 hover:bg-blue-100">
-                  <Users className="w-4 h-4 mr-2" />
-                  Assign to entity
-                </Button>
-                <Button variant="outline" size="sm" className="border-blue-300 text-blue-700 hover:bg-blue-100">
-                  <Copy className="w-4 h-4 mr-2" />
-                  Duplicate
-                </Button>
-                <Button variant="outline" size="sm" className="border-red-300 text-red-700 hover:bg-red-100">
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Delete
-                </Button>
+          <div className="h-16 mb-6">
+            {selectedMetrics.length > 0 && (
+              <div className="flex items-center space-x-4 p-4 bg-blue-50 h-full">
+                <span className="text-sm font-medium text-blue-900">
+                  {selectedMetrics.length} OKR selected
+                </span>
+                <div className="flex items-center space-x-2">
+                  <Button variant="outline" size="sm" className="border-blue-300 text-blue-700 hover:bg-blue-100">
+                    <Users className="w-4 h-4 mr-2" />
+                    Assign to entity
+                  </Button>
+                  <Button variant="outline" size="sm" className="border-blue-300 text-blue-700 hover:bg-blue-100">
+                    <Copy className="w-4 h-4 mr-2" />
+                    Duplicate
+                  </Button>
+                  <Button variant="outline" size="sm" className="border-red-300 text-red-700 hover:bg-red-100">
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete
+                  </Button>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
 
           {/* Metrics Table */}
           <div className="bg-white overflow-hidden">
