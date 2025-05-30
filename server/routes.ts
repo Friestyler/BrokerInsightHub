@@ -1763,12 +1763,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const envId = req.headers['x-environment-id'] || 'myqollabi';
       const created_by = 1; // Default user ID for now
       
-      const result = await db.execute(sql`
-        INSERT INTO ${sql.identifier(envId as string)}.saved_lists 
-        (name, description, type, entity_type, members, filters, is_shared, created_by)
-        VALUES (${name}, ${description || null}, ${type}, ${entity_type}, ${members || []}, ${JSON.stringify(filters || {})}, ${is_shared || false}, ${created_by})
-        RETURNING *
-      `);
+      // Handle the array properly for PostgreSQL
+      const membersArray = members && Array.isArray(members) ? members : [];
+      
+      const result = await pool.query(
+        `INSERT INTO ${envId}.saved_lists 
+         (name, description, type, entity_type, members, filters, is_shared, created_by)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+         RETURNING *`,
+        [name, description || null, type, entity_type, membersArray, JSON.stringify(filters || {}), is_shared || false, created_by]
+      );
       
       res.json(result.rows[0]);
     } catch (error) {
