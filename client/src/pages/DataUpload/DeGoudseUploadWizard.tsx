@@ -249,28 +249,43 @@ export default function DeGoudseUploadWizard() {
   const loadTemplate = (templateId: string) => {
     const template = savedTemplates.find(t => t.id.toString() === templateId);
     if (template && uploadedFile) {
-      // Parse the stored column mappings and apply them to current file headers
-      const storedMappings = JSON.parse(template.column_mappings);
-      const newMappings: ColumnMapping[] = uploadedFile.headers.map(header => {
-        const existingMapping = storedMappings.find((m: any) => m.columnName === header);
-        if (existingMapping) {
-          return {
-            ...existingMapping,
-            validationStatus: 'valid' as const
-          };
+      try {
+        // Parse the stored column mappings and apply them to current file headers
+        let storedMappings;
+        if (typeof template.column_mappings === 'string') {
+          storedMappings = JSON.parse(template.column_mappings);
+        } else {
+          storedMappings = template.column_mappings;
         }
-        return {
-          columnName: header,
-          mappingType: 'skip' as const,
-          validationStatus: 'pending' as const
-        };
-      });
-      setColumnMappings(newMappings);
-      
-      toast({
-        title: "Template Applied",
-        description: `Applied mapping template "${template.name}".`
-      });
+        
+        const newMappings: ColumnMapping[] = uploadedFile.headers.map(header => {
+          const existingMapping = storedMappings.find((m: any) => m.columnName === header);
+          if (existingMapping) {
+            return {
+              ...existingMapping,
+              validationStatus: 'valid' as const
+            };
+          }
+          return {
+            columnName: header,
+            mappingType: 'skip' as const,
+            validationStatus: 'pending' as const
+          };
+        });
+        setColumnMappings(newMappings);
+        
+        toast({
+          title: "Template Applied",
+          description: `Applied mapping template "${template.name}".`
+        });
+      } catch (error) {
+        console.error('Failed to parse template mappings:', error);
+        toast({
+          title: "Template Error",
+          description: "Failed to apply the selected template. The template data may be corrupted.",
+          variant: "destructive"
+        });
+      }
     }
   };
 
@@ -306,7 +321,7 @@ export default function DeGoudseUploadWizard() {
       setProcessedResults(results);
       setCurrentStep('complete');
 
-      const totalEntities = results.entityStats ? Object.values(results.entityStats).reduce((a: number, b: number) => a + b, 0) : 0;
+      const totalEntities = results.entityStats ? Object.values(results.entityStats).reduce((a: number, b: any) => a + (Number(b) || 0), 0) : 0;
       toast({
         title: "Upload Complete",
         description: `Successfully processed ${results.rowsProcessed} rows, created ${results.opportunitiesCreated} opportunities and ${totalEntities} new entities.`
