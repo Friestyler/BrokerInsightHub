@@ -1088,10 +1088,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/opportunities', async (req, res) => {
     try {
-      const opportunity = await storage.createOpportunity(req.body);
+      console.log('Opportunity creation request body:', req.body);
+      
+      // Validate the request body with expanded fields
+      const { 
+        title, 
+        description, 
+        clientId, 
+        status = 'active',
+        stage = 'qualification',
+        type = 'new_business',
+        estimatedValue,
+        probability,
+        location,
+        partnerName,
+        lastActivityDate,
+        linkedContactIds = [],
+        createdBy
+      } = req.body;
+      
+      if (!title || !description) {
+        return res.status(400).json({ message: 'Title and description are required' });
+      }
+      
+      console.log('Executing opportunity insert query...');
+      
+      // Insert into myqollabi.opportunities table with all available fields
+      const result = await db.execute(sql`
+        INSERT INTO myqollabi.opportunities (
+          title, description, client_id, status, stage, type, 
+          estimated_value, probability, location, partner_name, 
+          last_activity_date, linked_contact_ids, created_by, 
+          created_at, updated_at
+        ) VALUES (
+          ${title}, ${description}, ${clientId || null}, ${status}, ${stage}, ${type},
+          ${estimatedValue || null}, ${probability || null}, ${location || null}, ${partnerName || null},
+          ${lastActivityDate || null}, ${JSON.stringify(linkedContactIds)}, ${createdBy || null},
+          NOW(), NOW()
+        ) RETURNING *
+      `);
+      
+      console.log('Opportunity insert result:', result.rows[0]);
+      const opportunity = result.rows[0];
       res.status(201).json(opportunity);
     } catch (error) {
-      console.error('Error creating opportunity:', error);
+      console.error('Detailed error creating opportunity:', error);
       res.status(500).json({ message: 'Failed to create opportunity' });
     }
   });
