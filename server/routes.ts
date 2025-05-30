@@ -2078,7 +2078,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const result = await db.execute(sql`
         SELECT id, username, email, full_name, first_name, last_name, 
-               avatar_initials, role, department, job_title, phone, 
+               avatar_initials, role, department, 
                is_active, last_login_at, created_at, updated_at
         FROM ${sql.identifier(envId as string)}.users 
         WHERE is_active = true
@@ -2127,15 +2127,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const result = await db.execute(sql`
         INSERT INTO ${sql.identifier(envId as string)}.users (
           username, email, password, full_name, first_name, last_name,
-          avatar_initials, role, department, job_title, phone, is_active,
+          avatar_initials, role, department, is_active,
           created_at, updated_at
         ) VALUES (
           ${username}, ${email}, ${password}, ${fullName}, ${firstName || null}, 
           ${lastName || null}, ${avatarInitials}, ${role || 'user'}, 
-          ${department || null}, ${jobTitle || null}, ${phone || null}, 
-          ${isActive !== false}, NOW(), NOW()
+          ${department || null}, ${isActive !== false}, NOW(), NOW()
         ) RETURNING id, username, email, full_name, first_name, last_name, 
-                   avatar_initials, role, department, job_title, phone, 
+                   avatar_initials, role, department, 
                    is_active, created_at, updated_at
       `);
       
