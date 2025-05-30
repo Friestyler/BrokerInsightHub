@@ -8,45 +8,43 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { RefreshCw, Terminal } from "lucide-react";
 
-// Database schema information
+// Database schema information - static for all environments
 const schemaInfo = {
-  myqollabi: {
-    partners: {
-      columns: ['id', 'name', 'description', 'initials', 'industry', 'type', 'size', 'status', 'location', 'contact_email', 'primary_contact', 'partner_type', 'region', 'assigned_user_ids', 'linked_opportunity_ids', 'created_at', 'updated_at'],
-      relationships: ['partner_customers', 'partner_opportunities']
-    },
-    customers: {
-      columns: ['id', 'name', 'description', 'initials', 'owner_id', 'contact_name', 'contact_email', 'contact_phone', 'assigned_partner_id', 'created_at', 'updated_at'],
-      relationships: ['partner_customers', 'opportunities (via client_id)']
-    },
-    opportunities: {
-      columns: ['id', 'title', 'description', 'client_id', 'status', 'stage', 'type', 'estimated_value', 'probability', 'location', 'partner_name', 'last_activity_date', 'linked_contact_ids', 'created_by', 'created_at', 'updated_at'],
-      relationships: ['partner_opportunities', 'customers (via client_id)']
-    },
-    partner_customers: {
-      columns: ['id', 'partner_id', 'customer_id', 'created_at'],
-      relationships: ['Many-to-many junction table connecting partners and customers']
-    },
-    partner_opportunities: {
-      columns: ['id', 'partner_id', 'opportunity_id', 'created_at'],
-      relationships: ['Many-to-many junction table connecting partners and opportunities']
-    },
-    okr_metrics: {
-      columns: ['id', 'name', 'description', 'realized_value', 'target_value', 'measure_unit', 'currency_type', 'traffic_light_thresholds', 'progress_bar_thresholds', 'picklist_options', 'responsible_user_id', 'responsible_contact_id', 'timeframe', 'frequency', 'attachment_url', 'due_date', 'is_muted', 'is_archived', 'is_shared', 'hierarchy', 'tags', 'created_by', 'created_at', 'updated_at'],
-      relationships: ['Tags stored as JSON array', 'Links to users via created_by']
-    },
-    okr_tags: {
-      columns: ['id', 'name', 'color', 'created_at', 'updated_at'],
-      relationships: ['Referenced by okr_metrics.tags JSON array']
-    },
-    users: {
-      columns: ['id', 'username', 'email', 'password', 'full_name', 'first_name', 'last_name', 'avatar_initials', 'role', 'department', 'is_active', 'last_login_at', 'created_at', 'updated_at'],
-      relationships: ['Links to okr_metrics via responsible_user_id', 'Authentication and user management']
-    },
-    contacts: {
-      columns: ['id', 'first_name', 'last_name', 'email', 'phone', 'company', 'position', 'linked_entity_type', 'linked_entity_id', 'notes', 'is_active', 'created_at', 'updated_at'],
-      relationships: ['Polymorphic links to any entity via linked_entity_type/linked_entity_id', 'Links to okr_metrics via responsible_contact_id']
-    }
+  partners: {
+    columns: ['id', 'name', 'description', 'initials', 'industry', 'type', 'size', 'status', 'location', 'contact_email', 'primary_contact', 'partner_type', 'region', 'assigned_user_ids', 'linked_opportunity_ids', 'created_at', 'updated_at'],
+    relationships: ['partner_customers', 'partner_opportunities']
+  },
+  customers: {
+    columns: ['id', 'name', 'description', 'initials', 'owner_id', 'contact_name', 'contact_email', 'contact_phone', 'assigned_partner_id', 'created_at', 'updated_at'],
+    relationships: ['partner_customers', 'opportunities (via client_id)']
+  },
+  opportunities: {
+    columns: ['id', 'title', 'description', 'client_id', 'status', 'stage', 'type', 'estimated_value', 'probability', 'location', 'partner_name', 'last_activity_date', 'linked_contact_ids', 'created_by', 'created_at', 'updated_at'],
+    relationships: ['partner_opportunities', 'customers (via client_id)']
+  },
+  partner_customers: {
+    columns: ['id', 'partner_id', 'customer_id', 'created_at'],
+    relationships: ['Many-to-many junction table connecting partners and customers']
+  },
+  partner_opportunities: {
+    columns: ['id', 'partner_id', 'opportunity_id', 'created_at'],
+    relationships: ['Many-to-many junction table connecting partners and opportunities']
+  },
+  okr_metrics: {
+    columns: ['id', 'name', 'description', 'realized_value', 'target_value', 'measure_unit', 'currency_type', 'traffic_light_thresholds', 'progress_bar_thresholds', 'picklist_options', 'responsible_user_id', 'responsible_contact_id', 'timeframe', 'frequency', 'attachment_url', 'due_date', 'is_muted', 'is_archived', 'is_shared', 'hierarchy', 'tags', 'created_by', 'created_at', 'updated_at'],
+    relationships: ['Tags stored as JSON array', 'Links to users via created_by']
+  },
+  okr_tags: {
+    columns: ['id', 'name', 'color', 'created_at', 'updated_at'],
+    relationships: ['Referenced by okr_metrics.tags JSON array']
+  },
+  users: {
+    columns: ['id', 'username', 'email', 'password', 'full_name', 'first_name', 'last_name', 'avatar_initials', 'role', 'department', 'is_active', 'last_login_at', 'created_at', 'updated_at'],
+    relationships: ['Links to okr_metrics via responsible_user_id', 'Authentication and user management']
+  },
+  contacts: {
+    columns: ['id', 'first_name', 'last_name', 'email', 'phone', 'company', 'position', 'linked_entity_type', 'linked_entity_id', 'notes', 'is_active', 'created_at', 'updated_at'],
+    relationships: ['Polymorphic links to any entity via linked_entity_type/linked_entity_id', 'Links to okr_metrics via responsible_contact_id']
   }
 };
 
@@ -333,15 +331,15 @@ function DeveloperPage() {
 
             <Card>
               <CardHeader className="pb-3">
-                <CardTitle className="text-lg">Schema: myqollabi</CardTitle>
+                <CardTitle className="text-lg">Schema: {environment.id}</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  {Object.keys(schemaInfo.myqollabi).map((table) => (
+                  {Object.keys(schemaInfo).map((table) => (
                     <div key={table} className="text-sm">
                       <span className="font-medium">{table}</span>
                       <div className="text-xs text-muted-foreground ml-2">
-                        {schemaInfo.myqollabi[table as keyof typeof schemaInfo.myqollabi].columns.length} columns
+                        {schemaInfo[table as keyof typeof schemaInfo].columns.length} columns
                       </div>
                     </div>
                   ))}
@@ -373,7 +371,7 @@ function DeveloperPage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {Object.entries(schemaInfo.myqollabi).map(([tableName, tableInfo]) => (
+            {Object.entries(schemaInfo).map(([tableName, tableInfo]) => (
               <Card key={tableName}>
                 <CardHeader>
                   <CardTitle className="text-lg capitalize">{tableName}</CardTitle>

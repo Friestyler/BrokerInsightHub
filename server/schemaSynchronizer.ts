@@ -252,24 +252,42 @@ export async function validateSchemas(): Promise<Record<string, boolean>> {
  */
 export async function getEnvironmentCounts(): Promise<Record<string, Record<string, number>>> {
   const counts: Record<string, Record<string, number>> = {};
+  const { partners, customers, opportunities, insuranceProducts } = await import('../shared/schema');
 
   for (const envId of ENVIRONMENTS) {
     counts[envId] = {};
     try {
       const envDb = getEnvironmentDb(envId);
 
-      // Get counts for key tables
-      const keyTables = ['partners', 'customers', 'opportunities', 'products'];
-      
-      for (const tableName of keyTables) {
-        try {
-          const result = await envDb.execute(sql.raw(`SELECT COUNT(*) as count FROM ${tableName}`));
-          const resultArray = Array.isArray(result) ? result : [result];
-          counts[envId][tableName] = Number(resultArray[0]?.count || 0);
-        } catch (error) {
-          counts[envId][tableName] = 0; // Table doesn't exist
-        }
+      // Get counts using proper Drizzle ORM queries
+      try {
+        const partnersResult = await envDb.select({ count: sql`count(*)` }).from(partners);
+        counts[envId]['partners'] = Number(partnersResult[0]?.count || 0);
+      } catch (error) {
+        counts[envId]['partners'] = 0;
       }
+
+      try {
+        const customersResult = await envDb.select({ count: sql`count(*)` }).from(customers);
+        counts[envId]['customers'] = Number(customersResult[0]?.count || 0);
+      } catch (error) {
+        counts[envId]['customers'] = 0;
+      }
+
+      try {
+        const opportunitiesResult = await envDb.select({ count: sql`count(*)` }).from(opportunities);
+        counts[envId]['opportunities'] = Number(opportunitiesResult[0]?.count || 0);
+      } catch (error) {
+        counts[envId]['opportunities'] = 0;
+      }
+
+      try {
+        const productsResult = await envDb.select({ count: sql`count(*)` }).from(insuranceProducts);
+        counts[envId]['products'] = Number(productsResult[0]?.count || 0);
+      } catch (error) {
+        counts[envId]['products'] = 0;
+      }
+
     } catch (error) {
       console.error(`Failed to get counts for ${envId}:`, error);
       counts[envId] = { partners: 0, customers: 0, opportunities: 0, products: 0 };
