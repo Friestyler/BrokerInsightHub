@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { opportunities, clients, insuranceProducts, okrMetrics, okrTags } from '@shared/schema';
 import { eq, sql } from 'drizzle-orm';
-import { db, getEnvironmentPool } from './db';
+import { db, getEnvironmentPool, getEnvironmentDb } from './db';
 import multer from 'multer';
 import { copyEnvironmentData } from './initDatabase';
 import path from 'path';
@@ -188,6 +188,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/customers', async (req, res) => {
     try {
+      console.log('Customer creation request body:', req.body);
+      
       // Validate the request body
       const { name, description, ownerId } = req.body;
       
@@ -195,17 +197,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'Name and description are required' });
       }
       
-      const db = getEnvironmentDb();
-      const result = await db.query(`
-        INSERT INTO myqollabi.customers (name, description, owner_id, created_at, updated_at)
-        VALUES ($1, $2, $3, NOW(), NOW())
-        RETURNING *
-      `, [name, description, ownerId || null]);
+      console.log('Executing customer insert query...');
       
+      // Insert into myqollabi.customers table using same pattern as partners
+      const result = await db.execute(sql`
+        INSERT INTO myqollabi.customers (
+          name, description, owner_id, created_at, updated_at
+        ) VALUES (
+          ${name}, ${description}, ${ownerId || null}, NOW(), NOW()
+        ) RETURNING *
+      `);
+      
+      console.log('Customer insert result:', result.rows[0]);
       const customer = result.rows[0];
       res.status(201).json(customer);
     } catch (error) {
-      console.error('Error creating customer:', error);
+      console.error('Detailed error creating customer:', error);
       res.status(500).json({ message: 'Failed to create customer' });
     }
   });
