@@ -183,6 +183,16 @@ export default function MetricsPage() {
           <h1 className="text-3xl font-bold text-gray-900">OKR Templates</h1>
           <p className="text-gray-600 mt-1">Create and manage OKR templates for your organization</p>
         </div>
+        <Button 
+          className="bg-indigo-600 hover:bg-indigo-700 text-white"
+          onClick={() => setIsCreateOKROpen(true)}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+            <path d="M5 12h14"/>
+            <path d="M12 5v14"/>
+          </svg>
+          Add OKR metric template
+        </Button>
       </div>
 
       {/* Search and filter section for OKR templates */}
@@ -304,16 +314,7 @@ export default function MetricsPage() {
             </div>
           )}
           
-          <Button 
-            className="bg-indigo-600 hover:bg-indigo-700 text-white"
-            onClick={() => setIsCreateOKROpen(true)}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-              <path d="M5 12h14"/>
-              <path d="M12 5v14"/>
-            </svg>
-            Add OKR Metric
-          </Button>
+
         </div>
       </div>
 
