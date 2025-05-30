@@ -1,0 +1,124 @@
+✅ STEP 3 — Upload Wizard: Map Excel Data to Entities & Relationships
+🎯 Goal: Ensure the data upload wizard maps uploaded Excel data directly into your database, with full support for both:
+
+Attributes (fields)
+
+Relationships (foreign keys or ID arrays)
+
+⚠️ All mappings must use the exact same structure and field names as defined in Step 2. No temporary storage or shadow logic.
+
+🔹 STEP 3.1 — Input File Handling
+Wizard should accept .xlsx or .csv files
+
+Each file upload results in:
+
+A new Saved List under Opportunities (or matching entity type)
+
+Each row = one record
+
+The name of the uploaded file = name of the Saved List
+
+🧪 Test:
+
+Upload a test file with 3 rows → Check that 3 new Opportunities are created with the expected values
+
+🔹 STEP 3.2 — Column-to-Field Mapping Interface
+For every column in the uploaded file:
+
+User must define:
+
+Which entity this column belongs to (e.g. Opportunity, Partner)
+
+Whether the column is:
+
+An attribute (field on entity)
+
+A relationship (link to another entity)
+
+Examples:
+
+customer_name → relationship → Customer
+
+stage → attribute → Opportunity
+
+linked_products → relationship (array) → Products
+
+UI must allow:
+
+Matching to existing attributes
+
+Creating a new attribute (optional, for admin users)
+
+Selecting existing entities (via dropdown or fuzzy search)
+
+Auto-creating missing entities (if not found)
+
+🧪 Test:
+
+Upload a file that includes:
+
+Attributes (value, stage, etc.)
+
+Relationships (customer_name, partner_name)
+
+Confirm that missing customers or partners are auto-created and linked
+
+🔹 STEP 3.3 — Write to Unified Database
+After mapping:
+
+Write all mapped data directly into the correct entity table
+
+For relationships:
+
+Create missing related entities
+
+Store their ID(s) in the correct field (customer_id, linked_product_ids, etc.)
+
+Maintain full referential integrity
+
+🧪 Test:
+
+Upload a file with a mix of new and existing entities
+
+Ensure:
+
+No duplicates
+
+All foreign keys are correct
+
+New data appears instantly in entity list views
+
+🔹 STEP 3.4 — Confirm & Save Mapping Templates
+Allow users to save the mapping configuration for future uploads
+
+On new upload:
+
+Try to auto-match columns to previous mappings
+
+Ask for confirmation only if:
+
+New columns are added
+
+An existing column's meaning has changed
+
+🧪 Test:
+
+Upload File A → define mapping
+
+Upload File B with same structure → confirm auto-match works
+
+✅ Success Criteria Before Moving On:
+Data upload must:
+
+Populate correct entity tables
+
+Respect all relationships
+
+Be visible in forms, lists, and detail views
+
+Mappings should be reusable and editable
+
+No duplicates unless explicitly allowed
+
+Full navigation across entities must work after upload
+

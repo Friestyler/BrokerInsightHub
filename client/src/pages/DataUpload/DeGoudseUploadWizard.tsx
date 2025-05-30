@@ -23,7 +23,7 @@ interface ColumnMapping {
   columnName: string;
   mappingType: 'opportunity_attribute' | 'entity_relationship' | 'skip';
   targetField?: string;
-  entityType?: 'customer' | 'partner' | 'vendor' | 'contact' | 'product' | 'user';
+  entityType?: 'customer' | 'partner' | 'vendor' | 'product';
   isRequired?: boolean;
   validationStatus: 'valid' | 'invalid' | 'pending';
 }
@@ -34,27 +34,39 @@ interface MappingTemplate {
   createdAt: string;
 }
 
+// Updated to match actual database schema
 const OPPORTUNITY_FIELDS = [
-  'title', 'description', 'probability', 'estimatedValue', 'stage', 'type', 'status',
-  'expectedCloseDate', 'notes', 'priority', 'source', 'tags'
+  'title', 'description', 'probability', 'estimated_value', 'stage', 'type', 'status',
+  'expected_close_date', 'notes', 'priority', 'source', 'tags'
+];
+
+const CUSTOMER_FIELDS = [
+  'name', 'description', 'industry', 'size', 'location', 'email', 'phone', 'website'
+];
+
+const PARTNER_FIELDS = [
+  'name', 'description', 'industry', 'type', 'size', 'location', 'email', 'phone', 'website'
+];
+
+const VENDOR_FIELDS = [
+  'name', 'description'
+];
+
+const PRODUCT_FIELDS = [
+  'name', 'description', 'category', 'sku', 'price'
 ];
 
 const ENTITY_TYPES = [
-  { value: 'customer', label: 'Customer', icon: '👤' },
-  { value: 'partner', label: 'Partner', icon: '🤝' },
-  { value: 'vendor', label: 'Vendor', icon: '🏢' },
-  { value: 'contact', label: 'Contact', icon: '📞' },
-  { value: 'product', label: 'Product', icon: '📦' },
-  { value: 'user', label: 'User', icon: '👥' }
+  { value: 'customer', label: 'Customer', icon: '👤', fields: CUSTOMER_FIELDS },
+  { value: 'partner', label: 'Partner', icon: '🤝', fields: PARTNER_FIELDS },
+  { value: 'vendor', label: 'Vendor', icon: '🏢', fields: VENDOR_FIELDS },
+  { value: 'product', label: 'Product', icon: '📦', fields: PRODUCT_FIELDS }
 ];
 
-const ENTITY_ATTRIBUTES = {
-  customer: ['name', 'email', 'phone', 'company', 'website', 'address', 'notes'],
-  partner: ['name', 'email', 'phone', 'company', 'website', 'address', 'notes'],
-  vendor: ['name', 'email', 'phone', 'company', 'website', 'address', 'notes'],
-  contact: ['name', 'email', 'phone', 'company', 'position', 'notes'],
-  product: ['name', 'category', 'description', 'price', 'sku'],
-  user: ['name', 'email', 'role', 'department']
+// Helper function to get fields for entity type
+const getEntityFields = (entityType: string) => {
+  const entity = ENTITY_TYPES.find(e => e.value === entityType);
+  return entity ? entity.fields : [];
 };
 
 const MAPPING_OPTIONS = [
@@ -483,7 +495,7 @@ export default function DeGoudseUploadWizard() {
                               <SelectValue placeholder={`Select ${mapping.entityType} field`} />
                             </SelectTrigger>
                             <SelectContent>
-                              {ENTITY_ATTRIBUTES[mapping.entityType]?.map(field => (
+                              {getEntityFields(mapping.entityType)?.map(field => (
                                 <SelectItem key={field} value={field}>
                                   {field.charAt(0).toUpperCase() + field.slice(1)}
                                 </SelectItem>
