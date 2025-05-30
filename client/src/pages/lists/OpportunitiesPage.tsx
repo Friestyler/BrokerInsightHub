@@ -673,15 +673,16 @@ function OpportunitiesTable() {
                   <div className="absolute z-50 mt-1 w-64 rounded-md border border-slate-200 bg-white shadow-md">
                     <div className="p-2 border-b">
                       <div className="text-xs font-medium mb-2 text-gray-500">SAVED VIEWS</div>
-                      {savedViews.map(view => (
+                      {savedViewsData.map((view: any) => (
                         <div 
                           key={view.id}
                           className={`flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 ${activeView?.id === view.id ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700'}`}
                           onClick={() => {
                             setActiveView(view);
-                            setFilterText(view.filters.searchText || '');
-                            setSelectedStatus(view.filters.status || '');
-                            setSelectedType(view.filters.type || '');
+                            const filters = typeof view.filters === 'string' ? JSON.parse(view.filters) : view.filters;
+                            setFilterText(filters.searchText || '');
+                            setSelectedStatus(filters.status || '');
+                            setSelectedType(filters.type || '');
                             setShowViewsDropdown(false);
                           }}
                         >
@@ -1323,26 +1324,25 @@ function OpportunitiesTable() {
               onClick={() => {
                 if (!viewNameInput.trim()) return;
                 
-                const newView: SavedView = {
-                  id: String(Date.now()),
+                // Create new view via database mutation
+                createSavedViewMutation.mutate({
                   name: viewNameInput.trim(),
-                  filters: {
+                  description: null,
+                  entity_type: 'opportunities',
+                  filters: JSON.stringify({
                     searchText: filterText || undefined,
                     status: selectedStatus || undefined,
                     type: selectedType || undefined
-                  },
-                  createdBy: 'John Smith',
-                  createdAt: new Date()
-                };
-                
-                setSavedViews([...savedViews, newView]);
-                setActiveView(newView);
+                  }),
+                  is_shared: false,
+                  created_by: 'current-user'
+                });
                 setViewNameInput('');
                 setShowSaveViewModal(false);
                 
                 toast({
                   title: "View saved successfully",
-                  description: `"${newView.name}" has been saved to your quick views.`,
+                  description: `"${viewNameInput.trim()}" has been saved to your quick views.`,
                   className: "bg-indigo-50 border-indigo-200 text-indigo-800",
                 });
               }}
