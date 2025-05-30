@@ -266,11 +266,11 @@ export default function MetricsPage() {
         <div className="flex items-center gap-2">
           <Select value={groupBy} onValueChange={setGroupBy}>
             <SelectTrigger 
-              className="w-[140px] transition-colors"
-              style={{
-                backgroundColor: groupBy && groupBy !== "none" ? '#E6E7F1' : 'white',
-                color: groupBy && groupBy !== "none" ? '#51536C' : undefined
-              }}
+              className={`w-[140px] transition-colors border ${
+                groupBy && groupBy !== "none" 
+                  ? 'bg-[#E6E7F1] text-[#51536C] border-[#E6E7F1] hover:bg-[#D5D7E5] hover:text-[#3E4257]' 
+                  : 'bg-white border-gray-300 hover:bg-gray-50'
+              }`}
             >
               <SelectValue>
                 {groupBy && groupBy !== "none" ? (
