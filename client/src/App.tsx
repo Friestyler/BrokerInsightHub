@@ -21,7 +21,7 @@ import ReportsPage from "@/pages/Reports/ReportsPage";
 import PartnersPage from "@/pages/lists/PartnersPage";
 import PartnerDetail from "@/pages/lists/PartnerDetail";
 import CustomersPage from "@/pages/lists/CustomersPage";
-import OpportunitiesPage from "@/pages/lists/OpportunitiesPageSimple";
+import OpportunitiesPage from "@/pages/lists/OpportunitiesPage";
 import OpportunityDetail from "@/pages/lists/OpportunityDetail";
 import VendorsPage from "@/pages/lists/VendorsPage";
 import ProductsPage from "@/pages/lists/ProductsPage";
