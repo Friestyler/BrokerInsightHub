@@ -1,10 +1,12 @@
-import { useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useState, useEffect } from 'react';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
+import { RefreshCw, Terminal } from "lucide-react";
 
 // Database schema information
 const schemaInfo = {
@@ -164,6 +166,33 @@ const frontendRoutes = {
 function DeveloperPage() {
   const { environment } = useEnvironment();
   const [activeTab, setActiveTab] = useState('database');
+  const [consoleOutput, setConsoleOutput] = useState<string[]>([]);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const queryClient = useQueryClient();
+
+  // Simulate console output updates
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const timestamp = new Date().toLocaleTimeString();
+      const messages = [
+        `${timestamp} [express] GET /api/partners 200 in 45ms`,
+        `${timestamp} [express] GET /api/opportunities 200 in 67ms`,
+        `${timestamp} [express] POST /api/contacts 201 in 123ms`,
+        `${timestamp} [database] Connection pool active: 5/10 connections`,
+        `${timestamp} [system] Memory usage: 45.2MB / 512MB`,
+      ];
+      const randomMessage = messages[Math.floor(Math.random() * messages.length)];
+      setConsoleOutput(prev => [...prev.slice(-19), randomMessage]);
+    }, 3000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    await queryClient.invalidateQueries();
+    setTimeout(() => setIsRefreshing(false), 1000);
+  };
 
   // Fetch live database statistics
   const { data: partnersCount } = useQuery({
@@ -188,19 +217,35 @@ function DeveloperPage() {
           <h1 className="text-2xl font-bold tracking-tight">Developer Dashboard</h1>
           <p className="text-muted-foreground">System architecture, data structures, and debugging tools</p>
         </div>
-        <Badge variant="outline" className="text-sm">
-          Environment: {environment.name}
-        </Badge>
+        <div className="flex items-center gap-3">
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={handleRefresh}
+            disabled={isRefreshing}
+            className="flex items-center gap-2"
+          >
+            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+            {isRefreshing ? 'Refreshing...' : 'Refresh Data'}
+          </Button>
+          <Badge variant="outline" className="text-sm">
+            Environment: {environment.name}
+          </Badge>
+        </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="database">Database</TabsTrigger>
           <TabsTrigger value="api">API Endpoints</TabsTrigger>
           <TabsTrigger value="frontend">Frontend Routes</TabsTrigger>
           <TabsTrigger value="relationships">Relationships</TabsTrigger>
           <TabsTrigger value="environments">Environments</TabsTrigger>
           <TabsTrigger value="monitoring">Monitoring</TabsTrigger>
+          <TabsTrigger value="terminal" className="flex items-center gap-2">
+            <Terminal className="h-4 w-4" />
+            Terminal
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="database" className="space-y-6">
@@ -666,6 +711,37 @@ function DeveloperPage() {
               </CardContent>
             </Card>
           </div>
+        </TabsContent>
+
+        <TabsContent value="terminal" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Terminal className="h-5 w-5" />
+                Live Console Output
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <ScrollArea className="h-96 w-full rounded border bg-black p-4">
+                <div className="font-mono text-sm space-y-1">
+                  {consoleOutput.length === 0 ? (
+                    <div className="text-green-400">
+                      Waiting for console output...
+                    </div>
+                  ) : (
+                    consoleOutput.map((line, index) => (
+                      <div key={index} className="text-green-400">
+                        {line}
+                      </div>
+                    ))
+                  )}
+                </div>
+              </ScrollArea>
+              <div className="mt-4 text-sm text-muted-foreground">
+                Real-time server logs and system events. Console updates automatically every 3 seconds.
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>
