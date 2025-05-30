@@ -728,10 +728,11 @@ export default function MetricsPage() {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="Weekly">Weekly</SelectItem>
-                      <SelectItem value="Bi-weekly">Bi-weekly</SelectItem>
                       <SelectItem value="Monthly">Monthly</SelectItem>
                       <SelectItem value="Quarterly">Quarterly</SelectItem>
-                      <SelectItem value="On completion">On completion</SelectItem>
+                      <SelectItem value="Yearly">Yearly</SelectItem>
+                      <SelectItem value="Custom">Custom</SelectItem>
+                      <SelectItem value="No milestone (target needs to be met only once)">No milestone (target needs to be met only once)</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
