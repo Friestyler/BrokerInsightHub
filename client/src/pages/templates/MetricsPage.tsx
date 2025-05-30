@@ -701,30 +701,16 @@ export default function MetricsPage() {
               {/* Timeframe Field */}
               {formData.okrType && (
                 <div className="space-y-2">
-                  <label htmlFor="okr-timeframe" className="text-sm font-medium text-gray-900">
+                  <label className="text-sm font-medium text-gray-900">
                     Timeframe <span className="text-red-500">*</span>
                   </label>
-                  <Select value={formData.timeframe} onValueChange={(value) => setFormData(prev => ({...prev, timeframe: value}))}>
-                    <SelectTrigger id="okr-timeframe" className="border-gray-300 focus:border-blue-500">
-                      <SelectValue placeholder="Select timeframe" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Q1 2024">Q1 2024</SelectItem>
-                      <SelectItem value="Q2 2024">Q2 2024</SelectItem>
-                      <SelectItem value="Q3 2024">Q3 2024</SelectItem>
-                      <SelectItem value="Q4 2024">Q4 2024</SelectItem>
-                      <SelectItem value="H1 2024">H1 2024</SelectItem>
-                      <SelectItem value="H2 2024">H2 2024</SelectItem>
-                      <SelectItem value="2024">2024</SelectItem>
-                      <SelectItem value="Q1 2025">Q1 2025</SelectItem>
-                      <SelectItem value="Q2 2025">Q2 2025</SelectItem>
-                      <SelectItem value="Q3 2025">Q3 2025</SelectItem>
-                      <SelectItem value="Q4 2025">Q4 2025</SelectItem>
-                      <SelectItem value="H1 2025">H1 2025</SelectItem>
-                      <SelectItem value="H2 2025">H2 2025</SelectItem>
-                      <SelectItem value="2025">2025</SelectItem>
-                    </SelectContent>
-                  </Select>
+                  <AdvancedTimeframeFilter
+                    value={formData.timeframe}
+                    onValueChange={(value) => setFormData(prev => ({...prev, timeframe: value}))}
+                    placeholder="Select timeframe"
+                    dateRange={dateRange}
+                    onDateRangeChange={setDateRange}
+                  />
                 </div>
               )}
 
