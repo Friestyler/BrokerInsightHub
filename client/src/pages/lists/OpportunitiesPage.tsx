@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from '@/lib/queryClient';
 import {
   Card,
   CardContent,
@@ -35,13 +36,7 @@ import { useToast } from "@/hooks/use-toast";
 const useOpportunitiesData = () => {
   return useQuery({
     queryKey: ['/api/opportunities'],
-    queryFn: async () => {
-      const response = await fetch('/api/opportunities');
-      if (!response.ok) {
-        throw new Error('Failed to fetch opportunities');
-      }
-      return response.json();
-    }
+    staleTime: 2 * 60 * 1000,
   });
 };
 
@@ -49,11 +44,7 @@ const useOpportunitiesData = () => {
 const useSavedLists = () => {
   return useQuery({
     queryKey: ['/api/saved-lists', 'opportunities'],
-    queryFn: async () => {
-      const response = await fetch('/api/saved-lists?entity_type=opportunities');
-      if (!response.ok) throw new Error('Failed to fetch saved lists');
-      return response.json();
-    }
+    staleTime: 2 * 60 * 1000,
   });
 };
 
@@ -61,13 +52,10 @@ const useCreateSavedList = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (newList: any) => {
-      const response = await fetch('/api/saved-lists', {
+      return apiRequest('/api/saved-lists', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newList)
       });
-      if (!response.ok) throw new Error('Failed to create list');
-      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
@@ -78,11 +66,7 @@ const useCreateSavedList = () => {
 const useSavedViews = () => {
   return useQuery({
     queryKey: ['/api/saved-views', 'opportunities'],
-    queryFn: async () => {
-      const response = await fetch('/api/saved-views?entity_type=opportunities');
-      if (!response.ok) throw new Error('Failed to fetch saved views');
-      return response.json();
-    }
+    staleTime: 2 * 60 * 1000,
   });
 };
 
