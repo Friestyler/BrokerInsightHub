@@ -29,9 +29,13 @@ interface ColumnMapping {
 }
 
 interface MappingTemplate {
+  id: number;
   name: string;
-  mappings: ColumnMapping[];
-  createdAt: string;
+  description: string;
+  column_mappings: string;
+  created_by: number;
+  created_at: string;
+  updated_at: string;
 }
 
 // Updated to match actual database schema
@@ -419,7 +423,7 @@ export default function DeGoudseUploadWizard() {
                         </SelectTrigger>
                         <SelectContent>
                           {savedTemplates.map(template => (
-                            <SelectItem key={template.name} value={template.name}>
+                            <SelectItem key={template.id} value={template.id.toString()}>
                               {template.name}
                             </SelectItem>
                           ))}
