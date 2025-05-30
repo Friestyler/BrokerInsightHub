@@ -156,6 +156,11 @@ export default function CustomersPageClean() {
   const [viewNameInput, setViewNameInput] = useState('');
   const [showViewsDropdown, setShowViewsDropdown] = useState(false);
   
+  // Filter dropdown states
+  const [showStatusFilter, setShowStatusFilter] = useState(false);
+  const [showTypeFilter, setShowTypeFilter] = useState(false);
+  const [showIndustryFilter, setShowIndustryFilter] = useState(false);
+  
   // Data fetching
   const { data: customers = [], isLoading, error } = useCustomersData();
   const { data: savedListsData = [], isLoading: savedListsLoading } = useSavedLists();
@@ -411,32 +416,146 @@ export default function CustomersPageClean() {
                 
                 {/* Filter buttons next to the views dropdown */}
                 <div className="flex items-center gap-2 ml-3">
-                  <button 
-                    className="flex items-center px-3 py-2 border rounded-md text-sm font-medium border-gray-300 text-gray-700"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                    </svg>
-                    <span>Status</span>
-                  </button>
+                  {/* Status Filter */}
+                  <div className="relative">
+                    <button 
+                      className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${
+                        activeFilters.status.length > 0 
+                          ? 'border-indigo-300 bg-indigo-50 text-indigo-700' 
+                          : 'border-gray-300 text-gray-700'
+                      }`}
+                      onClick={() => setShowStatusFilter(!showStatusFilter)}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                      </svg>
+                      <span>Status {activeFilters.status.length > 0 && `(${activeFilters.status.length})`}</span>
+                    </button>
+                    
+                    {showStatusFilter && (
+                      <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                        <div className="py-1">
+                          {['active', 'inactive', 'pending'].map((status) => (
+                            <label key={status} className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                className="h-4 w-4 rounded border-gray-300 mr-2"
+                                checked={activeFilters.status.includes(status)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setActiveFilters(prev => ({
+                                      ...prev,
+                                      status: [...prev.status, status]
+                                    }));
+                                  } else {
+                                    setActiveFilters(prev => ({
+                                      ...prev,
+                                      status: prev.status.filter(s => s !== status)
+                                    }));
+                                  }
+                                }}
+                              />
+                              <span className="text-sm capitalize">{status}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                   
-                  <button 
-                    className="flex items-center px-3 py-2 border rounded-md text-sm font-medium border-gray-300 text-gray-700"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                    </svg>
-                    <span>Type</span>
-                  </button>
+                  {/* Type Filter */}
+                  <div className="relative">
+                    <button 
+                      className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${
+                        activeFilters.size.length > 0 
+                          ? 'border-indigo-300 bg-indigo-50 text-indigo-700' 
+                          : 'border-gray-300 text-gray-700'
+                      }`}
+                      onClick={() => setShowTypeFilter(!showTypeFilter)}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                      </svg>
+                      <span>Size {activeFilters.size.length > 0 && `(${activeFilters.size.length})`}</span>
+                    </button>
+                    
+                    {showTypeFilter && (
+                      <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                        <div className="py-1">
+                          {['small', 'medium', 'large', 'enterprise'].map((size) => (
+                            <label key={size} className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                className="h-4 w-4 rounded border-gray-300 mr-2"
+                                checked={activeFilters.size.includes(size)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setActiveFilters(prev => ({
+                                      ...prev,
+                                      size: [...prev.size, size]
+                                    }));
+                                  } else {
+                                    setActiveFilters(prev => ({
+                                      ...prev,
+                                      size: prev.size.filter(s => s !== size)
+                                    }));
+                                  }
+                                }}
+                              />
+                              <span className="text-sm capitalize">{size}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                   
-                  <button 
-                    className="flex items-center px-3 py-2 border rounded-md text-sm font-medium border-gray-300 text-gray-700"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                    </svg>
-                    <span>Industry</span>
-                  </button>
+                  {/* Industry Filter */}
+                  <div className="relative">
+                    <button 
+                      className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${
+                        activeFilters.industry.length > 0 
+                          ? 'border-indigo-300 bg-indigo-50 text-indigo-700' 
+                          : 'border-gray-300 text-gray-700'
+                      }`}
+                      onClick={() => setShowIndustryFilter(!showIndustryFilter)}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                      </svg>
+                      <span>Industry {activeFilters.industry.length > 0 && `(${activeFilters.industry.length})`}</span>
+                    </button>
+                    
+                    {showIndustryFilter && (
+                      <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                        <div className="py-1">
+                          {['Technology', 'Insurance', 'Healthcare', 'Finance', 'Manufacturing', 'Retail'].map((industry) => (
+                            <label key={industry} className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer">
+                              <input
+                                type="checkbox"
+                                className="h-4 w-4 rounded border-gray-300 mr-2"
+                                checked={activeFilters.industry.includes(industry)}
+                                onChange={(e) => {
+                                  if (e.target.checked) {
+                                    setActiveFilters(prev => ({
+                                      ...prev,
+                                      industry: [...prev.industry, industry]
+                                    }));
+                                  } else {
+                                    setActiveFilters(prev => ({
+                                      ...prev,
+                                      industry: prev.industry.filter(i => i !== industry)
+                                    }));
+                                  }
+                                }}
+                              />
+                              <span className="text-sm">{industry}</span>
+                            </label>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
                 
                 {/* Save View button - appears when filters are applied */}
