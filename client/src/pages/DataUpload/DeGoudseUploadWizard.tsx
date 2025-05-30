@@ -306,9 +306,10 @@ export default function DeGoudseUploadWizard() {
       setProcessedResults(results);
       setCurrentStep('complete');
 
+      const totalEntities = results.entityStats ? Object.values(results.entityStats).reduce((a: number, b: number) => a + b, 0) : 0;
       toast({
         title: "Upload Complete",
-        description: `Successfully processed ${results.opportunitiesCreated} opportunities and ${results.entitiesCreated} new entities.`
+        description: `Successfully processed ${results.rowsProcessed} rows, created ${results.opportunitiesCreated} opportunities and ${totalEntities} new entities.`
       });
 
     } catch (error) {
@@ -609,11 +610,11 @@ export default function DeGoudseUploadWizard() {
           )}
 
           {currentStep === 'complete' && processedResults && (
-            <div className="text-center py-8 space-y-4">
+            <div className="text-center py-8 space-y-6">
               <CheckCircle className="mx-auto h-16 w-16 text-green-500" />
               <h3 className="text-xl font-medium text-green-700">Upload Complete!</h3>
               
-              <div className="grid grid-cols-3 gap-4 max-w-md mx-auto">
+              <div className="grid grid-cols-3 gap-4 max-w-md mx-auto mb-6">
                 <Card>
                   <CardContent className="pt-4 text-center">
                     <div className="text-2xl font-bold text-blue-600">
@@ -625,9 +626,9 @@ export default function DeGoudseUploadWizard() {
                 <Card>
                   <CardContent className="pt-4 text-center">
                     <div className="text-2xl font-bold text-green-600">
-                      {processedResults.entitiesCreated}
+                      {processedResults.rowsProcessed}
                     </div>
-                    <div className="text-sm text-gray-600">New Entities</div>
+                    <div className="text-sm text-gray-600">Rows Processed</div>
                   </CardContent>
                 </Card>
                 <Card>
@@ -637,6 +638,54 @@ export default function DeGoudseUploadWizard() {
                   </CardContent>
                 </Card>
               </div>
+
+              {processedResults.entityStats && Object.values(processedResults.entityStats).some((count: any) => count > 0) && (
+                <Card className="max-w-2xl mx-auto">
+                  <CardHeader>
+                    <CardTitle className="text-lg">Entities Created</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                      {processedResults.entityStats.customers > 0 && (
+                        <div className="bg-blue-50 p-3 rounded-lg text-center">
+                          <div className="text-lg font-bold text-blue-600">{processedResults.entityStats.customers}</div>
+                          <div className="text-sm text-blue-700">Customers</div>
+                        </div>
+                      )}
+                      {processedResults.entityStats.partners > 0 && (
+                        <div className="bg-purple-50 p-3 rounded-lg text-center">
+                          <div className="text-lg font-bold text-purple-600">{processedResults.entityStats.partners}</div>
+                          <div className="text-sm text-purple-700">Partners</div>
+                        </div>
+                      )}
+                      {processedResults.entityStats.vendors > 0 && (
+                        <div className="bg-orange-50 p-3 rounded-lg text-center">
+                          <div className="text-lg font-bold text-orange-600">{processedResults.entityStats.vendors}</div>
+                          <div className="text-sm text-orange-700">Vendors</div>
+                        </div>
+                      )}
+                      {processedResults.entityStats.products > 0 && (
+                        <div className="bg-green-50 p-3 rounded-lg text-center">
+                          <div className="text-lg font-bold text-green-600">{processedResults.entityStats.products}</div>
+                          <div className="text-sm text-green-700">Products</div>
+                        </div>
+                      )}
+                      {processedResults.entityStats.users > 0 && (
+                        <div className="bg-gray-50 p-3 rounded-lg text-center">
+                          <div className="text-lg font-bold text-gray-600">{processedResults.entityStats.users}</div>
+                          <div className="text-sm text-gray-700">Users</div>
+                        </div>
+                      )}
+                      {processedResults.entityStats.contacts > 0 && (
+                        <div className="bg-yellow-50 p-3 rounded-lg text-center">
+                          <div className="text-lg font-bold text-yellow-600">{processedResults.entityStats.contacts}</div>
+                          <div className="text-sm text-yellow-700">Contacts</div>
+                        </div>
+                      )}
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
 
               <p className="text-gray-600">
                 A new saved list "{uploadedFile?.name}" has been created under Opportunities &gt; Collaborate.
