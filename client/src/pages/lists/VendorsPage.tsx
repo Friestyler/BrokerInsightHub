@@ -217,22 +217,28 @@ export default function VendorsPage() {
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <label htmlFor="name" className="text-sm font-medium">Name</label>
+              <label htmlFor="name" className="text-sm font-medium">
+                Name <span className="text-red-500">*</span>
+              </label>
               <Input
                 id="name"
                 value={newVendor.name}
                 onChange={(e) => setNewVendor({ ...newVendor, name: e.target.value })}
                 placeholder="Enter vendor name"
+                className={!newVendor.name ? "border-red-300" : ""}
               />
             </div>
             <div className="grid gap-2">
-              <label htmlFor="description" className="text-sm font-medium">Description</label>
+              <label htmlFor="description" className="text-sm font-medium">
+                Description <span className="text-red-500">*</span>
+              </label>
               <Textarea
                 id="description"
                 value={newVendor.description}
                 onChange={(e) => setNewVendor({ ...newVendor, description: e.target.value })}
                 placeholder="Enter vendor description"
                 rows={3}
+                className={!newVendor.description ? "border-red-300" : ""}
               />
             </div>
             <div className="grid gap-2">
@@ -241,7 +247,7 @@ export default function VendorsPage() {
                 id="contactName"
                 value={newVendor.contactName}
                 onChange={(e) => setNewVendor({ ...newVendor, contactName: e.target.value })}
-                placeholder="Enter contact name"
+                placeholder="Enter contact name (optional)"
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
@@ -252,7 +258,7 @@ export default function VendorsPage() {
                   type="email"
                   value={newVendor.contactEmail}
                   onChange={(e) => setNewVendor({ ...newVendor, contactEmail: e.target.value })}
-                  placeholder="Enter email"
+                  placeholder="Enter email (optional)"
                 />
               </div>
               <div className="grid gap-2">
@@ -261,7 +267,7 @@ export default function VendorsPage() {
                   id="contactPhone"
                   value={newVendor.contactPhone}
                   onChange={(e) => setNewVendor({ ...newVendor, contactPhone: e.target.value })}
-                  placeholder="Enter phone number"
+                  placeholder="Enter phone number (optional)"
                 />
               </div>
             </div>
