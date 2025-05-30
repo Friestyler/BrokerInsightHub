@@ -1839,12 +1839,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const entityType = req.query.entity_type as string;
       const envId = req.headers['x-environment-id'] || 'myqollabi';
+      const envPool = getEnvironmentPool(envId as string);
       
-      const result = await db.execute(sql`
-        SELECT * FROM ${sql.identifier(envId as string)}.saved_views 
-        ${entityType ? sql`WHERE entity_type = ${entityType}` : sql``}
-        ORDER BY created_at DESC
-      `);
+      let query = `SELECT * FROM ${envId}.saved_views`;
+      const params = [];
+      
+      if (entityType) {
+        query += ` WHERE entity_type = $1`;
+        params.push(entityType);
+      }
+      
+      query += ` ORDER BY created_at DESC`;
+      
+      const result = await envPool.query(query, params);
       
       res.json(result.rows);
     } catch (error) {
@@ -1858,13 +1865,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { name, description, entity_type, filters, is_shared } = req.body;
       const envId = req.headers['x-environment-id'] || 'myqollabi';
       const created_by = 1; // Default user ID for now
+      const envPool = getEnvironmentPool(envId as string);
       
-      const result = await db.execute(sql`
-        INSERT INTO ${sql.identifier(envId as string)}.saved_views 
-        (name, description, entity_type, filters, is_shared, created_by)
-        VALUES (${name}, ${description}, ${entity_type}, ${JSON.stringify(filters || {})}, ${is_shared || false}, ${created_by})
-        RETURNING *
-      `);
+      const result = await envPool.query(
+        `INSERT INTO ${envId}.saved_views 
+         (name, description, entity_type, filters, is_shared, created_by)
+         VALUES ($1, $2, $3, $4, $5, $6)
+         RETURNING *`,
+        [name, description || null, entity_type, JSON.stringify(filters || {}), is_shared || false, created_by]
+      );
       
       res.json(result.rows[0]);
     } catch (error) {
