@@ -112,6 +112,9 @@ export default function MetricsPage() {
     tag: '',
     name: '',
     description: '',
+    timeframe: '',
+    milestoneFrequency: '',
+    target: 0,
     hasTarget: false,
     targetValue: '',
     trafficLights: false,
@@ -159,6 +162,9 @@ export default function MetricsPage() {
       tag: '',
       name: '',
       description: '',
+      timeframe: '',
+      milestoneFrequency: '',
+      target: 0,
       hasTarget: false,
       targetValue: '',
       trafficLights: false,
@@ -691,6 +697,119 @@ export default function MetricsPage() {
                   className="resize-none border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
+
+              {/* Timeframe Field */}
+              {formData.okrType && (
+                <div className="space-y-2">
+                  <label htmlFor="okr-timeframe" className="text-sm font-medium text-gray-900">
+                    Timeframe <span className="text-red-500">*</span>
+                  </label>
+                  <Select value={formData.timeframe} onValueChange={(value) => setFormData(prev => ({...prev, timeframe: value}))}>
+                    <SelectTrigger id="okr-timeframe" className="border-gray-300 focus:border-blue-500">
+                      <SelectValue placeholder="Select timeframe" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Q1 2024">Q1 2024</SelectItem>
+                      <SelectItem value="Q2 2024">Q2 2024</SelectItem>
+                      <SelectItem value="Q3 2024">Q3 2024</SelectItem>
+                      <SelectItem value="Q4 2024">Q4 2024</SelectItem>
+                      <SelectItem value="H1 2024">H1 2024</SelectItem>
+                      <SelectItem value="H2 2024">H2 2024</SelectItem>
+                      <SelectItem value="2024">2024</SelectItem>
+                      <SelectItem value="Q1 2025">Q1 2025</SelectItem>
+                      <SelectItem value="Q2 2025">Q2 2025</SelectItem>
+                      <SelectItem value="Q3 2025">Q3 2025</SelectItem>
+                      <SelectItem value="Q4 2025">Q4 2025</SelectItem>
+                      <SelectItem value="H1 2025">H1 2025</SelectItem>
+                      <SelectItem value="H2 2025">H2 2025</SelectItem>
+                      <SelectItem value="2025">2025</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {/* Milestone Frequency Field */}
+              {formData.okrType && (
+                <div className="space-y-2">
+                  <label htmlFor="okr-milestone-frequency" className="text-sm font-medium text-gray-900">
+                    Milestone Frequency <span className="text-red-500">*</span>
+                  </label>
+                  <Select value={formData.milestoneFrequency} onValueChange={(value) => setFormData(prev => ({...prev, milestoneFrequency: value}))}>
+                    <SelectTrigger id="okr-milestone-frequency" className="border-gray-300 focus:border-blue-500">
+                      <SelectValue placeholder="Select frequency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Weekly">Weekly</SelectItem>
+                      <SelectItem value="Bi-weekly">Bi-weekly</SelectItem>
+                      <SelectItem value="Monthly">Monthly</SelectItem>
+                      <SelectItem value="Quarterly">Quarterly</SelectItem>
+                      <SelectItem value="On completion">On completion</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {/* Target Field - Currency */}
+              {formData.okrType === 'currency' && (
+                <div className="space-y-2">
+                  <label htmlFor="okr-target" className="text-sm font-medium text-gray-900">
+                    Target Amount <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">€</span>
+                    <Input 
+                      id="okr-target"
+                      type="number"
+                      value={formData.target || ''}
+                      onChange={(e) => setFormData(prev => ({...prev, target: parseFloat(e.target.value) || 0}))}
+                      placeholder="1000"
+                      className="pl-8 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Target Field - Percentage */}
+              {formData.okrType === 'percent' && (
+                <div className="space-y-2">
+                  <label htmlFor="okr-target" className="text-sm font-medium text-gray-900">
+                    Target Percentage <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <Input 
+                      id="okr-target"
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={formData.target || ''}
+                      onChange={(e) => setFormData(prev => ({...prev, target: parseFloat(e.target.value) || 0}))}
+                      placeholder="75"
+                      className="pr-8 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                    />
+                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">%</span>
+                  </div>
+                </div>
+              )}
+
+              {/* Target Field - Number */}
+              {formData.okrType === 'number' && (
+                <div className="space-y-2">
+                  <label htmlFor="okr-target" className="text-sm font-medium text-gray-900">
+                    Target Number <span className="text-red-500">*</span>
+                  </label>
+                  <div className="relative">
+                    <Input 
+                      id="okr-target"
+                      type="number"
+                      value={formData.target || ''}
+                      onChange={(e) => setFormData(prev => ({...prev, target: parseFloat(e.target.value) || 0}))}
+                      placeholder="50"
+                      className="pr-8 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                    />
+                    <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">#</span>
+                  </div>
+                </div>
+              )}
             </div>
           </div>
           
