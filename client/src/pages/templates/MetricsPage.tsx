@@ -260,10 +260,15 @@ export default function MetricsPage() {
         
         {/* Group by dropdown */}
         <div className="flex items-center gap-2">
-          <span className="text-sm text-gray-600 whitespace-nowrap">Group by:</span>
           <Select value={groupBy} onValueChange={setGroupBy}>
-            <SelectTrigger className="w-[120px] bg-white">
-              <SelectValue />
+            <SelectTrigger className="w-[140px] bg-white">
+              <SelectValue>
+                {groupBy && groupBy !== "none" ? (
+                  <span>Group | {groupBy.charAt(0).toUpperCase() + groupBy.slice(1)}</span>
+                ) : (
+                  <span className="text-gray-500">Group by</span>
+                )}
+              </SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="tag">Tag</SelectItem>
