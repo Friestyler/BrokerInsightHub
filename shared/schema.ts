@@ -237,6 +237,74 @@ export const insertProductCatalogSchema = createInsertSchema(productCatalog).pic
   aiContext: true,
 });
 
+// Saved Lists table - for storing user-created lists of entities
+export const savedLists = pgTable("saved_lists", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(),
+  description: text("description"),
+  type: text("type").notNull(), // 'selection' or 'filter'
+  entity_type: text("entity_type").notNull(), // 'partners', 'customers', 'opportunities'
+  members: integer("members").array().default([]), // Array of entity IDs for selection-based lists
+  filters: json("filters").notNull(), // Stored filter criteria for filter-based lists
+  is_shared: boolean("is_shared").default(false),
+  is_default: boolean("is_default").default(false),
+  created_by: integer("created_by").notNull().references(() => users.id),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+  updated_at: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Saved Views table - for storing user-created filter views
+export const savedViews = pgTable("saved_views", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 100 }).notNull(),
+  description: text("description"),
+  entity_type: text("entity_type").notNull(), // 'partners', 'customers', 'opportunities'
+  filters: json("filters").notNull(), // Stored filter criteria
+  is_shared: boolean("is_shared").default(false),
+  is_default: boolean("is_default").default(false),
+  created_by: integer("created_by").notNull().references(() => users.id),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+  updated_at: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Define relationships for saved lists and views
+export const savedListsRelations = relations(savedLists, ({ one }) => ({
+  createdBy: one(users, {
+    fields: [savedLists.created_by],
+    references: [users.id],
+  }),
+}));
+
+export const savedViewsRelations = relations(savedViews, ({ one }) => ({
+  createdBy: one(users, {
+    fields: [savedViews.created_by],
+    references: [users.id],
+  }),
+}));
+
+// Insert schemas for saved lists and views
+export const insertSavedListSchema = createInsertSchema(savedLists).pick({
+  name: true,
+  description: true,
+  type: true,
+  entity_type: true,
+  members: true,
+  filters: true,
+  is_shared: true,
+  is_default: true,
+  created_by: true,
+});
+
+export const insertSavedViewSchema = createInsertSchema(savedViews).pick({
+  name: true,
+  description: true,
+  entity_type: true,
+  filters: true,
+  is_shared: true,
+  is_default: true,
+  created_by: true,
+});
+
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
 export type User = typeof users.$inferSelect;
@@ -273,6 +341,12 @@ export type CustomerPartner = typeof customerPartners.$inferSelect;
 
 export type InsertProduct = z.infer<typeof insertProductSchema>;
 export type Product = typeof products.$inferSelect;
+
+export type InsertSavedList = z.infer<typeof insertSavedListSchema>;
+export type SavedList = typeof savedLists.$inferSelect;
+
+export type InsertSavedView = z.infer<typeof insertSavedViewSchema>;
+export type SavedView = typeof savedViews.$inferSelect;
 
 // Vendor model
 export const vendors = pgTable("vendors", {

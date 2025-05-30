@@ -64,7 +64,79 @@ const usePartnersData = () => {
   });
 };
 
-// All partner data now comes from database - no mock data needed
+// Hooks for saved lists and views
+const useSavedLists = () => {
+  return useQuery({
+    queryKey: ['/api/saved-lists', 'partners'],
+    queryFn: async () => {
+      const response = await fetch('/api/saved-lists?entity_type=partners');
+      if (!response.ok) throw new Error('Failed to fetch saved lists');
+      return response.json();
+    }
+  });
+};
+
+const useSavedViews = () => {
+  return useQuery({
+    queryKey: ['/api/saved-views', 'partners'],
+    queryFn: async () => {
+      const response = await fetch('/api/saved-views?entity_type=partners');
+      if (!response.ok) throw new Error('Failed to fetch saved views');
+      return response.json();
+    }
+  });
+};
+
+const useCreateSavedList = () => {
+  return useMutation({
+    mutationFn: async (data: any) => {
+      const response = await fetch('/api/saved-lists', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      if (!response.ok) throw new Error('Failed to create saved list');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
+    }
+  });
+};
+
+const useUpdateSavedList = () => {
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: number, data: any }) => {
+      const response = await fetch(`/api/saved-lists/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      if (!response.ok) throw new Error('Failed to update saved list');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
+    }
+  });
+};
+
+const useCreateSavedView = () => {
+  return useMutation({
+    mutationFn: async (data: any) => {
+      const response = await fetch('/api/saved-views', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      });
+      if (!response.ok) throw new Error('Failed to create saved view');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-views'] });
+    }
+  });
+};
 
 // Calculate partner statistics
 function calculatePartnerStats(partners: any[]) {
@@ -206,8 +278,14 @@ function PartnersTable() {
     return false; // Navigation can proceed
   };
   
-  // State for saved lists
-  const [savedLists, setSavedLists] = useState<SavedList[]>([
+  // Fetch saved lists from database
+  const { data: savedListsData = [], isLoading: savedListsLoading } = useSavedLists();
+  const createSavedListMutation = useCreateSavedList();
+  const updateSavedListMutation = useUpdateSavedList();
+  
+  // Convert database records to local interface format
+  const savedLists: SavedList[] = [
+    // Default "All Partners" list
     {
       id: 'all-partners',
       name: 'All Partners',
@@ -216,41 +294,23 @@ function PartnersTable() {
       isShared: false,
       createdBy: 'System',
       createdAt: new Date('2025-01-01'),
-      isDefault: true // Flag to indicate this is a default list that can't be edited/deleted
+      isDefault: true
     },
-    {
-      id: '1',
-      name: 'Active Insurance Brokers',
-      type: 'selection',
-      filters: {},
-      members: [2, 3, 4], // IDs of the partners in this list
-      isShared: true,
-      sharedWith: ['team@acme.com'],
-      createdBy: 'John Smith',
-      createdAt: new Date('2025-05-01')
-    },
-    {
-      id: '2',
-      name: 'Consulting Partners',
-      type: 'selection',
-      filters: {},
-      members: [5, 6, 7], // IDs of the partners in this list
-      isShared: false,
-      createdBy: 'John Smith',
-      createdAt: new Date('2025-05-10')
-    },
-    {
-      id: '3',
-      name: 'Enterprise Partners',
-      type: 'selection',
-      filters: {},
-      members: [3, 8, 10], // IDs of the partners in this list
-      isShared: true,
-      sharedWith: ['partnerships@acme.com'],
-      createdBy: 'John Smith',
-      createdAt: new Date('2025-05-15')
-    }
-  ]);
+    // Add database records
+    ...savedListsData.map((list: any) => ({
+      id: list.id.toString(),
+      name: list.name,
+      description: list.description,
+      type: list.type as 'filter' | 'selection',
+      filters: list.filters || {},
+      members: list.members || [],
+      isShared: list.is_shared,
+      createdBy: list.created_by,
+      createdAt: new Date(list.created_at),
+      isDefault: list.is_default
+    }))
+  ];
+  
   const [activeList, setActiveList] = useState<SavedList | null>(null);
   const [originalListFilters, setOriginalListFilters] = useState<SavedList['filters'] | null>(null);
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);

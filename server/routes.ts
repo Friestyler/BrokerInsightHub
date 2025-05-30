@@ -1738,6 +1738,187 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Saved Lists API endpoints
+  app.get('/api/saved-lists', async (req, res) => {
+    try {
+      const entityType = req.query.entity_type as string;
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      
+      const result = await db.execute(sql`
+        SELECT * FROM ${sql.identifier(envId as string)}.saved_lists 
+        ${entityType ? sql`WHERE entity_type = ${entityType}` : sql``}
+        ORDER BY created_at DESC
+      `);
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching saved lists:', error);
+      res.status(500).json({ error: 'Failed to fetch saved lists' });
+    }
+  });
+
+  app.post('/api/saved-lists', async (req, res) => {
+    try {
+      const { name, description, type, entity_type, members, filters, is_shared } = req.body;
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      const created_by = 1; // Default user ID for now
+      
+      const result = await db.execute(sql`
+        INSERT INTO ${sql.identifier(envId as string)}.saved_lists 
+        (name, description, type, entity_type, members, filters, is_shared, created_by)
+        VALUES (${name}, ${description}, ${type}, ${entity_type}, ${JSON.stringify(members || [])}, ${JSON.stringify(filters || {})}, ${is_shared || false}, ${created_by})
+        RETURNING *
+      `);
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error creating saved list:', error);
+      res.status(500).json({ error: 'Failed to create saved list' });
+    }
+  });
+
+  app.put('/api/saved-lists/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { name, description, members, filters, is_shared } = req.body;
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      
+      const result = await db.execute(sql`
+        UPDATE ${sql.identifier(envId as string)}.saved_lists 
+        SET 
+          name = ${name},
+          description = ${description},
+          members = ${JSON.stringify(members || [])},
+          filters = ${JSON.stringify(filters || {})},
+          is_shared = ${is_shared || false},
+          updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING *
+      `);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Saved list not found' });
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error updating saved list:', error);
+      res.status(500).json({ error: 'Failed to update saved list' });
+    }
+  });
+
+  app.delete('/api/saved-lists/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      
+      const result = await db.execute(sql`
+        DELETE FROM ${sql.identifier(envId as string)}.saved_lists 
+        WHERE id = ${id}
+        RETURNING *
+      `);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Saved list not found' });
+      }
+      
+      res.json({ message: 'Saved list deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting saved list:', error);
+      res.status(500).json({ error: 'Failed to delete saved list' });
+    }
+  });
+
+  // Saved Views API endpoints
+  app.get('/api/saved-views', async (req, res) => {
+    try {
+      const entityType = req.query.entity_type as string;
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      
+      const result = await db.execute(sql`
+        SELECT * FROM ${sql.identifier(envId as string)}.saved_views 
+        ${entityType ? sql`WHERE entity_type = ${entityType}` : sql``}
+        ORDER BY created_at DESC
+      `);
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching saved views:', error);
+      res.status(500).json({ error: 'Failed to fetch saved views' });
+    }
+  });
+
+  app.post('/api/saved-views', async (req, res) => {
+    try {
+      const { name, description, entity_type, filters, is_shared } = req.body;
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      const created_by = 1; // Default user ID for now
+      
+      const result = await db.execute(sql`
+        INSERT INTO ${sql.identifier(envId as string)}.saved_views 
+        (name, description, entity_type, filters, is_shared, created_by)
+        VALUES (${name}, ${description}, ${entity_type}, ${JSON.stringify(filters || {})}, ${is_shared || false}, ${created_by})
+        RETURNING *
+      `);
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error creating saved view:', error);
+      res.status(500).json({ error: 'Failed to create saved view' });
+    }
+  });
+
+  app.put('/api/saved-views/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { name, description, filters, is_shared } = req.body;
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      
+      const result = await db.execute(sql`
+        UPDATE ${sql.identifier(envId as string)}.saved_views 
+        SET 
+          name = ${name},
+          description = ${description},
+          filters = ${JSON.stringify(filters || {})},
+          is_shared = ${is_shared || false},
+          updated_at = NOW()
+        WHERE id = ${id}
+        RETURNING *
+      `);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Saved view not found' });
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error updating saved view:', error);
+      res.status(500).json({ error: 'Failed to update saved view' });
+    }
+  });
+
+  app.delete('/api/saved-views/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      
+      const result = await db.execute(sql`
+        DELETE FROM ${sql.identifier(envId as string)}.saved_views 
+        WHERE id = ${id}
+        RETURNING *
+      `);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Saved view not found' });
+      }
+      
+      res.json({ message: 'Saved view deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting saved view:', error);
+      res.status(500).json({ error: 'Failed to delete saved view' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
