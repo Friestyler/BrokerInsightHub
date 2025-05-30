@@ -56,11 +56,11 @@ export default function UserManagement() {
 
   const loadUsers = async () => {
     try {
-      const response = await fetch('/api/users', {
-        headers: {
-          'x-environment-id': environment.id
-        }
-      });
+      // Import environment URL transformation function
+      const { getEnvironmentUrl } = await import('@/lib/queryClient');
+      const url = getEnvironmentUrl('/api/users');
+      
+      const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
         setUsers(data);
@@ -83,9 +83,12 @@ export default function UserManagement() {
     }
 
     try {
-      const url = editingUser 
+      // Import environment URL transformation function
+      const { getEnvironmentUrl } = await import('@/lib/queryClient');
+      const baseUrl = editingUser 
         ? `/api/users/${editingUser.id}` 
         : `/api/users`;
+      const url = getEnvironmentUrl(baseUrl);
       
       const method = editingUser ? 'PUT' : 'POST';
       
@@ -106,8 +109,7 @@ export default function UserManagement() {
       const response = await fetch(url, {
         method,
         headers: {
-          'Content-Type': 'application/json',
-          'x-environment-id': environment.id
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(userData),
       });
@@ -149,11 +151,12 @@ export default function UserManagement() {
     if (!confirm('Are you sure you want to delete this user?')) return;
 
     try {
-      const response = await fetch(`/api/users/${userId}`, {
-        method: 'DELETE',
-        headers: {
-          'x-environment-id': environment.id
-        }
+      // Import environment URL transformation function
+      const { getEnvironmentUrl } = await import('@/lib/queryClient');
+      const url = getEnvironmentUrl(`/api/users/${userId}`);
+      
+      const response = await fetch(url, {
+        method: 'DELETE'
       });
 
       if (response.ok) {

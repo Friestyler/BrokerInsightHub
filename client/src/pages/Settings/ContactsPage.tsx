@@ -59,11 +59,11 @@ export default function ContactsPage() {
 
   const loadContacts = async () => {
     try {
-      const response = await fetch('/api/contacts', {
-        headers: {
-          'x-environment-id': environment.id
-        }
-      });
+      // Import environment URL transformation function
+      const { getEnvironmentUrl } = await import('@/lib/queryClient');
+      const url = getEnvironmentUrl('/api/contacts');
+      
+      const response = await fetch(url);
       if (response.ok) {
         const data = await response.json();
         setContacts(data);
@@ -86,9 +86,12 @@ export default function ContactsPage() {
     }
 
     try {
-      const url = editingContact 
+      // Import environment URL transformation function
+      const { getEnvironmentUrl } = await import('@/lib/queryClient');
+      const baseUrl = editingContact 
         ? `/api/contacts/${editingContact.id}` 
         : `/api/contacts`;
+      const url = getEnvironmentUrl(baseUrl);
       
       const method = editingContact ? 'PUT' : 'POST';
       
@@ -109,8 +112,7 @@ export default function ContactsPage() {
       const response = await fetch(url, {
         method,
         headers: {
-          'Content-Type': 'application/json',
-          'x-environment-id': environment.id
+          'Content-Type': 'application/json'
         },
         body: JSON.stringify(contactData),
       });
@@ -157,11 +159,12 @@ export default function ContactsPage() {
     if (!confirm('Are you sure you want to delete this contact?')) return;
 
     try {
-      const response = await fetch(`/api/contacts/${contactId}`, {
-        method: 'DELETE',
-        headers: {
-          'x-environment-id': environment.id
-        }
+      // Import environment URL transformation function
+      const { getEnvironmentUrl } = await import('@/lib/queryClient');
+      const url = getEnvironmentUrl(`/api/contacts/${contactId}`);
+      
+      const response = await fetch(url, {
+        method: 'DELETE'
       });
 
       if (response.ok) {
