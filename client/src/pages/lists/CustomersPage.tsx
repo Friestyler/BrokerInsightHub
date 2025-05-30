@@ -1,5 +1,6 @@
 import { useState, useEffect, createContext, useContext } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 
 // Create a context for list editing state
@@ -47,26 +48,7 @@ import { useToast } from "@/hooks/use-toast";
 const useCustomersData = () => {
   return useQuery({
     queryKey: ['/api/customers'],
-    queryFn: async () => {
-      console.log('Fetching customers data...');
-      const response = await fetch('/api/customers');
-      console.log('Response status:', response.status);
-      console.log('Response headers:', response.headers.get('content-type'));
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch customers');
-      }
-      
-      const text = await response.text();
-      console.log('Response text preview:', text.substring(0, 200));
-      
-      try {
-        return JSON.parse(text);
-      } catch (e) {
-        console.error('Failed to parse JSON:', e);
-        throw new Error('Invalid JSON response');
-      }
-    },
+    staleTime: 2 * 60 * 1000, // 2 minutes
   });
 };
 
@@ -74,11 +56,7 @@ const useCustomersData = () => {
 const useSavedLists = () => {
   return useQuery({
     queryKey: ['/api/saved-lists', 'customers'],
-    queryFn: async () => {
-      const response = await fetch('/api/saved-lists?entity_type=customers');
-      if (!response.ok) throw new Error('Failed to fetch saved lists');
-      return response.json();
-    }
+    staleTime: 2 * 60 * 1000,
   });
 };
 
@@ -86,13 +64,10 @@ const useCreateSavedList = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (newList: any) => {
-      const response = await fetch('/api/saved-lists', {
+      return apiRequest('/api/saved-lists', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newList)
       });
-      if (!response.ok) throw new Error('Failed to create list');
-      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
@@ -103,11 +78,7 @@ const useCreateSavedList = () => {
 const useSavedViews = () => {
   return useQuery({
     queryKey: ['/api/saved-views', 'customers'],
-    queryFn: async () => {
-      const response = await fetch('/api/saved-views?entity_type=customers');
-      if (!response.ok) throw new Error('Failed to fetch saved views');
-      return response.json();
-    }
+    staleTime: 2 * 60 * 1000,
   });
 };
 
