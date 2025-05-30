@@ -27,7 +27,7 @@ import Opportunities2Page from "@/pages/lists/Opportunities2Page";
 import OpportunityDetail from "@/pages/lists/OpportunityDetail";
 import VendorsPage from "@/pages/lists/VendorsPage";
 import ProductsPage from "@/pages/lists/ProductsPage";
-
+import OKRsPage from "@/pages/OKRsPage";
 import MetricsPage from "@/pages/templates/MetricsPage";
 import GroupDetail from "@/pages/templates/GroupDetail";
 
@@ -107,7 +107,8 @@ function Router() {
         {/* Reports section route */}
         <Route path="/reports" component={ReportsPage} />
         
-        {/* Templates section routes */}
+        {/* OKRs and Templates section routes */}
+        <Route path="/okrs" component={OKRsPage} />
         <Route path="/templates/metrics" component={MetricsPage} />
         <Route path="/templates/groups/:id" component={GroupDetail} />
         
