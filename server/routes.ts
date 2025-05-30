@@ -1254,6 +1254,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Database Status Endpoint for Developer Dashboard
+  app.get('/api/database-status', async (req: Request, res: Response) => {
+    try {
+      // Get counts from both environments with error handling
+      const myqollabiDb = getEnvironmentDb('myqollabi');
+      const degoudseDb = getEnvironmentDb('degoudse');
+
+      let myqollabiStatus = { partners: 0, customers: 0, opportunities: 0, products: 0 };
+      let degoudseStatus = { partners: 0, customers: 0, opportunities: 0, products: 0 };
+
+      try {
+        const [myqollabiPartners, myqollabiCustomers, myqollabiOpportunities, myqollabiProducts] = await Promise.all([
+          myqollabiDb.select().from(partners),
+          myqollabiDb.select().from(customers),
+          myqollabiDb.select().from(opportunities),
+          myqollabiDb.select().from(products)
+        ]);
+        
+        myqollabiStatus = {
+          partners: myqollabiPartners.length,
+          customers: myqollabiCustomers.length,
+          opportunities: myqollabiOpportunities.length,
+          products: myqollabiProducts.length
+        };
+      } catch (error) {
+        console.error('Error fetching My Qollabi counts:', error);
+      }
+
+      try {
+        const [degoudsePartners, degoudseCustomers, degoudseOpportunities, degoudseProducts] = await Promise.all([
+          degoudseDb.select().from(partners),
+          degoudseDb.select().from(customers),
+          degoudseDb.select().from(opportunities),
+          degoudseDb.select().from(products)
+        ]);
+        
+        degoudseStatus = {
+          partners: degoudsePartners.length,
+          customers: degoudseCustomers.length,
+          opportunities: degoudseOpportunities.length,
+          products: degoudseProducts.length
+        };
+      } catch (error) {
+        console.error('Error fetching De Goudse counts (schema may not exist):', error);
+        // Keep default zeros for missing schema
+      }
+
+      const status = {
+        myqollabi: myqollabiStatus,
+        degoudse: degoudseStatus
+      };
+
+      res.json(status);
+    } catch (error) {
+      console.error('Database status error:', error);
+      res.status(500).json({ error: 'Failed to fetch database status' });
+    }
+  });
+
   // Environment management API endpoints
   app.post('/api/environments/copy', async (req, res) => {
     try {

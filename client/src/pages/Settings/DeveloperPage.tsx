@@ -168,7 +168,34 @@ function DeveloperPage() {
   const [activeTab, setActiveTab] = useState('database');
   const [consoleOutput, setConsoleOutput] = useState<string[]>([]);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [databaseStatus, setDatabaseStatus] = useState<{
+    myqollabi?: { partners: number; customers: number; opportunities: number; products: number; };
+    degoudse?: { partners: number; customers: number; opportunities: number; products: number; };
+  }>({});
   const queryClient = useQueryClient();
+
+  // Function to refresh database status
+  const refreshDatabaseStatus = async () => {
+    setIsLoading(true);
+    try {
+      // Fetch database counts for both environments
+      const response = await fetch('/api/database-status');
+      if (response.ok) {
+        const data = await response.json();
+        setDatabaseStatus(data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch database status:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  // Load database status on component mount
+  useEffect(() => {
+    refreshDatabaseStatus();
+  }, []);
 
   // Simulate console output updates
   useEffect(() => {
@@ -537,23 +564,74 @@ function DeveloperPage() {
 
             <Card className="lg:col-span-2">
               <CardHeader>
-                <CardTitle>Environment-Specific Routes</CardTitle>
+                <CardTitle className="flex items-center gap-2">
+                  Environment Database Status
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={refreshDatabaseStatus}
+                    disabled={isLoading}
+                  >
+                    <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+                  </Button>
+                </CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="p-4 border rounded-lg">
+                      <h4 className="font-medium mb-2 text-indigo-600">My Qollabi Environment</h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span>Partners:</span>
+                          <span className="font-mono">{databaseStatus.myqollabi?.partners || 0}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Customers:</span>
+                          <span className="font-mono">{databaseStatus.myqollabi?.customers || 0}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Opportunities:</span>
+                          <span className="font-mono">{databaseStatus.myqollabi?.opportunities || 0}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Products:</span>
+                          <span className="font-mono">{databaseStatus.myqollabi?.products || 0}</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div className="p-4 border rounded-lg">
+                      <h4 className="font-medium mb-2 text-orange-600">De Goudse Environment</h4>
+                      <div className="space-y-2 text-sm">
+                        <div className="flex justify-between">
+                          <span>Partners:</span>
+                          <span className="font-mono">{databaseStatus.degoudse?.partners || 0}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Customers:</span>
+                          <span className="font-mono">{databaseStatus.degoudse?.customers || 0}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Opportunities:</span>
+                          <span className="font-mono bg-green-100 px-1 rounded">{databaseStatus.degoudse?.opportunities || 0}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Products:</span>
+                          <span className="font-mono">{databaseStatus.degoudse?.products || 0}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  
                   <div className="p-4 border rounded-lg">
-                    <h4 className="font-medium mb-2">De Goudse Environment</h4>
+                    <h4 className="font-medium mb-2">Environment-Specific Routes</h4>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-sm">
                       <code className="bg-muted p-2 rounded">/api/degoudse/partners</code>
                       <code className="bg-muted p-2 rounded">/api/degoudse/opportunities</code>
                       <code className="bg-muted p-2 rounded">/api/degoudse/upload-opportunities</code>
                       <code className="bg-muted p-2 rounded">/data-upload/degoudse</code>
                     </div>
-                  </div>
-                  <div className="p-4 border rounded-lg">
-                    <h4 className="font-medium mb-2">Environment Copy Functionality</h4>
-                    <code className="bg-muted p-2 rounded block">/api/environments/copy</code>
-                    <p className="text-xs text-muted-foreground mt-1">Secure data replication between environments</p>
                   </div>
                 </div>
               </CardContent>
