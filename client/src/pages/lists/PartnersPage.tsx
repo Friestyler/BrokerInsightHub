@@ -351,25 +351,6 @@ function PartnersTable() {
   // Load template assignments for partners
   const { data: templateAssignments = [] } = useQuery({
     queryKey: ['/api/template-assignments/partner'],
-    queryFn: async () => {
-      // Fetch assignments for all partners at once to reduce API calls
-      const allPartners = partners;
-      const assignments: any[] = [];
-      
-      for (const partner of allPartners) {
-        try {
-          const response = await fetch(`/api/template-assignments/partner/${partner.id}`);
-          if (response.ok) {
-            const partnerAssignments = await response.json();
-            assignments.push(...partnerAssignments.map((a: any) => ({ ...a, partnerId: partner.id })));
-          }
-        } catch (error) {
-          console.error(`Error fetching assignments for partner ${partner.id}:`, error);
-        }
-      }
-      
-      return assignments;
-    },
     enabled: partners.length > 0,
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
