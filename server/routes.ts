@@ -1384,7 +1384,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
           if (!cellValue || mapping.mappingType === 'skip') continue;
 
-          if (mapping.mappingType === 'attribute' && mapping.targetField) {
+          if (mapping.mappingType === 'opportunity_attribute' && mapping.targetField) {
             // Map to opportunity attribute
             if (mapping.targetField === 'probability') {
               opportunityData.probability = parseInt(cellValue) || 50;
@@ -1395,48 +1395,142 @@ export async function registerRoutes(app: Express): Promise<Server> {
             } else {
               opportunityData[mapping.targetField] = cellValue;
             }
-          } else if (mapping.mappingType === 'relationship' && mapping.entityType) {
+          } else if (mapping.mappingType === 'entity_relationship' && mapping.entityType) {
             // Handle entity relationships
-            if (mapping.entityType === 'customer' && mapping.targetField === 'customer_name') {
-              // Find or create customer
-              try {
-                const existingCustomers = await degoudseStorage.getAllCustomers();
-                let customer = existingCustomers.find(c => 
-                  c.name.toLowerCase() === cellValue.toLowerCase()
+            try {
+              const envPool = getEnvironmentPool('degoudse');
+              
+              if (mapping.entityType === 'customer') {
+                const result = await envPool.query(
+                  `SELECT * FROM degoudse.customers WHERE LOWER(name) = LOWER($1)`,
+                  [cellValue]
                 );
-
+                
+                let customer = result.rows[0];
                 if (!customer) {
-                  customer = await degoudseStorage.createCustomer({
-                    name: cellValue,
-                    description: `Customer created from ${fileName}`,
-                    ownerId: 1
-                  });
+                  const insertResult = await envPool.query(
+                    `INSERT INTO degoudse.customers (name, description, created_at, updated_at)
+                     VALUES ($1, $2, NOW(), NOW()) RETURNING *`,
+                    [cellValue, `Customer created from ${fileName}`]
+                  );
+                  customer = insertResult.rows[0];
                   entitiesCreated++;
                 }
                 customerId = customer.id;
-              } catch (error) {
-                console.log('Customer creation skipped:', error.message);
-              }
-            } else if (mapping.entityType === 'partner' && mapping.targetField === 'partner_name') {
-              // Handle partner creation (using customers table for now)
-              try {
-                const existingCustomers = await degoudseStorage.getAllCustomers();
-                let partner = existingCustomers.find(c => 
-                  c.name.toLowerCase() === cellValue.toLowerCase()
+              
+              } else if (mapping.entityType === 'partner') {
+                const result = await envPool.query(
+                  `SELECT * FROM degoudse.partners WHERE LOWER(name) = LOWER($1)`,
+                  [cellValue]
                 );
-
+                
+                let partner = result.rows[0];
                 if (!partner) {
-                  partner = await degoudseStorage.createCustomer({
-                    name: cellValue,
-                    description: `Partner created from ${fileName}`,
-                    ownerId: 1
-                  });
+                  const insertResult = await envPool.query(
+                    `INSERT INTO degoudse.partners (name, description, created_at, updated_at)
+                     VALUES ($1, $2, NOW(), NOW()) RETURNING *`,
+                    [cellValue, `Partner created from ${fileName}`]
+                  );
+                  partner = insertResult.rows[0];
                   entitiesCreated++;
                 }
                 partnerId = partner.id;
-              } catch (error) {
-                console.log('Partner creation skipped:', error.message);
+              
+              } else if (mapping.entityType === 'vendor') {
+                const result = await envPool.query(
+                  `SELECT * FROM degoudse.vendors WHERE LOWER(name) = LOWER($1)`,
+                  [cellValue]
+                );
+                
+                if (result.rows.length === 0) {
+                  await envPool.query(
+                    `INSERT INTO degoudse.vendors (name, description, created_at, updated_at)
+                     VALUES ($1, $2, NOW(), NOW())`,
+                    [cellValue, `Vendor created from ${fileName}`]
+                  );
+                  entitiesCreated++;
+                }
+              
+              } else if (mapping.entityType === 'product') {
+                const result = await envPool.query(
+                  `SELECT * FROM degoudse.insurance_products WHERE LOWER(name) = LOWER($1)`,
+                  [cellValue]
+                );
+                
+                if (result.rows.length === 0) {
+                  await envPool.query(
+                    `INSERT INTO degoudse.insurance_products (name, description, category, created_at, updated_at)
+                     VALUES ($1, $2, $3, NOW(), NOW())`,
+                    [cellValue, `Product created from ${fileName}`, 'imported']
+                  );
+                  entitiesCreated++;
+                }
+              
+              } else if (mapping.entityType === 'user') {
+                // Handle user creation based on mapping target field
+                if (mapping.targetField === 'username' || mapping.targetField === 'email') {
+                  const result = await envPool.query(
+                    `SELECT * FROM degoudse.users WHERE LOWER(${mapping.targetField}) = LOWER($1)`,
+                    [cellValue]
+                  );
+                  
+                  if (result.rows.length === 0) {
+                    const userData = {
+                      username: mapping.targetField === 'username' ? cellValue : `user_${Date.now()}`,
+                      email: mapping.targetField === 'email' ? cellValue : null,
+                      first_name: mapping.targetField === 'first_name' ? cellValue : '',
+                      last_name: mapping.targetField === 'last_name' ? cellValue : '',
+                      is_active: true
+                    };
+                    
+                    await envPool.query(
+                      `INSERT INTO degoudse.users (username, email, first_name, last_name, is_active, created_at, updated_at)
+                       VALUES ($1, $2, $3, $4, $5, NOW(), NOW())`,
+                      [userData.username, userData.email, userData.first_name, userData.last_name, userData.is_active]
+                    );
+                    entitiesCreated++;
+                  }
+                }
+              
+              } else if (mapping.entityType === 'contact') {
+                // Handle contact creation
+                const contactData = {
+                  first_name: mapping.targetField === 'first_name' ? cellValue : '',
+                  last_name: mapping.targetField === 'last_name' ? cellValue : '',
+                  email: mapping.targetField === 'email' ? cellValue : null,
+                  phone: mapping.targetField === 'phone' ? cellValue : null,
+                  company: mapping.targetField === 'company' ? cellValue : null,
+                  position: mapping.targetField === 'position' ? cellValue : null
+                };
+                
+                // Check for existing contact by email if provided
+                if (contactData.email) {
+                  const result = await envPool.query(
+                    `SELECT * FROM degoudse.contacts WHERE LOWER(email) = LOWER($1)`,
+                    [contactData.email]
+                  );
+                  
+                  if (result.rows.length === 0) {
+                    await envPool.query(
+                      `INSERT INTO degoudse.contacts (first_name, last_name, email, phone, company, position, created_at, updated_at)
+                       VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())`,
+                      [contactData.first_name, contactData.last_name, contactData.email, contactData.phone, contactData.company, contactData.position]
+                    );
+                    entitiesCreated++;
+                  }
+                } else {
+                  // Create contact without email check
+                  await envPool.query(
+                    `INSERT INTO degoudse.contacts (first_name, last_name, email, phone, company, position, created_at, updated_at)
+                     VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())`,
+                    [contactData.first_name, contactData.last_name, contactData.email, contactData.phone, contactData.company, contactData.position]
+                  );
+                  entitiesCreated++;
+                }
               }
+              
+            } catch (error) {
+              console.log(`Entity creation skipped for ${mapping.entityType}:`, error.message);
             }
           }
         }
