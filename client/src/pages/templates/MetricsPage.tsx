@@ -115,6 +115,7 @@ export default function MetricsPage() {
     timeframe: '',
     milestoneFrequency: '',
     target: 0,
+    totalTarget: 0,
     hasTarget: false,
     targetValue: '',
     trafficLights: false,
@@ -123,6 +124,50 @@ export default function MetricsPage() {
     dueDateRequired: false,
     responsibleRequired: false
   });
+
+  // Calculate total target whenever target, timeframe, or milestone frequency changes
+  const calculateTotalTarget = (target: number, timeframe: string, frequency: string): number => {
+    if (!target || !timeframe || !frequency) return 0;
+    
+    // Determine timeframe duration in months
+    let timeframeDuration = 0;
+    if (timeframe.includes('Q1') || timeframe.includes('Q2') || timeframe.includes('Q3') || timeframe.includes('Q4')) {
+      timeframeDuration = 3; // Quarter = 3 months
+    } else if (timeframe.includes('H1') || timeframe.includes('H2')) {
+      timeframeDuration = 6; // Half year = 6 months
+    } else if (timeframe === '2024' || timeframe === '2025') {
+      timeframeDuration = 12; // Full year = 12 months
+    }
+    
+    // Determine milestone frequency in months
+    let milestoneInterval = 0;
+    switch (frequency) {
+      case 'Weekly':
+        milestoneInterval = 0.25; // ~1 week = 0.25 months
+        break;
+      case 'Monthly':
+        milestoneInterval = 1;
+        break;
+      case 'Quarterly':
+        milestoneInterval = 3;
+        break;
+      case 'Yearly':
+        milestoneInterval = 12;
+        break;
+      case 'Custom':
+        milestoneInterval = 1; // Default to monthly for custom
+        break;
+      case 'No milestone (target needs to be met only once)':
+        return target; // Single target
+      default:
+        return 0;
+    }
+    
+    // Calculate number of milestones
+    const numberOfMilestones = Math.ceil(timeframeDuration / milestoneInterval);
+    
+    return target * numberOfMilestones;
+  };
 
   const okrTemplates = mockOKRTemplates;
 
@@ -165,6 +210,7 @@ export default function MetricsPage() {
       timeframe: '',
       milestoneFrequency: '',
       target: 0,
+      totalTarget: 0,
       hasTarget: false,
       targetValue: '',
       trafficLights: false,
@@ -175,6 +221,14 @@ export default function MetricsPage() {
     });
     setIsCreateOKROpen(false);
   };
+
+  // Recalculate total target whenever relevant fields change
+  React.useEffect(() => {
+    const newTotalTarget = calculateTotalTarget(formData.target, formData.timeframe, formData.milestoneFrequency);
+    if (newTotalTarget !== formData.totalTarget) {
+      setFormData(prev => ({ ...prev, totalTarget: newTotalTarget }));
+    }
+  }, [formData.target, formData.timeframe, formData.milestoneFrequency]);
 
   const handleCreateOKR = () => {
     console.log("Creating OKR with data:", formData);
@@ -772,34 +826,7 @@ export default function MetricsPage() {
                       <Input 
                         id="okr-total-target"
                         type="number"
-                        value={(() => {
-                          const target = formData.target || 0;
-                          const frequency = formData.milestoneFrequency;
-                          const timeframe = formData.timeframe;
-                          
-                          if (!frequency || !timeframe || !target) return 0;
-                          
-                          let multiplier = 1;
-                          if (frequency === 'Weekly') {
-                            if (timeframe.includes('Q')) multiplier = 13;
-                            else if (timeframe.includes('H')) multiplier = 26;
-                            else if (timeframe.includes('2024') || timeframe.includes('2025')) multiplier = 52;
-                          } else if (frequency === 'Monthly') {
-                            if (timeframe.includes('Q')) multiplier = 3;
-                            else if (timeframe.includes('H')) multiplier = 6;
-                            else if (timeframe.includes('2024') || timeframe.includes('2025')) multiplier = 12;
-                          } else if (frequency === 'Quarterly') {
-                            if (timeframe.includes('Q')) multiplier = 1;
-                            else if (timeframe.includes('H')) multiplier = 2;
-                            else if (timeframe.includes('2024') || timeframe.includes('2025')) multiplier = 4;
-                          } else if (frequency === 'Yearly') {
-                            multiplier = 1;
-                          } else if (frequency === 'No milestone (target needs to be met only once)') {
-                            multiplier = 1;
-                          }
-                          
-                          return target * multiplier;
-                        })()}
+                        value={formData.totalTarget}
                         disabled
                         className="pl-8 text-base border-gray-300 bg-gray-50 text-gray-700"
                       />
@@ -843,34 +870,7 @@ export default function MetricsPage() {
                       <Input 
                         id="okr-total-target"
                         type="number"
-                        value={(() => {
-                          const target = formData.target || 0;
-                          const frequency = formData.milestoneFrequency;
-                          const timeframe = formData.timeframe;
-                          
-                          if (!frequency || !timeframe || !target) return 0;
-                          
-                          let multiplier = 1;
-                          if (frequency === 'Weekly') {
-                            if (timeframe.includes('Q')) multiplier = 13;
-                            else if (timeframe.includes('H')) multiplier = 26;
-                            else if (timeframe.includes('2024') || timeframe.includes('2025')) multiplier = 52;
-                          } else if (frequency === 'Monthly') {
-                            if (timeframe.includes('Q')) multiplier = 3;
-                            else if (timeframe.includes('H')) multiplier = 6;
-                            else if (timeframe.includes('2024') || timeframe.includes('2025')) multiplier = 12;
-                          } else if (frequency === 'Quarterly') {
-                            if (timeframe.includes('Q')) multiplier = 1;
-                            else if (timeframe.includes('H')) multiplier = 2;
-                            else if (timeframe.includes('2024') || timeframe.includes('2025')) multiplier = 4;
-                          } else if (frequency === 'Yearly') {
-                            multiplier = 1;
-                          } else if (frequency === 'No milestone (target needs to be met only once)') {
-                            multiplier = 1;
-                          }
-                          
-                          return target * multiplier;
-                        })()}
+                        value={formData.totalTarget}
                         disabled
                         className="pr-8 text-base border-gray-300 bg-gray-50 text-gray-700"
                       />
@@ -913,34 +913,7 @@ export default function MetricsPage() {
                       <Input 
                         id="okr-total-target"
                         type="number"
-                        value={(() => {
-                          const target = formData.target || 0;
-                          const frequency = formData.milestoneFrequency;
-                          const timeframe = formData.timeframe;
-                          
-                          if (!frequency || !timeframe || !target) return 0;
-                          
-                          let multiplier = 1;
-                          if (frequency === 'Weekly') {
-                            if (timeframe.includes('Q')) multiplier = 13;
-                            else if (timeframe.includes('H')) multiplier = 26;
-                            else if (timeframe.includes('2024') || timeframe.includes('2025')) multiplier = 52;
-                          } else if (frequency === 'Monthly') {
-                            if (timeframe.includes('Q')) multiplier = 3;
-                            else if (timeframe.includes('H')) multiplier = 6;
-                            else if (timeframe.includes('2024') || timeframe.includes('2025')) multiplier = 12;
-                          } else if (frequency === 'Quarterly') {
-                            if (timeframe.includes('Q')) multiplier = 1;
-                            else if (timeframe.includes('H')) multiplier = 2;
-                            else if (timeframe.includes('2024') || timeframe.includes('2025')) multiplier = 4;
-                          } else if (frequency === 'Yearly') {
-                            multiplier = 1;
-                          } else if (frequency === 'No milestone (target needs to be met only once)') {
-                            multiplier = 1;
-                          }
-                          
-                          return target * multiplier;
-                        })()}
+                        value={formData.totalTarget}
                         disabled
                         className="pr-8 text-base border-gray-300 bg-gray-50 text-gray-700"
                       />
