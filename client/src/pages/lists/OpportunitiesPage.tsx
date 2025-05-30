@@ -1539,7 +1539,84 @@ function OpportunitiesTable() {
 
 export default function OpportunitiesPage() {
   const { environment } = useEnvironment();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [isEditingList, setIsEditingList] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  
+  // Form data for creating new opportunity with all available fields
+  const [opportunityFormData, setOpportunityFormData] = useState({
+    title: '',
+    description: '',
+    clientId: '',
+    status: 'pipeline',
+    stage: 'initial_contact',
+    type: 'new_business',
+    estimatedValue: '',
+    probability: 50,
+    location: ''
+  });
+
+  const handleCreateOpportunity = async () => {
+    if (!opportunityFormData.title.trim() || !opportunityFormData.description.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Title and description are required fields.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsCreating(true);
+    try {
+      const response = await fetch('/api/opportunities', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...opportunityFormData,
+          clientId: parseInt(opportunityFormData.clientId) || 1,
+          estimatedValue: parseInt(opportunityFormData.estimatedValue) || 0
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create opportunity');
+      }
+
+      const newOpportunity = await response.json();
+      
+      // Invalidate and refetch opportunities data
+      queryClient.invalidateQueries({ queryKey: ['/api/opportunities'] });
+      
+      toast({
+        title: "Opportunity Created",
+        description: `"${opportunityFormData.title}" has been created successfully.`
+      });
+
+      // Reset form and close modal
+      setOpportunityFormData({
+        title: '',
+        description: '',
+        clientId: '',
+        status: 'pipeline',
+        stage: 'initial_contact',
+        type: 'new_business',
+        estimatedValue: '',
+        probability: 50,
+        location: ''
+      });
+      setShowCreateModal(false);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create opportunity. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsCreating(false);
+    }
+  };
   
   return (
     <div className="container mx-auto px-4 py-6">
@@ -1549,7 +1626,7 @@ export default function OpportunitiesPage() {
           className={`flex items-center gap-2 px-4 py-2 text-white rounded-md transition-colors font-medium text-[14px] pl-[12px] pr-[12px] ${isEditingList ? 'bg-[#8B98F9] cursor-not-allowed' : 'bg-[#5567E5] hover:bg-[#4556D4]'}`}
           onClick={() => {
             if (!isEditingList) {
-              alert("Create new opportunity functionality coming soon!");
+              setShowCreateModal(true);
             }
           }}
           disabled={isEditingList}
@@ -1564,6 +1641,137 @@ export default function OpportunitiesPage() {
       </div>
       
       <OpportunitiesTable />
+      
+      {/* Create Opportunity Modal */}
+      <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+        <DialogContent className="sm:max-w-[700px]">
+          <DialogHeader>
+            <DialogTitle>Create New Opportunity</DialogTitle>
+            <DialogDescription>
+              Add a new opportunity to track business potential. Fill in the required information below.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="title">Title *</Label>
+                <Input
+                  id="title"
+                  value={opportunityFormData.title}
+                  onChange={(e) => setOpportunityFormData(prev => ({ ...prev, title: e.target.value }))}
+                  placeholder="Enter opportunity title"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="clientId">Client ID</Label>
+                <Input
+                  id="clientId"
+                  type="number"
+                  value={opportunityFormData.clientId}
+                  onChange={(e) => setOpportunityFormData(prev => ({ ...prev, clientId: e.target.value }))}
+                  placeholder="Customer/Client ID"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">Description *</Label>
+              <Input
+                id="description"
+                value={opportunityFormData.description}
+                onChange={(e) => setOpportunityFormData(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Brief description of the opportunity"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="estimatedValue">Estimated Value</Label>
+                <Input
+                  id="estimatedValue"
+                  type="number"
+                  value={opportunityFormData.estimatedValue}
+                  onChange={(e) => setOpportunityFormData(prev => ({ ...prev, estimatedValue: e.target.value }))}
+                  placeholder="0"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="probability">Probability (%)</Label>
+                <Input
+                  id="probability"
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={opportunityFormData.probability}
+                  onChange={(e) => setOpportunityFormData(prev => ({ ...prev, probability: parseInt(e.target.value) || 0 }))}
+                  placeholder="50"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="location">Location</Label>
+              <Input
+                id="location"
+                value={opportunityFormData.location}
+                onChange={(e) => setOpportunityFormData(prev => ({ ...prev, location: e.target.value }))}
+                placeholder="City, Country"
+              />
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="status">Status</Label>
+                <Select value={opportunityFormData.status} onValueChange={(value) => setOpportunityFormData(prev => ({ ...prev, status: value }))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="pipeline">Pipeline</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="won">Won</SelectItem>
+                    <SelectItem value="lost">Lost</SelectItem>
+                    <SelectItem value="on_hold">On Hold</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="stage">Stage</Label>
+                <Select value={opportunityFormData.stage} onValueChange={(value) => setOpportunityFormData(prev => ({ ...prev, stage: value }))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="initial_contact">Initial Contact</SelectItem>
+                    <SelectItem value="qualification">Qualification</SelectItem>
+                    <SelectItem value="proposal">Proposal</SelectItem>
+                    <SelectItem value="negotiation">Negotiation</SelectItem>
+                    <SelectItem value="closed">Closed</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="type">Type</Label>
+                <Select value={opportunityFormData.type} onValueChange={(value) => setOpportunityFormData(prev => ({ ...prev, type: value }))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="new_business">New Business</SelectItem>
+                    <SelectItem value="renewal">Renewal</SelectItem>
+                    <SelectItem value="upsell">Upsell</SelectItem>
+                    <SelectItem value="cross_sell">Cross Sell</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCreateModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreateOpportunity} disabled={isCreating}>
+              {isCreating ? 'Creating...' : 'Create Opportunity'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

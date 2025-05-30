@@ -2474,7 +2474,7 @@ export default function PartnersPage() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  // Form data for creating new partner
+  // Form data for creating new partner with all available fields
   const [formData, setFormData] = useState({
     name: '',
     description: '',
@@ -2483,7 +2483,9 @@ export default function PartnersPage() {
     primaryContact: '',
     partnerType: 'partner',
     region: '',
-    status: 'active'
+    status: 'active',
+    industry: 'Insurance',
+    size: 'medium'
   });
 
   const handleCreatePartner = async () => {
@@ -2527,7 +2529,9 @@ export default function PartnersPage() {
         primaryContact: '',
         partnerType: 'partner',
         region: '',
-        status: 'active'
+        status: 'active',
+        industry: 'Insurance',
+        size: 'medium'
       });
       setShowCreateModal(false);
     } catch (error) {
@@ -2641,13 +2645,43 @@ export default function PartnersPage() {
                   </Select>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="region">Region</Label>
-                  <Select value={formData.region} onValueChange={(value) => setFormData(prev => ({ ...prev, region: value }))}>
+                  <Label htmlFor="industry">Industry</Label>
+                  <Select value={formData.industry} onValueChange={(value) => setFormData(prev => ({ ...prev, industry: value }))}>
                     <SelectTrigger>
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">Select region</SelectItem>
+                      <SelectItem value="Insurance">Insurance</SelectItem>
+                      <SelectItem value="Banking">Banking</SelectItem>
+                      <SelectItem value="Technology">Technology</SelectItem>
+                      <SelectItem value="Healthcare">Healthcare</SelectItem>
+                      <SelectItem value="Real Estate">Real Estate</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="size">Size</Label>
+                  <Select value={formData.size} onValueChange={(value) => setFormData(prev => ({ ...prev, size: value }))}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="small">Small</SelectItem>
+                      <SelectItem value="medium">Medium</SelectItem>
+                      <SelectItem value="large">Large</SelectItem>
+                      <SelectItem value="enterprise">Enterprise</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="region">Region</Label>
+                  <Select value={formData.region} onValueChange={(value) => setFormData(prev => ({ ...prev, region: value }))}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select region" />
+                    </SelectTrigger>
+                    <SelectContent>
                       <SelectItem value="north">North</SelectItem>
                       <SelectItem value="south">South</SelectItem>
                       <SelectItem value="east">East</SelectItem>
