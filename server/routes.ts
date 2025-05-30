@@ -1310,10 +1310,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // De Goudse environment API routes (using proper database isolation)
   app.get('/api/degoudse/partners', async (req, res) => {
     try {
-      const degoudseDb = getEnvironmentDb('degoudse');
-      const partnersList = await degoudseDb.select().from(partners);
-      console.log(`Returning ${partnersList.length} partners from De Goudse database`);
-      res.json(partnersList);
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query(`
+        SELECT p.*, 
+               COUNT(DISTINCT pc.customer_id) as customer_count,
+               COUNT(DISTINCT po.opportunity_id) as opportunity_count,
+               STRING_AGG(DISTINCT c.name, ', ') as customer_names
+        FROM degoudse.partners p
+        LEFT JOIN degoudse.partner_customers pc ON p.id = pc.partner_id
+        LEFT JOIN degoudse.partner_opportunities po ON p.id = po.partner_id
+        LEFT JOIN degoudse.customers c ON c.id = pc.customer_id
+        GROUP BY p.id, p.name, p.description, p.status, p.location, p.contact_email, 
+                 p.primary_contact, p.partner_type, p.region, p.assigned_user_ids, 
+                 p.linked_opportunity_ids, p.created_at, p.updated_at
+        ORDER BY p.id
+      `);
+      
+      const partners = result.rows.map((partner: any) => ({
+        id: partner.id,
+        name: partner.name,
+        description: partner.description,
+        initials: partner.name.split(' ').map((word: string) => word[0]).join('').toUpperCase().slice(0, 2),
+        industry: "Insurance",
+        type: partner.partner_type || "Partner", 
+        size: "medium",
+        status: partner.status,
+        customers: partner.customer_count || 0,
+        opportunities: partner.opportunity_count || 0,
+        location: partner.location,
+        contactEmail: partner.contact_email,
+        primaryContact: partner.primary_contact,
+        // Database fields
+        partner_type: partner.partner_type,
+        region: partner.region,
+        assigned_user_ids: partner.assigned_user_ids,
+        linked_opportunity_ids: partner.linked_opportunity_ids,
+        createdAt: partner.created_at,
+        updatedAt: partner.updated_at,
+        customerNames: partner.customer_names || ''
+      }));
+      
+      console.log(`Returning ${partners.length} partners with relationship counts from degoudse schema`);
+      res.json(partners);
     } catch (error) {
       console.error('De Goudse partners API error:', error);
       res.status(500).json({ message: 'Failed to fetch partners for De Goudse environment' });
