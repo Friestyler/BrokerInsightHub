@@ -39,13 +39,11 @@ export function AdvancedTimeframeFilter({ value, onValueChange, placeholder, dat
       { value: 'next-month', label: 'Next month' },
       { value: 'last-3-months', label: 'Last 3 months' },
       { value: 'last-6-months', label: 'Last 6 months' },
-      { value: 'last-12-months', label: 'Last 12 months' },
     ]},
     { section: 'Quarters', items: [
       { value: 'last-quarter', label: 'Last quarter' },
       { value: 'this-quarter', label: 'This quarter' },
       { value: 'next-quarter', label: 'Next quarter' },
-      { value: 'quarter-to-date', label: 'Quarter to date' },
     ]},
     { section: 'Years', items: [
       { value: 'last-year', label: 'Last year' },
