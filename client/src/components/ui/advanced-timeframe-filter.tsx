@@ -8,19 +8,20 @@ import { format } from 'date-fns';
 interface AdvancedTimeframeFilterProps {
   value?: string;
   onValueChange?: (value: string, dateRange?: { from: Date | undefined; to: Date | undefined }) => void;
+  placeholder?: string;
+  dateRange?: { from: Date | undefined; to: Date | undefined };
+  onDateRangeChange?: (dateRange: { from: Date | undefined; to: Date | undefined }) => void;
   className?: string;
 }
 
-export function AdvancedTimeframeFilter({ value, onValueChange, className }: AdvancedTimeframeFilterProps) {
+export function AdvancedTimeframeFilter({ value, onValueChange, placeholder, dateRange, onDateRangeChange, className }: AdvancedTimeframeFilterProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedPreset, setSelectedPreset] = useState(value || '');
   const [customDateRange, setCustomDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
     from: undefined,
     to: undefined,
   });
-  const [showTimeInputs, setShowTimeInputs] = useState(false);
-  const [startTime, setStartTime] = useState('12:00 AM');
-  const [endTime, setEndTime] = useState('12:00 AM');
+
 
   const presetOptions = [
     { section: 'Quick', items: [
@@ -203,74 +204,21 @@ export function AdvancedTimeframeFilter({ value, onValueChange, className }: Adv
                 )}
               </div>
 
-              {/* Time inputs */}
-              {showTimeInputs && (
-                <div className="flex gap-4 mb-4">
-                  <div className="flex-1">
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Start time</label>
-                    <select 
-                      value={startTime}
-                      onChange={(e) => setStartTime(e.target.value)}
-                      className="w-full px-3 py-2 border border-red-300 rounded-md bg-white"
-                    >
-                      <option>12:00 AM</option>
-                      <option>1:00 AM</option>
-                      <option>2:00 AM</option>
-                      {/* Add more time options */}
-                    </select>
-                  </div>
-                  
-                  {selectedPreset === 'custom' && (
-                    <div className="flex-1">
-                      <label className="block text-sm font-medium text-gray-700 mb-1">End time</label>
-                      <select 
-                        value={endTime}
-                        onChange={(e) => setEndTime(e.target.value)}
-                        className="w-full px-3 py-2 border border-red-300 rounded-md bg-white"
-                      >
-                        <option>12:00 AM</option>
-                        <option>1:00 AM</option>
-                        <option>2:00 AM</option>
-                        {/* Add more time options */}
-                      </select>
-                    </div>
-                  )}
-                </div>
-              )}
+
 
               {/* Calendar */}
               <Calendar
-                mode={selectedPreset === 'since' ? 'single' : 'range'}
-                selected={selectedPreset === 'since' ? customDateRange?.from : customDateRange}
-                onSelect={(date) => {
-                  if (selectedPreset === 'since') {
-                    setCustomDateRange({ from: date as Date, to: undefined });
-                  } else {
-                    setCustomDateRange(date as { from: Date | undefined; to: Date | undefined } || { from: undefined, to: undefined });
-                  }
+                mode="range"
+                selected={customDateRange}
+                onSelect={(date: any) => {
+                  setCustomDateRange(date || { from: undefined, to: undefined });
                 }}
                 numberOfMonths={2}
                 className="rounded-md border"
               />
 
               {/* Action buttons */}
-              <div className="flex items-center justify-between mt-4 pt-4 border-t">
-                <div className="flex items-center">
-                  <button
-                    onClick={() => setShowTimeInputs(!showTimeInputs)}
-                    className="text-sm text-blue-600 hover:text-blue-700 flex items-center"
-                  >
-                    <svg className="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <circle cx="12" cy="12" r="10"></circle>
-                      <polyline points="12,6 12,12 16,14"></polyline>
-                    </svg>
-                    Date and time
-                    <svg className="w-4 h-4 ml-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <polyline points="9 18 15 12 9 6"></polyline>
-                    </svg>
-                  </button>
-                </div>
-                
+              <div className="flex items-center justify-end mt-4 pt-4 border-t">
                 <div className="flex gap-2">
                   <Button variant="outline" onClick={handleCancel}>
                     Cancel

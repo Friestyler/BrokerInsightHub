@@ -281,7 +281,7 @@ export default function MetricsPage() {
             
             <AdvancedTimeframeFilter
               value={advancedTimeframe}
-              onChange={setAdvancedTimeframe}
+              onValueChange={(value) => setAdvancedTimeframe(value)}
               placeholder="Timeframe2"
               dateRange={dateRange}
               onDateRangeChange={setDateRange}
