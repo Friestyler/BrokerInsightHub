@@ -992,6 +992,88 @@ export default function CustomersPageClean() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+
+        {/* Create Customer Modal */}
+        <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>Create New Customer</DialogTitle>
+              <DialogDescription>
+                Add a new customer to your database. Fill in the required information below.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="space-y-2">
+                <Label htmlFor="customer-name">Name *</Label>
+                <Input
+                  id="customer-name"
+                  value={customerFormData.name}
+                  onChange={(e) => setCustomerFormData(prev => ({ ...prev, name: e.target.value }))}
+                  placeholder="Enter customer name"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="customer-description">Description *</Label>
+                <Input
+                  id="customer-description"
+                  value={customerFormData.description}
+                  onChange={(e) => setCustomerFormData(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Brief description of the customer"
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowCreateModal(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleCreateCustomer} disabled={isCreating}>
+                {isCreating ? 'Creating...' : 'Create Customer'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Create Customer Modal */}
+        <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Create New Customer</DialogTitle>
+              <DialogDescription>
+                Add a new customer to your database. Fill in the required information below.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-1 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Name *</Label>
+                  <Input
+                    id="name"
+                    value={customerFormData.name}
+                    onChange={(e) => setCustomerFormData(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="Enter customer name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="description">Description *</Label>
+                  <Input
+                    id="description"
+                    value={customerFormData.description}
+                    onChange={(e) => setCustomerFormData(prev => ({ ...prev, description: e.target.value }))}
+                    placeholder="Brief description of the customer"
+                  />
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowCreateModal(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleCreateCustomer} disabled={isCreating}>
+                {isCreating ? 'Creating...' : 'Create Customer'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </ListEditingContext.Provider>
   );
