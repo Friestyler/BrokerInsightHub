@@ -1257,59 +1257,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Database Status Endpoint for Developer Dashboard
   app.get('/api/database-status', async (req: Request, res: Response) => {
     try {
-      // Get counts from both environments with error handling
-      const myqollabiDb = getEnvironmentDb('myqollabi');
-      const degoudseDb = getEnvironmentDb('degoudse');
-
-      let myqollabiStatus = { partners: 0, customers: 0, opportunities: 0, products: 0 };
-      let degoudseStatus = { partners: 0, customers: 0, opportunities: 0, products: 0 };
-
-      try {
-        const [myqollabiPartners, myqollabiCustomers, myqollabiOpportunities, myqollabiProducts] = await Promise.all([
-          myqollabiDb.select().from(partners),
-          myqollabiDb.select().from(customers),
-          myqollabiDb.select().from(opportunities),
-          myqollabiDb.select().from(products)
-        ]);
-        
-        myqollabiStatus = {
-          partners: myqollabiPartners.length,
-          customers: myqollabiCustomers.length,
-          opportunities: myqollabiOpportunities.length,
-          products: myqollabiProducts.length
-        };
-      } catch (error) {
-        console.error('Error fetching My Qollabi counts:', error);
-      }
-
-      try {
-        const [degoudsePartners, degoudseCustomers, degoudseOpportunities, degoudseProducts] = await Promise.all([
-          degoudseDb.select().from(partners),
-          degoudseDb.select().from(customers),
-          degoudseDb.select().from(opportunities),
-          degoudseDb.select().from(products)
-        ]);
-        
-        degoudseStatus = {
-          partners: degoudsePartners.length,
-          customers: degoudseCustomers.length,
-          opportunities: degoudseOpportunities.length,
-          products: degoudseProducts.length
-        };
-      } catch (error) {
-        console.error('Error fetching De Goudse counts (schema may not exist):', error);
-        // Keep default zeros for missing schema
-      }
-
-      const status = {
-        myqollabi: myqollabiStatus,
-        degoudse: degoudseStatus
-      };
-
-      res.json(status);
+      // Import and use the schema synchronizer
+      const { getEnvironmentCounts } = await import('./schemaSynchronizer');
+      const counts = await getEnvironmentCounts();
+      res.json(counts);
     } catch (error) {
       console.error('Database status error:', error);
       res.status(500).json({ error: 'Failed to fetch database status' });
+    }
+  });
+
+  // Schema Synchronization Endpoint
+  app.post('/api/schema/sync', async (req: Request, res: Response) => {
+    try {
+      const { copySchemaFromMyQollabi } = await import('./quickSchemaCopy');
+      await copySchemaFromMyQollabi();
+      res.json({ success: true, message: 'Schema synchronized successfully' });
+    } catch (error) {
+      console.error('Schema sync error:', error);
+      res.status(500).json({ success: false, message: 'Schema synchronization failed' });
     }
   });
 
