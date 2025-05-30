@@ -352,11 +352,14 @@ export default function CustomersPageClean() {
                 <div className="relative">
                   <button 
                     className="flex items-center space-x-2 px-3 py-2 border rounded-md text-sm font-medium bg-white hover:bg-gray-50"
+                    onClick={() => setShowViewsDropdown(!showViewsDropdown)}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
                       <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
                     </svg>
-                    <span className="text-gray-700">Select a view</span>
+                    <span className="text-gray-700">
+                      {activeView ? activeView.name : 'Select a view'}
+                    </span>
                     <svg 
                       xmlns="http://www.w3.org/2000/svg" 
                       width="14" 
@@ -367,11 +370,43 @@ export default function CustomersPageClean() {
                       strokeWidth="2" 
                       strokeLinecap="round" 
                       strokeLinejoin="round" 
-                      className="transition-transform"
+                      className={`transition-transform ${showViewsDropdown ? 'rotate-180' : ''}`}
                     >
                       <polyline points="6 9 12 15 18 9" />
                     </svg>
                   </button>
+                  
+                  {showViewsDropdown && (
+                    <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                      <div className="py-1 max-h-64 overflow-y-auto">
+                        {savedViewsData.map((view: any) => (
+                          <button
+                            key={view.id}
+                            className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center justify-between"
+                            onClick={() => {
+                              setActiveView(view);
+                              const filters = view.filters || {};
+                              setSearchTerm(filters.search || '');
+                              setActiveFilters({
+                                industry: filters.industry || [],
+                                size: filters.size || [],
+                                status: filters.status || []
+                              });
+                              setShowViewsDropdown(false);
+                            }}
+                          >
+                            <span>{view.name}</span>
+                          </button>
+                        ))}
+                        
+                        {savedViewsData.length === 0 && (
+                          <div className="px-3 py-2 text-sm text-gray-500 italic">
+                            No saved views yet. Apply filters and save your first view.
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
                 
                 {/* Filter buttons next to the views dropdown */}
