@@ -190,8 +190,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log('Customer creation request body:', req.body);
       
-      // Validate the request body
-      const { name, description, ownerId } = req.body;
+      // Validate the request body with expanded fields
+      const { 
+        name, 
+        description, 
+        contactName, 
+        contactEmail, 
+        contactPhone, 
+        ownerId, 
+        assignedPartnerId 
+      } = req.body;
       
       if (!name || !description) {
         return res.status(400).json({ message: 'Name and description are required' });
@@ -199,12 +207,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('Executing customer insert query...');
       
-      // Insert into myqollabi.customers table using same pattern as partners
+      // Insert into myqollabi.customers table with all available fields
       const result = await db.execute(sql`
         INSERT INTO myqollabi.customers (
-          name, description, owner_id, created_at, updated_at
+          name, description, contact_name, contact_email, contact_phone, 
+          owner_id, assigned_partner_id, created_at, updated_at
         ) VALUES (
-          ${name}, ${description}, ${ownerId || null}, NOW(), NOW()
+          ${name}, ${description}, ${contactName || null}, ${contactEmail || null}, 
+          ${contactPhone || null}, ${ownerId || null}, ${assignedPartnerId || null}, 
+          NOW(), NOW()
         ) RETURNING *
       `);
       

@@ -150,7 +150,11 @@ export default function CustomersPageClean() {
   const [customerFormData, setCustomerFormData] = useState({
     name: '',
     description: '',
-    ownerId: null as number | null
+    contactName: '',
+    contactEmail: '',
+    contactPhone: '',
+    ownerId: null as number | null,
+    assignedPartnerId: null as number | null
   });
   
   // Dialog states
@@ -244,7 +248,11 @@ export default function CustomersPageClean() {
       setCustomerFormData({
         name: '',
         description: '',
-        ownerId: null
+        contactName: '',
+        contactEmail: '',
+        contactPhone: '',
+        ownerId: null,
+        assignedPartnerId: null
       });
       setShowCreateModal(false);
     } catch (error) {
@@ -995,72 +1003,105 @@ export default function CustomersPageClean() {
 
         {/* Create Customer Modal */}
         <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
-          <DialogContent className="sm:max-w-[500px]">
+          <DialogContent className="sm:max-w-[600px] max-h-[80vh] overflow-y-auto">
             <DialogHeader>
               <DialogTitle>Create New Customer</DialogTitle>
               <DialogDescription>
-                Add a new customer to your database. Fill in the required information below.
+                Add a new customer to your database. Fill in all the relevant information below.
               </DialogDescription>
             </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="space-y-2">
-                <Label htmlFor="customer-name">Name *</Label>
-                <Input
-                  id="customer-name"
-                  value={customerFormData.name}
-                  onChange={(e) => setCustomerFormData(prev => ({ ...prev, name: e.target.value }))}
-                  placeholder="Enter customer name"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="customer-description">Description *</Label>
-                <Input
-                  id="customer-description"
-                  value={customerFormData.description}
-                  onChange={(e) => setCustomerFormData(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Brief description of the customer"
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setShowCreateModal(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleCreateCustomer} disabled={isCreating}>
-                {isCreating ? 'Creating...' : 'Create Customer'}
-              </Button>
-            </DialogFooter>
-          </DialogContent>
-        </Dialog>
-
-        {/* Create Customer Modal */}
-        <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
-          <DialogContent className="sm:max-w-[600px]">
-            <DialogHeader>
-              <DialogTitle>Create New Customer</DialogTitle>
-              <DialogDescription>
-                Add a new customer to your database. Fill in the required information below.
-              </DialogDescription>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-1 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="name">Name *</Label>
-                  <Input
-                    id="name"
-                    value={customerFormData.name}
-                    onChange={(e) => setCustomerFormData(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="Enter customer name"
-                  />
+            <div className="grid gap-6 py-4">
+              {/* Basic Information Section */}
+              <div className="space-y-4">
+                <h4 className="text-sm font-medium text-gray-900">Basic Information</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="name">Customer Name *</Label>
+                    <Input
+                      id="name"
+                      value={customerFormData.name}
+                      onChange={(e) => setCustomerFormData(prev => ({ ...prev, name: e.target.value }))}
+                      placeholder="Enter customer name"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="description">Description *</Label>
+                    <Textarea
+                      id="description"
+                      value={customerFormData.description}
+                      onChange={(e) => setCustomerFormData(prev => ({ ...prev, description: e.target.value }))}
+                      placeholder="Brief description of the customer"
+                      rows={2}
+                    />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="description">Description *</Label>
-                  <Input
-                    id="description"
-                    value={customerFormData.description}
-                    onChange={(e) => setCustomerFormData(prev => ({ ...prev, description: e.target.value }))}
-                    placeholder="Brief description of the customer"
-                  />
+              </div>
+
+              {/* Contact Information Section */}
+              <div className="space-y-4">
+                <h4 className="text-sm font-medium text-gray-900">Contact Information</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="contactName">Contact Name</Label>
+                    <Input
+                      id="contactName"
+                      value={customerFormData.contactName}
+                      onChange={(e) => setCustomerFormData(prev => ({ ...prev, contactName: e.target.value }))}
+                      placeholder="Primary contact person"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="contactEmail">Contact Email</Label>
+                    <Input
+                      id="contactEmail"
+                      type="email"
+                      value={customerFormData.contactEmail}
+                      onChange={(e) => setCustomerFormData(prev => ({ ...prev, contactEmail: e.target.value }))}
+                      placeholder="contact@customer.com"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="contactPhone">Contact Phone</Label>
+                    <Input
+                      id="contactPhone"
+                      value={customerFormData.contactPhone}
+                      onChange={(e) => setCustomerFormData(prev => ({ ...prev, contactPhone: e.target.value }))}
+                      placeholder="+1 (555) 123-4567"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Relationship Information Section */}
+              <div className="space-y-4">
+                <h4 className="text-sm font-medium text-gray-900">Relationship Management</h4>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="ownerId">Account Owner</Label>
+                    <Input
+                      id="ownerId"
+                      type="number"
+                      value={customerFormData.ownerId || ''}
+                      onChange={(e) => setCustomerFormData(prev => ({ 
+                        ...prev, 
+                        ownerId: e.target.value ? parseInt(e.target.value) : null 
+                      }))}
+                      placeholder="User ID of account owner"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="assignedPartnerId">Assigned Partner</Label>
+                    <Input
+                      id="assignedPartnerId"
+                      type="number"
+                      value={customerFormData.assignedPartnerId || ''}
+                      onChange={(e) => setCustomerFormData(prev => ({ 
+                        ...prev, 
+                        assignedPartnerId: e.target.value ? parseInt(e.target.value) : null 
+                      }))}
+                      placeholder="Partner ID if assigned"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
