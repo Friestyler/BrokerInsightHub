@@ -100,6 +100,35 @@ const useCreateSavedList = () => {
   });
 };
 
+const useSavedViews = () => {
+  return useQuery({
+    queryKey: ['/api/saved-views', 'customers'],
+    queryFn: async () => {
+      const response = await fetch('/api/saved-views?entity_type=customers');
+      if (!response.ok) throw new Error('Failed to fetch saved views');
+      return response.json();
+    }
+  });
+};
+
+const useCreateSavedView = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (newView: any) => {
+      const response = await fetch('/api/saved-views', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newView)
+      });
+      if (!response.ok) throw new Error('Failed to create view');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-views'] });
+    }
+  });
+};
+
 export default function CustomersPageClean() {
   const { environment } = useEnvironment();
   const { toast } = useToast();
@@ -121,10 +150,18 @@ export default function CustomersPageClean() {
   const [showListsDropdown, setShowListsDropdown] = useState(false);
   const [activeList, setActiveList] = useState<any>(null);
   
+  // Views state
+  const [activeView, setActiveView] = useState<any>(null);
+  const [showSaveViewModal, setShowSaveViewModal] = useState(false);
+  const [viewNameInput, setViewNameInput] = useState('');
+  const [showViewsDropdown, setShowViewsDropdown] = useState(false);
+  
   // Data fetching
   const { data: customers = [], isLoading, error } = useCustomersData();
   const { data: savedListsData = [], isLoading: savedListsLoading } = useSavedLists();
   const createSavedListMutation = useCreateSavedList();
+  const { data: savedViewsData = [], isLoading: savedViewsLoading } = useSavedViews();
+  const createSavedViewMutation = useCreateSavedView();
 
   // Filter and search logic
   const filteredCustomers = customers.filter((customer: any) => {
@@ -366,6 +403,20 @@ export default function CustomersPageClean() {
                     <span>Industry</span>
                   </button>
                 </div>
+                
+                {/* Save View button - appears when filters are applied */}
+                {(searchTerm || activeFilters.industry.length > 0 || activeFilters.size.length > 0 || activeFilters.status.length > 0) && (
+                  <Button
+                    onClick={() => setShowSaveViewModal(true)}
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white text-sm"
+                    size="sm"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                    Save View
+                  </Button>
+                )}
               </div>
             </div>
           </div>
@@ -668,6 +719,61 @@ export default function CustomersPageClean() {
                 disabled={createSavedListMutation.isPending}
               >
                 {createSavedListMutation.isPending ? 'Creating...' : 'Create List'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+
+        {/* Save View Modal */}
+        <Dialog open={showSaveViewModal} onOpenChange={setShowSaveViewModal}>
+          <DialogContent className="sm:max-w-[425px]">
+            <DialogHeader>
+              <DialogTitle>Save Current View</DialogTitle>
+              <DialogDescription>
+                Save your current search and filter settings as a view you can quickly access later.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-4 items-center gap-4">
+                <Label htmlFor="view-name" className="text-right">
+                  Name
+                </Label>
+                <Input
+                  id="view-name"
+                  value={viewNameInput}
+                  onChange={(e) => setViewNameInput(e.target.value)}
+                  className="col-span-3"
+                  placeholder="Enter view name..."
+                />
+              </div>
+            </div>
+            <DialogFooter>
+              <Button 
+                type="submit" 
+                onClick={async () => {
+                  if (viewNameInput.trim()) {
+                    await createSavedViewMutation.mutateAsync({
+                      name: viewNameInput.trim(),
+                      entity_type: 'customers',
+                      filters: {
+                        search: searchTerm,
+                        industry: activeFilters.industry,
+                        size: activeFilters.size,
+                        status: activeFilters.status
+                      },
+                      is_shared: false
+                    });
+                    setViewNameInput('');
+                    setShowSaveViewModal(false);
+                    toast({
+                      title: "View Saved",
+                      description: `"${viewNameInput.trim()}" has been saved successfully.`,
+                    });
+                  }
+                }}
+                disabled={createSavedViewMutation.isPending || !viewNameInput.trim()}
+              >
+                {createSavedViewMutation.isPending ? 'Saving...' : 'Save View'}
               </Button>
             </DialogFooter>
           </DialogContent>
