@@ -23,7 +23,7 @@ interface ColumnMapping {
   columnName: string;
   mappingType: 'opportunity_attribute' | 'entity_relationship' | 'skip';
   targetField?: string;
-  entityType?: 'customer' | 'partner' | 'vendor' | 'product';
+  entityType?: 'customer' | 'partner' | 'vendor' | 'product' | 'user' | 'contact';
   isRequired?: boolean;
   validationStatus: 'valid' | 'invalid' | 'pending';
 }
@@ -49,18 +49,28 @@ const PARTNER_FIELDS = [
 ];
 
 const VENDOR_FIELDS = [
-  'name', 'description'
+  'name', 'description', 'industry', 'type', 'size', 'location', 'email', 'phone', 'website'
 ];
 
 const PRODUCT_FIELDS = [
-  'name', 'description', 'category', 'sku', 'price'
+  'name', 'description', 'category', 'type', 'provider', 'premium', 'coverage', 'deductible'
+];
+
+const USER_FIELDS = [
+  'username', 'first_name', 'last_name', 'email', 'phone', 'department', 'role', 'is_active'
+];
+
+const CONTACT_FIELDS = [
+  'first_name', 'last_name', 'email', 'phone', 'company', 'position', 'notes', 'linked_entity_type', 'linked_entity_id'
 ];
 
 const ENTITY_TYPES = [
   { value: 'customer', label: 'Customer', icon: '👤', fields: CUSTOMER_FIELDS },
   { value: 'partner', label: 'Partner', icon: '🤝', fields: PARTNER_FIELDS },
   { value: 'vendor', label: 'Vendor', icon: '🏢', fields: VENDOR_FIELDS },
-  { value: 'product', label: 'Product', icon: '📦', fields: PRODUCT_FIELDS }
+  { value: 'product', label: 'Product', icon: '📦', fields: PRODUCT_FIELDS },
+  { value: 'user', label: 'User', icon: '👥', fields: USER_FIELDS },
+  { value: 'contact', label: 'Contact', icon: '📞', fields: CONTACT_FIELDS }
 ];
 
 // Helper function to get fields for entity type
@@ -397,7 +407,7 @@ export default function DeGoudseUploadWizard() {
 
                       <Select
                         value={mapping.mappingType}
-                        onValueChange={(value: 'attribute' | 'relationship' | 'contact' | 'product' | 'user' | 'skip') =>
+                        onValueChange={(value: 'opportunity_attribute' | 'entity_relationship' | 'skip') =>
                           updateColumnMapping(index, { mappingType: value, targetField: undefined })
                         }
                       >
