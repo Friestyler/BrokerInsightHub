@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useEnvironment } from "@/contexts/EnvironmentContext";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import {
   Card,
   CardContent,
@@ -30,7 +30,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { SavedListsManager } from "@/components/shared";
 
 // Fetch opportunities from database
 const useOpportunitiesData = () => {
@@ -42,36 +41,6 @@ const useOpportunitiesData = () => {
         throw new Error('Failed to fetch opportunities');
       }
       return response.json();
-    }
-  });
-};
-
-// Hooks for saved lists and views
-const useSavedLists = () => {
-  return useQuery({
-    queryKey: ['/api/saved-lists', 'opportunities'],
-    queryFn: async () => {
-      const response = await fetch('/api/saved-lists?entity_type=opportunities');
-      if (!response.ok) throw new Error('Failed to fetch saved lists');
-      return response.json();
-    }
-  });
-};
-
-const useCreateSavedList = () => {
-  const queryClient = useQueryClient();
-  return useMutation({
-    mutationFn: async (newList: any) => {
-      const response = await fetch('/api/saved-lists', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newList)
-      });
-      if (!response.ok) throw new Error('Failed to create list');
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
     }
   });
 };
@@ -179,9 +148,6 @@ function OpportunitiesTable() {
   const { toast } = useToast();
   const { environment } = useEnvironment();
   const { data: opportunities = [], isLoading, error } = useOpportunitiesData();
-  const { data: savedListsData = [], isLoading: savedListsLoading } = useSavedLists();
-  const createSavedListMutation = useCreateSavedList();
-  
   const [filterText, setFilterText] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedType, setSelectedType] = useState('');
@@ -190,14 +156,15 @@ function OpportunitiesTable() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
   
-  // Saved lists state
-  const [showListsDropdown, setShowListsDropdown] = useState(false);
-  const [activeList, setActiveList] = useState<any>(null);
-  const [isNewListDialogOpen, setIsNewListDialogOpen] = useState(false);
-  const [newListName, setNewListName] = useState('');
-  const [newListDescription, setNewListDescription] = useState('');
-  
   // Database data is already fetched via the hook at the top of the component
+  
+  // Enhanced state management
+  const [isCreatingNewList, setIsCreatingNewList] = useState(true);
+  const [selectedExistingList, setSelectedExistingList] = useState<string | null>(null);
+  const [originalListFilters, setOriginalListFilters] = useState<any>(null);
+  const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
+  const [isEditingList, setIsEditingList] = useState(false);
+  const [editedListMembers, setEditedListMembers] = useState<number[]>([]);
   
   // Views state
   const [savedViews, setSavedViews] = useState<SavedView[]>([
@@ -221,7 +188,61 @@ function OpportunitiesTable() {
   const [showViewsDropdown, setShowViewsDropdown] = useState(false);
   const [viewNameInput, setViewNameInput] = useState('');
   
-  // Remove mock data - we'll use database data from savedListsData
+  // State for saved lists with enhanced functionality
+  const [savedLists, setSavedLists] = useState<SavedList[]>([
+    {
+      id: 'all-opportunities',
+      name: 'All Opportunities',
+      description: 'Complete list of all opportunities',
+      type: 'filter',
+      filters: {},
+      isShared: false,
+      createdBy: 'System',
+      createdAt: new Date('2025-01-01'),
+      isDefault: true
+    },
+    {
+      id: '1',
+      name: 'High Value Renewals',
+      type: 'filter',
+      filters: { status: 'In Progress', type: 'Renewal' },
+      isShared: true,
+      sharedWith: ['team@acme.com'],
+      createdBy: 'John Smith',
+      createdAt: new Date('2025-05-01')
+    },
+    {
+      id: '2',
+      name: 'New Business Pipeline',
+      type: 'filter',
+      filters: { type: 'New Business' },
+      isShared: false,
+      createdBy: 'John Smith',
+      createdAt: new Date('2025-05-10')
+    },
+    {
+      id: '3',
+      name: 'Selected Opportunities',
+      type: 'selection',
+      members: [1, 3, 5], // Selected opportunity IDs
+      filters: {},
+      isShared: true,
+      sharedWith: ['team@acme.com'],
+      createdBy: 'John Smith',
+      createdAt: new Date('2025-05-15')
+    }
+  ]);
+  const [activeList, setActiveList] = useState<SavedList | null>(savedLists.find(list => list.id === 'all-opportunities') || null);
+  const [showSaveListModal, setShowSaveListModal] = useState(false);
+  const [showShareListModal, setShowShareListModal] = useState(false);
+  const [showListsDropdown, setShowListsDropdown] = useState(false);
+  const [showRenameListModal, setShowRenameListModal] = useState(false);
+  const [showDeleteListModal, setShowDeleteListModal] = useState(false);
+  const [listToRename, setListToRename] = useState<SavedList | null>(null);
+  const [listToDelete, setListToDelete] = useState<SavedList | null>(null);
+  const [newListName, setNewListName] = useState('');
+  const [pendingListAction, setPendingListAction] = useState<any>(null);
+  const [showUnsavedChangesModal, setShowUnsavedChangesModal] = useState(false);
   
   // Show loading state
   if (isLoading) {
@@ -388,20 +409,33 @@ function OpportunitiesTable() {
               <div className="flex flex-col mr-2">
                 <span className="text-base font-semibold text-gray-800 mb-2">Lists</span>
               </div>
-              
-              {/* Use the harmonized SavedListsManager component */}
-              <SavedListsManager 
-                entityType="opportunity"
-                selectedItems={selectedOpportunities}
-                onListSelect={(list) => {
-                  setActiveList(list);
-                }}
-                currentFilters={{
-                  searchText: filterText,
-                  status: selectedStatus,
-                  type: selectedType
-                }}
-              />
+              {/* Saved Lists dropdown - redesigned to match provided image */}
+              <div className="relative">
+                <button 
+                  className="flex items-center space-x-2 px-4 py-2.5 border rounded-md text-sm font-medium shadow-sm bg-white hover:bg-gray-50"
+                  onClick={() => setShowListsDropdown(!showListsDropdown)}
+                >
+                  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-indigo-600">
+                    <path d="M5.25 1.5V4.25H12.6875V2C12.6875 1.725 12.4906 1.5 12.25 1.5H5.25ZM3.9375 1.5H1.75C1.50937 1.5 1.3125 1.725 1.3125 2V4.25H3.9375V1.5ZM1.3125 5.75V8.25H3.9375V5.75H1.3125ZM1.3125 9.75V12C1.3125 12.275 1.50937 12.5 1.75 12.5H3.9375V9.75H1.3125ZM5.25 12.5H12.25C12.4906 12.5 12.6875 12.275 12.6875 12V9.75H5.25V12.5ZM12.6875 8.25V5.75H5.25V8.25H12.6875ZM0 2C0 0.896875 0.784766 0 1.75 0H12.25C13.2152 0 14 0.896875 14 2V12C14 13.1031 13.2152 14 12.25 14H1.75C0.784766 14 0 13.1031 0 12V2Z" fill="#3E4DC4"/>
+                  </svg>
+                  <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
+                    {activeList ? activeList.name : "All Opportunities"}
+                  </span>
+                  <svg 
+                    xmlns="http://www.w3.org/2000/svg" 
+                    width="14" 
+                    height="14" 
+                    viewBox="0 0 24 24" 
+                    fill="none" 
+                    stroke="currentColor" 
+                    strokeWidth="2" 
+                    strokeLinecap="round" 
+                    strokeLinejoin="round" 
+                    className={`transition-transform ${showListsDropdown ? 'rotate-180' : ''}`}
+                  >
+                    <polyline points="6 9 12 15 18 9" />
+                  </svg>
+                </button>
                 
                 {/* Saved Lists dropdown menu - shadcn/ui style with Qollabi colors */}
                 {showListsDropdown && (
