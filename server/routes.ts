@@ -1384,9 +1384,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/degoudse/saved-views', async (req, res) => {
     try {
-      const degoudseDb = getEnvironmentDb('degoudse');
-      const viewsList = await degoudseDb.select().from(savedViews);
-      res.json(viewsList);
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query('SELECT * FROM degoudse.saved_views ORDER BY id');
+      res.json(result.rows);
     } catch (error) {
       console.error('Error fetching De Goudse saved views:', error);
       res.status(500).json({ error: 'Failed to fetch saved views' });
@@ -1395,9 +1395,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/degoudse/saved-lists', async (req, res) => {
     try {
-      const degoudseDb = getEnvironmentDb('degoudse');
-      const listsList = await degoudseDb.select().from(savedLists);
-      res.json(listsList);
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query('SELECT * FROM degoudse.saved_lists ORDER BY id');
+      res.json(result.rows);
     } catch (error) {
       console.error('Error fetching De Goudse saved lists:', error);
       res.status(500).json({ error: 'Failed to fetch saved lists' });
