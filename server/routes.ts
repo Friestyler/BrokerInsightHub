@@ -3,7 +3,7 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { opportunities, clients, insuranceProducts, okrMetrics, okrTags } from '@shared/schema';
 import { eq, sql } from 'drizzle-orm';
-import { db } from './db';
+import { db, getEnvironmentPool } from './db';
 import multer from 'multer';
 import { copyEnvironmentData } from './initDatabase';
 import path from 'path';
@@ -1765,8 +1765,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       // Handle the array properly for PostgreSQL
       const membersArray = members && Array.isArray(members) ? members : [];
+      const envPool = getEnvironmentPool(envId);
       
-      const result = await pool.query(
+      const result = await envPool.query(
         `INSERT INTO ${envId}.saved_lists 
          (name, description, type, entity_type, members, filters, is_shared, created_by)
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
