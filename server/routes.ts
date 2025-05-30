@@ -1344,6 +1344,38 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Mapping templates API endpoints for De Goudse
+  app.get('/api/degoudse/mapping-templates', async (req, res) => {
+    try {
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query(
+        `SELECT * FROM degoudse.mapping_templates ORDER BY created_at DESC`
+      );
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching mapping templates:', error);
+      res.status(500).json({ error: 'Failed to fetch mapping templates' });
+    }
+  });
+
+  app.post('/api/degoudse/mapping-templates', async (req, res) => {
+    try {
+      const { name, description, columnMappings } = req.body;
+      const envPool = getEnvironmentPool('degoudse');
+      
+      const result = await envPool.query(
+        `INSERT INTO degoudse.mapping_templates (name, description, column_mappings, created_at, updated_at)
+         VALUES ($1, $2, $3, NOW(), NOW()) RETURNING *`,
+        [name, description || '', JSON.stringify(columnMappings)]
+      );
+      
+      res.status(201).json(result.rows[0]);
+    } catch (error) {
+      console.error('Error saving mapping template:', error);
+      res.status(500).json({ error: 'Failed to save mapping template' });
+    }
+  });
+
   // De Goudse upload processing endpoint
   app.post('/api/degoudse/upload-opportunities', async (req, res) => {
     try {
@@ -1536,15 +1568,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
         }
 
         try {
-          // Create the opportunity with only essential fields
-          const opportunity = await degoudseStorage.createOpportunity({
-            title: opportunityData.title || `Opportunity from ${fileName} - Row ${i + 1}`,
-            clientId: customerId || 1,
-            productId: 1,
-            probability: opportunityData.probability || 50,
-            estimatedValue: opportunityData.estimatedValue || 0
-          });
-          createdOpportunities.push(opportunity);
+          // Create the opportunity using direct SQL
+          const envPool = getEnvironmentPool('degoudse');
+          
+          const opportunityResult = await envPool.query(
+            `INSERT INTO degoudse.opportunities 
+             (title, "clientId", "productId", probability, "estimatedValue", type, status, stage, description, "partnerId", "createdAt", "updatedAt")
+             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW())
+             RETURNING *`,
+            [
+              opportunityData.title || `Opportunity from ${fileName} - Row ${i + 1}`,
+              customerId || 1,
+              1, // Default product ID
+              opportunityData.probability || 50,
+              opportunityData.estimatedValue || 0,
+              opportunityData.type || 'nieuwe_business',
+              opportunityData.status || 'open',
+              opportunityData.stage || 'discovery',
+              opportunityData.description || `Opportunity created from ${fileName}`,
+              partnerId || null
+            ]
+          );
+          
+          createdOpportunities.push(opportunityResult.rows[0]);
           opportunitiesCreated++;
         } catch (error) {
           console.log(`Skipped opportunity for row ${i + 1}:`, error.message);

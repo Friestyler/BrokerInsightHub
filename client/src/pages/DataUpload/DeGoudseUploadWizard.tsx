@@ -95,6 +95,23 @@ export default function DeGoudseUploadWizard() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [processedResults, setProcessedResults] = useState<any>(null);
 
+  // Load saved templates on component mount
+  React.useEffect(() => {
+    loadSavedTemplates();
+  }, []);
+
+  const loadSavedTemplates = async () => {
+    try {
+      const response = await fetch('/api/degoudse/mapping-templates');
+      if (response.ok) {
+        const templates = await response.json();
+        setSavedTemplates(templates);
+      }
+    } catch (error) {
+      console.error('Failed to load templates:', error);
+    }
+  };
+
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     const file = acceptedFiles[0];
     if (!file) return;
@@ -182,7 +199,7 @@ export default function DeGoudseUploadWizard() {
     });
   };
 
-  const saveTemplate = () => {
+  const saveTemplate = async () => {
     if (!templateName.trim()) {
       toast({
         title: "Template Name Required",
@@ -192,41 +209,63 @@ export default function DeGoudseUploadWizard() {
       return;
     }
 
-    const template: MappingTemplate = {
-      name: templateName,
-      mappings: columnMappings,
-      createdAt: new Date().toISOString()
-    };
+    try {
+      const response = await fetch('/api/degoudse/mapping-templates', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          name: templateName.trim(),
+          description: `Template for ${uploadedFile?.name || 'data upload'}`,
+          columnMappings: columnMappings
+        })
+      });
 
-    setSavedTemplates(prev => [...prev, template]);
-    localStorage.setItem('deGoudseMappingTemplates', JSON.stringify([...savedTemplates, template]));
-    
-    toast({
-      title: "Template Saved",
-      description: `Mapping template "${templateName}" has been saved for reuse.`
-    });
-    
-    setTemplateName('');
+      if (response.ok) {
+        await loadSavedTemplates(); // Reload templates
+        setTemplateName('');
+        toast({
+          title: "Template Saved",
+          description: `Mapping template "${templateName}" has been saved for reuse.`
+        });
+      } else {
+        throw new Error('Failed to save template');
+      }
+    } catch (error) {
+      console.error('Failed to save template:', error);
+      toast({
+        title: "Save Failed",
+        description: "Could not save the mapping template. Please try again.",
+        variant: "destructive"
+      });
+    }
   };
 
-  const loadTemplate = (templateName: string) => {
-    const template = savedTemplates.find(t => t.name === templateName);
+  const loadTemplate = (templateId: string) => {
+    const template = savedTemplates.find(t => t.id.toString() === templateId);
     if (template && uploadedFile) {
-      // Apply template mappings to current columns
-      const updatedMappings = uploadedFile.headers.map(header => {
-        const templateMapping = template.mappings.find(m => m.columnName === header);
-        return templateMapping || {
+      // Parse the stored column mappings and apply them to current file headers
+      const storedMappings = JSON.parse(template.column_mappings);
+      const newMappings: ColumnMapping[] = uploadedFile.headers.map(header => {
+        const existingMapping = storedMappings.find((m: any) => m.columnName === header);
+        if (existingMapping) {
+          return {
+            ...existingMapping,
+            validationStatus: 'valid' as const
+          };
+        }
+        return {
           columnName: header,
-          mappingType: 'opportunity_attribute' as const,
+          mappingType: 'skip' as const,
           validationStatus: 'pending' as const
         };
       });
-      
-      setColumnMappings(updatedMappings);
+      setColumnMappings(newMappings);
       
       toast({
         title: "Template Applied",
-        description: `Applied mapping template "${templateName}".`
+        description: `Applied mapping template "${template.name}".`
       });
     }
   };
