@@ -1,7 +1,6 @@
 import { useState, useEffect, createContext, useContext } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useEnvironment } from "@/contexts/EnvironmentContext";
-import { SavedListsManager, SavedViewsManager } from '@/components/shared';
 
 // Create a context for list editing state
 interface ListEditingContextType {
@@ -79,8 +78,11 @@ export default function CustomersPageClean() {
   const [isEditingList, setIsEditingList] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCustomers, setSelectedCustomers] = useState<number[]>([]);
-  const [filters, setFilters] = useState<Record<string, any>>({});
-  const [selectedView, setSelectedView] = useState<any>(null);
+  const [activeFilters, setActiveFilters] = useState({
+    industry: [] as string[],
+    size: [] as string[],
+    status: [] as string[]
+  });
   
   // Dialog states
   const [isNewListDialogOpen, setIsNewListDialogOpen] = useState(false);
@@ -90,42 +92,14 @@ export default function CustomersPageClean() {
   // Data fetching
   const { data: customers = [], isLoading, error } = useCustomersData();
 
-  // Handle list and view selection
-  const handleListSelect = (list: any) => {
-    // Logic for filtering by selected list
-  };
-
-  const handleViewSelect = (view: any) => {
-    setSelectedView(view);
-    if (view?.filters) {
-      setFilters(view.filters);
-    } else {
-      setFilters({});
-    }
-  };
-
   // Filter and search logic
   const filteredCustomers = customers.filter((customer: any) => {
     const matchesSearch = customer.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesIndustry = activeFilters.industry.length === 0 || activeFilters.industry.includes(customer.industry);
+    const matchesSize = activeFilters.size.length === 0 || activeFilters.size.includes(customer.size);
+    const matchesStatus = activeFilters.status.length === 0 || activeFilters.status.includes(customer.status || 'active');
     
-    // Apply view filters if a view is selected
-    if (selectedView?.filters) {
-      const viewFilters = selectedView.filters;
-      for (const [key, value] of Object.entries(viewFilters)) {
-        if (value && value !== 'all' && customer[key] !== value) {
-          return false;
-        }
-      }
-    }
-    
-    // Apply manual filters
-    for (const [key, value] of Object.entries(filters)) {
-      if (value && value !== 'all' && customer[key] !== value) {
-        return false;
-      }
-    }
-    
-    return matchesSearch;
+    return matchesSearch && matchesIndustry && matchesSize && matchesStatus;
   });
 
   // Handle customer selection
@@ -197,12 +171,33 @@ export default function CustomersPageClean() {
                   <span className="text-base font-semibold text-gray-800 mb-2">Lists</span>
                 </div>
                 
-                {/* Saved Lists Manager */}
-                <SavedListsManager 
-                  entityType="customer"
-                  onListSelect={handleListSelect}
-                  selectedItems={selectedCustomers}
-                />
+                {/* Saved Lists dropdown - exact match to Opportunities */}
+                <div className="relative">
+                  <button 
+                    className="flex items-center space-x-2 px-4 py-2.5 border rounded-md text-sm font-medium shadow-sm bg-white hover:bg-gray-50"
+                  >
+                    <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-indigo-600">
+                      <path d="M5.25 1.5V4.25H12.6875V2C12.6875 1.725 12.4906 1.5 12.25 1.5H5.25ZM3.9375 1.5H1.75C1.50937 1.5 1.3125 1.725 1.3125 2V4.25H3.9375V1.5ZM1.3125 5.75V8.25H3.9375V5.75H1.3125ZM1.3125 9.75V12C1.3125 12.275 1.50937 12.5 1.75 12.5H3.9375V9.75H1.3125ZM5.25 12.5H12.25C12.4906 12.5 12.6875 12.275 12.6875 12V9.75H5.25V12.5ZM12.6875 8.25V5.75H5.25V8.25H12.6875ZM0 2C0 0.896875 0.784766 0 1.75 0H12.25C13.2152 0 14 0.896875 14 2V12C14 13.1031 13.2152 14 12.25 14H1.75C0.784766 14 0 13.1031 0 12V2Z" fill="#3E4DC4"/>
+                    </svg>
+                    <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
+                      All Customers
+                    </span>
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      width="14" 
+                      height="14" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      className="transition-transform"
+                    >
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  </button>
+                </div>
               </div>
               
               {/* Right-side action buttons */}
@@ -218,31 +213,82 @@ export default function CustomersPageClean() {
               </div>
             </div>
             
-            {/* Search and filter row */}
-            <div className="flex flex-wrap items-center gap-3">
-              {/* Search field */}
-              <div className="relative w-60">
-                <input
-                  type="text"
-                  placeholder="Search customers..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
-                />
-                <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                  </svg>
-                </button>
+            {/* Bottom row with search, views, and filters */}
+            <div className="flex flex-wrap items-center justify-between gap-3">
+              <div className="flex flex-wrap items-center gap-3 flex-grow">
+                {/* Search field */}
+                <div className="relative w-60">
+                  <input
+                    type="text"
+                    placeholder="Search customers..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
+                  />
+                  <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                      <circle cx="11" cy="11" r="8"></circle>
+                      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                  </button>
+                </div>
+                
+                {/* Saved Views Dropdown */}
+                <div className="relative">
+                  <button 
+                    className="flex items-center space-x-2 px-3 py-2 border rounded-md text-sm font-medium bg-white hover:bg-gray-50"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                      <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                    </svg>
+                    <span className="text-gray-700">Select a view</span>
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      width="14" 
+                      height="14" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      className="transition-transform"
+                    >
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  </button>
+                </div>
+                
+                {/* Filter buttons next to the views dropdown */}
+                <div className="flex items-center gap-2 ml-3">
+                  <button 
+                    className="flex items-center px-3 py-2 border rounded-md text-sm font-medium border-gray-300 text-gray-700"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                    </svg>
+                    <span>Status</span>
+                  </button>
+                  
+                  <button 
+                    className="flex items-center px-3 py-2 border rounded-md text-sm font-medium border-gray-300 text-gray-700"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                    </svg>
+                    <span>Type</span>
+                  </button>
+                  
+                  <button 
+                    className="flex items-center px-3 py-2 border rounded-md text-sm font-medium border-gray-300 text-gray-700"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                    </svg>
+                    <span>Industry</span>
+                  </button>
+                </div>
               </div>
-              
-              {/* Saved Views Manager */}
-              <SavedViewsManager 
-                entityType="customer"
-                onViewSelect={handleViewSelect}
-                currentFilters={filters}
-              />
             </div>
           </div>
         </div>
