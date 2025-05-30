@@ -803,32 +803,76 @@ export default function MetricsPage() {
                         const timeframe = formData.timeframe;
                         const availableFrequencies = [];
                         
-                        // Determine available frequencies based on timeframe
-                        if (timeframe.includes('quarter') || timeframe === 'this-quarter') {
-                          // For quarterly timeframes (3 months): Weekly, Monthly, No milestone
+                        // Calculate timeframe duration in months to determine available frequencies
+                        let timeframeDuration = 0;
+                        if (timeframe.includes('quarter') || timeframe.includes('Q1') || timeframe.includes('Q2') || timeframe.includes('Q3') || timeframe.includes('Q4')) {
+                          timeframeDuration = 3;
+                        } else if (timeframe.includes('H1') || timeframe.includes('H2')) {
+                          timeframeDuration = 6;
+                        } else if (timeframe === '2024' || timeframe === '2025' || timeframe === 'this-year') {
+                          timeframeDuration = 12;
+                        } else if (timeframe === 'this-month' || timeframe === 'next-month') {
+                          timeframeDuration = 1;
+                        } else if (timeframe === 'today' || timeframe === 'yesterday') {
+                          timeframeDuration = 0.033;
+                        } else if (timeframe.includes('days')) {
+                          const days = parseInt(timeframe.match(/\d+/)?.[0] || '0');
+                          timeframeDuration = days * 0.033;
+                        }
+                        
+                        // Determine available frequencies based on timeframe duration
+                        if (timeframeDuration <= 1) {
+                          // 1 month or less: Weekly, No milestone
+                          availableFrequencies.push(
+                            <SelectItem key="weekly" value="Weekly">Weekly</SelectItem>,
+                            <SelectItem key="no-milestone" value="No milestone (target needs to be met only once)">No milestone (target needs to be met only once)</SelectItem>
+                          );
+                        } else if (timeframeDuration > 1 && timeframeDuration < 6) {
+                          // Between 1-6 months: Weekly, Monthly, No milestone
                           availableFrequencies.push(
                             <SelectItem key="weekly" value="Weekly">Weekly</SelectItem>,
                             <SelectItem key="monthly" value="Monthly">Monthly</SelectItem>,
                             <SelectItem key="no-milestone" value="No milestone (target needs to be met only once)">No milestone (target needs to be met only once)</SelectItem>
                           );
-                        } else if (timeframe === 'this-year') {
-                          // For yearly timeframes (12 months): Weekly, Monthly, Quarterly, Yearly, No milestone
+                        } else if (timeframeDuration === 6) {
+                          // Exactly 6 months: Weekly, Monthly, Quarterly, No milestone
+                          availableFrequencies.push(
+                            <SelectItem key="weekly" value="Weekly">Weekly</SelectItem>,
+                            <SelectItem key="monthly" value="Monthly">Monthly</SelectItem>,
+                            <SelectItem key="quarterly" value="Quarterly">Quarterly</SelectItem>,
+                            <SelectItem key="no-milestone" value="No milestone (target needs to be met only once)">No milestone (target needs to be met only once)</SelectItem>
+                          );
+                        } else if (timeframeDuration > 6 && timeframeDuration < 12) {
+                          // Between 6-12 months: Weekly, Monthly, Quarterly, No milestone
+                          availableFrequencies.push(
+                            <SelectItem key="weekly" value="Weekly">Weekly</SelectItem>,
+                            <SelectItem key="monthly" value="Monthly">Monthly</SelectItem>,
+                            <SelectItem key="quarterly" value="Quarterly">Quarterly</SelectItem>,
+                            <SelectItem key="no-milestone" value="No milestone (target needs to be met only once)">No milestone (target needs to be met only once)</SelectItem>
+                          );
+                        } else if (timeframeDuration === 12) {
+                          // Exactly 12 months: Weekly, Monthly, Quarterly, No milestone
+                          availableFrequencies.push(
+                            <SelectItem key="weekly" value="Weekly">Weekly</SelectItem>,
+                            <SelectItem key="monthly" value="Monthly">Monthly</SelectItem>,
+                            <SelectItem key="quarterly" value="Quarterly">Quarterly</SelectItem>,
+                            <SelectItem key="no-milestone" value="No milestone (target needs to be met only once)">No milestone (target needs to be met only once)</SelectItem>
+                          );
+                        } else if (timeframeDuration > 12 && timeframeDuration < 24) {
+                          // Between 12-24 months: Weekly, Monthly, Quarterly, No milestone
+                          availableFrequencies.push(
+                            <SelectItem key="weekly" value="Weekly">Weekly</SelectItem>,
+                            <SelectItem key="monthly" value="Monthly">Monthly</SelectItem>,
+                            <SelectItem key="quarterly" value="Quarterly">Quarterly</SelectItem>,
+                            <SelectItem key="no-milestone" value="No milestone (target needs to be met only once)">No milestone (target needs to be met only once)</SelectItem>
+                          );
+                        } else if (timeframeDuration >= 24) {
+                          // 2+ years: Weekly, Monthly, Quarterly, Yearly, No milestone
                           availableFrequencies.push(
                             <SelectItem key="weekly" value="Weekly">Weekly</SelectItem>,
                             <SelectItem key="monthly" value="Monthly">Monthly</SelectItem>,
                             <SelectItem key="quarterly" value="Quarterly">Quarterly</SelectItem>,
                             <SelectItem key="yearly" value="Yearly">Yearly</SelectItem>,
-                            <SelectItem key="no-milestone" value="No milestone (target needs to be met only once)">No milestone (target needs to be met only once)</SelectItem>
-                          );
-                        } else if (timeframe === 'this-month' || timeframe === 'next-month') {
-                          // For monthly timeframes (1 month): Weekly, No milestone
-                          availableFrequencies.push(
-                            <SelectItem key="weekly" value="Weekly">Weekly</SelectItem>,
-                            <SelectItem key="no-milestone" value="No milestone (target needs to be met only once)">No milestone (target needs to be met only once)</SelectItem>
-                          );
-                        } else if (timeframe === 'today' || timeframe === 'yesterday' || timeframe.includes('days')) {
-                          // For daily/weekly timeframes: No milestone only
-                          availableFrequencies.push(
                             <SelectItem key="no-milestone" value="No milestone (target needs to be met only once)">No milestone (target needs to be met only once)</SelectItem>
                           );
                         } else {
