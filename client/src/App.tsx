@@ -114,7 +114,7 @@ function Router() {
         <Route path="/reports" component={ReportsPage} />
         
         {/* Templates section routes */}
-        <Route path="/templates/metrics" component={OKRTemplatesPage} />
+        <Route path="/templates/okr-metrics" component={OKRTemplatesPage} />
         <Route path="/templates/groups/:id" component={GroupDetail} />
         
         {/* Settings routes */}

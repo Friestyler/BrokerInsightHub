@@ -132,15 +132,11 @@ const frontendRoutes = {
     { path: '/settings/developer', component: 'DeveloperPage', description: 'System architecture and debugging dashboard' }
   ],
   templates: [
-    { path: '/templates/metrics', component: 'MetricsPage', description: 'Metrics and KPI templates' },
+    { path: '/templates/okr-metrics', component: 'OKRMetricsPage', description: 'OKR metrics templates' },
     { path: '/templates/groups/:id', component: 'GroupDetail', description: 'Group detail template' }
   ],
   reports: [
     { path: '/reports', component: 'ReportsPage', description: 'Reports and analytics dashboard' }
-  ],
-  legacy: [
-    { path: '/clients', component: 'Clients', description: 'Legacy clients page (being migrated)' },
-    { path: '/clients/:id', component: 'ClientDetail', description: 'Legacy client detail page' }
   ]
 };
 
