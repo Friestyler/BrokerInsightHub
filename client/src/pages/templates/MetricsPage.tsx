@@ -268,8 +268,8 @@ export default function MetricsPage() {
             <SelectTrigger 
               className={`w-[140px] transition-colors border ${
                 groupBy && groupBy !== "none" 
-                  ? 'bg-[#E6E7F1] text-[#51536C] border-[#E6E7F1] hover:bg-[#D5D7E5] hover:text-[#3E4257]' 
-                  : 'bg-white border-gray-300 hover:bg-gray-50'
+                  ? '!bg-[#E6E7F1] !text-[#51536C] !border-[#E6E7F1]' 
+                  : 'bg-white border-gray-300'
               }`}
             >
               <SelectValue>
