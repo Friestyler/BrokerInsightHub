@@ -132,6 +132,7 @@ const useCreateSavedView = () => {
 export default function CustomersPageClean() {
   const { environment } = useEnvironment();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   
   // State management
   const [isEditingList, setIsEditingList] = useState(false);
@@ -141,6 +142,15 @@ export default function CustomersPageClean() {
     industry: [] as string[],
     size: [] as string[],
     status: [] as string[]
+  });
+  
+  // Create customer modal state
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [customerFormData, setCustomerFormData] = useState({
+    name: '',
+    description: '',
+    ownerId: null as number | null
   });
   
   // Dialog states
@@ -195,6 +205,56 @@ export default function CustomersPageClean() {
       setSelectedCustomers([]);
     } else {
       setSelectedCustomers(filteredCustomers.map((c: any) => c.id));
+    }
+  };
+
+  const handleCreateCustomer = async () => {
+    if (!customerFormData.name.trim() || !customerFormData.description.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Name and description are required fields.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsCreating(true);
+    try {
+      const response = await fetch('/api/customers', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(customerFormData)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create customer');
+      }
+
+      const newCustomer = await response.json();
+      
+      // Invalidate and refetch customers data
+      queryClient.invalidateQueries({ queryKey: ['/api/customers'] });
+      
+      toast({
+        title: "Customer Created",
+        description: `"${customerFormData.name}" has been created successfully.`
+      });
+
+      // Reset form and close modal
+      setCustomerFormData({
+        name: '',
+        description: '',
+        ownerId: null
+      });
+      setShowCreateModal(false);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create customer. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsCreating(false);
     }
   };
 
