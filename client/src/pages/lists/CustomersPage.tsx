@@ -224,7 +224,7 @@ export default function CustomersPageClean() {
             className={`flex items-center gap-2 px-4 py-2 text-white rounded-md transition-colors font-medium text-[14px] pl-[12px] pr-[12px] ${isEditingList ? 'bg-[#8B98F9] cursor-not-allowed' : 'bg-[#5567E5] hover:bg-[#4556D4]'}`}
             onClick={() => {
               if (!isEditingList) {
-                alert("Create new customer functionality coming soon!");
+                setShowCreateModal(true);
               }
             }}
             disabled={isEditingList}

@@ -147,8 +147,45 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
   
+  // Create new partner
+  app.post('/api/partners', async (req, res) => {
+    try {
+      const { 
+        name, 
+        description, 
+        location, 
+        contactEmail, 
+        primaryContact, 
+        partnerType, 
+        region, 
+        status = 'active' 
+      } = req.body;
+      
+      if (!name || !description) {
+        return res.status(400).json({ message: 'Name and description are required' });
+      }
+      
+      // Insert into myqollabi.partners table
+      const result = await db.execute(sql`
+        INSERT INTO myqollabi.partners (
+          name, description, status, location, contact_email, 
+          primary_contact, partner_type, region, assigned_user_ids, 
+          linked_opportunity_ids, created_at, updated_at
+        ) VALUES (
+          ${name}, ${description}, ${status}, ${location || ''}, ${contactEmail || ''}, 
+          ${primaryContact || ''}, ${partnerType || 'partner'}, ${region || ''}, 
+          '{}', '{}', NOW(), NOW()
+        ) RETURNING *
+      `);
+      
+      const partner = result.rows[0];
+      res.status(201).json(partner);
+    } catch (error) {
+      console.error('Error creating partner:', error);
+      res.status(500).json({ message: 'Failed to create partner' });
+    }
+  });
 
-  
   app.post('/api/customers', async (req, res) => {
     try {
       // Validate the request body

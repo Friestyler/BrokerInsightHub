@@ -2468,8 +2468,78 @@ function PartnersTable() {
 }
 
 export default function PartnersPage() {
-  // Remove the useEnvironment reference as it's not needed for this implementation
   const [isEditingList, setIsEditingList] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  
+  // Form data for creating new partner
+  const [formData, setFormData] = useState({
+    name: '',
+    description: '',
+    location: '',
+    contactEmail: '',
+    primaryContact: '',
+    partnerType: 'partner',
+    region: '',
+    status: 'active'
+  });
+
+  const handleCreatePartner = async () => {
+    if (!formData.name.trim() || !formData.description.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Name and description are required fields.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsCreating(true);
+    try {
+      const response = await fetch('/api/partners', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create partner');
+      }
+
+      const newPartner = await response.json();
+      
+      // Invalidate and refetch partners data
+      queryClient.invalidateQueries({ queryKey: ['/api/partners'] });
+      
+      toast({
+        title: "Partner Created",
+        description: `"${formData.name}" has been created successfully.`
+      });
+
+      // Reset form and close modal
+      setFormData({
+        name: '',
+        description: '',
+        location: '',
+        contactEmail: '',
+        primaryContact: '',
+        partnerType: 'partner',
+        region: '',
+        status: 'active'
+      });
+      setShowCreateModal(false);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create partner. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsCreating(false);
+    }
+  };
   
   return (
     <ListEditingContext.Provider value={{ isEditingList, setIsEditingList }}>
@@ -2480,7 +2550,7 @@ export default function PartnersPage() {
             className={`flex items-center gap-2 px-4 py-2 text-white rounded-md transition-colors font-medium text-[14px] pl-[12px] pr-[12px] ${isEditingList ? 'bg-[#8B98F9] cursor-not-allowed' : 'bg-[#5567E5] hover:bg-[#4556D4]'}`}
             onClick={() => {
               if (!isEditingList) {
-                alert("Create new partner functionality coming soon!");
+                setShowCreateModal(true);
               }
             }}
             disabled={isEditingList}
@@ -2494,6 +2564,123 @@ export default function PartnersPage() {
           </button>
         </div>
         <PartnersTable />
+
+        {/* Create Partner Modal */}
+        <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+          <DialogContent className="sm:max-w-[600px]">
+            <DialogHeader>
+              <DialogTitle>Create New Partner</DialogTitle>
+              <DialogDescription>
+                Add a new partner to your network. Fill in the required information below.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="grid gap-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="name">Name *</Label>
+                  <Input
+                    id="name"
+                    value={formData.name}
+                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                    placeholder="Enter partner name"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="primaryContact">Primary Contact</Label>
+                  <Input
+                    id="primaryContact"
+                    value={formData.primaryContact}
+                    onChange={(e) => setFormData(prev => ({ ...prev, primaryContact: e.target.value }))}
+                    placeholder="Contact person name"
+                  />
+                </div>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="description">Description *</Label>
+                <Input
+                  id="description"
+                  value={formData.description}
+                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Brief description of the partner"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="contactEmail">Contact Email</Label>
+                  <Input
+                    id="contactEmail"
+                    type="email"
+                    value={formData.contactEmail}
+                    onChange={(e) => setFormData(prev => ({ ...prev, contactEmail: e.target.value }))}
+                    placeholder="email@example.com"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="location">Location</Label>
+                  <Input
+                    id="location"
+                    value={formData.location}
+                    onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                    placeholder="City, Country"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-3 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="partnerType">Partner Type</Label>
+                  <Select value={formData.partnerType} onValueChange={(value) => setFormData(prev => ({ ...prev, partnerType: value }))}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="partner">Partner</SelectItem>
+                      <SelectItem value="broker">Broker</SelectItem>
+                      <SelectItem value="direct">Direct</SelectItem>
+                      <SelectItem value="vendor">Vendor</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="region">Region</Label>
+                  <Select value={formData.region} onValueChange={(value) => setFormData(prev => ({ ...prev, region: value }))}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="">Select region</SelectItem>
+                      <SelectItem value="north">North</SelectItem>
+                      <SelectItem value="south">South</SelectItem>
+                      <SelectItem value="east">East</SelectItem>
+                      <SelectItem value="west">West</SelectItem>
+                      <SelectItem value="central">Central</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="status">Status</Label>
+                  <Select value={formData.status} onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="active">Active</SelectItem>
+                      <SelectItem value="inactive">Inactive</SelectItem>
+                      <SelectItem value="pending">Pending</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setShowCreateModal(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleCreatePartner} disabled={isCreating}>
+                {isCreating ? 'Creating...' : 'Create Partner'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       </div>
     </ListEditingContext.Provider>
   );
