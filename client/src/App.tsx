@@ -35,7 +35,7 @@ import EnvironmentRouteGuard from "@/components/EnvironmentRouteGuard";
 
 // Temporary placeholder components for other list pages
 const ProjectsPage = () => <div className="p-6"><h1 className="text-2xl font-bold">Projects List (Coming Soon)</h1></div>;
-const ContactsPage = () => <div className="p-6"><h1 className="text-2xl font-bold">Contacts List (Coming Soon)</h1></div>;
+import ContactsPage from './pages/Settings/ContactsPage';
 
 function Router() {
   return (
@@ -119,6 +119,7 @@ function Router() {
         
         {/* Settings routes */}
         <Route path="/settings/users" component={UserManagement} />
+        <Route path="/settings/contacts" component={ContactsPage} />
         <Route path="/settings/developer" component={DeveloperPage} />
         
         <Route component={NotFound} />

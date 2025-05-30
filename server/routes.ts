@@ -2225,13 +2225,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const result = await db.execute(sql`
-        SELECT id, first_name, last_name, full_name, email, phone, 
-               job_title, department, company, linked_entity_type, 
-               linked_entity_id, is_primary, notes, tags, is_active, 
+        SELECT id, first_name, last_name, email, phone, 
+               company, position, linked_entity_type, 
+               linked_entity_id, notes, is_active, 
                created_at, updated_at
         FROM ${sql.identifier(envId as string)}.contacts 
         ${queryConditions}
-        ORDER BY full_name ASC
+        ORDER BY first_name ASC, last_name ASC
       `);
       
       res.json(result.rows);
@@ -2247,9 +2247,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const envId = req.headers['x-environment-id'] || 'myqollabi';
       
       const result = await db.execute(sql`
-        SELECT id, first_name, last_name, full_name, email, phone, 
-               job_title, department, company, linked_entity_type, 
-               linked_entity_id, is_primary, notes, tags, is_active, 
+        SELECT id, first_name, last_name, email, phone, 
+               company, position, linked_entity_type, 
+               linked_entity_id, notes, is_active, 
                created_at, updated_at
         FROM ${sql.identifier(envId as string)}.contacts 
         WHERE id = ${id}
@@ -2277,19 +2277,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const result = await db.execute(sql`
         INSERT INTO ${sql.identifier(envId as string)}.contacts (
-          first_name, last_name, full_name, email, phone, job_title,
-          department, company, linked_entity_type, linked_entity_id,
-          is_primary, notes, tags, is_active, created_at, updated_at
+          first_name, last_name, email, phone, 
+          company, position, linked_entity_type, linked_entity_id,
+          notes, is_active, created_at, updated_at
         ) VALUES (
-          ${firstName}, ${lastName}, ${fullName}, ${email || null}, 
-          ${phone || null}, ${jobTitle || null}, ${department || null}, 
-          ${company || null}, ${linkedEntityType || null}, 
-          ${linkedEntityId || null}, ${isPrimary || false}, 
-          ${notes || null}, ${tags ? `{${tags.join(',')}}` : '{}'},
-          ${isActive !== false}, NOW(), NOW()
-        ) RETURNING id, first_name, last_name, full_name, email, phone, 
-                   job_title, department, company, linked_entity_type, 
-                   linked_entity_id, is_primary, notes, tags, is_active, 
+          ${firstName}, ${lastName}, ${email || null}, 
+          ${phone || null}, ${company || null}, ${position || null},
+          ${linkedEntityType || null}, ${linkedEntityId || null}, 
+          ${notes || null}, ${isActive !== false}, NOW(), NOW()
+        ) RETURNING id, first_name, last_name, email, phone, 
+                   company, position, linked_entity_type, 
+                   linked_entity_id, notes, is_active, 
                    created_at, updated_at
       `);
       
