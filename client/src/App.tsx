@@ -18,13 +18,10 @@ import DataUploadOptions from "@/pages/DataUpload/DataUploadOptions";
 import BrioUploadFlow from "@/pages/DataUpload/BrioUploadFlow";
 import DeGoudseUploadWizard from "@/pages/DataUpload/DeGoudseUploadWizard";
 import ReportsPage from "@/pages/Reports/ReportsPage";
-import Clients from "@/pages/Clients";
-import ClientDetail from "@/pages/ClientDetail";
 import PartnersPage from "@/pages/lists/PartnersPage";
 import PartnerDetailClean from "@/pages/lists/PartnerDetail-clean";
 import CustomersPageClean from "@/pages/lists/CustomersPageClean";
 import OpportunitiesPage from "@/pages/lists/OpportunitiesPage";
-import Opportunities2Page from "@/pages/lists/Opportunities2Page";
 import OpportunityDetail from "@/pages/lists/OpportunityDetail";
 import VendorsPage from "@/pages/lists/VendorsPage";
 import ProductsPage from "@/pages/lists/ProductsPage";
@@ -123,10 +120,6 @@ function Router() {
         {/* Settings routes */}
         <Route path="/settings/users" component={UserManagement} />
         <Route path="/settings/developer" component={DeveloperPage} />
-        
-        {/* Legacy routes - will be migrated to new structure */}
-        <Route path="/clients" component={Clients} />
-        <Route path="/clients/:id" component={ClientDetail} />
         
         <Route component={NotFound} />
       </Switch>
