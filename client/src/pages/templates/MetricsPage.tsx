@@ -127,10 +127,7 @@ export default function MetricsPage() {
 
   // Calculate total target whenever target, timeframe, or milestone frequency changes
   const calculateTotalTarget = (target: number, timeframe: string, frequency: string): number => {
-    console.log('calculateTotalTarget called with:', { target, timeframe, frequency });
-    
     if (!target || !timeframe || !frequency) {
-      console.log('Missing required values, returning 0');
       return 0;
     }
     
@@ -142,9 +139,15 @@ export default function MetricsPage() {
       timeframeDuration = 6; // Half year = 6 months
     } else if (timeframe === '2024' || timeframe === '2025' || timeframe === 'This year' || timeframe === 'this-year') {
       timeframeDuration = 12; // Full year = 12 months
+    } else if (timeframe === 'this-month' || timeframe === 'next-month') {
+      timeframeDuration = 1; // Month = 1 month
+    } else if (timeframe === 'today' || timeframe === 'yesterday') {
+      timeframeDuration = 0.033; // Day ≈ 0.033 months
+    } else if (timeframe.includes('days')) {
+      // Extract number of days and convert to months
+      const days = parseInt(timeframe.match(/\d+/)?.[0] || '0');
+      timeframeDuration = days * 0.033; // Convert days to months
     }
-    
-    console.log('Timeframe duration in months:', timeframeDuration);
     
     // Determine milestone frequency in months
     let milestoneInterval = 0;
@@ -170,14 +173,9 @@ export default function MetricsPage() {
         return 0;
     }
     
-    console.log('Milestone interval in months:', milestoneInterval);
-    
     // Calculate number of milestones
     const numberOfMilestones = Math.ceil(timeframeDuration / milestoneInterval);
     const totalTarget = target * numberOfMilestones;
-    
-    console.log('Number of milestones:', numberOfMilestones);
-    console.log('Total target:', totalTarget);
     
     return totalTarget;
   };
@@ -234,6 +232,13 @@ export default function MetricsPage() {
     });
     setIsCreateOKROpen(false);
   };
+
+  // Clear milestone frequency when timeframe changes to prevent invalid combinations
+  React.useEffect(() => {
+    if (formData.timeframe) {
+      setFormData(prev => ({ ...prev, milestoneFrequency: '' }));
+    }
+  }, [formData.timeframe]);
 
   // Recalculate total target whenever relevant fields change
   React.useEffect(() => {
@@ -794,12 +799,52 @@ export default function MetricsPage() {
                       <SelectValue placeholder="Select frequency" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="Weekly">Weekly</SelectItem>
-                      <SelectItem value="Monthly">Monthly</SelectItem>
-                      <SelectItem value="Quarterly">Quarterly</SelectItem>
-                      <SelectItem value="Yearly">Yearly</SelectItem>
-                      <SelectItem value="Custom">Custom</SelectItem>
-                      <SelectItem value="No milestone (target needs to be met only once)">No milestone (target needs to be met only once)</SelectItem>
+                      {(() => {
+                        const timeframe = formData.timeframe;
+                        const availableFrequencies = [];
+                        
+                        // Determine available frequencies based on timeframe
+                        if (timeframe.includes('quarter') || timeframe === 'this-quarter') {
+                          // For quarterly timeframes (3 months): Weekly, Monthly, No milestone
+                          availableFrequencies.push(
+                            <SelectItem key="weekly" value="Weekly">Weekly</SelectItem>,
+                            <SelectItem key="monthly" value="Monthly">Monthly</SelectItem>,
+                            <SelectItem key="no-milestone" value="No milestone (target needs to be met only once)">No milestone (target needs to be met only once)</SelectItem>
+                          );
+                        } else if (timeframe === 'this-year') {
+                          // For yearly timeframes (12 months): Weekly, Monthly, Quarterly, Yearly, No milestone
+                          availableFrequencies.push(
+                            <SelectItem key="weekly" value="Weekly">Weekly</SelectItem>,
+                            <SelectItem key="monthly" value="Monthly">Monthly</SelectItem>,
+                            <SelectItem key="quarterly" value="Quarterly">Quarterly</SelectItem>,
+                            <SelectItem key="yearly" value="Yearly">Yearly</SelectItem>,
+                            <SelectItem key="no-milestone" value="No milestone (target needs to be met only once)">No milestone (target needs to be met only once)</SelectItem>
+                          );
+                        } else if (timeframe === 'this-month' || timeframe === 'next-month') {
+                          // For monthly timeframes (1 month): Weekly, No milestone
+                          availableFrequencies.push(
+                            <SelectItem key="weekly" value="Weekly">Weekly</SelectItem>,
+                            <SelectItem key="no-milestone" value="No milestone (target needs to be met only once)">No milestone (target needs to be met only once)</SelectItem>
+                          );
+                        } else if (timeframe === 'today' || timeframe === 'yesterday' || timeframe.includes('days')) {
+                          // For daily/weekly timeframes: No milestone only
+                          availableFrequencies.push(
+                            <SelectItem key="no-milestone" value="No milestone (target needs to be met only once)">No milestone (target needs to be met only once)</SelectItem>
+                          );
+                        } else {
+                          // Default: show all options
+                          availableFrequencies.push(
+                            <SelectItem key="weekly" value="Weekly">Weekly</SelectItem>,
+                            <SelectItem key="monthly" value="Monthly">Monthly</SelectItem>,
+                            <SelectItem key="quarterly" value="Quarterly">Quarterly</SelectItem>,
+                            <SelectItem key="yearly" value="Yearly">Yearly</SelectItem>,
+                            <SelectItem key="custom" value="Custom">Custom</SelectItem>,
+                            <SelectItem key="no-milestone" value="No milestone (target needs to be met only once)">No milestone (target needs to be met only once)</SelectItem>
+                          );
+                        }
+                        
+                        return availableFrequencies;
+                      })()}
                     </SelectContent>
                   </Select>
                 </div>
