@@ -259,34 +259,32 @@ export default function MetricsPage() {
               dateRange={dateRange}
               onDateRangeChange={setDateRange}
             />
+            
+            {/* Group by dropdown */}
+            <Select value={groupBy} onValueChange={setGroupBy}>
+              <SelectTrigger 
+                className={`w-[140px] transition-colors border ${
+                  groupBy && groupBy !== "none" 
+                    ? '!bg-[#E6E7F1] !text-[#51536C] !border-[#E6E7F1] hover:!bg-[#D5D7E5] hover:!text-[#3E4257]' 
+                    : 'bg-white border-gray-300 hover:bg-gray-50'
+                }`}
+              >
+                <SelectValue>
+                  {groupBy && groupBy !== "none" ? (
+                    <span>Group | {groupBy.charAt(0).toUpperCase() + groupBy.slice(1)}</span>
+                  ) : (
+                    <span className="text-gray-500">Group by</span>
+                  )}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="tag">Tag</SelectItem>
+                <SelectItem value="type">Type</SelectItem>
+                <SelectItem value="status">Status</SelectItem>
+                <SelectItem value="none">None</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
-        </div>
-        
-        {/* Group by dropdown */}
-        <div className="flex items-center gap-2">
-          <Select value={groupBy} onValueChange={setGroupBy}>
-            <SelectTrigger 
-              className={`w-[140px] transition-colors border ${
-                groupBy && groupBy !== "none" 
-                  ? '!bg-[#E6E7F1] !text-[#51536C] !border-[#E6E7F1] hover:!bg-[#D5D7E5] hover:!text-[#3E4257]' 
-                  : 'bg-white border-gray-300 hover:bg-gray-50'
-              }`}
-            >
-              <SelectValue>
-                {groupBy && groupBy !== "none" ? (
-                  <span>Group | {groupBy.charAt(0).toUpperCase() + groupBy.slice(1)}</span>
-                ) : (
-                  <span className="text-gray-500">Group by</span>
-                )}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="tag">Tag</SelectItem>
-              <SelectItem value="type">Type</SelectItem>
-              <SelectItem value="status">Status</SelectItem>
-              <SelectItem value="none">None</SelectItem>
-            </SelectContent>
-          </Select>
         </div>
         
         <div className="flex items-center gap-2">
