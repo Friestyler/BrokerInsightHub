@@ -127,7 +127,12 @@ export default function MetricsPage() {
 
   // Calculate total target whenever target, timeframe, or milestone frequency changes
   const calculateTotalTarget = (target: number, timeframe: string, frequency: string): number => {
-    if (!target || !timeframe || !frequency) return 0;
+    console.log('calculateTotalTarget called with:', { target, timeframe, frequency });
+    
+    if (!target || !timeframe || !frequency) {
+      console.log('Missing required values, returning 0');
+      return 0;
+    }
     
     // Determine timeframe duration in months
     let timeframeDuration = 0;
@@ -138,6 +143,8 @@ export default function MetricsPage() {
     } else if (timeframe === '2024' || timeframe === '2025' || timeframe === 'This year') {
       timeframeDuration = 12; // Full year = 12 months
     }
+    
+    console.log('Timeframe duration in months:', timeframeDuration);
     
     // Determine milestone frequency in months
     let milestoneInterval = 0;
@@ -163,10 +170,16 @@ export default function MetricsPage() {
         return 0;
     }
     
+    console.log('Milestone interval in months:', milestoneInterval);
+    
     // Calculate number of milestones
     const numberOfMilestones = Math.ceil(timeframeDuration / milestoneInterval);
+    const totalTarget = target * numberOfMilestones;
     
-    return target * numberOfMilestones;
+    console.log('Number of milestones:', numberOfMilestones);
+    console.log('Total target:', totalTarget);
+    
+    return totalTarget;
   };
 
   const okrTemplates = mockOKRTemplates;
