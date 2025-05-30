@@ -101,12 +101,12 @@ export default function OKRMetricsPage() {
   const [newTagColor, setNewTagColor] = useState('#3B82F6');
   const [editingTag, setEditingTag] = useState<OKRTag | null>(null);
 
-  // Fetch metrics
+  // Fetch metrics - environment routing is handled automatically by queryClient
   const { data: metrics = [], isLoading: metricsLoading } = useQuery({
     queryKey: ['/api/okr-metrics'],
   });
 
-  // Fetch tags
+  // Fetch tags - environment routing is handled automatically by queryClient
   const { data: tags = [] } = useQuery({
     queryKey: ['/api/okr-tags'],
   });
