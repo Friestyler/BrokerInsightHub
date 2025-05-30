@@ -2270,9 +2270,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const envId = req.headers['x-environment-id'] || 'myqollabi';
       const { 
-        firstName, lastName, fullName, email, phone, jobTitle, 
-        department, company, linkedEntityType, linkedEntityId, 
-        isPrimary, notes, tags, isActive 
+        firstName, lastName, email, phone, 
+        company, position, linkedEntityType, linkedEntityId, 
+        notes, isActive 
       } = req.body;
       
       const result = await db.execute(sql`

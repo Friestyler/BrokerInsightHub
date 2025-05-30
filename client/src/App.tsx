@@ -28,6 +28,7 @@ import ProductsPage from "@/pages/lists/ProductsPage";
 import OKRTemplatesPage from "@/pages/templates/OKRMetricsPage";
 import GroupDetail from "@/pages/templates/GroupDetail";
 import UserManagement from "@/pages/Settings/UserManagement";
+import ContactsPage from "@/pages/Settings/ContactsPage";
 import DeveloperPage from "@/pages/Settings/DeveloperPage";
 
 import NotFound from "@/pages/not-found";
@@ -35,7 +36,6 @@ import EnvironmentRouteGuard from "@/components/EnvironmentRouteGuard";
 
 // Temporary placeholder components for other list pages
 const ProjectsPage = () => <div className="p-6"><h1 className="text-2xl font-bold">Projects List (Coming Soon)</h1></div>;
-import ContactsPage from './pages/Settings/ContactsPage';
 
 function Router() {
   return (
