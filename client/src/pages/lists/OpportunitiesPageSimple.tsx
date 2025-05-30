@@ -60,8 +60,8 @@ function OpportunitiesTable() {
   // Filter opportunities based on search and filters
   const filteredOpportunities = opportunities.filter((opportunity: any) => {
     const matchesText = opportunity.title.toLowerCase().includes(filterText.toLowerCase());
-    const matchesStatus = !selectedStatus || opportunity.status === selectedStatus;
-    const matchesType = !selectedType || opportunity.type === selectedType;
+    const matchesStatus = !selectedStatus || selectedStatus === 'all' || opportunity.status === selectedStatus;
+    const matchesType = !selectedType || selectedType === 'all' || opportunity.type === selectedType;
     
     // Apply list filtering if an active list is selected
     const matchesList = !activeList || (activeList.members && activeList.members.includes(opportunity.id));
@@ -181,7 +181,7 @@ function OpportunitiesTable() {
                 <SelectValue placeholder="All Statuses" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Statuses</SelectItem>
+                <SelectItem value="all">All Statuses</SelectItem>
                 <SelectItem value="Discovery">Discovery</SelectItem>
                 <SelectItem value="Qualification">Qualification</SelectItem>
                 <SelectItem value="Proposal">Proposal</SelectItem>
@@ -198,7 +198,7 @@ function OpportunitiesTable() {
                 <SelectValue placeholder="All Types" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Types</SelectItem>
+                <SelectItem value="all">All Types</SelectItem>
                 <SelectItem value="New Business">New Business</SelectItem>
                 <SelectItem value="Renewal">Renewal</SelectItem>
                 <SelectItem value="Expansion">Expansion</SelectItem>
