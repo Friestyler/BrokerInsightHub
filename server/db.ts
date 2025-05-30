@@ -68,6 +68,11 @@ export function getEnvironmentDb(envId = 'myqollabi') {
   return dbs[envId] || db;
 }
 
+// Helper function to get database pool for a specific environment
+export function getEnvironmentPool(envId = 'myqollabi') {
+  return pools[envId] || pool;
+}
+
 // Helper function to get pool for a specific environment
 export function getEnvironmentPool(envId = 'myqollabi') {
   return pools[envId] || pool;
