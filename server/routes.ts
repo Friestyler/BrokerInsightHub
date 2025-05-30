@@ -1123,7 +1123,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ) VALUES (
           ${title}, ${description}, ${clientId || null}, ${status}, ${stage}, ${type},
           ${estimatedValue || null}, ${probability || null}, ${location || null}, ${partnerName || null},
-          ${lastActivityDate || null}, ${JSON.stringify(linkedContactIds)}, ${createdBy || null},
+          ${lastActivityDate || null}, ARRAY[]::integer[], ${createdBy || null},
           NOW(), NOW()
         ) RETURNING *
       `);
