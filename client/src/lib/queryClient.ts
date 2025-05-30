@@ -16,21 +16,28 @@ function getCurrentEnvironmentId(): string {
 function getEnvironmentUrl(url: string): string {
   const envId = getCurrentEnvironmentId();
   
+  console.log('Environment URL transformation:', { envId, originalUrl: url });
+  
   // Don't modify URLs that already include environment information
   if (url.includes('/degoudse') || url.includes('/acme') || url.includes('/globex') || url.includes('/oceanic')) {
+    console.log('URL already has environment prefix, returning as-is');
     return url;
   }
   
   // If we're in the default environment (myqollabi), use the standard API URLs
   if (envId === 'myqollabi') {
+    console.log('MyQollabi environment, using standard API URLs');
     return url;
   }
   
   // For other environments, prefix the URL with the environment path
   if (url.startsWith('/api/')) {
-    return url.replace('/api/', `/api/${envId}/`);
+    const newUrl = url.replace('/api/', `/api/${envId}/`);
+    console.log('Environment URL transformed:', { from: url, to: newUrl });
+    return newUrl;
   }
   
+  console.log('No transformation needed, returning original URL');
   return url;
 }
 
