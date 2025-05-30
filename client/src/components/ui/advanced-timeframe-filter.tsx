@@ -108,7 +108,11 @@ export function AdvancedTimeframeFilter({ value, onValueChange, placeholder, dat
       <PopoverTrigger asChild>
         <Button
           variant="outline"
-          className={`justify-start text-left font-normal bg-white ${className}`}
+          className={`justify-start text-left font-normal transition-colors ${
+            value || dateRange?.from || dateRange?.to
+              ? 'bg-[#E6E7F1] text-[#51536C] hover:bg-[#D5D7E5] hover:text-[#3E4257]'
+              : 'bg-white hover:bg-gray-50'
+          } ${className}`}
         >
           <CalendarIcon className="mr-2 h-4 w-4" />
           {getDisplayText()}

@@ -219,7 +219,11 @@ export default function MetricsPage() {
                 }
               }}
             >
-              <SelectTrigger className="w-[140px] bg-white">
+              <SelectTrigger className={`w-[140px] transition-colors ${
+                selectedTags.length > 0 
+                  ? 'bg-[#E6E7F1] text-[#51536C] hover:bg-[#D5D7E5] hover:text-[#3E4257]' 
+                  : 'bg-white hover:bg-gray-50'
+              }`}>
                 <SelectValue placeholder="Tag" />
               </SelectTrigger>
               <SelectContent>
@@ -261,7 +265,11 @@ export default function MetricsPage() {
         {/* Group by dropdown */}
         <div className="flex items-center gap-2">
           <Select value={groupBy} onValueChange={setGroupBy}>
-            <SelectTrigger className="w-[140px] bg-white">
+            <SelectTrigger className={`w-[140px] transition-colors ${
+              groupBy && groupBy !== "none" 
+                ? 'bg-[#E6E7F1] text-[#51536C] hover:bg-[#D5D7E5] hover:text-[#3E4257]' 
+                : 'bg-white hover:bg-gray-50'
+            }`}>
               <SelectValue>
                 {groupBy && groupBy !== "none" ? (
                   <span>Group | {groupBy.charAt(0).toUpperCase() + groupBy.slice(1)}</span>
