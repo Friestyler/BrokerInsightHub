@@ -370,7 +370,8 @@ export default function MetricsPage() {
       </div>
 
       {/* Group OKRs and display in sections */}
-      {Object.entries(groupOKRs(filteredOKRs)).sort(([a], [b]) => {
+      <div className="mt-6">
+        {Object.entries(groupOKRs(filteredOKRs)).sort(([a], [b]) => {
         // Sort "No Tag" to the end, otherwise sort alphabetically
         if (a === "No Tag") return 1;
         if (b === "No Tag") return -1;
@@ -563,7 +564,8 @@ export default function MetricsPage() {
             </Table>
           </div>
         </div>
-      ))}
+        ))}
+      </div>
 
       {/* Create OKR Dialog */}
       <Dialog open={isCreateOKROpen} onOpenChange={setIsCreateOKROpen}>
