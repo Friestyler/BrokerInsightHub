@@ -195,13 +195,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'Name and description are required' });
       }
       
-      const customer = await storage.createCustomer({
-        name,
-        description,
-        ownerId: ownerId || null
-      });
+      const db = getEnvironmentDb();
+      const result = await db.query(`
+        INSERT INTO myqollabi.customers (name, description, owner_id, created_at, updated_at)
+        VALUES ($1, $2, $3, NOW(), NOW())
+        RETURNING *
+      `, [name, description, ownerId || null]);
       
-      res.status(200).json(customer);
+      const customer = result.rows[0];
+      res.status(201).json(customer);
     } catch (error) {
       console.error('Error creating customer:', error);
       res.status(500).json({ message: 'Failed to create customer' });

@@ -334,8 +334,15 @@ export class DatabaseStorage implements IStorage {
   }
 
   async createCustomer(customerData: InsertCustomer): Promise<Customer> {
-    const [newCustomer] = await this.getDb().insert(customers).values(customerData).returning();
-    return newCustomer;
+    try {
+      console.log('Creating customer with data:', customerData);
+      const [newCustomer] = await this.getDb().insert(customers).values(customerData).returning();
+      console.log('Created customer:', newCustomer);
+      return newCustomer;
+    } catch (error) {
+      console.error('Error creating customer:', error);
+      throw error;
+    }
   }
 
   // Customer team members operations
