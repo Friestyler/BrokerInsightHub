@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useEnvironment } from "@/contexts/EnvironmentContext";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   Card,
   CardContent,
@@ -41,6 +41,36 @@ const useOpportunitiesData = () => {
         throw new Error('Failed to fetch opportunities');
       }
       return response.json();
+    }
+  });
+};
+
+// Hooks for saved lists and views
+const useSavedLists = () => {
+  return useQuery({
+    queryKey: ['/api/saved-lists', 'opportunities'],
+    queryFn: async () => {
+      const response = await fetch('/api/saved-lists?entity_type=opportunities');
+      if (!response.ok) throw new Error('Failed to fetch saved lists');
+      return response.json();
+    }
+  });
+};
+
+const useCreateSavedList = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (newList: any) => {
+      const response = await fetch('/api/saved-lists', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newList)
+      });
+      if (!response.ok) throw new Error('Failed to create list');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
     }
   });
 };
@@ -148,6 +178,8 @@ function OpportunitiesTable() {
   const { toast } = useToast();
   const { environment } = useEnvironment();
   const { data: opportunities = [], isLoading, error } = useOpportunitiesData();
+  const { data: savedListsData = [], isLoading: savedListsLoading } = useSavedLists();
+  const createSavedListMutation = useCreateSavedList();
   const [filterText, setFilterText] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedType, setSelectedType] = useState('');
@@ -188,51 +220,8 @@ function OpportunitiesTable() {
   const [showViewsDropdown, setShowViewsDropdown] = useState(false);
   const [viewNameInput, setViewNameInput] = useState('');
   
-  // State for saved lists with enhanced functionality
-  const [savedLists, setSavedLists] = useState<SavedList[]>([
-    {
-      id: 'all-opportunities',
-      name: 'All Opportunities',
-      description: 'Complete list of all opportunities',
-      type: 'filter',
-      filters: {},
-      isShared: false,
-      createdBy: 'System',
-      createdAt: new Date('2025-01-01'),
-      isDefault: true
-    },
-    {
-      id: '1',
-      name: 'High Value Renewals',
-      type: 'filter',
-      filters: { status: 'In Progress', type: 'Renewal' },
-      isShared: true,
-      sharedWith: ['team@acme.com'],
-      createdBy: 'John Smith',
-      createdAt: new Date('2025-05-01')
-    },
-    {
-      id: '2',
-      name: 'New Business Pipeline',
-      type: 'filter',
-      filters: { type: 'New Business' },
-      isShared: false,
-      createdBy: 'John Smith',
-      createdAt: new Date('2025-05-10')
-    },
-    {
-      id: '3',
-      name: 'Selected Opportunities',
-      type: 'selection',
-      members: [1, 3, 5], // Selected opportunity IDs
-      filters: {},
-      isShared: true,
-      sharedWith: ['team@acme.com'],
-      createdBy: 'John Smith',
-      createdAt: new Date('2025-05-15')
-    }
-  ]);
-  const [activeList, setActiveList] = useState<SavedList | null>(savedLists.find(list => list.id === 'all-opportunities') || null);
+  // State for saved lists - using database data
+  const [activeList, setActiveList] = useState<any>(null);
   const [showSaveListModal, setShowSaveListModal] = useState(false);
   const [showShareListModal, setShowShareListModal] = useState(false);
   const [showListsDropdown, setShowListsDropdown] = useState(false);
@@ -444,7 +433,22 @@ function OpportunitiesTable() {
                     
                     {/* Lists with edit options */}
                     <div className="max-h-[300px] overflow-y-auto p-1">
-                      {savedLists.map(list => (
+                      {/* Default "All Opportunities" option */}
+                      <div className="relative">
+                        <div
+                          className={`flex items-center justify-between px-3 py-2 text-sm rounded-md cursor-pointer transition-colors ${!activeList ? 'bg-blue-50 text-blue-600' : 'hover:bg-slate-100'}`}
+                          onClick={() => {
+                            setActiveList(null);
+                            setShowListsDropdown(false);
+                          }}
+                        >
+                          <span>All Opportunities</span>
+                          <span className="text-gray-500">({opportunities.length})</span>
+                        </div>
+                      </div>
+                      
+                      {/* Database saved lists */}
+                      {savedListsData.map((list: any) => (
                         <div 
                           key={list.id}
                           className="relative"
