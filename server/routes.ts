@@ -1360,10 +1360,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/degoudse/customers', async (req, res) => {
     try {
-      const degoudseDb = getEnvironmentDb('degoudse');
-      const customersList = await degoudseDb.select().from(customers);
-      console.log(`Returning ${customersList.length} customers from De Goudse database`);
-      res.json(customersList);
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query('SELECT * FROM degoudse.customers ORDER BY id');
+      console.log(`Returning ${result.rows.length} customers from De Goudse database`);
+      res.json(result.rows);
     } catch (error) {
       console.error('De Goudse customers API error:', error);
       res.status(500).json({ message: 'Failed to fetch customers for De Goudse environment' });
