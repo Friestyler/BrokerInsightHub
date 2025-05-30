@@ -19,8 +19,8 @@ import BrioUploadFlow from "@/pages/DataUpload/BrioUploadFlow";
 import DeGoudseUploadWizard from "@/pages/DataUpload/DeGoudseUploadWizard";
 import ReportsPage from "@/pages/Reports/ReportsPage";
 import PartnersPage from "@/pages/lists/PartnersPage";
-import PartnerDetailClean from "@/pages/lists/PartnerDetail-clean";
-import CustomersPageClean from "@/pages/lists/CustomersPageClean";
+import PartnerDetail from "@/pages/lists/PartnerDetail";
+import CustomersPage from "@/pages/lists/CustomersPage";
 import OpportunitiesPage from "@/pages/lists/OpportunitiesPage";
 import OpportunityDetail from "@/pages/lists/OpportunityDetail";
 import VendorsPage from "@/pages/lists/VendorsPage";
@@ -48,8 +48,8 @@ function Router() {
         
         {/* Primary entity routes */}
         <Route path="/partners" component={PartnersPage} />
-        <Route path="/lists/partners/:id" component={PartnerDetailClean} />
-        <Route path="/customers" component={CustomersPageClean} />
+        <Route path="/lists/partners/:id" component={PartnerDetail} />
+        <Route path="/customers" component={CustomersPage} />
         <Route path="/opportunities" component={OpportunitiesPage} />
         <Route path="/opportunities/:id" component={OpportunityDetail} />
         <Route path="/vendors" component={VendorsPage} />
