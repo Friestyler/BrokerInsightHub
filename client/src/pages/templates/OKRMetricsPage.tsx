@@ -154,16 +154,14 @@ export default function OKRMetricsPage() {
       }, {})
     : { 'All Metrics': displayMetrics };
 
-  // Create metric mutation
+  // Create metric mutation - uses environment routing via apiRequest
   const createMetricMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await fetch('/api/okr-metrics', {
+      const { apiRequest } = await import('@/lib/queryClient');
+      return apiRequest('/api/okr-metrics', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      if (!response.ok) throw new Error('Failed to create metric');
-      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/okr-metrics'] });
@@ -175,16 +173,14 @@ export default function OKRMetricsPage() {
     },
   });
 
-  // Tag mutations
+  // Tag mutations - uses environment routing via apiRequest
   const createTagMutation = useMutation({
     mutationFn: async (data: { name: string; color: string }) => {
-      const response = await fetch('/api/okr-tags', {
+      const { apiRequest } = await import('@/lib/queryClient');
+      return apiRequest('/api/okr-tags', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
       });
-      if (!response.ok) throw new Error('Failed to create tag');
-      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/okr-tags'] });
