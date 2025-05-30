@@ -1,7 +1,19 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { opportunities, clients, insuranceProducts, okrMetrics, okrTags } from '@shared/schema';
+import { 
+  opportunities, 
+  clients, 
+  insuranceProducts, 
+  okrMetrics, 
+  okrTags, 
+  partners,
+  customers,
+  savedLists,
+  savedViews,
+  okrTemplateAssignments,
+  contacts
+} from '@shared/schema';
 import { eq, sql } from 'drizzle-orm';
 import { db, getEnvironmentPool, getEnvironmentDb } from './db';
 import multer from 'multer';
@@ -1274,9 +1286,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/degoudse/partners', async (req, res) => {
     try {
       const degoudseDb = getEnvironmentDb('degoudse');
-      const partners = await degoudseDb.select().from(partnersTable);
-      console.log(`Returning ${partners.length} partners from De Goudse database`);
-      res.json(partners);
+      const partnersList = await degoudseDb.select().from(partners);
+      console.log(`Returning ${partnersList.length} partners from De Goudse database`);
+      res.json(partnersList);
     } catch (error) {
       console.error('De Goudse partners API error:', error);
       res.status(500).json({ message: 'Failed to fetch partners for De Goudse environment' });
@@ -1286,9 +1298,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/degoudse/customers', async (req, res) => {
     try {
       const degoudseDb = getEnvironmentDb('degoudse');
-      const customers = await degoudseDb.select().from(customersTable);
-      console.log(`Returning ${customers.length} customers from De Goudse database`);
-      res.json(customers);
+      const customersList = await degoudseDb.select().from(customers);
+      console.log(`Returning ${customersList.length} customers from De Goudse database`);
+      res.json(customersList);
     } catch (error) {
       console.error('De Goudse customers API error:', error);
       res.status(500).json({ message: 'Failed to fetch customers for De Goudse environment' });
@@ -1298,9 +1310,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/degoudse/products', async (req, res) => {
     try {
       const degoudseDb = getEnvironmentDb('degoudse');
-      const products = await degoudseDb.select().from(insuranceProductsTable);
-      console.log(`Returning ${products.length} products from De Goudse database`);
-      res.json(products);
+      const productsList = await degoudseDb.select().from(insuranceProducts);
+      console.log(`Returning ${productsList.length} products from De Goudse database`);
+      res.json(productsList);
     } catch (error) {
       console.error('De Goudse products API error:', error);
       res.status(500).json({ message: 'Failed to fetch products for De Goudse environment' });
@@ -1310,8 +1322,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/degoudse/saved-views', async (req, res) => {
     try {
       const degoudseDb = getEnvironmentDb('degoudse');
-      const savedViews = await degoudseDb.select().from(savedViewsTable);
-      res.json(savedViews);
+      const viewsList = await degoudseDb.select().from(savedViews);
+      res.json(viewsList);
     } catch (error) {
       console.error('Error fetching De Goudse saved views:', error);
       res.status(500).json({ error: 'Failed to fetch saved views' });
@@ -1321,8 +1333,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/degoudse/saved-lists', async (req, res) => {
     try {
       const degoudseDb = getEnvironmentDb('degoudse');
-      const savedLists = await degoudseDb.select().from(savedListsTable);
-      res.json(savedLists);
+      const listsList = await degoudseDb.select().from(savedLists);
+      res.json(listsList);
     } catch (error) {
       console.error('Error fetching De Goudse saved lists:', error);
       res.status(500).json({ error: 'Failed to fetch saved lists' });
@@ -1331,18 +1343,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/degoudse/opportunities', async (req, res) => {
     try {
-      const envPool = getEnvironmentPool('degoudse');
-      const result = await envPool.query(`
-        SELECT o.*, 
-               c.name as "clientName",
-               p.name as "partnerName"
-        FROM degoudse.opportunities o
-        LEFT JOIN degoudse.customers c ON o."clientId" = c.id
-        LEFT JOIN degoudse.partners p ON o."partnerId" = p.id
-        ORDER BY o."createdAt" DESC
-      `);
-      console.log(`Returning ${result.rows.length} opportunities from degoudse table`);
-      res.json(result.rows);
+      const degoudseDb = getEnvironmentDb('degoudse');
+      const opportunitiesList = await degoudseDb.select().from(opportunities);
+      console.log(`Returning ${opportunitiesList.length} opportunities from De Goudse database`);
+      res.json(opportunitiesList);
     } catch (error) {
       console.error('De Goudse opportunities API error:', error);
       res.status(500).json({ message: 'Failed to fetch opportunities for De Goudse environment' });
