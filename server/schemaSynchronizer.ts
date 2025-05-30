@@ -264,7 +264,8 @@ export async function getEnvironmentCounts(): Promise<Record<string, Record<stri
       for (const tableName of keyTables) {
         try {
           const result = await envDb.execute(sql.raw(`SELECT COUNT(*) as count FROM ${tableName}`));
-          counts[envId][tableName] = Number(result[0]?.count || 0);
+          const resultArray = Array.isArray(result) ? result : [result];
+          counts[envId][tableName] = Number(resultArray[0]?.count || 0);
         } catch (error) {
           counts[envId][tableName] = 0; // Table doesn't exist
         }
