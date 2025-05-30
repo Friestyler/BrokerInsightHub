@@ -370,14 +370,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log('Executing vendor insert query...');
       
-      // Insert into myqollabi.vendors table with all available fields
+      // Insert into myqollabi.vendors table with existing columns
       const result = await db.execute(sql`
         INSERT INTO myqollabi.vendors (
-          name, description, location, contact_email, contact_phone, website,
-          created_at, updated_at
+          name, description, created_at, updated_at
         ) VALUES (
-          ${name}, ${description}, ${location || null}, ${contactEmail || null}, 
-          ${contactPhone || null}, ${website || null}, NOW(), NOW()
+          ${name}, ${description}, NOW(), NOW()
         ) RETURNING *
       `);
       

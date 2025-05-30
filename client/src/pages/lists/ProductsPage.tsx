@@ -251,32 +251,41 @@ export default function ProductsPage() {
           </DialogHeader>
           <div className="grid gap-4 py-4">
             <div className="grid gap-2">
-              <label htmlFor="name" className="text-sm font-medium">Name</label>
+              <label htmlFor="name" className="text-sm font-medium">
+                Name <span className="text-red-500">*</span>
+              </label>
               <Input
                 id="name"
                 value={newProduct.name}
                 onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
                 placeholder="Enter product name"
+                className={!newProduct.name ? "border-red-300" : ""}
               />
             </div>
             <div className="grid gap-2">
-              <label htmlFor="description" className="text-sm font-medium">Description</label>
+              <label htmlFor="description" className="text-sm font-medium">
+                Description <span className="text-red-500">*</span>
+              </label>
               <Textarea
                 id="description"
                 value={newProduct.description}
                 onChange={(e) => setNewProduct({ ...newProduct, description: e.target.value })}
                 placeholder="Enter product description"
                 rows={3}
+                className={!newProduct.description ? "border-red-300" : ""}
               />
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="grid gap-2">
-                <label htmlFor="category" className="text-sm font-medium">Category</label>
+                <label htmlFor="category" className="text-sm font-medium">
+                  Category <span className="text-red-500">*</span>
+                </label>
                 <Input
                   id="category"
                   value={newProduct.category}
                   onChange={(e) => setNewProduct({ ...newProduct, category: e.target.value })}
                   placeholder="E.g., Software, Hardware"
+                  className={!newProduct.category ? "border-red-300" : ""}
                 />
               </div>
               <div className="grid gap-2">
@@ -285,7 +294,7 @@ export default function ProductsPage() {
                   id="sku"
                   value={newProduct.sku}
                   onChange={(e) => setNewProduct({ ...newProduct, sku: e.target.value })}
-                  placeholder="Enter SKU"
+                  placeholder="Enter SKU (optional)"
                 />
               </div>
             </div>
@@ -297,11 +306,13 @@ export default function ProductsPage() {
                   type="number"
                   value={newProduct.price}
                   onChange={(e) => setNewProduct({ ...newProduct, price: e.target.value })}
-                  placeholder="Enter price"
+                  placeholder="Enter price (optional)"
                 />
               </div>
               <div className="grid gap-2">
-                <label htmlFor="vendor" className="text-sm font-medium">Vendor</label>
+                <label htmlFor="vendor" className="text-sm font-medium">
+                  Vendor <span className="text-red-500">*</span>
+                </label>
                 <Select
                   value={newProduct.vendorId}
                   onValueChange={(value) => setNewProduct({ ...newProduct, vendorId: value })}
