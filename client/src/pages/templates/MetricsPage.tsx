@@ -319,8 +319,8 @@ export default function MetricsPage() {
       </div>
 
       {/* Bulk Actions Bar */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-        <div className="flex items-center justify-between">
+      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 min-h-[72px]">
+        <div className="flex items-center justify-between h-10">
           {selectedOKRs.length > 0 ? (
             <>
               <div className="flex items-center gap-3">
