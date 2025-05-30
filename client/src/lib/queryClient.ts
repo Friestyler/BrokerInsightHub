@@ -9,7 +9,10 @@ declare global {
 
 // Get the current environment ID from window
 function getCurrentEnvironmentId(): string {
-  return window.__APP_ENV__ || 'myqollabi';
+  const envFromWindow = window.__APP_ENV__;
+  const envFromStorage = localStorage.getItem('selectedEnvironment');
+  console.log('Environment detection:', { envFromWindow, envFromStorage });
+  return envFromWindow || envFromStorage || 'myqollabi';
 }
 
 // Function to add environment to API URL

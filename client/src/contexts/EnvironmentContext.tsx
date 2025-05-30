@@ -71,6 +71,9 @@ export const EnvironmentProvider: React.FC<{ children: React.ReactNode }> = ({ c
     setEnvironmentState(newEnv);
     localStorage.setItem('selectedEnvironment', newEnv.id);
     
+    // Set the global environment variable immediately
+    window.__APP_ENV__ = newEnv.id;
+    
     // Reload the application to apply the new environment
     // This is a simple approach - a more sophisticated implementation would
     // use the React Query queryClient to invalidate all queries
