@@ -214,13 +214,7 @@ function ACMEDashboard() {
 function GlobexDashboard() {
   const { data: newsArticles, isLoading, refetch } = useQuery({
     queryKey: ['/api/news'],
-    queryFn: async () => {
-      const response = await fetch('/api/news');
-      if (!response.ok) {
-        throw new Error('Failed to fetch news articles');
-      }
-      return response.json() as Promise<NewsArticle[]>;
-    }
+    staleTime: 2 * 60 * 1000,
   });
   
   const handleRefresh = () => {
