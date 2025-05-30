@@ -1385,10 +1385,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'Missing required upload data' });
       }
 
-      const degoudseStorage = storage.switchEnvironment('degoudse');
       let opportunitiesCreated = 0;
-      let entitiesCreated = 0;
+      let entityStats = {
+        customers: 0,
+        partners: 0,
+        vendors: 0,
+        products: 0,
+        users: 0,
+        contacts: 0
+      };
+      let processingLog = [];
       const createdOpportunities = [];
+      
+      processingLog.push(`Starting upload of ${data.length} rows from ${fileName}`);
+      processingLog.push(`Column mappings: ${columnMappings.length} columns mapped`);
 
       // Process each row of data
       for (let i = 0; i < data.length; i++) {
@@ -1600,12 +1610,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Create a saved list entry for this upload
       // This would be stored in a savedLists table in a complete implementation
       
+      // Calculate total entities created
+      const totalEntitiesCreated = Object.values(entityStats).reduce((a, b) => a + b, 0);
+      
+      processingLog.push(`\n=== UPLOAD COMPLETE ===`);
+      processingLog.push(`✓ ${opportunitiesCreated} opportunities created in De Goudse environment`);
+      processingLog.push(`✓ ${totalEntitiesCreated} entities created total:`);
+      Object.entries(entityStats).forEach(([type, count]) => {
+        if (count > 0) {
+          processingLog.push(`  - ${count} ${type}`);
+        }
+      });
+
       res.json({
         success: true,
         opportunitiesCreated,
-        entitiesCreated,
-        savedListName: fileName,
-        message: `Successfully processed ${opportunitiesCreated} opportunities from ${fileName}`
+        entityStats,
+        totalEntitiesCreated,
+        savedListName: fileName.replace(/\.[^/.]+$/, ""),
+        processingLog,
+        environment: 'degoudse',
+        summary: `Successfully processed ${data.length} rows in De Goudse environment. Created ${opportunitiesCreated} opportunities and ${totalEntitiesCreated} entities.`
       });
 
     } catch (error) {
