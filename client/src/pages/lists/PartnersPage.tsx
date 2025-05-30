@@ -47,20 +47,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 const usePartnersData = () => {
   return useQuery({
     queryKey: ['/api/partners'],
-    queryFn: async () => {
-      console.log('Fetching partners data...');
-      const response = await fetch('/api/partners');
-      console.log('Response status:', response.status);
-      console.log('Response headers:', response.headers.get('content-type'));
-      
-      if (!response.ok) {
-        throw new Error('Failed to fetch partners');
-      }
-      
-      const partners = await response.json();
-      console.log('Got partners from API:', partners);
-      return partners;
-    }
+    staleTime: 2 * 60 * 1000, // 2 minutes
   });
 };
 
@@ -68,22 +55,14 @@ const usePartnersData = () => {
 const useSavedLists = () => {
   return useQuery({
     queryKey: ['/api/saved-lists', 'partners'],
-    queryFn: async () => {
-      const response = await fetch('/api/saved-lists?entity_type=partners');
-      if (!response.ok) throw new Error('Failed to fetch saved lists');
-      return response.json();
-    }
+    staleTime: 2 * 60 * 1000,
   });
 };
 
 const useSavedViews = () => {
   return useQuery({
     queryKey: ['/api/saved-views', 'partners'],
-    queryFn: async () => {
-      const response = await fetch('/api/saved-views?entity_type=partners');
-      if (!response.ok) throw new Error('Failed to fetch saved views');
-      return response.json();
-    }
+    staleTime: 2 * 60 * 1000,
   });
 };
 
