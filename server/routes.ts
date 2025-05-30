@@ -1766,7 +1766,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const result = await db.execute(sql`
         INSERT INTO ${sql.identifier(envId as string)}.saved_lists 
         (name, description, type, entity_type, members, filters, is_shared, created_by)
-        VALUES (${name}, ${description}, ${type}, ${entity_type}, ${JSON.stringify(members || [])}, ${JSON.stringify(filters || {})}, ${is_shared || false}, ${created_by})
+        VALUES (${name}, ${description || null}, ${type}, ${entity_type}, ${members || []}, ${JSON.stringify(filters || {})}, ${is_shared || false}, ${created_by})
         RETURNING *
       `);
       
