@@ -323,29 +323,20 @@ function PartnersTable() {
   const [newListName, setNewListName] = useState("");
   const [activeDropdownId, setActiveDropdownId] = useState<string | null>(null);
   
-  // State for saved views (filter combinations)
-  const [savedViews, setSavedViews] = useState<SavedView[]>([
-    {
-      id: 'view-1',
-      name: 'Active Insurance Brokers',
-      filters: {
-        status: 'active',
-        industry: 'Insurance',
-        type: 'Broker'
-      },
-      createdBy: 'John Smith',
-      createdAt: new Date('2025-05-01')
-    },
-    {
-      id: 'view-2',
-      name: 'Insurance Partners',
-      filters: {
-        industry: 'Insurance'
-      },
-      createdBy: 'John Smith',
-      createdAt: new Date('2025-05-10')
-    }
-  ]);
+  // Fetch saved views from database
+  const { data: savedViewsData = [], isLoading: savedViewsLoading } = useSavedViews();
+  const createSavedViewMutation = useCreateSavedView();
+  
+  // Convert database records to local interface format
+  const savedViews: SavedView[] = savedViewsData.map((view: any) => ({
+    id: view.id.toString(),
+    name: view.name,
+    description: view.description,
+    filters: view.filters || {},
+    createdBy: view.created_by,
+    createdAt: new Date(view.created_at)
+  }));
+  
   const [activeView, setActiveView] = useState<SavedView | null>(null);
   const [showSaveViewModal, setShowSaveViewModal] = useState(false);
   const [showViewsDropdown, setShowViewsDropdown] = useState(false);
@@ -1427,12 +1418,33 @@ function PartnersTable() {
                     createdAt: new Date()
                   };
                   
-                  // Add the new list to saved lists
-                  setSavedLists([...savedLists, newList]);
-                  
-                  // Set it as the active list and redirect to it
-                  setActiveList(newList);
-                  setOriginalListFilters(newList.filters);
+                  // Create the new list in database
+                  createSavedListMutation.mutate({
+                    name: listName,
+                    description: listDescription || undefined,
+                    type: 'selection',
+                    entity_type: 'partners',
+                    members: selectedPartners,
+                    filters: {},
+                    is_shared: false
+                  }, {
+                    onSuccess: (createdList) => {
+                      // Convert to local format and set as active
+                      const newList: SavedList = {
+                        id: createdList.id.toString(),
+                        name: createdList.name,
+                        description: createdList.description,
+                        type: 'selection',
+                        filters: {},
+                        members: createdList.members || [],
+                        isShared: false,
+                        createdBy: 'John Smith',
+                        createdAt: new Date(createdList.created_at)
+                      };
+                      setActiveList(newList);
+                      setOriginalListFilters(newList.filters);
+                    }
+                  });
                   
                   // Clear selections and close modal
                   setSelectedPartners([]);
@@ -1475,12 +1487,31 @@ function PartnersTable() {
                     return list;
                   });
                   
-                  // Update lists and set active list
-                  setSavedLists(updatedLists);
-                  const updatedList = updatedLists.find(list => list.id === selectedExistingList);
-                  if (updatedList) {
-                    setActiveList(updatedList);
-                    setOriginalListFilters(updatedList.filters);
+                  // Update the list in database
+                  const targetListNumericId = parseInt(selectedExistingList);
+                  if (!isNaN(targetListNumericId)) {
+                    updateSavedListMutation.mutate({
+                      id: targetListNumericId,
+                      data: {
+                        members: [...existingMembers, ...newMembers]
+                      }
+                    }, {
+                      onSuccess: (updatedList) => {
+                        const formattedList: SavedList = {
+                          id: updatedList.id.toString(),
+                          name: updatedList.name,
+                          description: updatedList.description,
+                          type: updatedList.type as 'filter' | 'selection',
+                          filters: updatedList.filters || {},
+                          members: updatedList.members || [],
+                          isShared: updatedList.is_shared,
+                          createdBy: 'John Smith',
+                          createdAt: new Date(updatedList.created_at)
+                        };
+                        setActiveList(formattedList);
+                        setOriginalListFilters(formattedList.filters);
+                      }
+                    });
                   }
                   
                   // Clear selections and close modal
@@ -1621,8 +1652,30 @@ function PartnersTable() {
                   createdAt: new Date()
                 };
                 
-                setSavedViews([...savedViews, newView]);
-                setActiveView(newView);
+                // Create the new view in database
+                createSavedViewMutation.mutate({
+                  name: viewName,
+                  entity_type: 'partners',
+                  filters: {
+                    searchText: filterText || undefined,
+                    status: selectedStatus || undefined,
+                    industry: selectedIndustry || undefined,
+                    type: selectedType || undefined
+                  },
+                  is_shared: false
+                }, {
+                  onSuccess: (createdView) => {
+                    const newView: SavedView = {
+                      id: createdView.id.toString(),
+                      name: createdView.name,
+                      description: createdView.description,
+                      filters: createdView.filters || {},
+                      createdBy: 'John Smith',
+                      createdAt: new Date(createdView.created_at)
+                    };
+                    setActiveView(newView);
+                  }
+                });
                 
                 toast({
                   title: "View Saved",
