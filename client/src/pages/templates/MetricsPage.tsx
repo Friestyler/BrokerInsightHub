@@ -704,13 +704,15 @@ export default function MetricsPage() {
                   <label className="text-sm font-medium text-gray-900">
                     Timeframe <span className="text-red-500">*</span>
                   </label>
-                  <AdvancedTimeframeFilter
-                    value={formData.timeframe}
-                    onValueChange={(value) => setFormData(prev => ({...prev, timeframe: value}))}
-                    placeholder="Select timeframe"
-                    dateRange={dateRange}
-                    onDateRangeChange={setDateRange}
-                  />
+                  <div className="mt-2">
+                    <AdvancedTimeframeFilter
+                      value={formData.timeframe}
+                      onValueChange={(value) => setFormData(prev => ({...prev, timeframe: value}))}
+                      placeholder="Select timeframe"
+                      dateRange={dateRange}
+                      onDateRangeChange={setDateRange}
+                    />
+                  </div>
                 </div>
               )}
 
