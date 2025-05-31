@@ -64,8 +64,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { envId } = req.params;
       
-      // Skip if this is a hardcoded route path
-      if (['admin', 'partners', 'customers', 'opportunities', 'myqollabi', 'degoudse'].includes(envId)) {
+      // Skip if this is an admin route
+      if (['admin', 'myqollabi', 'degoudse'].includes(envId)) {
         return res.status(404).json({ error: 'Route not found' });
       }
       
@@ -121,8 +121,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { envId } = req.params;
       
-      // Skip if this is a hardcoded route path
-      if (['admin', 'partners', 'customers', 'opportunities', 'myqollabi', 'degoudse'].includes(envId)) {
+      // Skip if this is an admin route
+      if (['admin', 'myqollabi', 'degoudse'].includes(envId)) {
         return res.status(404).json({ error: 'Route not found' });
       }
       
@@ -172,7 +172,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { envId } = req.params;
       
       // Skip if this is a hardcoded route path
-      if (['admin', 'partners', 'customers', 'opportunities', 'myqollabi', 'degoudse'].includes(envId)) {
+      if (['admin', 'myqollabi', 'degoudse'].includes(envId)) {
         return res.status(404).json({ error: 'Route not found' });
       }
       
@@ -215,7 +215,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { envId, partnerId } = req.params;
       
-      if (['admin', 'partners', 'customers', 'opportunities', 'myqollabi', 'degoudse'].includes(envId)) {
+      if (['admin', 'myqollabi', 'degoudse'].includes(envId)) {
         return res.status(404).json({ error: 'Route not found' });
       }
       
@@ -239,7 +239,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { envId, partnerId } = req.params;
       
-      if (['admin', 'partners', 'customers', 'opportunities', 'myqollabi', 'degoudse'].includes(envId)) {
+      if (['admin', 'myqollabi', 'degoudse'].includes(envId)) {
         return res.status(404).json({ error: 'Route not found' });
       }
       
@@ -263,7 +263,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { envId } = req.params;
       
-      if (['admin', 'partners', 'customers', 'opportunities', 'myqollabi', 'degoudse'].includes(envId)) {
+      if (['admin', 'myqollabi', 'degoudse'].includes(envId)) {
         return res.status(404).json({ error: 'Route not found' });
       }
       
@@ -283,7 +283,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { envId } = req.params;
       
-      if (['admin', 'partners', 'customers', 'opportunities', 'myqollabi', 'degoudse'].includes(envId)) {
+      if (['admin', 'myqollabi', 'degoudse'].includes(envId)) {
         return res.status(404).json({ error: 'Route not found' });
       }
       
@@ -303,7 +303,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { envId } = req.params;
       
-      if (['admin', 'partners', 'customers', 'opportunities', 'myqollabi', 'degoudse'].includes(envId)) {
+      if (['admin', 'myqollabi', 'degoudse'].includes(envId)) {
         return res.status(404).json({ error: 'Route not found' });
       }
       
@@ -323,7 +323,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { envId } = req.params;
       
-      if (['admin', 'partners', 'customers', 'opportunities', 'myqollabi', 'degoudse'].includes(envId)) {
+      if (['admin', 'myqollabi', 'degoudse'].includes(envId)) {
         return res.status(404).json({ error: 'Route not found' });
       }
       
@@ -343,7 +343,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { envId, partnerId } = req.params;
       
-      if (['admin', 'partners', 'customers', 'opportunities', 'myqollabi', 'degoudse'].includes(envId)) {
+      if (['admin', 'myqollabi', 'degoudse'].includes(envId)) {
         return res.status(404).json({ error: 'Route not found' });
       }
       
