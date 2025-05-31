@@ -2503,7 +2503,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const schemasResult = await pool.query(`
         SELECT schema_name 
         FROM information_schema.schemata 
-        WHERE schema_name NOT IN ('information_schema', 'pg_catalog', 'pg_toast') 
+        WHERE schema_name NOT IN ('information_schema', 'pg_catalog', 'pg_toast', 'public') 
         ORDER BY schema_name
       `);
 
@@ -2512,14 +2512,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         
         // Create environment names based on schema names
         let name = envId;
-        if (envId === 'qollabi') name = 'My Qollabi';
+        if (envId === 'myqollabi') name = 'My Qollabi';
         else if (envId === 'degoudse') name = 'De Goudse';
-        else if (envId === 'acme') name = 'Acme Corp';
-        else if (envId === 'globex') name = 'Globex Corporation';
-        else if (envId === 'oceanic') name = 'Oceanic Industries';
         else {
           // For dynamically created environments, format the name nicely
-          name = envId.split('_').map(word => 
+          name = envId.split('_').map((word: any) => 
             word.charAt(0).toUpperCase() + word.slice(1)
           ).join(' ');
         }
@@ -2527,7 +2524,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return {
           id: envId,
           name,
-          apiBaseUrl: envId === 'qollabi' ? '/api' : `/api/${envId}`,
+          apiBaseUrl: envId === 'myqollabi' ? '/api' : `/api/${envId}`,
           databaseId: `${envId}_db`
         };
       });
