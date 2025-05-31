@@ -142,6 +142,27 @@ export default function DatabaseAdmin() {
     },
   });
 
+  // Delete environment mutation
+  const deleteEnvironmentMutation = useMutation({
+    mutationFn: async ({ envId }: { envId: string }) => {
+      return await apiRequest('DELETE', '/api/admin/delete-environment', { envId });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Environment Deleted",
+        description: "Environment and all its data have been permanently deleted.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/environment-stats'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete environment",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleCleanEnvironment = (envId: string, entityType?: string) => {
     cleanEnvironmentMutation.mutate({ envId, entityType });
   };
@@ -170,6 +191,10 @@ export default function DatabaseAdmin() {
 
   const handleArchiveEnvironment = (envId: string) => {
     archiveEnvironmentMutation.mutate({ envId });
+  };
+
+  const handleDeleteEnvironment = (envId: string) => {
+    deleteEnvironmentMutation.mutate({ envId });
   };
 
   return (
@@ -468,41 +493,53 @@ export default function DatabaseAdmin() {
             <CardContent className="space-y-4">
               <div className="space-y-4">
                 <p className="text-sm text-gray-600">
-                  Select environments to archive. Archived environments will no longer appear in environment dropdowns but their data remains intact.
+                  Archive environments to hide them from dropdowns, or permanently delete environments and all their data.
                 </p>
                 
                 <div className="grid gap-4">
-                  {ENVIRONMENTS.filter(env => env.id !== 'myqollabi').map((env) => (
+                  {ENVIRONMENTS.filter(env => env.id !== 'myqollabi' && env.id !== 'degoudse').map((env) => (
                     <div key={env.id} className="flex items-center justify-between p-4 border rounded-lg">
                       <div className="flex items-center gap-3">
                         <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100">
-                          {env.logo ? (
-                            <img src={env.logo} alt={env.name} className="w-6 h-6 object-contain" />
-                          ) : (
-                            <div className="w-6 h-6 rounded bg-gray-300 flex items-center justify-center text-xs font-bold text-gray-600">
-                              {env.name.substring(0, 2).toUpperCase()}
-                            </div>
-                          )}
+                          <div className="w-6 h-6 rounded bg-gray-300 flex items-center justify-center text-xs font-bold text-gray-600">
+                            {env.name.substring(0, 2).toUpperCase()}
+                          </div>
                         </div>
                         <div>
                           <h3 className="font-medium">{env.name}</h3>
                           <p className="text-sm text-gray-500">{env.description}</p>
                         </div>
                       </div>
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleArchiveEnvironment(env.id)}
-                        disabled={archiveEnvironmentMutation.isPending}
-                        className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
-                      >
-                        {archiveEnvironmentMutation.isPending ? (
-                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                        ) : (
-                          <Archive className="mr-2 h-4 w-4" />
-                        )}
-                        Archive
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleArchiveEnvironment(env.id)}
+                          disabled={archiveEnvironmentMutation.isPending || deleteEnvironmentMutation.isPending}
+                          className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                        >
+                          {archiveEnvironmentMutation.isPending ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          ) : (
+                            <Archive className="mr-2 h-4 w-4" />
+                          )}
+                          Archive
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => handleDeleteEnvironment(env.id)}
+                          disabled={archiveEnvironmentMutation.isPending || deleteEnvironmentMutation.isPending}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          {deleteEnvironmentMutation.isPending ? (
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                          ) : (
+                            <Trash2 className="mr-2 h-4 w-4" />
+                          )}
+                          Delete
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -513,10 +550,10 @@ export default function DatabaseAdmin() {
                     <div>
                       <h4 className="font-medium text-amber-800">Important Notes</h4>
                       <ul className="mt-2 text-sm text-amber-700 space-y-1">
-                        <li>• Archived environments will no longer appear in environment dropdowns</li>
-                        <li>• All data remains intact and accessible through direct database queries</li>
-                        <li>• The default environment (My Qollabi) cannot be archived</li>
-                        <li>• Archiving can be reversed through database administration</li>
+                        <li>• <strong>Archive:</strong> Hides environments from dropdowns while preserving all data</li>
+                        <li>• <strong>Delete:</strong> Permanently removes environment and all data (irreversible)</li>
+                        <li>• Protected environments (My Qollabi, De Goudse) cannot be archived or deleted</li>
+                        <li>• Archive operations can be reversed through database administration</li>
                       </ul>
                     </div>
                   </div>

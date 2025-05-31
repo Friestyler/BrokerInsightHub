@@ -2821,8 +2821,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Environment ID is required' });
       }
 
-      if (envId === 'myqollabi') {
-        return res.status(400).json({ error: 'Cannot archive the default environment' });
+      if (envId === 'myqollabi' || envId === 'degoudse') {
+        return res.status(400).json({ error: 'Cannot archive protected environments' });
       }
 
       // Create or update environment metadata table to track archived status
@@ -2854,6 +2854,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error archiving environment:', error);
       res.status(500).json({ error: 'Failed to archive environment' });
+    }
+  });
+
+  // Delete environment (permanently removes schema and all data)
+  app.delete('/api/admin/delete-environment', async (req, res) => {
+    try {
+      const { envId } = req.body;
+      
+      if (!envId) {
+        return res.status(400).json({ error: 'Environment ID is required' });
+      }
+
+      if (envId === 'myqollabi' || envId === 'degoudse') {
+        return res.status(400).json({ error: 'Cannot delete protected environments' });
+      }
+
+      // Get environment pool
+      const envPool = getEnvironmentPool(envId);
+      
+      // Drop the entire schema and all its contents
+      await envPool.query(`DROP SCHEMA IF EXISTS ${envId} CASCADE`);
+
+      res.json({ 
+        message: `Environment ${envId} has been permanently deleted`,
+        envId,
+        deleted: true
+      });
+    } catch (error) {
+      console.error('Error deleting environment:', error);
+      res.status(500).json({ error: 'Failed to delete environment' });
     }
   });
 
