@@ -44,6 +44,7 @@ const useOpportunitiesData = () => {
 const useSavedLists = () => {
   return useQuery({
     queryKey: ['/api/saved-lists', 'opportunities'],
+    queryFn: () => fetch('/api/saved-lists?entity_type=opportunities').then(res => res.json()),
     staleTime: 2 * 60 * 1000,
   });
 };
@@ -63,6 +64,7 @@ const useCreateSavedList = () => {
 const useSavedViews = () => {
   return useQuery({
     queryKey: ['/api/saved-views', 'opportunities'],
+    queryFn: () => fetch('/api/saved-views?entity_type=opportunities').then(res => res.json()),
     staleTime: 2 * 60 * 1000,
   });
 };
