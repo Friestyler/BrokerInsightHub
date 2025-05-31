@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
+import { useEnvironment } from '@/contexts/EnvironmentContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -53,14 +54,12 @@ export function SavedViewsManager({
   const [newViewDescription, setNewViewDescription] = useState('');
   const [isShared, setIsShared] = useState(false);
   const queryClient = useQueryClient();
+  const { environment } = useEnvironment();
 
-  // Fetch saved views - direct API call to bypass environment routing
+  // Fetch saved views - get all views and filter client-side to avoid routing issues  
   const { data: savedViewsData = [] } = useQuery({
-    queryKey: ['saved-views-direct'],
-    queryFn: async () => {
-      const response = await fetch('/api/degoudse/saved-views');
-      return response.json();
-    },
+    queryKey: [`/api/saved-views`],
+    queryFn: () => apiRequest('GET', `/api/saved-views`),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
