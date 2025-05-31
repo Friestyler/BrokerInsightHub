@@ -3267,12 +3267,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const entityType = req.query.entity_type as string;
       const envId = req.headers['x-environment-id'] || 'myqollabi';
       
+      console.log('GENERAL SAVED LISTS ROUTE HIT - env:', envId, 'entity_type:', entityType);
+      
       let query = `SELECT * FROM ${envId}.saved_lists`;
       const params = [];
       
       if (entityType) {
         query += ` WHERE entity_type = $1`;
         params.push(entityType);
+        console.log('Filtering query:', query, 'params:', params);
       }
       
       query += ` ORDER BY created_at DESC`;
@@ -3280,6 +3283,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const envPool = getEnvironmentPool(envId as string);
       const result = await envPool.query(query, params);
       
+      console.log('Query result count:', result.rows.length);
       res.json(result.rows);
     } catch (error) {
       console.error('Error fetching saved lists:', error);
