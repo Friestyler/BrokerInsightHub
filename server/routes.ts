@@ -1684,7 +1684,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                COUNT(DISTINCT op.product_id) as product_count,
                STRING_AGG(DISTINCT p.name, ', ') as partner_names
         FROM degoudse.opportunities o
-        LEFT JOIN degoudse.customers c ON o."clientId" = c.id
+        LEFT JOIN degoudse.customer_opportunities co ON o.id = co.opportunity_id
+        LEFT JOIN degoudse.customers c ON co.customer_id = c.id
         LEFT JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
         LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
         LEFT JOIN degoudse.partners p ON p.id = po.partner_id
