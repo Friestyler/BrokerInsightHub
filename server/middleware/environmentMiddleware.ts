@@ -3,7 +3,7 @@ import { getEnvironmentDb } from '../db';
 import { AsyncLocalStorage } from 'async_hooks';
 
 // Default environment if none specified
-const DEFAULT_ENVIRONMENT = 'myqollabi';
+const DEFAULT_ENVIRONMENT = 'degoudse';
 
 // Create async local storage to store the current request context
 const requestStorage = new AsyncLocalStorage<Request>();
@@ -26,7 +26,13 @@ export function environmentMiddleware(req: Request, res: Response, next: NextFun
     envId = envHeader;
   }
   
-  // Check for environment in the URL path
+  // Check for De Goudse environment in URL path
+  // Format: /api/degoudse/resource
+  if (req.path.startsWith('/api/degoudse/')) {
+    envId = 'degoudse';
+  }
+  
+  // Check for legacy environment format
   // Format: /api/env-{environment}/resource
   const envPathMatch = req.path.match(/^\/api\/env-([^/]+)/);
   if (envPathMatch) {

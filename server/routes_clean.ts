@@ -250,6 +250,83 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // OKR Template Assignments API endpoints for De Goudse
+  app.get('/api/degoudse/template-assignments/:entityType/:entityId', async (req, res) => {
+    try {
+      const { entityType, entityId } = req.params;
+      const envPool = getEnvironmentPool('degoudse');
+      
+      const result = await envPool.query(`
+        SELECT 
+          ta.*,
+          om.name as template_name,
+          om.description as template_description,
+          om.tags
+        FROM degoudse.template_assignments ta
+        LEFT JOIN degoudse.okr_metrics om ON ta.template_id = om.id
+        WHERE ta.entity_type = $1 AND ta.entity_id = $2
+        ORDER BY ta.assigned_at DESC
+      `, [entityType, parseInt(entityId)]);
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching De Goudse template assignments:', error);
+      res.json([]);
+    }
+  });
+
+  app.get('/api/degoudse/template-assignments/:entityType', async (req, res) => {
+    try {
+      const { entityType } = req.params;
+      const envPool = getEnvironmentPool('degoudse');
+      
+      const result = await envPool.query(`
+        SELECT 
+          ta.*,
+          om.name as template_name,
+          om.description as template_description,
+          om.tags
+        FROM degoudse.template_assignments ta
+        LEFT JOIN degoudse.okr_metrics om ON ta.template_id = om.id
+        WHERE ta.entity_type = $1
+        ORDER BY ta.assigned_at DESC
+      `, [entityType]);
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching De Goudse template assignments:', error);
+      res.json([]);
+    }
+  });
+
+  app.post('/api/degoudse/template-assignments', async (req, res) => {
+    try {
+      const { templateIds, entityType, entityId, assignedBy, notes } = req.body;
+      const envPool = getEnvironmentPool('degoudse');
+      
+      if (!templateIds || !Array.isArray(templateIds) || templateIds.length === 0) {
+        return res.status(400).json({ error: 'Template IDs are required' });
+      }
+      
+      const assignments = [];
+      
+      for (const templateId of templateIds) {
+        const result = await envPool.query(`
+          INSERT INTO degoudse.template_assignments 
+          (template_id, entity_type, entity_id, assigned_by, assigned_at)
+          VALUES ($1, $2, $3, $4, CURRENT_TIMESTAMP)
+          RETURNING *
+        `, [templateId, entityType, parseInt(entityId), assignedBy || 'system']);
+        assignments.push(result.rows[0]);
+      }
+      
+      res.status(201).json(assignments);
+    } catch (error) {
+      console.error('Error creating De Goudse template assignments:', error);
+      res.status(500).json({ error: 'Failed to create template assignments' });
+    }
+  });
+
   // Environment management routes
   app.get('/api/admin/environments', async (req, res) => {
     try {
