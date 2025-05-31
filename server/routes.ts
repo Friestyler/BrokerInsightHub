@@ -2123,6 +2123,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.put('/api/degoudse/okr-tags/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const { name, color } = req.body;
+      const envPool = getEnvironmentPool('degoudse');
+      
+      const result = await envPool.query(`
+        UPDATE degoudse.okr_tags 
+        SET name = $1, color = $2, updated_at = NOW()
+        WHERE id = $3
+        RETURNING *
+      `, [name, color, id]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'OKR tag not found' });
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error updating OKR tag in De Goudse:', error);
+      res.status(500).json({ message: 'Failed to update OKR tag for De Goudse environment' });
+    }
+  });
+
+  app.delete('/api/degoudse/okr-tags/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const envPool = getEnvironmentPool('degoudse');
+      
+      const result = await envPool.query(`
+        DELETE FROM degoudse.okr_tags WHERE id = $1
+      `, [id]);
+      
+      if (result.rowCount === 0) {
+        return res.status(404).json({ message: 'OKR tag not found' });
+      }
+      
+      res.json({ message: 'OKR tag deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting OKR tag in De Goudse:', error);
+      res.status(500).json({ message: 'Failed to delete OKR tag for De Goudse environment' });
+    }
+  });
+
   // Mapping templates API endpoints for De Goudse
   app.get('/api/degoudse/mapping-templates', async (req, res) => {
     try {

@@ -101,14 +101,26 @@ export default function OKRMetricsPage() {
   const [newTagColor, setNewTagColor] = useState('#3B82F6');
   const [editingTag, setEditingTag] = useState<OKRTag | null>(null);
 
-  // Fetch metrics - environment routing is handled automatically by queryClient
+  // Fetch metrics - direct API call to ensure correct environment
   const { data: metrics = [], isLoading: metricsLoading } = useQuery({
-    queryKey: ['/api/okr-metrics'],
+    queryKey: ['okr-metrics-degoudse'],
+    queryFn: async () => {
+      const response = await fetch('/api/degoudse/okr-metrics');
+      if (!response.ok) throw new Error('Failed to fetch metrics');
+      return response.json();
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  // Fetch tags - environment routing is handled automatically by queryClient
+  // Fetch tags - direct API call to ensure correct environment
   const { data: tags = [] } = useQuery({
-    queryKey: ['/api/okr-tags'],
+    queryKey: ['okr-tags-degoudse'],
+    queryFn: async () => {
+      const response = await fetch('/api/degoudse/okr-tags');
+      if (!response.ok) throw new Error('Failed to fetch tags');
+      return response.json();
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
   const getTagColor = (tagName: string) => {
@@ -179,14 +191,10 @@ export default function OKRMetricsPage() {
     },
   });
 
-  // Tag mutations - uses environment routing
+  // Tag mutations - direct API calls to ensure correct environment
   const createTagMutation = useMutation({
     mutationFn: async (data: { name: string; color: string }) => {
-      // Import environment URL transformation function
-      const { getEnvironmentUrl } = await import('@/lib/queryClient');
-      const url = getEnvironmentUrl('/api/okr-tags');
-      
-      const response = await fetch(url, {
+      const response = await fetch('/api/degoudse/okr-tags', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(data),
@@ -195,7 +203,7 @@ export default function OKRMetricsPage() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/okr-tags'] });
+      queryClient.invalidateQueries({ queryKey: ['okr-tags-degoudse'] });
       setNewTagName('');
       setNewTagColor('#3B82F6');
       toast({ title: "Success", description: "Tag created successfully!" });
