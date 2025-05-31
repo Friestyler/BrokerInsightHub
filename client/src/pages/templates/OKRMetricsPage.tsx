@@ -403,17 +403,10 @@ export default function OKRMetricsPage() {
                         <td colSpan={6} className="px-6 py-3">
                           <span 
                             className="inline-block px-3 py-1 text-sm font-medium rounded-full"
-                            style={{ 
-                              backgroundColor: tagName === 'Customer Success' ? '#d1fae5' : 
-                                             tagName === 'Market Expansion' ? '#fef3c7' : 
-                                             tagName === 'Product Innovation' ? '#dbeafe' : 
-                                             tagName === 'Revenue Growth' ? '#fee2e2' :
-                                             tagName === 'Marketing' ? '#f3e8ff' : '#f3f4f6',
-                              color: tagName === 'Customer Success' ? '#065f46' : 
-                                     tagName === 'Market Expansion' ? '#92400e' : 
-                                     tagName === 'Product Innovation' ? '#1e40af' : 
-                                     tagName === 'Revenue Growth' ? '#991b1b' :
-                                     tagName === 'Marketing' ? '#581c87' : '#374151'
+                            style={{
+                              backgroundColor: `${getTagColor(tagName)}20`,
+                              color: getTagColor(tagName),
+                              border: `1px solid ${getTagColor(tagName)}40`
                             }}
                           >
                             {tagName}
