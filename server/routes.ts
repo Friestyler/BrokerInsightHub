@@ -1898,31 +1898,57 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.get('/api/degoudse/saved-lists', async (req, res) => {
+  // NEW ROUTE: Fixed entity filtering for De Goudse saved lists
+  app.get('/api/degoudse/saved-lists-filtered', async (req, res) => {
+    const entityType = req.query.entity_type as string;
+    
+    res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.set('Pragma', 'no-cache'); 
+    res.set('Expires', '0');
+    
     try {
-      const entityType = req.query.entity_type as string;
       const envPool = getEnvironmentPool('degoudse');
       
-      // Disable caching for this response
-      res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
-      res.set('Pragma', 'no-cache');
-      res.set('Expires', '0');
-      
-      if (entityType && entityType.trim()) {
-        const result = await envPool.query(
-          'SELECT * FROM degoudse.saved_lists WHERE entity_type = $1 ORDER BY created_at DESC',
-          [entityType]
-        );
-        res.json(result.rows);
+      if (entityType === 'partners') {
+        const result = await envPool.query('SELECT * FROM degoudse.saved_lists WHERE entity_type = $1 ORDER BY created_at DESC', ['partners']);
+        return res.json(result.rows);
+      } else if (entityType === 'customers') {
+        const result = await envPool.query('SELECT * FROM degoudse.saved_lists WHERE entity_type = $1 ORDER BY created_at DESC', ['customers']);
+        return res.json(result.rows);
+      } else if (entityType === 'opportunities') {
+        const result = await envPool.query('SELECT * FROM degoudse.saved_lists WHERE entity_type = $1 ORDER BY created_at DESC', ['opportunities']);
+        return res.json(result.rows);
       } else {
-        const result = await envPool.query(
-          'SELECT * FROM degoudse.saved_lists ORDER BY created_at DESC'
-        );
-        res.json(result.rows);
+        const result = await envPool.query('SELECT * FROM degoudse.saved_lists ORDER BY created_at DESC');
+        return res.json(result.rows);
       }
     } catch (error) {
-      console.error('Error fetching De Goudse saved lists:', error);
-      res.status(500).json({ error: 'Failed to fetch saved lists' });
+      console.error('De Goudse saved lists filtered error:', error);
+      res.status(500).json({ error: 'Database error' });
+    }
+  });
+
+  // Original route with fixed filtering logic
+  app.get('/api/degoudse/saved-lists', async (req, res) => {
+    const entityType = req.query.entity_type as string;
+    
+    res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.set('Pragma', 'no-cache'); 
+    res.set('Expires', '0');
+    
+    try {
+      const envPool = getEnvironmentPool('degoudse');
+      
+      if (entityType) {
+        const result = await envPool.query('SELECT * FROM degoudse.saved_lists WHERE entity_type = $1 ORDER BY created_at DESC', [entityType]);
+        return res.json(result.rows);
+      } else {
+        const result = await envPool.query('SELECT * FROM degoudse.saved_lists ORDER BY created_at DESC');
+        return res.json(result.rows);
+      }
+    } catch (error) {
+      console.error('De Goudse saved lists error:', error);
+      res.status(500).json({ error: 'Database error' });
     }
   });
 
