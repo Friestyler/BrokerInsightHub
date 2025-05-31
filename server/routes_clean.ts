@@ -124,14 +124,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const envPool = getEnvironmentPool('degoudse');
       const result = await envPool.query(`
-        SELECT c.*, 
+        SELECT c.id, c.name, c.description, c."ownerId", c."createdAt", c."updatedAt",
                COUNT(DISTINCT pc.partner_id) as partner_count,
                COUNT(DISTINCT co.opportunity_id) as opportunity_count
         FROM degoudse.customers c
         LEFT JOIN degoudse.partner_customers pc ON c.id = pc.customer_id
         LEFT JOIN degoudse.customer_opportunities co ON c.id = co.customer_id
-        GROUP BY c.id, c.name, c.description, c.contact_name, c.contact_email, 
-                 c.contact_phone, c.owner_id, c.assigned_partner_id, c.created_at, c.updated_at
+        GROUP BY c.id, c.name, c.description, c."ownerId", c."createdAt", c."updatedAt"
         ORDER BY c.id
       `);
       
@@ -139,13 +138,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         id: customer.id,
         name: customer.name,
         description: customer.description,
-        contact_name: customer.contact_name,
-        contact_email: customer.contact_email,
-        contact_phone: customer.contact_phone,
-        owner_id: customer.owner_id,
-        assigned_partner_id: customer.assigned_partner_id,
-        created_at: customer.created_at,
-        updated_at: customer.updated_at,
+        ownerId: customer.ownerId,
+        createdAt: customer.createdAt,
+        updatedAt: customer.updatedAt,
         partnerCount: parseInt(customer.partner_count) || 0,
         opportunityCount: parseInt(customer.opportunity_count) || 0
       }));
@@ -170,8 +165,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         LEFT JOIN degoudse.partners p ON p.id = po.partner_id
         LEFT JOIN degoudse.customer_opportunities co ON o.id = co.opportunity_id
         LEFT JOIN degoudse.customers c ON c.id = co.customer_id
-        GROUP BY o.id, o.title, o.description, o.stage, o.status, o.estimated_value, 
-                 o.expected_close_date, o.assigned_user_ids, o.created_at, o.updated_at
+        GROUP BY o.id, o.title, o.description, o.stage, o.status, o."estimatedValue", 
+                 o."expectedCloseDate", o."ownerId", o."createdAt", o."updatedAt"
         ORDER BY o.id
       `);
 
@@ -181,11 +176,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description: opp.description,
         stage: opp.stage,
         status: opp.status,
-        estimatedValue: opp.estimated_value,
-        expectedCloseDate: opp.expected_close_date,
-        assignedUserIds: opp.assigned_user_ids,
-        createdAt: opp.created_at,
-        updatedAt: opp.updated_at,
+        estimatedValue: opp.estimatedValue,
+        expectedCloseDate: opp.expectedCloseDate,
+        ownerId: opp.ownerId,
+        createdAt: opp.createdAt,
+        updatedAt: opp.updatedAt,
         partnerNames: opp.partner_names || '',
         customerNames: opp.customer_names || ''
       }));
