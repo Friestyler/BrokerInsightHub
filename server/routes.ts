@@ -2693,20 +2693,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       switch (entityType) {
         case 'customers':
-          systemPrompt = `Generate customer data based on the user's prompt. Return a JSON array of customer objects with fields: name, description, location, contact_email, primary_contact. Each object should be realistic and match the prompt requirements.`;
-          responseFormat = '[{"name": "Company Name", "description": "Brief description", "location": "City, Country", "contact_email": "email@company.com", "primary_contact": "Contact Person"}]';
+          systemPrompt = `Generate customer data based on the user's prompt. Return a JSON object with a "data" array containing customer objects with fields: name, description, location, contact_email, primary_contact. Each object should be realistic and match the prompt requirements.`;
+          responseFormat = '{"data": [{"name": "Company Name", "description": "Brief description", "location": "City, Country", "contact_email": "email@company.com", "primary_contact": "Contact Person"}]}';
           break;
         case 'partners':
-          systemPrompt = `Generate partner organization data based on the user's prompt. Return a JSON array of partner objects with fields: name, description, partner_type, location, contact_email, primary_contact, status. Each object should be realistic and match the prompt requirements.`;
-          responseFormat = '[{"name": "Partner Name", "description": "Brief description", "partner_type": "Insurance", "location": "City, Country", "contact_email": "email@partner.com", "primary_contact": "Contact Person", "status": "Active"}]';
+          systemPrompt = `Generate partner organization data based on the user's prompt. Return a JSON object with a "data" array containing partner objects with fields: name, description, partner_type, location, contact_email, primary_contact, status. Each object should be realistic and match the prompt requirements.`;
+          responseFormat = '{"data": [{"name": "Partner Name", "description": "Brief description", "partner_type": "Insurance", "location": "City, Country", "contact_email": "email@partner.com", "primary_contact": "Contact Person", "status": "Active"}]}';
           break;
         case 'opportunities':
-          systemPrompt = `Generate sales opportunity data based on the user's prompt. Return a JSON array of opportunity objects with fields: title, description, type, stage, estimated_value, expected_close_date. Each object should be realistic and match the prompt requirements.`;
-          responseFormat = '[{"title": "Opportunity Title", "description": "Opportunity description", "type": "Insurance", "stage": "Prospecting", "estimated_value": 50000, "expected_close_date": "2024-12-31"}]';
+          systemPrompt = `Generate sales opportunity data based on the user's prompt. Return a JSON object with a "data" array containing opportunity objects with fields: title, description, type, stage, estimated_value, expected_close_date. Each object should be realistic and match the prompt requirements.`;
+          responseFormat = '{"data": [{"title": "Opportunity Title", "description": "Opportunity description", "type": "Insurance", "stage": "Prospecting", "estimated_value": 50000, "expected_close_date": "2024-12-31"}]}';
           break;
         case 'products':
-          systemPrompt = `Generate product data based on the user's prompt. Return a JSON array of product objects with fields: name, description, type, category, price, status. Each object should be realistic and match the prompt requirements.`;
-          responseFormat = '[{"name": "Product Name", "description": "Product description", "type": "Insurance", "category": "Life Insurance", "price": 299.99, "status": "Active"}]';
+          systemPrompt = `Generate product data based on the user's prompt. Return a JSON object with a "data" array containing product objects with fields: name, description, type, category, price, status. Each object should be realistic and match the prompt requirements.`;
+          responseFormat = '{"data": [{"name": "Product Name", "description": "Product description", "type": "Insurance", "category": "Life Insurance", "price": 299.99, "status": "Active"}]}';
           break;
         default:
           return res.status(400).json({ error: 'Invalid entity type' });
@@ -2728,11 +2728,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
         max_tokens: 2000
       });
 
-      const generatedData = JSON.parse(completion.choices[0].message.content || '[]');
+      const response = JSON.parse(completion.choices[0].message.content || '{"data": []}');
       
-      if (!Array.isArray(generatedData)) {
-        return res.status(400).json({ error: 'Generated data is not in the expected format' });
+      if (!response.data || !Array.isArray(response.data)) {
+        return res.status(400).json({ error: 'Generated data is not in the expected format. Expected JSON object with "data" array.' });
       }
+      
+      const generatedData = response.data;
 
       // Insert generated data into database
       const insertedRecords = [];
