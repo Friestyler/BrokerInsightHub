@@ -91,13 +91,7 @@ const useUpdateSavedList = () => {
 const useCreateSavedView = () => {
   return useMutation({
     mutationFn: async (data: any) => {
-      const response = await fetch('/api/saved-views', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-      if (!response.ok) throw new Error('Failed to create saved view');
-      return response.json();
+      return apiRequest('POST', '/api/saved-views', data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/saved-views'] });
