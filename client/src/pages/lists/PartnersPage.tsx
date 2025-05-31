@@ -1,6 +1,6 @@
 import { useState, useEffect, createContext, useContext } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { queryClient } from '@/lib/queryClient';
+import { queryClient, apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 
 // Create a context for list editing state
@@ -69,13 +69,7 @@ const useSavedViews = () => {
 const useCreateSavedList = () => {
   return useMutation({
     mutationFn: async (data: any) => {
-      const response = await fetch('/api/saved-lists', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-      if (!response.ok) throw new Error('Failed to create saved list');
-      return response.json();
+      return apiRequest('POST', '/api/saved-lists', data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
@@ -86,13 +80,7 @@ const useCreateSavedList = () => {
 const useUpdateSavedList = () => {
   return useMutation({
     mutationFn: async ({ id, data }: { id: number, data: any }) => {
-      const response = await fetch(`/api/saved-lists/${id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(data)
-      });
-      if (!response.ok) throw new Error('Failed to update saved list');
-      return response.json();
+      return apiRequest('PUT', `/api/saved-lists/${id}`, data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });

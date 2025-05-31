@@ -3251,30 +3251,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/saved-lists', async (req, res) => {
-    try {
-      const { name, description, type, entity_type, members, filters, is_shared } = req.body;
-      const envId = req.headers['x-environment-id'] || 'myqollabi';
-      const created_by = 1; // Default user ID for now
-      
-      // Handle the array properly for PostgreSQL
-      const membersArray = members && Array.isArray(members) ? members : [];
-      const envPool = getEnvironmentPool(envId);
-      
-      const result = await envPool.query(
-        `INSERT INTO ${envId}.saved_lists 
-         (name, description, type, entity_type, members, filters, is_shared, created_by)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-         RETURNING *`,
-        [name, description || null, type, entity_type, membersArray, JSON.stringify(filters || {}), is_shared || false, created_by]
-      );
-      
-      res.json(result.rows[0]);
-    } catch (error) {
-      console.error('Error creating saved list:', error);
-      res.status(500).json({ error: 'Failed to create saved list' });
-    }
-  });
+  // REMOVED: Shadow endpoint causing conflicts with environment-specific endpoints
+  // Use /api/degoudse/saved-lists instead
 
   app.put('/api/saved-lists/:id', async (req, res) => {
     try {
@@ -3354,27 +3332,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  app.post('/api/saved-views', async (req, res) => {
-    try {
-      const { name, description, entity_type, filters, is_shared } = req.body;
-      const envId = req.headers['x-environment-id'] || 'myqollabi';
-      const created_by = 1; // Default user ID for now
-      const envPool = getEnvironmentPool(envId as string);
-      
-      const result = await envPool.query(
-        `INSERT INTO ${envId}.saved_views 
-         (name, description, entity_type, filters, is_shared, created_by)
-         VALUES ($1, $2, $3, $4, $5, $6)
-         RETURNING *`,
-        [name, description || null, entity_type, JSON.stringify(filters || {}), is_shared || false, created_by]
-      );
-      
-      res.json(result.rows[0]);
-    } catch (error) {
-      console.error('Error creating saved view:', error);
-      res.status(500).json({ error: 'Failed to create saved view' });
-    }
-  });
+  // REMOVED: Shadow endpoint causing conflicts with environment-specific endpoints
+  // Use /api/degoudse/saved-views instead
 
   app.put('/api/saved-views/:id', async (req, res) => {
     try {
