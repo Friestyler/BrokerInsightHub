@@ -328,6 +328,18 @@ function PartnersTable() {
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
+  // Fetch OKR tags for color mapping
+  const { data: okrTags = [] } = useQuery({
+    queryKey: ['/api/okr-tags'],
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  // Function to get tag color
+  const getTagColor = (tagName: string) => {
+    const tag = okrTags.find((t: any) => t.name === tagName);
+    return tag?.color || '#6B7280';
+  };
+
   // Transform API data to match expected template format
   const okrTemplatesData = okrMetricsFromAPI.map((metric: any) => ({
     id: metric.id,
@@ -1747,7 +1759,14 @@ function PartnersTable() {
                       <div key={tag} className="space-y-3">
                         {/* Tag Group Header - Left Aligned like Coming Soon tab */}
                         <div className="pt-4 pb-2 first:pt-0">
-                          <span className="px-3 py-1 text-xs font-medium bg-blue-100 text-blue-700 rounded-full">
+                          <span 
+                            className="px-3 py-1 text-xs font-medium rounded-full"
+                            style={{
+                              backgroundColor: `${getTagColor(tag)}20`,
+                              color: getTagColor(tag),
+                              border: `1px solid ${getTagColor(tag)}40`
+                            }}
+                          >
                             {tag} ({templates.length})
                           </span>
                         </div>
