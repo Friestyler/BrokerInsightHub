@@ -1902,8 +1902,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get('/api/degoudse/saved-lists', async (req, res) => {
+    console.log('DEGOUDSE ROUTE HIT:', req.query);
     try {
       const entityType = req.query.entity_type as string;
+      console.log('Entity type parameter:', entityType);
       const envPool = getEnvironmentPool('degoudse');
       
       let query = 'SELECT * FROM degoudse.saved_lists';
@@ -1912,11 +1914,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (entityType) {
         query += ' WHERE entity_type = $1';
         params.push(entityType);
+        console.log('FILTERING ENABLED - Query:', query, 'Params:', params);
+      } else {
+        console.log('NO FILTERING - returning all lists');
       }
       
       query += ' ORDER BY created_at DESC';
       
       const result = await envPool.query(query, params);
+      console.log('RESULT COUNT:', result.rows.length);
       res.json(result.rows);
     } catch (error) {
       console.error('Error fetching De Goudse saved lists:', error);
