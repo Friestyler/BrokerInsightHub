@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -20,7 +21,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Plus, List } from 'lucide-react';
-import { apiRequest } from '@/lib/queryClient';
 
 interface SavedList {
   id: number;
@@ -59,16 +59,12 @@ export function SavedListsManager({
   // Fetch saved lists
   const { data: savedLists = [] } = useQuery({
     queryKey: [`/api/saved-lists`, entityType],
-    queryFn: () => fetch(`/api/saved-lists?entity_type=${entityType}`).then(res => res.json())
+    queryFn: () => apiRequest('GET', `/api/saved-lists?entity_type=${entityType}`)
   });
 
   // Create new list mutation
   const createListMutation = useMutation({
-    mutationFn: (newList: any) => fetch('/api/saved-lists', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newList)
-    }).then(res => res.json()),
+    mutationFn: (newList: any) => apiRequest('POST', '/api/saved-lists', newList),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/saved-lists`] });
       setIsCreateDialogOpen(false);

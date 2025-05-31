@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -57,16 +58,12 @@ export function SavedViewsManager({
   // Fetch saved views
   const { data: savedViews = [] } = useQuery({
     queryKey: [`/api/saved-views`, entityType],
-    queryFn: () => fetch(`/api/saved-views?entity_type=${entityType}`).then(res => res.json())
+    queryFn: () => apiRequest('GET', `/api/saved-views?entity_type=${entityType}`)
   });
 
   // Create new view mutation
   const createViewMutation = useMutation({
-    mutationFn: (newView: any) => fetch('/api/saved-views', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(newView)
-    }).then(res => res.json()),
+    mutationFn: (newView: any) => apiRequest('POST', '/api/saved-views', newView),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/saved-views`] });
       setIsCreateDialogOpen(false);
