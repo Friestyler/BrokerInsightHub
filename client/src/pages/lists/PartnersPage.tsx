@@ -55,7 +55,7 @@ const usePartnersData = () => {
 const useSavedLists = () => {
   return useQuery({
     queryKey: ['/api/saved-lists', 'partners'],
-    queryFn: () => fetch('/api/saved-lists?entity_type=partners').then(res => res.json()),
+    queryFn: () => apiRequest('GET', '/api/saved-lists?entity_type=partners'),
     staleTime: 2 * 60 * 1000,
   });
 };
@@ -63,7 +63,7 @@ const useSavedLists = () => {
 const useSavedViews = () => {
   return useQuery({
     queryKey: ['/api/saved-views', 'partners'],
-    queryFn: () => fetch('/api/saved-views?entity_type=partners').then(res => res.json()),
+    queryFn: () => apiRequest('GET', '/api/saved-views?entity_type=partners'),
     staleTime: 2 * 60 * 1000,
   });
 };

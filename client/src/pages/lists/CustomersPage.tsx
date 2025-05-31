@@ -56,7 +56,7 @@ const useCustomersData = () => {
 const useSavedLists = () => {
   return useQuery({
     queryKey: ['/api/saved-lists', 'customers'],
-    queryFn: () => fetch('/api/saved-lists?entity_type=customers').then(res => res.json()),
+    queryFn: () => apiRequest('GET', '/api/saved-lists?entity_type=customers'),
     staleTime: 2 * 60 * 1000,
   });
 };
@@ -76,7 +76,7 @@ const useCreateSavedList = () => {
 const useSavedViews = () => {
   return useQuery({
     queryKey: ['/api/saved-views', 'customers'],
-    queryFn: () => fetch('/api/saved-views?entity_type=customers').then(res => res.json()),
+    queryFn: () => apiRequest('GET', '/api/saved-views?entity_type=customers'),
     staleTime: 2 * 60 * 1000,
   });
 };
