@@ -1901,27 +1901,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/degoudse/saved-lists', async (req, res) => {
     try {
       const entityType = req.query.entity_type as string;
-      console.log('=== DEGOUDSE SAVED LISTS DEBUG ===');
-      console.log('Full query params:', req.query);
-      console.log('Entity type:', entityType);
-      console.log('Entity type check:', entityType && entityType.trim());
-      
       const envPool = getEnvironmentPool('degoudse');
       
+      // Disable caching for this response
+      res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.set('Pragma', 'no-cache');
+      res.set('Expires', '0');
+      
       if (entityType && entityType.trim()) {
-        console.log('Using filtered query for entity type:', entityType);
         const result = await envPool.query(
           'SELECT * FROM degoudse.saved_lists WHERE entity_type = $1 ORDER BY created_at DESC',
           [entityType]
         );
-        console.log('Filtered query returned:', result.rows.length, 'rows');
         res.json(result.rows);
       } else {
-        console.log('No entity type filter, returning all lists');
         const result = await envPool.query(
           'SELECT * FROM degoudse.saved_lists ORDER BY created_at DESC'
         );
-        console.log('Unfiltered query returned:', result.rows.length, 'rows');
         res.json(result.rows);
       }
     } catch (error) {
@@ -3268,24 +3264,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const entityType = req.query.entity_type as string;
       const envId = req.headers['x-environment-id'] || 'myqollabi';
       
-      console.log('[GENERAL ROUTE] Hit with env:', envId, 'entity_type:', entityType);
+      // Disable caching for this response
+      res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.set('Pragma', 'no-cache');
+      res.set('Expires', '0');
       
       const envPool = getEnvironmentPool(envId as string);
       
       if (entityType && entityType.trim()) {
-        console.log('[GENERAL ROUTE] Filtering by entity type:', entityType);
         const result = await envPool.query(
           `SELECT * FROM ${envId}.saved_lists WHERE entity_type = $1 ORDER BY created_at DESC`,
           [entityType]
         );
-        console.log('[GENERAL ROUTE] Filtered result count:', result.rows.length);
         res.json(result.rows);
       } else {
-        console.log('[GENERAL ROUTE] No filter, returning all lists');
         const result = await envPool.query(
           `SELECT * FROM ${envId}.saved_lists ORDER BY created_at DESC`
         );
-        console.log('[GENERAL ROUTE] All lists count:', result.rows.length);
         res.json(result.rows);
       }
     } catch (error) {

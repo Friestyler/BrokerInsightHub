@@ -70,7 +70,9 @@ export async function apiRequest<T = any>(
     headers: {
       ...(data ? { "Content-Type": "application/json" } : {}),
       // Add environment header as an alternative way to specify environment
-      'X-Environment': getCurrentEnvironmentId()
+      'X-Environment': getCurrentEnvironmentId(),
+      // Force fresh data for saved lists
+      ...(envUrl.includes('saved-lists') ? { 'Cache-Control': 'no-cache' } : {})
     },
     body: data ? JSON.stringify(data) : undefined,
     credentials: "include",
