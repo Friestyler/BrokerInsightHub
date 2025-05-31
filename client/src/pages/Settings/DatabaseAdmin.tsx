@@ -17,7 +17,7 @@ import { apiRequest } from "@/lib/queryClient";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 
 const ENVIRONMENTS = [
-  { id: 'qollabi', name: 'My Qollabi', description: 'Default environment' },
+  { id: 'myqollabi', name: 'My Qollabi', description: 'Default environment' },
   { id: 'degoudse', name: 'De Goudse', description: 'Insurance company environment' }
 ];
 

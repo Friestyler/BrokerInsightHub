@@ -12,19 +12,18 @@ export interface Environment {
 
 // Helper function to get logo for environment
 const getEnvironmentLogo = (envId: string): string | undefined => {
-  if (envId === 'qollabi' || envId === 'degoudse') return qollabiLogo;
-  if (envId === 'acme') return acmeLogo;
+  if (envId === 'myqollabi' || envId === 'degoudse') return qollabiLogo;
   return undefined;
 };
 
 // Fallback environments in case API fails
 const FALLBACK_ENVIRONMENTS: Environment[] = [
   { 
-    id: "qollabi", 
+    id: "myqollabi", 
     name: "My Qollabi", 
     logo: qollabiLogo,
     apiBaseUrl: "/api",
-    databaseId: "qollabi_db"
+    databaseId: "myqollabi_db"
   },
   { 
     id: "degoudse", 
