@@ -1774,9 +1774,57 @@ function PartnersTable() {
                           <span 
                             className="px-3 py-1 text-xs font-medium rounded-full"
                             style={{
-                              backgroundColor: `${getTagColor(tag)}20`,
-                              color: getTagColor(tag),
-                              border: `1px solid ${getTagColor(tag)}40`
+                              backgroundColor: tag === 'partnership' ? '#3B82F620' : 
+                                               tag === 'growth' ? '#84CC1620' : 
+                                               tag === 'insurance' ? '#6366F120' : 
+                                               tag === 'quality' ? '#10B98120' : 
+                                               tag === 'products' ? '#F59E0B20' : 
+                                               tag === 'diversification' ? '#EF444420' : 
+                                               tag === 'portfolio' ? '#06B6D420' : 
+                                               tag === 'acquisition' ? '#EC489920' : 
+                                               tag === 'customers' ? '#14B8A620' : 
+                                               tag === 'performance' ? '#F9731620' : 
+                                               tag === 'solar' ? '#FBBF2420' : 
+                                               tag === 'conversion' ? '#8B5CF620' : 
+                                               tag === 'renewable' ? '#10B98120' : 
+                                               tag === 'claims' ? '#EF444420' : 
+                                               tag === 'efficiency' ? '#06B6D420' : 
+                                               tag === 'engagement' ? '#8B5CF620' : 
+                                               tag === 'traffic' ? '#F59E0B20' : '#6B728020',
+                              color: tag === 'partnership' ? '#3B82F6' : 
+                                     tag === 'growth' ? '#84CC16' : 
+                                     tag === 'insurance' ? '#6366F1' : 
+                                     tag === 'quality' ? '#10B981' : 
+                                     tag === 'products' ? '#F59E0B' : 
+                                     tag === 'diversification' ? '#EF4444' : 
+                                     tag === 'portfolio' ? '#06B6D4' : 
+                                     tag === 'acquisition' ? '#EC4899' : 
+                                     tag === 'customers' ? '#14B8A6' : 
+                                     tag === 'performance' ? '#F97316' : 
+                                     tag === 'solar' ? '#FBBF24' : 
+                                     tag === 'conversion' ? '#8B5CF6' : 
+                                     tag === 'renewable' ? '#10B981' : 
+                                     tag === 'claims' ? '#EF4444' : 
+                                     tag === 'efficiency' ? '#06B6D4' : 
+                                     tag === 'engagement' ? '#8B5CF6' : 
+                                     tag === 'traffic' ? '#F59E0B' : '#6B7280',
+                              border: `1px solid ${tag === 'partnership' ? '#3B82F640' : 
+                                                   tag === 'growth' ? '#84CC1640' : 
+                                                   tag === 'insurance' ? '#6366F140' : 
+                                                   tag === 'quality' ? '#10B98140' : 
+                                                   tag === 'products' ? '#F59E0B40' : 
+                                                   tag === 'diversification' ? '#EF444440' : 
+                                                   tag === 'portfolio' ? '#06B6D440' : 
+                                                   tag === 'acquisition' ? '#EC489940' : 
+                                                   tag === 'customers' ? '#14B8A640' : 
+                                                   tag === 'performance' ? '#F9731640' : 
+                                                   tag === 'solar' ? '#FBBF2440' : 
+                                                   tag === 'conversion' ? '#8B5CF640' : 
+                                                   tag === 'renewable' ? '#10B98140' : 
+                                                   tag === 'claims' ? '#EF444440' : 
+                                                   tag === 'efficiency' ? '#06B6D440' : 
+                                                   tag === 'engagement' ? '#8B5CF640' : 
+                                                   tag === 'traffic' ? '#F59E0B40' : '#6B728040'}`
                             }}
                           >
                             {tag} ({templates.length})
