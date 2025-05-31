@@ -252,6 +252,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Opportunity relationship endpoints
+  app.get('/api/degoudse/opportunities/:id/partners', async (req, res) => {
+    try {
+      const opportunityId = parseInt(req.params.id);
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query(`
+        SELECT p.* 
+        FROM degoudse.partners p
+        JOIN degoudse.partner_opportunities po ON p.id = po.partner_id
+        WHERE po.opportunity_id = $1
+        ORDER BY p.name
+      `, [opportunityId]);
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching opportunity partners:', error);
+      res.json([]);
+    }
+  });
+
+  app.get('/api/degoudse/opportunities/:id/customers', async (req, res) => {
+    try {
+      const opportunityId = parseInt(req.params.id);
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query(`
+        SELECT c.* 
+        FROM degoudse.customers c
+        JOIN degoudse.customer_opportunities co ON c.id = co.customer_id
+        WHERE co.opportunity_id = $1
+        ORDER BY c.name
+      `, [opportunityId]);
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching opportunity customers:', error);
+      res.json([]);
+    }
+  });
+
+  app.get('/api/degoudse/opportunities/:id/products', async (req, res) => {
+    try {
+      const opportunityId = parseInt(req.params.id);
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query(`
+        SELECT p.* 
+        FROM degoudse.products p
+        JOIN degoudse.opportunity_products op ON p.id = op.product_id
+        WHERE op.opportunity_id = $1
+        ORDER BY p.name
+      `, [opportunityId]);
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching opportunity products:', error);
+      res.json([]);
+    }
+  });
+
   app.get('/api/degoudse/opportunities', async (req, res) => {
     try {
       const envPool = getEnvironmentPool('degoudse');
