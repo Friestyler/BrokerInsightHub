@@ -828,7 +828,16 @@ export default function CustomersPageClean() {
                     </div>
                   </td>
                   <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
-                    {customer.partnerNames || 'No Partner'}
+                    <div className="flex flex-col space-y-1">
+                      <span className="text-gray-900">
+                        {customer.partnerNames || 'No Partner'}
+                      </span>
+                      <div className="flex space-x-2 text-xs text-gray-500">
+                        <span>Partners: {customer.partnerCount || 0}</span>
+                        <span>•</span>
+                        <span>Opps: {customer.opportunityCount || 0}</span>
+                      </div>
+                    </div>
                   </td>
                   <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">Insurance</td>
                   <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm capitalize">Customer</td>

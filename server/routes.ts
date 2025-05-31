@@ -1606,9 +1606,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/degoudse/customers', async (req, res) => {
     try {
       const envPool = getEnvironmentPool('degoudse');
-      const result = await envPool.query('SELECT * FROM degoudse.customers ORDER BY id');
-      console.log(`Returning ${result.rows.length} customers from De Goudse database`);
-      res.json(result.rows);
+      const result = await envPool.query(`
+        SELECT c.*, 
+               COUNT(DISTINCT pc.partner_id) as partner_count,
+               COUNT(DISTINCT co.opportunity_id) as opportunity_count,
+               STRING_AGG(DISTINCT p.name, ', ') as partner_names
+        FROM degoudse.customers c
+        LEFT JOIN degoudse.partner_customers pc ON c.id = pc.customer_id
+        LEFT JOIN degoudse.customer_opportunities co ON c.id = co.customer_id
+        LEFT JOIN degoudse.partners p ON p.id = pc.partner_id
+        GROUP BY c.id, c.name, c.description, c."ownerId", c."createdAt", c."updatedAt"
+        ORDER BY c.id
+      `);
+      
+      const customers = result.rows.map((customer: any) => ({
+        id: customer.id,
+        name: customer.name,
+        description: customer.description,
+        initials: customer.name.split(' ').map((word: string) => word[0]).join('').toUpperCase().slice(0, 2),
+        ownerId: customer.ownerId,
+        createdAt: customer.createdAt,
+        updatedAt: customer.updatedAt,
+        partnerCount: customer.partner_count || 0,
+        opportunityCount: customer.opportunity_count || 0,
+        partnerNames: customer.partner_names
+      }));
+      
+      console.log(`Returning ${customers.length} customers from De Goudse database`);
+      res.json(customers);
     } catch (error) {
       console.error('De Goudse customers API error:', error);
       res.status(500).json({ message: 'Failed to fetch customers for De Goudse environment' });
@@ -1652,9 +1677,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/degoudse/opportunities', async (req, res) => {
     try {
       const envPool = getEnvironmentPool('degoudse');
-      const result = await envPool.query('SELECT * FROM degoudse.opportunities ORDER BY id');
-      console.log(`Returning ${result.rows.length} opportunities from De Goudse database`);
-      res.json(result.rows);
+      const result = await envPool.query(`
+        SELECT o.*, 
+               c.name as client_name,
+               COUNT(DISTINCT po.partner_id) as partner_count,
+               COUNT(DISTINCT op.product_id) as product_count,
+               STRING_AGG(DISTINCT p.name, ', ') as partner_names
+        FROM degoudse.opportunities o
+        LEFT JOIN degoudse.customers c ON o."clientId" = c.id
+        LEFT JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
+        LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
+        LEFT JOIN degoudse.partners p ON p.id = po.partner_id
+        GROUP BY o.id, o.title, o.description, o.status, o.stage, o."estimatedValue", 
+                 o."expectedCloseDate", o."clientId", o."partnerId", o."productId", 
+                 o."ownerId", o.probability, o.type, o."createdAt", o."updatedAt", c.name
+        ORDER BY o.id
+      `);
+      
+      const opportunities = result.rows.map((opp: any) => ({
+        id: opp.id,
+        title: opp.title,
+        description: opp.description,
+        status: opp.status,
+        stage: opp.stage,
+        estimatedValue: opp.estimatedValue,
+        expectedCloseDate: opp.expectedCloseDate,
+        clientId: opp.clientId,
+        clientName: opp.client_name,
+        partnerId: opp.partnerId,
+        productId: opp.productId,
+        ownerId: opp.ownerId,
+        probability: opp.probability,
+        type: opp.type,
+        createdAt: opp.createdAt,
+        updatedAt: opp.updatedAt,
+        partnerCount: opp.partner_count || 0,
+        productCount: opp.product_count || 0,
+        partnerNames: opp.partner_names
+      }));
+      
+      console.log(`Returning ${opportunities.length} opportunities from De Goudse database`);
+      res.json(opportunities);
     } catch (error) {
       console.error('De Goudse opportunities API error:', error);
       res.status(500).json({ message: 'Failed to fetch opportunities for De Goudse environment' });
