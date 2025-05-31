@@ -61,7 +61,14 @@ export function SavedViewsManager({
   });
 
   // Client-side filtering to ensure only relevant entity views are shown (same approach as lists)
-  const savedViews = savedViewsData.filter((view: any) => view.entity_type === entityType + 's');
+  console.log('SavedViewsManager - Entity Type:', entityType);
+  console.log('SavedViewsManager - Raw Views Data:', savedViewsData);
+  console.log('SavedViewsManager - Looking for entity_type:', entityType + 's');
+  const savedViews = savedViewsData.filter((view: any) => {
+    console.log('SavedViewsManager - Checking view:', view.name, 'entity_type:', view.entity_type);
+    return view.entity_type === entityType + 's';
+  });
+  console.log('SavedViewsManager - Filtered Views:', savedViews);
 
   // Create new view mutation
   const createViewMutation = useMutation({
