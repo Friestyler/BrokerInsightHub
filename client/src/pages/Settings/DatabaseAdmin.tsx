@@ -49,10 +49,7 @@ export default function DatabaseAdmin() {
   // Clean environment mutation
   const cleanEnvironmentMutation = useMutation({
     mutationFn: async ({ envId, entityType }: { envId: string; entityType?: string }) => {
-      return await apiRequest(`/api/admin/clean-environment`, {
-        method: 'POST',
-        body: JSON.stringify({ envId, entityType }),
-      });
+      return await apiRequest('POST', '/api/admin/clean-environment', { envId, entityType });
     },
     onSuccess: () => {
       toast({
@@ -78,10 +75,7 @@ export default function DatabaseAdmin() {
       name: string; 
       description: string; 
     }) => {
-      return await apiRequest(`/api/admin/clone-environment`, {
-        method: 'POST',
-        body: JSON.stringify({ sourceEnvId, targetEnvId, name, description }),
-      });
+      return await apiRequest('POST', '/api/admin/clone-environment', { sourceEnvId, targetEnvId, name, description });
     },
     onSuccess: () => {
       toast({
@@ -108,10 +102,7 @@ export default function DatabaseAdmin() {
       entityType: string; 
       prompt: string; 
     }) => {
-      return await apiRequest(`/api/admin/populate-data`, {
-        method: 'POST',
-        body: JSON.stringify({ envId, entityType, prompt }),
-      });
+      return await apiRequest('POST', '/api/admin/populate-data', { envId, entityType, prompt });
     },
     onSuccess: () => {
       toast({
