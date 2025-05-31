@@ -125,7 +125,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const envPool = getEnvironmentPool('degoudse');
       const result = await envPool.query(`
         SELECT c.id, c.name, c.description, c."ownerId", c."createdAt", c."updatedAt",
-               COALESCE(STRING_AGG(DISTINCT p.name, ', ' ORDER BY p.name), '') as partner_names,
+               COALESCE(STRING_AGG(DISTINCT p.name ORDER BY p.name), '') as partner_names,
+               COALESCE(STRING_AGG(DISTINCT p.id::text || ':' || p.name ORDER BY p.name), '') as partner_data,
                COUNT(DISTINCT pc.partner_id) as partner_count,
                COUNT(DISTINCT co.opportunity_id) as opportunity_count
         FROM degoudse.customers c
@@ -144,6 +145,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         createdAt: customer.createdAt,
         updatedAt: customer.updatedAt,
         partnerNames: customer.partner_names || '',
+        partnerIds: customer.partner_ids || '',
         partnerCount: parseInt(customer.partner_count) || 0,
         opportunityCount: parseInt(customer.opportunity_count) || 0
       }));

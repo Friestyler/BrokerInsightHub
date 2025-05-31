@@ -832,12 +832,21 @@ export default function CustomersPageClean() {
                   <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
                     <div className="flex flex-col space-y-1">
                       {customer.partnerNames ? (
-                        <Link 
-                          href={`/lists/partners/${customer.partnerId || 1}`}
-                          className="text-indigo-600 hover:text-indigo-800 hover:underline"
-                        >
-                          {customer.partnerNames}
-                        </Link>
+                        <div className="flex flex-wrap gap-1">
+                          {customer.partnerNames.split(', ').map((partnerName: string, index: number) => {
+                            const partnerIds = customer.partnerIds ? customer.partnerIds.split(',') : [];
+                            const partnerId = partnerIds[index] || '1';
+                            return (
+                              <Link 
+                                key={index}
+                                href={`/lists/partners/${partnerId}`}
+                                className="text-indigo-600 hover:text-indigo-800 hover:underline"
+                              >
+                                {partnerName}{index < customer.partnerNames.split(', ').length - 1 ? ',' : ''}
+                              </Link>
+                            );
+                          })}
+                        </div>
                       ) : (
                         <span className="text-gray-900">No Partner</span>
                       )}
