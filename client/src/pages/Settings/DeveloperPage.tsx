@@ -652,7 +652,7 @@ function DeveloperPage() {
                             </div>
                             <div className="flex justify-between">
                               <span>Opportunities:</span>
-                              <span className="font-mono bg-green-100 px-1 rounded">{databaseStatus.degoudse?.opportunities || 0}</span>
+                              <span className="font-mono">{databaseStatus.degoudse?.opportunities || 0}</span>
                             </div>
                             <div className="flex justify-between">
                               <span>Products:</span>
