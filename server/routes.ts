@@ -1447,21 +1447,166 @@ export async function registerRoutes(app: Express): Promise<Server> {
         location: partner.location,
         contactEmail: partner.contact_email,
         primaryContact: partner.primary_contact,
-        // Database fields
-        partner_type: partner.partner_type,
         region: partner.region,
-        assigned_user_ids: partner.assigned_user_ids,
-        linked_opportunity_ids: partner.linked_opportunity_ids,
-        createdAt: partner.created_at,
-        updatedAt: partner.updated_at,
-        customerNames: partner.customer_names || ''
+        customerNames: partner.customer_names
       }));
       
       console.log(`Returning ${partners.length} partners with relationship counts from degoudse schema`);
       res.json(partners);
     } catch (error) {
-      console.error('De Goudse partners API error:', error);
-      res.status(500).json({ message: 'Failed to fetch partners for De Goudse environment' });
+      console.error('Error fetching De Goudse partners:', error);
+      res.status(500).json({ error: 'Failed to fetch partners' });
+    }
+  });
+
+  // De Goudse relationship endpoints
+  app.get('/api/degoudse/partners/:id/customers', async (req, res) => {
+    try {
+      const partnerId = parseInt(req.params.id);
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query(`
+        SELECT c.*, COUNT(o.id) as opportunity_count
+        FROM degoudse.customers c
+        INNER JOIN degoudse.partner_customers pc ON c.id = pc.customer_id
+        LEFT JOIN degoudse.opportunities o ON o."clientId" = c.id
+        WHERE pc.partner_id = $1
+        GROUP BY c.id, c.name, c.description, c.owner_id, c.created_at, c.updated_at, 
+                 c.contact_name, c.contact_email, c.contact_phone
+        ORDER BY c.id
+      `, [partnerId]);
+      
+      const customers = result.rows.map((customer: any) => ({
+        id: customer.id,
+        name: customer.name,
+        description: customer.description,
+        contact_name: customer.contact_name,
+        contact_email: customer.contact_email,
+        contact_phone: customer.contact_phone,
+        opportunity_count: customer.opportunity_count || 0
+      }));
+      
+      res.json(customers);
+    } catch (error) {
+      console.error('Error fetching De Goudse partner customers:', error);
+      res.status(500).json({ error: 'Failed to fetch partner customers' });
+    }
+  });
+
+  app.get('/api/degoudse/partners/:id/opportunities', async (req, res) => {
+    try {
+      const partnerId = parseInt(req.params.id);
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query(`
+        SELECT o.*, c.name as client_name
+        FROM degoudse.opportunities o
+        INNER JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
+        LEFT JOIN degoudse.customers c ON o.client_id = c.id
+        WHERE po.partner_id = $1
+        ORDER BY o.id
+      `, [partnerId]);
+      
+      const opportunities = result.rows.map((opp: any) => ({
+        id: opp.id,
+        title: opp.title,
+        description: opp.description,
+        status: opp.status,
+        stage: opp.stage,
+        estimated_value: opp.estimated_value,
+        clientName: opp.client_name,
+        expected_close_date: opp.expected_close_date
+      }));
+      
+      res.json(opportunities);
+    } catch (error) {
+      console.error('Error fetching De Goudse partner opportunities:', error);
+      res.status(500).json({ error: 'Failed to fetch partner opportunities' });
+    }
+  });
+
+  app.get('/api/degoudse/customers/:id/partners', async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.id);
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query(`
+        SELECT p.*
+        FROM degoudse.partners p
+        INNER JOIN degoudse.partner_customers pc ON p.id = pc.partner_id
+        WHERE pc.customer_id = $1
+        ORDER BY p.id
+      `, [customerId]);
+      
+      const partners = result.rows.map((partner: any) => ({
+        id: partner.id,
+        name: partner.name,
+        description: partner.description,
+        location: partner.location,
+        contact_email: partner.contact_email,
+        primary_contact: partner.primary_contact
+      }));
+      
+      res.json(partners);
+    } catch (error) {
+      console.error('Error fetching De Goudse customer partners:', error);
+      res.status(500).json({ error: 'Failed to fetch customer partners' });
+    }
+  });
+
+  app.get('/api/degoudse/customers/:id/opportunities', async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.id);
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query(`
+        SELECT o.*, p.name as partner_name
+        FROM degoudse.opportunities o
+        INNER JOIN degoudse.customer_opportunities co ON o.id = co.opportunity_id
+        LEFT JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
+        LEFT JOIN degoudse.partners p ON p.id = po.partner_id
+        WHERE co.customer_id = $1
+        ORDER BY o.id
+      `, [customerId]);
+      
+      const opportunities = result.rows.map((opp: any) => ({
+        id: opp.id,
+        title: opp.title,
+        description: opp.description,
+        status: opp.status,
+        stage: opp.stage,
+        estimated_value: opp.estimated_value,
+        partner_name: opp.partner_name,
+        expected_close_date: opp.expected_close_date
+      }));
+      
+      res.json(opportunities);
+    } catch (error) {
+      console.error('Error fetching De Goudse customer opportunities:', error);
+      res.status(500).json({ error: 'Failed to fetch customer opportunities' });
+    }
+  });
+
+  app.get('/api/degoudse/opportunities/:id/products', async (req, res) => {
+    try {
+      const opportunityId = parseInt(req.params.id);
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query(`
+        SELECT pr.*
+        FROM degoudse.products pr
+        INNER JOIN degoudse.opportunity_products op ON pr.id = op.product_id
+        WHERE op.opportunity_id = $1
+        ORDER BY pr.id
+      `, [opportunityId]);
+      
+      const products = result.rows.map((product: any) => ({
+        id: product.id,
+        name: product.name,
+        description: product.description,
+        category: product.category,
+        price: product.price
+      }));
+      
+      res.json(products);
+    } catch (error) {
+      console.error('Error fetching De Goudse opportunity products:', error);
+      res.status(500).json({ error: 'Failed to fetch opportunity products' });
     }
   });
 
