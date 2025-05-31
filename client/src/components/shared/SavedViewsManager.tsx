@@ -65,15 +65,12 @@ export function SavedViewsManager({
 
   // Client-side filtering to ensure only relevant entity views are shown (same approach as lists)
   const savedViews = Array.isArray(savedViewsData) ? savedViewsData.filter((view: any) => {
-    const match = view.entity_type === entityType + 's';
-    if (entityType === 'opportunity') {
-      alert(`View: ${view.name}, entity_type: ${view.entity_type}, looking for: ${entityType + 's'}, match: ${match}`);
-    }
-    return match;
+    return view.entity_type === entityType + 's';
   }) : [];
   
-  if (entityType === 'opportunity') {
-    alert(`Total views: ${savedViewsData.length}, Filtered views: ${savedViews.length}`);
+  // Force alert to see what's happening
+  if (entityType === 'opportunity' && savedViewsData) {
+    alert(`DEBUG: savedViewsData type: ${typeof savedViewsData}, isArray: ${Array.isArray(savedViewsData)}, length: ${savedViewsData?.length || 'undefined'}, filtered: ${savedViews.length}`);
   }
 
   // Create new view mutation
