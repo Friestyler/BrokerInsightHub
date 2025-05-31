@@ -52,10 +52,7 @@ const useCreateSavedList = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (newList: any) => {
-      return apiRequest('/api/saved-lists', {
-        method: 'POST',
-        body: JSON.stringify(newList)
-      });
+      return apiRequest('POST', '/api/saved-lists', newList);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
@@ -74,13 +71,7 @@ const useCreateSavedView = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: async (newView: any) => {
-      const response = await fetch('/api/saved-views', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newView)
-      });
-      if (!response.ok) throw new Error('Failed to create view');
-      return response.json();
+      return apiRequest('POST', '/api/saved-views', newView);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/saved-views'] });
