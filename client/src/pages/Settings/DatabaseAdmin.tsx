@@ -14,6 +14,7 @@ import { Progress } from "@/components/ui/progress";
 import { Trash2, Copy, Database, Loader2, AlertTriangle, CheckCircle, Users, Building, Briefcase, Package, Archive } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
+import { useEnvironment } from "@/contexts/EnvironmentContext";
 
 const ENVIRONMENTS = [
   { id: 'myqollabi', name: 'My Qollabi', description: 'Default environment' },
@@ -33,6 +34,7 @@ const ENTITY_TYPES = [
 export default function DatabaseAdmin() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const { refreshEnvironments } = useEnvironment();
   const [selectedEnvironment, setSelectedEnvironment] = useState('');
   const [selectedEntity, setSelectedEntity] = useState('');
   const [newEnvironmentName, setNewEnvironmentName] = useState('');
@@ -80,11 +82,13 @@ export default function DatabaseAdmin() {
     onSuccess: () => {
       toast({
         title: "Environment Cloned",
-        description: "New environment has been created successfully.",
+        description: "New environment has been created successfully and will appear in the dropdown shortly.",
       });
       setNewEnvironmentName('');
       setNewEnvironmentDescription('');
       queryClient.invalidateQueries({ queryKey: ['/api/admin/environment-stats'] });
+      // Refresh the environment list in the dropdown
+      refreshEnvironments();
     },
     onError: (error: any) => {
       toast({

@@ -2499,7 +2499,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/admin/environments', async (req, res) => {
     try {
       // Get all schemas from the database
-      const schemasResult = await pools.myqollabi.query(`
+      const { pool } = await import('./db');
+      const schemasResult = await pool.query(`
         SELECT schema_name 
         FROM information_schema.schemata 
         WHERE schema_name NOT IN ('information_schema', 'pg_catalog', 'pg_toast') 
