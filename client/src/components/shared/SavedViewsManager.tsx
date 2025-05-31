@@ -126,7 +126,7 @@ export function SavedViewsManager({
           <div className="flex items-center gap-2">
             <Eye className="h-4 w-4 text-gray-600" />
             <SelectValue>
-              {selectedView ? selectedView.name : `All ${entityDisplayName}`}
+              {selectedView ? selectedView.name : `All ${entityDisplayName} (${savedViews.length}/${savedViewsData.length})`}
             </SelectValue>
           </div>
         </SelectTrigger>
