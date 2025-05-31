@@ -68,10 +68,14 @@ export function SavedViewsManager({
   console.log('SavedViewsManager - Entity Type:', entityType);
   console.log('SavedViewsManager - Raw Views Data:', savedViewsData);
   console.log('SavedViewsManager - Looking for entity_type:', entityType + 's');
-  const savedViews = savedViewsData.filter((view: any) => {
+  
+  const savedViews = Array.isArray(savedViewsData) ? savedViewsData.filter((view: any) => {
     console.log('SavedViewsManager - Checking view:', view.name, 'entity_type:', view.entity_type);
-    return view.entity_type === entityType + 's';
-  });
+    const isMatch = view.entity_type === entityType + 's';
+    console.log('SavedViewsManager - Match result:', isMatch);
+    return isMatch;
+  }) : [];
+  
   console.log('SavedViewsManager - Filtered Views:', savedViews);
 
   // Create new view mutation
