@@ -35,6 +35,7 @@ import DatabaseAdmin from "@/pages/Settings/DatabaseAdmin";
 
 import NotFound from "@/pages/not-found";
 import EnvironmentRouteGuard from "@/components/EnvironmentRouteGuard";
+import SharedListView from "@/pages/shared/SharedListView";
 
 // Temporary placeholder components for other list pages
 const ProjectsPage = () => <div className="p-6"><h1 className="text-2xl font-bold">Projects List (Coming Soon)</h1></div>;
@@ -125,6 +126,15 @@ function Router() {
         <Route path="/settings/contacts" component={ContactsPage} />
         <Route path="/settings/developer" component={DeveloperPage} />
         <Route path="/settings/database" component={DatabaseAdmin} />
+        
+        {/* Public shared list route - no layout */}
+        <Route path="/share/list/:shareToken">
+          {() => (
+            <div>
+              <SharedListView />
+            </div>
+          )}
+        </Route>
         
         <Route component={NotFound} />
       </Switch>

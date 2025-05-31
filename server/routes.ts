@@ -2216,6 +2216,94 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // List sharing API endpoints for De Goudse
+  app.post('/api/degoudse/shared-lists', async (req, res) => {
+    try {
+      const { listId, entityType, permissions, message, createdBy } = req.body;
+      const envPool = getEnvironmentPool('degoudse');
+      
+      // Generate a unique share token
+      const shareToken = Math.random().toString(36).substring(2) + Date.now().toString(36);
+      
+      const result = await envPool.query(`
+        INSERT INTO degoudse.shared_lists 
+        (share_token, list_id, entity_type, permissions, message, created_by, created_at, expires_at)
+        VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW() + INTERVAL '30 days')
+        RETURNING *
+      `, [shareToken, listId, entityType, JSON.stringify(permissions), message, createdBy]);
+      
+      const shareUrl = `${req.protocol}://${req.get('host')}/share/list/${shareToken}`;
+      
+      res.status(201).json({
+        ...result.rows[0],
+        shareUrl
+      });
+    } catch (error) {
+      console.error('Error creating shared list:', error);
+      res.status(500).json({ error: 'Failed to create shared list' });
+    }
+  });
+
+  app.get('/api/shared-lists/:shareToken', async (req, res) => {
+    try {
+      const { shareToken } = req.params;
+      const envPool = getEnvironmentPool('degoudse');
+      
+      // Get shared list info
+      const shareResult = await envPool.query(`
+        SELECT sl.*, saved_l.name as list_name, saved_l.description as list_description, saved_l.filters
+        FROM degoudse.shared_lists sl
+        LEFT JOIN degoudse.saved_lists saved_l ON sl.list_id = saved_l.id
+        WHERE sl.share_token = $1 AND sl.expires_at > NOW()
+      `, [shareToken]);
+      
+      if (shareResult.rows.length === 0) {
+        return res.status(404).json({ error: 'Shared list not found or expired' });
+      }
+      
+      const sharedList = shareResult.rows[0];
+      
+      // Get the actual list data based on entity type
+      let listData = [];
+      if (sharedList.entity_type === 'partners') {
+        const dataResult = await envPool.query(`
+          SELECT p.*, COUNT(DISTINCT c.id) as customers, COUNT(DISTINCT o.id) as opportunities
+          FROM degoudse.partners p
+          LEFT JOIN degoudse.customers c ON c.partner_id = p.id
+          LEFT JOIN degoudse.opportunities o ON o.partner_id = p.id
+          GROUP BY p.id
+          ORDER BY p.name
+        `);
+        listData = dataResult.rows;
+      } else if (sharedList.entity_type === 'customers') {
+        const dataResult = await envPool.query(`
+          SELECT c.*, p.name as partner_name
+          FROM degoudse.customers c
+          LEFT JOIN degoudse.partners p ON c.partner_id = p.id
+          ORDER BY c.name
+        `);
+        listData = dataResult.rows;
+      } else if (sharedList.entity_type === 'opportunities') {
+        const dataResult = await envPool.query(`
+          SELECT o.*, p.name as partner_name, c.name as customer_name
+          FROM degoudse.opportunities o
+          LEFT JOIN degoudse.partners p ON o.partner_id = p.id
+          LEFT JOIN degoudse.customers c ON o.customer_id = c.id
+          ORDER BY o.title
+        `);
+        listData = dataResult.rows;
+      }
+      
+      res.json({
+        ...sharedList,
+        data: listData
+      });
+    } catch (error) {
+      console.error('Error fetching shared list:', error);
+      res.status(500).json({ error: 'Failed to fetch shared list' });
+    }
+  });
+
   // Mapping templates API endpoints for De Goudse
   app.get('/api/degoudse/mapping-templates', async (req, res) => {
     try {
