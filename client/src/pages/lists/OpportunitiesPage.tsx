@@ -1464,12 +1464,16 @@ function OpportunitiesTable() {
                   </Link>
                 </td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
-                  <Link 
-                    href={`/lists/partners/${opportunity.productId}`}
-                    className="text-indigo-600 hover:text-indigo-800 hover:underline"
-                  >
-                    {opportunity.productName}
-                  </Link>
+                  <div className="flex flex-col space-y-1">
+                    <span className="text-gray-900">
+                      {opportunity.partnerNames || 'No Partner'}
+                    </span>
+                    <div className="flex space-x-2 text-xs text-gray-500">
+                      <span>Partners: {opportunity.partnerCount || 0}</span>
+                      <span>•</span>
+                      <span>Products: {opportunity.productCount || 0}</span>
+                    </div>
+                  </div>
                 </td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{opportunity.type}</td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
