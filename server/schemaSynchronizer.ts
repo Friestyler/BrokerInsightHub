@@ -256,25 +256,50 @@ export async function getEnvironmentCounts(): Promise<Record<string, Record<stri
   for (const envId of ENVIRONMENTS) {
     counts[envId] = {};
     try {
-      const db = getEnvironmentDb(envId);
-      const { partners, customers, opportunities, insuranceProducts } = await import('../shared/schema');
+      const pool = getEnvironmentPool(envId);
+      const schemaName = envId === 'myqollabi' ? 'myqollabi' : envId;
 
-      // Use Drizzle ORM with count aggregation for accurate counts
-      const partnersResult = await db.select({ count: sql<number>`count(*)` }).from(partners);
-      counts[envId]['partners'] = Number(partnersResult[0]?.count || 0);
+      console.log(`Getting counts for environment ${envId} using schema ${schemaName}`);
 
-      const customersResult = await db.select({ count: sql<number>`count(*)` }).from(customers);
-      counts[envId]['customers'] = Number(customersResult[0]?.count || 0);
+      // Use direct SQL queries with explicit schema names (same pattern as working API endpoints)
+      try {
+        const partnersResult = await pool.query(`SELECT COUNT(*) as count FROM ${schemaName}.partners`);
+        counts[envId]['partners'] = parseInt(partnersResult.rows[0]?.count || '0');
+        console.log(`${envId} partners count: ${counts[envId]['partners']}`);
+      } catch (error) {
+        console.error(`Partners count error for ${envId}:`, error);
+        counts[envId]['partners'] = 0;
+      }
 
-      const opportunitiesResult = await db.select({ count: sql<number>`count(*)` }).from(opportunities);
-      counts[envId]['opportunities'] = Number(opportunitiesResult[0]?.count || 0);
+      try {
+        const customersResult = await pool.query(`SELECT COUNT(*) as count FROM ${schemaName}.customers`);
+        counts[envId]['customers'] = parseInt(customersResult.rows[0]?.count || '0');
+        console.log(`${envId} customers count: ${counts[envId]['customers']}`);
+      } catch (error) {
+        console.error(`Customers count error for ${envId}:`, error);
+        counts[envId]['customers'] = 0;
+      }
 
-      const productsResult = await db.select({ count: sql<number>`count(*)` }).from(insuranceProducts);
-      counts[envId]['products'] = Number(productsResult[0]?.count || 0);
+      try {
+        const opportunitiesResult = await pool.query(`SELECT COUNT(*) as count FROM ${schemaName}.opportunities`);
+        counts[envId]['opportunities'] = parseInt(opportunitiesResult.rows[0]?.count || '0');
+        console.log(`${envId} opportunities count: ${counts[envId]['opportunities']}`);
+      } catch (error) {
+        console.error(`Opportunities count error for ${envId}:`, error);
+        counts[envId]['opportunities'] = 0;
+      }
+
+      try {
+        const productsResult = await pool.query(`SELECT COUNT(*) as count FROM ${schemaName}.insurance_products`);
+        counts[envId]['products'] = parseInt(productsResult.rows[0]?.count || '0');
+        console.log(`${envId} products count: ${counts[envId]['products']}`);
+      } catch (error) {
+        console.error(`Products count error for ${envId}:`, error);
+        counts[envId]['products'] = 0;
+      }
 
     } catch (error) {
       console.error(`Failed to get counts for ${envId}:`, error);
-      // Fallback to zero counts if there's an error
       counts[envId] = { partners: 0, customers: 0, opportunities: 0, products: 0 };
     }
   }
