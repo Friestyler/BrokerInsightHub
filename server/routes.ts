@@ -2605,11 +2605,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Source environment, target environment, and name are required' });
       }
 
+      console.log('Clone environment request:', { sourceEnvId, targetEnvId, name, description });
+
       const sourcePool = getEnvironmentPool(sourceEnvId);
       const targetPool = getEnvironmentPool(targetEnvId);
 
-      // Create the new schema (properly quoted)
-      await targetPool.query(`CREATE SCHEMA IF NOT EXISTS "${targetEnvId}"`);
+      // Create the new schema using a safer approach
+      // PostgreSQL doesn't support parameterized schema names, so we need to sanitize manually
+      const sanitizedTargetEnvId = targetEnvId.replace(/[^a-zA-Z0-9_]/g, '_');
+      console.log('Sanitized target env ID:', sanitizedTargetEnvId);
+      
+      await targetPool.query(`CREATE SCHEMA IF NOT EXISTS "${sanitizedTargetEnvId}"`);
 
       // Copy table structures (without data)
       const tables = ['customers', 'partners', 'opportunities', 'partner_customers', 'customer_opportunities', 'partner_opportunities'];
@@ -2625,8 +2631,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
           `, [sourceEnvId, table]);
 
           if (tableStructure.rows.length > 0) {
-            // Create table in target environment (properly quoted)
-            let createTableSQL = `CREATE TABLE IF NOT EXISTS "${targetEnvId}"."${table}" (`;
+            // Create table in target environment using sanitized ID
+            let createTableSQL = `CREATE TABLE IF NOT EXISTS "${sanitizedTargetEnvId}"."${table}" (`;
             
             const columns = tableStructure.rows.map((col: any) => {
               let colDef = `"${col.column_name}" ${col.data_type}`;
@@ -2653,9 +2659,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Copy indexes and constraints would go here in a production system
 
       res.json({ 
-        message: `Successfully cloned ${sourceEnvId} to ${targetEnvId}`,
+        message: `Successfully cloned ${sourceEnvId} to ${sanitizedTargetEnvId}`,
         targetEnvironment: {
-          id: targetEnvId,
+          id: sanitizedTargetEnvId,
           name,
           description
         }
