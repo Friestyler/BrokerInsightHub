@@ -117,8 +117,8 @@ function calculatePartnerStats(partners: any[]) {
 }
 
 // Template badges component for partners  
-function TemplateBadges({ partnerId, templateAssignments }: { partnerId: number, templateAssignments: any[] }) {
-  const partnerAssignments = templateAssignments.filter((assignment: any) => assignment.partnerId === partnerId);
+function TemplateBadges({ partnerId, templateAssignments, okrTags }: { partnerId: number, templateAssignments: any[], okrTags: any[] }) {
+  const partnerAssignments = templateAssignments.filter((assignment: any) => assignment.entity_id === partnerId);
   
   if (partnerAssignments.length === 0) {
     return (
@@ -129,9 +129,15 @@ function TemplateBadges({ partnerId, templateAssignments }: { partnerId: number,
   return (
     <div className="flex flex-wrap gap-1">
       {partnerAssignments.slice(0, 2).map((assignment: any) => {
-        // Get the first tag and its color
-        const firstTag = assignment.tags && assignment.tags.length > 0 ? assignment.tags[0] : null;
-        const tagColor = firstTag || '#6b7280';
+        // Get the first tag name and find its color from the tags list
+        let tagColor = '#6b7280'; // default gray
+        if (assignment.tags && assignment.tags.length > 0) {
+          const firstTagName = assignment.tags[0];
+          const tagData = okrTags.find((tag: any) => tag.name === firstTagName);
+          if (tagData && tagData.color) {
+            tagColor = tagData.color;
+          }
+        }
         
         // Create initials from template name
         const initials = assignment.template_name ? 
@@ -386,6 +392,7 @@ function PartnersTable() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/degoudse/template-assignments/partner'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/degoudse/partners'] });
       toast({
         title: "Templates assigned",
         description: `Successfully assigned ${selectedOKRTemplates.length} template(s) to ${selectedPartners.length} partner(s)`,
@@ -2137,7 +2144,7 @@ function PartnersTable() {
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{partner.customers || 0}</td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{partner.opportunities || 0}</td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
-                  <TemplateBadges partnerId={partner.id} templateAssignments={templateAssignments} />
+                  <TemplateBadges partnerId={partner.id} templateAssignments={templateAssignments} okrTags={okrTags} />
                 </td>
               </tr>
             ))}
