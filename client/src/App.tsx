@@ -31,6 +31,7 @@ import GroupDetail from "@/pages/templates/GroupDetail";
 import UserManagement from "@/pages/Settings/UserManagement";
 import ContactsPage from "@/pages/Settings/ContactsPage";
 import DeveloperPage from "@/pages/Settings/DeveloperPage";
+import DatabaseAdmin from "@/pages/Settings/DatabaseAdmin";
 
 import NotFound from "@/pages/not-found";
 import EnvironmentRouteGuard from "@/components/EnvironmentRouteGuard";
@@ -123,6 +124,7 @@ function Router() {
         <Route path="/settings/users" component={UserManagement} />
         <Route path="/settings/contacts" component={ContactsPage} />
         <Route path="/settings/developer" component={DeveloperPage} />
+        <Route path="/settings/database" component={DatabaseAdmin} />
         
         <Route component={NotFound} />
       </Switch>

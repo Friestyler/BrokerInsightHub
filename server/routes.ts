@@ -2492,6 +2492,323 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Database Administration Endpoints
+
+  // Get environment statistics
+  app.get('/api/admin/environment-stats', async (req, res) => {
+    try {
+      const environments = ['myqollabi', 'degoudse', 'acme', 'globex', 'oceanic'];
+      const stats: Record<string, any> = {};
+
+      for (const envId of environments) {
+        const envPool = getEnvironmentPool(envId);
+        
+        // Get table counts for this environment
+        const customerCount = await envPool.query(`SELECT COUNT(*) as count FROM ${envId}.customers`);
+        const partnerCount = await envPool.query(`SELECT COUNT(*) as count FROM ${envId}.partners`);
+        const opportunityCount = await envPool.query(`SELECT COUNT(*) as count FROM ${envId}.opportunities`);
+        
+        // Products table might not exist in all environments
+        let productCount = { rows: [{ count: 0 }] };
+        try {
+          productCount = await envPool.query(`SELECT COUNT(*) as count FROM ${envId}.products`);
+        } catch (error) {
+          // Products table doesn't exist, keep count at 0
+        }
+
+        stats[envId] = {
+          customers: parseInt(customerCount.rows[0].count),
+          partners: parseInt(partnerCount.rows[0].count),
+          opportunities: parseInt(opportunityCount.rows[0].count),
+          products: parseInt(productCount.rows[0].count),
+          total: parseInt(customerCount.rows[0].count) + 
+                 parseInt(partnerCount.rows[0].count) + 
+                 parseInt(opportunityCount.rows[0].count) + 
+                 parseInt(productCount.rows[0].count)
+        };
+      }
+
+      res.json(stats);
+    } catch (error) {
+      console.error('Error fetching environment stats:', error);
+      res.status(500).json({ error: 'Failed to fetch environment statistics' });
+    }
+  });
+
+  // Clean environment data
+  app.post('/api/admin/clean-environment', async (req, res) => {
+    try {
+      const { envId, entityType } = req.body;
+      
+      if (!envId) {
+        return res.status(400).json({ error: 'Environment ID is required' });
+      }
+
+      const envPool = getEnvironmentPool(envId);
+      const results = [];
+
+      if (!entityType || entityType === 'customers') {
+        // Delete relationship records first
+        await envPool.query(`DELETE FROM ${envId}.partner_customers`);
+        await envPool.query(`DELETE FROM ${envId}.customer_opportunities`);
+        await envPool.query(`DELETE FROM ${envId}.customers`);
+        results.push('customers');
+      }
+
+      if (!entityType || entityType === 'partners') {
+        await envPool.query(`DELETE FROM ${envId}.partner_customers`);
+        await envPool.query(`DELETE FROM ${envId}.partner_opportunities`);
+        await envPool.query(`DELETE FROM ${envId}.partners`);
+        results.push('partners');
+      }
+
+      if (!entityType || entityType === 'opportunities') {
+        await envPool.query(`DELETE FROM ${envId}.customer_opportunities`);
+        await envPool.query(`DELETE FROM ${envId}.partner_opportunities`);
+        // Delete products relationships if they exist
+        try {
+          await envPool.query(`DELETE FROM ${envId}.opportunity_products`);
+        } catch (error) {
+          // Table might not exist
+        }
+        await envPool.query(`DELETE FROM ${envId}.opportunities`);
+        results.push('opportunities');
+      }
+
+      if (!entityType || entityType === 'products') {
+        try {
+          await envPool.query(`DELETE FROM ${envId}.opportunity_products`);
+          await envPool.query(`DELETE FROM ${envId}.products`);
+          results.push('products');
+        } catch (error) {
+          // Products table might not exist
+        }
+      }
+
+      res.json({ 
+        message: `Successfully cleaned ${results.join(', ')} from ${envId} environment`,
+        cleanedEntities: results
+      });
+    } catch (error) {
+      console.error('Error cleaning environment:', error);
+      res.status(500).json({ error: 'Failed to clean environment' });
+    }
+  });
+
+  // Clone environment
+  app.post('/api/admin/clone-environment', async (req, res) => {
+    try {
+      const { sourceEnvId, targetEnvId, name, description } = req.body;
+      
+      if (!sourceEnvId || !targetEnvId || !name) {
+        return res.status(400).json({ error: 'Source environment, target environment, and name are required' });
+      }
+
+      const sourcePool = getEnvironmentPool(sourceEnvId);
+      const targetPool = getEnvironmentPool(targetEnvId);
+
+      // Create the new schema
+      await targetPool.query(`CREATE SCHEMA IF NOT EXISTS ${targetEnvId}`);
+
+      // Copy table structures (without data)
+      const tables = ['customers', 'partners', 'opportunities', 'partner_customers', 'customer_opportunities', 'partner_opportunities'];
+      
+      for (const table of tables) {
+        try {
+          // Get table structure from source
+          const tableStructure = await sourcePool.query(`
+            SELECT column_name, data_type, character_maximum_length, is_nullable, column_default
+            FROM information_schema.columns 
+            WHERE table_schema = '${sourceEnvId}' AND table_name = '${table}'
+            ORDER BY ordinal_position
+          `);
+
+          if (tableStructure.rows.length > 0) {
+            // Create table in target environment
+            let createTableSQL = `CREATE TABLE IF NOT EXISTS ${targetEnvId}.${table} (`;
+            
+            const columns = tableStructure.rows.map((col: any) => {
+              let colDef = `${col.column_name} ${col.data_type}`;
+              if (col.character_maximum_length) {
+                colDef += `(${col.character_maximum_length})`;
+              }
+              if (col.is_nullable === 'NO') {
+                colDef += ' NOT NULL';
+              }
+              if (col.column_default) {
+                colDef += ` DEFAULT ${col.column_default}`;
+              }
+              return colDef;
+            });
+
+            createTableSQL += columns.join(', ') + ')';
+            await targetPool.query(createTableSQL);
+          }
+        } catch (error) {
+          console.log(`Table ${table} might not exist in source environment:`, error);
+        }
+      }
+
+      // Copy indexes and constraints would go here in a production system
+
+      res.json({ 
+        message: `Successfully cloned ${sourceEnvId} to ${targetEnvId}`,
+        targetEnvironment: {
+          id: targetEnvId,
+          name,
+          description
+        }
+      });
+    } catch (error) {
+      console.error('Error cloning environment:', error);
+      res.status(500).json({ error: 'Failed to clone environment' });
+    }
+  });
+
+  // Populate data with AI (requires OpenAI API key)
+  app.post('/api/admin/populate-data', async (req, res) => {
+    try {
+      const { envId, entityType, prompt } = req.body;
+      
+      if (!envId || !entityType || !prompt) {
+        return res.status(400).json({ error: 'Environment ID, entity type, and prompt are required' });
+      }
+
+      if (!process.env.OPENAI_API_KEY) {
+        return res.status(400).json({ 
+          error: 'OpenAI API key is required for data generation. Please provide OPENAI_API_KEY in environment variables.' 
+        });
+      }
+
+      const envPool = getEnvironmentPool(envId);
+      
+      // Import OpenAI dynamically to avoid build issues if not available
+      const { default: OpenAI } = await import('openai');
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+      // Generate data based on entity type and prompt
+      let systemPrompt = '';
+      let responseFormat = '';
+
+      switch (entityType) {
+        case 'customers':
+          systemPrompt = `Generate customer data based on the user's prompt. Return a JSON array of customer objects with fields: name, description, location, contact_email, primary_contact. Each object should be realistic and match the prompt requirements.`;
+          responseFormat = '[{"name": "Company Name", "description": "Brief description", "location": "City, Country", "contact_email": "email@company.com", "primary_contact": "Contact Person"}]';
+          break;
+        case 'partners':
+          systemPrompt = `Generate partner organization data based on the user's prompt. Return a JSON array of partner objects with fields: name, description, partner_type, location, contact_email, primary_contact, status. Each object should be realistic and match the prompt requirements.`;
+          responseFormat = '[{"name": "Partner Name", "description": "Brief description", "partner_type": "Insurance", "location": "City, Country", "contact_email": "email@partner.com", "primary_contact": "Contact Person", "status": "Active"}]';
+          break;
+        case 'opportunities':
+          systemPrompt = `Generate sales opportunity data based on the user's prompt. Return a JSON array of opportunity objects with fields: title, description, type, stage, estimated_value, expected_close_date. Each object should be realistic and match the prompt requirements.`;
+          responseFormat = '[{"title": "Opportunity Title", "description": "Opportunity description", "type": "Insurance", "stage": "Prospecting", "estimated_value": 50000, "expected_close_date": "2024-12-31"}]';
+          break;
+        case 'products':
+          systemPrompt = `Generate product data based on the user's prompt. Return a JSON array of product objects with fields: name, description, type, category, price, status. Each object should be realistic and match the prompt requirements.`;
+          responseFormat = '[{"name": "Product Name", "description": "Product description", "type": "Insurance", "category": "Life Insurance", "price": 299.99, "status": "Active"}]';
+          break;
+        default:
+          return res.status(400).json({ error: 'Invalid entity type' });
+      }
+
+      const completion = await openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: [
+          {
+            role: "system",
+            content: `${systemPrompt} Return only valid JSON in this format: ${responseFormat}. Make sure all data is realistic and appropriate for business use.`
+          },
+          {
+            role: "user",
+            content: prompt
+          }
+        ],
+        response_format: { type: "json_object" },
+        max_tokens: 2000
+      });
+
+      const generatedData = JSON.parse(completion.choices[0].message.content || '[]');
+      
+      if (!Array.isArray(generatedData)) {
+        return res.status(400).json({ error: 'Generated data is not in the expected format' });
+      }
+
+      // Insert generated data into database
+      const insertedRecords = [];
+      
+      for (const record of generatedData) {
+        try {
+          let insertQuery = '';
+          let values: any[] = [];
+
+          switch (entityType) {
+            case 'customers':
+              insertQuery = `
+                INSERT INTO ${envId}.customers (name, description, location, contact_email, primary_contact, created_at, updated_at)
+                VALUES ($1, $2, $3, $4, $5, NOW(), NOW()) RETURNING *
+              `;
+              values = [record.name, record.description, record.location, record.contact_email, record.primary_contact];
+              break;
+            case 'partners':
+              insertQuery = `
+                INSERT INTO ${envId}.partners (name, description, partner_type, location, contact_email, primary_contact, status, created_at, updated_at)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW()) RETURNING *
+              `;
+              values = [record.name, record.description, record.partner_type, record.location, record.contact_email, record.primary_contact, record.status || 'Active'];
+              break;
+            case 'opportunities':
+              insertQuery = `
+                INSERT INTO ${envId}.opportunities (title, description, type, stage, estimated_value, expected_close_date, created_at, updated_at)
+                VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW()) RETURNING *
+              `;
+              values = [record.title, record.description, record.type, record.stage, record.estimated_value, record.expected_close_date];
+              break;
+            case 'products':
+              // Create products table if it doesn't exist
+              try {
+                await envPool.query(`
+                  CREATE TABLE IF NOT EXISTS ${envId}.products (
+                    id SERIAL PRIMARY KEY,
+                    name VARCHAR(255) NOT NULL,
+                    description TEXT,
+                    type VARCHAR(100),
+                    category VARCHAR(100),
+                    price DECIMAL(10,2),
+                    status VARCHAR(50) DEFAULT 'Active',
+                    created_at TIMESTAMP DEFAULT NOW(),
+                    updated_at TIMESTAMP DEFAULT NOW()
+                  )
+                `);
+              } catch (error) {
+                // Table might already exist
+              }
+              
+              insertQuery = `
+                INSERT INTO ${envId}.products (name, description, type, category, price, status, created_at, updated_at)
+                VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW()) RETURNING *
+              `;
+              values = [record.name, record.description, record.type, record.category, record.price, record.status || 'Active'];
+              break;
+          }
+
+          const result = await envPool.query(insertQuery, values);
+          insertedRecords.push(result.rows[0]);
+        } catch (error) {
+          console.error(`Error inserting ${entityType} record:`, error);
+        }
+      }
+
+      res.json({
+        message: `Successfully generated and inserted ${insertedRecords.length} ${entityType} records`,
+        insertedCount: insertedRecords.length,
+        records: insertedRecords
+      });
+    } catch (error) {
+      console.error('Error populating data:', error);
+      res.status(500).json({ error: 'Failed to populate data' });
+    }
+  });
+
   // OKR Comments API endpoints
   
   // Get comments for a metric
