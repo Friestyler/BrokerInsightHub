@@ -1465,24 +1465,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const partnerId = parseInt(req.params.id);
       const envPool = getEnvironmentPool('degoudse');
       const result = await envPool.query(`
-        SELECT c.*, COUNT(o.id) as opportunity_count
+        SELECT c.id, c.name, c.description
         FROM degoudse.customers c
         INNER JOIN degoudse.partner_customers pc ON c.id = pc.customer_id
-        LEFT JOIN degoudse.opportunities o ON o."clientId" = c.id
         WHERE pc.partner_id = $1
-        GROUP BY c.id, c.name, c.description, c.owner_id, c.created_at, c.updated_at, 
-                 c.contact_name, c.contact_email, c.contact_phone
         ORDER BY c.id
       `, [partnerId]);
       
       const customers = result.rows.map((customer: any) => ({
         id: customer.id,
         name: customer.name,
-        description: customer.description,
-        contact_name: customer.contact_name,
-        contact_email: customer.contact_email,
-        contact_phone: customer.contact_phone,
-        opportunity_count: customer.opportunity_count || 0
+        description: customer.description
       }));
       
       res.json(customers);
@@ -1500,7 +1493,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         SELECT o.*, c.name as client_name
         FROM degoudse.opportunities o
         INNER JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
-        LEFT JOIN degoudse.customers c ON o.client_id = c.id
+        LEFT JOIN degoudse.customers c ON o."clientId" = c.id
         WHERE po.partner_id = $1
         ORDER BY o.id
       `, [partnerId]);
