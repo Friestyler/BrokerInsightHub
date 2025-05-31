@@ -510,6 +510,74 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // De Goudse OKR Metrics endpoints
+  app.get('/api/degoudse/okr-metrics', async (req, res) => {
+    try {
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query('SELECT * FROM degoudse.okr_metrics ORDER BY id');
+      res.json(result.rows);
+    } catch (error) {
+      console.error('De Goudse OKR metrics API error:', error);
+      res.status(500).json({ message: 'Failed to fetch OKR metrics for De Goudse environment' });
+    }
+  });
+
+  app.post('/api/degoudse/okr-metrics', async (req, res) => {
+    try {
+      const { name, description, realized_value, target_value, measure_unit, frequency, hierarchy, tags } = req.body;
+      const envPool = getEnvironmentPool('degoudse');
+      
+      const tagsArray = Array.isArray(tags) ? tags : [];
+      const tagsLiteral = tagsArray.length > 0 ? `ARRAY[${tagsArray.map(tag => `'${tag.replace(/'/g, "''")}'`).join(',')}]::text[]` : 'ARRAY[]::text[]';
+      
+      const result = await envPool.query(`
+        INSERT INTO degoudse.okr_metrics (
+          name, description, realized_value, target_value, measure_unit,
+          frequency, hierarchy, tags, created_by
+        )
+        VALUES (
+          $1, $2, $3, $4, $5, $6, $7, ${tagsLiteral}, 1
+        )
+        RETURNING *
+      `, [name, description, realized_value || 0, target_value, measure_unit, frequency, hierarchy]);
+      
+      res.status(201).json(result.rows[0]);
+    } catch (error) {
+      console.error('Error creating OKR metric in De Goudse:', error);
+      res.status(500).json({ message: 'Failed to create OKR metric for De Goudse environment' });
+    }
+  });
+
+  // De Goudse OKR Tags endpoints
+  app.get('/api/degoudse/okr-tags', async (req, res) => {
+    try {
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query('SELECT * FROM degoudse.okr_tags ORDER BY name ASC');
+      res.json(result.rows);
+    } catch (error) {
+      console.error('De Goudse OKR tags API error:', error);
+      res.status(500).json({ message: 'Failed to fetch OKR tags for De Goudse environment' });
+    }
+  });
+
+  app.post('/api/degoudse/okr-tags', async (req, res) => {
+    try {
+      const { name, color } = req.body;
+      const envPool = getEnvironmentPool('degoudse');
+      
+      const result = await envPool.query(`
+        INSERT INTO degoudse.okr_tags (name, color)
+        VALUES ($1, $2)
+        RETURNING *
+      `, [name, color || '#3B82F6']);
+      
+      res.status(201).json(result.rows[0]);
+    } catch (error) {
+      console.error('Error creating OKR tag in De Goudse:', error);
+      res.status(500).json({ message: 'Failed to create OKR tag for De Goudse environment' });
+    }
+  });
+
   // Environment management routes
   app.get('/api/admin/environments', async (req, res) => {
     try {
