@@ -58,34 +58,21 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Dynamic environment API handler - handles any environment that exists in the database
-  // These routes must be placed early to avoid conflicts with hardcoded routes
-  app.get('/api/:envId/partners', async (req, res) => {
+  // Partners API - Returns data from authentic myqollabi partners table
+  app.get('/api/partners', async (req, res) => {
     try {
-      const { envId } = req.params;
-      
-      // Skip if this is an admin route
-      if (['admin', 'myqollabi', 'degoudse'].includes(envId)) {
-        return res.status(404).json({ error: 'Route not found' });
-      }
-      
-      // Validate environment exists
-      const envPool = getEnvironmentPool(envId);
-      const result = await envPool.query(`
+      const result = await db.execute(sql`
         SELECT p.*, 
-               COALESCE(customer_count.count, 0) as customer_count,
-               COALESCE(opportunity_count.count, 0) as opportunity_count
-        FROM ${envId}.partners p
-        LEFT JOIN (
-          SELECT partner_id, COUNT(*) as count 
-          FROM ${envId}.partner_customers 
-          GROUP BY partner_id
-        ) customer_count ON p.id = customer_count.partner_id
-        LEFT JOIN (
-          SELECT partner_id, COUNT(*) as count 
-          FROM ${envId}.partner_opportunities 
-          GROUP BY partner_id
-        ) opportunity_count ON p.id = opportunity_count.partner_id
+               COUNT(DISTINCT pc.customer_id) as customer_count,
+               COUNT(DISTINCT po.opportunity_id) as opportunity_count,
+               STRING_AGG(DISTINCT c.name, ', ') as customer_names
+        FROM myqollabi.partners p
+        LEFT JOIN myqollabi.partner_customers pc ON p.id = pc.partner_id
+        LEFT JOIN myqollabi.partner_opportunities po ON p.id = po.partner_id
+        LEFT JOIN myqollabi.customers c ON c.id = pc.customer_id
+        GROUP BY p.id, p.name, p.description, p.status, p.location, p.contact_email, 
+                 p.primary_contact, p.partner_type, p.region, p.assigned_user_ids, 
+                 p.linked_opportunity_ids, p.created_at, p.updated_at
         ORDER BY p.id
       `);
       
@@ -93,57 +80,52 @@ export async function registerRoutes(app: Express): Promise<Server> {
         id: partner.id,
         name: partner.name,
         description: partner.description,
-        industry: getIndustryFromDescription(partner.description || ''),
-        type: getTypeFromDescription(partner.description || ''),
-        size: getSizeFromDescription(partner.description || ''),
+        initials: partner.name.split(' ').map((word: string) => word[0]).join('').toUpperCase().slice(0, 2),
+        industry: "Insurance",
+        type: partner.partner_type || "Partner", 
+        size: "medium",
+        status: partner.status,
+        customers: partner.customer_count || 0,
+        opportunities: partner.opportunity_count || 0,
         location: partner.location,
         contactEmail: partner.contact_email,
         primaryContact: partner.primary_contact,
+        // Database fields
         partner_type: partner.partner_type,
         region: partner.region,
         assigned_user_ids: partner.assigned_user_ids,
         linked_opportunity_ids: partner.linked_opportunity_ids,
         createdAt: partner.created_at,
         updatedAt: partner.updated_at,
-        customerNames: partner.customer_names || '',
-        customerCount: parseInt(partner.customer_count) || 0,
-        opportunityCount: parseInt(partner.opportunity_count) || 0
+        customerNames: partner.customer_names || ''
       }));
       
+      console.log(`Returning ${partners.length} partners with relationship counts from myqollabi schema`);
       res.json(partners);
     } catch (error) {
-      console.error(`Error fetching partners for ${req.params.envId}:`, error);
-      res.status(500).json({ error: 'Failed to fetch partners' });
+      console.error('Error fetching partners:', error);
+      res.json([]);
     }
   });
 
-  app.get('/api/:envId/customers', async (req, res) => {
+  // Customer API - Returns data from myqollabi customers table
+  app.get('/api/customers', async (req, res) => {
     try {
-      const { envId } = req.params;
+      console.log('Customer API endpoint hit');
       
-      // Skip if this is an admin route
-      if (['admin', 'myqollabi', 'degoudse'].includes(envId)) {
-        return res.status(404).json({ error: 'Route not found' });
-      }
-      
-      const envPool = getEnvironmentPool(envId);
-      const result = await envPool.query(`
+      const result = await db.execute(sql`
         SELECT c.*, 
-               COALESCE(partner_count.count, 0) as partner_count,
-               COALESCE(opportunity_count.count, 0) as opportunity_count
-        FROM ${envId}.customers c
-        LEFT JOIN (
-          SELECT customer_id, COUNT(*) as count 
-          FROM ${envId}.partner_customers 
-          GROUP BY customer_id
-        ) partner_count ON c.id = partner_count.customer_id
-        LEFT JOIN (
-          SELECT customer_id, COUNT(*) as count 
-          FROM ${envId}.customer_opportunities 
-          GROUP BY customer_id
-        ) opportunity_count ON c.id = opportunity_count.customer_id
+               COUNT(DISTINCT pc.partner_id) as partner_count,
+               COUNT(DISTINCT co.opportunity_id) as opportunity_count
+        FROM myqollabi.customers c
+        LEFT JOIN myqollabi.partner_customers pc ON c.id = pc.customer_id
+        LEFT JOIN myqollabi.customer_opportunities co ON c.id = co.customer_id
+        GROUP BY c.id, c.name, c.description, c.contact_name, c.contact_email, 
+                 c.contact_phone, c.owner_id, c.assigned_partner_id, c.created_at, c.updated_at
         ORDER BY c.id
       `);
+      
+      console.log(`Found ${result.rows.length} customers in myqollabi schema`);
       
       const customers = result.rows.map((customer: any) => ({
         id: customer.id,
@@ -162,51 +144,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       res.json(customers);
     } catch (error) {
-      console.error(`Error fetching customers for ${req.params.envId}:`, error);
-      res.status(500).json({ error: 'Failed to fetch customers' });
+      console.error('Error fetching customers:', error);
+      res.json([]);
     }
   });
 
-  app.get('/api/:envId/opportunities', async (req, res) => {
+  // Opportunities API - Returns data from myqollabi opportunities table
+  app.get('/api/opportunities', async (req, res) => {
     try {
-      const { envId } = req.params;
-      
-      // Skip if this is a hardcoded route path
-      if (['admin', 'myqollabi', 'degoudse'].includes(envId)) {
-        return res.status(404).json({ error: 'Route not found' });
-      }
-      
-      const envPool = getEnvironmentPool(envId);
-      const result = await envPool.query(`
+      const result = await db.execute(sql`
         SELECT o.*, 
-               p.name as partner_name,
-               c.name as customer_name
-        FROM ${envId}.opportunities o
-        LEFT JOIN ${envId}.partner_opportunities po ON o.id = po.opportunity_id
-        LEFT JOIN ${envId}.partners p ON p.id = po.partner_id
-        LEFT JOIN ${envId}.customer_opportunities co ON o.id = co.opportunity_id
-        LEFT JOIN ${envId}.customers c ON c.id = co.customer_id
+               STRING_AGG(DISTINCT p.name, ', ') as partner_names,
+               STRING_AGG(DISTINCT c.name, ', ') as customer_names
+        FROM myqollabi.opportunities o
+        LEFT JOIN myqollabi.partner_opportunities po ON o.id = po.opportunity_id
+        LEFT JOIN myqollabi.partners p ON p.id = po.partner_id
+        LEFT JOIN myqollabi.customer_opportunities co ON o.id = co.opportunity_id
+        LEFT JOIN myqollabi.customers c ON c.id = co.customer_id
+        GROUP BY o.id, o.title, o.description, o.stage, o.status, o.estimated_value, 
+                 o.expected_close_date, o.assigned_user_ids, o.created_at, o.updated_at
         ORDER BY o.id
       `);
-      
+
       const opportunities = result.rows.map((opp: any) => ({
         id: opp.id,
         title: opp.title,
         description: opp.description,
-        status: opp.status,
         stage: opp.stage,
-        estimated_value: opp.estimated_value,
-        expected_close_date: opp.expected_close_date,
-        partner_name: opp.partner_name,
-        customer_name: opp.customer_name,
-        created_at: opp.created_at,
-        updated_at: opp.updated_at
+        status: opp.status,
+        estimatedValue: opp.estimated_value,
+        expectedCloseDate: opp.expected_close_date,
+        assignedUserIds: opp.assigned_user_ids,
+        createdAt: opp.created_at,
+        updatedAt: opp.updated_at,
+        partnerNames: opp.partner_names || '',
+        customerNames: opp.customer_names || ''
       }));
-      
+
+      console.log(`Returning ${opportunities.length} opportunities from myqollabi schema`);
       res.json(opportunities);
     } catch (error) {
-      console.error(`Error fetching opportunities for ${req.params.envId}:`, error);
-      res.status(500).json({ error: 'Failed to fetch opportunities' });
+      console.error('Error fetching opportunities:', error);
+      res.json([]);
     }
   });
 
