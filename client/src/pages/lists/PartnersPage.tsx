@@ -246,6 +246,11 @@ function PartnersTable() {
   const createSavedListMutation = useCreateSavedList();
   const updateSavedListMutation = useUpdateSavedList();
   
+  // Filter saved lists to only show partner-related lists (client-side filtering)
+  const partnerSavedListsData = savedListsData.filter((list: any) => 
+    list.entity_type === 'partners'
+  );
+  
   // Convert database records to local interface format
   const savedLists: SavedList[] = [
     // Default "All Partners" list
@@ -259,8 +264,8 @@ function PartnersTable() {
       createdAt: new Date('2025-01-01'),
       isDefault: true
     },
-    // Add database records
-    ...savedListsData.map((list: any) => ({
+    // Add filtered database records (only partner lists)
+    ...partnerSavedListsData.map((list: any) => ({
       id: list.id.toString(),
       name: list.name,
       description: list.description,
