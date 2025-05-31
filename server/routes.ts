@@ -1899,31 +1899,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get('/api/degoudse/saved-lists', async (req, res) => {
-    console.log('[DEGOUDSE ROUTE] Query params:', req.query);
-    const entityType = req.query.entity_type as string;
-    console.log('[DEGOUDSE ROUTE] Entity type:', entityType);
-    
     try {
+      const entityType = req.query.entity_type as string;
+      console.log('=== DEGOUDSE SAVED LISTS DEBUG ===');
+      console.log('Full query params:', req.query);
+      console.log('Entity type:', entityType);
+      console.log('Entity type check:', entityType && entityType.trim());
+      
       const envPool = getEnvironmentPool('degoudse');
       
       if (entityType && entityType.trim()) {
-        console.log('[DEGOUDSE ROUTE] Filtering by entity type:', entityType);
+        console.log('Using filtered query for entity type:', entityType);
         const result = await envPool.query(
           'SELECT * FROM degoudse.saved_lists WHERE entity_type = $1 ORDER BY created_at DESC',
           [entityType]
         );
-        console.log('[DEGOUDSE ROUTE] Filtered result count:', result.rows.length);
+        console.log('Filtered query returned:', result.rows.length, 'rows');
         res.json(result.rows);
       } else {
-        console.log('[DEGOUDSE ROUTE] No filter, returning all lists');
+        console.log('No entity type filter, returning all lists');
         const result = await envPool.query(
           'SELECT * FROM degoudse.saved_lists ORDER BY created_at DESC'
         );
-        console.log('[DEGOUDSE ROUTE] All lists count:', result.rows.length);
+        console.log('Unfiltered query returned:', result.rows.length, 'rows');
         res.json(result.rows);
       }
     } catch (error) {
-      console.error('[DEGOUDSE ROUTE] Error:', error);
+      console.error('Error fetching De Goudse saved lists:', error);
       res.status(500).json({ error: 'Failed to fetch saved lists' });
     }
   });
