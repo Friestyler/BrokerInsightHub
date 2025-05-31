@@ -1504,9 +1504,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description: opp.description,
         status: opp.status,
         stage: opp.stage,
-        estimated_value: opp.estimated_value,
+        estimated_value: opp.estimatedValue,
         clientName: opp.client_name,
-        expected_close_date: opp.expected_close_date
+        expected_close_date: opp.expectedCloseDate
       }));
       
       res.json(opportunities);

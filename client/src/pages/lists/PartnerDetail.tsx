@@ -446,7 +446,7 @@ export default function PartnerDetailClean() {
                     <TableRow key={customer.id}>
                       <TableCell><Checkbox /></TableCell>
                       <TableCell>
-                        <Link href={`/lists/clients/${customer.id}`}>
+                        <Link href={`/lists/customers/${customer.id}`}>
                           <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
                             {customer.name}
                           </span>
