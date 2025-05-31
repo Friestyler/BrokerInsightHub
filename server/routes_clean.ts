@@ -578,6 +578,72 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // De Goudse Saved Lists endpoints
+  app.get('/api/degoudse/saved-lists', async (req, res) => {
+    try {
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query('SELECT * FROM degoudse.saved_lists ORDER BY created_at DESC');
+      res.json(result.rows);
+    } catch (error) {
+      console.error('De Goudse saved lists API error:', error);
+      res.status(500).json({ message: 'Failed to fetch saved lists for De Goudse environment' });
+    }
+  });
+
+  app.post('/api/degoudse/saved-lists', async (req, res) => {
+    try {
+      const { name, description, type, entity_type, members, filters, is_shared } = req.body;
+      const envPool = getEnvironmentPool('degoudse');
+      const created_by = 1; // Default user ID for now
+      
+      const membersArray = members && Array.isArray(members) ? members : [];
+      
+      const result = await envPool.query(`
+        INSERT INTO degoudse.saved_lists 
+        (name, description, type, entity_type, members, filters, is_shared, created_by)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        RETURNING *
+      `, [name, description || null, type, entity_type, membersArray, JSON.stringify(filters || {}), is_shared || false, created_by]);
+      
+      res.status(201).json(result.rows[0]);
+    } catch (error) {
+      console.error('Error creating saved list in De Goudse:', error);
+      res.status(500).json({ message: 'Failed to create saved list for De Goudse environment' });
+    }
+  });
+
+  // De Goudse Saved Views endpoints
+  app.get('/api/degoudse/saved-views', async (req, res) => {
+    try {
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query('SELECT * FROM degoudse.saved_views ORDER BY created_at DESC');
+      res.json(result.rows);
+    } catch (error) {
+      console.error('De Goudse saved views API error:', error);
+      res.status(500).json({ message: 'Failed to fetch saved views for De Goudse environment' });
+    }
+  });
+
+  app.post('/api/degoudse/saved-views', async (req, res) => {
+    try {
+      const { name, description, entity_type, filters, is_shared } = req.body;
+      const envPool = getEnvironmentPool('degoudse');
+      const created_by = 1; // Default user ID for now
+      
+      const result = await envPool.query(`
+        INSERT INTO degoudse.saved_views 
+        (name, description, entity_type, filters, is_shared, created_by)
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING *
+      `, [name, description || null, entity_type, JSON.stringify(filters || {}), is_shared || false, created_by]);
+      
+      res.status(201).json(result.rows[0]);
+    } catch (error) {
+      console.error('Error creating saved view in De Goudse:', error);
+      res.status(500).json({ message: 'Failed to create saved view for De Goudse environment' });
+    }
+  });
+
   // Environment management routes
   app.get('/api/admin/environments', async (req, res) => {
     try {
