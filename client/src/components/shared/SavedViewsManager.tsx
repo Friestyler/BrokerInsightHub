@@ -21,7 +21,6 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Plus, Eye, Filter } from 'lucide-react';
-import { apiRequest } from '@/lib/queryClient';
 
 interface SavedView {
   id: number;

@@ -3238,11 +3238,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const entityType = req.query.entity_type as string;
       const envId = req.headers['x-environment-id'] || 'myqollabi';
       
-      const result = await db.execute(sql`
-        SELECT * FROM ${sql.identifier(envId as string)}.saved_lists 
-        ${entityType ? sql`WHERE entity_type = ${entityType}` : sql``}
-        ORDER BY created_at DESC
-      `);
+      let query = `SELECT * FROM ${envId}.saved_lists`;
+      const params = [];
+      
+      if (entityType) {
+        query += ` WHERE entity_type = $1`;
+        params.push(entityType);
+      }
+      
+      query += ` ORDER BY created_at DESC`;
+      
+      const envPool = getEnvironmentPool(envId as string);
+      const result = await envPool.query(query, params);
       
       res.json(result.rows);
     } catch (error) {
