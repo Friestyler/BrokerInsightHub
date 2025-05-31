@@ -1883,17 +1883,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const entityType = req.query.entity_type as string;
       const envPool = getEnvironmentPool('degoudse');
       
-      let query = 'SELECT * FROM degoudse.saved_views';
-      const params = [];
+      // Force entity filtering to work correctly
+      const query = entityType 
+        ? `SELECT * FROM degoudse.saved_views WHERE entity_type = $1 ORDER BY created_at DESC`
+        : `SELECT * FROM degoudse.saved_views ORDER BY created_at DESC`;
       
-      if (entityType) {
-        query += ' WHERE entity_type = $1';
-        params.push(entityType);
-      }
-      
-      query += ' ORDER BY created_at DESC';
-      
+      const params = entityType ? [entityType] : [];
       const result = await envPool.query(query, params);
+      
       res.json(result.rows);
     } catch (error) {
       console.error('Error fetching De Goudse saved views:', error);
@@ -1902,27 +1899,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get('/api/degoudse/saved-lists', async (req, res) => {
-    console.log('DEGOUDSE ROUTE HIT:', req.query);
     try {
       const entityType = req.query.entity_type as string;
-      console.log('Entity type parameter:', entityType);
       const envPool = getEnvironmentPool('degoudse');
       
-      let query = 'SELECT * FROM degoudse.saved_lists';
-      const params = [];
+      // Force entity filtering to work correctly
+      const query = entityType 
+        ? `SELECT * FROM degoudse.saved_lists WHERE entity_type = $1 ORDER BY created_at DESC`
+        : `SELECT * FROM degoudse.saved_lists ORDER BY created_at DESC`;
       
-      if (entityType) {
-        query += ' WHERE entity_type = $1';
-        params.push(entityType);
-        console.log('FILTERING ENABLED - Query:', query, 'Params:', params);
-      } else {
-        console.log('NO FILTERING - returning all lists');
-      }
-      
-      query += ' ORDER BY created_at DESC';
-      
+      const params = entityType ? [entityType] : [];
       const result = await envPool.query(query, params);
-      console.log('RESULT COUNT:', result.rows.length);
+      
       res.json(result.rows);
     } catch (error) {
       console.error('Error fetching De Goudse saved lists:', error);
