@@ -62,6 +62,9 @@ export function SavedListsManager({
     queryFn: () => apiRequest('GET', `/api/saved-lists?entity_type=${entityType}`)
   });
 
+  console.log('SavedListsManager - Entity Type:', entityType);
+  console.log('SavedListsManager - Raw Lists Data:', savedLists);
+
   // Create new list mutation
   const createListMutation = useMutation({
     mutationFn: (newList: any) => apiRequest('POST', '/api/saved-lists', newList),
