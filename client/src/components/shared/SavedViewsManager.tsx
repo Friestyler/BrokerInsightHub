@@ -54,9 +54,13 @@ export function SavedViewsManager({
   const [isShared, setIsShared] = useState(false);
   const queryClient = useQueryClient();
 
-  // Fetch saved views - get all views and filter client-side to avoid routing issues
+  // Fetch saved views - direct API call to bypass environment routing
   const { data: savedViewsData = [] } = useQuery({
-    queryKey: [`/api/saved-views`],
+    queryKey: ['saved-views-direct'],
+    queryFn: async () => {
+      const response = await fetch('/api/degoudse/saved-views');
+      return response.json();
+    },
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
