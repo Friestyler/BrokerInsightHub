@@ -11,7 +11,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Progress } from "@/components/ui/progress";
-import { Trash2, Copy, Database, Loader2, AlertTriangle, CheckCircle, Users, Building, Briefcase, Package } from "lucide-react";
+import { Trash2, Copy, Database, Loader2, AlertTriangle, CheckCircle, Users, Building, Briefcase, Package, Archive } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { apiRequest } from "@/lib/queryClient";
 
@@ -121,6 +121,27 @@ export default function DatabaseAdmin() {
     },
   });
 
+  // Archive environment mutation
+  const archiveEnvironmentMutation = useMutation({
+    mutationFn: async ({ envId }: { envId: string }) => {
+      return await apiRequest('POST', '/api/admin/archive-environment', { envId });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Environment Archived",
+        description: "Environment has been archived and is no longer visible in dropdowns.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/admin/environment-stats'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to archive environment",
+        variant: "destructive",
+      });
+    },
+  });
+
   const handleCleanEnvironment = (envId: string, entityType?: string) => {
     cleanEnvironmentMutation.mutate({ envId, entityType });
   };
@@ -147,6 +168,10 @@ export default function DatabaseAdmin() {
     });
   };
 
+  const handleArchiveEnvironment = (envId: string) => {
+    archiveEnvironmentMutation.mutate({ envId });
+  };
+
   return (
     <div className="p-6 space-y-6">
       <div className="mb-8">
@@ -157,11 +182,12 @@ export default function DatabaseAdmin() {
       </div>
 
       <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="overview">Overview</TabsTrigger>
           <TabsTrigger value="clean">Clean Data</TabsTrigger>
           <TabsTrigger value="clone">Clone Environment</TabsTrigger>
           <TabsTrigger value="populate">Populate Data</TabsTrigger>
+          <TabsTrigger value="archive">Archive Environment</TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
@@ -424,6 +450,78 @@ export default function DatabaseAdmin() {
                   <p className="text-sm text-gray-600">{operationStatus}</p>
                 </div>
               )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="archive" className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Archive className="h-5 w-5" />
+                Archive Environment
+              </CardTitle>
+              <CardDescription>
+                Archive environments to hide them from dropdowns. This action is reversible through database management.
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-4">
+                <p className="text-sm text-gray-600">
+                  Select environments to archive. Archived environments will no longer appear in environment dropdowns but their data remains intact.
+                </p>
+                
+                <div className="grid gap-4">
+                  {ENVIRONMENTS.filter(env => env.id !== 'myqollabi').map((env) => (
+                    <div key={env.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-gray-100">
+                          {env.logo ? (
+                            <img src={env.logo} alt={env.name} className="w-6 h-6 object-contain" />
+                          ) : (
+                            <div className="w-6 h-6 rounded bg-gray-300 flex items-center justify-center text-xs font-bold text-gray-600">
+                              {env.name.substring(0, 2).toUpperCase()}
+                            </div>
+                          )}
+                        </div>
+                        <div>
+                          <h3 className="font-medium">{env.name}</h3>
+                          <p className="text-sm text-gray-500">{env.description}</p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleArchiveEnvironment(env.id)}
+                        disabled={archiveEnvironmentMutation.isPending}
+                        className="text-orange-600 hover:text-orange-700 hover:bg-orange-50"
+                      >
+                        {archiveEnvironmentMutation.isPending ? (
+                          <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                        ) : (
+                          <Archive className="mr-2 h-4 w-4" />
+                        )}
+                        Archive
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+                
+                <div className="mt-6 p-4 bg-amber-50 border border-amber-200 rounded-lg">
+                  <div className="flex items-start gap-2">
+                    <AlertTriangle className="h-5 w-5 text-amber-600 mt-0.5" />
+                    <div>
+                      <h4 className="font-medium text-amber-800">Important Notes</h4>
+                      <ul className="mt-2 text-sm text-amber-700 space-y-1">
+                        <li>• Archived environments will no longer appear in environment dropdowns</li>
+                        <li>• All data remains intact and accessible through direct database queries</li>
+                        <li>• The default environment (My Qollabi) cannot be archived</li>
+                        <li>• Archiving can be reversed through database administration</li>
+                      </ul>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </TabsContent>
