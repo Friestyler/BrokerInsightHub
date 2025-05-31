@@ -316,12 +316,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const result = await envPool.query(`
         SELECT o.*, 
                STRING_AGG(DISTINCT p.name, ', ') as partner_names,
-               STRING_AGG(DISTINCT c.name, ', ') as customer_names
+               STRING_AGG(DISTINCT c.name, ', ') as customer_names,
+               COUNT(DISTINCT p.id) as partner_count,
+               COUNT(DISTINCT c.id) as customer_count,
+               COUNT(DISTINCT pr.id) as product_count
         FROM degoudse.opportunities o
         LEFT JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
         LEFT JOIN degoudse.partners p ON p.id = po.partner_id
         LEFT JOIN degoudse.customer_opportunities co ON o.id = co.opportunity_id
         LEFT JOIN degoudse.customers c ON c.id = co.customer_id
+        LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
+        LEFT JOIN degoudse.products pr ON pr.id = op.product_id
         GROUP BY o.id, o.title, o.description, o.stage, o.status, o."estimatedValue", 
                  o."expectedCloseDate", o."ownerId", o."createdAt", o."updatedAt"
         ORDER BY o.id
@@ -339,7 +344,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
         createdAt: opp.createdAt,
         updatedAt: opp.updatedAt,
         partnerNames: opp.partner_names || '',
-        customerNames: opp.customer_names || ''
+        customerNames: opp.customer_names || '',
+        partnerCount: parseInt(opp.partner_count) || 0,
+        customerCount: parseInt(opp.customer_count) || 0,
+        productCount: parseInt(opp.product_count) || 0
       }));
 
       console.log(`Returning ${opportunities.length} opportunities from De Goudse database`);
