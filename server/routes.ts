@@ -2542,7 +2542,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Get environment statistics
   app.get('/api/admin/environment-stats', async (req, res) => {
     try {
-      const environments = ['myqollabi', 'degoudse', 'acme', 'globex', 'oceanic'];
+      // Get environments dynamically from database
+      const { pool } = await import('./db');
+      const schemasResult = await pool.query(`
+        SELECT schema_name 
+        FROM information_schema.schemata 
+        WHERE schema_name NOT IN ('information_schema', 'pg_catalog', 'pg_toast', 'public') 
+        ORDER BY schema_name
+      `);
+      
+      const environments = schemasResult.rows.map((row: any) => row.schema_name);
       const stats: Record<string, any> = {};
 
       for (const envId of environments) {

@@ -17,11 +17,8 @@ import { apiRequest } from "@/lib/queryClient";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 
 const ENVIRONMENTS = [
-  { id: 'myqollabi', name: 'My Qollabi', description: 'Default environment' },
-  { id: 'degoudse', name: 'De Goudse', description: 'Insurance company environment' },
-  { id: 'acme', name: 'Acme Corp', description: 'Demo corporate environment' },
-  { id: 'globex', name: 'Globex Corporation', description: 'Enterprise demo environment' },
-  { id: 'oceanic', name: 'Oceanic Industries', description: 'Maritime industry environment' }
+  { id: 'qollabi', name: 'My Qollabi', description: 'Default environment' },
+  { id: 'degoudse', name: 'De Goudse', description: 'Insurance company environment' }
 ];
 
 const ENTITY_TYPES = [
