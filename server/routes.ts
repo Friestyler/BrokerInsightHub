@@ -1899,21 +1899,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get('/api/degoudse/saved-lists', async (req, res) => {
+    console.log('[DEGOUDSE ROUTE] Query params:', req.query);
+    const entityType = req.query.entity_type as string;
+    console.log('[DEGOUDSE ROUTE] Entity type:', entityType);
+    
     try {
-      const entityType = req.query.entity_type as string;
       const envPool = getEnvironmentPool('degoudse');
       
-      // Force entity filtering to work correctly
-      const query = entityType 
-        ? `SELECT * FROM degoudse.saved_lists WHERE entity_type = $1 ORDER BY created_at DESC`
-        : `SELECT * FROM degoudse.saved_lists ORDER BY created_at DESC`;
-      
-      const params = entityType ? [entityType] : [];
-      const result = await envPool.query(query, params);
-      
-      res.json(result.rows);
+      if (entityType && entityType.trim()) {
+        console.log('[DEGOUDSE ROUTE] Filtering by entity type:', entityType);
+        const result = await envPool.query(
+          'SELECT * FROM degoudse.saved_lists WHERE entity_type = $1 ORDER BY created_at DESC',
+          [entityType]
+        );
+        console.log('[DEGOUDSE ROUTE] Filtered result count:', result.rows.length);
+        res.json(result.rows);
+      } else {
+        console.log('[DEGOUDSE ROUTE] No filter, returning all lists');
+        const result = await envPool.query(
+          'SELECT * FROM degoudse.saved_lists ORDER BY created_at DESC'
+        );
+        console.log('[DEGOUDSE ROUTE] All lists count:', result.rows.length);
+        res.json(result.rows);
+      }
     } catch (error) {
-      console.error('Error fetching De Goudse saved lists:', error);
+      console.error('[DEGOUDSE ROUTE] Error:', error);
       res.status(500).json({ error: 'Failed to fetch saved lists' });
     }
   });
@@ -3256,26 +3266,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const entityType = req.query.entity_type as string;
       const envId = req.headers['x-environment-id'] || 'myqollabi';
       
-      console.log('GENERAL SAVED LISTS ROUTE HIT - env:', envId, 'entity_type:', entityType);
-      
-      let query = `SELECT * FROM ${envId}.saved_lists`;
-      const params = [];
-      
-      if (entityType) {
-        query += ` WHERE entity_type = $1`;
-        params.push(entityType);
-        console.log('Filtering query:', query, 'params:', params);
-      }
-      
-      query += ` ORDER BY created_at DESC`;
+      console.log('[GENERAL ROUTE] Hit with env:', envId, 'entity_type:', entityType);
       
       const envPool = getEnvironmentPool(envId as string);
-      const result = await envPool.query(query, params);
       
-      console.log('Query result count:', result.rows.length);
-      res.json(result.rows);
+      if (entityType && entityType.trim()) {
+        console.log('[GENERAL ROUTE] Filtering by entity type:', entityType);
+        const result = await envPool.query(
+          `SELECT * FROM ${envId}.saved_lists WHERE entity_type = $1 ORDER BY created_at DESC`,
+          [entityType]
+        );
+        console.log('[GENERAL ROUTE] Filtered result count:', result.rows.length);
+        res.json(result.rows);
+      } else {
+        console.log('[GENERAL ROUTE] No filter, returning all lists');
+        const result = await envPool.query(
+          `SELECT * FROM ${envId}.saved_lists ORDER BY created_at DESC`
+        );
+        console.log('[GENERAL ROUTE] All lists count:', result.rows.length);
+        res.json(result.rows);
+      }
     } catch (error) {
-      console.error('Error fetching saved lists:', error);
+      console.error('[GENERAL ROUTE] Error:', error);
       res.status(500).json({ error: 'Failed to fetch saved lists' });
     }
   });
