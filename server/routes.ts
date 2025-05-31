@@ -2812,6 +2812,51 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Archive environment (marks as inactive in metadata)
+  app.post('/api/admin/archive-environment', async (req, res) => {
+    try {
+      const { envId } = req.body;
+      
+      if (!envId) {
+        return res.status(400).json({ error: 'Environment ID is required' });
+      }
+
+      if (envId === 'myqollabi') {
+        return res.status(400).json({ error: 'Cannot archive the default environment' });
+      }
+
+      // Create or update environment metadata table to track archived status
+      const envPool = getEnvironmentPool(envId);
+      
+      await envPool.query(`
+        CREATE TABLE IF NOT EXISTS ${envId}.environment_metadata (
+          id SERIAL PRIMARY KEY,
+          key VARCHAR(255) UNIQUE NOT NULL,
+          value TEXT,
+          created_at TIMESTAMP DEFAULT NOW(),
+          updated_at TIMESTAMP DEFAULT NOW()
+        )
+      `);
+
+      // Mark environment as archived
+      await envPool.query(`
+        INSERT INTO ${envId}.environment_metadata (key, value, updated_at)
+        VALUES ('archived', 'true', NOW())
+        ON CONFLICT (key) 
+        DO UPDATE SET value = 'true', updated_at = NOW()
+      `);
+
+      res.json({ 
+        message: `Environment ${envId} has been archived successfully`,
+        envId,
+        archived: true
+      });
+    } catch (error) {
+      console.error('Error archiving environment:', error);
+      res.status(500).json({ error: 'Failed to archive environment' });
+    }
+  });
+
   // OKR Comments API endpoints
   
   // Get comments for a metric
