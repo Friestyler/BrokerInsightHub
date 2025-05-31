@@ -1878,6 +1878,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // WORKING TEST ROUTE
+  app.get('/api/degoudse/saved-views-test', async (req, res) => {
+    res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+    
+    try {
+      const entityType = req.query.entity_type as string;
+      const envPool = getEnvironmentPool('degoudse');
+      
+      console.log(`TEST ROUTE: entityType='${entityType}'`);
+      
+      const query = entityType 
+        ? `SELECT * FROM degoudse.saved_views WHERE entity_type = $1 ORDER BY created_at DESC`
+        : `SELECT * FROM degoudse.saved_views ORDER BY created_at DESC`;
+      
+      const params = entityType ? [entityType] : [];
+      console.log(`TEST: Query: ${query}, Params:`, params);
+      const result = await envPool.query(query, params);
+      console.log(`TEST: Found ${result.rows.length} rows`);
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Test route error:', error);
+      res.status(500).json({ error: 'Test failed' });
+    }
+  });
+
   app.get('/api/degoudse/saved-views', async (req, res) => {
     // Disable all caching
     res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
