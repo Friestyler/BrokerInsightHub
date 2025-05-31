@@ -54,13 +54,13 @@ export function SavedViewsManager({
   const [isShared, setIsShared] = useState(false);
   const queryClient = useQueryClient();
 
-  // Fetch saved views
+  // Fetch saved views - get all views and filter client-side to avoid routing issues
   const { data: savedViewsData = [] } = useQuery({
-    queryKey: [`/api/saved-views`, entityType],
-    queryFn: () => apiRequest('GET', `/api/saved-views?entity_type=${entityType}`)
+    queryKey: [`/api/saved-views`],
+    staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  // Client-side filtering to ensure only relevant entity views are shown
+  // Client-side filtering to ensure only relevant entity views are shown (same approach as lists)
   const savedViews = savedViewsData.filter((view: any) => view.entity_type === entityType + 's');
 
   // Create new view mutation
