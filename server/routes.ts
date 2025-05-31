@@ -1603,6 +1603,64 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get('/api/degoudse/opportunities/:id/partners', async (req, res) => {
+    try {
+      const opportunityId = parseInt(req.params.id);
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query(`
+        SELECT p.*
+        FROM degoudse.partners p
+        INNER JOIN degoudse.partner_opportunities po ON p.id = po.partner_id
+        WHERE po.opportunity_id = $1
+        ORDER BY p.id
+      `, [opportunityId]);
+      
+      const partners = result.rows.map((partner: any) => ({
+        id: partner.id,
+        name: partner.name,
+        description: partner.description,
+        location: partner.location,
+        contact_email: partner.contact_email,
+        primary_contact: partner.primary_contact,
+        partner_type: partner.partner_type,
+        status: partner.status
+      }));
+      
+      res.json(partners);
+    } catch (error) {
+      console.error('Error fetching De Goudse opportunity partners:', error);
+      res.status(500).json({ error: 'Failed to fetch opportunity partners' });
+    }
+  });
+
+  app.get('/api/degoudse/opportunities/:id/customers', async (req, res) => {
+    try {
+      const opportunityId = parseInt(req.params.id);
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query(`
+        SELECT c.*
+        FROM degoudse.customers c
+        INNER JOIN degoudse.customer_opportunities co ON c.id = co.customer_id
+        WHERE co.opportunity_id = $1
+        ORDER BY c.id
+      `, [opportunityId]);
+      
+      const customers = result.rows.map((customer: any) => ({
+        id: customer.id,
+        name: customer.name,
+        description: customer.description,
+        ownerId: customer.ownerId,
+        createdAt: customer.createdAt,
+        updatedAt: customer.updatedAt
+      }));
+      
+      res.json(customers);
+    } catch (error) {
+      console.error('Error fetching De Goudse opportunity customers:', error);
+      res.status(500).json({ error: 'Failed to fetch opportunity customers' });
+    }
+  });
+
   app.get('/api/degoudse/customers', async (req, res) => {
     try {
       const envPool = getEnvironmentPool('degoudse');

@@ -9,7 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ArrowLeft, Search, Users, Copy, Trash2, MoreHorizontal } from "lucide-react";
 
-export default function OpportunityDetail() {
+export default function CustomerDetailNew() {
   const { id } = useParams();
   const [activeTab, setActiveTab] = useState("okr-plans");
   
@@ -22,32 +22,26 @@ export default function OpportunityDetail() {
   const [selectedTimeframe, setSelectedTimeframe] = useState("all");
   const [groupBy, setGroupBy] = useState("tag");
 
-  // Fetch opportunity data from database
-  const { data: opportunities, isLoading: opportunitiesLoading } = useQuery({
-    queryKey: ['/api/opportunities'],
+  // Fetch customer data from database
+  const { data: customers, isLoading: customersLoading } = useQuery({
+    queryKey: ['/api/customers'],
   });
 
-  // Fetch related partners for this opportunity
+  // Fetch related partners for this customer
   const { data: relatedPartners, isLoading: partnersLoading } = useQuery({
-    queryKey: [`/api/opportunities/${id}/partners`],
+    queryKey: [`/api/customers/${id}/partners`],
     enabled: !!id,
   });
 
-  // Fetch related customers for this opportunity
-  const { data: relatedCustomers, isLoading: customersLoading } = useQuery({
-    queryKey: [`/api/opportunities/${id}/customers`],
+  // Fetch related opportunities for this customer
+  const { data: relatedOpportunities, isLoading: opportunitiesLoading } = useQuery({
+    queryKey: [`/api/customers/${id}/opportunities`],
     enabled: !!id,
   });
 
-  // Fetch related products for this opportunity
-  const { data: relatedProducts, isLoading: productsLoading } = useQuery({
-    queryKey: [`/api/opportunities/${id}/products`],
-    enabled: !!id,
-  });
-
-  // Fetch template assignments for this opportunity
+  // Fetch template assignments for this customer
   const { data: templateAssignments } = useQuery({
-    queryKey: [`/api/template-assignments/opportunity/${id}`],
+    queryKey: [`/api/template-assignments/customer/${id}`],
     enabled: !!id,
   });
 
@@ -61,17 +55,17 @@ export default function OpportunityDetail() {
     queryKey: ['/api/okr-tags'],
   });
 
-  if (opportunitiesLoading) {
+  if (customersLoading) {
     return <div className="p-6">Loading...</div>;
   }
 
-  const opportunity = opportunities?.find((o: any) => o.id === parseInt(id || '0'));
+  const customer = customers?.find((c: any) => c.id === parseInt(id || '0'));
   
-  if (!opportunity) {
-    return <div className="p-6">Opportunity not found</div>;
+  if (!customer) {
+    return <div className="p-6">Customer not found</div>;
   }
 
-  // Get assigned metrics for this opportunity
+  // Get assigned metrics for this customer
   const assignedMetrics = templateAssignments?.length > 0 
     ? allMetrics?.filter((metric: any) => 
         templateAssignments.some((assignment: any) => assignment.metric_id === metric.id)
@@ -123,25 +117,25 @@ export default function OpportunityDetail() {
       {/* Header section */}
       <div className="px-6 py-4">
         <div className="flex items-center mb-4">
-          <Link href="/opportunities">
+          <Link href="/customers">
             <Button variant="ghost" size="sm" className="mr-4 p-2">
               <ArrowLeft className="w-4 h-4" />
             </Button>
           </Link>
           <div className="flex-1">
-            <h1 className="text-2xl font-bold text-gray-900">{opportunity.title}</h1>
+            <h1 className="text-2xl font-bold text-gray-900">{customer.name}</h1>
             <div className="flex items-center space-x-4 mt-1">
-              <span className="text-gray-600">{opportunity.description}</span>
+              <span className="text-gray-600">{customer.description}</span>
               <div className="flex items-center space-x-2">
                 <span className="text-sm bg-gray-100 text-gray-700 px-2 py-1 rounded">Details</span>
-                <span className="text-sm bg-gray-100 text-gray-700 px-2 py-1 rounded">Opportunity</span>
-                <span className="text-sm text-gray-500">Status: <span className="text-blue-600">{opportunity.status}</span></span>
+                <span className="text-sm bg-gray-100 text-gray-700 px-2 py-1 rounded">Customer</span>
+                <span className="text-sm text-gray-500">Type: <span className="text-blue-600">Customer</span></span>
               </div>
             </div>
           </div>
         </div>
         
-        <p className="text-gray-600 mb-6">Value: €{Number(opportunity.estimatedValue || 0).toLocaleString()} • Stage: {opportunity.stage} • Probability: {opportunity.probability}%</p>
+        <p className="text-gray-600 mb-6">Customer relationship and business development tracking</p>
 
         {/* Custom tab styling to match design */}
         <div className="border-b border-gray-200">
@@ -167,24 +161,14 @@ export default function OpportunityDetail() {
               Partners ({relatedPartners?.length || 0})
             </button>
             <button 
-              onClick={() => setActiveTab("customers")}
+              onClick={() => setActiveTab("opportunities")}
               className={`py-2 px-1 text-sm font-medium border-b-2 whitespace-nowrap ${
-                activeTab === "customers" 
+                activeTab === "opportunities" 
                   ? "bg-blue-100 text-blue-700 border-blue-600" 
                   : "text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300"
               }`}
             >
-              Customers ({relatedCustomers?.length || 0})
-            </button>
-            <button 
-              onClick={() => setActiveTab("products")}
-              className={`py-2 px-1 text-sm font-medium border-b-2 whitespace-nowrap ${
-                activeTab === "products" 
-                  ? "bg-blue-100 text-blue-700 border-blue-600" 
-                  : "text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300"
-              }`}
-            >
-              Products ({relatedProducts?.length || 0})
+              Opportunities ({relatedOpportunities?.length || 0})
             </button>
           </nav>
         </div>
@@ -369,78 +353,45 @@ export default function OpportunityDetail() {
           </div>
         )}
 
-        {activeTab === "customers" && (
+        {activeTab === "opportunities" && (
           <div>
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-12"><Checkbox /></TableHead>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>Opportunity</TableHead>
+                  <TableHead>Partner</TableHead>
+                  <TableHead>Stage</TableHead>
+                  <TableHead>Value</TableHead>
+                  <TableHead>Close Date</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {relatedCustomers?.map((customer: any) => (
-                  <TableRow key={customer.id}>
+                {relatedOpportunities?.map((opportunity: any) => (
+                  <TableRow key={opportunity.id}>
                     <TableCell><Checkbox /></TableCell>
                     <TableCell>
-                      <Link href={`/lists/customers/${customer.id}`}>
+                      <Link href={`/opportunities/${opportunity.id}`}>
                         <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
-                          {customer.name}
+                          {opportunity.title}
                         </span>
                       </Link>
                     </TableCell>
                     <TableCell>
                       <span className="text-gray-900">
-                        {customer.description || 'No description'}
-                      </span>
-                    </TableCell>
-                    <TableCell>Customer</TableCell>
-                    <TableCell>
-                      <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
-                        Active
-                      </span>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        )}
-
-        {activeTab === "products" && (
-          <div>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-12"><Checkbox /></TableHead>
-                  <TableHead>Product</TableHead>
-                  <TableHead>Category</TableHead>
-                  <TableHead>Price</TableHead>
-                  <TableHead>Description</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {relatedProducts?.map((product: any) => (
-                  <TableRow key={product.id}>
-                    <TableCell><Checkbox /></TableCell>
-                    <TableCell>
-                      <span className="font-medium text-gray-900">
-                        {product.name}
+                        {opportunity.partner_name || 'No partner'}
                       </span>
                     </TableCell>
                     <TableCell>
-                      <span className="text-gray-900">
-                        {product.category || 'Insurance'}
+                      <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+                        {opportunity.stage}
                       </span>
                     </TableCell>
                     <TableCell>
-                      €{Number(product.price || 0).toLocaleString()}
+                      €{opportunity.estimated_value ? Number(opportunity.estimated_value).toLocaleString() : '0'}
                     </TableCell>
                     <TableCell>
-                      {product.description || 'No description'}
+                      {opportunity.expected_close_date ? new Date(opportunity.expected_close_date).toLocaleDateString() : 'Not set'}
                     </TableCell>
                   </TableRow>
                 ))}
