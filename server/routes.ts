@@ -2015,6 +2015,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // De Goudse OKR Tags endpoints
+  app.get('/api/degoudse/okr-tags', async (req, res) => {
+    try {
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query('SELECT * FROM degoudse.okr_tags ORDER BY name ASC');
+      res.json(result.rows);
+    } catch (error) {
+      console.error('De Goudse OKR tags API error:', error);
+      res.status(500).json({ message: 'Failed to fetch OKR tags for De Goudse environment' });
+    }
+  });
+
   app.post('/api/degoudse/okr-metrics', async (req, res) => {
     try {
       const { name, description, realized_value, target_value, measure_unit, frequency, hierarchy, tags } = req.body;
