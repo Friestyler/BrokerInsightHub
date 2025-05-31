@@ -56,22 +56,11 @@ export function SavedViewsManager({
   const queryClient = useQueryClient();
   const { environment } = useEnvironment();
 
-  // Fetch saved views - get all views and filter client-side to avoid routing issues  
-  const { data: savedViewsData = [] } = useQuery({
-    queryKey: [`/api/saved-views`],
-    queryFn: () => apiRequest('GET', `/api/saved-views`),
-    staleTime: 5 * 60 * 1000, // 5 minutes
+  // Fetch saved views with entity type filter (same pattern as SavedListsManager)
+  const { data: savedViews = [] } = useQuery({
+    queryKey: [`/api/saved-views`, entityType],
+    queryFn: () => apiRequest('GET', `/api/saved-views?entity_type=${entityType}s`)
   });
-
-  // Client-side filtering to ensure only relevant entity views are shown (same approach as lists)
-  const savedViews = Array.isArray(savedViewsData) ? savedViewsData.filter((view: any) => {
-    return view.entity_type === entityType + 's';
-  }) : [];
-  
-  // Force alert to see what's happening
-  if (entityType === 'opportunity' && savedViewsData) {
-    alert(`DEBUG: savedViewsData type: ${typeof savedViewsData}, isArray: ${Array.isArray(savedViewsData)}, length: ${savedViewsData?.length || 'undefined'}, filtered: ${savedViews.length}`);
-  }
 
   // Create new view mutation
   const createViewMutation = useMutation({
@@ -121,7 +110,7 @@ export function SavedViewsManager({
           <div className="flex items-center gap-2">
             <Eye className="h-4 w-4 text-gray-600" />
             <SelectValue>
-              {selectedView ? selectedView.name : `All ${entityDisplayName} (${savedViews.length}/${savedViewsData.length})`}
+              {selectedView ? selectedView.name : `All ${entityDisplayName} (${savedViews.length})`}
             </SelectValue>
           </div>
         </SelectTrigger>

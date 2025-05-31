@@ -1,0 +1,70 @@
+OpportunitiesPage.tsx:1064 Warning: Each child in a list should have a unique "key" prop.
+
+Check the render method of `OpportunitiesTable`. See https://reactjs.org/link/warning-keys for more information.
+    at div
+    at OpportunitiesTable (https://c1583276-5535-4006-b99f-ffd12b1b985a-00-2lev2fogd3tmd.worf.replit.dev/src/pages/lists/OpportunitiesPage.tsx:162:21)
+    at div
+    at OpportunitiesPage (https://c1583276-5535-4006-b99f-ffd12b1b985a-00-2lev2fogd3tmd.worf.replit.dev/src/pages/lists/OpportunitiesPage.tsx:2876:27)
+    at Route (https://c1583276-5535-4006-b99f-ffd12b1b985a-00-2lev2fogd3tmd.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=ed2ae2bb:265:16)
+    at Switch (https://c1583276-5535-4006-b99f-ffd12b1b985a-00-2lev2fogd3tmd.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/wouter.js?v=ed2ae2bb:321:17)
+    at div
+    at div
+    at div
+    at Layout (https://c1583276-5535-4006-b99f-ffd12b1b985a-00-2lev2fogd3tmd.worf.replit.dev/src/components/Layout.tsx:25:34)
+    at Router
+    at Provider (https://c1583276-5535-4006-b99f-ffd12b1b985a-00-2lev2fogd3tmd.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/chunk-3RXG37ZK.js?v=ed2ae2bb:38:15)
+    at TooltipProvider (https://c1583276-5535-4006-b99f-ffd12b1b985a-00-2lev2fogd3tmd.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@radix-ui_react-tooltip.js?v=ed2ae2bb:64:5)
+    at EnvironmentProvider (https://c1583276-5535-4006-b99f-ffd12b1b985a-00-2lev2fogd3tmd.worf.replit.dev/src/contexts/EnvironmentContext.tsx:41:39)
+    at QueryClientProvider (https://c1583276-5535-4006-b99f-ffd12b1b985a-00-2lev2fogd3tmd.worf.replit.dev/@fs/home/runner/workspace/node_modules/.vite/deps/@tanstack_react-query.js?v=ed2ae2bb:2805:3)
+    at App
+printWarning @ react_jsx-dev-runtime.js?v=ed2ae2bb:64
+error @ react_jsx-dev-runtime.js?v=ed2ae2bb:48
+validateExplicitKey @ react_jsx-dev-runtime.js?v=ed2ae2bb:724
+validateChildKeys @ react_jsx-dev-runtime.js?v=ed2ae2bb:737
+jsxWithValidation @ react_jsx-dev-runtime.js?v=ed2ae2bb:855
+OpportunitiesTable @ OpportunitiesPage.tsx:1064
+renderWithHooks @ chunk-276SZO74.js?v=ed2ae2bb:11548
+updateFunctionComponent @ chunk-276SZO74.js?v=ed2ae2bb:14582
+beginWork @ chunk-276SZO74.js?v=ed2ae2bb:15924
+beginWork$1 @ chunk-276SZO74.js?v=ed2ae2bb:19753
+performUnitOfWork @ chunk-276SZO74.js?v=ed2ae2bb:19198
+workLoopSync @ chunk-276SZO74.js?v=ed2ae2bb:19137
+renderRootSync @ chunk-276SZO74.js?v=ed2ae2bb:19116
+performSyncWorkOnRoot @ chunk-276SZO74.js?v=ed2ae2bb:18874
+flushSyncCallbacks @ chunk-276SZO74.js?v=ed2ae2bb:9119
+(anonymous) @ chunk-276SZO74.js?v=ed2ae2bb:18627
+setTimeout
+scheduleFn @ @tanstack_react-query.js?v=ed2ae2bb:555
+flush @ @tanstack_react-query.js?v=ed2ae2bb:569
+batch @ @tanstack_react-query.js?v=ed2ae2bb:587
+dispatch_fn @ @tanstack_react-query.js?v=ed2ae2bb:996
+setData @ @tanstack_react-query.js?v=ed2ae2bb:696
+onSuccess @ @tanstack_react-query.js?v=ed2ae2bb:897
+resolve @ @tanstack_react-query.js?v=ed2ae2bb:456
+Promise.then
+run @ @tanstack_react-query.js?v=ed2ae2bb:498
+start @ @tanstack_react-query.js?v=ed2ae2bb:536
+fetch @ @tanstack_react-query.js?v=ed2ae2bb:926
+executeFetch_fn @ @tanstack_react-query.js?v=ed2ae2bb:2211
+onSubscribe @ @tanstack_react-query.js?v=ed2ae2bb:1898
+subscribe @ @tanstack_react-query.js?v=ed2ae2bb:24
+(anonymous) @ @tanstack_react-query.js?v=ed2ae2bb:3022
+subscribeToStore @ chunk-276SZO74.js?v=ed2ae2bb:11984
+commitHookEffectListMount @ chunk-276SZO74.js?v=ed2ae2bb:16915
+commitPassiveMountOnFiber @ chunk-276SZO74.js?v=ed2ae2bb:18156
+commitPassiveMountEffects_complete @ chunk-276SZO74.js?v=ed2ae2bb:18129
+commitPassiveMountEffects_begin @ chunk-276SZO74.js?v=ed2ae2bb:18119
+commitPassiveMountEffects @ chunk-276SZO74.js?v=ed2ae2bb:18109
+flushPassiveEffectsImpl @ chunk-276SZO74.js?v=ed2ae2bb:19490
+flushPassiveEffects @ chunk-276SZO74.js?v=ed2ae2bb:19447
+performSyncWorkOnRoot @ chunk-276SZO74.js?v=ed2ae2bb:18868
+flushSyncCallbacks @ chunk-276SZO74.js?v=ed2ae2bb:9119
+commitRootImpl @ chunk-276SZO74.js?v=ed2ae2bb:19432
+commitRoot @ chunk-276SZO74.js?v=ed2ae2bb:19277
+finishConcurrentRender @ chunk-276SZO74.js?v=ed2ae2bb:18805
+performConcurrentWorkOnRoot @ chunk-276SZO74.js?v=ed2ae2bb:18718
+workLoop @ chunk-276SZO74.js?v=ed2ae2bb:197
+flushWork @ chunk-276SZO74.js?v=ed2ae2bb:176
+performWorkUntilDeadline @ chunk-276SZO74.js?v=ed2ae2bb:384Understand this error
+opportunities:1 Unchecked runtime.lastError: The message port closed before a response was received.Understand this error
+opportunities:1 Unchecked runtime.lastError: The message port closed before a response was received.
