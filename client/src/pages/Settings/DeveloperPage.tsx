@@ -168,8 +168,16 @@ function DeveloperPage() {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [databaseStatus, setDatabaseStatus] = useState<{
-    myqollabi?: { partners: number; customers: number; opportunities: number; products: number; };
-    degoudse?: { partners: number; customers: number; opportunities: number; products: number; };
+    myqollabi?: { 
+      partners: number; customers: number; opportunities: number; products: number;
+      partnerCustomerLinks: number; partnerOpportunityLinks: number; 
+      customerOpportunityLinks: number; opportunityProductLinks: number;
+    };
+    degoudse?: { 
+      partners: number; customers: number; opportunities: number; products: number;
+      partnerCustomerLinks: number; partnerOpportunityLinks: number; 
+      customerOpportunityLinks: number; opportunityProductLinks: number;
+    };
   }>({});
   const queryClient = useQueryClient();
 
@@ -578,45 +586,101 @@ function DeveloperPage() {
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="p-4 border rounded-lg">
-                      <h4 className="font-medium mb-2 text-indigo-600">My Qollabi Environment</h4>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span>Partners:</span>
-                          <span className="font-mono">{databaseStatus.myqollabi?.partners || 0}</span>
+                      <h4 className="font-medium mb-3 text-indigo-600">My Qollabi Environment</h4>
+                      
+                      <div className="space-y-3">
+                        <div>
+                          <h5 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Records</h5>
+                          <div className="space-y-1 text-sm">
+                            <div className="flex justify-between">
+                              <span>Partners:</span>
+                              <span className="font-mono">{databaseStatus.myqollabi?.partners || 0}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Customers:</span>
+                              <span className="font-mono">{databaseStatus.myqollabi?.customers || 0}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Opportunities:</span>
+                              <span className="font-mono">{databaseStatus.myqollabi?.opportunities || 0}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Products:</span>
+                              <span className="font-mono">{databaseStatus.myqollabi?.products || 0}</span>
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex justify-between">
-                          <span>Customers:</span>
-                          <span className="font-mono">{databaseStatus.myqollabi?.customers || 0}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Opportunities:</span>
-                          <span className="font-mono">{databaseStatus.myqollabi?.opportunities || 0}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Products:</span>
-                          <span className="font-mono">{databaseStatus.myqollabi?.products || 0}</span>
+                        
+                        <div>
+                          <h5 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Relationships</h5>
+                          <div className="space-y-1 text-sm">
+                            <div className="flex justify-between">
+                              <span>Partner ↔ Customer:</span>
+                              <span className="font-mono text-blue-600">{databaseStatus.myqollabi?.partnerCustomerLinks || 0}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Partner ↔ Opportunity:</span>
+                              <span className="font-mono text-blue-600">{databaseStatus.myqollabi?.partnerOpportunityLinks || 0}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Customer ↔ Opportunity:</span>
+                              <span className="font-mono text-blue-600">{databaseStatus.myqollabi?.customerOpportunityLinks || 0}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Opportunity ↔ Product:</span>
+                              <span className="font-mono text-blue-600">{databaseStatus.myqollabi?.opportunityProductLinks || 0}</span>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>
                     
                     <div className="p-4 border rounded-lg">
-                      <h4 className="font-medium mb-2 text-orange-600">De Goudse Environment</h4>
-                      <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                          <span>Partners:</span>
-                          <span className="font-mono">{databaseStatus.degoudse?.partners || 0}</span>
+                      <h4 className="font-medium mb-3 text-orange-600">De Goudse Environment</h4>
+                      
+                      <div className="space-y-3">
+                        <div>
+                          <h5 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Records</h5>
+                          <div className="space-y-1 text-sm">
+                            <div className="flex justify-between">
+                              <span>Partners:</span>
+                              <span className="font-mono">{databaseStatus.degoudse?.partners || 0}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Customers:</span>
+                              <span className="font-mono">{databaseStatus.degoudse?.customers || 0}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Opportunities:</span>
+                              <span className="font-mono bg-green-100 px-1 rounded">{databaseStatus.degoudse?.opportunities || 0}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Products:</span>
+                              <span className="font-mono">{databaseStatus.degoudse?.products || 0}</span>
+                            </div>
+                          </div>
                         </div>
-                        <div className="flex justify-between">
-                          <span>Customers:</span>
-                          <span className="font-mono">{databaseStatus.degoudse?.customers || 0}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Opportunities:</span>
-                          <span className="font-mono bg-green-100 px-1 rounded">{databaseStatus.degoudse?.opportunities || 0}</span>
-                        </div>
-                        <div className="flex justify-between">
-                          <span>Products:</span>
-                          <span className="font-mono">{databaseStatus.degoudse?.products || 0}</span>
+                        
+                        <div>
+                          <h5 className="text-xs font-medium text-gray-500 uppercase tracking-wide mb-2">Relationships</h5>
+                          <div className="space-y-1 text-sm">
+                            <div className="flex justify-between">
+                              <span>Partner ↔ Customer:</span>
+                              <span className="font-mono text-orange-600">{databaseStatus.degoudse?.partnerCustomerLinks || 0}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Partner ↔ Opportunity:</span>
+                              <span className="font-mono text-orange-600">{databaseStatus.degoudse?.partnerOpportunityLinks || 0}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Customer ↔ Opportunity:</span>
+                              <span className="font-mono text-orange-600">{databaseStatus.degoudse?.customerOpportunityLinks || 0}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span>Opportunity ↔ Product:</span>
+                              <span className="font-mono text-orange-600">{databaseStatus.degoudse?.opportunityProductLinks || 0}</span>
+                            </div>
+                          </div>
                         </div>
                       </div>
                     </div>

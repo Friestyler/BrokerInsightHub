@@ -248,7 +248,7 @@ export async function validateSchemas(): Promise<Record<string, boolean>> {
 }
 
 /**
- * Gets table counts for all environments for monitoring
+ * Gets table counts and relationship counts for all environments for monitoring
  */
 export async function getEnvironmentCounts(): Promise<Record<string, Record<string, number>>> {
   const counts: Record<string, Record<string, number>> = {};
@@ -259,7 +259,7 @@ export async function getEnvironmentCounts(): Promise<Record<string, Record<stri
       const pool = getEnvironmentPool(envId);
       const schemaName = envId === 'myqollabi' ? 'myqollabi' : envId;
 
-      // Use direct SQL queries with explicit schema names (same pattern as working API endpoints)
+      // Entity counts
       try {
         const partnersResult = await pool.query(`SELECT COUNT(*) as count FROM ${schemaName}.partners`);
         counts[envId]['partners'] = parseInt(partnersResult.rows[0]?.count || '0');
@@ -288,9 +288,42 @@ export async function getEnvironmentCounts(): Promise<Record<string, Record<stri
         counts[envId]['products'] = 0;
       }
 
+      // Relationship counts
+      try {
+        const partnerCustomerResult = await pool.query(`SELECT COUNT(*) as count FROM ${schemaName}.partner_customers`);
+        counts[envId]['partnerCustomerLinks'] = parseInt(partnerCustomerResult.rows[0]?.count || '0');
+      } catch (error) {
+        counts[envId]['partnerCustomerLinks'] = 0;
+      }
+
+      try {
+        const partnerOpportunityResult = await pool.query(`SELECT COUNT(*) as count FROM ${schemaName}.partner_opportunities`);
+        counts[envId]['partnerOpportunityLinks'] = parseInt(partnerOpportunityResult.rows[0]?.count || '0');
+      } catch (error) {
+        counts[envId]['partnerOpportunityLinks'] = 0;
+      }
+
+      try {
+        const customerOpportunityResult = await pool.query(`SELECT COUNT(*) as count FROM ${schemaName}.customer_opportunities`);
+        counts[envId]['customerOpportunityLinks'] = parseInt(customerOpportunityResult.rows[0]?.count || '0');
+      } catch (error) {
+        counts[envId]['customerOpportunityLinks'] = 0;
+      }
+
+      try {
+        const opportunityProductResult = await pool.query(`SELECT COUNT(*) as count FROM ${schemaName}.opportunity_products`);
+        counts[envId]['opportunityProductLinks'] = parseInt(opportunityProductResult.rows[0]?.count || '0');
+      } catch (error) {
+        counts[envId]['opportunityProductLinks'] = 0;
+      }
+
     } catch (error) {
       console.error(`Failed to get counts for ${envId}:`, error);
-      counts[envId] = { partners: 0, customers: 0, opportunities: 0, products: 0 };
+      counts[envId] = { 
+        partners: 0, customers: 0, opportunities: 0, products: 0,
+        partnerCustomerLinks: 0, partnerOpportunityLinks: 0, 
+        customerOpportunityLinks: 0, opportunityProductLinks: 0
+      };
     }
   }
 
