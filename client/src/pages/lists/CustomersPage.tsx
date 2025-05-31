@@ -146,6 +146,11 @@ export default function CustomersPageClean() {
   const { data: savedViewsData = [], isLoading: savedViewsLoading } = useSavedViews();
   const createSavedViewMutation = useCreateSavedView();
 
+  // Filter saved lists to only show customer-related lists (client-side filtering)
+  const customerSavedListsData = savedListsData.filter((list: any) => 
+    list.entity_type === 'customers'
+  );
+
   // Filter and search logic
   const filteredCustomers = customers.filter((customer: any) => {
     const matchesSearch = customer.name.toLowerCase().includes(searchTerm.toLowerCase());
@@ -326,8 +331,8 @@ export default function CustomersPageClean() {
                           <span className="text-gray-500">({customers.length})</span>
                         </button>
                         
-                        {/* Saved lists from database */}
-                        {savedListsData.map((list: any) => (
+                        {/* Saved lists from database (filtered for customers only) */}
+                        {customerSavedListsData.map((list: any) => (
                           <button
                             key={list.id}
                             className={`w-full text-left px-3 py-2 rounded text-sm hover:bg-gray-100 flex items-center justify-between ${activeList?.id === list.id ? 'bg-blue-50 text-blue-600' : ''}`}

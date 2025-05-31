@@ -188,6 +188,11 @@ function OpportunitiesTable() {
   const createSavedListMutation = useCreateSavedList();
   const { data: savedViewsData = [], isLoading: savedViewsLoading } = useSavedViews();
   const createSavedViewMutation = useCreateSavedView();
+
+  // Filter saved lists to only show opportunity-related lists (client-side filtering)
+  const opportunitySavedListsData = savedListsData.filter((list: any) => 
+    list.entity_type === 'opportunities'
+  );
   const [filterText, setFilterText] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedType, setSelectedType] = useState('');
@@ -439,8 +444,8 @@ function OpportunitiesTable() {
                         </div>
                       </div>
                       
-                      {/* Database saved lists */}
-                      {savedListsData.map((list: any) => (
+                      {/* Database saved lists (filtered for opportunities only) */}
+                      {opportunitySavedListsData.map((list: any) => (
                         <div 
                           key={list.id}
                           className="relative"
