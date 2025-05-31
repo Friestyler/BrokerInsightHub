@@ -1879,11 +1879,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get('/api/degoudse/saved-views', async (req, res) => {
+    // Disable all caching
+    res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+    res.set('Pragma', 'no-cache');
+    res.set('Expires', '0');
+    
     try {
       const entityType = req.query.entity_type as string;
       const envPool = getEnvironmentPool('degoudse');
       
-      console.log(`De Goudse saved views: entityType=${entityType}`);
+      console.log(`FIXED: De Goudse saved views: entityType='${entityType}'`);
       
       // Force entity filtering to work correctly
       const query = entityType 
@@ -1891,9 +1896,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         : `SELECT * FROM degoudse.saved_views ORDER BY created_at DESC`;
       
       const params = entityType ? [entityType] : [];
-      console.log(`Executing query: ${query} with params:`, params);
+      console.log(`FIXED: Executing query: ${query} with params:`, params);
       const result = await envPool.query(query, params);
-      console.log(`Query returned ${result.rows.length} rows`);
+      console.log(`FIXED: Query returned ${result.rows.length} rows`);
       
       res.json(result.rows);
     } catch (error) {

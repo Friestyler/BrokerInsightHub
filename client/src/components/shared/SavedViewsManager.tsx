@@ -58,8 +58,10 @@ export function SavedViewsManager({
 
   // Fetch saved views with entity type filter (same pattern as SavedListsManager)
   const { data: savedViews = [] } = useQuery({
-    queryKey: [`/api/saved-views`, entityType],
-    queryFn: () => apiRequest('GET', `/api/saved-views?entity_type=${entityType}s`)
+    queryKey: [`/api/saved-views`, entityType, Date.now()], // Force cache invalidation
+    queryFn: () => apiRequest('GET', `/api/saved-views?entity_type=${entityType}s`),
+    staleTime: 0, // Disable caching
+    cacheTime: 0
   });
 
   // Create new view mutation
