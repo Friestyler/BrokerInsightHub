@@ -125,30 +125,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const envPool = getEnvironmentPool('degoudse');
       const result = await envPool.query(`
         SELECT c.id, c.name, c.description, c."ownerId", c."createdAt", c."updatedAt",
-               COALESCE(STRING_AGG(DISTINCT p.name ORDER BY p.name), '') as partner_names,
-               COALESCE(STRING_AGG(DISTINCT p.id::text || ':' || p.name ORDER BY p.name), '') as partner_data,
                COUNT(DISTINCT pc.partner_id) as partner_count,
                COUNT(DISTINCT co.opportunity_id) as opportunity_count
         FROM degoudse.customers c
         LEFT JOIN degoudse.partner_customers pc ON c.id = pc.customer_id
-        LEFT JOIN degoudse.partners p ON p.id = pc.partner_id
         LEFT JOIN degoudse.customer_opportunities co ON c.id = co.customer_id
         GROUP BY c.id, c.name, c.description, c."ownerId", c."createdAt", c."updatedAt"
         ORDER BY c.id
       `);
       
-      const customers = result.rows.map((customer: any) => ({
-        id: customer.id,
-        name: customer.name,
-        description: customer.description,
-        ownerId: customer.ownerId,
-        createdAt: customer.createdAt,
-        updatedAt: customer.updatedAt,
-        partnerNames: customer.partner_names || '',
-        partnerIds: customer.partner_ids || '',
-        partnerCount: parseInt(customer.partner_count) || 0,
-        opportunityCount: parseInt(customer.opportunity_count) || 0
-      }));
+      // Get partner details for each customer separately
+      const customerIds = result.rows.map(c => c.id);
+      const partnerDetails = await envPool.query(`
+        SELECT pc.customer_id, p.id as partner_id, p.name as partner_name
+        FROM degoudse.partner_customers pc
+        JOIN degoudse.partners p ON p.id = pc.partner_id
+        WHERE pc.customer_id = ANY($1)
+        ORDER BY pc.customer_id, p.name
+      `, [customerIds]);
+      
+      const customers = result.rows.map((customer: any) => {
+        const customerPartners = partnerDetails.rows.filter((p: any) => p.customer_id === customer.id);
+        const partnerNames = customerPartners.map((p: any) => p.partner_name).join(', ');
+        const partnerIds = customerPartners.map((p: any) => p.partner_id).join(',');
+        
+        return {
+          id: customer.id,
+          name: customer.name,
+          description: customer.description,
+          ownerId: customer.ownerId,
+          createdAt: customer.createdAt,
+          updatedAt: customer.updatedAt,
+          partnerNames: partnerNames || '',
+          partnerIds: partnerIds || '',
+          partnerCount: parseInt(customer.partner_count) || 0,
+          opportunityCount: parseInt(customer.opportunity_count) || 0
+        };
+      });
       
       console.log(`Returning ${customers.length} customers from De Goudse database`);
       res.json(customers);
