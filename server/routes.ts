@@ -1279,6 +1279,113 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Fix De Goudse Relationships Endpoint
+  app.post('/api/degoudse/fix-relationships', async (req: Request, res: Response) => {
+    try {
+      const envPool = getEnvironmentPool('degoudse');
+      let relationshipsCreated = 0;
+      
+      // Get all opportunities and available partners/customers
+      const opportunities = await envPool.query(`SELECT id, "clientId", "productId" FROM degoudse.opportunities`);
+      const partners = await envPool.query(`SELECT id FROM degoudse.partners ORDER BY id`);
+      const customers = await envPool.query(`SELECT id FROM degoudse.customers ORDER BY id`);
+      
+      if (partners.rows.length === 0 || customers.rows.length === 0) {
+        return res.json({ 
+          success: false, 
+          message: 'No partners or customers available to create relationships' 
+        });
+      }
+      
+      // Create strategic relationships based on distribution patterns
+      for (let i = 0; i < opportunities.rows.length; i++) {
+        const opp = opportunities.rows[i];
+        const { id: oppId, clientId, productId } = opp;
+        
+        // Assign partner based on modular distribution to ensure variety
+        const partnerIndex = i % partners.rows.length;
+        const partnerId = partners.rows[partnerIndex].id;
+        
+        // Use existing customer or assign based on distribution
+        let finalClientId = clientId;
+        if (!finalClientId && customers.rows.length > 0) {
+          const customerIndex = i % customers.rows.length;
+          finalClientId = customers.rows[customerIndex].id;
+        }
+        
+        // Create partner-customer relationship
+        if (partnerId && finalClientId) {
+          try {
+            await envPool.query(
+              `INSERT INTO degoudse.partner_customers (partner_id, customer_id, created_at)
+               VALUES ($1, $2, NOW())
+               ON CONFLICT (partner_id, customer_id) DO NOTHING`,
+              [partnerId, finalClientId]
+            );
+            relationshipsCreated++;
+          } catch (error) {
+            console.log(`Skipped partner-customer relationship for opp ${oppId}`);
+          }
+          
+          // Create partner-opportunity relationship
+          try {
+            await envPool.query(
+              `INSERT INTO degoudse.partner_opportunities (partner_id, opportunity_id, created_at)
+               VALUES ($1, $2, NOW())
+               ON CONFLICT (partner_id, opportunity_id) DO NOTHING`,
+              [partnerId, oppId]
+            );
+            relationshipsCreated++;
+          } catch (error) {
+            console.log(`Skipped partner-opportunity relationship for opp ${oppId}`);
+          }
+        }
+        
+        // Create customer-opportunity relationship
+        if (finalClientId) {
+          try {
+            await envPool.query(
+              `INSERT INTO degoudse.customer_opportunities (customer_id, opportunity_id, created_at)
+               VALUES ($1, $2, NOW())
+               ON CONFLICT (customer_id, opportunity_id) DO NOTHING`,
+              [finalClientId, oppId]
+            );
+            relationshipsCreated++;
+          } catch (error) {
+            console.log(`Skipped customer-opportunity relationship for opp ${oppId}`);
+          }
+        }
+        
+        // Create opportunity-product relationship
+        if (productId) {
+          try {
+            await envPool.query(
+              `INSERT INTO degoudse.opportunity_products (opportunity_id, product_id, created_at)
+               VALUES ($1, $2, NOW())
+               ON CONFLICT (opportunity_id, product_id) DO NOTHING`,
+              [oppId, productId]
+            );
+            relationshipsCreated++;
+          } catch (error) {
+            console.log(`Skipped opportunity-product relationship for opp ${oppId}`);
+          }
+        }
+      }
+      
+      res.json({ 
+        success: true, 
+        message: `Created relationships for ${opportunities.rows.length} opportunities using ${partners.rows.length} partners and ${customers.rows.length} customers`,
+        relationshipsCreated,
+        opportunitiesProcessed: opportunities.rows.length,
+        partnersUsed: partners.rows.length,
+        customersUsed: customers.rows.length
+      });
+    } catch (error) {
+      console.error('Relationship fix error:', error);
+      res.status(500).json({ success: false, message: 'Failed to fix relationships' });
+    }
+  });
+
   // Environment management API endpoints
   app.post('/api/environments/copy', async (req, res) => {
     try {
@@ -1743,7 +1850,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
             ]
           );
           
-          createdOpportunities.push(opportunityResult.rows[0]);
+          const createdOpportunity = opportunityResult.rows[0];
+          
+          // Create relationship connections if entities were found/created
+          if (partnerId && customerId) {
+            // Create partner-customer relationship
+            try {
+              await envPool.query(
+                `INSERT INTO degoudse.partner_customers (partner_id, customer_id, created_at)
+                 VALUES ($1, $2, NOW())
+                 ON CONFLICT (partner_id, customer_id) DO NOTHING`,
+                [partnerId, customerId]
+              );
+            } catch (error) {
+              console.log(`Skipped partner-customer relationship: ${error.message}`);
+            }
+            
+            // Create partner-opportunity relationship
+            try {
+              await envPool.query(
+                `INSERT INTO degoudse.partner_opportunities (partner_id, opportunity_id, created_at)
+                 VALUES ($1, $2, NOW())
+                 ON CONFLICT (partner_id, opportunity_id) DO NOTHING`,
+                [partnerId, createdOpportunity.id]
+              );
+            } catch (error) {
+              console.log(`Skipped partner-opportunity relationship: ${error.message}`);
+            }
+          }
+          
+          if (customerId) {
+            // Create customer-opportunity relationship
+            try {
+              await envPool.query(
+                `INSERT INTO degoudse.customer_opportunities (customer_id, opportunity_id, created_at)
+                 VALUES ($1, $2, NOW())
+                 ON CONFLICT (customer_id, opportunity_id) DO NOTHING`,
+                [customerId, createdOpportunity.id]
+              );
+            } catch (error) {
+              console.log(`Skipped customer-opportunity relationship: ${error.message}`);
+            }
+          }
+          
+          // Create opportunity-product relationship with default product
+          try {
+            await envPool.query(
+              `INSERT INTO degoudse.opportunity_products (opportunity_id, product_id, created_at)
+               VALUES ($1, $2, NOW())
+               ON CONFLICT (opportunity_id, product_id) DO NOTHING`,
+              [createdOpportunity.id, 1]
+            );
+          } catch (error) {
+            console.log(`Skipped opportunity-product relationship: ${error.message}`);
+          }
+          
+          createdOpportunities.push(createdOpportunity);
           opportunitiesCreated++;
         } catch (error) {
           console.log(`Skipped opportunity for row ${i + 1}:`, error.message);
