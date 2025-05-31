@@ -81,6 +81,18 @@ const useCreateSavedView = () => {
   });
 };
 
+const useCreateSharedList = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (shareData: any) => {
+      return apiRequest('POST', '/api/shared-lists', shareData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/shared-lists'] });
+    }
+  });
+};
+
 // All opportunity data now comes from database - no mock data needed
 
 // Calculate opportunity statistics
@@ -188,6 +200,7 @@ function OpportunitiesTable() {
   const createSavedListMutation = useCreateSavedList();
   const { data: savedViewsData = [], isLoading: savedViewsLoading } = useSavedViews();
   const createSavedViewMutation = useCreateSavedView();
+  const createSharedListMutation = useCreateSharedList();
 
   // Filter saved lists to only show opportunity-related lists (client-side filtering)
   const opportunitySavedListsData = savedListsData.filter((list: any) => 
@@ -229,6 +242,7 @@ function OpportunitiesTable() {
   const [newListName, setNewListName] = useState('');
   const [pendingListAction, setPendingListAction] = useState<any>(null);
   const [showUnsavedChangesModal, setShowUnsavedChangesModal] = useState(false);
+  const [currentSharedLink, setCurrentSharedLink] = useState<string>('');
   
   // Show loading state
   if (isLoading) {
@@ -1156,21 +1170,29 @@ function OpportunitiesTable() {
             <div className="bg-gray-50 p-3 rounded-md">
               <div className="flex justify-between items-center mb-2">
                 <div className="text-xs font-medium">Direct Link</div>
-                <div className="text-xs text-gray-500">Only accessible by people with permissions</div>
+                <div className="text-xs text-gray-500">Public link accessible to anyone</div>
               </div>
               <div className="flex">
                 <Input 
                   id="shareLink" 
-                  value={`https://qollabi.com/share/list/${activeList?.id}`}
+                  value={currentSharedLink || 'Click "Share List" to generate link...'}
                   readOnly
                   className="text-xs"
+                  placeholder="Generate shareable link"
                 />
                 <Button 
                   variant="outline" 
                   size="sm" 
                   className="ml-2"
+                  disabled={!currentSharedLink}
                   onClick={() => {
-                    navigator.clipboard.writeText(`https://qollabi.com/share/list/${activeList?.id}`);
+                    if (currentSharedLink) {
+                      navigator.clipboard.writeText(currentSharedLink);
+                      toast({
+                        title: "Link copied",
+                        description: "The shareable link has been copied to your clipboard.",
+                      });
+                    }
                   }}
                 >
                   Copy
@@ -1183,94 +1205,79 @@ function OpportunitiesTable() {
             <DialogClose asChild>
               <Button variant="outline">Cancel</Button>
             </DialogClose>
-            <Button onClick={() => {
-              // Handle sharing logic for both list and bulk opportunity sharing
-              const canEdit = (document.getElementById('canEdit') as HTMLInputElement)?.checked || false;
-              const canView = (document.getElementById('canView') as HTMLInputElement)?.checked || true;
-              const message = (document.getElementById('shareMessage') as HTMLTextAreaElement)?.value || '';
-              
-              // Collect all selected contact emails
-              const selectedContactEmails: string[] = [];
-              const selectedPartnerNames: string[] = [];
-              
-              opportunities.reduce((partners, opp) => {
-                if (!partners.some(p => p.id === opp.partnerId)) {
-                  partners.push({ id: opp.partnerId, name: opp.partnerName });
+            <Button onClick={async () => {
+              try {
+                const message = (document.getElementById('shareMessage') as HTMLTextAreaElement)?.value || '';
+                
+                // Determine what's being shared
+                const isListShare = selectedOpportunities.length === 0;
+                const isBulkOpportunityShare = selectedOpportunities.length > 0;
+
+                let shareData;
+                
+                if (isListShare && activeList) {
+                  // Sharing the entire saved list
+                  shareData = {
+                    list_name: activeList.name,
+                    list_description: activeList.description || null,
+                    entity_type: 'opportunities',
+                    data: opportunities,
+                    message: message
+                  };
+                } else if (isBulkOpportunityShare) {
+                  // Sharing selected opportunities
+                  const selectedOpportunitiesData = selectedOpportunities
+                    .map(id => opportunities.find(o => o.id === id))
+                    .filter(Boolean);
+                  
+                  shareData = {
+                    list_name: `${selectedOpportunities.length} Selected Opportunities`,
+                    list_description: `Shared opportunities: ${selectedOpportunitiesData.map(o => o.title).slice(0, 3).join(', ')}${selectedOpportunities.length > 3 ? '...' : ''}`,
+                    entity_type: 'opportunities',
+                    data: selectedOpportunitiesData,
+                    message: message
+                  };
+                } else {
+                  toast({
+                    title: "Nothing to share",
+                    description: "Please select opportunities or save a list first.",
+                    variant: "destructive"
+                  });
+                  return;
                 }
-                return partners;
-              }, [] as { id: number, name: string }[]).forEach(partner => {
-                const partnerContacts = [
-                  { id: 1, name: `${partner.name.split(' ')[0]} Manager`, email: `manager@${partner.name.toLowerCase().replace(/\s+/g, '')}.com` },
-                  { id: 2, name: `${partner.name.split(' ')[0]} Sales`, email: `sales@${partner.name.toLowerCase().replace(/\s+/g, '')}.com` },
-                  { id: 3, name: `${partner.name.split(' ')[0]} Admin`, email: `admin@${partner.name.toLowerCase().replace(/\s+/g, '')}.com` }
-                ];
-                
-                let hasSelectedContacts = false;
-                partnerContacts.forEach(contact => {
-                  const contactCheckbox = document.querySelector(`input[id="contact-${partner.id}-${contact.id}"]`) as HTMLInputElement;
-                  if (contactCheckbox?.checked) {
-                    selectedContactEmails.push(contact.email);
-                    hasSelectedContacts = true;
-                  }
-                });
-                
-                if (hasSelectedContacts && !selectedPartnerNames.includes(partner.name)) {
-                  selectedPartnerNames.push(partner.name);
-                }
-              });
-              
-              if (selectedContactEmails.length === 0) {
-                toast({
-                  title: "No contacts selected",
-                  description: "Please select at least one contact to share with.",
-                  variant: "destructive"
-                });
-                return;
-              }
 
-              // Determine what's being shared
-              const isListShare = selectedOpportunities.length === 0;
-              const isBulkOpportunityShare = selectedOpportunities.length > 0;
-
-              if (isListShare && activeList) {
-                // Sharing the entire list
-                const updatedLists = savedLists.map(list => {
-                  if (list.id === activeList.id) {
-                    return {
-                      ...list,
-                      isShared: true,
-                      sharedWith: [...(list.sharedWith || []), ...selectedContactEmails]
-                    };
-                  }
-                  return list;
-                });
+                // Create the shared list
+                const result = await createSharedListMutation.mutateAsync(shareData);
                 
-                setSavedLists(updatedLists);
-                setActiveList(updatedLists.find(v => v.id === activeList.id) || null);
+                // Generate the shareable URL
+                const baseUrl = window.location.origin;
+                const shareableUrl = `${baseUrl}/share/list/${result.share_token}`;
+                
+                setCurrentSharedLink(shareableUrl);
 
                 toast({
-                  title: "List shared successfully",
-                  description: `"${activeList.name}" has been shared with ${selectedContactEmails.length} contact${selectedContactEmails.length > 1 ? 's' : ''} at ${selectedPartnerNames.length} partner${selectedPartnerNames.length > 1 ? 's' : ''}.`
-                });
-              } else if (isBulkOpportunityShare) {
-                // Sharing selected opportunity records
-                const bulkOpportunityNames = selectedOpportunities
-                  .map(id => opportunities.find(o => o.id === id)?.title)
-                  .filter(Boolean)
-                  .slice(0, 3);
-
-                toast({
-                  title: "Opportunities shared successfully",
-                  description: `${selectedOpportunities.length} opportunity record${selectedOpportunities.length > 1 ? 's' : ''} (${bulkOpportunityNames.join(', ')}${selectedOpportunities.length > 3 ? '...' : ''}) shared with ${selectedContactEmails.length} contact${selectedContactEmails.length > 1 ? 's' : ''} at ${selectedPartnerNames.length} partner${selectedPartnerNames.length > 1 ? 's' : ''}.`
+                  title: "Shareable link created",
+                  description: "Your list has been made public. Anyone with the link can view it.",
                 });
 
                 // Clear selection after sharing
-                setSelectedOpportunities([]);
+                if (isBulkOpportunityShare) {
+                  setSelectedOpportunities([]);
+                }
+
+                setShowShareListModal(false);
+                
+              } catch (error) {
+                toast({
+                  title: "Error creating shared link",
+                  description: "Please try again.",
+                  variant: "destructive"
+                });
               }
-              
-              setShowShareListModal(false);
-            }}>
-              Share List
+            }}
+            disabled={createSharedListMutation.isPending}
+            >
+              {createSharedListMutation.isPending ? 'Creating Link...' : 'Share List'}
             </Button>
           </DialogFooter>
         </DialogContent>
