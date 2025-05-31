@@ -2167,6 +2167,55 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Template assignments API endpoints for De Goudse
+  app.get('/api/degoudse/template-assignments/:entityType', async (req, res) => {
+    try {
+      const { entityType } = req.params;
+      const envPool = getEnvironmentPool('degoudse');
+      
+      const result = await envPool.query(`
+        SELECT 
+          ta.*,
+          tm.name as template_name,
+          tm.description as template_description,
+          tm.tags
+        FROM degoudse.okr_template_assignments ta
+        LEFT JOIN degoudse.okr_metrics tm ON ta.template_id = tm.id
+        WHERE ta.entity_type = $1
+        ORDER BY ta.assigned_at DESC
+      `, [entityType]);
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching De Goudse template assignments:', error);
+      res.status(500).json({ error: 'Failed to fetch template assignments' });
+    }
+  });
+
+  app.post('/api/degoudse/template-assignments', async (req, res) => {
+    try {
+      const { templateIds, entityType, entityId, assignedBy, notes } = req.body;
+      const envPool = getEnvironmentPool('degoudse');
+      
+      const results = [];
+      for (const templateId of templateIds) {
+        const result = await envPool.query(`
+          INSERT INTO degoudse.okr_template_assignments 
+          (template_id, entity_type, entity_id, assigned_by, assigned_at, notes)
+          VALUES ($1, $2, $3, $4, NOW(), $5)
+          RETURNING *
+        `, [templateId, entityType, entityId, assignedBy, notes]);
+        
+        results.push(result.rows[0]);
+      }
+      
+      res.status(201).json(results);
+    } catch (error) {
+      console.error('Error creating De Goudse template assignments:', error);
+      res.status(500).json({ error: 'Failed to create template assignments' });
+    }
+  });
+
   // Mapping templates API endpoints for De Goudse
   app.get('/api/degoudse/mapping-templates', async (req, res) => {
     try {

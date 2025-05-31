@@ -362,12 +362,12 @@ function PartnersTable() {
     realizedValue: metric.realized_value || '0'
   }));
 
-  // Mutation for assigning templates
+  // Mutation for assigning templates - use De Goudse environment
   const assignTemplatesMutation = useMutation({
     mutationFn: async ({ templateIds, partnerIds }: { templateIds: number[], partnerIds: number[] }) => {
       const results = [];
       for (const partnerId of partnerIds) {
-        const response = await fetch('/api/template-assignments', {
+        const response = await fetch('/api/degoudse/template-assignments', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -385,7 +385,7 @@ function PartnersTable() {
       return results;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/template-assignments/partner'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/degoudse/template-assignments/partner'] });
       toast({
         title: "Templates assigned",
         description: `Successfully assigned ${selectedOKRTemplates.length} template(s) to ${selectedPartners.length} partner(s)`,
