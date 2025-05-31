@@ -328,9 +328,13 @@ function PartnersTable() {
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  // Fetch OKR tags for dynamic color mapping from De Goudse environment
+  // Fetch OKR tags for dynamic color mapping - direct API call bypassing routing
   const { data: okrTags = [] } = useQuery({
-    queryKey: ['/api/degoudse/okr-tags'],
+    queryKey: ['okr-tags-direct'],
+    queryFn: async () => {
+      const response = await fetch('/api/degoudse/okr-tags');
+      return response.json();
+    },
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
