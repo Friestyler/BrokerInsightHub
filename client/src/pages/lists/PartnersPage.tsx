@@ -340,13 +340,8 @@ function PartnersTable() {
 
   // Function to get tag color from database
   const getTagColor = (tagName: string) => {
-    console.log('Getting color for tag:', tagName);
-    console.log('Available tags:', okrTags);
     const tag = okrTags.find((t: any) => t.name === tagName);
-    console.log('Found tag:', tag);
-    const color = tag?.color || '#6B7280';
-    console.log('Returning color:', color);
-    return color;
+    return tag?.color || '#6B7280';
   };
 
   // Transform API data to match expected template format

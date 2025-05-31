@@ -55,10 +55,13 @@ export function SavedViewsManager({
   const queryClient = useQueryClient();
 
   // Fetch saved views
-  const { data: savedViews = [] } = useQuery({
+  const { data: savedViewsData = [] } = useQuery({
     queryKey: [`/api/saved-views`, entityType],
     queryFn: () => apiRequest('GET', `/api/saved-views?entity_type=${entityType}`)
   });
+
+  // Client-side filtering to ensure only relevant entity views are shown
+  const savedViews = savedViewsData.filter((view: any) => view.entity_type === entityType + 's');
 
   // Create new view mutation
   const createViewMutation = useMutation({
