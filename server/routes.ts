@@ -1883,13 +1883,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const entityType = req.query.entity_type as string;
       const envPool = getEnvironmentPool('degoudse');
       
+      console.log(`De Goudse saved views: entityType=${entityType}`);
+      
       // Force entity filtering to work correctly
       const query = entityType 
         ? `SELECT * FROM degoudse.saved_views WHERE entity_type = $1 ORDER BY created_at DESC`
         : `SELECT * FROM degoudse.saved_views ORDER BY created_at DESC`;
       
       const params = entityType ? [entityType] : [];
+      console.log(`Executing query: ${query} with params:`, params);
       const result = await envPool.query(query, params);
+      console.log(`Query returned ${result.rows.length} rows`);
       
       res.json(result.rows);
     } catch (error) {
@@ -3389,6 +3393,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const envId = req.headers['x-environment-id'] || 'myqollabi';
       const envPool = getEnvironmentPool(envId as string);
       
+      console.log(`Saved views API: entityType=${entityType}, envId=${envId}`);
+      
       let query = `SELECT * FROM ${envId}.saved_views`;
       const params = [];
       
@@ -3399,7 +3405,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       query += ` ORDER BY created_at DESC`;
       
+      console.log(`Executing query: ${query} with params:`, params);
       const result = await envPool.query(query, params);
+      console.log(`Query returned ${result.rows.length} rows`);
       
       res.json(result.rows);
     } catch (error) {
