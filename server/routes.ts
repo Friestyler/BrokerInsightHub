@@ -2608,8 +2608,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const sourcePool = getEnvironmentPool(sourceEnvId);
       const targetPool = getEnvironmentPool(targetEnvId);
 
-      // Create the new schema
-      await targetPool.query(`CREATE SCHEMA IF NOT EXISTS ${targetEnvId}`);
+      // Create the new schema (properly quoted)
+      await targetPool.query(`CREATE SCHEMA IF NOT EXISTS "${targetEnvId}"`);
 
       // Copy table structures (without data)
       const tables = ['customers', 'partners', 'opportunities', 'partner_customers', 'customer_opportunities', 'partner_opportunities'];
@@ -2620,16 +2620,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
           const tableStructure = await sourcePool.query(`
             SELECT column_name, data_type, character_maximum_length, is_nullable, column_default
             FROM information_schema.columns 
-            WHERE table_schema = '${sourceEnvId}' AND table_name = '${table}'
+            WHERE table_schema = $1 AND table_name = $2
             ORDER BY ordinal_position
-          `);
+          `, [sourceEnvId, table]);
 
           if (tableStructure.rows.length > 0) {
-            // Create table in target environment
-            let createTableSQL = `CREATE TABLE IF NOT EXISTS ${targetEnvId}.${table} (`;
+            // Create table in target environment (properly quoted)
+            let createTableSQL = `CREATE TABLE IF NOT EXISTS "${targetEnvId}"."${table}" (`;
             
             const columns = tableStructure.rows.map((col: any) => {
-              let colDef = `${col.column_name} ${col.data_type}`;
+              let colDef = `"${col.column_name}" ${col.data_type}`;
               if (col.character_maximum_length) {
                 colDef += `(${col.character_maximum_length})`;
               }
@@ -2873,8 +2873,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       // Get environment pool
       const envPool = getEnvironmentPool(envId);
       
-      // Drop the entire schema and all its contents
-      await envPool.query(`DROP SCHEMA IF EXISTS ${envId} CASCADE`);
+      // Drop the entire schema and all its contents (properly quoted)
+      await envPool.query(`DROP SCHEMA IF EXISTS "${envId}" CASCADE`);
 
       res.json({ 
         message: `Environment ${envId} has been permanently deleted`,
