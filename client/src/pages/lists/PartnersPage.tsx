@@ -337,6 +337,7 @@ function PartnersTable() {
   // Function to get tag color
   const getTagColor = (tagName: string) => {
     const tag = okrTags.find((t: any) => t.name === tagName);
+    console.log('Getting color for tag:', tagName, 'Found tag:', tag, 'Available tags:', okrTags.map((t: any) => t.name));
     return tag?.color || '#6B7280';
   };
 
