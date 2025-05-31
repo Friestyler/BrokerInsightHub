@@ -41,7 +41,7 @@ export default function PartnerDetailClean() {
 
   // Fetch template assignments for this partner
   const { data: templateAssignments } = useQuery({
-    queryKey: [`/api/template-assignments/partner/${id}`],
+    queryKey: [`/api/template-assignments/partner`],
     enabled: !!id,
   });
 
@@ -66,7 +66,10 @@ export default function PartnerDetailClean() {
   }
 
   // Get attached metrics for this partner
-  const attachedMetricIds = templateAssignments?.map((assignment: any) => assignment.template_id) || [];
+  const partnerAssignments = templateAssignments?.filter((assignment: any) => 
+    assignment.entity_type === 'partner' && assignment.entity_id === parseInt(id || '0')
+  ) || [];
+  const attachedMetricIds = partnerAssignments.map((assignment: any) => assignment.template_id) || [];
   const attachedMetrics = allMetrics?.filter((metric: any) => attachedMetricIds.includes(metric.id)) || [];
 
   // Filter and search logic for OKR metrics (same as template page)
