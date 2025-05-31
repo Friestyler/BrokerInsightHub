@@ -72,6 +72,14 @@ export default function PartnerDetailClean() {
   const attachedMetricIds = partnerAssignments.map((assignment: any) => assignment.template_id) || [];
   const attachedMetrics = allMetrics?.filter((metric: any) => attachedMetricIds.includes(metric.id)) || [];
 
+  // Debug logging
+  console.log('Partner ID:', id);
+  console.log('Template assignments:', templateAssignments);
+  console.log('Partner assignments:', partnerAssignments);
+  console.log('All metrics:', allMetrics);
+  console.log('Attached metric IDs:', attachedMetricIds);
+  console.log('Attached metrics:', attachedMetrics);
+
   // Filter and search logic for OKR metrics (same as template page)
   const filteredMetrics = attachedMetrics.filter((metric: any) => {
     const matchesSearch = metric.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
