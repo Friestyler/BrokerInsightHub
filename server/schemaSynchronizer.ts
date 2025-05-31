@@ -259,42 +259,32 @@ export async function getEnvironmentCounts(): Promise<Record<string, Record<stri
       const pool = getEnvironmentPool(envId);
       const schemaName = envId === 'myqollabi' ? 'myqollabi' : envId;
 
-      console.log(`Getting counts for environment ${envId} using schema ${schemaName}`);
-
       // Use direct SQL queries with explicit schema names (same pattern as working API endpoints)
       try {
         const partnersResult = await pool.query(`SELECT COUNT(*) as count FROM ${schemaName}.partners`);
         counts[envId]['partners'] = parseInt(partnersResult.rows[0]?.count || '0');
-        console.log(`${envId} partners count: ${counts[envId]['partners']}`);
       } catch (error) {
-        console.error(`Partners count error for ${envId}:`, error);
         counts[envId]['partners'] = 0;
       }
 
       try {
         const customersResult = await pool.query(`SELECT COUNT(*) as count FROM ${schemaName}.customers`);
         counts[envId]['customers'] = parseInt(customersResult.rows[0]?.count || '0');
-        console.log(`${envId} customers count: ${counts[envId]['customers']}`);
       } catch (error) {
-        console.error(`Customers count error for ${envId}:`, error);
         counts[envId]['customers'] = 0;
       }
 
       try {
         const opportunitiesResult = await pool.query(`SELECT COUNT(*) as count FROM ${schemaName}.opportunities`);
         counts[envId]['opportunities'] = parseInt(opportunitiesResult.rows[0]?.count || '0');
-        console.log(`${envId} opportunities count: ${counts[envId]['opportunities']}`);
       } catch (error) {
-        console.error(`Opportunities count error for ${envId}:`, error);
         counts[envId]['opportunities'] = 0;
       }
 
       try {
         const productsResult = await pool.query(`SELECT COUNT(*) as count FROM ${schemaName}.insurance_products`);
         counts[envId]['products'] = parseInt(productsResult.rows[0]?.count || '0');
-        console.log(`${envId} products count: ${counts[envId]['products']}`);
       } catch (error) {
-        console.error(`Products count error for ${envId}:`, error);
         counts[envId]['products'] = 0;
       }
 
