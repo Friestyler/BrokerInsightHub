@@ -1,7 +1,7 @@
 import { pool } from './db';
 
-// The list of schemas to ensure exist
-const schemas = ['myqollabi', 'degoudse'];
+// Only De Goudse schema - our primary environment
+const schemas = ['degoudse'];
 
 /**
  * Initializes schemas for all environments
