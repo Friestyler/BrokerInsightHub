@@ -2547,7 +2547,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const envPool = getEnvironmentPool(envId);
       const results = [];
 
-      if (!entityType || entityType === 'customers') {
+      if (!entityType || entityType === 'all' || entityType === 'customers') {
         // Delete relationship records first
         await envPool.query(`DELETE FROM ${envId}.partner_customers`);
         await envPool.query(`DELETE FROM ${envId}.customer_opportunities`);
@@ -2555,14 +2555,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         results.push('customers');
       }
 
-      if (!entityType || entityType === 'partners') {
+      if (!entityType || entityType === 'all' || entityType === 'partners') {
         await envPool.query(`DELETE FROM ${envId}.partner_customers`);
         await envPool.query(`DELETE FROM ${envId}.partner_opportunities`);
         await envPool.query(`DELETE FROM ${envId}.partners`);
         results.push('partners');
       }
 
-      if (!entityType || entityType === 'opportunities') {
+      if (!entityType || entityType === 'all' || entityType === 'opportunities') {
         await envPool.query(`DELETE FROM ${envId}.customer_opportunities`);
         await envPool.query(`DELETE FROM ${envId}.partner_opportunities`);
         // Delete products relationships if they exist
@@ -2575,7 +2575,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         results.push('opportunities');
       }
 
-      if (!entityType || entityType === 'products') {
+      if (!entityType || entityType === 'all' || entityType === 'products') {
         try {
           await envPool.query(`DELETE FROM ${envId}.opportunity_products`);
           await envPool.query(`DELETE FROM ${envId}.products`);

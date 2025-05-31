@@ -247,7 +247,7 @@ export default function DatabaseAdmin() {
                       <SelectValue placeholder="All entities" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">All entities</SelectItem>
+                      <SelectItem value="all">All entities</SelectItem>
                       {ENTITY_TYPES.map((entity) => (
                         <SelectItem key={entity.id} value={entity.id}>
                           {entity.name}
