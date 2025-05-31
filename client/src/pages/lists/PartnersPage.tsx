@@ -401,10 +401,23 @@ function PartnersTable() {
   // Filter partners based on search text, filter selections, and list membership
   const displayedPartners = partners
     .filter(partner => {
-      // If we have an active list that's not a default list, filter by membership
+      // Handle selection-based lists (with member IDs)
       if (activeList && !activeList.isDefault && activeList.type === 'selection' && Array.isArray(activeList.members)) {
-        // Only show partners that are members of the active list
         if (!activeList.members.includes(partner.id)) {
+          return false;
+        }
+      }
+      
+      // Handle filter-based lists from database
+      if (activeList && activeList.type === 'filter' && activeList.filters) {
+        // Apply database filters for saved lists
+        if (activeList.filters.status && partner.status !== activeList.filters.status) {
+          return false;
+        }
+        if (activeList.filters.industry && partner.industry !== activeList.filters.industry) {
+          return false;
+        }
+        if (activeList.filters.type && partner.type !== activeList.filters.type) {
           return false;
         }
       }
