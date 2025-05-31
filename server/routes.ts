@@ -1576,6 +1576,41 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get products for a specific customer in De Goudse environment
+  app.get('/api/degoudse/customers/:id/products', async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.id);
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query(`
+        SELECT DISTINCT p.*, v.name as vendor_name
+        FROM degoudse.products p
+        LEFT JOIN degoudse.vendors v ON p.vendor_id = v.id
+        INNER JOIN degoudse.opportunity_products op ON p.id = op.product_id
+        INNER JOIN degoudse.customer_opportunities co ON op.opportunity_id = co.opportunity_id
+        WHERE co.customer_id = $1
+        ORDER BY p.id
+      `, [customerId]);
+      
+      const products = result.rows.map((product: any) => ({
+        id: product.id,
+        name: product.name,
+        description: product.description,
+        type: product.type,
+        category: product.category,
+        price: product.price,
+        vendorName: product.vendor_name,
+        status: product.status || 'Active',
+        createdAt: product.created_at,
+        updatedAt: product.updated_at
+      }));
+      
+      res.json(products);
+    } catch (error) {
+      console.error('Error fetching De Goudse customer products:', error);
+      res.status(500).json({ error: 'Failed to fetch customer products' });
+    }
+  });
+
   app.get('/api/degoudse/opportunities/:id/products', async (req, res) => {
     try {
       const opportunityId = parseInt(req.params.id);

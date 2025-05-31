@@ -39,6 +39,12 @@ export default function CustomerDetailNew() {
     enabled: !!id,
   });
 
+  // Fetch related products for this customer
+  const { data: relatedProducts, isLoading: productsLoading } = useQuery({
+    queryKey: [`/api/customers/${id}/products`],
+    enabled: !!id,
+  });
+
   // Fetch template assignments for this customer
   const { data: templateAssignments } = useQuery({
     queryKey: [`/api/template-assignments/customer/${id}`],
@@ -169,6 +175,16 @@ export default function CustomerDetailNew() {
               }`}
             >
               Opportunities ({relatedOpportunities?.length || 0})
+            </button>
+            <button 
+              onClick={() => setActiveTab("products")}
+              className={`py-2 px-1 text-sm font-medium border-b-2 whitespace-nowrap ${
+                activeTab === "products" 
+                  ? "bg-blue-100 text-blue-700 border-blue-600" 
+                  : "text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300"
+              }`}
+            >
+              Products ({relatedProducts?.length || 0})
             </button>
           </nav>
         </div>
@@ -397,6 +413,69 @@ export default function CustomerDetailNew() {
                 ))}
               </TableBody>
             </Table>
+          </div>
+        )}
+
+        {activeTab === "products" && (
+          <div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-12"><Checkbox /></TableHead>
+                  <TableHead>Product</TableHead>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead>Vendor</TableHead>
+                  <TableHead>Price</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {relatedProducts?.map((product: any) => (
+                  <TableRow key={product.id}>
+                    <TableCell><Checkbox /></TableCell>
+                    <TableCell>
+                      <span className="font-medium text-gray-900">
+                        {product.name}
+                      </span>
+                      {product.description && (
+                        <div className="text-sm text-gray-500">{product.description}</div>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-gray-900">
+                        {product.type || 'Product'}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-gray-900">
+                        {product.category || 'General'}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-gray-900">
+                        {product.vendorName || 'No vendor'}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-gray-900">
+                        {product.price ? `€${product.price}` : 'Contact for price'}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
+                        {product.status || 'Active'}
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            {(!relatedProducts || relatedProducts.length === 0) && (
+              <div className="text-center py-12">
+                <p className="text-gray-500">No products associated with this customer</p>
+              </div>
+            )}
           </div>
         )}
       </div>
