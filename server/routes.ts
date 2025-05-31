@@ -1904,7 +1904,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/degoudse/saved-lists', async (req, res) => {
     try {
       const entityType = req.query.entity_type as string;
-      console.log('De Goudse saved lists request - entity_type:', entityType);
+      console.log('🔵 DE GOUDSE SAVED LISTS ROUTE HIT - entity_type:', entityType);
       const envPool = getEnvironmentPool('degoudse');
       
       let query = 'SELECT * FROM degoudse.saved_lists';
@@ -1913,18 +1913,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       if (entityType) {
         query += ' WHERE entity_type = $1';
         params.push(entityType);
-        console.log('Filtering by entity_type:', entityType, 'Query:', query);
+        console.log('🔍 Filtering by entity_type:', entityType, 'Query:', query);
       } else {
-        console.log('No entity_type filter, returning all saved lists');
+        console.log('⚠️ No entity_type filter, returning all saved lists');
       }
       
       query += ' ORDER BY created_at DESC';
       
       const result = await envPool.query(query, params);
-      console.log('Query result rows count:', result.rows.length);
+      console.log('📊 Query result rows count:', result.rows.length);
       res.json(result.rows);
     } catch (error) {
-      console.error('Error fetching De Goudse saved lists:', error);
+      console.error('❌ Error fetching De Goudse saved lists:', error);
       res.status(500).json({ error: 'Failed to fetch saved lists' });
     }
   });
