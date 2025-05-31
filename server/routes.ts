@@ -1880,8 +1880,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/degoudse/saved-views', async (req, res) => {
     try {
+      const entityType = req.query.entity_type as string;
       const envPool = getEnvironmentPool('degoudse');
-      const result = await envPool.query('SELECT * FROM degoudse.saved_views ORDER BY id');
+      
+      let query = 'SELECT * FROM degoudse.saved_views';
+      const params = [];
+      
+      if (entityType) {
+        query += ' WHERE entity_type = $1';
+        params.push(entityType);
+      }
+      
+      query += ' ORDER BY created_at DESC';
+      
+      const result = await envPool.query(query, params);
       res.json(result.rows);
     } catch (error) {
       console.error('Error fetching De Goudse saved views:', error);
@@ -1891,8 +1903,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/degoudse/saved-lists', async (req, res) => {
     try {
+      const entityType = req.query.entity_type as string;
+      console.log('De Goudse saved lists request - entity_type:', entityType);
       const envPool = getEnvironmentPool('degoudse');
-      const result = await envPool.query('SELECT * FROM degoudse.saved_lists ORDER BY id');
+      
+      let query = 'SELECT * FROM degoudse.saved_lists';
+      const params = [];
+      
+      if (entityType) {
+        query += ' WHERE entity_type = $1';
+        params.push(entityType);
+        console.log('Filtering by entity_type:', entityType, 'Query:', query);
+      } else {
+        console.log('No entity_type filter, returning all saved lists');
+      }
+      
+      query += ' ORDER BY created_at DESC';
+      
+      const result = await envPool.query(query, params);
+      console.log('Query result rows count:', result.rows.length);
       res.json(result.rows);
     } catch (error) {
       console.error('Error fetching De Goudse saved lists:', error);
