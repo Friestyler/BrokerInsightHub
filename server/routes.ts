@@ -2495,6 +2495,49 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Database Administration Endpoints
   // These endpoints should not be environment-specific as they manage all environments
 
+  // Get all available environments
+  app.get('/api/admin/environments', async (req, res) => {
+    try {
+      // Get all schemas from the database
+      const schemasResult = await pools.myqollabi.query(`
+        SELECT schema_name 
+        FROM information_schema.schemata 
+        WHERE schema_name NOT IN ('information_schema', 'pg_catalog', 'pg_toast') 
+        ORDER BY schema_name
+      `);
+
+      const environments = schemasResult.rows.map((row: any) => {
+        const envId = row.schema_name;
+        
+        // Create environment names based on schema names
+        let name = envId;
+        if (envId === 'qollabi') name = 'My Qollabi';
+        else if (envId === 'degoudse') name = 'De Goudse';
+        else if (envId === 'acme') name = 'Acme Corp';
+        else if (envId === 'globex') name = 'Globex Corporation';
+        else if (envId === 'oceanic') name = 'Oceanic Industries';
+        else {
+          // For dynamically created environments, format the name nicely
+          name = envId.split('_').map(word => 
+            word.charAt(0).toUpperCase() + word.slice(1)
+          ).join(' ');
+        }
+
+        return {
+          id: envId,
+          name,
+          apiBaseUrl: envId === 'qollabi' ? '/api' : `/api/${envId}`,
+          databaseId: `${envId}_db`
+        };
+      });
+
+      res.json(environments);
+    } catch (error) {
+      console.error('Error fetching environments:', error);
+      res.status(500).json({ error: 'Failed to fetch environments' });
+    }
+  });
+
   // Get environment statistics
   app.get('/api/admin/environment-stats', async (req, res) => {
     try {

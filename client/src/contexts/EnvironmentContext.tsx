@@ -10,10 +10,17 @@ export interface Environment {
   databaseId: string; // Identifier for the database to use
 }
 
-// Define available environments
-export const ENVIRONMENTS: Environment[] = [
+// Helper function to get logo for environment
+const getEnvironmentLogo = (envId: string): string | undefined => {
+  if (envId === 'qollabi' || envId === 'degoudse') return qollabiLogo;
+  if (envId === 'acme') return acmeLogo;
+  return undefined;
+};
+
+// Fallback environments in case API fails
+const FALLBACK_ENVIRONMENTS: Environment[] = [
   { 
-    id: "myqollabi", 
+    id: "qollabi", 
     name: "My Qollabi", 
     logo: qollabiLogo,
     apiBaseUrl: "/api",
@@ -25,49 +32,60 @@ export const ENVIRONMENTS: Environment[] = [
     logo: qollabiLogo,
     apiBaseUrl: "/api/degoudse",
     databaseId: "degoudse_db"
-  },
-  { 
-    id: "acme", 
-    name: "ACME CO", 
-    logo: acmeLogo,
-    apiBaseUrl: "/api/acme",
-    databaseId: "acme_db"
-  },
-  { 
-    id: "globex", 
-    name: "Globex Corp",
-    apiBaseUrl: "/api/globex",
-    databaseId: "globex_db"
-  },
-  { 
-    id: "oceanic", 
-    name: "Oceanic Airlines",
-    apiBaseUrl: "/api/oceanic",
-    databaseId: "oceanic_db"
   }
 ];
-
-// Get environment from localStorage or use default
-const getInitialEnvironment = (): Environment => {
-  const savedEnvId = localStorage.getItem('selectedEnvironment');
-  return ENVIRONMENTS.find(env => env.id === savedEnvId) || ENVIRONMENTS[0];
-};
 
 // Create context
 interface EnvironmentContextType {
   environment: Environment;
   setEnvironment: (envId: string) => void;
   environments: Environment[];
+  refreshEnvironments: () => void;
 }
 
 const EnvironmentContext = createContext<EnvironmentContextType | undefined>(undefined);
 
 // Provider component
 export const EnvironmentProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [environment, setEnvironmentState] = useState<Environment>(getInitialEnvironment);
+  const [environments, setEnvironments] = useState<Environment[]>(FALLBACK_ENVIRONMENTS);
+  const [environment, setEnvironmentState] = useState<Environment>(() => {
+    const savedEnvId = localStorage.getItem('selectedEnvironment');
+    return FALLBACK_ENVIRONMENTS.find(env => env.id === savedEnvId) || FALLBACK_ENVIRONMENTS[0];
+  });
+
+  // Load environments from API
+  const loadEnvironments = async () => {
+    try {
+      const response = await fetch('/api/admin/environments');
+      if (response.ok) {
+        const loadedEnvironments = await response.json();
+        const enrichedEnvironments = loadedEnvironments.map((env: any) => ({
+          ...env,
+          logo: getEnvironmentLogo(env.id)
+        }));
+        setEnvironments(enrichedEnvironments);
+        
+        // Update current environment if it's not in the new list
+        const savedEnvId = localStorage.getItem('selectedEnvironment');
+        if (savedEnvId) {
+          const currentEnv = enrichedEnvironments.find((e: Environment) => e.id === savedEnvId);
+          if (currentEnv) {
+            setEnvironmentState(currentEnv);
+          }
+        }
+      }
+    } catch (error) {
+      console.log('Failed to load environments, using fallback list');
+    }
+  };
+
+  // Load environments on mount
+  useEffect(() => {
+    loadEnvironments();
+  }, []);
   
   const setEnvironment = (envId: string) => {
-    const newEnv = ENVIRONMENTS.find(e => e.id === envId) || ENVIRONMENTS[0];
+    const newEnv = environments.find(e => e.id === envId) || environments[0];
     setEnvironmentState(newEnv);
     localStorage.setItem('selectedEnvironment', newEnv.id);
     
@@ -75,9 +93,11 @@ export const EnvironmentProvider: React.FC<{ children: React.ReactNode }> = ({ c
     window.__APP_ENV__ = newEnv.id;
     
     // Reload the application to apply the new environment
-    // This is a simple approach - a more sophisticated implementation would
-    // use the React Query queryClient to invalidate all queries
     window.location.reload();
+  };
+
+  const refreshEnvironments = () => {
+    loadEnvironments();
   };
   
   // Make the environment available globally for non-React code
@@ -86,7 +106,7 @@ export const EnvironmentProvider: React.FC<{ children: React.ReactNode }> = ({ c
   }, [environment]);
   
   return (
-    <EnvironmentContext.Provider value={{ environment, setEnvironment, environments: ENVIRONMENTS }}>
+    <EnvironmentContext.Provider value={{ environment, setEnvironment, environments, refreshEnvironments }}>
       {children}
     </EnvironmentContext.Provider>
   );
