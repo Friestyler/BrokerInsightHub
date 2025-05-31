@@ -821,17 +821,26 @@ export default function CustomersPageClean() {
                         </Avatar>
                       </div>
                       <div className="ml-3">
-                        <div className="font-medium text-gray-900">
-                          {customer.name}
-                        </div>
+                        <Link href={`/lists/customers/${customer.id}`}>
+                          <div className="font-medium text-indigo-600 hover:text-indigo-800 hover:underline cursor-pointer">
+                            {customer.name}
+                          </div>
+                        </Link>
                       </div>
                     </div>
                   </td>
                   <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
                     <div className="flex flex-col space-y-1">
-                      <span className="text-gray-900">
-                        {customer.partnerNames || 'No Partner'}
-                      </span>
+                      {customer.partnerNames ? (
+                        <Link 
+                          href={`/lists/partners/${customer.partnerId || 1}`}
+                          className="text-indigo-600 hover:text-indigo-800 hover:underline"
+                        >
+                          {customer.partnerNames}
+                        </Link>
+                      ) : (
+                        <span className="text-gray-900">No Partner</span>
+                      )}
                       <div className="flex space-x-2 text-xs text-gray-500">
                         <span>Partners: {customer.partnerCount || 0}</span>
                         <span>•</span>
