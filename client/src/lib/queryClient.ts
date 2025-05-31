@@ -21,6 +21,12 @@ export function getEnvironmentUrl(url: string): string {
   
   console.log('Environment URL transformation:', { envId, originalUrl: url });
   
+  // Don't modify admin URLs as they are global and manage all environments
+  if (url.includes('/api/admin/')) {
+    console.log('Admin URL detected, skipping environment transformation');
+    return url;
+  }
+  
   // Don't modify URLs that already include environment information
   if (url.includes('/degoudse') || url.includes('/acme') || url.includes('/globex') || url.includes('/oceanic')) {
     console.log('URL already has environment prefix, returning as-is');

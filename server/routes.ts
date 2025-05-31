@@ -2493,6 +2493,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Database Administration Endpoints
+  // These endpoints should not be environment-specific as they manage all environments
 
   // Get environment statistics
   app.get('/api/admin/environment-stats', async (req, res) => {
