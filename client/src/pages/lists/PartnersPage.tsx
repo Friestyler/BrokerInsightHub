@@ -328,17 +328,28 @@ function PartnersTable() {
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
-  // Fetch OKR tags for color mapping
-  const { data: okrTags = [] } = useQuery({
-    queryKey: ['/api/okr-tags'],
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
-
-  // Function to get tag color
+  // Simple tag color mapping - direct colors without complex routing
   const getTagColor = (tagName: string) => {
-    const tag = okrTags.find((t: any) => t.name === tagName);
-    console.log('Getting color for tag:', tagName, 'Found tag:', tag, 'Available tags:', okrTags.map((t: any) => t.name));
-    return tag?.color || '#6B7280';
+    const tagColors: Record<string, string> = {
+      'partnership': '#3B82F6',
+      'growth': '#84CC16', 
+      'insurance': '#6366F1',
+      'quality': '#10B981',
+      'products': '#F59E0B',
+      'diversification': '#EF4444',
+      'portfolio': '#06B6D4',
+      'acquisition': '#EC4899',
+      'customers': '#14B8A6',
+      'performance': '#F97316',
+      'solar': '#FBBF24',
+      'conversion': '#8B5CF6',
+      'renewable': '#10B981',
+      'claims': '#EF4444',
+      'efficiency': '#06B6D4',
+      'engagement': '#8B5CF6',
+      'traffic': '#F59E0B'
+    };
+    return tagColors[tagName] || '#6B7280';
   };
 
   // Transform API data to match expected template format
