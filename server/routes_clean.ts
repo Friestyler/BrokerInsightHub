@@ -153,6 +153,105 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Partner relationship endpoints
+  app.get('/api/degoudse/partners/:id/customers', async (req, res) => {
+    try {
+      const partnerId = parseInt(req.params.id);
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query(`
+        SELECT c.* 
+        FROM degoudse.customers c
+        JOIN degoudse.partner_customers pc ON c.id = pc.customer_id
+        WHERE pc.partner_id = $1
+        ORDER BY c.name
+      `, [partnerId]);
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching partner customers:', error);
+      res.json([]);
+    }
+  });
+
+  app.get('/api/degoudse/partners/:id/opportunities', async (req, res) => {
+    try {
+      const partnerId = parseInt(req.params.id);
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query(`
+        SELECT o.* 
+        FROM degoudse.opportunities o
+        JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
+        WHERE po.partner_id = $1
+        ORDER BY o.title
+      `, [partnerId]);
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching partner opportunities:', error);
+      res.json([]);
+    }
+  });
+
+  // Customer relationship endpoints
+  app.get('/api/degoudse/customers/:id/partners', async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.id);
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query(`
+        SELECT p.* 
+        FROM degoudse.partners p
+        JOIN degoudse.partner_customers pc ON p.id = pc.partner_id
+        WHERE pc.customer_id = $1
+        ORDER BY p.name
+      `, [customerId]);
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching customer partners:', error);
+      res.json([]);
+    }
+  });
+
+  app.get('/api/degoudse/customers/:id/opportunities', async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.id);
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query(`
+        SELECT o.* 
+        FROM degoudse.opportunities o
+        JOIN degoudse.customer_opportunities co ON o.id = co.opportunity_id
+        WHERE co.customer_id = $1
+        ORDER BY o.title
+      `, [customerId]);
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching customer opportunities:', error);
+      res.json([]);
+    }
+  });
+
+  app.get('/api/degoudse/customers/:id/products', async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.id);
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query(`
+        SELECT DISTINCT p.* 
+        FROM degoudse.products p
+        JOIN degoudse.opportunity_products op ON p.id = op.product_id
+        JOIN degoudse.opportunities o ON o.id = op.opportunity_id
+        JOIN degoudse.customer_opportunities co ON o.id = co.opportunity_id
+        WHERE co.customer_id = $1
+        ORDER BY p.name
+      `, [customerId]);
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching customer products:', error);
+      res.json([]);
+    }
+  });
+
   app.get('/api/degoudse/opportunities', async (req, res) => {
     try {
       const envPool = getEnvironmentPool('degoudse');
