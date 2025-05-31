@@ -1767,8 +1767,10 @@ function PartnersTable() {
                       return a.localeCompare(b);
                     });
 
-                    return sortedGroups.map(([tag, templates]) => (
-                      <div key={tag} className="space-y-3">
+                    return sortedGroups.map(([tag, templates]) => {
+                      console.log('Rendering tag:', tag, 'Expected partnership color for tag "partnership"');
+                      return (
+                        <div key={tag} className="space-y-3">
                         {/* Tag Group Header - Left Aligned like Coming Soon tab */}
                         <div className="pt-4 pb-2 first:pt-0">
                           <span 
