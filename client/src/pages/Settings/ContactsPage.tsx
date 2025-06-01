@@ -68,10 +68,16 @@ export default function ContactsPage() {
       const { getEnvironmentUrl } = await import('@/lib/queryClient');
       const url = getEnvironmentUrl('/api/contacts');
       
+      console.log('Loading contacts from URL:', url);
       const response = await fetch(url);
+      console.log('Contacts response status:', response.status);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('Contacts data received:', data);
         setContacts(data);
+      } else {
+        console.error('Failed to load contacts:', response.status, response.statusText);
       }
     } catch (error) {
       console.error('Error loading contacts:', error);
