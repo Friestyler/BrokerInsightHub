@@ -388,9 +388,84 @@ function OpportunitiesTable() {
   const [currentSharedLink, setCurrentSharedLink] = useState<string>('');
   const [existingSharedLinks, setExistingSharedLinks] = useState<any[]>([]);
   
+  // Create opportunity state
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [formData, setFormData] = useState({
+    title: '',
+    description: '',
+    partnerName: '',
+    customerName: '',
+    value: '',
+    probability: 50,
+    status: 'Qualifying',
+    type: 'New Business',
+    closeDate: ''
+  });
+  
   // Fetch existing shared links when activeList changes
   const { data: sharedLinksData } = useExistingSharedLinks(activeList?.id || null);
   
+  const handleCreateOpportunity = async () => {
+    if (!formData.title.trim() || !formData.description.trim()) {
+      toast({
+        title: "Validation Error",
+        description: "Title and description are required fields.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsCreating(true);
+    try {
+      const response = await fetch('/api/opportunities', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...formData,
+          value: formData.value ? parseFloat(formData.value) : 0,
+          closeDate: formData.closeDate || null
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create opportunity');
+      }
+
+      const newOpportunity = await response.json();
+      
+      // Invalidate and refetch opportunities data
+      queryClient.invalidateQueries({ queryKey: ['/api/opportunities'] });
+      
+      toast({
+        title: "Opportunity Created",
+        description: `"${formData.title}" has been created successfully.`
+      });
+
+      // Reset form and close modal
+      setFormData({
+        title: '',
+        description: '',
+        partnerName: '',
+        customerName: '',
+        value: '',
+        probability: 50,
+        status: 'Qualifying',
+        type: 'New Business',
+        closeDate: ''
+      });
+      setShowCreateModal(false);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to create opportunity. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
   // Update existing shared links when data changes
   useEffect(() => {
     if (sharedLinksData) {
@@ -784,10 +859,7 @@ function OpportunitiesTable() {
               <Button 
                 size="sm" 
                 className="flex items-center bg-indigo-600 hover:bg-indigo-700"
-                onClick={() => {
-                  // Navigate to the dashboard to use the create opportunity functionality
-                  window.location.href = '/';
-                }}
+                onClick={() => setShowCreateModal(true)}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
                   <line x1="12" y1="5" x2="12" y2="19"></line>
@@ -1418,6 +1490,132 @@ function OpportunitiesTable() {
         )}
       </div>
       
+      {/* Create Opportunity Modal */}
+      <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
+        <DialogContent className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle>Create New Opportunity</DialogTitle>
+            <DialogDescription>
+              Add a new opportunity to your pipeline. Fill in the required information below.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="title">Title *</Label>
+                <Input
+                  id="title"
+                  value={formData.title}
+                  onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                  placeholder="Enter opportunity title"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="value">Value</Label>
+                <Input
+                  id="value"
+                  type="number"
+                  value={formData.value}
+                  onChange={(e) => setFormData(prev => ({ ...prev, value: e.target.value }))}
+                  placeholder="0"
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="description">Description *</Label>
+              <Textarea
+                id="description"
+                value={formData.description}
+                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Describe the opportunity"
+                rows={3}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="partnerName">Partner</Label>
+                <Input
+                  id="partnerName"
+                  value={formData.partnerName}
+                  onChange={(e) => setFormData(prev => ({ ...prev, partnerName: e.target.value }))}
+                  placeholder="Partner name"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="customerName">Customer</Label>
+                <Input
+                  id="customerName"
+                  value={formData.customerName}
+                  onChange={(e) => setFormData(prev => ({ ...prev, customerName: e.target.value }))}
+                  placeholder="Customer name"
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="status">Status</Label>
+                <Select value={formData.status} onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Qualifying">Qualifying</SelectItem>
+                    <SelectItem value="Needs Analysis">Needs Analysis</SelectItem>
+                    <SelectItem value="Proposal">Proposal</SelectItem>
+                    <SelectItem value="Negotiation">Negotiation</SelectItem>
+                    <SelectItem value="Closed Won">Closed Won</SelectItem>
+                    <SelectItem value="Closed Lost">Closed Lost</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="type">Type</Label>
+                <Select value={formData.type} onValueChange={(value) => setFormData(prev => ({ ...prev, type: value }))}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="New Business">New Business</SelectItem>
+                    <SelectItem value="Renewal">Renewal</SelectItem>
+                    <SelectItem value="Upsell">Upsell</SelectItem>
+                    <SelectItem value="Cross-sell">Cross-sell</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="probability">Probability (%)</Label>
+                <Input
+                  id="probability"
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={formData.probability}
+                  onChange={(e) => setFormData(prev => ({ ...prev, probability: parseInt(e.target.value) || 0 }))}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="closeDate">Expected Close Date</Label>
+                <Input
+                  id="closeDate"
+                  type="date"
+                  value={formData.closeDate}
+                  onChange={(e) => setFormData(prev => ({ ...prev, closeDate: e.target.value }))}
+                />
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCreateModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleCreateOpportunity} disabled={isCreating}>
+              {isCreating ? 'Creating...' : 'Create Opportunity'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
     </div>
   );
