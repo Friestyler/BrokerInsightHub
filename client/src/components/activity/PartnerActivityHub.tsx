@@ -525,23 +525,36 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
 
           {/* Next Best Actions */}
           {selectedActivityType === 'actions' && (
-            <div className="space-y-3">
+            <div className={`space-y-3 transition-all duration-500 ${highlightActions ? 'ring-2 ring-purple-300 ring-opacity-75 bg-purple-50 rounded-lg p-3 -m-3' : ''}`}>
               <div className="flex items-center gap-2 mb-3">
                 <Sparkles className="h-4 w-4 text-purple-600" />
                 <span className="text-sm font-medium text-gray-700">Next Best Actions</span>
+                {highlightActions && (
+                  <Badge className="bg-purple-100 text-purple-800 animate-pulse">
+                    New
+                  </Badge>
+                )}
               </div>
               {actions.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
-                  <Sparkles className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                  <Brain className="h-8 w-8 mx-auto mb-2 text-gray-400" />
                   <p className="text-sm">No AI suggestions available</p>
                   <p className="text-xs text-gray-400 mt-1">Generate new recommendations with the AI button above</p>
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {actions.map((action: NextBestAction) => (
-                    <div key={action.id} className="p-3 bg-white border border-purple-200 rounded-lg">
+                  {actions.map((action: NextBestAction, index) => (
+                    <div 
+                      key={action.id} 
+                      className={`p-3 bg-white border rounded-lg transition-all duration-300 ${
+                        highlightActions 
+                          ? 'border-purple-300 shadow-md animate-pulse' 
+                          : 'border-purple-200'
+                      }`}
+                      style={highlightActions ? { animationDelay: `${index * 100}ms` } : {}}
+                    >
                       <div className="flex items-center gap-2 mb-2">
-                        <Sparkles className="h-3 w-3 text-purple-600" />
+                        <Brain className="h-3 w-3 text-purple-600" />
                         <h4 className="font-medium text-sm text-gray-900">{action.title}</h4>
                         <Badge className={priorityColors[action.priority as keyof typeof priorityColors]}>
                           {action.priority}
