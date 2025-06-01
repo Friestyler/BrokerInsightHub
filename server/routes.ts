@@ -2001,7 +2001,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status, 
         type, 
         probability,
-        value || null,
+        value || 0,
         closeDate || null
       ]);
       
