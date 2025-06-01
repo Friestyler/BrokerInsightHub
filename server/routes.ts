@@ -2219,7 +2219,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // List sharing API endpoints for De Goudse
   app.post('/api/degoudse/shared-lists', async (req, res) => {
     try {
-      const { listId, entityType, permissions, message, createdBy } = req.body;
+      const { list_name, list_description, entity_type, data, message } = req.body;
       const envPool = getEnvironmentPool('degoudse');
       
       // Generate a unique share token
@@ -2227,16 +2227,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const result = await envPool.query(`
         INSERT INTO degoudse.shared_lists 
-        (share_token, list_id, entity_type, permissions, message, created_by, created_at, expires_at)
-        VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW() + INTERVAL '30 days')
+        (share_token, list_name, list_description, entity_type, data, message, created_by, created_at, expires_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW() + INTERVAL '30 days')
         RETURNING *
-      `, [shareToken, listId, entityType, JSON.stringify(permissions), message, createdBy]);
-      
-      const shareUrl = `${req.protocol}://${req.get('host')}/share/list/${shareToken}`;
+      `, [shareToken, list_name, list_description, entity_type, JSON.stringify(data), message, 'current-user']);
       
       res.status(201).json({
         ...result.rows[0],
-        shareUrl
+        share_token: shareToken
       });
     } catch (error) {
       console.error('Error creating shared list:', error);
