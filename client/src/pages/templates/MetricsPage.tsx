@@ -48,7 +48,7 @@ const mockOKRTemplates = [
     type: "currency",
     target: 1000000,
     tag: "Revenue Growth",
-    timeframe: "Yearly",
+    timeframe: "2025",
     milestoneFrequency: "Monthly",
     isExpanded: false,
     nestedCount: 2
@@ -59,7 +59,7 @@ const mockOKRTemplates = [
     type: "percent",
     target: 85,
     tag: "Customer Experience",
-    timeframe: "Quarterly",
+    timeframe: "Q1 2025",
     milestoneFrequency: "Monthly",
     isExpanded: false,
     nestedCount: 0
@@ -70,10 +70,32 @@ const mockOKRTemplates = [
     type: "checkbox",
     target: null,
     tag: "Product Innovation",
-    timeframe: "Quarterly",
+    timeframe: "Q2 2025",
     milestoneFrequency: "Weekly",
     isExpanded: false,
     nestedCount: 3
+  },
+  {
+    id: 4,
+    title: "Expand Market Reach",
+    type: "number",
+    target: 50,
+    tag: "Market Expansion",
+    timeframe: "H1 2025",
+    milestoneFrequency: "Quarterly",
+    isExpanded: false,
+    nestedCount: 1
+  },
+  {
+    id: 5,
+    title: "Team Development Program",
+    type: "percent",
+    target: 90,
+    tag: "Team Development",
+    timeframe: "2025",
+    milestoneFrequency: "Quarterly",
+    isExpanded: false,
+    nestedCount: 0
   }
 ];
 
