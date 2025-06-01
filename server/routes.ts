@@ -2282,14 +2282,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         `);
         listData = dataResult.rows;
       } else if (sharedList.entity_type === 'opportunities') {
-        const dataResult = await envPool.query(`
-          SELECT o.*, p.name as partner_name, c.name as customer_name
-          FROM degoudse.opportunities o
-          LEFT JOIN degoudse.partners p ON o.partner_id = p.id
-          LEFT JOIN degoudse.customers c ON o.customer_id = c.id
-          ORDER BY o.title
-        `);
-        listData = dataResult.rows;
+        // Use the stored data directly instead of querying the database
+        // This ensures we show exactly what was shared
+        listData = sharedList.data || [];
       }
       
       res.json({
