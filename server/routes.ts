@@ -2216,10 +2216,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get existing shared links for a list
+  app.get('/api/degoudse/shared-lists/by-list/:listId', async (req, res) => {
+    try {
+      const { listId } = req.params;
+      const envPool = getEnvironmentPool('degoudse');
+      
+      const result = await envPool.query(`
+        SELECT share_token, list_name, list_description, message, created_at, expires_at
+        FROM degoudse.shared_lists 
+        WHERE list_id = $1 AND expires_at > NOW()
+        ORDER BY created_at DESC
+      `, [listId]);
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching shared links:', error);
+      res.status(500).json({ error: 'Failed to fetch shared links' });
+    }
+  });
+
   // List sharing API endpoints for De Goudse
   app.post('/api/degoudse/shared-lists', async (req, res) => {
     try {
-      const { list_name, list_description, entity_type, data, message } = req.body;
+      const { list_name, list_description, entity_type, data, message, list_id } = req.body;
       const envPool = getEnvironmentPool('degoudse');
       
       // Generate a unique share token
@@ -2227,10 +2247,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const result = await envPool.query(`
         INSERT INTO degoudse.shared_lists 
-        (share_token, list_name, list_description, entity_type, data, message, created_by, created_at, expires_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW() + INTERVAL '30 days')
+        (share_token, list_name, list_description, entity_type, data, message, list_id, created_by, created_at, expires_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW() + INTERVAL '30 days')
         RETURNING *
-      `, [shareToken, list_name, list_description, entity_type, JSON.stringify(data), message, 1]);
+      `, [shareToken, list_name, list_description, entity_type, JSON.stringify(data), message, list_id || null, 1]);
       
       res.status(201).json({
         ...result.rows[0],

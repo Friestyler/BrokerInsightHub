@@ -69,6 +69,16 @@ const useSavedViews = () => {
   });
 };
 
+// Hook to fetch existing shared links for a list
+const useExistingSharedLinks = (listId: number | null) => {
+  return useQuery({
+    queryKey: ['/api/shared-lists/by-list', listId],
+    queryFn: () => apiRequest('GET', `/api/shared-lists/by-list/${listId}`),
+    enabled: !!listId,
+    staleTime: 1 * 60 * 1000,
+  });
+};
+
 const useCreateSavedView = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -243,6 +253,36 @@ function OpportunitiesTable() {
   const [pendingListAction, setPendingListAction] = useState<any>(null);
   const [showUnsavedChangesModal, setShowUnsavedChangesModal] = useState(false);
   const [currentSharedLink, setCurrentSharedLink] = useState<string>('');
+  const [existingSharedLinks, setExistingSharedLinks] = useState<any[]>([]);
+  
+  // Fetch existing shared links when activeList changes
+  const { data: sharedLinksData } = useExistingSharedLinks(activeList?.id || null);
+  
+  // Update existing shared links when data changes
+  useEffect(() => {
+    if (sharedLinksData) {
+      setExistingSharedLinks(sharedLinksData);
+      // If there are existing links, show the most recent one
+      if (sharedLinksData.length > 0) {
+        const baseUrl = window.location.origin;
+        const mostRecentLink = `${baseUrl}/share/list/${sharedLinksData[0].share_token}`;
+        setCurrentSharedLink(mostRecentLink);
+      }
+    } else {
+      setExistingSharedLinks([]);
+      setCurrentSharedLink('');
+    }
+  }, [sharedLinksData]);
+  
+  // Reset sharing state when share modal opens
+  useEffect(() => {
+    if (showShareListModal && activeList?.id) {
+      // The existing links will be automatically loaded by the query
+    } else if (showShareListModal && selectedOpportunities.length > 0) {
+      // For bulk sharing, reset the link as it's a new share
+      setCurrentSharedLink('');
+    }
+  }, [showShareListModal, activeList?.id, selectedOpportunities.length]);
   
   // Show loading state
   if (isLoading) {
