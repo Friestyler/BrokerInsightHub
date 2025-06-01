@@ -42,6 +42,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { SortableTableHead } from "@/components/ui/sortable-table-head";
 
 // Fetch partners from database
 const usePartnersData = () => {
@@ -222,6 +223,20 @@ function PartnersTable() {
   const [selectedPartners, setSelectedPartners] = useState<number[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
+  
+  // Sorting state
+  const [tableSortConfig, setTableSortConfig] = useState({
+    key: '',
+    direction: 'asc' as 'asc' | 'desc'
+  });
+  
+  // Handle table sorting
+  const handleSort = (key: string) => {
+    setTableSortConfig(prev => ({
+      key,
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
   
   // Use the shared context for list editing state
   const { isEditingList, setIsEditingList } = useListEditing();
@@ -412,7 +427,7 @@ function PartnersTable() {
     
   // Filter partners based on search text, filter selections, and list membership
   const displayedPartners = partners
-    .filter(partner => {
+    .filter((partner: any) => {
       // Handle selection-based lists (with member IDs)
       if (activeList && !activeList.isDefault && activeList.type === 'selection' && Array.isArray(activeList.members)) {
         if (!activeList.members.includes(partner.id)) {
@@ -445,8 +460,27 @@ function PartnersTable() {
       
       return matchesText && matchesStatus && matchesIndustry && matchesType;
     })
-    // Sort alphabetically by name by default
-    .sort((a, b) => a.name.localeCompare(b.name));
+    // Apply sorting
+    .sort((a: any, b: any) => {
+      if (!tableSortConfig.key) {
+        return a.name.localeCompare(b.name); // Default sort by name
+      }
+      
+      const aValue = a[tableSortConfig.key] || '';
+      const bValue = b[tableSortConfig.key] || '';
+      
+      if (tableSortConfig.key === 'name' || tableSortConfig.key === 'industry' || tableSortConfig.key === 'type' || tableSortConfig.key === 'status') {
+        const result = aValue.localeCompare(bValue);
+        return tableSortConfig.direction === 'asc' ? result : -result;
+      }
+      
+      if (tableSortConfig.key === 'customers' || tableSortConfig.key === 'opportunities') {
+        const result = (aValue || 0) - (bValue || 0);
+        return tableSortConfig.direction === 'asc' ? result : -result;
+      }
+      
+      return 0;
+    });
   
   // Check if current filters differ from original list filters to detect unsaved changes
   useEffect(() => {
