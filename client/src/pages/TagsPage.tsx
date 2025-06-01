@@ -49,6 +49,7 @@ export default function TagsPage() {
   const [editTagColor, setEditTagColor] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [tagToDelete, setTagToDelete] = useState<Tag | null>(null);
+  const [isCreateTagOpen, setIsCreateTagOpen] = useState(false);
   const { toast } = useToast();
 
   // Initialize with default tags
@@ -153,143 +154,98 @@ export default function TagsPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F5F6FA]">
-      <div className="container mx-auto px-6 py-8 max-w-6xl">
+    <div className="flex-1 bg-[#F5F6FA] min-h-screen">
+      <div className="px-6 py-6">
         {/* Header */}
-        <div className="mb-8">
-          <h1 className="text-2xl font-semibold text-[#282A3F] mb-2" style={{ fontFamily: 'Poppins' }}>
-            Tags
-          </h1>
-          <p className="text-[#696C8C]" style={{ fontFamily: 'Poppins', fontSize: '14px' }}>
-            Create and manage tags that can be used to categorize OKR templates, partners, opportunities, and other entities.
-          </p>
-        </div>
-
-        {/* Create New Tag Section */}
-        <div className="bg-white rounded-lg border border-[#E6E7F1] p-6 mb-6">
-          <h2 className="text-lg font-medium text-[#282A3F] mb-4" style={{ fontFamily: 'Poppins' }}>
-            Create New Tag
-          </h2>
-          <div className="flex gap-4 items-end">
-            <div className="flex-1">
-              <label htmlFor="tag-name" className="block text-sm font-medium text-[#282A3F] mb-2" style={{ fontFamily: 'Poppins' }}>
-                Tag Name
-              </label>
-              <Input
-                id="tag-name"
-                placeholder="Enter tag name"
-                value={newTagName}
-                onChange={(e) => setNewTagName(e.target.value)}
-                className="border-[#E6E7F1] focus:border-[#3E4DC4] focus:ring-[#3E4DC4]"
-                style={{ fontFamily: 'Poppins' }}
-              />
-            </div>
-            <div className="w-48">
-              <label htmlFor="tag-color" className="block text-sm font-medium text-[#282A3F] mb-2" style={{ fontFamily: 'Poppins' }}>
-                Color
-              </label>
-              <Select value={newTagColor} onValueChange={setNewTagColor}>
-                <SelectTrigger className="border-[#E6E7F1] focus:border-[#3E4DC4]">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {colorOptions.map(color => (
-                    <SelectItem key={color} value={color}>
-                      <div className="flex items-center gap-2">
-                        <div className={`w-3 h-3 rounded-full ${getColorClasses(color)}`}></div>
-                        <span className="capitalize" style={{ fontFamily: 'Poppins' }}>{color}</span>
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <Button 
-              onClick={handleCreateTag}
-              disabled={!newTagName.trim()}
-              className="bg-[#3E4DC4] hover:bg-[#3344B8] text-white"
-              style={{ fontFamily: 'Poppins' }}
-            >
-              Create Tag
-            </Button>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-2xl font-semibold text-[#282A3F]" style={{ fontFamily: 'Poppins' }}>
+              Tags
+            </h1>
+            <p className="text-[#696C8C] mt-1" style={{ fontFamily: 'Poppins', fontSize: '14px' }}>
+              Create and manage tags that can be used to categorize OKR templates, partners, opportunities, and other entities.
+            </p>
           </div>
+          <Button 
+            onClick={() => setIsCreateTagOpen(true)}
+            className="bg-[#3E4DC4] hover:bg-[#3344B8] text-white"
+            style={{ fontFamily: 'Poppins' }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+              <path d="M5 12h14"/>
+              <path d="M12 5v14"/>
+            </svg>
+            Add new tag
+          </Button>
         </div>
 
         {/* Tags Table */}
-        <div className="bg-white rounded-lg border border-[#E6E7F1]">
-          <div className="px-6 py-4 border-b border-[#E6E7F1]">
-            <h2 className="text-lg font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins' }}>
-              All Tags ({tags.length})
-            </h2>
-          </div>
-          
+        <div className="bg-white">
           <div className="overflow-x-auto">
-            <Table>
+            <Table className="border-b min-w-full" style={{ borderColor: '#E6E7F1' }}>
               <TableHeader>
-                <TableRow className="border-b border-[#E6E7F1] hover:bg-[#F5F6FA]">
-                  <TableHead className="px-6 py-3 text-[#696C8C]" style={{ fontFamily: 'Poppins', fontWeight: '500', fontSize: '13px' }}>
+                <TableRow className="border-b hover:bg-[#F5F6FA] group" style={{ borderColor: '#E6E7F1' }}>
+                  <TableHead 
+                    className="px-3 py-2 min-w-[300px]"
+                    style={{ 
+                      fontFamily: 'Poppins', 
+                      fontWeight: '500', 
+                      fontSize: '13px', 
+                      color: '#696C8C' 
+                    }}
+                  >
                     Tag
                   </TableHead>
-                  <TableHead className="px-6 py-3 text-[#696C8C]" style={{ fontFamily: 'Poppins', fontWeight: '500', fontSize: '13px' }}>
-                    Color
-                  </TableHead>
-                  <TableHead className="px-6 py-3 text-[#696C8C]" style={{ fontFamily: 'Poppins', fontWeight: '500', fontSize: '13px' }}>
-                    Created
-                  </TableHead>
-                  <TableHead className="px-6 py-3 text-right text-[#696C8C]" style={{ fontFamily: 'Poppins', fontWeight: '500', fontSize: '13px' }}>
+                  <TableHead 
+                    className="text-right px-3 py-2 min-w-[80px]"
+                    style={{ 
+                      fontFamily: 'Poppins', 
+                      fontWeight: '500', 
+                      fontSize: '13px', 
+                      color: '#696C8C' 
+                    }}
+                  >
                     Actions
                   </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {tags.map((tag) => (
-                  <TableRow key={tag.id} className="border-b border-[#E6E7F1] hover:bg-[#F5F6FA]">
-                    <TableCell className="px-6 py-4">
+                  <TableRow key={tag.id} className="hover:bg-[#F5F6FA] border-b group" style={{ borderColor: '#E6E7F1' }}>
+                    <TableCell className="p-4 align-middle text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
                       {editingTag === tag.id ? (
-                        <Input
-                          value={editTagName}
-                          onChange={(e) => setEditTagName(e.target.value)}
-                          className="border-[#E6E7F1] focus:border-[#3E4DC4] focus:ring-[#3E4DC4]"
-                          style={{ fontFamily: 'Poppins' }}
-                        />
+                        <div className="flex items-center gap-3">
+                          <Input
+                            value={editTagName}
+                            onChange={(e) => setEditTagName(e.target.value)}
+                            className="border-[#E6E7F1] focus:border-[#3E4DC4] focus:ring-[#3E4DC4] flex-1"
+                            style={{ fontFamily: 'Poppins' }}
+                          />
+                          <Select value={editTagColor} onValueChange={setEditTagColor}>
+                            <SelectTrigger className="w-40 border-[#E6E7F1] focus:border-[#3E4DC4]">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {colorOptions.map(color => (
+                                <SelectItem key={color} value={color}>
+                                  <div className="flex items-center gap-2">
+                                    <div className={`w-3 h-3 rounded-full ${getColorClasses(color)}`}></div>
+                                    <span className="capitalize" style={{ fontFamily: 'Poppins' }}>{color}</span>
+                                  </div>
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
                       ) : (
                         <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getColorClasses(tag.color)}`}>
                           {tag.name}
                         </div>
                       )}
                     </TableCell>
-                    <TableCell className="px-6 py-4">
+                    <TableCell className="px-3 py-2 text-right">
                       {editingTag === tag.id ? (
-                        <Select value={editTagColor} onValueChange={setEditTagColor}>
-                          <SelectTrigger className="w-32 border-[#E6E7F1] focus:border-[#3E4DC4]">
-                            <SelectValue />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {colorOptions.map(color => (
-                              <SelectItem key={color} value={color}>
-                                <div className="flex items-center gap-2">
-                                  <div className={`w-3 h-3 rounded-full ${getColorClasses(color)}`}></div>
-                                  <span className="capitalize" style={{ fontFamily: 'Poppins' }}>{color}</span>
-                                </div>
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      ) : (
-                        <div className="flex items-center gap-2">
-                          <div className={`w-3 h-3 rounded-full ${getColorClasses(tag.color)}`}></div>
-                          <span className="capitalize text-[#282A3F]" style={{ fontFamily: 'Poppins', fontSize: '14px' }}>
-                            {tag.color}
-                          </span>
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell className="px-6 py-4 text-[#696C8C]" style={{ fontFamily: 'Poppins', fontSize: '14px' }}>
-                      {new Date(tag.createdAt).toLocaleDateString('en-GB', { day: 'numeric', month: 'long', year: 'numeric' })}
-                    </TableCell>
-                    <TableCell className="px-6 py-4 text-right">
-                      {editingTag === tag.id ? (
-                        <div className="flex items-center justify-end gap-2">
+                        <div className="flex items-center justify-end gap-1">
                           <Button
                             size="sm"
                             onClick={handleSaveEdit}
@@ -313,7 +269,7 @@ export default function TagsPage() {
                           <Button 
                             variant="ghost" 
                             size="sm" 
-                            className="h-8 w-8 p-0 hover:bg-[#F5F6FA]"
+                            className="h-8 w-8 p-0"
                             onClick={() => handleEditTag(tag)}
                           >
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -324,7 +280,7 @@ export default function TagsPage() {
                           <Button 
                             variant="ghost" 
                             size="sm" 
-                            className="h-8 w-8 p-0 text-red-600 hover:bg-red-50"
+                            className="h-8 w-8 p-0 text-red-600"
                             onClick={() => handleDeleteTag(tag)}
                           >
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -342,6 +298,82 @@ export default function TagsPage() {
             </Table>
           </div>
         </div>
+
+        {/* Create Tag Dialog */}
+        <Dialog open={isCreateTagOpen} onOpenChange={setIsCreateTagOpen}>
+          <DialogContent className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg sm:max-w-[500px] bg-[#ffffff]">
+            <DialogHeader className="pb-4">
+              <DialogTitle className="text-xl font-semibold text-gray-900" style={{ fontFamily: 'Poppins' }}>
+                Create New Tag
+              </DialogTitle>
+              <DialogDescription className="text-sm text-gray-600 mt-1" style={{ fontFamily: 'Poppins' }}>
+                Create a new tag that can be used to categorize items across the platform.
+              </DialogDescription>
+            </DialogHeader>
+            
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <label htmlFor="new-tag-name" className="text-sm font-medium text-gray-900" style={{ fontFamily: 'Poppins' }}>
+                  Tag Name <span className="text-red-500">*</span>
+                </label>
+                <Input
+                  id="new-tag-name"
+                  placeholder="Enter tag name"
+                  value={newTagName}
+                  onChange={(e) => setNewTagName(e.target.value)}
+                  className="border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                  style={{ fontFamily: 'Poppins' }}
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <label htmlFor="new-tag-color" className="text-sm font-medium text-gray-900" style={{ fontFamily: 'Poppins' }}>
+                  Color
+                </label>
+                <Select value={newTagColor} onValueChange={setNewTagColor}>
+                  <SelectTrigger className="border-gray-300 focus:border-blue-500">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {colorOptions.map(color => (
+                      <SelectItem key={color} value={color}>
+                        <div className="flex items-center gap-2">
+                          <div className={`w-3 h-3 rounded-full ${getColorClasses(color)}`}></div>
+                          <span className="capitalize" style={{ fontFamily: 'Poppins' }}>{color}</span>
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <DialogFooter className="pt-4">
+              <Button 
+                variant="outline" 
+                onClick={() => {
+                  setIsCreateTagOpen(false);
+                  setNewTagName("");
+                  setNewTagColor("blue");
+                }}
+                style={{ fontFamily: 'Poppins' }}
+              >
+                Cancel
+              </Button>
+              <Button 
+                onClick={() => {
+                  handleCreateTag();
+                  setIsCreateTagOpen(false);
+                }}
+                disabled={!newTagName.trim()}
+                className="bg-[#3E4DC4] hover:bg-[#3344B8] text-white"
+                style={{ fontFamily: 'Poppins' }}
+              >
+                Create Tag
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
         {/* Delete Confirmation Dialog */}
         <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
