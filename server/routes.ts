@@ -3016,7 +3016,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const result = await db.execute(sql`
         SELECT column_name, data_type, is_nullable 
         FROM information_schema.columns 
-        WHERE table_schema = 'myqollabi' AND table_name = 'okr_metrics'
+        WHERE table_schema = 'degoudse' AND table_name = 'okr_metrics'
         ORDER BY ordinal_position
       `);
       
@@ -3482,7 +3482,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Environment ID is required' });
       }
 
-      if (envId === 'myqollabi' || envId === 'degoudse') {
+      if (envId === 'degoudse' || envId === 'degoudse') {
         return res.status(400).json({ error: 'Cannot archive protected environments' });
       }
 
@@ -3527,7 +3527,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Environment ID is required' });
       }
 
-      if (envId === 'myqollabi' || envId === 'degoudse') {
+      if (envId === 'degoudse' || envId === 'degoudse') {
         return res.status(400).json({ error: 'Cannot delete protected environments' });
       }
 
@@ -3710,7 +3710,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const { name, description, members, filters, is_shared } = req.body;
-      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      const envId = req.headers['x-environment-id'] || 'degoudse';
       
       const result = await db.execute(sql`
         UPDATE ${sql.identifier(envId as string)}.saved_lists 
@@ -3739,7 +3739,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/saved-lists/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      const envId = req.headers['x-environment-id'] || 'degoudse';
       
       const result = await db.execute(sql`
         DELETE FROM ${sql.identifier(envId as string)}.saved_lists 
@@ -3781,7 +3781,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const { name, description, filters, is_shared } = req.body;
-      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      const envId = req.headers['x-environment-id'] || 'degoudse';
       
       const result = await db.execute(sql`
         UPDATE ${sql.identifier(envId as string)}.saved_views 
@@ -3809,7 +3809,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/saved-views/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      const envId = req.headers['x-environment-id'] || 'degoudse';
       
       const result = await db.execute(sql`
         DELETE FROM ${sql.identifier(envId as string)}.saved_views 
@@ -3831,7 +3831,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // User Management API endpoints
   app.get('/api/users', async (req, res) => {
     try {
-      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      const envId = req.headers['x-environment-id'] || 'degoudse';
       
       const result = await db.execute(sql`
         SELECT id, username, email, full_name, first_name, last_name, 
@@ -3852,7 +3852,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/users/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      const envId = req.headers['x-environment-id'] || 'degoudse';
       
       const result = await db.execute(sql`
         SELECT id, username, email, full_name, first_name, last_name, 
@@ -3875,7 +3875,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/users', async (req, res) => {
     try {
-      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      const envId = req.headers['x-environment-id'] || 'degoudse';
       const { 
         username, email, password, fullName, firstName, lastName, 
         avatarInitials, role, department, jobTitle, phone, isActive 
@@ -3905,7 +3905,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put('/api/users/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      const envId = req.headers['x-environment-id'] || 'degoudse';
       const { 
         username, email, fullName, firstName, lastName, avatarInitials, 
         role, department, jobTitle, phone, isActive 
@@ -3946,7 +3946,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/users/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      const envId = req.headers['x-environment-id'] || 'degoudse';
       
       // Soft delete - set is_active to false
       const result = await db.execute(sql`
@@ -3972,7 +3972,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/contacts/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      const envId = req.headers['x-environment-id'] || 'degoudse';
       
       const result = await db.execute(sql`
         SELECT id, first_name, last_name, email, phone, 
@@ -3996,7 +3996,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/contacts', async (req, res) => {
     try {
-      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      const envId = req.headers['x-environment-id'] || 'degoudse';
       const { 
         firstName, lastName, email, phone, 
         company, position, linkedEntityType, linkedEntityId, 
@@ -4033,7 +4033,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put('/api/contacts/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      const envId = req.headers['x-environment-id'] || 'degoudse';
       const { 
         firstName, lastName, fullName, email, phone, jobTitle, 
         department, company, linkedEntityType, linkedEntityId, 
@@ -4079,7 +4079,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/contacts/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      const envId = req.headers['x-environment-id'] || 'degoudse';
       
       // Soft delete - set is_active to false
       const result = await db.execute(sql`
@@ -4104,7 +4104,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/contacts/:id/link', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      const envId = req.headers['x-environment-id'] || 'degoudse';
       const { linkedEntityType, linkedEntityId, isPrimary } = req.body;
       
       const result = await db.execute(sql`
@@ -4134,7 +4134,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/entities/:entityType/:entityId/contacts', async (req, res) => {
     try {
       const { entityType, entityId } = req.params;
-      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      const envId = req.headers['x-environment-id'] || 'degoudse';
       
       const result = await db.execute(sql`
         SELECT id, first_name, last_name, full_name, email, phone, 

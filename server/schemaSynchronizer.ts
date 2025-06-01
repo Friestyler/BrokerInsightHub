@@ -1,4 +1,4 @@
-import { db as myqollabiDb, getEnvironmentDb, getEnvironmentPool } from './db';
+import { db, getEnvironmentDb, getEnvironmentPool } from './db';
 import { sql } from 'drizzle-orm';
 
 /**
@@ -257,7 +257,7 @@ export async function getEnvironmentCounts(): Promise<Record<string, Record<stri
     counts[envId] = {};
     try {
       const pool = getEnvironmentPool(envId);
-      const schemaName = envId === 'myqollabi' ? 'myqollabi' : envId;
+      const schemaName = envId;
 
       // Entity counts
       try {
