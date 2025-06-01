@@ -475,8 +475,8 @@ function OpportunitiesTable() {
       setFormData({
         title: '',
         description: '',
-        partnerName: '',
-        customerName: '',
+        customerId: '',
+        productId: '',
         value: '',
         probability: 50,
         status: 'Qualifying',
