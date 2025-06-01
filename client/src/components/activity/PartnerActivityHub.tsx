@@ -399,7 +399,9 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
               
               {/* Task List */}
               <div className="space-y-2">
-                {tasks.map((task: any) => (
+                {tasks
+                  .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+                  .map((task: any) => (
                   <div key={task.id} className="flex items-center gap-3 p-3 bg-white border rounded-lg">
                     <button
                       onClick={() => toggleTaskMutation.mutate({ taskId: task.id, completed: !task.completed })}
@@ -444,7 +446,9 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
             <div className="space-y-4">
               {/* Comments Timeline */}
               <div className="space-y-3 max-h-64 overflow-y-auto">
-                {comments.map((comment: any, index: number) => (
+                {comments
+                  .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
+                  .map((comment: any, index: number) => (
                   <div key={comment.id} className="flex items-start gap-3">
                     <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
                       <span className="text-xs font-medium text-blue-600">
@@ -546,7 +550,7 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
           {selectedActivityType === 'timeline' && (
             <div className="space-y-4">
               {[...tasks, ...comments, ...attachments]
-                .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
                 .map((item: any, index) => {
                   const isTask = item.title !== undefined;
                   const isComment = item.content !== undefined && !item.filename;
