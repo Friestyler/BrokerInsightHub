@@ -96,33 +96,118 @@ const mockOKRTemplates = [
     milestoneFrequency: "Weekly",
     isExpanded: false,
     nestedCount: 0
+  },
+  {
+    id: 6,
+    title: "Customer Onboarding Optimization",
+    type: "number",
+    target: 25,
+    tag: "Operational Excellence",
+    timeframe: "last-30-days",
+    milestoneFrequency: "Weekly",
+    isExpanded: false,
+    nestedCount: 1
   }
 ];
 
-// Function to convert timeframe values to display labels
+// Function to convert timeframe values to date range display
 const getTimeframeDisplayLabel = (timeframe: string): string => {
-  const timeframeLabels: { [key: string]: string } = {
-    'today': 'Today',
-    'yesterday': 'Yesterday',
-    'last-7-days': 'Last 7 days',
-    'last-14-days': 'Last 14 days',
-    'last-30-days': 'Last 30 days',
-    'last-60-days': 'Last 60 days',
-    'last-90-days': 'Last 90 days',
-    'last-month': 'Last month',
-    'this-month': 'This month',
-    'next-month': 'Next month',
-    'last-3-months': 'Last 3 months',
-    'last-6-months': 'Last 6 months',
-    'last-quarter': 'Last quarter',
-    'this-quarter': 'This quarter',
-    'next-quarter': 'Next quarter',
-    'last-year': 'Last year',
-    'this-year': 'This year',
-    'next-year': 'Next year'
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth();
+  const currentDate = now.getDate();
+  
+  const formatDate = (date: Date | null): string => {
+    if (!date) return 'Undefined';
+    return date.toLocaleDateString('en-GB', { 
+      day: 'numeric', 
+      month: 'long', 
+      year: 'numeric' 
+    });
   };
   
-  return timeframeLabels[timeframe] || timeframe;
+  const getDateRange = (startDate: Date | null, endDate: Date | null): string => {
+    const start = formatDate(startDate);
+    const end = formatDate(endDate);
+    return `${start} - ${end}`;
+  };
+  
+  let startDate: Date | null = null;
+  let endDate: Date | null = null;
+  
+  switch (timeframe) {
+    case 'today':
+      startDate = new Date(currentYear, currentMonth, currentDate);
+      endDate = new Date(currentYear, currentMonth, currentDate);
+      break;
+    case 'yesterday':
+      startDate = new Date(currentYear, currentMonth, currentDate - 1);
+      endDate = new Date(currentYear, currentMonth, currentDate - 1);
+      break;
+    case 'this-month':
+      startDate = new Date(currentYear, currentMonth, 1);
+      endDate = new Date(currentYear, currentMonth + 1, 0);
+      break;
+    case 'next-month':
+      startDate = new Date(currentYear, currentMonth + 1, 1);
+      endDate = new Date(currentYear, currentMonth + 2, 0);
+      break;
+    case 'last-month':
+      startDate = new Date(currentYear, currentMonth - 1, 1);
+      endDate = new Date(currentYear, currentMonth, 0);
+      break;
+    case 'this-quarter':
+      const quarterStart = Math.floor(currentMonth / 3) * 3;
+      startDate = new Date(currentYear, quarterStart, 1);
+      endDate = new Date(currentYear, quarterStart + 3, 0);
+      break;
+    case 'next-quarter':
+      const nextQuarterStart = Math.floor(currentMonth / 3) * 3 + 3;
+      startDate = new Date(currentYear, nextQuarterStart, 1);
+      endDate = new Date(currentYear, nextQuarterStart + 3, 0);
+      break;
+    case 'last-quarter':
+      const lastQuarterStart = Math.floor(currentMonth / 3) * 3 - 3;
+      startDate = new Date(currentYear, lastQuarterStart, 1);
+      endDate = new Date(currentYear, lastQuarterStart + 3, 0);
+      break;
+    case 'this-year':
+      startDate = new Date(currentYear, 0, 1);
+      endDate = new Date(currentYear, 11, 31);
+      break;
+    case 'next-year':
+      startDate = new Date(currentYear + 1, 0, 1);
+      endDate = new Date(currentYear + 1, 11, 31);
+      break;
+    case 'last-year':
+      startDate = new Date(currentYear - 1, 0, 1);
+      endDate = new Date(currentYear - 1, 11, 31);
+      break;
+    case 'last-7-days':
+      startDate = new Date(currentYear, currentMonth, currentDate - 6);
+      endDate = new Date(currentYear, currentMonth, currentDate);
+      break;
+    case 'last-14-days':
+      startDate = new Date(currentYear, currentMonth, currentDate - 13);
+      endDate = new Date(currentYear, currentMonth, currentDate);
+      break;
+    case 'last-30-days':
+      startDate = new Date(currentYear, currentMonth, currentDate - 29);
+      endDate = new Date(currentYear, currentMonth, currentDate);
+      break;
+    case 'last-3-months':
+      startDate = new Date(currentYear, currentMonth - 2, 1);
+      endDate = new Date(currentYear, currentMonth + 1, 0);
+      break;
+    case 'last-6-months':
+      startDate = new Date(currentYear, currentMonth - 5, 1);
+      endDate = new Date(currentYear, currentMonth + 1, 0);
+      break;
+    default:
+      return timeframe;
+  }
+  
+  return getDateRange(startDate, endDate);
 };
 
 // TagBadge component
