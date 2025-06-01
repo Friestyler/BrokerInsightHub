@@ -2325,7 +2325,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const envPool = getEnvironmentPool('degoudse');
       const { 
         username, email, firstName, lastName, role, department, 
-        isActive = true 
+        password, isActive = true 
       } = req.body;
       
       if (!username || !email) {
@@ -2335,16 +2335,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const fullName = `${firstName || ''} ${lastName || ''}`.trim() || username;
       const avatarInitials = fullName.split(' ').map((word: string) => word[0]).join('').toUpperCase().slice(0, 2);
       
+      // Use a default password if none provided (for demo purposes)
+      const userPassword = password || 'defaultPassword123';
+      
       const result = await envPool.query(`
         INSERT INTO degoudse.users (
-          username, email, full_name, first_name, last_name, avatar_initials,
+          username, email, password, full_name, first_name, last_name, avatar_initials,
           role, department, is_active, created_at, updated_at
         ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW()
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW()
         ) RETURNING id, username, email, full_name, first_name, last_name, 
                    avatar_initials, role, department, is_active, created_at, updated_at
       `, [
-        username, email, fullName, firstName || null, lastName || null, avatarInitials,
+        username, email, userPassword, fullName, firstName || null, lastName || null, avatarInitials,
         role || 'user', department || null, isActive
       ]);
       
