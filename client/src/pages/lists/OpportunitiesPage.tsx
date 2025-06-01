@@ -1052,385 +1052,6 @@ function OpportunitiesTable() {
       </Dialog>
       
       {/* Google-Style Share Modal */}
-      <Dialog open={showShareListModal} onOpenChange={setShowShareListModal}>
-        <DialogContent className="sm:max-w-md bg-[#ffffff] text-[#282A3F] p-6">
-          <DialogHeader className="pb-4">
-            <DialogTitle className="text-lg font-medium">
-              Share "{activeList?.name || 'Selected Items'}"
-            </DialogTitle>
-          </DialogHeader>
-          
-          <div className="grid gap-4 py-4">
-            {/* Show selected opportunities summary when bulk sharing */}
-            {selectedOpportunities.length > 0 && (
-              <div className="bg-blue-50 border border-blue-200 rounded-md p-3 mb-2">
-                <div className="flex items-center mb-2">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#1d4ed8" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                    <path d="M3 6h18l-2 13H5L3 6z"></path>
-                    <path d="M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2"></path>
-                  </svg>
-                  <span className="text-sm font-medium text-blue-800">
-                    Selected Opportunities ({selectedOpportunities.length})
-                  </span>
-                </div>
-                <div className="flex flex-wrap gap-1">
-                  {selectedOpportunities.slice(0, 5).map(oppId => {
-                    const opportunity = opportunities.find(o => o.id === oppId);
-                    return opportunity ? (
-                      <span key={oppId} className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
-                        {opportunity.title}
-                      </span>
-                    ) : null;
-                  })}
-                  {selectedOpportunities.length > 5 && (
-                    <span className="inline-flex items-center px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
-                      +{selectedOpportunities.length - 5} more
-                    </span>
-                  )}
-                </div>
-              </div>
-            )}
-
-            {/* Tabs for different sharing options */}
-            <div className="flex border-b">
-              <button className="px-3 py-2 text-sm font-medium text-indigo-600 border-b-2 border-indigo-600">
-                Partners
-              </button>
-              <button className="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700">
-                Teams
-              </button>
-              <button className="px-3 py-2 text-sm font-medium text-gray-500 hover:text-gray-700">
-                Individuals
-              </button>
-            </div>
-            
-            {/* Partners Section with individual contact selection */}
-            <div className="grid gap-3">
-              <Label>Select Partners and Contacts</Label>
-              
-              {/* Dynamic list of partners with their contacts */}
-              <div className="space-y-3 max-h-80 overflow-y-auto border border-gray-200 rounded-md p-3">
-                {opportunities.reduce((partners, opp) => {
-                  if (!partners.some(p => p.id === opp.partnerId)) {
-                    partners.push({ id: opp.partnerId, name: opp.partnerName || 'Unknown Partner' });
-                  }
-                  return partners;
-                }, [] as { id: number, name: string }[]).map(partner => {
-                  const partnerName = partner.name || 'Unknown Partner';
-                  const partnerFirstName = partnerName.includes(' ') ? partnerName.split(' ')[0] : partnerName;
-                  const partnerContacts = [
-                    { id: 1, name: `${partnerFirstName} Manager`, email: `manager@${partnerName.toLowerCase().replace(/\s+/g, '')}.com` },
-                    { id: 2, name: `${partnerFirstName} Sales`, email: `sales@${partnerName.toLowerCase().replace(/\s+/g, '')}.com` },
-                    { id: 3, name: `${partnerFirstName} Admin`, email: `admin@${partnerName.toLowerCase().replace(/\s+/g, '')}.com` }
-                  ];
-                  
-                  return (
-                    <div key={partner.id} className="border border-gray-100 rounded-md p-3">
-                      <div className="flex items-center mb-2">
-                        <Checkbox 
-                          id={`share-partner-${partner.id}`}
-                          className="mr-2"
-                          onChange={(e) => {
-                            const isChecked = (e.target as HTMLInputElement).checked;
-                            partnerContacts.forEach(contact => {
-                              const contactCheckbox = document.querySelector(`input[id="contact-${partner.id}-${contact.id}"]`) as HTMLInputElement;
-                              if (contactCheckbox) contactCheckbox.checked = isChecked;
-                            });
-                          }}
-                        />
-                        <Label htmlFor={`share-partner-${partner.id}`} className="font-medium text-sm cursor-pointer">
-                          {partner.name}
-                        </Label>
-                      </div>
-                      
-                      <div className="ml-6 space-y-2">
-                        {partnerContacts.map(contact => (
-                          <div key={contact.id} className="flex items-center">
-                            <Checkbox 
-                              id={`contact-${partner.id}-${contact.id}`}
-                              className="mr-2"
-                              onChange={() => {
-                                const allContactsSelected = partnerContacts.every(c => {
-                                  const checkbox = document.querySelector(`input[id="contact-${partner.id}-${c.id}"]`) as HTMLInputElement;
-                                  return checkbox?.checked;
-                                });
-                                const partnerCheckbox = document.querySelector(`input[id="share-partner-${partner.id}"]`) as HTMLInputElement;
-                                if (partnerCheckbox) partnerCheckbox.checked = allContactsSelected;
-                              }}
-                            />
-                            <Label htmlFor={`contact-${partner.id}-${contact.id}`} className="text-xs cursor-pointer flex-grow">
-                              <div>
-                                <div className="font-medium text-gray-800">{contact.name}</div>
-                                <div className="text-gray-500">{contact.email}</div>
-                              </div>
-                            </Label>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-            
-            <div className="space-y-2">
-              <Label>Permission Settings</Label>
-              <div className="space-y-2">
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="canView" defaultChecked />
-                  <Label htmlFor="canView" className="text-sm font-normal">
-                    Can view this saved list
-                  </Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <Checkbox id="canEdit" />
-                  <Label htmlFor="canEdit" className="text-sm font-normal">
-                    Can edit this saved list
-                  </Label>
-                </div>
-              </div>
-            </div>
-            
-            <div className="grid gap-2">
-              <Label htmlFor="shareMessage">Add a Message (Optional)</Label>
-              <Textarea 
-                id="shareMessage" 
-                placeholder="Include a note to the recipients"
-                rows={2}
-              />
-            </div>
-            
-            {/* Copy Link Section */}
-            <div className="bg-gray-50 p-3 rounded-md">
-              <div className="flex justify-between items-center mb-2">
-                <div className="text-xs font-medium">Direct Link</div>
-                <div className="text-xs text-gray-500">Public link accessible to anyone</div>
-              </div>
-              <div className="flex">
-                <Input 
-                  id="shareLink" 
-                  value={currentSharedLink || (existingSharedLinks.length > 0 ? 'Loading existing link...' : 'Click "Share List" to generate link...')}
-                  readOnly
-                  className="text-xs"
-                  placeholder="Generate shareable link"
-                />
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  className="ml-2"
-                  disabled={!currentSharedLink}
-                  onClick={() => {
-                    if (currentSharedLink) {
-                      navigator.clipboard.writeText(currentSharedLink);
-                      toast({
-                        title: "Link copied",
-                        description: "The shareable link has been copied to your clipboard.",
-                      });
-                    }
-                  }}
-                >
-                  Copy
-                </Button>
-              </div>
-              
-              {/* Show sharing status */}
-              {existingSharedLinks.length > 0 && activeList?.id && (
-                <div className="mt-3 pt-3 border-t border-gray-200">
-                  <div className="flex items-center text-sm text-green-600">
-                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                    </svg>
-                    This list is shared publicly
-                  </div>
-                  <div className="text-xs text-gray-500 mt-1">
-                    Anyone with the link can view this list
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
-            </DialogClose>
-            <Button onClick={async () => {
-              try {
-                // If there's already a shared link for this list, just show it
-                if (existingSharedLinks.length > 0 && activeList?.id) {
-                  const baseUrl = window.location.origin;
-                  const existingUrl = `${baseUrl}/share/list/${existingSharedLinks[0].share_token}`;
-                  setCurrentSharedLink(existingUrl);
-                  
-                  toast({
-                    title: "Shareable link ready",
-                    description: "This list is already shared. Anyone with the link can view it.",
-                  });
-                  return;
-                }
-
-                const message = (document.getElementById('shareMessage') as HTMLTextAreaElement)?.value || '';
-                
-                // Determine what's being shared
-                const isListShare = selectedOpportunities.length === 0;
-                const isBulkOpportunityShare = selectedOpportunities.length > 0;
-
-                let shareData;
-                
-                if (isListShare && activeList) {
-                  // Sharing the entire saved list
-                  shareData = {
-                    list_name: activeList.name,
-                    list_description: activeList.description || null,
-                    entity_type: 'opportunities',
-                    data: opportunities,
-                    message: message,
-                    list_id: activeList.id
-                  };
-                } else if (isBulkOpportunityShare) {
-                  // Sharing selected opportunities (always creates new link for ad-hoc selections)
-                  const selectedOpportunitiesData = selectedOpportunities
-                    .map(id => opportunities.find(o => o.id === id))
-                    .filter(Boolean);
-                  
-                  shareData = {
-                    list_name: `${selectedOpportunities.length} Selected Opportunities`,
-                    list_description: `Shared opportunities: ${selectedOpportunitiesData.map(o => o.title).slice(0, 3).join(', ')}${selectedOpportunities.length > 3 ? '...' : ''}`,
-                    entity_type: 'opportunities',
-                    data: selectedOpportunitiesData,
-                    message: message
-                  };
-                } else {
-                  toast({
-                    title: "Nothing to share",
-                    description: "Please select opportunities or save a list first.",
-                    variant: "destructive"
-                  });
-                  return;
-                }
-
-                // Create the shared list
-                const result = await createSharedListMutation.mutateAsync(shareData);
-                
-                // Generate the shareable URL
-                const baseUrl = window.location.origin;
-                const shareableUrl = `${baseUrl}/share/list/${result.share_token}`;
-                
-                setCurrentSharedLink(shareableUrl);
-
-                toast({
-                  title: "Shareable link created",
-                  description: "Your list has been made public. Anyone with the link can view it.",
-                });
-
-                // Clear selection after sharing
-                if (isBulkOpportunityShare) {
-                  setSelectedOpportunities([]);
-                }
-
-                // Invalidate the shared links cache to refresh the list
-                if (activeList?.id) {
-                  queryClient.invalidateQueries({
-                    queryKey: ['/api/shared-lists/by-list', activeList.id]
-                  });
-                }
-
-                // Keep modal open to show the newly created link
-                
-              } catch (error) {
-                toast({
-                  title: "Error creating shared link",
-                  description: "Please try again.",
-                  variant: "destructive"
-                });
-              }
-            }}
-            disabled={createSharedListMutation.isPending}
-            >
-              {createSharedListMutation.isPending 
-                ? 'Creating Link...' 
-                : existingSharedLinks.length > 0 && activeList?.id
-                  ? 'Get Shareable Link' 
-                  : 'Share List'
-              }
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      {/* Save View Modal */}
-      <Dialog open={showSaveViewModal} onOpenChange={setShowSaveViewModal}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Save Current View</DialogTitle>
-            <DialogDescription>
-              Save your current filter settings as a quick view that you can easily access later.
-            </DialogDescription>
-          </DialogHeader>
-          
-          <div className="grid gap-4 py-4">
-            <div className="grid gap-2">
-              <Label htmlFor="viewName">View Name</Label>
-              <Input 
-                id="viewName" 
-                placeholder="Enter a name for this view"
-                value={viewNameInput}
-                onChange={(e) => setViewNameInput(e.target.value)}
-              />
-            </div>
-            
-            <div className="text-sm text-gray-600">
-              <div className="font-medium mb-1">Current filters:</div>
-              <div className="space-y-1">
-                {filterText && <div>• Search: "{filterText}"</div>}
-                {selectedStatus && <div>• Status: {selectedStatus}</div>}
-                {selectedType && <div>• Type: {selectedType}</div>}
-                {!filterText && !selectedStatus && !selectedType && (
-                  <div className="text-gray-400">No filters applied</div>
-                )}
-              </div>
-            </div>
-          </div>
-          
-          <DialogFooter>
-            <DialogClose asChild>
-              <Button variant="outline">Cancel</Button>
-            </DialogClose>
-            <Button
-              onClick={() => {
-                if (!viewNameInput.trim()) return;
-                
-                // Create new view via database mutation
-                createSavedViewMutation.mutate({
-                  name: viewNameInput.trim(),
-                  description: null,
-                  entity_type: 'opportunities',
-                  filters: JSON.stringify({
-                    searchText: filterText || undefined,
-                    status: selectedStatus || undefined,
-                    type: selectedType || undefined
-                  }),
-                  is_shared: false,
-                  created_by: 'current-user'
-                });
-                setViewNameInput('');
-                setShowSaveViewModal(false);
-                
-                toast({
-                  title: "View saved successfully",
-                  description: `"${viewNameInput.trim()}" has been saved to your quick views.`,
-                  className: "bg-indigo-50 border-indigo-200 text-indigo-800",
-                });
-              }}
-              disabled={!viewNameInput.trim()}
-            >
-              Save View
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-      
-      {/* Google-Style Share Modal */}
       <ShareModal
         isOpen={showShareListModal}
         onClose={() => setShowShareListModal(false)}
@@ -1557,401 +1178,101 @@ function OpportunitiesTable() {
                   </svg>
                 </div>
               </th>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                <div className="flex items-center">
-                  Customer
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                    <path d="M8 9l4-4 4 4"></path>
-                    <path d="M16 15l-4 4-4-4"></path>
-                  </svg>
-                </div>
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[120px]">
+                Status
               </th>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                <div className="flex items-center">
-                  Partner
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                    <path d="M8 9l4-4 4 4"></path>
-                    <path d="M16 15l-4 4-4-4"></path>
-                  </svg>
-                </div>
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[120px]">
+                Type
               </th>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                <div className="flex items-center">
-                  Type
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                    <path d="M8 9l4-4 4 4"></path>
-                    <path d="M16 15l-4 4-4-4"></path>
-                  </svg>
-                </div>
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[140px]">
+                Customer
               </th>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                <div className="flex items-center">
-                  Status
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                    <path d="M8 9l4-4 4 4"></path>
-                    <path d="M16 15l-4 4-4-4"></path>
-                  </svg>
-                </div>
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[140px]">
+                Partner
               </th>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                <div className="flex items-center">
-                  Value
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                    <path d="M8 9l4-4 4 4"></path>
-                    <path d="M16 15l-4 4-4-4"></path>
-                  </svg>
-                </div>
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[120px]">
+                Value
               </th>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                <div className="flex items-center">
-                  Due Date
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                    <path d="M8 9l4-4 4 4"></path>
-                    <path d="M16 15l-4 4-4-4"></path>
-                  </svg>
-                </div>
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[100px]">
+                Probability
               </th>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                <div className="flex items-center">
-                  Template
-                </div>
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[120px]">
+                Close Date
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100 bg-white">
-            {displayedOpportunities.map((opportunity) => (
+          <tbody className="bg-white divide-y divide-gray-200">
+            {displayedOpportunities.map((opportunity: any) => (
               <tr 
-                key={opportunity.id} 
-                className={`hover:bg-gray-50 group ${selectedOpportunities.includes(opportunity.id) ? 'bg-blue-50' : ''}`}
+                key={opportunity.id}
+                className={`hover:bg-gray-50 cursor-pointer ${
+                  selectedOpportunities.includes(opportunity.id) ? 'bg-blue-50' : ''
+                }`}
               >
-                <td className="relative whitespace-nowrap py-4 pl-3 pr-3 text-sm w-10">
+                <td className="relative px-3 py-4 w-10">
                   <input
                     type="checkbox"
-                    className={`h-4 w-4 rounded border-gray-300 ${selectedOpportunities.includes(opportunity.id) ? 'visible' : 'invisible group-hover:visible'}`}
+                    className="absolute h-4 w-4 rounded border-gray-300"
                     checked={selectedOpportunities.includes(opportunity.id)}
                     onChange={() => toggleSelectOpportunity(opportunity.id)}
                   />
                 </td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm font-medium">
-                  <Link 
-                    href={`/opportunities/${opportunity.id}`}
-                    className="font-medium text-gray-900 hover:text-indigo-600"
-                  >
-                    {opportunity.title}
-                  </Link>
-                </td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
-                  <Link 
-                    href={`/lists/customers/${opportunity.clientId}`}
-                    className="text-indigo-600 hover:text-indigo-800 hover:underline"
-                  >
-                    {opportunity.clientName}
-                  </Link>
-                </td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
-                  <div className="flex flex-col space-y-1">
-                    {opportunity.partnerNames ? (
-                      <Link 
-                        href={`/lists/partners/${opportunity.partnerId || 1}`}
-                        className="text-indigo-600 hover:text-indigo-800 hover:underline"
-                      >
-                        {opportunity.partnerNames}
-                      </Link>
-                    ) : (
-                      <span className="text-gray-900">No Partner</span>
-                    )}
-                    <div className="flex space-x-2 text-xs text-gray-500">
-                      <span>Partners: {opportunity.partnerCount || 0}</span>
-                      <span>•</span>
-                      <span>Products: {opportunity.productCount || 0}</span>
+                <td className="px-3 py-4 text-sm text-gray-900 w-[250px]">
+                  <div className="max-w-[230px]">
+                    <div className="font-medium text-gray-900 truncate">
+                      {opportunity.title}
+                    </div>
+                    <div className="text-gray-500 text-xs truncate">
+                      {opportunity.description}
                     </div>
                   </div>
                 </td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{opportunity.type}</td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
-                  <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${getStatusBadgeVariant(opportunity.status)}`}>
+                <td className="px-3 py-4 text-sm w-[120px]">
+                  <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeVariant(opportunity.status)}`}>
                     {opportunity.status}
                   </span>
                 </td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">{formatCurrency(opportunity.estimatedValue)}</td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
-                  {opportunity.expectedCloseDate ? new Date(opportunity.expectedCloseDate).toLocaleDateString() : 'TBD'}
-                </td>
-                <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
+                <td className="px-3 py-4 text-sm text-gray-900 w-[120px]">
                   <TemplateBadges type={opportunity.type} status={opportunity.status} />
+                </td>
+                <td className="px-3 py-4 text-sm text-gray-900 w-[140px] truncate">
+                  {opportunity.customerName}
+                </td>
+                <td className="px-3 py-4 text-sm text-gray-900 w-[140px] truncate">
+                  {opportunity.partnerName}
+                </td>
+                <td className="px-3 py-4 text-sm text-gray-900 w-[120px]">
+                  {formatCurrency(opportunity.value)}
+                </td>
+                <td className="px-3 py-4 text-sm text-gray-900 w-[100px]">
+                  {opportunity.probability}%
+                </td>
+                <td className="px-3 py-4 text-sm text-gray-900 w-[120px]">
+                  {opportunity.closeDate}
                 </td>
               </tr>
             ))}
-            
-            {displayedOpportunities.length === 0 && (
-              <tr>
-                <td colSpan={9} className="py-10 text-center">
-                  <div className="flex flex-col items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400 mb-3">
-                      <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
-                      <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
-                    </svg>
-                    <h3 className="text-base font-medium text-gray-900 mb-1">No opportunities found</h3>
-                    <p className="text-sm text-gray-500 max-w-md mb-4">
-                      There are no opportunities matching your filter criteria.
-                    </p>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      onClick={() => {
-                        setFilterText('');
-                        setSelectedStatus('');
-                        setSelectedType('');
-                      }}
-                    >
-                      Clear Filters
-                    </Button>
-                  </div>
-                </td>
-              </tr>
-            )}
           </tbody>
         </table>
-      </div>
-    </div>
-  );
-}
-
-export default function OpportunitiesPage() {
-  const { environment } = useEnvironment();
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  const [isEditingList, setIsEditingList] = useState(false);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [isCreating, setIsCreating] = useState(false);
-  
-  // Form data for creating new opportunity with all available fields
-  const [opportunityFormData, setOpportunityFormData] = useState({
-    title: '',
-    description: '',
-    clientId: '',
-    status: 'pipeline',
-    stage: 'initial_contact',
-    type: 'new_business',
-    estimatedValue: '',
-    probability: 50,
-    location: ''
-  });
-
-  const handleCreateOpportunity = async () => {
-    if (!opportunityFormData.title.trim() || !opportunityFormData.description.trim()) {
-      toast({
-        title: "Validation Error",
-        description: "Title and description are required fields.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setIsCreating(true);
-    try {
-      const response = await fetch('/api/opportunities', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...opportunityFormData,
-          clientId: parseInt(opportunityFormData.clientId) || 1,
-          estimatedValue: parseInt(opportunityFormData.estimatedValue) || 0
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to create opportunity');
-      }
-
-      const newOpportunity = await response.json();
-      
-      // Invalidate and refetch opportunities data
-      queryClient.invalidateQueries({ queryKey: ['/api/opportunities'] });
-      
-      toast({
-        title: "Opportunity Created",
-        description: `"${opportunityFormData.title}" has been created successfully.`
-      });
-
-      // Reset form and close modal
-      setOpportunityFormData({
-        title: '',
-        description: '',
-        clientId: '',
-        status: 'pipeline',
-        stage: 'initial_contact',
-        type: 'new_business',
-        estimatedValue: '',
-        probability: 50,
-        location: ''
-      });
-      setShowCreateModal(false);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to create opportunity. Please try again.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsCreating(false);
-    }
-  };
-  
-  return (
-    <div className="container mx-auto px-4 py-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold tracking-tight text-black">Opportunities</h1>
-        <button 
-          className={`flex items-center gap-2 px-4 py-2 text-white rounded-md transition-colors font-medium text-[14px] pl-[12px] pr-[12px] ${isEditingList ? 'bg-[#8B98F9] cursor-not-allowed' : 'bg-[#5567E5] hover:bg-[#4556D4]'}`}
-          onClick={() => {
-            if (!isEditingList) {
-              setShowCreateModal(true);
-            }
-          }}
-          disabled={isEditingList}
-          style={{ fontFamily: 'Poppins, sans-serif' }}
-        >
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <line x1="12" y1="5" x2="12" y2="19"></line>
-            <line x1="5" y1="12" x2="19" y2="12"></line>
-          </svg>
-          Create new opportunity
-        </button>
-      </div>
-      
-      <OpportunitiesTable />
-      
-      {/* Create Opportunity Modal */}
-      <Dialog open={showCreateModal} onOpenChange={setShowCreateModal}>
-        <DialogContent className="sm:max-w-[700px]">
-          <DialogHeader>
-            <DialogTitle>Create New Opportunity</DialogTitle>
-            <DialogDescription>
-              Add a new opportunity to track business potential. Fill in the required information below.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="title">Title *</Label>
-                <Input
-                  id="title"
-                  value={opportunityFormData.title}
-                  onChange={(e) => setOpportunityFormData(prev => ({ ...prev, title: e.target.value }))}
-                  placeholder="Enter opportunity title"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="clientId">Client ID</Label>
-                <Input
-                  id="clientId"
-                  type="number"
-                  value={opportunityFormData.clientId}
-                  onChange={(e) => setOpportunityFormData(prev => ({ ...prev, clientId: e.target.value }))}
-                  placeholder="Customer/Client ID"
-                />
-              </div>
+        
+        {displayedOpportunities.length === 0 && (
+          <div className="text-center py-12">
+            <div className="text-gray-500">
+              No opportunities found matching your criteria.
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="description">Description *</Label>
-              <Input
-                id="description"
-                value={opportunityFormData.description}
-                onChange={(e) => setOpportunityFormData(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Brief description of the opportunity"
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="estimatedValue">Estimated Value</Label>
-                <Input
-                  id="estimatedValue"
-                  type="number"
-                  value={opportunityFormData.estimatedValue}
-                  onChange={(e) => setOpportunityFormData(prev => ({ ...prev, estimatedValue: e.target.value }))}
-                  placeholder="0"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="probability">Probability (%)</Label>
-                <Input
-                  id="probability"
-                  type="number"
-                  min="0"
-                  max="100"
-                  value={opportunityFormData.probability}
-                  onChange={(e) => setOpportunityFormData(prev => ({ ...prev, probability: parseInt(e.target.value) || 0 }))}
-                  placeholder="50"
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="location">Location</Label>
-              <Input
-                id="location"
-                value={opportunityFormData.location}
-                onChange={(e) => setOpportunityFormData(prev => ({ ...prev, location: e.target.value }))}
-                placeholder="City, Country"
-              />
-            </div>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="status">Status</Label>
-                <Select value={opportunityFormData.status} onValueChange={(value) => setOpportunityFormData(prev => ({ ...prev, status: value }))}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pipeline">Pipeline</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="won">Won</SelectItem>
-                    <SelectItem value="lost">Lost</SelectItem>
-                    <SelectItem value="on_hold">On Hold</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="stage">Stage</Label>
-                <Select value={opportunityFormData.stage} onValueChange={(value) => setOpportunityFormData(prev => ({ ...prev, stage: value }))}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="initial_contact">Initial Contact</SelectItem>
-                    <SelectItem value="qualification">Qualification</SelectItem>
-                    <SelectItem value="proposal">Proposal</SelectItem>
-                    <SelectItem value="negotiation">Negotiation</SelectItem>
-                    <SelectItem value="closed">Closed</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="type">Type</Label>
-                <Select value={opportunityFormData.type} onValueChange={(value) => setOpportunityFormData(prev => ({ ...prev, type: value }))}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="new_business">New Business</SelectItem>
-                    <SelectItem value="renewal">Renewal</SelectItem>
-                    <SelectItem value="upsell">Upsell</SelectItem>
-                    <SelectItem value="cross_sell">Cross Sell</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+            <button 
+              onClick={() => {
+                setFilterText('');
+                setSelectedStatus('');
+                setSelectedType('');
+              }}
+              className="text-indigo-600 hover:text-indigo-500 mt-2 text-sm"
+            >
+              Clear all filters
+            </button>
           </div>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowCreateModal(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleCreateOpportunity} disabled={isCreating}>
-              {isCreating ? 'Creating...' : 'Create Opportunity'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+        )}
+      </div>
     </div>
   );
 }
