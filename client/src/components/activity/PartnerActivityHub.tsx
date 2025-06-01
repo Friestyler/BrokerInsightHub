@@ -44,9 +44,11 @@ interface NextBestAction {
 }
 
 const activityTypes = [
-  { value: 'task', label: 'Task', icon: CheckSquare, color: 'text-green-600' },
-  { value: 'comment', label: 'Comment', icon: MessageSquare, color: 'text-blue-600' },
-  { value: 'attachment', label: 'Document', icon: Paperclip, color: 'text-purple-600' }
+  { value: 'task', label: 'Tasks', icon: CheckSquare, color: 'text-green-600' },
+  { value: 'comment', label: 'Comments', icon: MessageSquare, color: 'text-blue-600' },
+  { value: 'attachment', label: 'Documents', icon: Paperclip, color: 'text-purple-600' },
+  { value: 'timeline', label: 'All (Timeline)', icon: Calendar, color: 'text-gray-600' },
+  { value: 'actions', label: 'Next Best Actions', icon: Sparkles, color: 'text-purple-600' }
 ];
 
 const priorityColors = {
@@ -58,8 +60,7 @@ const priorityColors = {
 
 export default function PartnerActivityHub({ partnerId, partnerName }: PartnerActivityHubProps) {
   const [isCollapsed, setIsCollapsed] = useState(true);
-  const [showTimeline, setShowTimeline] = useState(false);
-  const [selectedActivityType, setSelectedActivityType] = useState<'task' | 'comment' | 'attachment'>('task');
+  const [selectedActivityType, setSelectedActivityType] = useState<'task' | 'comment' | 'attachment' | 'timeline' | 'actions'>('task');
   const [showActivityInput, setShowActivityInput] = useState(false);
   
   // Form states
@@ -80,12 +81,13 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
   // Fetch timeline
   const { data: timeline } = useQuery({
     queryKey: [`/api/${currentEnv}/partners/${partnerId}/timeline`],
-    enabled: showTimeline
+    enabled: selectedActivityType === 'timeline'
   });
 
   // Fetch next best actions
   const { data: nextActions } = useQuery({
     queryKey: [`/api/${currentEnv}/partners/${partnerId}/next-actions`],
+    enabled: selectedActivityType === 'actions'
   });
 
   // Create activity mutation
@@ -108,7 +110,7 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/partners/${partnerId}/activities`] });
-      if (showTimeline) {
+      if (selectedActivityType === 'timeline') {
         queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/partners/${partnerId}/timeline`] });
       }
       resetForm();
@@ -231,21 +233,12 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => setShowTimeline(!showTimeline)}
-              className={`text-xs transition-colors ${showTimeline ? 'text-blue-600 bg-blue-50' : 'text-gray-600 hover:text-blue-600'}`}
-            >
-              <Calendar className="h-3 w-3 mr-1" />
-              Timeline
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
               onClick={() => generateActionsMutation.mutate()}
               disabled={generateActionsMutation.isPending}
               className="text-xs text-gray-600 hover:text-purple-600"
             >
               <Sparkles className="h-3 w-3 mr-1" />
-              {generateActionsMutation.isPending ? 'Generating...' : 'AI Actions'}
+              {generateActionsMutation.isPending ? 'Generating...' : 'Generate AI'}
             </Button>
           </div>
         </div>
@@ -263,7 +256,11 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                   key={type.value}
                   onClick={() => {
                     setSelectedActivityType(type.value as any);
-                    if (!showActivityInput) setShowActivityInput(true);
+                    if (type.value === 'task' || type.value === 'comment') {
+                      if (!showActivityInput) setShowActivityInput(true);
+                    } else {
+                      setShowActivityInput(false);
+                    }
                   }}
                   className={`flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-all ${
                     selectedActivityType === type.value
@@ -278,24 +275,24 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
             })}
           </div>
 
-          {/* Quick Add Input */}
-          {!showActivityInput ? (
-            <button
-              onClick={() => setShowActivityInput(true)}
-              className="flex items-center gap-3 w-full text-left p-3 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors"
-            >
-              <Plus className="h-4 w-4 text-gray-400" />
-              <span className="text-sm text-gray-600">Add {selectedActivityType}...</span>
-            </button>
-          ) : (
-            <div className="border border-gray-200 rounded-lg p-4 bg-gray-50 space-y-3">
-              <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                <SelectedIcon className={`h-4 w-4 ${activityTypes.find(t => t.value === selectedActivityType)?.color}`} />
-                Add {selectedActivityType}
-              </div>
-
-              {selectedActivityType === 'task' && (
-                <div className="space-y-3">
+          {/* Activity Content Based on Selected Type */}
+          {/* Tasks */}
+          {selectedActivityType === 'task' && (
+            <>
+              {!showActivityInput ? (
+                <button
+                  onClick={() => setShowActivityInput(true)}
+                  className="flex items-center gap-3 w-full text-left p-3 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors"
+                >
+                  <Plus className="h-4 w-4 text-gray-400" />
+                  <span className="text-sm text-gray-600">Add task...</span>
+                </button>
+              ) : (
+                <div className="border border-gray-200 rounded-lg p-4 bg-gray-50 space-y-3">
+                  <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                    <CheckSquare className="h-4 w-4 text-green-600" />
+                    Add Task
+                  </div>
                   <Input
                     placeholder="Task title..."
                     value={taskTitle}
@@ -317,69 +314,154 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                       </SelectContent>
                     </Select>
                   </div>
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={visibleToPartner}
+                        onCheckedChange={setVisibleToPartner}
+                        className="scale-75"
+                      />
+                      <span className="text-xs text-gray-600 flex items-center gap-1">
+                        {visibleToPartner ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+                        Visible to partner
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button variant="ghost" size="sm" onClick={resetForm} className="h-7 px-3 text-xs">
+                        <X className="h-3 w-3 mr-1" />Cancel
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={handleCreateActivity}
+                        disabled={createActivityMutation.isPending || !taskTitle.trim()}
+                        className="h-7 px-3 text-xs"
+                      >
+                        <Send className="h-3 w-3 mr-1" />Add
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               )}
-
-              {selectedActivityType === 'comment' && (
-                <Textarea
-                  placeholder="Add a comment..."
-                  value={commentContent}
-                  onChange={(e) => setCommentContent(e.target.value)}
-                  onKeyDown={handleKeyPress}
-                  className="border-0 bg-white shadow-sm resize-none min-h-[80px]"
-                  autoFocus
-                />
-              )}
-
-              {/* Partner Visibility Toggle */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Switch
-                    checked={visibleToPartner}
-                    onCheckedChange={setVisibleToPartner}
-                    className="scale-75"
-                  />
-                  <span className="text-xs text-gray-600 flex items-center gap-1">
-                    {visibleToPartner ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
-                    Visible to partner
-                  </span>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={resetForm}
-                    className="h-7 px-3 text-xs"
-                  >
-                    <X className="h-3 w-3 mr-1" />
-                    Cancel
-                  </Button>
-                  <Button
-                    size="sm"
-                    onClick={handleCreateActivity}
-                    disabled={
-                      createActivityMutation.isPending ||
-                      (selectedActivityType === 'task' && !taskTitle.trim()) ||
-                      (selectedActivityType === 'comment' && !commentContent.trim())
-                    }
-                    className="h-7 px-3 text-xs"
-                  >
-                    <Send className="h-3 w-3 mr-1" />
-                    Add
-                  </Button>
-                </div>
-              </div>
               
-              <div className="text-xs text-gray-500">
-                ⌘ + Enter to save, Escape to cancel
+              {/* Task List */}
+              <div className="space-y-2">
+                {tasks.map((task: any) => (
+                  <div key={task.id} className="flex items-center gap-3 p-3 bg-white border rounded-lg">
+                    <button
+                      onClick={() => toggleTaskMutation.mutate({ taskId: task.id, completed: !task.completed })}
+                      className={`w-4 h-4 border rounded-sm flex items-center justify-center transition-colors ${
+                        task.completed 
+                          ? 'bg-green-500 border-green-500 text-white' 
+                          : 'border-gray-300 hover:border-green-400'
+                      }`}
+                    >
+                      {task.completed && <Check className="h-3 w-3" />}
+                    </button>
+                    <div className="flex-1">
+                      <span className={`text-sm ${task.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
+                        {task.title}
+                      </span>
+                      <div className="flex items-center gap-2 mt-1">
+                        {task.priority && (
+                          <Badge className={priorityColors[task.priority as keyof typeof priorityColors]}>
+                            {task.priority}
+                          </Badge>
+                        )}
+                        {task.visible_to_partner && <Eye className="h-3 w-3 text-blue-500" />}
+                        <span className="text-xs text-gray-500">
+                          {new Date(task.created_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* Comments */}
+          {selectedActivityType === 'comment' && (
+            <>
+              {!showActivityInput ? (
+                <button
+                  onClick={() => setShowActivityInput(true)}
+                  className="flex items-center gap-3 w-full text-left p-3 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors"
+                >
+                  <Plus className="h-4 w-4 text-gray-400" />
+                  <span className="text-sm text-gray-600">Add comment...</span>
+                </button>
+              ) : (
+                <div className="border border-gray-200 rounded-lg p-4 bg-gray-50 space-y-3">
+                  <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
+                    <MessageSquare className="h-4 w-4 text-blue-600" />
+                    Add Comment
+                  </div>
+                  <Textarea
+                    placeholder="Add a comment..."
+                    value={commentContent}
+                    onChange={(e) => setCommentContent(e.target.value)}
+                    onKeyDown={handleKeyPress}
+                    className="border-0 bg-white shadow-sm resize-none min-h-[80px]"
+                    autoFocus
+                  />
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Switch
+                        checked={visibleToPartner}
+                        onCheckedChange={setVisibleToPartner}
+                        className="scale-75"
+                      />
+                      <span className="text-xs text-gray-600 flex items-center gap-1">
+                        {visibleToPartner ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+                        Visible to partner
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Button variant="ghost" size="sm" onClick={resetForm} className="h-7 px-3 text-xs">
+                        <X className="h-3 w-3 mr-1" />Cancel
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={handleCreateActivity}
+                        disabled={createActivityMutation.isPending || !commentContent.trim()}
+                        className="h-7 px-3 text-xs"
+                      >
+                        <Send className="h-3 w-3 mr-1" />Add
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {/* Comments List */}
+              <div className="space-y-2">
+                {comments.map((comment: any) => (
+                  <div key={comment.id} className="p-3 bg-white border rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <MessageSquare className="h-3 w-3 text-blue-500" />
+                      <span className="text-xs text-gray-500">{new Date(comment.created_at).toLocaleDateString()}</span>
+                      {comment.visible_to_partner && <Eye className="h-3 w-3 text-blue-500" />}
+                    </div>
+                    <p className="text-sm text-gray-900">{comment.content}</p>
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
+
+          {/* Documents */}
+          {selectedActivityType === 'attachment' && (
+            <div className="space-y-3">
+              <div className="text-center py-8 text-gray-500">
+                <Paperclip className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                <p className="text-sm">Document upload coming soon</p>
               </div>
             </div>
           )}
 
           {/* Timeline View */}
-          {showTimeline && (
-            <div className="border rounded-lg p-4 bg-white">
+          {selectedActivityType === 'timeline' && (
+            <div className="space-y-3">
               <div className="flex items-center gap-2 mb-3">
                 <Calendar className="h-4 w-4 text-gray-600" />
                 <span className="text-sm font-medium text-gray-700">Activity Timeline</span>
@@ -393,7 +475,7 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                     const isAttachment = item.filename !== undefined;
 
                     return (
-                      <div key={`${isTask ? 'task' : isComment ? 'comment' : 'attachment'}-${item.id}`} className="flex items-start gap-3 p-2 hover:bg-gray-50 rounded-md">
+                      <div key={`${isTask ? 'task' : isComment ? 'comment' : 'attachment'}-${item.id}`} className="flex items-start gap-3 p-3 bg-white border rounded-lg">
                         <div className="flex-shrink-0 mt-1">
                           {isTask && (
                             <button
@@ -416,9 +498,7 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                             <span className={`text-sm ${item.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
                               {isTask ? item.title : isComment ? item.content : item.filename}
                             </span>
-                            {item.visible_to_partner && (
-                              <Eye className="h-3 w-3 text-blue-500" />
-                            )}
+                            {item.visible_to_partner && <Eye className="h-3 w-3 text-blue-500" />}
                             {isTask && item.priority && (
                               <Badge className={priorityColors[item.priority as keyof typeof priorityColors]}>
                                 {item.priority}
@@ -436,35 +516,36 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
             </div>
           )}
 
-          {/* AI Actions - Collapsed */}
-          {actions.length > 0 && (
-            <Collapsible>
-              <CollapsibleTrigger className="flex items-center gap-2 w-full py-2 px-3 rounded-lg hover:bg-gray-50 text-sm">
-                <ChevronRight className="h-4 w-4" />
+          {/* Next Best Actions */}
+          {selectedActivityType === 'actions' && (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 mb-3">
                 <Sparkles className="h-4 w-4 text-purple-600" />
-                <span className="font-medium">AI Suggestions</span>
-                <Badge variant="secondary" className="ml-auto text-xs">{actions.length}</Badge>
-              </CollapsibleTrigger>
-              <CollapsibleContent>
-                <div className="mt-2 space-y-2 pl-6">
+                <span className="text-sm font-medium text-gray-700">Next Best Actions</span>
+              </div>
+              {actions.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <Sparkles className="h-8 w-8 mx-auto mb-2 text-gray-400" />
+                  <p className="text-sm">No AI suggestions available</p>
+                  <p className="text-xs text-gray-400 mt-1">Generate new recommendations with the AI button above</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
                   {actions.map((action: NextBestAction) => (
-                    <div key={action.id} className="border-l-2 border-purple-200 pl-3 py-2 bg-purple-50 rounded-r-lg">
-                      <div className="flex items-start justify-between">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <h4 className="font-medium text-sm text-gray-900">{action.title}</h4>
-                            <Badge className={priorityColors[action.priority as keyof typeof priorityColors]}>
-                              {action.priority}
-                            </Badge>
-                          </div>
-                          <p className="text-xs text-gray-600">{action.description}</p>
-                        </div>
+                    <div key={action.id} className="p-3 bg-white border border-purple-200 rounded-lg">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Sparkles className="h-3 w-3 text-purple-600" />
+                        <h4 className="font-medium text-sm text-gray-900">{action.title}</h4>
+                        <Badge className={priorityColors[action.priority as keyof typeof priorityColors]}>
+                          {action.priority}
+                        </Badge>
                       </div>
+                      <p className="text-xs text-gray-600">{action.description}</p>
                     </div>
                   ))}
                 </div>
-              </CollapsibleContent>
-            </Collapsible>
+              )}
+            </div>
           )}
         </div>
       )}
