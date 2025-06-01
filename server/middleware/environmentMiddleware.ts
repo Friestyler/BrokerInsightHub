@@ -16,30 +16,9 @@ declare global {
 // Assign to global for access from other modules
 global.requestStorage = requestStorage;
 
-// Middleware to determine the environment for the current request
+// Middleware to determine the environment for the current request - only De Goudse
 export function environmentMiddleware(req: Request, res: Response, next: NextFunction) {
-  let envId = DEFAULT_ENVIRONMENT;
-  
-  // Check for environment in the request header
-  const envHeader = req.headers['x-environment'] as string;
-  if (envHeader) {
-    envId = envHeader;
-  }
-  
-  // Check for De Goudse environment in URL path
-  // Format: /api/degoudse/resource
-  if (req.path.startsWith('/api/degoudse/')) {
-    envId = 'degoudse';
-  }
-  
-  // Check for legacy environment format
-  // Format: /api/env-{environment}/resource
-  const envPathMatch = req.path.match(/^\/api\/env-([^/]+)/);
-  if (envPathMatch) {
-    envId = envPathMatch[1];
-    // Rewrite the URL path to remove the environment prefix
-    req.url = req.url.replace(`/env-${envId}`, '');
-  }
+  const envId = DEFAULT_ENVIRONMENT; // Always use degoudse
   
   // Store the current environment ID in the request object for later use
   (req as any).environmentId = envId;

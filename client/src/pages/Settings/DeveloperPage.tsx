@@ -526,7 +526,7 @@ function DeveloperPage() {
                 <div className="text-sm">
                   <h4 className="font-medium mb-2">Active Database Schemas</h4>
                   <div className="space-y-2">
-                    {['qollabi', 'degoudse', 'acme', 'globex', 'oceanic'].map((schema) => (
+                    {['degoudse'].map((schema) => (
                       <div key={schema} className="flex justify-between items-center p-2 border rounded">
                         <span className="font-mono">{schema}</span>
                         <Badge variant={schema === environment.id ? "default" : "outline"}>

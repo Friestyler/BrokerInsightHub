@@ -3697,35 +3697,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Saved Lists API endpoints
-  app.get('/api/saved-lists', async (req, res) => {
-    try {
-      const entityType = req.query.entity_type as string;
-      const envId = req.headers['x-environment-id'] || 'myqollabi';
-      
-      // Disable caching for this response
-      res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
-      res.set('Pragma', 'no-cache');
-      res.set('Expires', '0');
-      
-      const envPool = getEnvironmentPool(envId as string);
-      
-      if (entityType && entityType.trim()) {
-        const result = await envPool.query(
-          `SELECT * FROM ${envId}.saved_lists WHERE entity_type = $1 ORDER BY created_at DESC`,
-          [entityType]
-        );
-        res.json(result.rows);
-      } else {
-        const result = await envPool.query(
-          `SELECT * FROM ${envId}.saved_lists ORDER BY created_at DESC`
-        );
-        res.json(result.rows);
-      }
-    } catch (error) {
-      console.error('[GENERAL ROUTE] Error:', error);
-      res.status(500).json({ error: 'Failed to fetch saved lists' });
-    }
+  // Saved Lists API endpoints - redirect to De Goudse
+  app.get('/api/saved-lists', (req, res) => {
+    const queryParams = req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '';
+    res.redirect(`/api/degoudse/saved-lists${queryParams}`);
   });
 
   // REMOVED: Shadow endpoint causing conflicts with environment-specific endpoints
@@ -3783,38 +3758,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Saved Views API endpoints
-  app.get('/api/saved-views', async (req, res) => {
-    try {
-      const entityType = req.query.entity_type as string;
-      const envId = req.headers['x-environment-id'] || 'myqollabi';
-      const envPool = getEnvironmentPool(envId as string);
-      
-      console.log(`Saved views API: entityType=${entityType}, envId=${envId}`);
-      
-      let query = `SELECT * FROM ${envId}.saved_views`;
-      const params = [];
-      
-      if (entityType) {
-        query += ` WHERE entity_type = $1`;
-        params.push(entityType);
-      }
-      
-      query += ` ORDER BY created_at DESC`;
-      
-      console.log(`Executing query: ${query} with params:`, params);
-      const result = await envPool.query(query, params);
-      console.log(`Query returned ${result.rows.length} rows`);
-      
-      res.json(result.rows);
-    } catch (error) {
-      console.error('Error fetching saved views:', error);
-      res.status(500).json({ error: 'Failed to fetch saved views' });
-    }
+  // Saved Views API endpoints - redirect to De Goudse
+  app.get('/api/saved-views', (req, res) => {
+    const queryParams = req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '';
+    res.redirect(`/api/degoudse/saved-views${queryParams}`);
   });
 
-  // REMOVED: Shadow endpoint causing conflicts with environment-specific endpoints
-  // Use /api/degoudse/saved-views instead
+  // Main entity routes - redirect all to De Goudse
+  app.get('/api/opportunities', (req, res) => res.redirect('/api/degoudse/opportunities'));
+  app.post('/api/opportunities', (req, res) => res.redirect(307, '/api/degoudse/opportunities'));
+  app.get('/api/partners', (req, res) => res.redirect('/api/degoudse/partners'));
+  app.get('/api/customers', (req, res) => res.redirect('/api/degoudse/customers'));
+  app.get('/api/products', (req, res) => res.redirect('/api/degoudse/products'));
+  app.get('/api/contacts', (req, res) => res.redirect('/api/degoudse/contacts'));
+  app.post('/api/contacts', (req, res) => res.redirect(307, '/api/degoudse/contacts'));
+  app.get('/api/vendors', (req, res) => res.redirect('/api/degoudse/vendors'));
+  app.post('/api/vendors', (req, res) => res.redirect(307, '/api/degoudse/vendors'));
+  app.get('/api/okr-metrics', (req, res) => res.redirect('/api/degoudse/okr-metrics'));
+  app.get('/api/okr-tags', (req, res) => res.redirect('/api/degoudse/okr-tags'));
 
   app.put('/api/saved-views/:id', async (req, res) => {
     try {
