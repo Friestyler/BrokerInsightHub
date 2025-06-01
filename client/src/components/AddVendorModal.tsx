@@ -8,10 +8,18 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { Plus } from "lucide-react";
 import { apiRequest } from "@/lib/queryClient";
@@ -25,9 +33,14 @@ export function AddVendorModal({ children }: AddVendorModalProps) {
   const [formData, setFormData] = useState({
     name: "",
     description: "",
-    contactName: "",
+    location: "",
     contactEmail: "",
-    contactPhone: "",
+    primaryContact: "",
+    partnerType: "vendor",
+    region: "",
+    status: "active",
+    industry: "Other",
+    size: "medium"
   });
 
   const { toast } = useToast();
@@ -43,9 +56,14 @@ export function AddVendorModal({ children }: AddVendorModalProps) {
       setFormData({
         name: "",
         description: "",
-        contactName: "",
+        location: "",
         contactEmail: "",
-        contactPhone: "",
+        primaryContact: "",
+        partnerType: "vendor",
+        region: "",
+        status: "active",
+        industry: "Other",
+        size: "medium"
       });
       toast({
         title: "Success",
@@ -62,9 +80,7 @@ export function AddVendorModal({ children }: AddVendorModalProps) {
     },
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
+  const handleSubmit = () => {
     if (!formData.name || !formData.description) {
       toast({
         title: "Validation Error",
@@ -75,10 +91,6 @@ export function AddVendorModal({ children }: AddVendorModalProps) {
     }
 
     createVendorMutation.mutate(formData);
-  };
-
-  const handleChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
   };
 
   return (
@@ -98,78 +110,111 @@ export function AddVendorModal({ children }: AddVendorModalProps) {
             Create a new vendor for your organization
           </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="name">Name *</Label>
-            <Input
-              id="name"
-              value={formData.name}
-              onChange={(e) => handleChange("name", e.target.value)}
-              placeholder="Enter vendor name"
-              required
-            />
+        <div className="grid gap-4 py-4">
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="name">Name *</Label>
+              <Input
+                id="name"
+                value={formData.name}
+                onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="Enter vendor name"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="primaryContact">Primary Contact</Label>
+              <Input
+                id="primaryContact"
+                value={formData.primaryContact}
+                onChange={(e) => setFormData(prev => ({ ...prev, primaryContact: e.target.value }))}
+                placeholder="Contact person name"
+              />
+            </div>
           </div>
-          
           <div className="space-y-2">
             <Label htmlFor="description">Description *</Label>
             <Textarea
               id="description"
               value={formData.description}
-              onChange={(e) => handleChange("description", e.target.value)}
-              placeholder="Enter vendor description"
-              rows={3}
-              required
+              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+              placeholder="Brief description of the vendor"
             />
           </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="contactName">Contact Name</Label>
-            <Input
-              id="contactName"
-              value={formData.contactName}
-              onChange={(e) => handleChange("contactName", e.target.value)}
-              placeholder="Enter contact name"
-            />
+          <div className="grid grid-cols-2 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="contactEmail">Contact Email</Label>
+              <Input
+                id="contactEmail"
+                type="email"
+                value={formData.contactEmail}
+                onChange={(e) => setFormData(prev => ({ ...prev, contactEmail: e.target.value }))}
+                placeholder="email@example.com"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="location">Location</Label>
+              <Input
+                id="location"
+                value={formData.location}
+                onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                placeholder="City, Country"
+              />
+            </div>
           </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="contactEmail">Contact Email</Label>
-            <Input
-              id="contactEmail"
-              type="email"
-              value={formData.contactEmail}
-              onChange={(e) => handleChange("contactEmail", e.target.value)}
-              placeholder="Enter contact email"
-            />
+          <div className="grid grid-cols-3 gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="partnerType">Vendor Type</Label>
+              <Select value={formData.partnerType} onValueChange={(value) => setFormData(prev => ({ ...prev, partnerType: value }))}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="vendor">Vendor</SelectItem>
+                  <SelectItem value="supplier">Supplier</SelectItem>
+                  <SelectItem value="contractor">Contractor</SelectItem>
+                  <SelectItem value="service-provider">Service Provider</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="region">Region</Label>
+              <Select value={formData.region} onValueChange={(value) => setFormData(prev => ({ ...prev, region: value }))}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="north">North</SelectItem>
+                  <SelectItem value="south">South</SelectItem>
+                  <SelectItem value="east">East</SelectItem>
+                  <SelectItem value="west">West</SelectItem>
+                  <SelectItem value="central">Central</SelectItem>
+                  <SelectItem value="international">International</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="status">Status</Label>
+              <Select value={formData.status} onValueChange={(value) => setFormData(prev => ({ ...prev, status: value }))}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                  <SelectItem value="pending">Pending</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
           </div>
-
-          <div className="space-y-2">
-            <Label htmlFor="contactPhone">Contact Phone</Label>
-            <Input
-              id="contactPhone"
-              value={formData.contactPhone}
-              onChange={(e) => handleChange("contactPhone", e.target.value)}
-              placeholder="Enter contact phone"
-            />
-          </div>
-
-          <div className="flex justify-end space-x-2 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => setOpen(false)}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="submit"
-              disabled={createVendorMutation.isPending}
-              className="bg-indigo-600 hover:bg-indigo-700"
-            >
-              {createVendorMutation.isPending ? "Creating..." : "Create Vendor"}
-            </Button>
-          </div>
-        </form>
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setOpen(false)}>
+            Cancel
+          </Button>
+          <Button onClick={handleSubmit} disabled={createVendorMutation.isPending}>
+            {createVendorMutation.isPending ? 'Creating...' : 'Create Vendor'}
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   );
