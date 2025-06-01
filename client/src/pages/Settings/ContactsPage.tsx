@@ -15,13 +15,17 @@ interface Contact {
   id: number;
   first_name: string;
   last_name: string;
+  full_name: string;
   email: string;
   phone: string;
+  job_title: string;
+  department: string;
   company: string;
-  position: string;
   linked_entity_type: string;
   linked_entity_id: number;
+  is_primary: boolean;
   notes: string;
+  tags: string[];
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -46,7 +50,8 @@ export default function ContactsPage() {
     email: '',
     phone: '',
     company: '',
-    position: '',
+    job_title: '',
+    department: '',
     linked_entity_type: '',
     linked_entity_id: '',
     notes: ''
@@ -102,7 +107,8 @@ export default function ContactsPage() {
         email: formData.email,
         phone: formData.phone,
         company: formData.company,
-        position: formData.position,
+        position: formData.job_title,
+        department: formData.department,
         linkedEntityType: formData.linked_entity_type || null,
         linkedEntityId: formData.linked_entity_id ? parseInt(formData.linked_entity_id) : null,
         notes: formData.notes,
@@ -147,7 +153,8 @@ export default function ContactsPage() {
       email: contact.email,
       phone: contact.phone,
       company: contact.company,
-      position: contact.position,
+      job_title: contact.job_title,
+      department: contact.department,
       linked_entity_type: contact.linked_entity_type,
       linked_entity_id: contact.linked_entity_id?.toString() || '',
       notes: contact.notes

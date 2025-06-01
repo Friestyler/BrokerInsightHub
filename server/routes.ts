@@ -3851,9 +3851,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const result = await db.execute(sql`
-        SELECT id, first_name, last_name, email, phone, 
-               company, position, linked_entity_type, 
-               linked_entity_id, notes, is_active, 
+        SELECT id, first_name, last_name, full_name, email, phone, 
+               job_title, department, company, linked_entity_type, 
+               linked_entity_id, is_primary, notes, tags, is_active, 
                created_at, updated_at
         FROM ${sql.identifier(envId as string)}.contacts 
         ${queryConditions}
@@ -3898,25 +3898,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { 
         firstName, lastName, email, phone, 
         company, position, linkedEntityType, linkedEntityId, 
-        notes, isActive 
+        notes, isActive, department 
       } = req.body;
+      
+      // Create full_name from first and last name
+      const fullName = `${firstName} ${lastName}`.trim();
       
       const result = await db.execute(sql`
         INSERT INTO ${sql.identifier(envId as string)}.contacts (
-          first_name, last_name, email, phone, 
-          company, position, linked_entity_type, linked_entity_id,
-          notes, is_active, created_at, updated_at
+          first_name, last_name, full_name, email, phone, 
+          job_title, department, company, linked_entity_type, linked_entity_id,
+          is_primary, notes, tags, is_active, created_at, updated_at
         ) VALUES (
-          ${firstName}, ${lastName}, ${email || null}, 
-          ${phone || null}, ${company || null}, ${position || null},
+          ${firstName}, ${lastName}, ${fullName}, ${email || null}, 
+          ${phone || null}, ${position || null}, ${department || null}, ${company || null},
           ${linkedEntityType || null}, ${linkedEntityId || null}, 
-          ${notes || null}, ${isActive !== false}, NOW(), NOW()
-        ) RETURNING id, first_name, last_name, email, phone, 
-                   company, position, linked_entity_type, 
-                   linked_entity_id, notes, is_active, 
+          ${false}, ${notes || null}, ${[]}, ${isActive !== false}, NOW(), NOW()
+        ) RETURNING id, first_name, last_name, full_name, email, phone, 
+                   job_title, department, company, linked_entity_type, 
+                   linked_entity_id, is_primary, notes, tags, is_active, 
                    created_at, updated_at
       `);
       
+      console.log(`Contact created successfully in ${envId} environment:`, result.rows[0]);
       res.status(201).json(result.rows[0]);
     } catch (error) {
       console.error('Error creating contact:', error);
