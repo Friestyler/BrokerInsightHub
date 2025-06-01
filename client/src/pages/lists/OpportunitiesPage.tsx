@@ -32,7 +32,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { ShareModal } from "@/components/ShareModal";
-import { useSorting } from "@/hooks/useSorting";
+
 import { SortableTableHead } from "@/components/ui/sortable-table-head";
 
 // Fetch opportunities from database
@@ -398,7 +398,7 @@ function OpportunitiesTable() {
   const [itemsPerPage, setItemsPerPage] = useState(12);
   
   // Initialize sorting state early to maintain hook order
-  const [sortConfig, setSortConfig] = useState({ key: 'title', direction: 'asc' as 'asc' | 'desc' });
+  const [tableSortConfig, setTableSortConfig] = useState({ key: 'title', direction: 'asc' as 'asc' | 'desc' });
   
   // Database data is already fetched via the hook at the top of the component
   
@@ -687,7 +687,7 @@ function OpportunitiesTable() {
 
   // Apply sorting manually using the state
   const handleSort = (key: string) => {
-    setSortConfig(prev => ({
+    setTableSortConfig(prev => ({
       key,
       direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
     }));
@@ -695,10 +695,10 @@ function OpportunitiesTable() {
 
   // Sort the filtered opportunities
   const displayedOpportunities = [...filteredOpportunities].sort((a: any, b: any) => {
-    const aValue = a[sortConfig.key] || '';
-    const bValue = b[sortConfig.key] || '';
+    const aValue = a[tableSortConfig.key] || '';
+    const bValue = b[tableSortConfig.key] || '';
     
-    if (sortConfig.direction === 'asc') {
+    if (tableSortConfig.direction === 'asc') {
       return aValue > bValue ? 1 : -1;
     } else {
       return aValue < bValue ? 1 : -1;
@@ -1536,8 +1536,8 @@ function OpportunitiesTable() {
               </th>
               <SortableTableHead 
                 sortKey="title" 
-                currentSortKey={sortConfig.key} 
-                currentDirection={sortConfig.direction} 
+                currentSortKey={tableSortConfig.key} 
+                currentDirection={tableSortConfig.direction} 
                 onSort={handleSort} 
                 className="w-[250px]"
               >
@@ -1545,8 +1545,8 @@ function OpportunitiesTable() {
               </SortableTableHead>
               <SortableTableHead 
                 sortKey="status" 
-                currentSortKey={sortConfig.key} 
-                currentDirection={sortConfig.direction} 
+                currentSortKey={tableSortConfig.key} 
+                currentDirection={tableSortConfig.direction} 
                 onSort={handleSort} 
                 className="w-[120px]"
               >
@@ -1554,8 +1554,8 @@ function OpportunitiesTable() {
               </SortableTableHead>
               <SortableTableHead 
                 sortKey="type" 
-                currentSortKey={sortConfig.key} 
-                currentDirection={sortConfig.direction} 
+                currentSortKey={tableSortConfig.key} 
+                currentDirection={tableSortConfig.direction} 
                 onSort={handleSort} 
                 className="w-[120px]"
               >
@@ -1568,8 +1568,8 @@ function OpportunitiesTable() {
               </th>
               <SortableTableHead 
                 sortKey="clientName" 
-                currentSortKey={sortConfig.key} 
-                currentDirection={sortConfig.direction} 
+                currentSortKey={tableSortConfig.key} 
+                currentDirection={tableSortConfig.direction} 
                 onSort={handleSort} 
                 className="w-[140px]"
               >
@@ -1577,8 +1577,8 @@ function OpportunitiesTable() {
               </SortableTableHead>
               <SortableTableHead 
                 sortKey="partnerName" 
-                currentSortKey={sortConfig.key} 
-                currentDirection={sortConfig.direction} 
+                currentSortKey={tableSortConfig.key} 
+                currentDirection={tableSortConfig.direction} 
                 onSort={handleSort} 
                 className="w-[140px]"
               >
@@ -1586,8 +1586,8 @@ function OpportunitiesTable() {
               </SortableTableHead>
               <SortableTableHead 
                 sortKey="estimatedValue" 
-                currentSortKey={sortConfig.key} 
-                currentDirection={sortConfig.direction} 
+                currentSortKey={tableSortConfig.key} 
+                currentDirection={tableSortConfig.direction} 
                 onSort={handleSort} 
                 className="w-[120px]"
               >
@@ -1595,8 +1595,8 @@ function OpportunitiesTable() {
               </SortableTableHead>
               <SortableTableHead 
                 sortKey="probability" 
-                currentSortKey={sortConfig.key} 
-                currentDirection={sortConfig.direction} 
+                currentSortKey={tableSortConfig.key} 
+                currentDirection={tableSortConfig.direction} 
                 onSort={handleSort} 
                 className="w-[100px]"
               >
@@ -1604,8 +1604,8 @@ function OpportunitiesTable() {
               </SortableTableHead>
               <SortableTableHead 
                 sortKey="expectedCloseDate" 
-                currentSortKey={sortConfig.key} 
-                currentDirection={sortConfig.direction} 
+                currentSortKey={tableSortConfig.key} 
+                currentDirection={tableSortConfig.direction} 
                 onSort={handleSort} 
                 className="w-[120px]"
               >
