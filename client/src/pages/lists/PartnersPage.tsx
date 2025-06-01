@@ -558,8 +558,9 @@ function PartnersTable() {
   
 
 
-  // Calculate stats based on filtered partners
-  const stats = calculatePartnerStats(displayedPartners);
+  // Calculate stats based on the same data shown in the table
+  const tableData = isEditingList ? partners : displayedPartners;
+  const stats = calculatePartnerStats(Array.isArray(tableData) ? tableData : []);
   
   // Function to toggle partner selection
   const toggleSelectPartner = (id: number) => {
