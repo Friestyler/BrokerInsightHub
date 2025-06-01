@@ -4,335 +4,204 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ArrowLeft, Search, Users, Copy, Trash2, MoreHorizontal } from "lucide-react";
+import { ArrowLeft, Building2, Users, Target } from "lucide-react";
+import { useEnvironment } from "@/contexts/EnvironmentContext";
+
+interface Opportunity {
+  id: number;
+  title: string;
+  description?: string;
+  status: string;
+  stage: string;
+  type?: string;
+  estimatedValue?: number;
+  value?: number;
+  probability?: number;
+  location?: string;
+  partnerName?: string;
+  customerName?: string;
+  clientName?: string;
+  lastActivityDate?: string;
+  assignedUserId?: string;
+  createdAt: string;
+  updatedAt?: string;
+  expectedCloseDate?: string;
+  deliveryDate?: string;
+  customerId?: number;
+  partnerId?: number;
+  linkedProductIds?: number[];
+  linkedContactIds?: number[];
+  createdBy?: string;
+}
+
+function formatCurrency(value: number): string {
+  return new Intl.NumberFormat('en-US', {
+    style: 'currency',
+    currency: 'USD',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(value);
+}
 
 export default function OpportunityDetail() {
   const { id } = useParams();
-  const [activeTab, setActiveTab] = useState("okr-plans");
-  
-  // OKR metrics state management
-  const [selectedMetrics, setSelectedMetrics] = useState<number[]>([]);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [selectedTag, setSelectedTag] = useState("all");
-  const [selectedUnit, setSelectedUnit] = useState("all");
-  const [selectedRange, setSelectedRange] = useState("all");
-  const [selectedTimeframe, setSelectedTimeframe] = useState("all");
-  const [groupBy, setGroupBy] = useState("tag");
+  const { environment } = useEnvironment();
+  const [activeTab, setActiveTab] = useState("partners");
 
-  // Fetch opportunity data from database
-  const { data: opportunities, isLoading: opportunitiesLoading } = useQuery({
-    queryKey: ['/api/opportunities'],
+  // Fetch opportunity data
+  const { data: opportunity, isLoading: opportunityLoading } = useQuery<Opportunity>({
+    queryKey: [`/api/${environment.id}/opportunities/${id}`],
+    enabled: !!id,
   });
 
   // Fetch related partners for this opportunity
   const { data: relatedPartners, isLoading: partnersLoading } = useQuery({
-    queryKey: [`/api/opportunities/${id}/partners`],
+    queryKey: [`/api/${environment.id}/opportunities/${id}/partners`],
     enabled: !!id,
   });
 
   // Fetch related customers for this opportunity
   const { data: relatedCustomers, isLoading: customersLoading } = useQuery({
-    queryKey: [`/api/opportunities/${id}/customers`],
+    queryKey: [`/api/${environment.id}/opportunities/${id}/customers`],
     enabled: !!id,
   });
 
   // Fetch related products for this opportunity
   const { data: relatedProducts, isLoading: productsLoading } = useQuery({
-    queryKey: [`/api/opportunities/${id}/products`],
+    queryKey: [`/api/${environment.id}/opportunities/${id}/products`],
     enabled: !!id,
   });
 
-  // Fetch template assignments for this opportunity
-  const { data: templateAssignments } = useQuery({
-    queryKey: [`/api/template-assignments/opportunity/${id}`],
-    enabled: !!id,
-  });
-
-  // Fetch all OKR metrics to match with assignments
-  const { data: allMetrics } = useQuery({
-    queryKey: ['/api/okr-metrics'],
-  });
-
-  // Fetch available tags for filtering
-  const { data: availableTags } = useQuery({
-    queryKey: ['/api/okr-tags'],
-  });
-
-  if (opportunitiesLoading) {
-    return <div className="p-6">Loading...</div>;
+  if (opportunityLoading || partnersLoading || customersLoading || productsLoading) {
+    return <div className="p-4">Loading...</div>;
   }
 
-  const opportunity = opportunities?.find((o: any) => o.id === parseInt(id || '0'));
-  
   if (!opportunity) {
-    return <div className="p-6">Opportunity not found</div>;
+    return <div className="p-4">Opportunity not found</div>;
   }
-
-  // Get assigned metrics for this opportunity
-  const assignedMetrics = templateAssignments?.length > 0 
-    ? allMetrics?.filter((metric: any) => 
-        templateAssignments.some((assignment: any) => assignment.metric_id === metric.id)
-      ) || []
-    : [];
-
-  // Filter metrics based on search and filters
-  const filteredMetrics = assignedMetrics.filter((metric: any) => {
-    const matchesSearch = metric.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         metric.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesTag = selectedTag === 'all' || metric.tags?.includes(selectedTag);
-    const matchesUnit = selectedUnit === 'all' || metric.measure_unit === selectedUnit;
-    
-    return matchesSearch && matchesTag && matchesUnit;
-  });
-
-  // Group metrics by tag if grouping is enabled
-  const groupedMetrics = groupBy === 'tag' && availableTags?.length > 0
-    ? availableTags.reduce((acc: any, tag: any) => {
-        const tagMetrics = filteredMetrics.filter((metric: any) => 
-          metric.tags?.includes(tag.name)
-        );
-        if (tagMetrics.length > 0) {
-          acc[tag.name] = tagMetrics;
-        }
-        return acc;
-      }, {})
-    : { 'All Metrics': filteredMetrics };
-
-  // Selection handlers
-  const handleMetricSelect = (metricId: number, checked: boolean) => {
-    if (checked) {
-      setSelectedMetrics([...selectedMetrics, metricId]);
-    } else {
-      setSelectedMetrics(selectedMetrics.filter(id => id !== metricId));
-    }
-  };
-
-  const handleSelectAll = () => {
-    if (selectedMetrics.length === filteredMetrics.length) {
-      setSelectedMetrics([]);
-    } else {
-      setSelectedMetrics(filteredMetrics.map((metric: any) => metric.id));
-    }
-  };
 
   return (
-    <div className="min-h-screen bg-white">
-      {/* Header section */}
-      <div className="px-6 py-4">
-        <div className="flex items-center mb-4">
-          <Link href="/opportunities">
-            <Button variant="ghost" size="sm" className="mr-4 p-2">
-              <ArrowLeft className="w-4 h-4" />
-            </Button>
-          </Link>
-          <div className="flex-1">
-            <h1 className="text-2xl font-bold text-gray-900">{opportunity.title}</h1>
-            <div className="flex items-center space-x-4 mt-1">
-              <span className="text-gray-600">{opportunity.description}</span>
-              <div className="flex items-center space-x-2">
-                <span className="text-sm bg-gray-100 text-gray-700 px-2 py-1 rounded">Details</span>
-                <span className="text-sm bg-gray-100 text-gray-700 px-2 py-1 rounded">Opportunity</span>
-                <span className="text-sm text-gray-500">Status: <span className="text-blue-600">{opportunity.status}</span></span>
+    <div className="min-h-screen bg-gray-50">
+      {/* Header */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between py-6">
+            <div className="flex items-center space-x-4">
+              <Link href="/opportunities">
+                <Button variant="ghost" size="sm">
+                  <ArrowLeft className="w-4 h-4 mr-2" />
+                  Back to Opportunities
+                </Button>
+              </Link>
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">{opportunity.title}</h1>
+                <p className="text-sm text-gray-500">
+                  {opportunity.status} • {opportunity.stage}
+                </p>
               </div>
+            </div>
+            <div className="flex items-center space-x-3">
+              <Button variant="outline">Edit</Button>
+              <Button>View Details</Button>
             </div>
           </div>
         </div>
-        
-        <p className="text-gray-600 mb-6">Value: €{Number(opportunity.estimatedValue || 0).toLocaleString()} • Stage: {opportunity.stage} • Probability: {opportunity.probability}%</p>
+      </div>
 
-        {/* Custom tab styling to match design */}
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8">
-            <button 
-              onClick={() => setActiveTab("okr-plans")}
-              className={`py-2 px-4 text-sm font-medium border-b-2 whitespace-nowrap ${
-                activeTab === "okr-plans" 
-                  ? "bg-blue-100 text-blue-700 border-blue-600" 
-                  : "text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300"
-              }`}
-            >
-              OKR plans
-            </button>
-            <button 
+      {/* Opportunity Overview */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div>
+              <h3 className="text-sm font-medium text-gray-500">Estimated Value</h3>
+              <p className="mt-1 text-2xl font-semibold text-gray-900">
+                {formatCurrency(opportunity.estimatedValue || 0)}
+              </p>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-500">Probability</h3>
+              <p className="mt-1 text-2xl font-semibold text-gray-900">{opportunity.probability}%</p>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-500">Expected Close</h3>
+              <p className="mt-1 text-lg text-gray-900">
+                {opportunity.expectedCloseDate 
+                  ? new Date(opportunity.expectedCloseDate).toLocaleDateString()
+                  : 'Not set'
+                }
+              </p>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-500">Created</h3>
+              <p className="mt-1 text-lg text-gray-900">
+                {new Date(opportunity.createdAt).toLocaleDateString()}
+              </p>
+            </div>
+          </div>
+          
+          {opportunity.description && (
+            <div className="mt-6">
+              <h3 className="text-sm font-medium text-gray-500">Description</h3>
+              <p className="mt-1 text-gray-900">{opportunity.description}</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Tabs */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <nav className="flex space-x-8">
+            <button
               onClick={() => setActiveTab("partners")}
-              className={`py-2 px-1 text-sm font-medium border-b-2 whitespace-nowrap ${
-                activeTab === "partners" 
-                  ? "bg-blue-100 text-blue-700 border-blue-600" 
-                  : "text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300"
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === "partners"
+                  ? "border-indigo-500 text-indigo-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               }`}
             >
+              <Users className="w-4 h-4 inline mr-2" />
               Partners ({relatedPartners?.length || 0})
             </button>
-            <button 
+            <button
               onClick={() => setActiveTab("customers")}
-              className={`py-2 px-1 text-sm font-medium border-b-2 whitespace-nowrap ${
-                activeTab === "customers" 
-                  ? "bg-blue-100 text-blue-700 border-blue-600" 
-                  : "text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300"
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === "customers"
+                  ? "border-indigo-500 text-indigo-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               }`}
             >
+              <Building2 className="w-4 h-4 inline mr-2" />
               Customers ({relatedCustomers?.length || 0})
             </button>
-            <button 
+            <button
               onClick={() => setActiveTab("products")}
-              className={`py-2 px-1 text-sm font-medium border-b-2 whitespace-nowrap ${
-                activeTab === "products" 
-                  ? "bg-blue-100 text-blue-700 border-blue-600" 
-                  : "text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300"
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === "products"
+                  ? "border-indigo-500 text-indigo-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
               }`}
             >
+              <Target className="w-4 h-4 inline mr-2" />
               Products ({relatedProducts?.length || 0})
             </button>
           </nav>
         </div>
       </div>
 
-      {/* Content area */}
-      <div className="px-6 py-6">
-        {activeTab === "okr-plans" && (
-          <div className="space-y-6">
-            {/* Filters Section */}
-            <div className="flex items-center space-x-4 bg-white p-4 rounded-lg">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                <Input
-                  placeholder="Search metrics..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-              
-              <Select value={selectedTag} onValueChange={setSelectedTag}>
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Filter by tag" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Tags</SelectItem>
-                  {availableTags?.map((tag: any) => (
-                    <SelectItem key={tag.id} value={tag.name}>{tag.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-
-              <Select value={selectedUnit} onValueChange={setSelectedUnit}>
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Filter by unit" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All Units</SelectItem>
-                  <SelectItem value="percentage">Percentage</SelectItem>
-                  <SelectItem value="number">Number</SelectItem>
-                  <SelectItem value="currency">Currency</SelectItem>
-                </SelectContent>
-              </Select>
-
-              <Select value={groupBy} onValueChange={setGroupBy}>
-                <SelectTrigger className="w-48">
-                  <SelectValue placeholder="Group by" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">No Grouping</SelectItem>
-                  <SelectItem value="tag">Group by Tag</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            {/* Metrics Content */}
-            {Object.entries(groupedMetrics).map(([groupName, metrics]: [string, any]) => (
-              <div key={groupName} className="space-y-4">
-                {groupBy === 'tag' && Object.keys(groupedMetrics).length > 1 && (
-                  <h3 className="text-lg font-semibold text-gray-900">{groupName}</h3>
-                )}
-                
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead className="w-12">
-                        <Checkbox 
-                          checked={selectedMetrics.length === filteredMetrics.length && filteredMetrics.length > 0}
-                          onCheckedChange={handleSelectAll}
-                        />
-                      </TableHead>
-                      <TableHead>Metric Name</TableHead>
-                      <TableHead>Current Value</TableHead>
-                      <TableHead>Target Value</TableHead>
-                      <TableHead>Unit</TableHead>
-                      <TableHead>Progress</TableHead>
-                      <TableHead>Actions</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {metrics.map((metric: any) => (
-                      <TableRow key={metric.id}>
-                        <TableCell>
-                          <Checkbox 
-                            checked={selectedMetrics.includes(metric.id)}
-                            onCheckedChange={(checked) => handleMetricSelect(metric.id, checked as boolean)}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <div>
-                            <div className="font-medium">{metric.name}</div>
-                            <div className="text-sm text-gray-500">{metric.description}</div>
-                          </div>
-                        </TableCell>
-                        <TableCell>{metric.realized_value || 0}</TableCell>
-                        <TableCell>{metric.target_value || 0}</TableCell>
-                        <TableCell>{metric.measure_unit}</TableCell>
-                        <TableCell>
-                          <div className="w-full bg-gray-200 rounded-full h-2">
-                            <div 
-                              className="bg-blue-600 h-2 rounded-full" 
-                              style={{ 
-                                width: `${Math.min(100, ((metric.realized_value || 0) / (metric.target_value || 1)) * 100)}%` 
-                              }}
-                            ></div>
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="ghost" className="h-8 w-8 p-0">
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem>
-                                <Copy className="mr-2 h-4 w-4" />
-                                Copy
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator />
-                              <DropdownMenuItem className="text-red-600">
-                                <Trash2 className="mr-2 h-4 w-4" />
-                                Remove
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
-            ))}
-          </div>
-        )}
-
+      {/* Tab Content */}
+      <div className="p-6">
         {activeTab === "partners" && (
           <div>
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-12"><Checkbox /></TableHead>
-                  <TableHead>Partner</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>Partner Name</TableHead>
                   <TableHead>Location</TableHead>
-                  <TableHead>Contact</TableHead>
+                  <TableHead>Contact Email</TableHead>
+                  <TableHead>Primary Contact</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -340,32 +209,27 @@ export default function OpportunityDetail() {
                   <TableRow key={partner.id}>
                     <TableCell><Checkbox /></TableCell>
                     <TableCell>
-                      <Link href={`/lists/partners/${partner.id}`}>
+                      <Link href={`/partners/${partner.id}`}>
                         <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
                           {partner.name}
                         </span>
                       </Link>
                     </TableCell>
+                    <TableCell>{partner.location || 'Not set'}</TableCell>
+                    <TableCell>{partner.contact_email || 'Not set'}</TableCell>
+                    <TableCell>{partner.primary_contact || 'Not set'}</TableCell>
                     <TableCell>
-                      <span className="text-gray-900">
-                        {partner.partner_type || 'Partner'}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
-                        {partner.status || 'Active'}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      {partner.location || 'Not specified'}
-                    </TableCell>
-                    <TableCell>
-                      {partner.contact_email || 'Not specified'}
+                      <Button variant="ghost" size="sm">View Details</Button>
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
+            {(!relatedPartners || relatedPartners.length === 0) && (
+              <div className="text-center py-12">
+                <p className="text-gray-500">No partners associated with this opportunity</p>
+              </div>
+            )}
           </div>
         )}
 
@@ -375,10 +239,11 @@ export default function OpportunityDetail() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-12"><Checkbox /></TableHead>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>Customer Name</TableHead>
+                  <TableHead>Industry</TableHead>
+                  <TableHead>Location</TableHead>
+                  <TableHead>Contact Email</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -386,27 +251,27 @@ export default function OpportunityDetail() {
                   <TableRow key={customer.id}>
                     <TableCell><Checkbox /></TableCell>
                     <TableCell>
-                      <Link href={`/lists/customers/${customer.id}`}>
+                      <Link href={`/customers/${customer.id}`}>
                         <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
                           {customer.name}
                         </span>
                       </Link>
                     </TableCell>
+                    <TableCell>{customer.industry || 'Not set'}</TableCell>
+                    <TableCell>{customer.location || 'Not set'}</TableCell>
+                    <TableCell>{customer.contact_email || 'Not set'}</TableCell>
                     <TableCell>
-                      <span className="text-gray-900">
-                        {customer.description || 'No description'}
-                      </span>
-                    </TableCell>
-                    <TableCell>Customer</TableCell>
-                    <TableCell>
-                      <span className="px-2 py-1 rounded-full text-xs bg-green-100 text-green-800">
-                        Active
-                      </span>
+                      <Button variant="ghost" size="sm">View Details</Button>
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
+            {(!relatedCustomers || relatedCustomers.length === 0) && (
+              <div className="text-center py-12">
+                <p className="text-gray-500">No customers associated with this opportunity</p>
+              </div>
+            )}
           </div>
         )}
 
@@ -416,10 +281,11 @@ export default function OpportunityDetail() {
               <TableHeader>
                 <TableRow>
                   <TableHead className="w-12"><Checkbox /></TableHead>
-                  <TableHead>Product</TableHead>
+                  <TableHead>Product Name</TableHead>
                   <TableHead>Category</TableHead>
                   <TableHead>Price</TableHead>
                   <TableHead>Description</TableHead>
+                  <TableHead>Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -427,25 +293,25 @@ export default function OpportunityDetail() {
                   <TableRow key={product.id}>
                     <TableCell><Checkbox /></TableCell>
                     <TableCell>
-                      <span className="font-medium text-gray-900">
+                      <span className="font-medium text-indigo-600">
                         {product.name}
                       </span>
                     </TableCell>
+                    <TableCell>{product.category || 'Not set'}</TableCell>
+                    <TableCell>{product.price ? formatCurrency(product.price) : 'Not set'}</TableCell>
+                    <TableCell>{product.description || 'No description'}</TableCell>
                     <TableCell>
-                      <span className="text-gray-900">
-                        {product.category || 'Insurance'}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      €{Number(product.price || 0).toLocaleString()}
-                    </TableCell>
-                    <TableCell>
-                      {product.description || 'No description'}
+                      <Button variant="ghost" size="sm">View Details</Button>
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
+            {(!relatedProducts || relatedProducts.length === 0) && (
+              <div className="text-center py-12">
+                <p className="text-gray-500">No products associated with this opportunity</p>
+              </div>
+            )}
           </div>
         )}
       </div>

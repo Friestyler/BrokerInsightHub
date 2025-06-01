@@ -382,9 +382,7 @@ function OpportunitiesTable() {
   const [listToDelete, setListToDelete] = useState<SavedList | null>(null);
   const [newListName, setNewListName] = useState('');
   
-  // Opportunity details modal state
-  const [selectedOpportunityId, setSelectedOpportunityId] = useState<number | null>(null);
-  const [showOpportunityModal, setShowOpportunityModal] = useState(false);
+
   const [pendingListAction, setPendingListAction] = useState<any>(null);
   const [showUnsavedChangesModal, setShowUnsavedChangesModal] = useState(false);
   const [currentSharedLink, setCurrentSharedLink] = useState<string>('');
@@ -1344,8 +1342,7 @@ function OpportunitiesTable() {
                 onClick={(e) => {
                   // Don't trigger when clicking on checkbox
                   if (!(e.target as any).type || (e.target as any).type !== 'checkbox') {
-                    setSelectedOpportunityId(opportunity.id);
-                    setShowOpportunityModal(true);
+                    window.location.href = `/opportunities/${opportunity.id}`;
                   }
                 }}
               >
@@ -1414,16 +1411,7 @@ function OpportunitiesTable() {
         )}
       </div>
       
-      {/* Opportunity Details Modal */}
-      {showOpportunityModal && selectedOpportunityId && (
-        <OpportunityDetailsModal 
-          opportunityId={selectedOpportunityId}
-          onClose={() => {
-            setShowOpportunityModal(false);
-            setSelectedOpportunityId(null);
-          }}
-        />
-      )}
+
     </div>
   );
 }
