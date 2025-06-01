@@ -12,7 +12,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/u
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
-import { ArrowLeft, Search, Users, Copy, Trash2, MoreHorizontal, MessageSquare } from "lucide-react";
+import { ArrowLeft, Search, Users, Copy, Trash2, MoreHorizontal, MessageSquare, UserPlus } from "lucide-react";
 import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
 
 export default function PartnerDetailClean() {
@@ -34,6 +34,7 @@ export default function PartnerDetailClean() {
   const [selectedMetricForComment, setSelectedMetricForComment] = useState<any | null>(null);
   const [commentText, setCommentText] = useState('');
   const [visibleToPartner, setVisibleToPartner] = useState(true);
+  const [assignedTo, setAssignedTo] = useState<string>('');
 
   // Fetch partner data from database
   const { data: partners, isLoading: partnersLoading } = useQuery({
@@ -70,27 +71,37 @@ export default function PartnerDetailClean() {
 
   // Create comment mutation
   const createCommentMutation = useMutation({
-    mutationFn: async (data: { content: string; visible_to_partner: boolean; entityType: string; entityId: number }) => {
+    mutationFn: async (data: { content: string; visible_to_partner: boolean; entityType: string; entityId: number; assignedTo?: string }) => {
       const response = await fetch('/api/activity/comments', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          ...data,
+          content: data.content,
+          entityType: data.entityType,
+          entityId: data.entityId,
           authorId: 1, // Default user ID
+          assignedToId: data.assignedTo ? 1 : null, // Convert email to user ID (simplified for demo)
+          isInternal: !data.visible_to_partner, // Convert visible_to_partner to is_internal
+          visibleToPartner: data.visible_to_partner,
         }),
       });
-      if (!response.ok) throw new Error('Failed to create comment');
+      if (!response.ok) {
+        const errorData = await response.text();
+        throw new Error(`Failed to create comment: ${errorData}`);
+      }
       return response.json();
     },
     onSuccess: () => {
       setIsCommentDialogOpen(false);
       setCommentText('');
       setVisibleToPartner(true);
+      setAssignedTo('');
       setSelectedMetricForComment(null);
       toast({ title: "Success", description: "Comment added successfully!" });
     },
-    onError: () => {
-      toast({ title: "Error", description: "Failed to add comment", variant: "destructive" });
+    onError: (error) => {
+      console.error('Comment creation error:', error);
+      toast({ title: "Error", description: error.message || "Failed to add comment", variant: "destructive" });
     },
   });
 
@@ -107,6 +118,7 @@ export default function PartnerDetailClean() {
       visible_to_partner: visibleToPartner,
       entityType: 'okr_metric',
       entityId: selectedMetricForComment.id,
+      assignedTo: assignedTo || undefined,
     });
   };
 
@@ -554,6 +566,36 @@ export default function PartnerDetailClean() {
                 onChange={(e) => setCommentText(e.target.value)}
                 rows={4}
               />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="assign-to">Assign to (optional)</Label>
+              <Select value={assignedTo} onValueChange={setAssignedTo}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select team member to assign..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">No assignment</SelectItem>
+                  <SelectItem value="john.smith@company.com">
+                    <div className="flex items-center space-x-2">
+                      <UserPlus className="w-4 h-4" />
+                      <span>John Smith</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="sarah.jones@company.com">
+                    <div className="flex items-center space-x-2">
+                      <UserPlus className="w-4 h-4" />
+                      <span>Sarah Jones</span>
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="mike.wilson@company.com">
+                    <div className="flex items-center space-x-2">
+                      <UserPlus className="w-4 h-4" />
+                      <span>Mike Wilson</span>
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="flex items-center space-x-2">
