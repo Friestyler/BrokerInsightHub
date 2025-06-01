@@ -571,14 +571,14 @@ export default function MetricsPage() {
               </div>
               <button 
                 onClick={() => setSelectedOKRs([])}
-                className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-[#696C8C] hover:text-[#282A3F] transition-colors"
-                style={{ fontFamily: 'Poppins' }}
+                className="flex items-center rounded-md px-4 py-2 text-gray-600 hover:bg-gray-100"
+                style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
               >
-                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                  <path d="M3.33366 8.00008H12.667" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  <path d="M8.00033 3.33341L12.667 8.00008L8.00033 12.6667" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5F6585" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
                 </svg>
-                Clear selection
+                <span className="text-[#5F6585]">Clear selection</span>
               </button>
             </>
           ) : (
