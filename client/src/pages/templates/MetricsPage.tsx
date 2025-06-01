@@ -147,6 +147,10 @@ export default function MetricsPage() {
       // Extract number of days and convert to months
       const days = parseInt(timeframe.match(/\d+/)?.[0] || '0');
       timeframeDuration = days * 0.033; // Convert days to months
+    } else if (timeframe.includes('months')) {
+      // Handle "last X months" timeframes
+      const months = parseInt(timeframe.match(/\d+/)?.[0] || '0');
+      timeframeDuration = months;
     }
     
     // Determine milestone frequency in months
@@ -818,6 +822,10 @@ export default function MetricsPage() {
                         } else if (timeframe.includes('days')) {
                           const days = parseInt(timeframe.match(/\d+/)?.[0] || '0');
                           timeframeDuration = days * 0.033;
+                        } else if (timeframe.includes('months')) {
+                          // Handle "last X months" timeframes
+                          const months = parseInt(timeframe.match(/\d+/)?.[0] || '0');
+                          timeframeDuration = months;
                         }
                         
                         // Determine available frequencies based on timeframe duration
