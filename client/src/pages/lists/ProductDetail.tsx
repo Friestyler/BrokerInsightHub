@@ -36,32 +36,32 @@ export default function ProductDetail() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { getEnvironmentUrl } = useEnvironment();
+  const { environment } = useEnvironment();
   const [isEditing, setIsEditing] = useState(false);
   const [editedProduct, setEditedProduct] = useState<Product | null>(null);
 
   // Fetch product details
   const { data: product, isLoading: productLoading } = useQuery({
-    queryKey: [getEnvironmentUrl(`/api/products/${id}`)],
+    queryKey: [`/api/${environment.id}/products/${id}`],
     enabled: !!id,
   });
 
   // Fetch vendors for dropdown
   const { data: vendors } = useQuery({
-    queryKey: [getEnvironmentUrl('/api/vendors')],
+    queryKey: [`/api/${environment.id}/vendors`],
   });
 
   // Update product mutation
   const updateProductMutation = useMutation({
     mutationFn: async (updatedProduct: Partial<Product>) => {
-      return apiRequest(getEnvironmentUrl(`/api/products/${id}`), {
+      return apiRequest(`/api/${environment.id}/products/${id}`, {
         method: 'PATCH',
         body: JSON.stringify(updatedProduct),
       });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [getEnvironmentUrl('/api/products')] });
-      queryClient.invalidateQueries({ queryKey: [getEnvironmentUrl(`/api/products/${id}`)] });
+      queryClient.invalidateQueries({ queryKey: [`/api/${environment.id}/products`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/${environment.id}/products/${id}`] });
       setIsEditing(false);
       setEditedProduct(null);
       toast({
