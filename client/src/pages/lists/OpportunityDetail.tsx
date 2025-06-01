@@ -397,34 +397,7 @@ export default function OpportunityDetail() {
               </Select>
             </div>
 
-            {/* Tag Badges */}
-            {templateAssignments && templateAssignments.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {Array.from(new Set(templateAssignments.flatMap((a: any) => a.tags || []))).map((tag: any) => {
-                  const count = templateAssignments.filter((a: any) => a.tags?.includes(tag)).length;
-                  const tagColors: Record<string, string> = {
-                    'acquisition': 'bg-blue-100 text-blue-800',
-                    'products': 'bg-green-100 text-green-800', 
-                    'claims': 'bg-red-100 text-red-800',
-                    'solar': 'bg-yellow-100 text-yellow-800',
-                    'partnership': 'bg-purple-100 text-purple-800',
-                    'performance': 'bg-indigo-100 text-indigo-800',
-                    'diversification': 'bg-teal-100 text-teal-800'
-                  };
-                  
-                  return (
-                    <span 
-                      key={tag} 
-                      className={`px-3 py-1 text-sm rounded-full font-medium ${tagColors[tag] || 'bg-gray-100 text-gray-800'}`}
-                    >
-                      {tag} ({count} metric{count !== 1 ? 's' : ''})
-                    </span>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* Table */}
+            {/* Tag-grouped Tables */}
             {(!templateAssignments || templateAssignments.length === 0) ? (
               <div className="text-center py-12">
                 <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-4 text-gray-400">
@@ -436,40 +409,69 @@ export default function OpportunityDetail() {
                 <p className="text-sm text-gray-400">Go to the Opportunities list to assign OKR templates to this opportunity</p>
               </div>
             ) : (
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-12"><Checkbox /></TableHead>
-                    <TableHead>Name</TableHead>
-                    <TableHead>Timeframe</TableHead>
-                    <TableHead>Milestone Frequency</TableHead>
-                    <TableHead>Target</TableHead>
-                    <TableHead className="w-12"></TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {templateAssignments.map((assignment: any) => (
-                    <TableRow key={assignment.id}>
-                      <TableCell><Checkbox /></TableCell>
-                      <TableCell>
-                        <div>
-                          <div className="font-medium text-gray-900">{assignment.template_name}</div>
-                          <div className="text-sm text-gray-600">{assignment.template_description}</div>
-                        </div>
-                      </TableCell>
-                      <TableCell>quarterly</TableCell>
-                      <TableCell>Not set</TableCell>
-                      <TableCell>
-                        <span className="text-gray-900">80</span>
-                        <span className="text-gray-500 ml-1">percentage</span>
-                      </TableCell>
-                      <TableCell>
-                        <Button variant="ghost" size="sm">•••</Button>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
+              <div className="space-y-8">
+                {Array.from(new Set(templateAssignments.flatMap((a: any) => a.tags || []))).map((tag: any) => {
+                  const tagAssignments = templateAssignments.filter((a: any) => a.tags?.includes(tag));
+                  const tagColors: Record<string, string> = {
+                    'acquisition': 'bg-blue-100 text-blue-800',
+                    'products': 'bg-green-100 text-green-800', 
+                    'claims': 'bg-red-100 text-red-800',
+                    'solar': 'bg-yellow-100 text-yellow-800',
+                    'partnership': 'bg-purple-100 text-purple-800',
+                    'performance': 'bg-indigo-100 text-indigo-800',
+                    'diversification': 'bg-teal-100 text-teal-800',
+                    'growth': 'bg-green-100 text-green-800',
+                    'conversion': 'bg-orange-100 text-orange-800',
+                    'renewable': 'bg-green-100 text-green-800',
+                    'customers': 'bg-blue-100 text-blue-800',
+                    'portfolio': 'bg-purple-100 text-purple-800'
+                  };
+
+                  return (
+                    <div key={tag} className="space-y-4">
+                      {/* Tag Badge */}
+                      <div className="flex items-center gap-4">
+                        <span className={`px-3 py-1 text-sm rounded-full font-medium ${tagColors[tag] || 'bg-gray-100 text-gray-800'}`}>
+                          {tag}
+                        </span>
+                      </div>
+
+                      {/* Table for this tag */}
+                      <Table>
+                        <TableHeader>
+                          <TableRow>
+                            <TableHead className="w-12"><Checkbox /></TableHead>
+                            <TableHead>NAME</TableHead>
+                            <TableHead>TIMEFRAME</TableHead>
+                            <TableHead>MILESTONE FREQUENCY</TableHead>
+                            <TableHead>TARGET</TableHead>
+                            <TableHead>ACTIONS</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {tagAssignments.map((assignment: any) => (
+                            <TableRow key={assignment.id}>
+                              <TableCell><Checkbox /></TableCell>
+                              <TableCell>
+                                <div>
+                                  <div className="font-medium text-gray-900">{assignment.template_name}</div>
+                                  <div className="text-sm text-gray-600">{assignment.template_description}</div>
+                                </div>
+                              </TableCell>
+                              <TableCell>Ongoing</TableCell>
+                              <TableCell>Monthly</TableCell>
+                              <TableCell>80</TableCell>
+                              <TableCell>
+                                <Button variant="ghost" size="sm">•••</Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  );
+                })}
+              </div>
             )}
           </div>
         )}
