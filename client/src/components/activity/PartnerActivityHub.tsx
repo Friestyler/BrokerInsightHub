@@ -441,60 +441,9 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
 
           {/* Comments */}
           {selectedActivityType === 'comment' && (
-            <>
-              {!showActivityInput ? (
-                <button
-                  onClick={() => setShowActivityInput(true)}
-                  className="flex items-center gap-3 w-full text-left p-3 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-colors"
-                >
-                  <Plus className="h-4 w-4 text-gray-400" />
-                  <span className="text-sm text-gray-600">Add comment...</span>
-                </button>
-              ) : (
-                <div className="border border-gray-200 rounded-lg p-4 bg-gray-50 space-y-3">
-                  <div className="flex items-center gap-2 text-sm font-medium text-gray-700">
-                    <MessageSquare className="h-4 w-4 text-blue-600" />
-                    Add Comment
-                  </div>
-                  <Textarea
-                    placeholder="Add a comment..."
-                    value={commentContent}
-                    onChange={(e) => setCommentContent(e.target.value)}
-                    onKeyDown={handleKeyPress}
-                    className="border-0 bg-white shadow-sm resize-none min-h-[80px]"
-                    autoFocus
-                  />
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2">
-                      <Switch
-                        checked={visibleToPartner}
-                        onCheckedChange={setVisibleToPartner}
-                        className="scale-75"
-                      />
-                      <span className="text-xs text-gray-600 flex items-center gap-1">
-                        {visibleToPartner ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
-                        Visible to partner
-                      </span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Button variant="ghost" size="sm" onClick={resetForm} className="h-7 px-3 text-xs">
-                        <X className="h-3 w-3 mr-1" />Cancel
-                      </Button>
-                      <Button
-                        size="sm"
-                        onClick={handleCreateActivity}
-                        disabled={createActivityMutation.isPending || !commentContent.trim()}
-                        className="h-7 px-3 text-xs"
-                      >
-                        <Send className="h-3 w-3 mr-1" />Add
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              )}
-              
+            <div className="space-y-4">
               {/* Comments Timeline */}
-              <div className="space-y-3">
+              <div className="space-y-3 max-h-64 overflow-y-auto">
                 {comments.map((comment: any, index: number) => (
                   <div key={comment.id} className="flex items-start gap-3">
                     <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
@@ -536,7 +485,51 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                   </div>
                 )}
               </div>
-            </>
+
+              {/* Quick Comment Input - Chat Style */}
+              <div className="border-t border-gray-100 pt-3">
+                <div className="flex items-center gap-3">
+                  <div className="flex-shrink-0 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                    <span className="text-xs font-medium text-green-600">Y</span>
+                  </div>
+                  <div className="flex-1 relative">
+                    <Input
+                      placeholder="Type a comment and press Enter..."
+                      value={commentContent}
+                      onChange={(e) => setCommentContent(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          if (commentContent.trim()) {
+                            handleCreateActivity();
+                          }
+                        }
+                      }}
+                      className="pr-12 border-gray-200 rounded-full bg-gray-50 focus:bg-white transition-colors"
+                    />
+                    <Button
+                      size="sm"
+                      onClick={handleCreateActivity}
+                      disabled={createActivityMutation.isPending || !commentContent.trim()}
+                      className="absolute right-1 top-1 h-7 w-7 p-0 rounded-full"
+                    >
+                      <Send className="h-3 w-3" />
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 mt-2 ml-11">
+                  <Switch
+                    checked={visibleToPartner}
+                    onCheckedChange={setVisibleToPartner}
+                    className="scale-75"
+                  />
+                  <span className="text-xs text-gray-600 flex items-center gap-1">
+                    {visibleToPartner ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+                    Visible to partner
+                  </span>
+                </div>
+              </div>
+            </div>
           )}
 
           {/* Documents */}
