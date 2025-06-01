@@ -3,6 +3,8 @@ import { Link } from 'wouter';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { useQuery } from "@tanstack/react-query";
+import type { Tag } from "@shared/schema";
 import { 
   Table, 
   TableBody, 
@@ -240,6 +242,12 @@ export default function MetricsPage() {
   const [showNoTarget, setShowNoTarget] = useState(false);
   const [groupBy, setGroupBy] = useState("tag");
   const [isCreateOKROpen, setIsCreateOKROpen] = useState(false);
+  
+  // Fetch tags from API
+  const { data: tags = [] } = useQuery<Tag[]>({
+    queryKey: ['/api/tags'],
+    queryFn: () => fetch('/api/tags').then(res => res.json()),
+  });
   const [formData, setFormData] = useState({
     okrType: '',
     tag: '',
@@ -871,12 +879,11 @@ export default function MetricsPage() {
                   <SelectValue placeholder="Choose tag (optional)" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Revenue Growth">Revenue Growth</SelectItem>
-                  <SelectItem value="Product Innovation">Product Innovation</SelectItem>
-                  <SelectItem value="Customer Experience">Customer Experience</SelectItem>
-                  <SelectItem value="Operational Excellence">Operational Excellence</SelectItem>
-                  <SelectItem value="Market Expansion">Market Expansion</SelectItem>
-                  <SelectItem value="Team Development">Team Development</SelectItem>
+                  {tags.map((tag) => (
+                    <SelectItem key={tag.id} value={tag.name}>
+                      {tag.name}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
