@@ -104,6 +104,24 @@ const useCreateSharedList = () => {
   });
 };
 
+// Hook to fetch customers for opportunity creation
+const useCustomers = () => {
+  return useQuery({
+    queryKey: ['/api/customers'],
+    queryFn: () => apiRequest('GET', '/api/customers'),
+    staleTime: 5 * 60 * 1000,
+  });
+};
+
+// Hook to fetch products for opportunity creation
+const useProducts = () => {
+  return useQuery({
+    queryKey: ['/api/products'],
+    queryFn: () => apiRequest('GET', '/api/products'),
+    staleTime: 5 * 60 * 1000,
+  });
+};
+
 // Type definitions for opportunities
 interface Opportunity {
   id: number;
@@ -342,6 +360,10 @@ function OpportunitiesTable() {
   const createSavedViewMutation = useCreateSavedView();
   const createSharedListMutation = useCreateSharedList();
   const queryClient = useQueryClient();
+  
+  // Fetch customers and products for opportunity creation
+  const { data: customers = [] } = useCustomers();
+  const { data: products = [] } = useProducts();
 
   // Filter saved lists to only show opportunity-related lists (client-side filtering)
   const opportunitySavedListsData = savedListsData.filter((list: any) => 
@@ -394,8 +416,8 @@ function OpportunitiesTable() {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    partnerName: '',
-    customerName: '',
+    customerId: '',
+    productId: '',
     value: '',
     probability: 50,
     status: 'Qualifying',
@@ -416,11 +438,26 @@ function OpportunitiesTable() {
       return;
     }
 
+    if (!formData.customerId || !formData.productId) {
+      toast({
+        title: "Validation Error",
+        description: "Customer and product selection are required.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setIsCreating(true);
     try {
       const newOpportunity = await apiRequest('POST', '/api/opportunities', {
-        ...formData,
+        title: formData.title,
+        description: formData.description,
+        clientId: parseInt(formData.customerId),
+        productId: parseInt(formData.productId),
         value: formData.value ? parseFloat(formData.value) : 0,
+        probability: formData.probability,
+        status: formData.status,
+        type: formData.type,
         closeDate: formData.closeDate || null
       });
       
@@ -1526,22 +1563,34 @@ function OpportunitiesTable() {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="partnerName">Partner</Label>
-                <Input
-                  id="partnerName"
-                  value={formData.partnerName}
-                  onChange={(e) => setFormData(prev => ({ ...prev, partnerName: e.target.value }))}
-                  placeholder="Partner name"
-                />
+                <Label htmlFor="customerId">Customer *</Label>
+                <Select value={formData.customerId} onValueChange={(value) => setFormData(prev => ({ ...prev, customerId: value }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a customer" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {customers.map((customer: any) => (
+                      <SelectItem key={customer.id} value={customer.id.toString()}>
+                        {customer.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="customerName">Customer</Label>
-                <Input
-                  id="customerName"
-                  value={formData.customerName}
-                  onChange={(e) => setFormData(prev => ({ ...prev, customerName: e.target.value }))}
-                  placeholder="Customer name"
-                />
+                <Label htmlFor="productId">Product *</Label>
+                <Select value={formData.productId} onValueChange={(value) => setFormData(prev => ({ ...prev, productId: value }))}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a product" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {products.map((product: any) => (
+                      <SelectItem key={product.id} value={product.id.toString()}>
+                        {product.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
