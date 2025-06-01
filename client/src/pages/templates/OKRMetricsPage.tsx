@@ -39,7 +39,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import { useToast } from "@/hooks/use-toast";
-import { Plus, Tag, Edit2, Trash2, MoreHorizontal, Filter, Search, Settings, ChevronRight, Users, Copy } from 'lucide-react';
+import { Plus, Tag, Edit2, Trash2, MoreHorizontal, Filter, Search, Settings, ChevronRight, Users, Copy, MessageSquare } from 'lucide-react';
 
 // Interfaces
 interface OKRMetric {
@@ -92,6 +92,10 @@ export default function OKRMetricsPage() {
   const [selectedTimeframe, setSelectedTimeframe] = useState('all');
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [isTagDialogOpen, setIsTagDialogOpen] = useState(false);
+  const [isCommentDialogOpen, setIsCommentDialogOpen] = useState(false);
+  const [selectedMetricForComment, setSelectedMetricForComment] = useState<OKRMetric | null>(null);
+  const [commentText, setCommentText] = useState('');
+  const [visibleToPartner, setVisibleToPartner] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
   const [groupBy, setGroupBy] = useState('tag');
   const itemsPerPage = 10;
@@ -209,6 +213,48 @@ export default function OKRMetricsPage() {
       toast({ title: "Success", description: "Tag created successfully!" });
     },
   });
+
+  // Create comment mutation
+  const createCommentMutation = useMutation({
+    mutationFn: async (data: { content: string; visible_to_partner: boolean; entityType: string; entityId: number }) => {
+      const response = await fetch('/api/degoudse/activity/comments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...data,
+          authorId: 1, // Default user ID
+        }),
+      });
+      if (!response.ok) throw new Error('Failed to create comment');
+      return response.json();
+    },
+    onSuccess: () => {
+      setIsCommentDialogOpen(false);
+      setCommentText('');
+      setVisibleToPartner(false);
+      setSelectedMetricForComment(null);
+      toast({ title: "Success", description: "Comment added successfully!" });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to add comment", variant: "destructive" });
+    },
+  });
+
+  const handleAddComment = (metric: OKRMetric) => {
+    setSelectedMetricForComment(metric);
+    setIsCommentDialogOpen(true);
+  };
+
+  const handleSubmitComment = () => {
+    if (!selectedMetricForComment || !commentText.trim()) return;
+    
+    createCommentMutation.mutate({
+      content: commentText,
+      visible_to_partner: visibleToPartner,
+      entityType: 'okr_metric',
+      entityId: selectedMetricForComment.id,
+    });
+  };
 
   const handleMetricSelect = (metricId: number, checked: boolean) => {
     setSelectedMetrics(prev => 
@@ -491,6 +537,11 @@ export default function OKRMetricsPage() {
                                 </Button>
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={() => handleAddComment(metric)}>
+                                  <MessageSquare className="w-4 h-4 mr-2" />
+                                  Add Comment
+                                </DropdownMenuItem>
+                                <DropdownMenuSeparator />
                                 <DropdownMenuItem>Edit</DropdownMenuItem>
                                 <DropdownMenuItem>Duplicate</DropdownMenuItem>
                                 <DropdownMenuSeparator />

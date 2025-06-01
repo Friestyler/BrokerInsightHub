@@ -270,7 +270,7 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
               disabled={generateActionsMutation.isPending}
               className="text-xs text-gray-600 hover:text-purple-600"
             >
-              <MessageSquare className="h-3 w-3 mr-1" />
+              <Sparkles className="h-3 w-3 mr-1" />
               {generateActionsMutation.isPending ? 'Generating...' : 'Generate Next Best Action'}
             </Button>
           </div>
@@ -596,7 +596,7 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {actions.map((action: NextBestAction, index: number) => (
+                  {actions.slice(0, 5).map((action: NextBestAction, index: number) => (
                     <div 
                       key={action.id} 
                       className={`p-3 bg-white border rounded-lg transition-all duration-300 ${
