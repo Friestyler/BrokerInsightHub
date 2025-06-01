@@ -289,6 +289,15 @@ export const products = pgTable("products", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// Tags model
+export const tags = pgTable("tags", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull().unique(),
+  color: text("color").notNull().default("blue"),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Define relationships
 export const vendorsRelations = relations(vendors, ({ one, many }) => ({
   owner: one(users, {
@@ -323,6 +332,11 @@ export const insertProductSchema = createInsertSchema(products).pick({
   sku: true,
   price: true,
   vendorId: true,
+});
+
+export const insertTagSchema = createInsertSchema(tags).pick({
+  name: true,
+  color: true,
 });
 
 // For compatibility - new UI using mock data doesn't need these in the database yet
@@ -424,6 +438,9 @@ export type Vendor = typeof vendors.$inferSelect;
 
 export type InsertProduct = z.infer<typeof insertProductSchema>;
 export type Product = typeof products.$inferSelect;
+
+export type InsertTag = z.infer<typeof insertTagSchema>;
+export type Tag = typeof tags.$inferSelect;
 
 // Campaign model
 export const campaigns = pgTable("campaigns", {
