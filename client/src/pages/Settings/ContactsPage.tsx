@@ -75,7 +75,9 @@ export default function ContactsPage() {
       if (response.ok) {
         const data = await response.json();
         console.log('Contacts data received:', data);
-        setContacts(data);
+        console.log('Data type:', typeof data, 'Array?', Array.isArray(data));
+        console.log('Contact count:', data?.length);
+        setContacts(data || []);
       } else {
         console.error('Failed to load contacts:', response.status, response.statusText);
       }
