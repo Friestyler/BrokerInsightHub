@@ -278,6 +278,10 @@ function OpportunitiesTable() {
   const [listToRename, setListToRename] = useState<SavedList | null>(null);
   const [listToDelete, setListToDelete] = useState<SavedList | null>(null);
   const [newListName, setNewListName] = useState('');
+  
+  // Opportunity details modal state
+  const [selectedOpportunityId, setSelectedOpportunityId] = useState<number | null>(null);
+  const [showOpportunityModal, setShowOpportunityModal] = useState(false);
   const [pendingListAction, setPendingListAction] = useState<any>(null);
   const [showUnsavedChangesModal, setShowUnsavedChangesModal] = useState(false);
   const [currentSharedLink, setCurrentSharedLink] = useState<string>('');
@@ -1234,6 +1238,13 @@ function OpportunitiesTable() {
                 className={`hover:bg-gray-50 cursor-pointer ${
                   selectedOpportunities.includes(opportunity.id) ? 'bg-blue-50' : ''
                 }`}
+                onClick={(e) => {
+                  // Don't trigger when clicking on checkbox
+                  if (!(e.target as any).type || (e.target as any).type !== 'checkbox') {
+                    setSelectedOpportunityId(opportunity.id);
+                    setShowOpportunityModal(true);
+                  }
+                }}
               >
                 <td className="relative px-3 py-4 w-10">
                   <input
