@@ -321,7 +321,7 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
                   <path d="M12 8v4l3 3"></path>
                   <circle cx="12" cy="12" r="7"></circle>
                 </svg>
-                OKR Metrics
+                OKR Templates
               </button>
             </div>
           )}
