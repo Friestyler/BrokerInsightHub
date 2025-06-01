@@ -74,21 +74,21 @@ export default function ProductsPage() {
   });
 
   const { data: products, isLoading } = useQuery<Product[]>({
-    queryKey: ['/api/products'],
+    queryKey: [`/api/${environment.id}/products`],
     enabled: true
   });
 
   const { data: vendors } = useQuery<Vendor[]>({
-    queryKey: ['/api/vendors'],
+    queryKey: [`/api/${environment.id}/vendors`],
     enabled: true
   });
 
   const createProductMutation = useMutation({
     mutationFn: (data: any) => {
-      return apiRequest('POST', '/api/products', data);
+      return apiRequest('POST', `/api/${environment.id}/products`, data);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/products'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/${environment.id}/products`] });
       setIsCreateModalOpen(false);
       setNewProduct({
         name: "",

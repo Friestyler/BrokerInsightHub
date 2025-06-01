@@ -434,31 +434,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
 
   
-  // Products API - Returns data from myqollabi schema
-  app.get('/api/products', async (req, res) => {
-    try {
-      console.log('Fetching products from myqollabi schema...');
-      const result = await db.execute(sql`SELECT * FROM myqollabi.products ORDER BY id`);
-      
-      const products = result.rows.map((product: any) => ({
-        id: product.id,
-        name: product.name,
-        description: product.description,
-        category: product.category,
-        sku: product.sku,
-        price: product.price,
-        vendorId: product.vendor_id,
-        createdAt: product.created_at,
-        updatedAt: product.updated_at
-      }));
-      
-      console.log(`Returning ${products.length} products from myqollabi schema`);
-      res.json(products);
-    } catch (error) {
-      console.error('Error fetching products:', error);
-      res.status(500).json({ message: 'Failed to fetch products' });
-    }
-  });
+
   
   app.get('/api/products/:id', async (req, res) => {
     try {

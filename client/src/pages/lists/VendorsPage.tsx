@@ -37,7 +37,7 @@ export default function VendorsPage() {
   const { environment } = useEnvironment();
 
   const { data: vendors, isLoading } = useQuery<Vendor[]>({
-    queryKey: ['/api/vendors'],
+    queryKey: [`/api/${environment.id}/vendors`],
     enabled: true
   });
 
