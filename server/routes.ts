@@ -1,8 +1,9 @@
 import type { Express, Request, Response } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
-import { opportunities, clients, insuranceProducts } from '@shared/schema';
+import { opportunities, clients, insuranceProducts, tags, insertTagSchema } from '@shared/schema';
 import { eq } from 'drizzle-orm';
+import { db } from './db';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
@@ -44,6 +45,76 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Tags API endpoints
+  app.get('/api/tags', async (req, res) => {
+    try {
+      const allTags = await db.select().from(tags);
+      res.json(allTags);
+    } catch (error) {
+      console.error('Error fetching tags:', error);
+      res.status(500).json({ error: 'Failed to fetch tags' });
+    }
+  });
+
+  app.post('/api/tags', async (req, res) => {
+    try {
+      const tagData = insertTagSchema.parse(req.body);
+      const [newTag] = await db.insert(tags).values(tagData).returning();
+      res.json(newTag);
+    } catch (error) {
+      console.error('Error creating tag:', error);
+      if (error.code === '23505') { // Unique constraint violation
+        res.status(409).json({ error: 'Tag name already exists' });
+      } else {
+        res.status(500).json({ error: 'Failed to create tag' });
+      }
+    }
+  });
+
+  app.put('/api/tags/:id', async (req, res) => {
+    try {
+      const tagId = parseInt(req.params.id);
+      const tagData = insertTagSchema.parse(req.body);
+      const [updatedTag] = await db
+        .update(tags)
+        .set({ ...tagData, updatedAt: new Date() })
+        .where(eq(tags.id, tagId))
+        .returning();
+      
+      if (!updatedTag) {
+        return res.status(404).json({ error: 'Tag not found' });
+      }
+      
+      res.json(updatedTag);
+    } catch (error) {
+      console.error('Error updating tag:', error);
+      if (error.code === '23505') { // Unique constraint violation
+        res.status(409).json({ error: 'Tag name already exists' });
+      } else {
+        res.status(500).json({ error: 'Failed to update tag' });
+      }
+    }
+  });
+
+  app.delete('/api/tags/:id', async (req, res) => {
+    try {
+      const tagId = parseInt(req.params.id);
+      const [deletedTag] = await db
+        .delete(tags)
+        .where(eq(tags.id, tagId))
+        .returning();
+      
+      if (!deletedTag) {
+        return res.status(404).json({ error: 'Tag not found' });
+      }
+      
+      res.json({ message: 'Tag deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting tag:', error);
+      res.status(500).json({ error: 'Failed to delete tag' });
+    }
+  });
+
   // Partners Endpoints - MUST BE FIRST to avoid routing conflicts
   app.get('/api/partners', async (req, res) => {
     try {

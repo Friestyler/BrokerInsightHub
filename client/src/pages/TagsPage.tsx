@@ -1,17 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { useToast } from "@/hooks/use-toast";
-
-interface Tag {
-  id: number;
-  name: string;
-  color: string;
-  createdAt: string;
-}
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { apiRequest } from "@/lib/queryClient";
+import type { Tag as TagType, InsertTag } from "@shared/schema";
 
 const colorOptions = [
   "blue", "green", "purple", "red", "orange", "yellow", "pink", "indigo", 
@@ -41,29 +37,80 @@ const getColorClasses = (color: string) => {
 };
 
 export default function TagsPage() {
-  const [tags, setTags] = useState<Tag[]>([]);
   const [newTagName, setNewTagName] = useState("");
   const [newTagColor, setNewTagColor] = useState("blue");
   const [editingTag, setEditingTag] = useState<number | null>(null);
   const [editTagName, setEditTagName] = useState("");
   const [editTagColor, setEditTagColor] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [tagToDelete, setTagToDelete] = useState<Tag | null>(null);
+  const [tagToDelete, setTagToDelete] = useState<TagType | null>(null);
   const [isCreateTagOpen, setIsCreateTagOpen] = useState(false);
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  // Initialize with default tags
-  useEffect(() => {
-    const defaultTags: Tag[] = [
-      { id: 1, name: "Revenue Growth", color: "green", createdAt: "2025-01-01" },
-      { id: 2, name: "Customer Experience", color: "blue", createdAt: "2025-01-01" },
-      { id: 3, name: "Product Innovation", color: "purple", createdAt: "2025-01-01" },
-      { id: 4, name: "Operational Excellence", color: "orange", createdAt: "2025-01-01" },
-      { id: 5, name: "Market Expansion", color: "cyan", createdAt: "2025-01-01" },
-      { id: 6, name: "Team Development", color: "pink", createdAt: "2025-01-01" }
-    ];
-    setTags(defaultTags);
-  }, []);
+  // Fetch tags from API
+  const { data: tags = [], isLoading } = useQuery<TagType[]>({
+    queryKey: ['/api/tags'],
+    queryFn: () => fetch('/api/tags').then(res => res.json()),
+  });
+
+  // Create tag mutation
+  const createTagMutation = useMutation({
+    mutationFn: (tagData: InsertTag) => apiRequest('/api/tags', 'POST', tagData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/tags'] });
+      toast({
+        title: "Success",
+        description: "Tag created successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create tag",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Update tag mutation
+  const updateTagMutation = useMutation({
+    mutationFn: ({ id, data }: { id: number; data: InsertTag }) => 
+      apiRequest(`/api/tags/${id}`, 'PUT', data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/tags'] });
+      toast({
+        title: "Success",
+        description: "Tag updated successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to update tag",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Delete tag mutation
+  const deleteTagMutation = useMutation({
+    mutationFn: (id: number) => apiRequest(`/api/tags/${id}`, 'DELETE'),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/tags'] });
+      toast({
+        title: "Success",
+        description: "Tag deleted successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to delete tag",
+        variant: "destructive",
+      });
+    },
+  });
 
   const handleCreateTag = () => {
     if (!newTagName.trim()) return;
