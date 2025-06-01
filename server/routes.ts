@@ -4297,13 +4297,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/:envId/activity/tasks', async (req, res) => {
     try {
       const { envId } = req.params;
-      const { title, description, entityType, entityId, assignedToId, assignedById, priority, dueDate } = req.body;
+      const { title, description, entityType, entityId, assignedToId, assignedById, priority, dueDate, visibleToPartner } = req.body;
       const envPool = getEnvironmentPool(envId);
       
       const result = await envPool.query(`
-        INSERT INTO ${envId}.activity_tasks (title, description, entity_type, entity_id, assigned_to_id, assigned_by_id, priority, due_date, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW()) RETURNING *
-      `, [title, description, entityType, parseInt(entityId), assignedToId, assignedById, priority || 'medium', dueDate]);
+        INSERT INTO ${envId}.activity_tasks (title, description, entity_type, entity_id, assigned_to_id, assigned_by_id, priority, due_date, visible_to_partner, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW()) RETURNING *
+      `, [title, description, entityType, parseInt(entityId), assignedToId, assignedById, priority || 'medium', dueDate, visibleToPartner || false]);
       
       res.json(result.rows[0]);
     } catch (error) {
@@ -4312,22 +4312,62 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update task completion status
+  app.patch('/api/:envId/activity/tasks/:taskId', async (req, res) => {
+    try {
+      const { envId, taskId } = req.params;
+      const { completed, completedAt } = req.body;
+      const envPool = getEnvironmentPool(envId);
+      
+      const result = await envPool.query(`
+        UPDATE ${envId}.activity_tasks 
+        SET completed = $1, completed_at = $2, updated_at = NOW()
+        WHERE id = $3 
+        RETURNING *
+      `, [completed, completedAt, parseInt(taskId)]);
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error updating task:', error);
+      res.status(500).json({ error: 'Failed to update task' });
+    }
+  });
+
   // Create a new comment
   app.post('/api/:envId/activity/comments', async (req, res) => {
     try {
       const { envId } = req.params;
-      const { content, authorId, entityType, entityId, assignedToId, parentCommentId, isInternal } = req.body;
+      const { content, authorId, entityType, entityId, assignedToId, parentCommentId, isInternal, visibleToPartner } = req.body;
       const envPool = getEnvironmentPool(envId);
       
       const result = await envPool.query(`
-        INSERT INTO ${envId}.activity_comments (content, author_id, entity_type, entity_id, assigned_to_id, parent_comment_id, is_internal, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW()) RETURNING *
-      `, [content, authorId, entityType, parseInt(entityId), assignedToId, parentCommentId, isInternal || false]);
+        INSERT INTO ${envId}.activity_comments (content, author_id, entity_type, entity_id, assigned_to_id, parent_comment_id, is_internal, visible_to_partner, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW()) RETURNING *
+      `, [content, authorId, entityType, parseInt(entityId), assignedToId, parentCommentId, isInternal || false, visibleToPartner || false]);
       
       res.json(result.rows[0]);
     } catch (error) {
       console.error('Error creating comment:', error);
       res.status(500).json({ error: 'Failed to create comment' });
+    }
+  });
+
+  // Get unified timeline for a partner
+  app.get('/api/:envId/partners/:partnerId/timeline', async (req, res) => {
+    try {
+      const { envId, partnerId } = req.params;
+      const envPool = getEnvironmentPool(envId);
+      
+      const result = await envPool.query(`
+        SELECT * FROM ${envId}.unified_activities 
+        WHERE entity_type = 'partner' AND entity_id = $1 
+        ORDER BY created_at DESC
+      `, [parseInt(partnerId)]);
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching partner timeline:', error);
+      res.status(500).json({ error: 'Failed to fetch partner timeline' });
     }
   });
 
