@@ -231,91 +231,121 @@ export default function TagsPage() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {tags.map((tag) => (
-                  <TableRow key={tag.id} className="hover:bg-[#F5F6FA] border-b group" style={{ borderColor: '#E6E7F1' }}>
-                    <TableCell className="p-4 align-middle text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
-                      {editingTag === tag.id ? (
-                        <div className="flex items-center gap-3">
-                          <Input
-                            value={editTagName}
-                            onChange={(e) => setEditTagName(e.target.value)}
-                            className="border-[#E6E7F1] focus:border-[#3E4DC4] focus:ring-[#3E4DC4] flex-1"
-                            style={{ fontFamily: 'Poppins' }}
-                          />
-                          <Select value={editTagColor} onValueChange={setEditTagColor}>
-                            <SelectTrigger className="w-40 border-[#E6E7F1] focus:border-[#3E4DC4]">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {colorOptions.map(color => (
-                                <SelectItem key={color} value={color}>
-                                  <div className="flex items-center gap-2">
-                                    <div className={`w-3 h-3 rounded-full ${getColorClasses(color)}`}></div>
-                                    <span className="capitalize" style={{ fontFamily: 'Poppins' }}>{color}</span>
-                                  </div>
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      ) : (
-                        <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getColorClasses(tag.color)}`}>
-                          {tag.name}
-                        </div>
-                      )}
-                    </TableCell>
-                    <TableCell className="px-3 py-2 text-right">
-                      {editingTag === tag.id ? (
-                        <div className="flex items-center justify-end gap-1">
-                          <Button
-                            size="sm"
-                            onClick={handleSaveEdit}
-                            disabled={updateTagMutation.isPending}
-                            className="bg-[#3E4DC4] hover:bg-[#3344B8] text-white h-8"
-                            style={{ fontFamily: 'Poppins' }}
-                          >
-                            Save
-                          </Button>
-                          <Button
-                            size="sm"
-                            variant="outline"
-                            onClick={handleCancelEdit}
-                            className="border-[#E6E7F1] hover:bg-[#F5F6FA] h-8"
-                            style={{ fontFamily: 'Poppins' }}
-                          >
-                            Cancel
-                          </Button>
-                        </div>
-                      ) : (
-                        <div className="flex items-center justify-end gap-1">
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-8 w-8 p-0"
-                            onClick={() => handleEditTag(tag)}
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
-                              <path d="m15 5 4 4"/>
-                            </svg>
-                          </Button>
-                          <Button 
-                            variant="ghost" 
-                            size="sm" 
-                            className="h-8 w-8 p-0 text-red-600"
-                            onClick={() => handleDeleteTag(tag)}
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M3 6h18"/>
-                              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
-                              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
-                            </svg>
-                          </Button>
-                        </div>
-                      )}
+                {tags.length === 0 ? (
+                  <TableRow>
+                    <TableCell colSpan={2} className="h-32 text-center">
+                      <div className="flex flex-col items-center justify-center py-12">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-[#696C8C] mb-4">
+                          <path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"/>
+                          <line x1="7" y1="7" x2="7.01" y2="7"/>
+                        </svg>
+                        <h3 className="text-lg font-medium text-[#282A3F] mb-2" style={{ fontFamily: 'Poppins' }}>
+                          No tags yet
+                        </h3>
+                        <p className="text-[#696C8C] text-center max-w-sm mb-4" style={{ fontFamily: 'Poppins', fontSize: '14px' }}>
+                          Get started by creating your first tag. Tags help organize and categorize items across the platform.
+                        </p>
+                        <Button 
+                          onClick={() => setIsCreateTagOpen(true)}
+                          className="bg-[#3E4DC4] hover:bg-[#3344B8] text-white"
+                          style={{ fontFamily: 'Poppins' }}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                            <path d="M5 12h14"/>
+                            <path d="M12 5v14"/>
+                          </svg>
+                          Create your first tag
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
-                ))}
+                ) : (
+                  tags.map((tag) => (
+                    <TableRow key={tag.id} className="hover:bg-[#F5F6FA] border-b group" style={{ borderColor: '#E6E7F1' }}>
+                      <TableCell className="p-4 align-middle text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
+                        {editingTag === tag.id ? (
+                          <div className="flex items-center gap-3">
+                            <Input
+                              value={editTagName}
+                              onChange={(e) => setEditTagName(e.target.value)}
+                              className="border-[#E6E7F1] focus:border-[#3E4DC4] focus:ring-[#3E4DC4] flex-1"
+                              style={{ fontFamily: 'Poppins' }}
+                            />
+                            <Select value={editTagColor} onValueChange={setEditTagColor}>
+                              <SelectTrigger className="w-40 border-[#E6E7F1] focus:border-[#3E4DC4]">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {colorOptions.map(color => (
+                                  <SelectItem key={color} value={color}>
+                                    <div className="flex items-center gap-2">
+                                      <div className={`w-3 h-3 rounded-full ${getColorClasses(color)}`}></div>
+                                      <span className="capitalize" style={{ fontFamily: 'Poppins' }}>{color}</span>
+                                    </div>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                          </div>
+                        ) : (
+                          <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium border ${getColorClasses(tag.color)}`}>
+                            {tag.name}
+                          </div>
+                        )}
+                      </TableCell>
+                      <TableCell className="px-3 py-2 text-right">
+                        {editingTag === tag.id ? (
+                          <div className="flex items-center justify-end gap-1">
+                            <Button
+                              size="sm"
+                              onClick={handleSaveEdit}
+                              disabled={updateTagMutation.isPending}
+                              className="bg-[#3E4DC4] hover:bg-[#3344B8] text-white h-8"
+                              style={{ fontFamily: 'Poppins' }}
+                            >
+                              Save
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              onClick={handleCancelEdit}
+                              className="border-[#E6E7F1] hover:bg-[#F5F6FA] h-8"
+                              style={{ fontFamily: 'Poppins' }}
+                            >
+                              Cancel
+                            </Button>
+                          </div>
+                        ) : (
+                          <div className="flex items-center justify-end gap-1">
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-8 w-8 p-0"
+                              onClick={() => handleEditTag(tag)}
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                                <path d="m15 5 4 4"/>
+                              </svg>
+                            </Button>
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="h-8 w-8 p-0 text-red-600"
+                              onClick={() => handleDeleteTag(tag)}
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M3 6h18"/>
+                                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                              </svg>
+                            </Button>
+                          </div>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
               </TableBody>
             </Table>
           </div>
