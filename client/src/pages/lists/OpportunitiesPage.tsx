@@ -32,6 +32,8 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { ShareModal } from "@/components/ShareModal";
+import { useSorting } from "@/hooks/useSorting";
+import { SortableTableHead } from "@/components/ui/sortable-table-head";
 
 // Fetch opportunities from database
 const useOpportunitiesData = () => {
@@ -638,7 +640,7 @@ function OpportunitiesTable() {
   }
 
   // Enhanced filtering logic for both filter and selection-based lists
-  const displayedOpportunities = (() => {
+  const filteredOpportunities = (() => {
     let opportunitiesData = opportunities;
     
     // If we have an active list that's selection-based, use its members
@@ -678,6 +680,9 @@ function OpportunitiesTable() {
       return matchesText && matchesStatus && matchesType && matchesCustomerId && matchesPartnerId;
     });
   })();
+
+  // Apply sorting to filtered opportunities
+  const { sortedData: displayedOpportunities, sortConfig, handleSort } = useSorting(filteredOpportunities, 'title');
   
   // Calculate stats based on filtered opportunities
   const stats = calculateOpportunityStats(displayedOpportunities);
