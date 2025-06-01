@@ -2097,7 +2097,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/degoudse/vendors', async (req, res) => {
     try {
       const envPool = getEnvironmentPool('degoudse');
-      const { name, description, contactName, contactEmail, contactPhone } = req.body;
+      const { 
+        name, 
+        description, 
+        location, 
+        contactEmail, 
+        primaryContact, 
+        partnerType = 'vendor', 
+        region, 
+        status = 'active', 
+        industry = 'Other', 
+        size = 'medium' 
+      } = req.body;
       
       if (!name || !description) {
         return res.status(400).json({ error: 'Name and description are required' });
@@ -2107,11 +2118,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const result = await envPool.query(`
         INSERT INTO degoudse.vendors (
-          name, description, initials, contact_name, contact_email, contact_phone, "createdAt", "updatedAt"
+          name, description, initials, location, contact_email, primary_contact, 
+          partner_type, region, status, industry, size, "createdAt", "updatedAt"
         ) VALUES (
-          $1, $2, $3, $4, $5, $6, NOW(), NOW()
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW()
         ) RETURNING *
-      `, [name, description, initials, contactName || null, contactEmail || null, contactPhone || null]);
+      `, [
+        name, description, initials, location || null, contactEmail || null, primaryContact || null,
+        partnerType, region || null, status, industry, size
+      ]);
       
       const vendor = result.rows[0];
       console.log('Vendor created successfully in De Goudse environment:', vendor);
