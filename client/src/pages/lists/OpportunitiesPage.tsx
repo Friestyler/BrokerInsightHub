@@ -1276,3 +1276,5 @@ function OpportunitiesTable() {
     </div>
   );
 }
+
+export default OpportunitiesTable;
