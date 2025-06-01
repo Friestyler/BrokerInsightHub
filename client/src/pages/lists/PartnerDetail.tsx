@@ -80,7 +80,7 @@ export default function PartnerDetailClean() {
           entityType: data.entityType,
           entityId: data.entityId,
           authorId: 1, // Default user ID
-          assignedToId: data.assignedTo ? 1 : null, // Convert email to user ID (simplified for demo)
+          assignedToId: data.assignedTo && data.assignedTo !== "none" ? 1 : null, // Convert email to user ID (simplified for demo)
           isInternal: !data.visible_to_partner, // Convert visible_to_partner to is_internal
           visibleToPartner: data.visible_to_partner,
         }),
@@ -575,7 +575,7 @@ export default function PartnerDetailClean() {
                   <SelectValue placeholder="Select team member to assign..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">No assignment</SelectItem>
+                  <SelectItem value="none">No assignment</SelectItem>
                   <SelectItem value="john.smith@company.com">
                     <div className="flex items-center space-x-2">
                       <UserPlus className="w-4 h-4" />
