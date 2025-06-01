@@ -48,7 +48,7 @@ const mockOKRTemplates = [
     type: "currency",
     target: 1000000,
     tag: "Revenue Growth",
-    timeframe: "2025",
+    timeframe: "this-year",
     milestoneFrequency: "Monthly",
     isExpanded: false,
     nestedCount: 2
@@ -59,7 +59,7 @@ const mockOKRTemplates = [
     type: "percent",
     target: 85,
     tag: "Customer Experience",
-    timeframe: "Q1 2025",
+    timeframe: "this-quarter",
     milestoneFrequency: "Monthly",
     isExpanded: false,
     nestedCount: 0
@@ -70,7 +70,7 @@ const mockOKRTemplates = [
     type: "checkbox",
     target: null,
     tag: "Product Innovation",
-    timeframe: "Q2 2025",
+    timeframe: "next-quarter",
     milestoneFrequency: "Weekly",
     isExpanded: false,
     nestedCount: 3
@@ -81,7 +81,7 @@ const mockOKRTemplates = [
     type: "number",
     target: 50,
     tag: "Market Expansion",
-    timeframe: "H1 2025",
+    timeframe: "last-6-months",
     milestoneFrequency: "Quarterly",
     isExpanded: false,
     nestedCount: 1
@@ -92,12 +92,38 @@ const mockOKRTemplates = [
     type: "percent",
     target: 90,
     tag: "Team Development",
-    timeframe: "2025",
-    milestoneFrequency: "Quarterly",
+    timeframe: "this-month",
+    milestoneFrequency: "Weekly",
     isExpanded: false,
     nestedCount: 0
   }
 ];
+
+// Function to convert timeframe values to display labels
+const getTimeframeDisplayLabel = (timeframe: string): string => {
+  const timeframeLabels: { [key: string]: string } = {
+    'today': 'Today',
+    'yesterday': 'Yesterday',
+    'last-7-days': 'Last 7 days',
+    'last-14-days': 'Last 14 days',
+    'last-30-days': 'Last 30 days',
+    'last-60-days': 'Last 60 days',
+    'last-90-days': 'Last 90 days',
+    'last-month': 'Last month',
+    'this-month': 'This month',
+    'next-month': 'Next month',
+    'last-3-months': 'Last 3 months',
+    'last-6-months': 'Last 6 months',
+    'last-quarter': 'Last quarter',
+    'this-quarter': 'This quarter',
+    'next-quarter': 'Next quarter',
+    'last-year': 'Last year',
+    'this-year': 'This year',
+    'next-year': 'Next year'
+  };
+  
+  return timeframeLabels[timeframe] || timeframe;
+};
 
 // TagBadge component
 const TagBadge = ({ tag }: { tag: string }) => {
@@ -633,7 +659,7 @@ export default function MetricsPage() {
                       </div>
                     </TableCell>
                     <TableCell className="px-3 py-2 text-[#282A3F]" style={{ fontFamily: 'Poppins', fontSize: '14px' }}>
-                      {okr.timeframe}
+                      {getTimeframeDisplayLabel(okr.timeframe)}
                     </TableCell>
                     <TableCell className="px-3 py-2 text-[#282A3F]" style={{ fontFamily: 'Poppins', fontSize: '14px' }}>
                       {okr.milestoneFrequency}
