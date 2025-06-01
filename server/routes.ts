@@ -58,6 +58,10 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Default API redirects to De Goudse environment
+  app.get('/api/contacts', (req, res) => res.redirect('/api/degoudse/contacts'));
+  app.post('/api/contacts', (req, res) => res.redirect(307, '/api/degoudse/contacts'));
+  
   // Partners API - Returns data from authentic myqollabi partners table
   app.get('/api/partners', async (req, res) => {
     try {
@@ -2064,6 +2068,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // De Goudse Contacts endpoints
+  app.get('/api/degoudse/contacts', async (req, res) => {
+    try {
+      const envPool = getEnvironmentPool('degoudse');
+      const { linkedEntityType, linkedEntityId } = req.query;
+      
+      let queryConditions = '';
+      const queryParams: any[] = [];
+      
+      if (linkedEntityType) {
+        queryConditions = 'WHERE is_active = true AND linked_entity_type = $1';
+        queryParams.push(linkedEntityType);
+        if (linkedEntityId) {
+          queryConditions += ' AND linked_entity_id = $2';
+          queryParams.push(parseInt(linkedEntityId as string));
+        }
+      } else {
+        queryConditions = 'WHERE is_active = true';
+      }
+      
+      const result = await envPool.query(`
+        SELECT id, first_name, last_name, full_name, email, phone, 
+               job_title, department, company, linked_entity_type, 
+               linked_entity_id, is_primary, notes, tags, is_active, 
+               created_at, updated_at
+        FROM degoudse.contacts 
+        ${queryConditions}
+        ORDER BY first_name ASC, last_name ASC
+      `, queryParams);
+      
+      console.log(`Returning ${result.rows.length} contacts from De Goudse database`);
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching De Goudse contacts:', error);
+      res.status(500).json({ error: 'Failed to fetch contacts' });
+    }
+  });
+
+  app.post('/api/degoudse/contacts', async (req, res) => {
+    try {
+      const envPool = getEnvironmentPool('degoudse');
+      const { 
+        firstName, lastName, email, phone, 
+        company, position, department, linkedEntityType, linkedEntityId, 
+        notes, isActive 
+      } = req.body;
+      
+      // Create full_name from first and last name
+      const fullName = `${firstName} ${lastName}`.trim();
+      
+      const result = await envPool.query(`
+        INSERT INTO degoudse.contacts (
+          first_name, last_name, full_name, email, phone, 
+          job_title, department, company, linked_entity_type, linked_entity_id,
+          is_primary, notes, tags, is_active, created_at, updated_at
+        ) VALUES (
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, NOW(), NOW()
+        ) RETURNING id, first_name, last_name, full_name, email, phone, 
+                   job_title, department, company, linked_entity_type, 
+                   linked_entity_id, is_primary, notes, tags, is_active, 
+                   created_at, updated_at
+      `, [
+        firstName, lastName, fullName, email || null, 
+        phone || null, position || null, department || null, company || null,
+        linkedEntityType || null, linkedEntityId || null, 
+        false, notes || null, [], isActive !== false
+      ]);
+      
+      console.log(`Contact created successfully in De Goudse environment:`, result.rows[0]);
+      res.status(201).json(result.rows[0]);
+    } catch (error) {
+      console.error('Error creating De Goudse contact:', error);
+      res.status(500).json({ error: 'Failed to create contact' });
+    }
+  });
+
   app.post('/api/degoudse/okr-metrics', async (req, res) => {
     try {
       const { name, description, realized_value, target_value, measure_unit, frequency, hierarchy, tags } = req.body;
@@ -3836,36 +3916,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Contact Management API endpoints
-  app.get('/api/contacts', async (req, res) => {
-    try {
-      const envId = req.headers['x-environment-id'] || 'myqollabi';
-      const { linkedEntityType, linkedEntityId } = req.query;
-      
-      let queryConditions = sql`WHERE is_active = true`;
-      if (linkedEntityType) {
-        queryConditions = sql`WHERE is_active = true AND linked_entity_type = ${linkedEntityType as string}`;
-        if (linkedEntityId) {
-          queryConditions = sql`WHERE is_active = true AND linked_entity_type = ${linkedEntityType as string} AND linked_entity_id = ${parseInt(linkedEntityId as string)}`;
-        }
-      }
-      
-      const result = await db.execute(sql`
-        SELECT id, first_name, last_name, full_name, email, phone, 
-               job_title, department, company, linked_entity_type, 
-               linked_entity_id, is_primary, notes, tags, is_active, 
-               created_at, updated_at
-        FROM ${sql.identifier(envId as string)}.contacts 
-        ${queryConditions}
-        ORDER BY first_name ASC, last_name ASC
-      `);
-      
-      res.json(result.rows);
-    } catch (error) {
-      console.error('Error fetching contacts:', error);
-      res.status(500).json({ error: 'Failed to fetch contacts' });
-    }
-  });
+
 
   app.get('/api/contacts/:id', async (req, res) => {
     try {
