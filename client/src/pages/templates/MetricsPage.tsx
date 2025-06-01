@@ -3,8 +3,10 @@ import { Link } from 'wouter';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { useQuery } from "@tanstack/react-query";
-import type { Tag } from "@shared/schema";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import type { Tag, InsertTag } from "@shared/schema";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
 import { 
   Table, 
   TableBody, 
@@ -242,11 +244,41 @@ export default function MetricsPage() {
   const [showNoTarget, setShowNoTarget] = useState(false);
   const [groupBy, setGroupBy] = useState("tag");
   const [isCreateOKROpen, setIsCreateOKROpen] = useState(false);
+  const [isCreatingNewTag, setIsCreatingNewTag] = useState(false);
+  const [newTagName, setNewTagName] = useState("");
+  const [newTagColor, setNewTagColor] = useState("blue");
   
   // Fetch tags from API
   const { data: tags = [] } = useQuery<Tag[]>({
     queryKey: ['/api/tags'],
     queryFn: () => fetch('/api/tags').then(res => res.json()),
+  });
+
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  // Create tag mutation
+  const createTagMutation = useMutation({
+    mutationFn: (tagData: InsertTag) => 
+      apiRequest('POST', '/api/tags', tagData),
+    onSuccess: (newTag: Tag) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/tags'] });
+      setFormData(prev => ({ ...prev, tag: newTag.name }));
+      setIsCreatingNewTag(false);
+      setNewTagName("");
+      setNewTagColor("blue");
+      toast({
+        title: "Tag created",
+        description: `Tag "${newTag.name}" has been created and selected.`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create tag",
+        variant: "destructive",
+      });
+    },
   });
   const [formData, setFormData] = useState({
     okrType: '',
@@ -376,6 +408,18 @@ export default function MetricsPage() {
       responsibleRequired: false
     });
     setIsCreateOKROpen(false);
+    setIsCreatingNewTag(false);
+    setNewTagName("");
+    setNewTagColor("blue");
+  };
+
+  const handleCreateNewTag = () => {
+    if (!newTagName.trim()) return;
+    
+    createTagMutation.mutate({
+      name: newTagName.trim(),
+      color: newTagColor,
+    });
   };
 
   // Clear milestone frequency when timeframe changes to prevent invalid combinations
@@ -874,18 +918,115 @@ export default function MetricsPage() {
               <p className="text-xs text-gray-500 mb-2">
                 Add a tag if you want to add this OKR to a plan.
               </p>
-              <Select value={formData.tag} onValueChange={(value) => setFormData(prev => ({...prev, tag: value}))}>
-                <SelectTrigger id="okr-tag" className="border-gray-300 focus:border-blue-500">
-                  <SelectValue placeholder="Choose tag (optional)" />
-                </SelectTrigger>
-                <SelectContent>
-                  {tags.map((tag) => (
-                    <SelectItem key={tag.id} value={tag.name}>
-                      {tag.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              
+              {!isCreatingNewTag ? (
+                <div className="space-y-2">
+                  <Select value={formData.tag} onValueChange={(value) => {
+                    if (value === "__create_new__") {
+                      setIsCreatingNewTag(true);
+                    } else {
+                      setFormData(prev => ({...prev, tag: value}));
+                    }
+                  }}>
+                    <SelectTrigger id="okr-tag" className="border-gray-300 focus:border-blue-500">
+                      <SelectValue placeholder="Choose tag (optional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {tags.map((tag) => (
+                        <SelectItem key={tag.id} value={tag.name}>
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="w-2 h-2 rounded-full"
+                              style={{ backgroundColor: 
+                                tag.color === 'blue' ? '#3B82F6' :
+                                tag.color === 'green' ? '#10B981' :
+                                tag.color === 'purple' ? '#8B5CF6' :
+                                tag.color === 'red' ? '#EF4444' :
+                                tag.color === 'orange' ? '#F97316' :
+                                tag.color === 'yellow' ? '#EAB308' :
+                                tag.color === 'pink' ? '#EC4899' :
+                                tag.color === 'gray' ? '#6B7280' : '#3B82F6'
+                              }}
+                            />
+                            {tag.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                      <SelectItem value="__create_new__">
+                        <div className="flex items-center gap-2 text-blue-600">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M5 12h14"/>
+                            <path d="M12 5v14"/>
+                          </svg>
+                          Create new tag
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              ) : (
+                <div className="space-y-3 p-4 border rounded-lg bg-gray-50">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-sm font-medium text-gray-900">Create new tag</h4>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setIsCreatingNewTag(false);
+                        setNewTagName("");
+                        setNewTagColor("blue");
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-gray-700">Tag name</label>
+                    <Input
+                      value={newTagName}
+                      onChange={(e) => setNewTagName(e.target.value)}
+                      placeholder="Enter tag name"
+                      className="border-gray-300"
+                    />
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-xs font-medium text-gray-700">Color</label>
+                    <div className="flex gap-2">
+                      {[
+                        { name: 'blue', color: '#3B82F6' },
+                        { name: 'green', color: '#10B981' },
+                        { name: 'purple', color: '#8B5CF6' },
+                        { name: 'red', color: '#EF4444' },
+                        { name: 'orange', color: '#F97316' },
+                        { name: 'yellow', color: '#EAB308' },
+                        { name: 'pink', color: '#EC4899' },
+                        { name: 'gray', color: '#6B7280' }
+                      ].map((colorOption) => (
+                        <button
+                          key={colorOption.name}
+                          type="button"
+                          onClick={() => setNewTagColor(colorOption.name)}
+                          className={`w-6 h-6 rounded-full border-2 transition-all ${
+                            newTagColor === colorOption.name ? 'border-gray-800 scale-110' : 'border-gray-300'
+                          }`}
+                          style={{ backgroundColor: colorOption.color }}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <Button
+                    onClick={handleCreateNewTag}
+                    disabled={!newTagName.trim() || createTagMutation.isPending}
+                    className="w-full bg-blue-600 hover:bg-blue-700"
+                    size="sm"
+                  >
+                    {createTagMutation.isPending ? "Creating..." : "Create tag"}
+                  </Button>
+                </div>
+              )}
             </div>
 
             {/* Essential Fields */}
