@@ -388,6 +388,7 @@ function OpportunitiesTable() {
   const opportunitySavedListsData = savedListsData.filter((list: any) => 
     list.entity_type === 'opportunities'
   );
+
   const [filterText, setFilterText] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedType, setSelectedType] = useState('');
@@ -395,6 +396,9 @@ function OpportunitiesTable() {
   const [bulkStatusValue, setBulkStatusValue] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
+  
+  // Initialize sorting state early to maintain hook order
+  const [sortConfig, setSortConfig] = useState({ key: 'title', direction: 'asc' as 'asc' | 'desc' });
   
   // Database data is already fetched via the hook at the top of the component
   
@@ -681,8 +685,25 @@ function OpportunitiesTable() {
     });
   })();
 
-  // Apply sorting to filtered opportunities
-  const { sortedData: displayedOpportunities, sortConfig, handleSort } = useSorting(filteredOpportunities, 'title');
+  // Apply sorting manually using the state
+  const handleSort = (key: string) => {
+    setSortConfig(prev => ({
+      key,
+      direction: prev.key === key && prev.direction === 'asc' ? 'desc' : 'asc'
+    }));
+  };
+
+  // Sort the filtered opportunities
+  const displayedOpportunities = [...filteredOpportunities].sort((a: any, b: any) => {
+    const aValue = a[sortConfig.key] || '';
+    const bValue = b[sortConfig.key] || '';
+    
+    if (sortConfig.direction === 'asc') {
+      return aValue > bValue ? 1 : -1;
+    } else {
+      return aValue < bValue ? 1 : -1;
+    }
+  });
   
   // Calculate stats based on filtered opportunities
   const stats = calculateOpportunityStats(displayedOpportunities);
