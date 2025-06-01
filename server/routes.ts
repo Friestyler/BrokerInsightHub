@@ -1966,8 +1966,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { 
         title, 
         description, 
-        partnerName,
-        customerName,
+        clientId,
+        productId,
         value,
         probability = 50,
         status = 'Qualifying',
@@ -1979,19 +1979,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ message: 'Title and description are required' });
       }
       
+      if (!clientId || !productId) {
+        return res.status(400).json({ message: 'Customer and product selection are required' });
+      }
+      
       console.log('Executing De Goudse opportunity insert query...');
       
       const envPool = getEnvironmentPool('degoudse');
       const result = await envPool.query(`
         INSERT INTO degoudse.opportunities (
-          title, description, status, type, probability, 
+          title, description, "clientId", "productId", status, type, probability, 
           "estimatedValue", "expectedCloseDate", "createdAt", "updatedAt"
         ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, NOW(), NOW()
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW()
         ) RETURNING *
       `, [
         title, 
         description, 
+        clientId,
+        productId,
         status, 
         type, 
         probability,
