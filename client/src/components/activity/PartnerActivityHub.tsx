@@ -402,7 +402,7 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                 {tasks
                   .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
                   .map((task: any) => (
-                  <div key={task.id} className="flex items-center gap-3 p-3 bg-white border rounded-lg">
+                  <div key={task.id} className="flex items-center gap-3 p-2 hover:bg-gray-50 rounded-md transition-colors">
                     <button
                       onClick={() => toggleTaskMutation.mutate({ taskId: task.id, completed: !task.completed })}
                       className={`w-4 h-4 border rounded-sm flex items-center justify-center transition-colors ${
@@ -569,7 +569,7 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
 
           {/* Timeline View */}
           {selectedActivityType === 'timeline' && (
-            <div className="space-y-4">
+            <div className="space-y-4 max-h-64 overflow-y-auto">
               {[...tasks, ...comments, ...attachments]
                 .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
                 .map((item: any, index) => {
