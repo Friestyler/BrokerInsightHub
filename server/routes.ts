@@ -2076,7 +2076,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const envPool = getEnvironmentPool('degoudse');
       const result = await envPool.query(`
         SELECT id, name, description, initials, contact_name, contact_email, 
-               contact_phone, owner_id, created_at, updated_at
+               contact_phone, "ownerId", "createdAt", "updatedAt"
         FROM degoudse.vendors 
         ORDER BY name ASC
       `);
@@ -2107,7 +2107,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const result = await envPool.query(`
         INSERT INTO degoudse.vendors (
-          name, description, initials, contact_name, contact_email, contact_phone, created_at, updated_at
+          name, description, initials, contact_name, contact_email, contact_phone, "createdAt", "updatedAt"
         ) VALUES (
           $1, $2, $3, $4, $5, $6, NOW(), NOW()
         ) RETURNING *

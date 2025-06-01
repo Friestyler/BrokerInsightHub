@@ -28,9 +28,9 @@ type Vendor = {
   contact_name: string | null;
   contact_email: string | null;
   contact_phone: string | null;
-  owner_id: number | null;
-  created_at: string;
-  updated_at: string;
+  ownerId: number | null;
+  createdAt: string;
+  updatedAt: string;
 };
 
 export default function VendorsPage() {
