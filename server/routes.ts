@@ -1924,19 +1924,22 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const envPool = getEnvironmentPool('degoudse');
       const result = await envPool.query(`
         SELECT o.*, 
-               c.name as client_name,
+               STRING_AGG(DISTINCT c.name, ', ') as customer_names,
+               STRING_AGG(DISTINCT p.name, ', ') as partner_names,
+               STRING_AGG(DISTINCT pr.name, ', ') as product_names,
+               COUNT(DISTINCT co.customer_id) as customer_count,
                COUNT(DISTINCT po.partner_id) as partner_count,
-               COUNT(DISTINCT op.product_id) as product_count,
-               STRING_AGG(DISTINCT p.name, ', ') as partner_names
+               COUNT(DISTINCT op.product_id) as product_count
         FROM degoudse.opportunities o
         LEFT JOIN degoudse.customer_opportunities co ON o.id = co.opportunity_id
-        LEFT JOIN degoudse.customers c ON co.customer_id = c.id
+        LEFT JOIN degoudse.customers c ON c.id = co.customer_id
         LEFT JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
-        LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
         LEFT JOIN degoudse.partners p ON p.id = po.partner_id
+        LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
+        LEFT JOIN degoudse.products pr ON pr.id = op.product_id
         GROUP BY o.id, o.title, o.description, o.status, o.stage, o."estimatedValue", 
                  o."expectedCloseDate", o."clientId", o."partnerId", o."productId", 
-                 o."ownerId", o.probability, o.type, o."createdAt", o."updatedAt", c.name
+                 o."ownerId", o.probability, o.type, o."createdAt", o."updatedAt"
         ORDER BY o.id
       `);
       
@@ -1949,17 +1952,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         estimatedValue: opp.estimatedValue,
         expectedCloseDate: opp.expectedCloseDate,
         clientId: opp.clientId,
-        clientName: opp.client_name,
+        clientName: opp.customer_names || '',
+        customerNames: opp.customer_names || '',
         partnerId: opp.partnerId,
+        partnerNames: opp.partner_names || '',
         productId: opp.productId,
+        productNames: opp.product_names || '',
         ownerId: opp.ownerId,
         probability: opp.probability,
         type: opp.type,
         createdAt: opp.createdAt,
         updatedAt: opp.updatedAt,
-        partnerCount: opp.partner_count || 0,
-        productCount: opp.product_count || 0,
-        partnerNames: opp.partner_names
+        customerCount: parseInt(opp.customer_count) || 0,
+        partnerCount: parseInt(opp.partner_count) || 0,
+        productCount: parseInt(opp.product_count) || 0
       }));
       
       console.log(`Returning ${opportunities.length} opportunities from De Goudse database`);
@@ -1967,6 +1973,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('De Goudse opportunities API error:', error);
       res.status(500).json({ message: 'Failed to fetch opportunities for De Goudse environment' });
+    }
+  });
+
+  // Get single opportunity for De Goudse environment
+  app.get('/api/degoudse/opportunities/:id', async (req, res) => {
+    try {
+      const opportunityId = parseInt(req.params.id);
+      const envPool = getEnvironmentPool('degoudse');
+      
+      const result = await envPool.query(`
+        SELECT o.*, 
+               STRING_AGG(DISTINCT c.name, ', ') as customer_names,
+               STRING_AGG(DISTINCT p.name, ', ') as partner_names,
+               STRING_AGG(DISTINCT pr.name, ', ') as product_names,
+               COUNT(DISTINCT co.customer_id) as customer_count,
+               COUNT(DISTINCT po.partner_id) as partner_count,
+               COUNT(DISTINCT op.product_id) as product_count
+        FROM degoudse.opportunities o
+        LEFT JOIN degoudse.customer_opportunities co ON o.id = co.opportunity_id
+        LEFT JOIN degoudse.customers c ON c.id = co.customer_id
+        LEFT JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
+        LEFT JOIN degoudse.partners p ON p.id = po.partner_id
+        LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
+        LEFT JOIN degoudse.products pr ON pr.id = op.product_id
+        WHERE o.id = $1
+        GROUP BY o.id, o.title, o.description, o.status, o.stage, o."estimatedValue", 
+                 o."expectedCloseDate", o."clientId", o."partnerId", o."productId", 
+                 o."ownerId", o.probability, o.type, o."createdAt", o."updatedAt"
+      `, [opportunityId]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Opportunity not found' });
+      }
+      
+      const opp = result.rows[0];
+      const opportunity = {
+        id: opp.id,
+        title: opp.title,
+        description: opp.description,
+        status: opp.status,
+        stage: opp.stage,
+        estimatedValue: opp.estimatedValue,
+        expectedCloseDate: opp.expectedCloseDate,
+        clientId: opp.clientId,
+        clientName: opp.customer_names || '',
+        customerNames: opp.customer_names || '',
+        partnerId: opp.partnerId,
+        partnerNames: opp.partner_names || '',
+        productId: opp.productId,
+        productNames: opp.product_names || '',
+        ownerId: opp.ownerId,
+        probability: opp.probability,
+        type: opp.type,
+        createdAt: opp.createdAt,
+        updatedAt: opp.updatedAt,
+        customerCount: parseInt(opp.customer_count) || 0,
+        partnerCount: parseInt(opp.partner_count) || 0,
+        productCount: parseInt(opp.product_count) || 0
+      };
+      
+      res.json(opportunity);
+    } catch (error) {
+      console.error('Error fetching De Goudse opportunity:', error);
+      res.status(500).json({ error: 'Failed to fetch opportunity' });
     }
   });
 
