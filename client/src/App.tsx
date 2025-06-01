@@ -7,7 +7,6 @@ import { EnvironmentProvider } from "./contexts/EnvironmentContext";
 
 import Layout from "@/components/Layout";
 import PartnerPilot from "@/pages/PartnerPilot";
-import Dashboard from "@/pages/Dashboard";
 import CampaignsPage from "@/pages/Campaigns/CampaignsPage";
 import CampaignBuilder from "@/pages/Campaigns/CampaignBuilder";
 import CampaignDetail from "@/pages/Campaigns/CampaignDetail";
