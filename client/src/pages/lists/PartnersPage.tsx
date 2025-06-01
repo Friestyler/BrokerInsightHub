@@ -105,8 +105,8 @@ const useCreateSavedView = () => {
 // Calculate partner statistics
 function calculatePartnerStats(partners: any[]) {
   const totalPartners = partners.length;
-  const totalCustomers = partners.reduce((sum, partner) => sum + partner.customers, 0);
-  const totalOpportunities = partners.reduce((sum, partner) => sum + partner.opportunities, 0);
+  const totalCustomers = partners.reduce((sum, partner) => sum + (partner.customers || 0), 0);
+  const totalOpportunities = partners.reduce((sum, partner) => sum + (partner.opportunities || 0), 0);
   const activePartners = partners.filter(p => p.status === 'active').length;
   
   return {
