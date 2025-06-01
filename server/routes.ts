@@ -2070,6 +2070,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // De Goudse Vendors endpoints
+  app.get('/api/degoudse/vendors', async (req, res) => {
+    try {
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query(`
+        SELECT id, name, description, initials, contact_name, contact_email, 
+               contact_phone, owner_id, created_at, updated_at
+        FROM degoudse.vendors 
+        ORDER BY name ASC
+      `);
+      
+      const vendors = result.rows.map((vendor: any) => ({
+        ...vendor,
+        initials: vendor.initials || vendor.name.split(' ').map((word: string) => word[0]).join('').toUpperCase().slice(0, 2)
+      }));
+      
+      console.log(`Returning ${vendors.length} vendors from De Goudse database`);
+      res.json(vendors);
+    } catch (error) {
+      console.error('Error fetching De Goudse vendors:', error);
+      res.status(500).json({ error: 'Failed to fetch vendors' });
+    }
+  });
+
+  app.post('/api/degoudse/vendors', async (req, res) => {
+    try {
+      const envPool = getEnvironmentPool('degoudse');
+      const { name, description, contactName, contactEmail, contactPhone } = req.body;
+      
+      if (!name || !description) {
+        return res.status(400).json({ error: 'Name and description are required' });
+      }
+
+      const initials = name.split(' ').map((word: string) => word[0]).join('').toUpperCase().slice(0, 2);
+      
+      const result = await envPool.query(`
+        INSERT INTO degoudse.vendors (
+          name, description, initials, contact_name, contact_email, contact_phone, created_at, updated_at
+        ) VALUES (
+          $1, $2, $3, $4, $5, $6, NOW(), NOW()
+        ) RETURNING *
+      `, [name, description, initials, contactName || null, contactEmail || null, contactPhone || null]);
+      
+      const vendor = result.rows[0];
+      console.log('Vendor created successfully in De Goudse environment:', vendor);
+      res.status(201).json(vendor);
+    } catch (error) {
+      console.error('Error creating De Goudse vendor:', error);
+      res.status(500).json({ error: 'Failed to create vendor' });
+    }
+  });
+
   app.post('/api/degoudse/okr-metrics', async (req, res) => {
     try {
       const { name, description, realized_value, target_value, measure_unit, frequency, hierarchy, tags } = req.body;
