@@ -2996,39 +2996,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Database Administration Endpoints
   // These endpoints should not be environment-specific as they manage all environments
 
-  // Get all available environments
+  // Get all available environments - only De Goudse
   app.get('/api/admin/environments', async (req, res) => {
     try {
-      // Get all schemas from the database
-      const { pool } = await import('./db');
-      const schemasResult = await pool.query(`
-        SELECT schema_name 
-        FROM information_schema.schemata 
-        WHERE schema_name NOT IN ('information_schema', 'pg_catalog', 'pg_toast', 'public') 
-        ORDER BY schema_name
-      `);
-
-      const environments = schemasResult.rows.map((row: any) => {
-        const envId = row.schema_name;
-        
-        // Create environment names based on schema names
-        let name = envId;
-        if (envId === 'myqollabi') name = 'My Qollabi';
-        else if (envId === 'degoudse') name = 'De Goudse';
-        else {
-          // For dynamically created environments, format the name nicely
-          name = envId.split('_').map((word: any) => 
-            word.charAt(0).toUpperCase() + word.slice(1)
-          ).join(' ');
-        }
-
-        return {
-          id: envId,
-          name,
-          apiBaseUrl: envId === 'myqollabi' ? '/api' : `/api/${envId}`,
-          databaseId: `${envId}_db`
-        };
-      });
+      // Return only De Goudse environment
+      const environments = [{
+        id: 'degoudse',
+        name: 'De Goudse',
+        apiBaseUrl: '/api/degoudse',
+        databaseId: 'degoudse_db'
+      }];
 
       res.json(environments);
     } catch (error) {

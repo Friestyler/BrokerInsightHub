@@ -16,15 +16,8 @@ const getEnvironmentLogo = (envId: string): string | undefined => {
   return undefined;
 };
 
-// Fallback environments in case API fails
+// Only De Goudse environment
 const FALLBACK_ENVIRONMENTS: Environment[] = [
-  { 
-    id: "myqollabi", 
-    name: "My Qollabi", 
-    logo: qollabiLogo,
-    apiBaseUrl: "/api",
-    databaseId: "myqollabi_db"
-  },
   { 
     id: "degoudse", 
     name: "De Goudse", 

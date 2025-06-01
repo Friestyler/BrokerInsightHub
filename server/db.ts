@@ -15,31 +15,12 @@ interface EnvironmentConfig {
   [key: string]: DatabaseConfig;
 }
 
-// Configure multiple environments with proper database isolation
+// Configure only De Goudse environment
 const environmentConfigs: EnvironmentConfig = {
-  // My Qollabi - uses the main database
-  myqollabi: {
-    connectionString: process.env.DATABASE_URL || '',
-    name: 'My Qollabi Database'
-  },
-  // De Goudse - independent environment (for now uses same DB but will be migrated)
+  // De Goudse - primary environment
   degoudse: {
     connectionString: process.env.DATABASE_URL || '',
     name: 'De Goudse Database'
-  },
-  // ACME CO - independent environment
-  acme: {
-    connectionString: process.env.DATABASE_URL || '',
-    name: 'ACME Database'
-  },
-  // Additional environments
-  globex: {
-    connectionString: process.env.DATABASE_URL || '',
-    name: 'Globex Database'
-  },
-  oceanic: {
-    connectionString: process.env.DATABASE_URL || '',
-    name: 'Oceanic Database'
   }
 };
 
@@ -59,16 +40,16 @@ Object.entries(environmentConfigs).forEach(([envName, config]) => {
   dbs[envName] = drizzle({ client: pools[envName], schema });
 });
 
-// Default connections (My Qollabi)
-export const pool = pools.myqollabi;
-export const db = dbs.myqollabi;
+// Default connections (De Goudse only)
+export const pool = pools.degoudse;
+export const db = dbs.degoudse;
 
 // Helper function to get database connection for a specific environment
-export function getEnvironmentDb(envId = 'myqollabi') {
+export function getEnvironmentDb(envId = 'degoudse') {
   return dbs[envId] || db;
 }
 
 // Helper function to get database pool for a specific environment
-export function getEnvironmentPool(envId = 'myqollabi') {
+export function getEnvironmentPool(envId = 'degoudse') {
   return pools[envId] || pool;
 }
