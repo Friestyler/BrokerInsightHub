@@ -71,8 +71,29 @@ export default function PartnerDetailClean() {
 
   // Create comment mutation
   const createCommentMutation = useMutation({
-    mutationFn: async (data: { content: string; visible_to_partner: boolean; entityType: string; entityId: number; assignedTo?: string }) => {
+    mutationFn: async (data: { content: string; visible_to_partner: boolean; entityType: string; entityId: number; assignedTo?: string; metricId?: number }) => {
       const envId = localStorage.getItem('selectedEnvironment') || 'degoudse';
+      
+      // Use OKR comment endpoint if a metric is selected
+      if (data.metricId) {
+        const response = await fetch(`/api/${envId}/okr/comments`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            metricId: data.metricId,
+            partnerId: data.entityId,
+            comment: data.content,
+            userId: 1, // Default user ID
+          }),
+        });
+        if (!response.ok) {
+          const errorData = await response.text();
+          throw new Error(`Failed to create OKR comment: ${errorData}`);
+        }
+        return response.json();
+      }
+      
+      // Use regular comment endpoint for non-OKR comments
       const response = await fetch(`/api/${envId}/activity/comments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -93,6 +114,9 @@ export default function PartnerDetailClean() {
       return response.json();
     },
     onSuccess: () => {
+      const envId = localStorage.getItem('selectedEnvironment') || 'degoudse';
+      // Invalidate activities query to refresh the partner activity hub
+      queryClient.invalidateQueries({ queryKey: [`/api/${envId}/partners/${id}/activities`] });
       setIsCommentDialogOpen(false);
       setCommentText('');
       setVisibleToPartner(true);
@@ -117,9 +141,10 @@ export default function PartnerDetailClean() {
     createCommentMutation.mutate({
       content: commentText,
       visible_to_partner: visibleToPartner,
-      entityType: 'okr_metric',
-      entityId: selectedMetricForComment.id,
+      entityType: 'partner',
+      entityId: parseInt(id!),
       assignedTo: assignedTo || undefined,
+      metricId: selectedMetricForComment.id, // Pass the metric ID for OKR comments
     });
   };
 

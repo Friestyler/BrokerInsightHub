@@ -4378,6 +4378,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create a new OKR comment
+  app.post('/api/:envId/okr/comments', async (req, res) => {
+    try {
+      const { envId } = req.params;
+      const { metricId, partnerId, comment, userId } = req.body;
+      const envPool = getEnvironmentPool(envId);
+      
+      const result = await envPool.query(`
+        INSERT INTO ${envId}.okr_comments (metric_id, user_id, partner_id, comment, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, NOW(), NOW()) RETURNING *
+      `, [metricId, userId, partnerId, comment]);
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error creating OKR comment:', error);
+      res.status(500).json({ error: 'Failed to create OKR comment' });
+    }
+  });
+
   // Get unified timeline for a partner
   app.get('/api/:envId/partners/:partnerId/timeline', async (req, res) => {
     try {
