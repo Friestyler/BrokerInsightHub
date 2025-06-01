@@ -44,6 +44,70 @@ export const contacts = pgTable("contacts", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+// Activity Tasks model
+export const activityTasks = pgTable("activity_tasks", {
+  id: serial("id").primaryKey(),
+  title: text("title").notNull(),
+  description: text("description"),
+  status: text("status").notNull().default("pending"), // pending, in_progress, completed, cancelled
+  priority: text("priority").notNull().default("medium"), // low, medium, high, urgent
+  assignedToId: integer("assigned_to_id").references(() => users.id),
+  assignedById: integer("assigned_by_id").references(() => users.id),
+  entityType: text("entity_type").notNull(), // partner, customer, opportunity, okr
+  entityId: integer("entity_id").notNull(),
+  dueDate: timestamp("due_date"),
+  completedAt: timestamp("completed_at"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Activity Comments model
+export const activityComments = pgTable("activity_comments", {
+  id: serial("id").primaryKey(),
+  content: text("content").notNull(),
+  authorId: integer("author_id").notNull().references(() => users.id),
+  entityType: text("entity_type").notNull(), // partner, customer, opportunity, okr, task
+  entityId: integer("entity_id").notNull(),
+  assignedToId: integer("assigned_to_id").references(() => users.id), // optional assignment
+  parentCommentId: integer("parent_comment_id").references(() => activityComments.id), // for replies
+  isInternal: boolean("is_internal").notNull().default(false), // internal vs partner-visible
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Activity Attachments model
+export const activityAttachments = pgTable("activity_attachments", {
+  id: serial("id").primaryKey(),
+  filename: text("filename").notNull(),
+  originalName: text("original_name").notNull(),
+  fileType: text("file_type").notNull(),
+  fileSize: integer("file_size").notNull(),
+  filePath: text("file_path"),
+  url: text("url"), // for external links
+  uploadedById: integer("uploaded_by_id").notNull().references(() => users.id),
+  entityType: text("entity_type").notNull(), // partner, customer, opportunity, okr, task, comment
+  entityId: integer("entity_id").notNull(),
+  description: text("description"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// AI Next Best Actions model
+export const nextBestActions = pgTable("next_best_actions", {
+  id: serial("id").primaryKey(),
+  partnerId: integer("partner_id").notNull().references(() => customers.id),
+  actionType: text("action_type").notNull(), // follow_up, schedule_meeting, review_okr, etc.
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  priority: text("priority").notNull().default("medium"), // low, medium, high, urgent
+  confidence: numeric("confidence", { precision: 3, scale: 2 }), // AI confidence score 0-1
+  reasoning: text("reasoning"), // AI explanation for the recommendation
+  status: text("status").notNull().default("pending"), // pending, dismissed, completed, in_progress
+  contextData: json("context_data"), // relevant data that led to this recommendation
+  suggestedDate: timestamp("suggested_date"),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 // News article model
 export const newsArticles = pgTable("news_articles", {
   id: serial("id").primaryKey(),
@@ -629,6 +693,51 @@ export const okrCommentsRelations = relations(okrComments, ({ one }) => ({
   }),
 }));
 
+// Activity tables relations
+export const activityTasksRelations = relations(activityTasks, ({ one, many }) => ({
+  assignedTo: one(users, {
+    fields: [activityTasks.assignedToId],
+    references: [users.id],
+  }),
+  assignedBy: one(users, {
+    fields: [activityTasks.assignedById],
+    references: [users.id],
+  }),
+  comments: many(activityComments),
+  attachments: many(activityAttachments),
+}));
+
+export const activityCommentsRelations = relations(activityComments, ({ one, many }) => ({
+  author: one(users, {
+    fields: [activityComments.authorId],
+    references: [users.id],
+  }),
+  assignedTo: one(users, {
+    fields: [activityComments.assignedToId],
+    references: [users.id],
+  }),
+  parentComment: one(activityComments, {
+    fields: [activityComments.parentCommentId],
+    references: [activityComments.id],
+  }),
+  replies: many(activityComments),
+  attachments: many(activityAttachments),
+}));
+
+export const activityAttachmentsRelations = relations(activityAttachments, ({ one }) => ({
+  uploadedBy: one(users, {
+    fields: [activityAttachments.uploadedById],
+    references: [users.id],
+  }),
+}));
+
+export const nextBestActionsRelations = relations(nextBestActions, ({ one }) => ({
+  partner: one(customers, {
+    fields: [nextBestActions.partnerId],
+    references: [customers.id],
+  }),
+}));
+
 export const insertOkrMetricSchema = createInsertSchema(okrMetrics).pick({
   name: true,
   description: true,
@@ -800,3 +909,40 @@ export type CampaignRecipient = typeof campaignRecipients.$inferSelect;
 
 export type InsertCampaignFollowUp = z.infer<typeof insertCampaignFollowUpSchema>;
 export type CampaignFollowUp = typeof campaignFollowUps.$inferSelect;
+
+// Activity tables type exports
+export const insertActivityTaskSchema = createInsertSchema(activityTasks).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+  completedAt: true,
+});
+
+export const insertActivityCommentSchema = createInsertSchema(activityComments).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export const insertActivityAttachmentSchema = createInsertSchema(activityAttachments).omit({
+  id: true,
+  createdAt: true,
+});
+
+export const insertNextBestActionSchema = createInsertSchema(nextBestActions).omit({
+  id: true,
+  createdAt: true,
+  updatedAt: true,
+});
+
+export type ActivityTask = typeof activityTasks.$inferSelect;
+export type InsertActivityTask = z.infer<typeof insertActivityTaskSchema>;
+
+export type ActivityComment = typeof activityComments.$inferSelect;
+export type InsertActivityComment = z.infer<typeof insertActivityCommentSchema>;
+
+export type ActivityAttachment = typeof activityAttachments.$inferSelect;
+export type InsertActivityAttachment = z.infer<typeof insertActivityAttachmentSchema>;
+
+export type NextBestAction = typeof nextBestActions.$inferSelect;
+export type InsertNextBestAction = z.infer<typeof insertNextBestActionSchema>;
