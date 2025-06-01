@@ -1809,11 +1809,16 @@ function OpportunitiesTable() {
               </div>
             </div>
 
-            {/* Available Templates */}
+            {/* Available Templates with Tag Grouping */}
             <div className="space-y-4">
-              <h3 className="text-lg font-medium">Available OKR Templates</h3>
+              <div className="flex items-center justify-between">
+                <h3 className="text-lg font-medium text-gray-900">Available OKR Templates</h3>
+                <span className="text-sm text-gray-500">
+                  {selectedOKRTemplates.length} of {Array.isArray(okrMetricsFromAPI) ? okrMetricsFromAPI.length : 0} selected
+                </span>
+              </div>
               
-              {okrMetricsFromAPI.length === 0 ? (
+              {!Array.isArray(okrMetricsFromAPI) || okrMetricsFromAPI.length === 0 ? (
                 <div className="text-center py-8 text-gray-500">
                   <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-4 text-gray-400">
                     <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
@@ -1824,64 +1829,111 @@ function OpportunitiesTable() {
                   <p className="text-sm">Create templates in the Templates section first</p>
                 </div>
               ) : (
-                <div className="grid gap-3 max-h-60 overflow-y-auto">
-                  {okrMetricsFromAPI.map((template: any) => {
-                    const isSelected = selectedOKRTemplates.includes(template.id);
-                    const firstTag = template.tags && template.tags.length > 0 ? template.tags[0] : 'General';
-                    const tagColor = okrTags.find((tag: any) => tag.name === firstTag)?.color || '#6B7280';
-                    
-                    return (
-                      <div
-                        key={template.id}
-                        onClick={() => {
-                          if (isSelected) {
-                            setSelectedOKRTemplates(prev => prev.filter(id => id !== template.id));
-                          } else {
-                            setSelectedOKRTemplates(prev => [...prev, template.id]);
-                          }
-                        }}
-                        className={`p-4 border rounded-lg cursor-pointer transition-all ${
-                          isSelected 
-                            ? 'border-blue-500 bg-blue-50' 
-                            : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                        }`}
-                      >
-                        <div className="flex items-start justify-between">
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <h4 className="font-medium text-gray-900">{template.name}</h4>
-                              <span 
-                                className="px-2 py-1 text-xs rounded-full font-medium"
-                                style={{
-                                  backgroundColor: `${tagColor}20`,
-                                  color: tagColor,
-                                  border: `1px solid ${tagColor}40`
-                                }}
-                              >
-                                {firstTag}
-                              </span>
-                            </div>
-                            <p className="text-sm text-gray-600 mb-2">
-                              {template.description || 'No description available'}
-                            </p>
-                            <div className="flex items-center gap-4 text-xs text-gray-500">
-                              <span>Type: {template.hierarchy || 'Metric'}</span>
-                              <span>Unit: {template.measure_unit || 'Number'}</span>
-                              <span>Frequency: {template.frequency || 'Monthly'}</span>
-                            </div>
+                <div className="space-y-4 max-h-96 overflow-y-auto">
+                  {/* Select All Templates */}
+                  <div 
+                    className="flex items-center p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50"
+                    onClick={() => {
+                      const allTemplateIds = okrMetricsFromAPI.map((t: any) => t.id);
+                      if (selectedOKRTemplates.length === allTemplateIds.length) {
+                        setSelectedOKRTemplates([]);
+                      } else {
+                        setSelectedOKRTemplates(allTemplateIds);
+                      }
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={selectedOKRTemplates.length === okrMetricsFromAPI.length}
+                      onChange={() => {}}
+                      className="h-4 w-4 text-blue-600 rounded border-gray-300 mr-3"
+                    />
+                    <span className="font-medium text-gray-900">Select All Templates</span>
+                  </div>
+
+                  {/* Group templates by tags */}
+                  {(() => {
+                    const templatesByTag = okrMetricsFromAPI.reduce((acc: any, template: any) => {
+                      const firstTag = template.tags && template.tags.length > 0 ? template.tags[0] : 'general';
+                      if (!acc[firstTag]) {
+                        acc[firstTag] = [];
+                      }
+                      acc[firstTag].push(template);
+                      return acc;
+                    }, {});
+
+                    return Object.entries(templatesByTag).map(([tag, templates]: [string, any]) => {
+                      const tagColors: Record<string, { bg: string; text: string }> = {
+                        'acquisition': { bg: 'bg-pink-100', text: 'text-pink-800' },
+                        'claims': { bg: 'bg-orange-100', text: 'text-orange-800' },
+                        'solar': { bg: 'bg-yellow-100', text: 'text-yellow-800' },
+                        'partnership': { bg: 'bg-blue-100', text: 'text-blue-800' },
+                        'products': { bg: 'bg-green-100', text: 'text-green-800' },
+                        'general': { bg: 'bg-gray-100', text: 'text-gray-800' }
+                      };
+                      const colors = tagColors[tag] || tagColors['general'];
+
+                      return (
+                        <div key={tag} className="space-y-2">
+                          {/* Tag header */}
+                          <div className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${colors.bg} ${colors.text}`}>
+                            {tag} ({templates.length})
                           </div>
-                          <div className="ml-4">
-                            <input
-                              type="checkbox"
-                              checked={isSelected}
-                              onChange={() => {}}
-                              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
-                            />
+                          
+                          {/* Templates in this tag */}
+                          <div className="space-y-2 ml-4">
+                            {templates.map((template: any) => {
+                              const isSelected = selectedOKRTemplates.includes(template.id);
+                              
+                              return (
+                                <div
+                                  key={template.id}
+                                  onClick={() => {
+                                    if (isSelected) {
+                                      setSelectedOKRTemplates(prev => prev.filter(id => id !== template.id));
+                                    } else {
+                                      setSelectedOKRTemplates(prev => [...prev, template.id]);
+                                    }
+                                  }}
+                                  className={`flex items-start p-3 border rounded-lg cursor-pointer transition-all ${
+                                    isSelected 
+                                      ? 'border-blue-500 bg-blue-50' 
+                                      : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                                  }`}
+                                >
+                                  <input
+                                    type="checkbox"
+                                    checked={isSelected}
+                                    onChange={() => {}}
+                                    className="h-4 w-4 text-blue-600 rounded border-gray-300 mr-3 mt-0.5"
+                                  />
+                                  <div className="flex-1 min-w-0">
+                                    <div className="flex items-center justify-between">
+                                      <h4 className="font-medium text-gray-900">{template.name}</h4>
+                                      <div className="flex items-center gap-2 text-xs text-gray-500">
+                                        <span className="px-2 py-1 bg-gray-100 rounded">{template.hierarchy || 'operational'}</span>
+                                      </div>
+                                    </div>
+                                    <p className="text-sm text-gray-600 mt-1">{template.description}</p>
+                                    <div className="flex items-center mt-2 text-xs text-gray-500">
+                                      <span className="flex items-center">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                                          <circle cx="12" cy="12" r="3"></circle>
+                                          <path d="M12 1v6m0 6v6"></path>
+                                        </svg>
+                                        {template.target_value}
+                                        {template.measure_unit && `# ${template.frequency || 'monthly'}`}
+                                      </span>
+                                    </div>
+                                  </div>
+                                </div>
+                              );
+                            })}
                           </div>
                         </div>
-                      </div>
-                    );
-                  })}
+                      );
+                    });
+                  })()}
                 </div>
               )}
             </div>
