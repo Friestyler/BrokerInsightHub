@@ -24,15 +24,23 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
     if (location.startsWith('/partners') || location.startsWith('/customers') || location.startsWith('/opportunities') || location.startsWith('/vendors') || location.startsWith('/products') || location.startsWith('/projects') || location.startsWith('/contacts')) {
       setDataMenuOpen(true);
       setTemplatesMenuOpen(false);
+      setSmartUpdatesMenuOpen(false);
       setSettingsMenuOpen(false);
     } else if (location.startsWith('/templates')) {
       setTemplatesMenuOpen(true);
       setDataMenuOpen(false);
+      setSmartUpdatesMenuOpen(false);
+      setSettingsMenuOpen(false);
+    } else if (location.startsWith('/smart-updates')) {
+      setSmartUpdatesMenuOpen(true);
+      setDataMenuOpen(false);
+      setTemplatesMenuOpen(false);
       setSettingsMenuOpen(false);
     } else if (location.startsWith('/settings')) {
       setSettingsMenuOpen(true);
       setDataMenuOpen(false);
       setTemplatesMenuOpen(false);
+      setSmartUpdatesMenuOpen(false);
     }
   }, [location]);
 
@@ -328,6 +336,83 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
                   <circle cx="12" cy="12" r="7"></circle>
                 </svg>
                 OKR Metrics
+              </button>
+            </div>
+          )}
+        </div>
+        
+        {/* Smart Updates Section */}
+        <div className="relative">
+          <button 
+            className={`flex items-center py-2.5 px-4 rounded-md w-full text-left ${location.startsWith("/smart-updates") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
+            onClick={() => {
+              const newValue = !smartUpdatesMenuOpen;
+              setSmartUpdatesMenuOpen(newValue);
+              if (newValue) {
+                setDataMenuOpen(false);
+                setTemplatesMenuOpen(false);
+              }
+            }}
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-center" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M12 1v6m0 0 4-4m-4 4L8 3"></path>
+              <path d="M12 23v-6m0 0 4 4m-4-4-4 4"></path>
+              <path d="M20 12h-2"></path>
+              <path d="M6 12H4"></path>
+              <path d="M17.657 6.343l-1.414 1.414"></path>
+              <path d="M7.757 16.243l-1.414 1.414"></path>
+              <path d="M17.657 17.657l-1.414-1.414"></path>
+              <path d="M7.757 7.757l-1.414-1.414"></path>
+            </svg>
+            <span className={`ml-3 text-sm ${collapsed ? "hidden" : "hidden md:inline-block"}`}>Smart Updates</span>
+            {!collapsed && (
+              <svg 
+                xmlns="http://www.w3.org/2000/svg" 
+                width="14" 
+                height="14" 
+                viewBox="0 0 24 24" 
+                fill="none" 
+                stroke="currentColor" 
+                strokeWidth="2" 
+                strokeLinecap="round" 
+                strokeLinejoin="round"
+                className={`ml-auto transition-transform ${smartUpdatesMenuOpen ? 'rotate-180' : ''} ${collapsed ? "hidden" : "hidden md:inline-block"}`}
+              >
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            )}
+          </button>
+          
+          {/* Smart Updates indicator when collapsed */}
+          {collapsed && !smartUpdatesMenuOpen && location.startsWith('/smart-updates') && (
+            <div className="absolute top-[93px] right-0 w-1 h-7 bg-indigo-500 rounded-l-md"></div>
+          )}
+          
+          {/* Smart Updates submenu */}
+          {smartUpdatesMenuOpen && (
+            <div className={`${collapsed ? "absolute left-16 top-0 bg-white border border-gray-200 rounded-md shadow-md py-1 z-50 w-48" : "mt-0.5"}`}>
+              <button
+                onClick={() => navigateTo('/smart-updates/notifications')}
+                className={`flex py-2 text-sm ${collapsed ? "px-4" : "pl-12"} w-full text-left ${location.startsWith("/smart-updates/notifications") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path>
+                  <path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"></path>
+                </svg>
+                Notifications
+              </button>
+              <button
+                onClick={() => navigateTo('/smart-updates/automated')}
+                className={`flex py-2 text-sm ${collapsed ? "px-4" : "pl-12"} w-full text-left ${location.startsWith("/smart-updates/automated") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M12 2v6l3-3 3 3"></path>
+                  <path d="M21 12h-6l3-3 3 3"></path>
+                  <path d="M12 22v-6l3 3 3-3"></path>
+                  <path d="M3 12h6l-3-3-3 3"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+                Smart Updates
               </button>
             </div>
           )}

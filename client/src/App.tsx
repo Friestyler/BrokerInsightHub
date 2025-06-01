@@ -29,6 +29,8 @@ import UserManagement from "@/pages/Settings/UserManagement";
 import ContactsPage from "@/pages/Settings/ContactsPage";
 import DeveloperPage from "@/pages/Settings/DeveloperPage";
 import DatabaseAdmin from "@/pages/Settings/DatabaseAdmin";
+import NotificationsPage from "@/pages/smart-updates/NotificationsPage";
+import SmartUpdatesPage from "@/pages/smart-updates/SmartUpdatesPage";
 
 import NotFound from "@/pages/not-found";
 import EnvironmentRouteGuard from "@/components/EnvironmentRouteGuard";
@@ -115,6 +117,10 @@ function Router() {
         {/* Templates section routes */}
         <Route path="/templates/okr-metrics" component={OKRTemplatesPage} />
         <Route path="/templates/groups/:id" component={GroupDetail} />
+        
+        {/* Smart Updates routes */}
+        <Route path="/smart-updates/notifications" component={NotificationsPage} />
+        <Route path="/smart-updates/automated" component={SmartUpdatesPage} />
         
         {/* Settings routes */}
         <Route path="/settings/users" component={UserManagement} />
