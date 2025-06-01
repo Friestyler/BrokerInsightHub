@@ -701,7 +701,7 @@ function OpportunitiesTable() {
     if (selectedOpportunities.length === displayedOpportunities.length) {
       setSelectedOpportunities([]);
     } else {
-      setSelectedOpportunities(displayedOpportunities.map(opp => opp.id));
+      setSelectedOpportunities(displayedOpportunities.map((opp: any) => opp.id));
     }
   };
   
@@ -1513,41 +1513,83 @@ function OpportunitiesTable() {
                   onChange={toggleSelectAll}
                 />
               </th>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[250px]">
-                <div className="flex items-center">
-                  Title
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                    <path d="M8 9l4-4 4 4"></path>
-                    <path d="M16 15l-4 4-4-4"></path>
-                  </svg>
-                </div>
-              </th>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[120px]">
+              <SortableTableHead 
+                sortKey="title" 
+                currentSortKey="" 
+                currentDirection={null} 
+                onSort={() => {}} 
+                className="w-[250px]"
+              >
+                Title
+              </SortableTableHead>
+              <SortableTableHead 
+                sortKey="status" 
+                currentSortKey="" 
+                currentDirection={null} 
+                onSort={() => {}} 
+                className="w-[120px]"
+              >
                 Status
-              </th>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[120px]">
+              </SortableTableHead>
+              <SortableTableHead 
+                sortKey="type" 
+                currentSortKey="" 
+                currentDirection={null} 
+                onSort={() => {}} 
+                className="w-[120px]"
+              >
                 Type
-              </th>
+              </SortableTableHead>
               <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[120px]">
                 <div className="flex items-center text-[#696C8C] text-[13px] font-medium">
                   Template
                 </div>
               </th>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[140px]">
+              <SortableTableHead 
+                sortKey="clientName" 
+                currentSortKey="" 
+                currentDirection={null} 
+                onSort={() => {}} 
+                className="w-[140px]"
+              >
                 Customer
-              </th>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[140px]">
+              </SortableTableHead>
+              <SortableTableHead 
+                sortKey="partnerName" 
+                currentSortKey="" 
+                currentDirection={null} 
+                onSort={() => {}} 
+                className="w-[140px]"
+              >
                 Partner
-              </th>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[120px]">
+              </SortableTableHead>
+              <SortableTableHead 
+                sortKey="estimatedValue" 
+                currentSortKey="" 
+                currentDirection={null} 
+                onSort={() => {}} 
+                className="w-[120px]"
+              >
                 Value
-              </th>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[100px]">
+              </SortableTableHead>
+              <SortableTableHead 
+                sortKey="probability" 
+                currentSortKey="" 
+                currentDirection={null} 
+                onSort={() => {}} 
+                className="w-[100px]"
+              >
                 Probability
-              </th>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[120px]">
+              </SortableTableHead>
+              <SortableTableHead 
+                sortKey="expectedCloseDate" 
+                currentSortKey="" 
+                currentDirection={null} 
+                onSort={() => {}} 
+                className="w-[120px]"
+              >
                 Close Date
-              </th>
+              </SortableTableHead>
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-200">
