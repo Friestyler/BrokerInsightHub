@@ -1,13 +1,11 @@
 import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { Plus, MessageSquare, Paperclip, CheckSquare, ChevronDown, ChevronRight, Sparkles, Clock, User, AlertCircle } from 'lucide-react';
+import { Plus, MessageSquare, CheckSquare, ChevronDown, ChevronRight, Sparkles, Clock, User, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 
@@ -50,29 +48,21 @@ interface NextBestAction {
 }
 
 const priorityColors = {
-  low: 'bg-gray-100 text-gray-800',
+  low: 'bg-gray-100 text-gray-700',
   medium: 'bg-yellow-100 text-yellow-800',
   high: 'bg-orange-100 text-orange-800',
   urgent: 'bg-red-100 text-red-800'
 };
 
-const statusColors = {
-  pending: 'bg-gray-100 text-gray-800',
-  in_progress: 'bg-blue-100 text-blue-800',
-  completed: 'bg-green-100 text-green-800',
-  cancelled: 'bg-red-100 text-red-800'
-};
-
 export default function PartnerActivityHub({ partnerId, partnerName }: PartnerActivityHubProps) {
-  const [isTasksOpen, setIsTasksOpen] = useState(true);
-  const [isCommentsOpen, setIsCommentsOpen] = useState(true);
-  const [isActionsOpen, setIsActionsOpen] = useState(true);
-  const [isQuickStatsOpen, setIsQuickStatsOpen] = useState(true);
+  const [isTasksOpen, setIsTasksOpen] = useState(false);
+  const [isCommentsOpen, setIsCommentsOpen] = useState(false);
+  const [isActionsOpen, setIsActionsOpen] = useState(false);
 
-  const [newTask, setNewTask] = useState({ title: '', description: '', priority: 'medium' });
-  const [newComment, setNewComment] = useState({ content: '', isInternal: false });
-  const [showNewTaskForm, setShowNewTaskForm] = useState(false);
-  const [showNewCommentForm, setShowNewCommentForm] = useState(false);
+  const [inlineTaskTitle, setInlineTaskTitle] = useState('');
+  const [inlineCommentContent, setInlineCommentContent] = useState('');
+  const [showTaskInput, setShowTaskInput] = useState(false);
+  const [showCommentInput, setShowCommentInput] = useState(false);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -92,47 +82,52 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
 
   // Create task mutation
   const createTaskMutation = useMutation({
-    mutationFn: (taskData: any) => apiRequest(`/api/${currentEnv}/activity/tasks`, {
-      method: 'POST',
-      body: JSON.stringify({
-        ...taskData,
-        entityType: 'partner',
-        entityId: partnerId,
-        assignedById: 1 // Mock user ID - in real app would come from auth
-      })
-    }),
+    mutationFn: (taskData: any) => 
+      fetch(`/api/${currentEnv}/activity/tasks`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...taskData,
+          entityType: 'partner',
+          entityId: partnerId,
+          assignedById: 1
+        })
+      }).then(res => res.json()),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/partners/${partnerId}/activities`] });
-      setNewTask({ title: '', description: '', priority: 'medium' });
-      setShowNewTaskForm(false);
+      setInlineTaskTitle('');
+      setShowTaskInput(false);
       toast({ title: 'Task created successfully' });
     }
   });
 
   // Create comment mutation
   const createCommentMutation = useMutation({
-    mutationFn: (commentData: any) => apiRequest(`/api/${currentEnv}/activity/comments`, {
-      method: 'POST',
-      body: JSON.stringify({
-        ...commentData,
-        entityType: 'partner',
-        entityId: partnerId,
-        authorId: 1 // Mock user ID - in real app would come from auth
-      })
-    }),
+    mutationFn: (commentData: any) => 
+      fetch(`/api/${currentEnv}/activity/comments`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...commentData,
+          entityType: 'partner',
+          entityId: partnerId,
+          authorId: 1
+        })
+      }).then(res => res.json()),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/partners/${partnerId}/activities`] });
-      setNewComment({ content: '', isInternal: false });
-      setShowNewCommentForm(false);
+      setInlineCommentContent('');
+      setShowCommentInput(false);
       toast({ title: 'Comment added successfully' });
     }
   });
 
   // Generate AI actions mutation
   const generateActionsMutation = useMutation({
-    mutationFn: () => apiRequest(`/api/${currentEnv}/partners/${partnerId}/generate-actions`, {
-      method: 'POST'
-    }),
+    mutationFn: () => 
+      fetch(`/api/${currentEnv}/partners/${partnerId}/generate-actions`, {
+        method: 'POST'
+      }).then(res => res.json()),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/partners/${partnerId}/next-actions`] });
       toast({ title: 'AI recommendations generated successfully' });
@@ -140,41 +135,57 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
     onError: (error: any) => {
       toast({ 
         title: 'Failed to generate AI recommendations', 
-        description: error.response?.data?.error || 'An error occurred',
+        description: error.message || 'An error occurred',
         variant: 'destructive' 
       });
     }
   });
 
   const handleCreateTask = () => {
-    if (!newTask.title.trim()) return;
-    createTaskMutation.mutate(newTask);
+    if (!inlineTaskTitle.trim()) return;
+    createTaskMutation.mutate({ title: inlineTaskTitle, priority: 'medium' });
   };
 
   const handleCreateComment = () => {
-    if (!newComment.content.trim()) return;
-    createCommentMutation.mutate(newComment);
+    if (!inlineCommentContent.trim()) return;
+    createCommentMutation.mutate({ content: inlineCommentContent, isInternal: false });
   };
 
-  const handleGenerateActions = () => {
-    generateActionsMutation.mutate();
+  const handleTaskKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleCreateTask();
+    }
+    if (e.key === 'Escape') {
+      setShowTaskInput(false);
+      setInlineTaskTitle('');
+    }
+  };
+
+  const handleCommentKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+      handleCreateComment();
+    }
+    if (e.key === 'Escape') {
+      setShowCommentInput(false);
+      setInlineCommentContent('');
+    }
   };
 
   if (isLoading) {
     return (
-      <Card className="mb-6">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5" />
-            Activity Hub
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-center h-32">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+      <div className="mb-4 border border-gray-200 rounded-lg bg-white">
+        <div className="px-4 py-3 border-b border-gray-100">
+          <div className="flex items-center gap-2">
+            <MessageSquare className="h-4 w-4 text-gray-600" />
+            <span className="text-sm font-medium text-gray-700">Activity</span>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+        <div className="p-4 flex items-center justify-center h-20">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-indigo-600"></div>
+        </div>
+      </div>
     );
   }
 
@@ -182,196 +193,193 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
   const comments = activities?.comments || [];
   const actions = nextActions || [];
 
-  // Calculate quick stats
   const pendingTasks = tasks.filter((t: ActivityTask) => t.status === 'pending').length;
-  const completedTasks = tasks.filter((t: ActivityTask) => t.status === 'completed').length;
   const highPriorityActions = actions.filter((a: NextBestAction) => a.priority === 'high' || a.priority === 'urgent').length;
 
   return (
-    <Card className="mb-6 border-l-4 border-l-indigo-600">
-      <CardHeader className="pb-4">
-        <CardTitle className="flex items-center justify-between">
+    <div className="mb-4 border border-gray-200 rounded-lg bg-white">
+      {/* Minimal header with activity stats */}
+      <div className="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+        <div className="flex items-center gap-4">
           <div className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5 text-indigo-600" />
-            Activity Hub - {partnerName}
+            <MessageSquare className="h-4 w-4 text-gray-600" />
+            <span className="text-sm font-medium text-gray-700">Activity</span>
           </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleGenerateActions}
-              disabled={generateActionsMutation.isPending}
+          <div className="flex items-center gap-4 text-xs text-gray-500">
+            <span>{pendingTasks} pending</span>
+            <span>{comments.length} comments</span>
+            <span>{actions.length} AI suggestions</span>
+          </div>
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => generateActionsMutation.mutate()}
+          disabled={generateActionsMutation.isPending}
+          className="text-xs text-gray-600 hover:text-purple-600"
+        >
+          <Sparkles className="h-3 w-3 mr-1" />
+          {generateActionsMutation.isPending ? 'Generating...' : 'AI Actions'}
+        </Button>
+      </div>
+
+      <div className="p-3 space-y-2">
+        {/* Quick add task - Google style */}
+        <div className="space-y-2">
+          {!showTaskInput ? (
+            <button
+              onClick={() => setShowTaskInput(true)}
+              className="flex items-center gap-2 w-full text-left p-2 rounded-md hover:bg-gray-50 text-sm text-gray-600"
             >
-              <Sparkles className="h-4 w-4 mr-2" />
-              {generateActionsMutation.isPending ? 'Generating...' : 'AI Actions'}
-            </Button>
-          </div>
-        </CardTitle>
-      </CardHeader>
-
-      <CardContent className="space-y-4">
-        {/* Quick Stats */}
-        <Collapsible open={isQuickStatsOpen} onOpenChange={setIsQuickStatsOpen}>
-          <CollapsibleTrigger className="flex items-center gap-2 w-full p-2 rounded hover:bg-gray-50">
-            {isQuickStatsOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-            <span className="font-medium">Quick Stats</span>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <div className="grid grid-cols-3 gap-4 mt-3 p-4 bg-gray-50 rounded-lg">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-orange-600">{pendingTasks}</div>
-                <div className="text-sm text-gray-600">Pending Tasks</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">{completedTasks}</div>
-                <div className="text-sm text-gray-600">Completed Tasks</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-red-600">{highPriorityActions}</div>
-                <div className="text-sm text-gray-600">High Priority Actions</div>
-              </div>
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-
-        {/* AI Next Best Actions */}
-        <Collapsible open={isActionsOpen} onOpenChange={setIsActionsOpen}>
-          <CollapsibleTrigger className="flex items-center gap-2 w-full p-2 rounded hover:bg-gray-50">
-            {isActionsOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-            <Sparkles className="h-4 w-4 text-purple-600" />
-            <span className="font-medium">AI Next Best Actions</span>
-            <Badge variant="secondary" className="ml-auto">{actions.length}</Badge>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <div className="mt-3 space-y-3">
-              {isLoadingActions ? (
-                <div className="text-center py-4">
-                  <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-purple-600 mx-auto"></div>
-                </div>
-              ) : actions.length === 0 ? (
-                <div className="text-center py-6 text-gray-500">
-                  <Sparkles className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                  <p>No AI recommendations available</p>
+              <Plus className="h-4 w-4" />
+              Add task or comment...
+            </button>
+          ) : (
+            <div className="border rounded-md p-2 bg-gray-50">
+              <Input
+                placeholder="Add a task..."
+                value={inlineTaskTitle}
+                onChange={(e) => setInlineTaskTitle(e.target.value)}
+                onKeyDown={handleTaskKeyPress}
+                className="border-0 bg-transparent p-1 text-sm focus:ring-0"
+                autoFocus
+              />
+              <div className="flex items-center justify-between mt-2">
+                <div className="flex items-center gap-1">
+                  <Button size="sm" variant="ghost" className="h-6 px-2 text-xs">
+                    <CheckSquare className="h-3 w-3 mr-1" />
+                    Task
+                  </Button>
                   <Button 
-                    variant="outline" 
                     size="sm" 
-                    className="mt-2"
-                    onClick={handleGenerateActions}
-                    disabled={generateActionsMutation.isPending}
+                    variant="ghost" 
+                    className="h-6 px-2 text-xs"
+                    onClick={() => {
+                      setShowTaskInput(false);
+                      setShowCommentInput(true);
+                    }}
                   >
-                    Generate Recommendations
+                    <MessageSquare className="h-3 w-3 mr-1" />
+                    Comment
                   </Button>
                 </div>
-              ) : (
-                actions.map((action: NextBestAction) => (
-                  <div key={action.id} className="border rounded-lg p-3 bg-gradient-to-r from-purple-50 to-indigo-50">
+                <div className="flex items-center gap-1">
+                  <Button 
+                    size="sm" 
+                    onClick={handleCreateTask}
+                    disabled={!inlineTaskTitle.trim() || createTaskMutation.isPending}
+                    className="h-6 px-3 text-xs"
+                  >
+                    <Send className="h-3 w-3 mr-1" />
+                    Add
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {!showCommentInput && showTaskInput ? null : !showCommentInput ? null : (
+            <div className="border rounded-md p-2 bg-gray-50">
+              <Textarea
+                placeholder="Add a comment..."
+                value={inlineCommentContent}
+                onChange={(e) => setInlineCommentContent(e.target.value)}
+                onKeyDown={handleCommentKeyPress}
+                className="border-0 bg-transparent p-1 text-sm resize-none focus:ring-0 min-h-[60px]"
+                autoFocus
+              />
+              <div className="flex items-center justify-between mt-2">
+                <div className="flex items-center gap-1">
+                  <Button 
+                    size="sm" 
+                    variant="ghost" 
+                    className="h-6 px-2 text-xs"
+                    onClick={() => {
+                      setShowCommentInput(false);
+                      setShowTaskInput(true);
+                    }}
+                  >
+                    <CheckSquare className="h-3 w-3 mr-1" />
+                    Task
+                  </Button>
+                  <Button size="sm" variant="ghost" className="h-6 px-2 text-xs">
+                    <MessageSquare className="h-3 w-3 mr-1" />
+                    Comment
+                  </Button>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Button 
+                    size="sm" 
+                    onClick={handleCreateComment}
+                    disabled={!inlineCommentContent.trim() || createCommentMutation.isPending}
+                    className="h-6 px-3 text-xs"
+                  >
+                    <Send className="h-3 w-3 mr-1" />
+                    Add
+                  </Button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* AI Next Best Actions - Collapsed by default */}
+        {actions.length > 0 && (
+          <Collapsible open={isActionsOpen} onOpenChange={setIsActionsOpen}>
+            <CollapsibleTrigger className="flex items-center gap-2 w-full py-2 px-2 rounded hover:bg-gray-50 text-sm">
+              {isActionsOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              <Sparkles className="h-4 w-4 text-purple-600" />
+              <span className="font-medium">AI Suggestions</span>
+              <Badge variant="secondary" className="ml-auto text-xs">{actions.length}</Badge>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="mt-2 space-y-2 pl-6">
+                {actions.map((action: NextBestAction) => (
+                  <div key={action.id} className="border-l-2 border-purple-200 pl-3 py-2">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <h4 className="font-medium text-gray-900">{action.title}</h4>
-                          <Badge className={priorityColors[action.priority as keyof typeof priorityColors]}>
+                          <h4 className="font-medium text-sm text-gray-900">{action.title}</h4>
+                          <Badge className={priorityColors[action.priority as keyof typeof priorityColors]} size="sm">
                             {action.priority}
                           </Badge>
-                          <Badge variant="outline" className="text-xs">
-                            {Math.round(action.confidence * 100)}% confidence
-                          </Badge>
                         </div>
-                        <p className="text-sm text-gray-600 mb-2">{action.description}</p>
+                        <p className="text-xs text-gray-600 mb-1">{action.description}</p>
                         <p className="text-xs text-gray-500 italic">{action.reasoning}</p>
                       </div>
                     </div>
-                    <div className="flex items-center justify-between mt-2 text-xs text-gray-500">
-                      <span className="flex items-center gap-1">
-                        <Clock className="h-3 w-3" />
-                        {new Date(action.created_at).toLocaleDateString()}
-                      </span>
-                      <Badge className={statusColors[action.status as keyof typeof statusColors]}>
-                        {action.status}
-                      </Badge>
-                    </div>
                   </div>
-                ))
-              )}
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-
-        {/* Tasks Section */}
-        <Collapsible open={isTasksOpen} onOpenChange={setIsTasksOpen}>
-          <CollapsibleTrigger className="flex items-center gap-2 w-full p-2 rounded hover:bg-gray-50">
-            {isTasksOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-            <CheckSquare className="h-4 w-4 text-green-600" />
-            <span className="font-medium">Tasks</span>
-            <Badge variant="secondary" className="ml-auto">{tasks.length}</Badge>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <div className="mt-3 space-y-3">
-              <div className="flex justify-between items-center">
-                <h4 className="text-sm font-medium text-gray-700">Task Management</h4>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowNewTaskForm(!showNewTaskForm)}
-                >
-                  <Plus className="h-4 w-4 mr-1" />
-                  Add Task
-                </Button>
+                ))}
               </div>
+            </CollapsibleContent>
+          </Collapsible>
+        )}
 
-              {showNewTaskForm && (
-                <div className="border rounded-lg p-3 bg-gray-50 space-y-3">
-                  <Input
-                    placeholder="Task title"
-                    value={newTask.title}
-                    onChange={(e) => setNewTask({ ...newTask, title: e.target.value })}
-                  />
-                  <Textarea
-                    placeholder="Task description"
-                    value={newTask.description}
-                    onChange={(e) => setNewTask({ ...newTask, description: e.target.value })}
-                  />
-                  <div className="flex items-center gap-2">
-                    <Select value={newTask.priority} onValueChange={(value) => setNewTask({ ...newTask, priority: value })}>
-                      <SelectTrigger className="w-32">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="low">Low</SelectItem>
-                        <SelectItem value="medium">Medium</SelectItem>
-                        <SelectItem value="high">High</SelectItem>
-                        <SelectItem value="urgent">Urgent</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Button onClick={handleCreateTask} disabled={createTaskMutation.isPending}>
-                      Create Task
-                    </Button>
-                    <Button variant="outline" onClick={() => setShowNewTaskForm(false)}>
-                      Cancel
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {tasks.length === 0 ? (
-                <div className="text-center py-6 text-gray-500">
-                  <CheckSquare className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                  <p>No tasks found</p>
-                </div>
-              ) : (
-                tasks.map((task: ActivityTask) => (
-                  <div key={task.id} className="border rounded-lg p-3">
+        {/* Tasks Section - Collapsed by default */}
+        {tasks.length > 0 && (
+          <Collapsible open={isTasksOpen} onOpenChange={setIsTasksOpen}>
+            <CollapsibleTrigger className="flex items-center gap-2 w-full py-2 px-2 rounded hover:bg-gray-50 text-sm">
+              {isTasksOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              <CheckSquare className="h-4 w-4 text-green-600" />
+              <span className="font-medium">Tasks</span>
+              <Badge variant="secondary" className="ml-auto text-xs">{tasks.length}</Badge>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="mt-2 space-y-2 pl-6">
+                {tasks.map((task: ActivityTask) => (
+                  <div key={task.id} className="border-l-2 border-green-200 pl-3 py-2">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <h4 className="font-medium text-gray-900">{task.title}</h4>
-                          <Badge className={priorityColors[task.priority as keyof typeof priorityColors]}>
+                          <h4 className="font-medium text-sm text-gray-900">{task.title}</h4>
+                          <Badge className={priorityColors[task.priority as keyof typeof priorityColors]} size="sm">
                             {task.priority}
                           </Badge>
                         </div>
                         {task.description && (
-                          <p className="text-sm text-gray-600 mb-2">{task.description}</p>
+                          <p className="text-xs text-gray-600 mb-1">{task.description}</p>
                         )}
-                        <div className="flex items-center gap-4 text-xs text-gray-500">
+                        <div className="flex items-center gap-3 text-xs text-gray-500">
                           {task.assigned_to_name && (
                             <span className="flex items-center gap-1">
                               <User className="h-3 w-3" />
@@ -384,68 +392,30 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                           </span>
                         </div>
                       </div>
-                      <Badge className={statusColors[task.status as keyof typeof statusColors]}>
-                        {task.status}
-                      </Badge>
                     </div>
                   </div>
-                ))
-              )}
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-
-        {/* Comments Section */}
-        <Collapsible open={isCommentsOpen} onOpenChange={setIsCommentsOpen}>
-          <CollapsibleTrigger className="flex items-center gap-2 w-full p-2 rounded hover:bg-gray-50">
-            {isCommentsOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-            <MessageSquare className="h-4 w-4 text-blue-600" />
-            <span className="font-medium">Comments & Communication</span>
-            <Badge variant="secondary" className="ml-auto">{comments.length}</Badge>
-          </CollapsibleTrigger>
-          <CollapsibleContent>
-            <div className="mt-3 space-y-3">
-              <div className="flex justify-between items-center">
-                <h4 className="text-sm font-medium text-gray-700">Team Communication</h4>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowNewCommentForm(!showNewCommentForm)}
-                >
-                  <Plus className="h-4 w-4 mr-1" />
-                  Add Comment
-                </Button>
+                ))}
               </div>
+            </CollapsibleContent>
+          </Collapsible>
+        )}
 
-              {showNewCommentForm && (
-                <div className="border rounded-lg p-3 bg-gray-50 space-y-3">
-                  <Textarea
-                    placeholder="Write a comment..."
-                    value={newComment.content}
-                    onChange={(e) => setNewComment({ ...newComment, content: e.target.value })}
-                  />
-                  <div className="flex items-center gap-2">
-                    <Button onClick={handleCreateComment} disabled={createCommentMutation.isPending}>
-                      Post Comment
-                    </Button>
-                    <Button variant="outline" onClick={() => setShowNewCommentForm(false)}>
-                      Cancel
-                    </Button>
-                  </div>
-                </div>
-              )}
-
-              {comments.length === 0 ? (
-                <div className="text-center py-6 text-gray-500">
-                  <MessageSquare className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                  <p>No comments yet</p>
-                </div>
-              ) : (
-                comments.map((comment: ActivityComment) => (
-                  <div key={comment.id} className="border rounded-lg p-3">
-                    <div className="flex items-start justify-between mb-2">
+        {/* Comments Section - Collapsed by default */}
+        {comments.length > 0 && (
+          <Collapsible open={isCommentsOpen} onOpenChange={setIsCommentsOpen}>
+            <CollapsibleTrigger className="flex items-center gap-2 w-full py-2 px-2 rounded hover:bg-gray-50 text-sm">
+              {isCommentsOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+              <MessageSquare className="h-4 w-4 text-blue-600" />
+              <span className="font-medium">Comments</span>
+              <Badge variant="secondary" className="ml-auto text-xs">{comments.length}</Badge>
+            </CollapsibleTrigger>
+            <CollapsibleContent>
+              <div className="mt-2 space-y-2 pl-6">
+                {comments.map((comment: ActivityComment) => (
+                  <div key={comment.id} className="border-l-2 border-blue-200 pl-3 py-2">
+                    <div className="flex items-start justify-between mb-1">
                       <div className="flex items-center gap-2">
-                        <span className="font-medium text-gray-900">{comment.author_name}</span>
+                        <span className="font-medium text-sm text-gray-900">{comment.author_name}</span>
                         {comment.is_internal && (
                           <Badge variant="outline" className="text-xs">Internal</Badge>
                         )}
@@ -454,20 +424,14 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                         {new Date(comment.created_at).toLocaleDateString()}
                       </span>
                     </div>
-                    <p className="text-sm text-gray-700">{comment.content}</p>
-                    {comment.assigned_to_name && (
-                      <div className="mt-2 flex items-center gap-1 text-xs text-blue-600">
-                        <AlertCircle className="h-3 w-3" />
-                        Assigned to: {comment.assigned_to_name}
-                      </div>
-                    )}
+                    <p className="text-xs text-gray-700">{comment.content}</p>
                   </div>
-                ))
-              )}
-            </div>
-          </CollapsibleContent>
-        </Collapsible>
-      </CardContent>
-    </Card>
+                ))}
+              </div>
+            </CollapsibleContent>
+          </Collapsible>
+        )}
+      </div>
+    </div>
   );
 }
