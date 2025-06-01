@@ -56,7 +56,7 @@ export default function TagsPage() {
 
   // Create tag mutation
   const createTagMutation = useMutation({
-    mutationFn: (tagData: InsertTag) => apiRequest('/api/tags', 'POST', tagData),
+    mutationFn: (tagData: InsertTag) => apiRequest('POST', '/api/tags', tagData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/tags'] });
       setIsCreateTagOpen(false);
@@ -79,7 +79,7 @@ export default function TagsPage() {
   // Update tag mutation
   const updateTagMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: InsertTag }) => 
-      apiRequest(`/api/tags/${id}`, 'PUT', data),
+      apiRequest('PUT', `/api/tags/${id}`, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/tags'] });
       setEditingTag(null);
@@ -101,7 +101,7 @@ export default function TagsPage() {
 
   // Delete tag mutation
   const deleteTagMutation = useMutation({
-    mutationFn: (id: number) => apiRequest(`/api/tags/${id}`, 'DELETE'),
+    mutationFn: (id: number) => apiRequest('DELETE', `/api/tags/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/tags'] });
       setDeleteDialogOpen(false);
