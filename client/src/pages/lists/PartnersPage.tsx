@@ -474,8 +474,11 @@ function PartnersTable() {
         return tableSortConfig.direction === 'asc' ? result : -result;
       }
       
+      // Handle numeric columns (customers, opportunities)
       if (tableSortConfig.key === 'customers' || tableSortConfig.key === 'opportunities') {
-        const result = (aValue || 0) - (bValue || 0);
+        const aNum = parseInt(aValue) || 0;
+        const bNum = parseInt(bValue) || 0;
+        const result = aNum - bNum;
         return tableSortConfig.direction === 'asc' ? result : -result;
       }
       
@@ -2088,33 +2091,33 @@ function PartnersTable() {
                   </svg>
                 </div>
               </th>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                <div className="flex items-center text-[13px] font-medium text-[#696C8C]">
-                  Status
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                    <path d="M8 9l4-4 4 4"></path>
-                    <path d="M16 15l-4 4-4-4"></path>
-                  </svg>
-                </div>
-              </th>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                <div className="flex items-center text-[13px] font-medium text-[#696C8C]">
-                  Customers
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                    <path d="M8 9l4-4 4 4"></path>
-                    <path d="M16 15l-4 4-4-4"></path>
-                  </svg>
-                </div>
-              </th>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                <div className="flex items-center text-[13px] font-medium text-[#696C8C]">
-                  Opportunities
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                    <path d="M8 9l4-4 4 4"></path>
-                    <path d="M16 15l-4 4-4-4"></path>
-                  </svg>
-                </div>
-              </th>
+              <SortableTableHead 
+                sortKey="status" 
+                currentSortKey={tableSortConfig.key} 
+                currentDirection={tableSortConfig.direction} 
+                onSort={handleSort} 
+                className="w-[120px]"
+              >
+                Status
+              </SortableTableHead>
+              <SortableTableHead 
+                sortKey="customers" 
+                currentSortKey={tableSortConfig.key} 
+                currentDirection={tableSortConfig.direction} 
+                onSort={handleSort} 
+                className="w-[120px]"
+              >
+                Customers
+              </SortableTableHead>
+              <SortableTableHead 
+                sortKey="opportunities" 
+                currentSortKey={tableSortConfig.key} 
+                currentDirection={tableSortConfig.direction} 
+                onSort={handleSort} 
+                className="w-[120px]"
+              >
+                Opportunities
+              </SortableTableHead>
               <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                 <div className="flex items-center text-[#696C8C] text-[13px] font-medium">
                   Template
