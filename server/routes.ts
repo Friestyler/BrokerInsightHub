@@ -2305,7 +2305,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const result = await envPool.query(`
         SELECT id, username, email, full_name, first_name, last_name, 
-               avatar_initials, role, department, job_title, phone,
+               avatar_initials, role, department,
                is_active, last_login_at, created_at, updated_at
         FROM degoudse.users 
         WHERE is_active = true
@@ -2325,7 +2325,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const envPool = getEnvironmentPool('degoudse');
       const { 
         username, email, firstName, lastName, role, department, 
-        jobTitle, phone, isActive = true 
+        isActive = true 
       } = req.body;
       
       if (!username || !email) {
@@ -2333,20 +2333,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       const fullName = `${firstName || ''} ${lastName || ''}`.trim() || username;
-      const avatarInitials = fullName.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 2);
+      const avatarInitials = fullName.split(' ').map((word: string) => word[0]).join('').toUpperCase().slice(0, 2);
       
       const result = await envPool.query(`
         INSERT INTO degoudse.users (
           username, email, full_name, first_name, last_name, avatar_initials,
-          role, department, job_title, phone, is_active, created_at, updated_at
+          role, department, is_active, created_at, updated_at
         ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW()
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW()
         ) RETURNING id, username, email, full_name, first_name, last_name, 
-                   avatar_initials, role, department, job_title, phone, 
-                   is_active, created_at, updated_at
+                   avatar_initials, role, department, is_active, created_at, updated_at
       `, [
         username, email, fullName, firstName || null, lastName || null, avatarInitials,
-        role || 'user', department || null, jobTitle || null, phone || null, isActive
+        role || 'user', department || null, isActive
       ]);
       
       const user = result.rows[0];
