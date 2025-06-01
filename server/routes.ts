@@ -2230,7 +2230,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         (share_token, list_name, list_description, entity_type, data, message, created_by, created_at, expires_at)
         VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW() + INTERVAL '30 days')
         RETURNING *
-      `, [shareToken, list_name, list_description, entity_type, JSON.stringify(data), message, 'current-user']);
+      `, [shareToken, list_name, list_description, entity_type, JSON.stringify(data), message, 1]);
       
       res.status(201).json({
         ...result.rows[0],
