@@ -211,6 +211,7 @@ function OpportunitiesTable() {
   const { data: savedViewsData = [], isLoading: savedViewsLoading } = useSavedViews();
   const createSavedViewMutation = useCreateSavedView();
   const createSharedListMutation = useCreateSharedList();
+  const queryClient = useQueryClient();
 
   // Filter saved lists to only show opportunity-related lists (client-side filtering)
   const opportunitySavedListsData = savedListsData.filter((list: any) => 
@@ -1215,7 +1216,7 @@ function OpportunitiesTable() {
               <div className="flex">
                 <Input 
                   id="shareLink" 
-                  value={currentSharedLink || 'Click "Share List" to generate link...'}
+                  value={currentSharedLink || (existingSharedLinks.length > 0 ? 'Loading existing link...' : 'Click "Share List" to generate link...')}
                   readOnly
                   className="text-xs"
                   placeholder="Generate shareable link"
@@ -1238,6 +1239,42 @@ function OpportunitiesTable() {
                   Copy
                 </Button>
               </div>
+              
+              {/* Show existing shared links */}
+              {existingSharedLinks.length > 0 && (
+                <div className="mt-3 pt-3 border-t border-gray-200">
+                  <div className="text-sm text-gray-600 mb-2">Previous shared links for this list:</div>
+                  <div className="space-y-2 max-h-32 overflow-y-auto">
+                    {existingSharedLinks.map((link, index) => (
+                      <div key={link.share_token} className="flex items-center justify-between text-xs bg-gray-50 p-2 rounded">
+                        <div className="flex-1 min-w-0">
+                          <div className="text-gray-900 font-medium truncate">
+                            Created {new Date(link.created_at).toLocaleDateString()}
+                          </div>
+                          {link.message && (
+                            <div className="text-gray-500 truncate">{link.message}</div>
+                          )}
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="ml-2 h-6 px-2 text-xs"
+                          onClick={() => {
+                            const linkUrl = `${window.location.origin}/share/list/${link.share_token}`;
+                            navigator.clipboard.writeText(linkUrl);
+                            toast({
+                              title: "Link copied",
+                              description: "The shared link has been copied to your clipboard.",
+                            });
+                          }}
+                        >
+                          Copy
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           </div>
           
@@ -1262,7 +1299,8 @@ function OpportunitiesTable() {
                     list_description: activeList.description || null,
                     entity_type: 'opportunities',
                     data: opportunities,
-                    message: message
+                    message: message,
+                    list_id: activeList.id
                   };
                 } else if (isBulkOpportunityShare) {
                   // Sharing selected opportunities
@@ -1305,7 +1343,14 @@ function OpportunitiesTable() {
                   setSelectedOpportunities([]);
                 }
 
-                setShowShareListModal(false);
+                // Invalidate the shared links cache to refresh the list
+                if (activeList?.id) {
+                  queryClient.invalidateQueries({
+                    queryKey: ['/api/shared-lists/by-list', activeList.id]
+                  });
+                }
+
+                // Keep modal open to show the newly created link
                 
               } catch (error) {
                 toast({
@@ -1317,7 +1362,12 @@ function OpportunitiesTable() {
             }}
             disabled={createSharedListMutation.isPending}
             >
-              {createSharedListMutation.isPending ? 'Creating Link...' : 'Share List'}
+              {createSharedListMutation.isPending 
+                ? 'Creating Link...' 
+                : existingSharedLinks.length > 0 
+                  ? 'Create New Link' 
+                  : 'Share List'
+              }
             </Button>
           </DialogFooter>
         </DialogContent>
