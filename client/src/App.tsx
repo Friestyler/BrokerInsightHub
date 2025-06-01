@@ -8,9 +8,6 @@ import { EnvironmentProvider } from "./contexts/EnvironmentContext";
 import Layout from "@/components/Layout";
 import PartnerPilot from "@/pages/PartnerPilot";
 import Dashboard from "@/pages/Dashboard";
-import InsuranceNews from "@/pages/InsuranceNews";
-import CompareFiles from "@/pages/CompareFiles";
-import PredictOpportunities from "@/pages/PredictOpportunities";
 import CampaignsPage from "@/pages/Campaigns/CampaignsPage";
 import CampaignBuilder from "@/pages/Campaigns/CampaignBuilder";
 import CampaignDetail from "@/pages/Campaigns/CampaignDetail";
@@ -46,9 +43,6 @@ function Router() {
     <Layout>
       <Switch>
         <Route path="/" component={PartnerPilot} />
-        <Route path="/news" component={InsuranceNews} />
-        <Route path="/compare" component={CompareFiles} />
-        <Route path="/predict" component={PredictOpportunities} />
         
         {/* Primary entity routes */}
         <Route path="/partners" component={PartnersPage} />

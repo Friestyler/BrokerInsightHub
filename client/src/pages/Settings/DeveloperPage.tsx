@@ -120,10 +120,7 @@ const apiEndpoints = {
 // Complete frontend route mapping - updated from actual App.tsx audit
 const frontendRoutes = {
   core: [
-    { path: '/', component: 'PartnerPilot', description: 'Main dashboard and landing page' },
-    { path: '/news', component: 'InsuranceNews', description: 'Insurance news and updates' },
-    { path: '/compare', component: 'CompareFiles', description: 'Document comparison tool' },
-    { path: '/predict', component: 'PredictOpportunities', description: 'AI opportunity prediction' }
+    { path: '/', component: 'PartnerPilot', description: 'Main dashboard and landing page' }
   ],
   entities: [
     { path: '/partners', component: 'PartnersPage', description: 'Main partners list with filtering and search' },
