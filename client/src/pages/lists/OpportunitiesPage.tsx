@@ -195,15 +195,29 @@ function TemplateBadges({ opportunityId }: { opportunityId: number }) {
 
   return (
     <div className="flex flex-wrap gap-1">
-      {assignments.slice(0, 2).map((assignment: any) => (
-        <div 
-          key={assignment.id} 
-          className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium truncate max-w-[80px]"
-          title={assignment.template_name}
-        >
-          {assignment.template_name?.split(' ').map((word: string) => word[0]).join('').toUpperCase() || 'T'}
-        </div>
-      ))}
+      {assignments.slice(0, 2).map((assignment: any) => {
+        // Get the first tag from the assignment to determine color
+        const firstTag = assignment.tags && assignment.tags.length > 0 ? assignment.tags[0] : 'general';
+        const tagColors: Record<string, { bg: string; text: string }> = {
+          'acquisition': { bg: 'bg-pink-100', text: 'text-pink-800' },
+          'solar': { bg: 'bg-yellow-100', text: 'text-yellow-800' },
+          'partnership': { bg: 'bg-blue-100', text: 'text-blue-800' },
+          'claims': { bg: 'bg-orange-100', text: 'text-orange-800' },
+          'products': { bg: 'bg-green-100', text: 'text-green-800' },
+          'general': { bg: 'bg-gray-100', text: 'text-gray-800' }
+        };
+        const colors = tagColors[firstTag] || tagColors['general'];
+
+        return (
+          <div 
+            key={assignment.id} 
+            className={`${colors.bg} ${colors.text} px-2 py-1 rounded text-xs font-medium flex items-center justify-center min-w-[32px] h-[24px]`}
+            title={assignment.template_name}
+          >
+            {assignment.template_name?.split(' ').map((word: string) => word[0]).join('').toUpperCase().substring(0, 2) || 'T'}
+          </div>
+        );
+      })}
       {assignments.length > 2 && (
         <div className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs font-medium">
           +{assignments.length - 2}
@@ -1509,6 +1523,11 @@ function OpportunitiesTable() {
               <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[120px]">
                 Type
               </th>
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[120px]">
+                <div className="flex items-center text-[#696C8C] text-[13px] font-medium">
+                  Template
+                </div>
+              </th>
               <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[140px]">
                 Customer
               </th>
@@ -1562,6 +1581,9 @@ function OpportunitiesTable() {
                   <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusBadgeVariant(opportunity.status)}`}>
                     {opportunity.status}
                   </span>
+                </td>
+                <td className="px-3 py-4 text-sm text-gray-900 w-[120px]">
+                  {opportunity.type || 'General'}
                 </td>
                 <td className="px-3 py-4 text-sm text-gray-900 w-[120px]">
                   <TemplateBadges opportunityId={opportunity.id} />
