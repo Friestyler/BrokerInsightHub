@@ -72,7 +72,8 @@ export default function PartnerDetailClean() {
   // Create comment mutation
   const createCommentMutation = useMutation({
     mutationFn: async (data: { content: string; visible_to_partner: boolean; entityType: string; entityId: number; assignedTo?: string }) => {
-      const response = await fetch('/api/activity/comments', {
+      const envId = localStorage.getItem('selectedEnvironment') || 'degoudse';
+      const response = await fetch(`/api/${envId}/activity/comments`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
