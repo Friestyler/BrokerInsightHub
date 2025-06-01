@@ -200,7 +200,8 @@ export default function ContactsPage() {
       email: '',
       phone: '',
       company: '',
-      position: '',
+      job_title: '',
+      department: '',
       linked_entity_type: '',
       linked_entity_id: '',
       notes: ''
@@ -300,13 +301,22 @@ export default function ContactsPage() {
                       />
                     </div>
                     <div>
-                      <Label htmlFor="position">Position (optional)</Label>
+                      <Label htmlFor="job_title">Job Title (optional)</Label>
                       <Input
-                        id="position"
-                        value={formData.position}
-                        onChange={(e) => setFormData(prev => ({ ...prev, position: e.target.value }))}
+                        id="job_title"
+                        value={formData.job_title}
+                        onChange={(e) => setFormData(prev => ({ ...prev, job_title: e.target.value }))}
                       />
                     </div>
+                  </div>
+
+                  <div>
+                    <Label htmlFor="department">Department (optional)</Label>
+                    <Input
+                      id="department"
+                      value={formData.department}
+                      onChange={(e) => setFormData(prev => ({ ...prev, department: e.target.value }))}
+                    />
                   </div>
 
                   <div className="grid grid-cols-2 gap-4">
@@ -400,8 +410,8 @@ export default function ContactsPage() {
                         </div>
                       </div>
                       <div className="flex gap-2">
-                        {contact.position && (
-                          <Badge variant="secondary">{contact.position}</Badge>
+                        {contact.job_title && (
+                          <Badge variant="secondary">{contact.job_title}</Badge>
                         )}
                         {contact.linked_entity_type && (
                           <Badge variant="outline">
