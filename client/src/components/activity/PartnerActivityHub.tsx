@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   Plus, MessageSquare, CheckSquare, Paperclip, ChevronDown, ChevronRight, 
-  Sparkles, Clock, User, Send, Eye, EyeOff, Check, X, Calendar, Filter, Brain
+  Sparkles, Clock, User, Send, Eye, EyeOff, Check, X, Calendar, Filter, Brain, UserPlus, Bot
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -69,10 +69,20 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
   const [commentContent, setCommentContent] = useState('');
   const [taskPriority, setTaskPriority] = useState('medium');
   const [visibleToPartner, setVisibleToPartner] = useState(false);
+  const [assignedTo, setAssignedTo] = useState('');
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const currentEnv = localStorage.getItem('selectedEnvironment') || 'degoudse';
+
+  // Available team members for assignment
+  const teamMembers = [
+    { id: 'john-doe', name: 'John Doe', role: 'Account Manager' },
+    { id: 'sarah-johnson', name: 'Sarah Johnson', role: 'Senior Analyst' },
+    { id: 'mike-chen', name: 'Mike Chen', role: 'Business Developer' },
+    { id: 'emma-wilson', name: 'Emma Wilson', role: 'Partnership Lead' },
+    { id: 'alex-rodriguez', name: 'Alex Rodriguez', role: 'Strategy Consultant' }
+  ];
 
   // Fetch activities
   const { data: activities, isLoading } = useQuery({
@@ -162,6 +172,7 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
     setCommentContent('');
     setTaskPriority('medium');
     setVisibleToPartner(false);
+    setAssignedTo('');
     setShowActivityInput(false);
   };
 
@@ -244,7 +255,7 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
               disabled={generateActionsMutation.isPending}
               className="text-xs text-gray-600 hover:text-purple-600"
             >
-              <Brain className="h-3 w-3 mr-1" />
+              <MessageSquare className="h-3 w-3 mr-1" />
               {generateActionsMutation.isPending ? 'Generating...' : 'Generate Next Best Action'}
             </Button>
           </div>
