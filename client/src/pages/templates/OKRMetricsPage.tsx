@@ -36,6 +36,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Switch } from "@/components/ui/switch";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
 import { useToast } from "@/hooks/use-toast";
@@ -612,6 +613,53 @@ export default function OKRMetricsPage() {
                     </div>
                   </div>
                 ))}
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
+
+        {/* Comment Dialog */}
+        <Dialog open={isCommentDialogOpen} onOpenChange={setIsCommentDialogOpen}>
+          <DialogContent className="sm:max-w-[500px]">
+            <DialogHeader>
+              <DialogTitle>Add Comment to {selectedMetricForComment?.name}</DialogTitle>
+            </DialogHeader>
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="comment">Comment</Label>
+                <Textarea
+                  id="comment"
+                  placeholder="Add your comment about this OKR metric..."
+                  value={commentText}
+                  onChange={(e) => setCommentText(e.target.value)}
+                  rows={4}
+                />
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Switch
+                  id="visible-to-partner"
+                  checked={visibleToPartner}
+                  onCheckedChange={setVisibleToPartner}
+                />
+                <Label htmlFor="visible-to-partner" className="text-sm">
+                  Visible to partners
+                </Label>
+              </div>
+              
+              <div className="flex justify-end gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setIsCommentDialogOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleSubmitComment}
+                  disabled={createCommentMutation.isPending || !commentText.trim()}
+                >
+                  {createCommentMutation.isPending ? 'Adding...' : 'Add Comment'}
+                </Button>
               </div>
             </div>
           </DialogContent>
