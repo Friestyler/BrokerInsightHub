@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ArrowLeft, Search, Users, Copy, Trash2, MoreHorizontal } from "lucide-react";
+import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
 
 export default function PartnerDetailClean() {
   const { id } = useParams();
@@ -145,6 +146,9 @@ export default function PartnerDetailClean() {
         </div>
         
         <p className="text-gray-600 mb-6">Joint action & business plan to drive growth with insurance business</p>
+
+        {/* Activity Hub - positioned at the top for maximum visibility */}
+        <PartnerActivityHub partnerId={parseInt(id!)} partnerName={partner.name} />
 
         {/* Custom tab styling to match design */}
         <div className="border-b border-gray-200">

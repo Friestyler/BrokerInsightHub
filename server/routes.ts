@@ -4245,6 +4245,206 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Activity System API Routes
+
+  // Get activities for a partner (tasks, comments, attachments)
+  app.get('/api/:envId/partners/:partnerId/activities', async (req, res) => {
+    try {
+      const { envId, partnerId } = req.params;
+      const envPool = getEnvironmentPool(envId);
+      
+      // Get tasks
+      const tasksResult = await envPool.query(`
+        SELECT t.*, u1.full_name as assigned_to_name, u2.full_name as assigned_by_name
+        FROM ${envId}.activity_tasks t
+        LEFT JOIN ${envId}.users u1 ON t.assigned_to_id = u1.id
+        LEFT JOIN ${envId}.users u2 ON t.assigned_by_id = u2.id
+        WHERE t.entity_type = 'partner' AND t.entity_id = $1
+        ORDER BY t.created_at DESC
+      `, [parseInt(partnerId)]);
+      
+      // Get comments
+      const commentsResult = await envPool.query(`
+        SELECT c.*, u1.full_name as author_name, u2.full_name as assigned_to_name
+        FROM ${envId}.activity_comments c
+        LEFT JOIN ${envId}.users u1 ON c.author_id = u1.id
+        LEFT JOIN ${envId}.users u2 ON c.assigned_to_id = u2.id
+        WHERE c.entity_type = 'partner' AND c.entity_id = $1
+        ORDER BY c.created_at DESC
+      `, [parseInt(partnerId)]);
+      
+      // Get attachments
+      const attachmentsResult = await envPool.query(`
+        SELECT a.*, u.full_name as uploaded_by_name
+        FROM ${envId}.activity_attachments a
+        LEFT JOIN ${envId}.users u ON a.uploaded_by_id = u.id
+        WHERE a.entity_type = 'partner' AND a.entity_id = $1
+        ORDER BY a.created_at DESC
+      `, [parseInt(partnerId)]);
+      
+      res.json({
+        tasks: tasksResult.rows,
+        comments: commentsResult.rows,
+        attachments: attachmentsResult.rows
+      });
+    } catch (error) {
+      console.error('Error fetching partner activities:', error);
+      res.status(500).json({ error: 'Failed to fetch partner activities' });
+    }
+  });
+
+  // Create a new task
+  app.post('/api/:envId/activity/tasks', async (req, res) => {
+    try {
+      const { envId } = req.params;
+      const { title, description, entityType, entityId, assignedToId, assignedById, priority, dueDate } = req.body;
+      const envPool = getEnvironmentPool(envId);
+      
+      const result = await envPool.query(`
+        INSERT INTO ${envId}.activity_tasks (title, description, entity_type, entity_id, assigned_to_id, assigned_by_id, priority, due_date, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW()) RETURNING *
+      `, [title, description, entityType, parseInt(entityId), assignedToId, assignedById, priority || 'medium', dueDate]);
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error creating task:', error);
+      res.status(500).json({ error: 'Failed to create task' });
+    }
+  });
+
+  // Create a new comment
+  app.post('/api/:envId/activity/comments', async (req, res) => {
+    try {
+      const { envId } = req.params;
+      const { content, authorId, entityType, entityId, assignedToId, parentCommentId, isInternal } = req.body;
+      const envPool = getEnvironmentPool(envId);
+      
+      const result = await envPool.query(`
+        INSERT INTO ${envId}.activity_comments (content, author_id, entity_type, entity_id, assigned_to_id, parent_comment_id, is_internal, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW()) RETURNING *
+      `, [content, authorId, entityType, parseInt(entityId), assignedToId, parentCommentId, isInternal || false]);
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error creating comment:', error);
+      res.status(500).json({ error: 'Failed to create comment' });
+    }
+  });
+
+  // Get AI next best actions for a partner
+  app.get('/api/:envId/partners/:partnerId/next-actions', async (req, res) => {
+    try {
+      const { envId, partnerId } = req.params;
+      const envPool = getEnvironmentPool(envId);
+      
+      const result = await envPool.query(`
+        SELECT * FROM ${envId}.next_best_actions
+        WHERE partner_id = $1 AND status IN ('pending', 'in_progress')
+        ORDER BY priority DESC, confidence DESC, created_at DESC
+      `, [parseInt(partnerId)]);
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching next best actions:', error);
+      res.status(500).json({ error: 'Failed to fetch next best actions' });
+    }
+  });
+
+  // Generate AI next best actions for a partner
+  app.post('/api/:envId/partners/:partnerId/generate-actions', async (req, res) => {
+    try {
+      const { envId, partnerId } = req.params;
+      const envPool = getEnvironmentPool(envId);
+      
+      if (!process.env.OPENAI_API_KEY) {
+        return res.status(400).json({ 
+          error: 'OpenAI API key is required for AI recommendations. Please provide your OpenAI API key.' 
+        });
+      }
+      
+      // Get partner context
+      const partnerResult = await envPool.query(`
+        SELECT * FROM ${envId}.customers WHERE id = $1
+      `, [parseInt(partnerId)]);
+      
+      const partner = partnerResult.rows[0];
+      if (!partner) {
+        return res.status(404).json({ error: 'Partner not found' });
+      }
+      
+      // Get related data for context
+      const [customersResult, opportunitiesResult, tasksResult, commentsResult] = await Promise.all([
+        envPool.query(`SELECT * FROM ${envId}.customers WHERE id IN (SELECT customer_id FROM ${envId}.customer_partners WHERE partner_id = $1) LIMIT 5`, [parseInt(partnerId)]),
+        envPool.query(`SELECT * FROM ${envId}.opportunities WHERE id IN (SELECT opportunity_id FROM ${envId}.partner_opportunities WHERE partner_id = $1) LIMIT 5`, [parseInt(partnerId)]),
+        envPool.query(`SELECT * FROM ${envId}.activity_tasks WHERE entity_type = 'partner' AND entity_id = $1 ORDER BY created_at DESC LIMIT 5`, [parseInt(partnerId)]),
+        envPool.query(`SELECT * FROM ${envId}.activity_comments WHERE entity_type = 'partner' AND entity_id = $1 ORDER BY created_at DESC LIMIT 5`, [parseInt(partnerId)])
+      ]);
+      
+      const contextData = {
+        partner,
+        customers: customersResult.rows,
+        opportunities: opportunitiesResult.rows,
+        recentTasks: tasksResult.rows,
+        recentComments: commentsResult.rows
+      };
+      
+      // Generate AI recommendations using OpenAI
+      const { default: OpenAI } = await import('openai');
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+      
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: [
+          {
+            role: "system",
+            content: "You are an AI assistant that analyzes partner relationships and suggests next best actions. Provide specific, actionable recommendations based on the partner context. Respond with JSON containing an array of actions."
+          },
+          {
+            role: "user",
+            content: `Analyze this partner context and suggest 3-5 next best actions:
+            
+            Partner: ${JSON.stringify(partner, null, 2)}
+            Customers: ${JSON.stringify(contextData.customers, null, 2)}
+            Opportunities: ${JSON.stringify(contextData.opportunities, null, 2)}
+            Recent Tasks: ${JSON.stringify(contextData.recentTasks, null, 2)}
+            Recent Comments: ${JSON.stringify(contextData.recentComments, null, 2)}
+            
+            Return a JSON object with an "actions" array. Each action should have: actionType, title, description, priority (low/medium/high/urgent), confidence (0-1), reasoning, and suggestedDate.`
+          }
+        ],
+        response_format: { type: "json_object" },
+      });
+      
+      const aiResult = JSON.parse(response.choices[0].message.content);
+      const actions = aiResult.actions || [];
+      
+      // Save generated actions to database
+      const savedActions = [];
+      for (const action of actions) {
+        const result = await envPool.query(`
+          INSERT INTO ${envId}.next_best_actions (partner_id, action_type, title, description, priority, confidence, reasoning, context_data, suggested_date, created_at, updated_at)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW()) RETURNING *
+        `, [
+          parseInt(partnerId),
+          action.actionType,
+          action.title,
+          action.description,
+          action.priority || 'medium',
+          action.confidence || 0.8,
+          action.reasoning,
+          JSON.stringify(contextData),
+          action.suggestedDate
+        ]);
+        savedActions.push(result.rows[0]);
+      }
+      
+      res.json(savedActions);
+    } catch (error) {
+      console.error('Error generating AI actions:', error);
+      res.status(500).json({ error: 'Failed to generate AI recommendations' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
