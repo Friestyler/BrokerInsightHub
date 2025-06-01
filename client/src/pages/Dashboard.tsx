@@ -1,12 +1,99 @@
 import NavigationTiles from "@/components/NavigationTiles";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { NewsArticle } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
+import { useState } from "react";
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogDescription, 
+  DialogFooter, 
+  DialogHeader, 
+  DialogTitle 
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import { apiRequest } from '@/lib/queryClient';
 
 // New Partner Copilot Dashboard for My Qollabi environment
 function MyQollabiDashboard() {
+  const { environment } = useEnvironment();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+  const [showCreateOpportunity, setShowCreateOpportunity] = useState(false);
+  const [opportunityData, setOpportunityData] = useState({
+    title: '',
+    description: '',
+    type: 'nieuwe_business',
+    status: 'open',
+    stage: 'discovery',
+    probability: 50,
+    estimatedValue: 0
+  });
+
+  // Fetch customers and partners for dropdown options
+  const { data: customers = [] } = useQuery({
+    queryKey: [`/api/${environment.id}/customers`]
+  });
+
+  const { data: partners = [] } = useQuery({
+    queryKey: [`/api/${environment.id}/partners`]
+  });
+
+  const { data: products = [] } = useQuery({
+    queryKey: [`/api/${environment.id}/products`]
+  });
+
+  // Create opportunity mutation
+  const createOpportunityMutation = useMutation({
+    mutationFn: async (newOpportunity: any) => {
+      return apiRequest(`/api/${environment.id}/opportunities`, {
+        method: 'POST',
+        body: JSON.stringify(newOpportunity),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/${environment.id}/opportunities`] });
+      setShowCreateOpportunity(false);
+      setOpportunityData({
+        title: '',
+        description: '',
+        type: 'nieuwe_business',
+        status: 'open',
+        stage: 'discovery',
+        probability: 50,
+        estimatedValue: 0
+      });
+      toast({
+        title: "Success",
+        description: "Opportunity created successfully",
+      });
+    },
+    onError: (error) => {
+      console.error('Error creating opportunity:', error);
+      toast({
+        title: "Error",
+        description: "Failed to create opportunity",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const handleCreateOpportunity = () => {
+    createOpportunityMutation.mutate(opportunityData);
+  };
+
   return (
     <div className="p-5 bg-white">
       <div className="max-w-7xl mx-auto">
@@ -100,7 +187,10 @@ function MyQollabiDashboard() {
               <span className="text-gray-800 font-medium">New Customer</span>
             </button>
             
-            <button className="flex flex-col items-center bg-white border border-gray-200 rounded-lg p-4 hover:bg-indigo-50 hover:border-indigo-200 transition-colors">
+            <button 
+              onClick={() => setShowCreateOpportunity(true)}
+              className="flex flex-col items-center bg-white border border-gray-200 rounded-lg p-4 hover:bg-indigo-50 hover:border-indigo-200 transition-colors"
+            >
               <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600 mb-2">
                 <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
               </svg>
@@ -189,6 +279,123 @@ function MyQollabiDashboard() {
           </div>
         </div>
       </div>
+
+      {/* Create Opportunity Dialog */}
+      <Dialog open={showCreateOpportunity} onOpenChange={setShowCreateOpportunity}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Create New Opportunity</DialogTitle>
+            <DialogDescription>
+              Add a new opportunity to track potential business.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="title" className="text-right">
+                Title
+              </Label>
+              <Input
+                id="title"
+                value={opportunityData.title}
+                onChange={(e) => setOpportunityData({...opportunityData, title: e.target.value})}
+                className="col-span-3"
+                placeholder="Enter opportunity title"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="description" className="text-right">
+                Description
+              </Label>
+              <Textarea
+                id="description"
+                value={opportunityData.description}
+                onChange={(e) => setOpportunityData({...opportunityData, description: e.target.value})}
+                className="col-span-3"
+                placeholder="Enter description"
+                rows={3}
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="type" className="text-right">
+                Type
+              </Label>
+              <Select 
+                value={opportunityData.type} 
+                onValueChange={(value) => setOpportunityData({...opportunityData, type: value})}
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select type" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="nieuwe_business">New Business</SelectItem>
+                  <SelectItem value="renewal">Renewal</SelectItem>
+                  <SelectItem value="cross_sell">Cross-sell</SelectItem>
+                  <SelectItem value="upsell">Upsell</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="stage" className="text-right">
+                Stage
+              </Label>
+              <Select 
+                value={opportunityData.stage} 
+                onValueChange={(value) => setOpportunityData({...opportunityData, stage: value})}
+              >
+                <SelectTrigger className="col-span-3">
+                  <SelectValue placeholder="Select stage" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="discovery">Discovery</SelectItem>
+                  <SelectItem value="qualification">Qualification</SelectItem>
+                  <SelectItem value="proposal">Proposal</SelectItem>
+                  <SelectItem value="negotiation">Negotiation</SelectItem>
+                  <SelectItem value="closed_won">Closed Won</SelectItem>
+                  <SelectItem value="closed_lost">Closed Lost</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="probability" className="text-right">
+                Probability (%)
+              </Label>
+              <Input
+                id="probability"
+                type="number"
+                min="0"
+                max="100"
+                value={opportunityData.probability}
+                onChange={(e) => setOpportunityData({...opportunityData, probability: parseInt(e.target.value) || 0})}
+                className="col-span-3"
+              />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="estimatedValue" className="text-right">
+                Value (€)
+              </Label>
+              <Input
+                id="estimatedValue"
+                type="number"
+                min="0"
+                value={opportunityData.estimatedValue}
+                onChange={(e) => setOpportunityData({...opportunityData, estimatedValue: parseFloat(e.target.value) || 0})}
+                className="col-span-3"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowCreateOpportunity(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleCreateOpportunity}
+              disabled={createOpportunityMutation.isPending || !opportunityData.title}
+            >
+              {createOpportunityMutation.isPending ? 'Creating...' : 'Create Opportunity'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
