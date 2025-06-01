@@ -1714,6 +1714,82 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.get('/api/degoudse/products/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const result = await db.execute(sql`
+        SELECT * FROM degoudse.products WHERE id = ${id}
+      `);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Product not found' });
+      }
+      
+      console.log(`Returning product ${id} from De Goudse database`);
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('De Goudse product detail API error:', error);
+      res.status(500).json({ message: 'Failed to fetch product details for De Goudse environment' });
+    }
+  });
+
+  app.patch('/api/degoudse/products/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const updates = req.body;
+      
+      // Build dynamic update query based on provided fields
+      const updateFields = [];
+      const values = [];
+      let paramCount = 1;
+      
+      if (updates.name) {
+        updateFields.push(`name = $${paramCount++}`);
+        values.push(updates.name);
+      }
+      if (updates.description) {
+        updateFields.push(`description = $${paramCount++}`);
+        values.push(updates.description);
+      }
+      if (updates.category) {
+        updateFields.push(`category = $${paramCount++}`);
+        values.push(updates.category);
+      }
+      if (updates.sku !== undefined) {
+        updateFields.push(`sku = $${paramCount++}`);
+        values.push(updates.sku);
+      }
+      if (updates.price !== undefined) {
+        updateFields.push(`price = $${paramCount++}`);
+        values.push(updates.price);
+      }
+      if (updates.vendorId) {
+        updateFields.push(`vendor_id = $${paramCount++}`);
+        values.push(updates.vendorId);
+      }
+      
+      updateFields.push(`updated_at = NOW()`);
+      values.push(id);
+      
+      const result = await db.execute(sql`
+        UPDATE degoudse.products 
+        SET ${sql.raw(updateFields.join(', '))}
+        WHERE id = $${paramCount}
+        RETURNING *
+      `);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ message: 'Product not found' });
+      }
+      
+      console.log(`Updated product ${id} in De Goudse database`);
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('De Goudse product update API error:', error);
+      res.status(500).json({ message: 'Failed to update product for De Goudse environment' });
+    }
+  });
+
   // WORKING TEST ROUTE
   app.get('/api/degoudse/saved-views-test', async (req, res) => {
     res.set('Cache-Control', 'no-cache, no-store, must-revalidate');

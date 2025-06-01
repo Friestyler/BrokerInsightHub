@@ -26,6 +26,7 @@ import OpportunitiesPage from "@/pages/lists/OpportunitiesPage";
 import OpportunityDetail from "@/pages/lists/OpportunityDetail";
 import VendorsPage from "@/pages/lists/VendorsPage";
 import ProductsPage from "@/pages/lists/ProductsPage";
+import ProductDetail from "@/pages/lists/ProductDetail";
 import OKRTemplatesPage from "@/pages/templates/OKRMetricsPage";
 import GroupDetail from "@/pages/templates/GroupDetail";
 import UserManagement from "@/pages/Settings/UserManagement";
@@ -58,6 +59,7 @@ function Router() {
         <Route path="/opportunities/:id" component={OpportunityDetail} />
         <Route path="/vendors" component={VendorsPage} />
         <Route path="/products" component={ProductsPage} />
+        <Route path="/lists/products/:id" component={ProductDetail} />
         <Route path="/projects" component={ProjectsPage} />
         <Route path="/contacts" component={ContactsPage} />
         
