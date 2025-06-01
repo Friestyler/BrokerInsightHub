@@ -228,6 +228,109 @@ interface SavedView {
   createdAt: Date;
 }
 
+// Opportunity Details Modal Component
+function OpportunityDetailsModal({ opportunityId, onClose }: { opportunityId: number, onClose: () => void }) {
+  const { environment } = useEnvironment();
+  
+  const { data: opportunity, isLoading } = useQuery<Opportunity>({
+    queryKey: [`/api/${environment.id}/opportunities/${opportunityId}`],
+    enabled: !!opportunityId
+  });
+
+  if (isLoading) {
+    return (
+      <Dialog open={true} onOpenChange={onClose}>
+        <DialogContent className="max-w-2xl">
+          <div className="flex items-center justify-center py-8">
+            <div className="text-gray-500">Loading opportunity details...</div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  if (!opportunity) {
+    return (
+      <Dialog open={true} onOpenChange={onClose}>
+        <DialogContent className="max-w-2xl">
+          <div className="flex items-center justify-center py-8">
+            <div className="text-red-500">Opportunity not found</div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  return (
+    <Dialog open={true} onOpenChange={onClose}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle className="text-xl font-semibold">{opportunity.title}</DialogTitle>
+          <DialogDescription>
+            Opportunity Details
+          </DialogDescription>
+        </DialogHeader>
+        
+        <div className="space-y-6">
+          {/* Basic Information */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium text-gray-700">Status</label>
+              <p className="mt-1">{opportunity.status}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-700">Stage</label>
+              <p className="mt-1">{opportunity.stage}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-700">Estimated Value</label>
+              <p className="mt-1">{formatCurrency(opportunity.estimatedValue || 0)}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-700">Probability</label>
+              <p className="mt-1">{opportunity.probability}%</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-700">Customer</label>
+              <p className="mt-1">{opportunity.clientName || opportunity.customerNames}</p>
+            </div>
+            <div>
+              <label className="text-sm font-medium text-gray-700">Partner</label>
+              <p className="mt-1">{opportunity.partnerNames || 'Not assigned'}</p>
+            </div>
+          </div>
+
+          {/* Description */}
+          {opportunity.description && (
+            <div>
+              <label className="text-sm font-medium text-gray-700">Description</label>
+              <p className="mt-1 text-gray-600">{opportunity.description}</p>
+            </div>
+          )}
+
+          {/* Dates */}
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium text-gray-700">Created</label>
+              <p className="mt-1">{new Date(opportunity.createdAt).toLocaleDateString()}</p>
+            </div>
+            {opportunity.expectedCloseDate && (
+              <div>
+                <label className="text-sm font-medium text-gray-700">Expected Close</label>
+                <p className="mt-1">{new Date(opportunity.expectedCloseDate).toLocaleDateString()}</p>
+              </div>
+            )}
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={onClose}>Close</Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
 // Main opportunity list component
 function OpportunitiesTable() {
   const { toast } = useToast();
@@ -1310,6 +1413,17 @@ function OpportunitiesTable() {
           </div>
         )}
       </div>
+      
+      {/* Opportunity Details Modal */}
+      {showOpportunityModal && selectedOpportunityId && (
+        <OpportunityDetailsModal 
+          opportunityId={selectedOpportunityId}
+          onClose={() => {
+            setShowOpportunityModal(false);
+            setSelectedOpportunityId(null);
+          }}
+        />
+      )}
     </div>
   );
 }
