@@ -1515,27 +1515,27 @@ function OpportunitiesTable() {
               </th>
               <SortableTableHead 
                 sortKey="title" 
-                currentSortKey="" 
-                currentDirection={null} 
-                onSort={() => {}} 
+                currentSortKey={sortConfig.key} 
+                currentDirection={sortConfig.direction} 
+                onSort={handleSort} 
                 className="w-[250px]"
               >
                 Title
               </SortableTableHead>
               <SortableTableHead 
                 sortKey="status" 
-                currentSortKey="" 
-                currentDirection={null} 
-                onSort={() => {}} 
+                currentSortKey={sortConfig.key} 
+                currentDirection={sortConfig.direction} 
+                onSort={handleSort} 
                 className="w-[120px]"
               >
                 Status
               </SortableTableHead>
               <SortableTableHead 
                 sortKey="type" 
-                currentSortKey="" 
-                currentDirection={null} 
-                onSort={() => {}} 
+                currentSortKey={sortConfig.key} 
+                currentDirection={sortConfig.direction} 
+                onSort={handleSort} 
                 className="w-[120px]"
               >
                 Type
@@ -1547,45 +1547,45 @@ function OpportunitiesTable() {
               </th>
               <SortableTableHead 
                 sortKey="clientName" 
-                currentSortKey="" 
-                currentDirection={null} 
-                onSort={() => {}} 
+                currentSortKey={sortConfig.key} 
+                currentDirection={sortConfig.direction} 
+                onSort={handleSort} 
                 className="w-[140px]"
               >
                 Customer
               </SortableTableHead>
               <SortableTableHead 
                 sortKey="partnerName" 
-                currentSortKey="" 
-                currentDirection={null} 
-                onSort={() => {}} 
+                currentSortKey={sortConfig.key} 
+                currentDirection={sortConfig.direction} 
+                onSort={handleSort} 
                 className="w-[140px]"
               >
                 Partner
               </SortableTableHead>
               <SortableTableHead 
                 sortKey="estimatedValue" 
-                currentSortKey="" 
-                currentDirection={null} 
-                onSort={() => {}} 
+                currentSortKey={sortConfig.key} 
+                currentDirection={sortConfig.direction} 
+                onSort={handleSort} 
                 className="w-[120px]"
               >
                 Value
               </SortableTableHead>
               <SortableTableHead 
                 sortKey="probability" 
-                currentSortKey="" 
-                currentDirection={null} 
-                onSort={() => {}} 
+                currentSortKey={sortConfig.key} 
+                currentDirection={sortConfig.direction} 
+                onSort={handleSort} 
                 className="w-[100px]"
               >
                 Probability
               </SortableTableHead>
               <SortableTableHead 
                 sortKey="expectedCloseDate" 
-                currentSortKey="" 
-                currentDirection={null} 
-                onSort={() => {}} 
+                currentSortKey={sortConfig.key} 
+                currentDirection={sortConfig.direction} 
+                onSort={handleSort} 
                 className="w-[120px]"
               >
                 Close Date
