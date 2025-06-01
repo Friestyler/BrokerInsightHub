@@ -178,7 +178,7 @@ function formatCurrency(value: number): string {
 function TemplateBadges({ opportunityId }: { opportunityId: number }) {
   // Fetch template assignments for this opportunity
   const { data: templateAssignments = [] } = useQuery({
-    queryKey: [`/api/template-assignments/opportunity/${opportunityId}`],
+    queryKey: [`/api/degoudse/template-assignments/opportunity/${opportunityId}`],
     enabled: !!opportunityId,
     staleTime: 2 * 60 * 1000,
   });

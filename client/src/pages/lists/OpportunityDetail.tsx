@@ -50,7 +50,7 @@ export default function OpportunityDetail() {
 
   // Fetch template assignments for this opportunity
   const { data: templateAssignments = [] } = useQuery({
-    queryKey: [`/api/template-assignments/opportunity/${id}`],
+    queryKey: [`/api/degoudse/template-assignments/opportunity/${id}`],
     enabled: !!id,
     staleTime: 2 * 60 * 1000,
   });

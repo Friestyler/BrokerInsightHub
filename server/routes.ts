@@ -2448,7 +2448,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get template assignments for a specific entity ID
-  app.get('/api/template-assignments/:entityType/:entityId', async (req, res) => {
+  app.get('/api/degoudse/template-assignments/:entityType/:entityId', async (req, res) => {
     try {
       const { entityType, entityId } = req.params;
       const envPool = getEnvironmentPool('degoudse');
