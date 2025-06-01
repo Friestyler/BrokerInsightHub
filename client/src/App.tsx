@@ -30,6 +30,7 @@ import ProductsPage from "@/pages/lists/ProductsPage";
 import OKRsPage from "@/pages/OKRsPage";
 import MetricsPage from "@/pages/templates/MetricsPage";
 import GroupDetail from "@/pages/templates/GroupDetail";
+import TagsPage from "@/pages/TagsPage";
 
 import NotFound from "@/pages/not-found";
 import EnvironmentRouteGuard from "@/components/EnvironmentRouteGuard";
@@ -111,6 +112,7 @@ function Router() {
         <Route path="/okrs" component={OKRsPage} />
         <Route path="/templates/metrics" component={MetricsPage} />
         <Route path="/templates/groups/:id" component={GroupDetail} />
+        <Route path="/tags" component={TagsPage} />
         
         {/* Legacy routes - will be migrated to new structure */}
         <Route path="/clients" component={Clients} />

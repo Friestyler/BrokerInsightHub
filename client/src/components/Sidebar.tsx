@@ -304,12 +304,12 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
             )}
           </button>
           
-          {/* Always show a tiny indicator on the sidebar if a templates section is active */}
-          {collapsed && !templatesMenuOpen && location.startsWith('/templates') && (
+          {/* Always show a tiny indicator on the sidebar if a More section is active */}
+          {collapsed && !templatesMenuOpen && (location.startsWith('/templates') || location.startsWith('/tags')) && (
             <div className="absolute top-[93px] right-0 w-1 h-7 bg-indigo-500 rounded-l-md"></div>
           )}
           
-          {/* Templates submenu */}
+          {/* More submenu */}
           {templatesMenuOpen && (
             <div className={`${collapsed ? "absolute left-16 top-0 bg-white border border-gray-200 rounded-md shadow-md py-1 z-50 w-48" : "mt-0.5"}`}>
               <button
@@ -322,6 +322,20 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
                   <circle cx="12" cy="12" r="7"></circle>
                 </svg>
                 OKR Templates
+              </button>
+              <button
+                onClick={() => navigateTo('/tags')}
+                className={`flex py-2 text-sm ${collapsed ? "px-4" : "pl-12"} w-full text-left ${location.startsWith("/tags") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="m15 5 4 4"></path>
+                  <path d="M13 7 8.7 2.7a2.41 2.41 0 0 0-3.4 0L2.7 5.3a2.41 2.41 0 0 0 0 3.4L7 13"></path>
+                  <path d="m8 6 2 2"></path>
+                  <path d="m2 22 5.5-1.5L21.17 6.83a2.82 2.82 0 0 0-4-4L3.5 16.5Z"></path>
+                  <path d="m18 16 2 2"></path>
+                  <circle cx="11.5" cy="12.5" r=".5"></circle>
+                </svg>
+                Tags
               </button>
             </div>
           )}
