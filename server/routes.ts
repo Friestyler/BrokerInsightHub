@@ -61,6 +61,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Default API redirects to De Goudse environment
   app.get('/api/contacts', (req, res) => res.redirect('/api/degoudse/contacts'));
   app.post('/api/contacts', (req, res) => res.redirect(307, '/api/degoudse/contacts'));
+  app.get('/api/vendors', (req, res) => res.redirect('/api/degoudse/vendors'));
+  app.post('/api/vendors', (req, res) => res.redirect(307, '/api/degoudse/vendors'));
   
   // Partners API - Returns data from authentic myqollabi partners table
   app.get('/api/partners', async (req, res) => {
@@ -457,85 +459,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   
 
 
-  // Vendors API - Returns data from myqollabi schema
-  app.get('/api/vendors', async (req, res) => {
-    try {
-      console.log('Fetching vendors from myqollabi schema...');
-      const result = await db.execute(sql`SELECT * FROM myqollabi.vendors ORDER BY id`);
-      
-      const vendors = result.rows.map((vendor: any) => ({
-        id: vendor.id,
-        name: vendor.name,
-        description: vendor.description,
-        location: vendor.location,
-        contactEmail: vendor.contact_email,
-        contactPhone: vendor.contact_phone,
-        website: vendor.website,
-        createdAt: vendor.created_at,
-        updatedAt: vendor.updated_at
-      }));
-      
-      console.log(`Returning ${vendors.length} vendors from myqollabi schema`);
-      res.json(vendors);
-    } catch (error) {
-      console.error('Error fetching vendors:', error);
-      res.status(500).json({ message: 'Failed to fetch vendors' });
-    }
-  });
+
   
-  app.get('/api/vendors/:id', async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const vendor = await storage.getVendor(id);
-      
-      if (!vendor) {
-        return res.status(404).json({ message: 'Vendor not found' });
-      }
-      
-      res.json(vendor);
-    } catch (error) {
-      console.error('Error fetching vendor details:', error);
-      res.status(500).json({ message: 'Failed to fetch vendor details' });
-    }
-  });
-  
-  app.post('/api/vendors', async (req, res) => {
-    try {
-      console.log('Vendor creation request body:', req.body);
-      
-      // Validate the request body with all vendor fields
-      const { 
-        name, 
-        description, 
-        location,
-        contactEmail,
-        contactPhone,
-        website
-      } = req.body;
-      
-      if (!name || !description) {
-        return res.status(400).json({ message: 'Name and description are required' });
-      }
-      
-      console.log('Executing vendor insert query...');
-      
-      // Insert into myqollabi.vendors table with existing columns
-      const result = await db.execute(sql`
-        INSERT INTO myqollabi.vendors (
-          name, description, created_at, updated_at
-        ) VALUES (
-          ${name}, ${description}, NOW(), NOW()
-        ) RETURNING *
-      `);
-      
-      console.log('Vendor insert result:', result.rows[0]);
-      const vendor = result.rows[0];
-      res.status(201).json(vendor);
-    } catch (error) {
-      console.error('Detailed error creating vendor:', error);
-      res.status(500).json({ message: 'Failed to create vendor' });
-    }
-  });
+
   
   // Products API - Returns data from myqollabi schema
   app.get('/api/products', async (req, res) => {

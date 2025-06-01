@@ -423,11 +423,12 @@ export type SavedList = typeof savedLists.$inferSelect;
 export type InsertSavedView = z.infer<typeof insertSavedViewSchema>;
 export type SavedView = typeof savedViews.$inferSelect;
 
-// Vendor model
+// Vendor model - aligned with customers schema
 export const vendors = pgTable("vendors", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description").notNull(),
+  initials: text("initials"),
   contactName: text("contact_name"),
   contactEmail: text("contact_email"),
   contactPhone: text("contact_phone"),
@@ -470,11 +471,15 @@ export const productsRelations = relations(products, ({ one }) => ({
 export const insertVendorSchema = createInsertSchema(vendors).pick({
   name: true,
   description: true,
+  initials: true,
   contactName: true,
   contactEmail: true,
   contactPhone: true,
   ownerId: true,
 });
+
+export type InsertVendor = z.infer<typeof insertVendorSchema>;
+export type Vendor = typeof vendors.$inferSelect;
 
 export const insertProductSchema = createInsertSchema(products).pick({
   name: true,
