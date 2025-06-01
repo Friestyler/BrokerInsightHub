@@ -7,7 +7,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { useToast } from "@/hooks/use-toast";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
-import type { Tag as TagType, InsertTag } from "@shared/schema";
+import type { Tag, InsertTag } from "@shared/schema";
 
 const colorOptions = [
   "blue", "green", "purple", "red", "orange", "yellow", "pink", "indigo", 
@@ -43,13 +43,13 @@ export default function TagsPage() {
   const [editTagName, setEditTagName] = useState("");
   const [editTagColor, setEditTagColor] = useState("");
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [tagToDelete, setTagToDelete] = useState<TagType | null>(null);
+  const [tagToDelete, setTagToDelete] = useState<Tag | null>(null);
   const [isCreateTagOpen, setIsCreateTagOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   // Fetch tags from API
-  const { data: tags = [], isLoading } = useQuery<TagType[]>({
+  const { data: tags = [], isLoading } = useQuery<Tag[]>({
     queryKey: ['/api/tags'],
     queryFn: () => fetch('/api/tags').then(res => res.json()),
   });
@@ -59,6 +59,9 @@ export default function TagsPage() {
     mutationFn: (tagData: InsertTag) => apiRequest('/api/tags', 'POST', tagData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/tags'] });
+      setIsCreateTagOpen(false);
+      setNewTagName("");
+      setNewTagColor("blue");
       toast({
         title: "Success",
         description: "Tag created successfully",
@@ -79,6 +82,9 @@ export default function TagsPage() {
       apiRequest(`/api/tags/${id}`, 'PUT', data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/tags'] });
+      setEditingTag(null);
+      setEditTagName("");
+      setEditTagColor("");
       toast({
         title: "Success",
         description: "Tag updated successfully",
@@ -98,6 +104,8 @@ export default function TagsPage() {
     mutationFn: (id: number) => apiRequest(`/api/tags/${id}`, 'DELETE'),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/tags'] });
+      setDeleteDialogOpen(false);
+      setTagToDelete(null);
       toast({
         title: "Success",
         description: "Tag deleted successfully",
@@ -114,31 +122,9 @@ export default function TagsPage() {
 
   const handleCreateTag = () => {
     if (!newTagName.trim()) return;
-
-    // Check for duplicate names
-    if (tags.some(tag => tag.name.toLowerCase() === newTagName.trim().toLowerCase())) {
-      toast({
-        title: "Error",
-        description: "A tag with this name already exists.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    const newTag: Tag = {
-      id: Math.max(...tags.map(t => t.id), 0) + 1,
+    createTagMutation.mutate({
       name: newTagName.trim(),
       color: newTagColor,
-      createdAt: new Date().toISOString().split('T')[0]
-    };
-
-    setTags([...tags, newTag]);
-    setNewTagName("");
-    setNewTagColor("blue");
-    
-    toast({
-      title: "Success",
-      description: "Tag created successfully."
     });
   };
 
@@ -150,30 +136,12 @@ export default function TagsPage() {
 
   const handleSaveEdit = () => {
     if (!editTagName.trim() || !editingTag) return;
-
-    // Check for duplicate names (excluding current tag)
-    if (tags.some(tag => tag.id !== editingTag && tag.name.toLowerCase() === editTagName.trim().toLowerCase())) {
-      toast({
-        title: "Error",
-        description: "A tag with this name already exists.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setTags(tags.map(tag => 
-      tag.id === editingTag 
-        ? { ...tag, name: editTagName.trim(), color: editTagColor }
-        : tag
-    ));
-
-    setEditingTag(null);
-    setEditTagName("");
-    setEditTagColor("");
-
-    toast({
-      title: "Success",
-      description: "Tag updated successfully."
+    updateTagMutation.mutate({
+      id: editingTag,
+      data: {
+        name: editTagName.trim(),
+        color: editTagColor,
+      },
     });
   };
 
@@ -190,15 +158,21 @@ export default function TagsPage() {
 
   const confirmDelete = () => {
     if (tagToDelete) {
-      setTags(tags.filter(tag => tag.id !== tagToDelete.id));
-      toast({
-        title: "Success",
-        description: "Tag deleted successfully."
-      });
+      deleteTagMutation.mutate(tagToDelete.id);
     }
-    setDeleteDialogOpen(false);
-    setTagToDelete(null);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex-1 bg-white min-h-screen">
+        <div className="px-6 py-6">
+          <div className="flex items-center justify-center h-64">
+            <div className="text-[#696C8C]" style={{ fontFamily: 'Poppins' }}>Loading...</div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 bg-white min-h-screen">
@@ -296,6 +270,7 @@ export default function TagsPage() {
                           <Button
                             size="sm"
                             onClick={handleSaveEdit}
+                            disabled={updateTagMutation.isPending}
                             className="bg-[#3E4DC4] hover:bg-[#3344B8] text-white h-8"
                             style={{ fontFamily: 'Poppins' }}
                           >
@@ -408,15 +383,12 @@ export default function TagsPage() {
                 Cancel
               </Button>
               <Button 
-                onClick={() => {
-                  handleCreateTag();
-                  setIsCreateTagOpen(false);
-                }}
-                disabled={!newTagName.trim()}
+                onClick={handleCreateTag}
+                disabled={!newTagName.trim() || createTagMutation.isPending}
                 className="bg-[#3E4DC4] hover:bg-[#3344B8] text-white"
                 style={{ fontFamily: 'Poppins' }}
               >
-                Create Tag
+                {createTagMutation.isPending ? "Creating..." : "Create Tag"}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -428,7 +400,7 @@ export default function TagsPage() {
             <DialogHeader>
               <DialogTitle style={{ fontFamily: 'Poppins' }}>Delete Tag</DialogTitle>
               <DialogDescription style={{ fontFamily: 'Poppins' }}>
-                Are you sure you want to delete the tag "{tagToDelete?.name}"? This action cannot be undone.
+                Are you sure you want to delete the tag "{tagToDelete?.name}"? This action cannot be undone and will remove this tag from all items throughout the platform.
               </DialogDescription>
             </DialogHeader>
             <DialogFooter>
@@ -442,9 +414,10 @@ export default function TagsPage() {
               <Button 
                 variant="destructive" 
                 onClick={confirmDelete}
+                disabled={deleteTagMutation.isPending}
                 style={{ fontFamily: 'Poppins' }}
               >
-                Delete
+                {deleteTagMutation.isPending ? "Deleting..." : "Delete"}
               </Button>
             </DialogFooter>
           </DialogContent>
