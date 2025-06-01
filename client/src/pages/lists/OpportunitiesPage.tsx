@@ -418,21 +418,11 @@ function OpportunitiesTable() {
 
     setIsCreating(true);
     try {
-      const response = await fetch('/api/opportunities', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          value: formData.value ? parseFloat(formData.value) : 0,
-          closeDate: formData.closeDate || null
-        })
+      const newOpportunity = await apiRequest('POST', '/api/opportunities', {
+        ...formData,
+        value: formData.value ? parseFloat(formData.value) : 0,
+        closeDate: formData.closeDate || null
       });
-
-      if (!response.ok) {
-        throw new Error('Failed to create opportunity');
-      }
-
-      const newOpportunity = await response.json();
       
       // Invalidate and refetch opportunities data
       queryClient.invalidateQueries({ queryKey: ['/api/opportunities'] });
