@@ -534,12 +534,12 @@ export default function MetricsPage() {
       </div>
 
       {/* Bulk Actions Bar */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 min-h-[72px]">
+      <div className="bg-[#F5F6FA] border border-[#E6E7F1] rounded-lg p-4 min-h-[72px]">
         <div className="flex items-center justify-between h-10">
           {selectedOKRs.length > 0 ? (
             <>
               <div className="flex items-center gap-3">
-                <span className="text-sm font-medium text-blue-900">
+                <span className="text-sm font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins' }}>
                   {selectedOKRs.length} OKR{selectedOKRs.length > 1 ? 's' : ''} selected
                 </span>
                 <div className="flex items-center gap-2">
@@ -577,7 +577,7 @@ export default function MetricsPage() {
               </button>
             </>
           ) : (
-            <span className="text-sm font-medium text-blue-900">
+            <span className="text-sm font-medium text-[#696C8C]" style={{ fontFamily: 'Poppins' }}>
               Select at least one OKR from the table to perform bulk actions
             </span>
           )}
