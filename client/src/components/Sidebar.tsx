@@ -14,6 +14,7 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
   const [isMobile, setIsMobile] = useState(false);
   const [dataMenuOpen, setDataMenuOpen] = useState(false);
   const [templatesMenuOpen, setTemplatesMenuOpen] = useState(false);
+  const [smartUpdatesMenuOpen, setSmartUpdatesMenuOpen] = useState(false);
   const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
   const dataMenuRef = useRef<HTMLDivElement>(null);
   const { environment } = useEnvironment();
