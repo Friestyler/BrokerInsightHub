@@ -46,7 +46,7 @@ function formatCurrency(value: number): string {
 export default function OpportunityDetail() {
   const { id } = useParams();
   const { environment } = useEnvironment();
-  const [activeTab, setActiveTab] = useState("partners");
+  const [activeTab, setActiveTab] = useState("okr-plan");
 
   // Fetch template assignments for this opportunity
   const { data: templateAssignments = [] } = useQuery({
@@ -160,6 +160,21 @@ export default function OpportunityDetail() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <nav className="flex space-x-8">
             <button
+              onClick={() => setActiveTab("okr-plan")}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === "okr-plan"
+                  ? "border-indigo-500 text-indigo-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              }`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 inline mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+                <path d="M12 8v4l3 3" />
+                <circle cx="12" cy="12" r="7" />
+              </svg>
+              OKR Plan ({templateAssignments?.length || 0})
+            </button>
+            <button
               onClick={() => setActiveTab("partners")}
               className={`py-4 px-1 border-b-2 font-medium text-sm ${
                 activeTab === "partners"
@@ -191,21 +206,6 @@ export default function OpportunityDetail() {
             >
               <Target className="w-4 h-4 inline mr-2" />
               Products ({relatedProducts?.length || 0})
-            </button>
-            <button
-              onClick={() => setActiveTab("okr-plan")}
-              className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                activeTab === "okr-plan"
-                  ? "border-indigo-500 text-indigo-600"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
-              }`}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 inline mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
-                <path d="M12 8v4l3 3" />
-                <circle cx="12" cy="12" r="7" />
-              </svg>
-              OKR Plan ({templateAssignments?.length || 0})
             </button>
           </nav>
         </div>

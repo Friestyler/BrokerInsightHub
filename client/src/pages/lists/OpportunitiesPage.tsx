@@ -175,37 +175,40 @@ function formatCurrency(value: number): string {
 }
 
 // Template badges component for opportunities
-function TemplateBadges({ type, status }: { type: string, status: string }) {
-  // Mock template badges based on type and status
-  const getBadges = (type: string, status: string) => {
-    if (type === 'Renewal') {
-      return [
-        { code: 'RN', color: 'bg-blue-200 text-blue-800' }
-      ];
-    } else if (type === 'New Business') {
-      return [
-        { code: 'NB', color: 'bg-green-200 text-green-800' }
-      ];
-    } else if (type === 'Cross-sell') {
-      return [
-        { code: 'CS', color: 'bg-purple-200 text-purple-800' }
-      ];
-    } else {
-      return [
-        { code: 'OT', color: 'bg-gray-200 text-gray-800' }
-      ];
-    }
-  };
-  
-  const badges = getBadges(type, status);
-  
+function TemplateBadges({ opportunityId }: { opportunityId: number }) {
+  // Fetch template assignments for this opportunity
+  const { data: templateAssignments = [] } = useQuery({
+    queryKey: [`/api/template-assignments/opportunity/${opportunityId}`],
+    enabled: !!opportunityId,
+    staleTime: 2 * 60 * 1000,
+  });
+
+  const assignments = Array.isArray(templateAssignments) ? templateAssignments : [];
+
+  if (assignments.length === 0) {
+    return (
+      <div className="text-xs text-gray-400">
+        No templates
+      </div>
+    );
+  }
+
   return (
-    <div className="flex space-x-2">
-      {badges.map((badge) => (
-        <div key={badge.code} className={`${badge.color} w-8 h-8 rounded-lg flex items-center justify-center text-xs font-medium`}>
-          {badge.code}
+    <div className="flex flex-wrap gap-1">
+      {assignments.slice(0, 2).map((assignment: any) => (
+        <div 
+          key={assignment.id} 
+          className="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-medium truncate max-w-[80px]"
+          title={assignment.template_name}
+        >
+          {assignment.template_name?.split(' ').map((word: string) => word[0]).join('').toUpperCase() || 'T'}
         </div>
       ))}
+      {assignments.length > 2 && (
+        <div className="bg-gray-100 text-gray-600 px-2 py-1 rounded text-xs font-medium">
+          +{assignments.length - 2}
+        </div>
+      )}
     </div>
   );
 }
@@ -1561,7 +1564,7 @@ function OpportunitiesTable() {
                   </span>
                 </td>
                 <td className="px-3 py-4 text-sm text-gray-900 w-[120px]">
-                  <TemplateBadges type={opportunity.type} status={opportunity.status} />
+                  <TemplateBadges opportunityId={opportunity.id} />
                 </td>
                 <td className="px-3 py-4 text-sm text-gray-900 w-[140px] truncate">
                   {opportunity.clientName || opportunity.customerNames}
