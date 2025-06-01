@@ -469,7 +469,7 @@ function PartnersTable() {
       const aValue = a[tableSortConfig.key] || '';
       const bValue = b[tableSortConfig.key] || '';
       
-      if (tableSortConfig.key === 'name' || tableSortConfig.key === 'industry' || tableSortConfig.key === 'type' || tableSortConfig.key === 'status') {
+      if (tableSortConfig.key === 'name' || tableSortConfig.key === 'industry' || tableSortConfig.key === 'type' || tableSortConfig.key === 'status' || tableSortConfig.key === 'size' || tableSortConfig.key === 'region' || tableSortConfig.key === 'template') {
         const result = aValue.localeCompare(bValue);
         return tableSortConfig.direction === 'asc' ? result : -result;
       }
@@ -2073,24 +2073,24 @@ function PartnersTable() {
               >
                 Type
               </SortableTableHead>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                <div className="flex items-center text-[13px] font-medium text-[#696C8C]">
-                  Size
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                    <path d="M8 9l4-4 4 4"></path>
-                    <path d="M16 15l-4 4-4-4"></path>
-                  </svg>
-                </div>
-              </th>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                <div className="flex items-center text-[13px] font-medium text-[#696C8C]">
-                  Region
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                    <path d="M8 9l4-4 4 4"></path>
-                    <path d="M16 15l-4 4-4-4"></path>
-                  </svg>
-                </div>
-              </th>
+              <SortableTableHead 
+                sortKey="size" 
+                currentSortKey={tableSortConfig.key} 
+                currentDirection={tableSortConfig.direction} 
+                onSort={handleSort} 
+                className="w-[120px]"
+              >
+                Size
+              </SortableTableHead>
+              <SortableTableHead 
+                sortKey="region" 
+                currentSortKey={tableSortConfig.key} 
+                currentDirection={tableSortConfig.direction} 
+                onSort={handleSort} 
+                className="w-[120px]"
+              >
+                Region
+              </SortableTableHead>
               <SortableTableHead 
                 sortKey="status" 
                 currentSortKey={tableSortConfig.key} 
@@ -2118,11 +2118,15 @@ function PartnersTable() {
               >
                 Opportunities
               </SortableTableHead>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                <div className="flex items-center text-[#696C8C] text-[13px] font-medium">
-                  Template
-                </div>
-              </th>
+              <SortableTableHead 
+                sortKey="template" 
+                currentSortKey={tableSortConfig.key} 
+                currentDirection={tableSortConfig.direction} 
+                onSort={handleSort} 
+                className="w-[120px]"
+              >
+                Template
+              </SortableTableHead>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100 bg-white">
