@@ -387,6 +387,75 @@ function OpportunitiesTable() {
   const [isEditingList, setIsEditingList] = useState(false);
   const [editedListMembers, setEditedListMembers] = useState<number[]>([]);
   
+  // Assign Template functionality
+  const [showAssignTemplateModal, setShowAssignTemplateModal] = useState(false);
+  const [selectedOKRTemplates, setSelectedOKRTemplates] = useState<number[]>([]);
+  
+  // Load template assignments for opportunities
+  const { data: templateAssignments = [] } = useQuery({
+    queryKey: ['/api/template-assignments/opportunity'],
+    enabled: opportunities.length > 0,
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
+
+  // Load OKR templates from database API
+  const { data: okrMetricsFromAPI = [] } = useQuery({
+    queryKey: ['/api/okr-metrics'],
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  // Fetch OKR tags for dynamic color mapping
+  const { data: okrTags = [] } = useQuery({
+    queryKey: ['okr-tags-direct'],
+    queryFn: async () => {
+      const response = await fetch('/api/degoudse/okr-tags');
+      return response.json();
+    },
+    staleTime: 5 * 60 * 1000, // 5 minutes
+  });
+
+  // Mutation for assigning templates
+  const assignTemplatesMutation = useMutation({
+    mutationFn: async ({ templateIds, opportunityIds }: { templateIds: number[], opportunityIds: number[] }) => {
+      const results = [];
+      for (const opportunityId of opportunityIds) {
+        const response = await fetch('/api/degoudse/template-assignments', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            templateIds,
+            entityType: 'opportunity',
+            entityId: opportunityId,
+            assignedBy: 1, // Current user ID (hardcoded for now)
+            notes: 'Assigned from Opportunities page'
+          })
+        });
+        if (!response.ok) throw new Error('Failed to assign templates');
+        const result = await response.json();
+        results.push(...result);
+      }
+      return results;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/degoudse/template-assignments/opportunity'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/degoudse/opportunities'] });
+      toast({
+        title: "Templates assigned",
+        description: `Successfully assigned ${selectedOKRTemplates.length} template(s) to ${selectedOpportunities.length} opportunity(ies)`,
+      });
+      setShowAssignTemplateModal(false);
+      setSelectedOKRTemplates([]);
+      setSelectedOpportunities([]);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error assigning templates",
+        description: `Failed to assign templates: ${error.message}`,
+        variant: "destructive"
+      });
+    }
+  });
+
   // Views state - using database data
   const [activeView, setActiveView] = useState<SavedView | null>(null);
   const [showSaveViewModal, setShowSaveViewModal] = useState(false);
@@ -1153,8 +1222,21 @@ function OpportunitiesTable() {
               variant="outline" 
               size="sm"
               onClick={() => {
-                // TODO: Implement template assignment
-                alert('Assign template functionality will be implemented in future');
+                // Load OKR templates when opening the modal
+                try {
+                  console.log('Available OKR templates:', okrMetricsFromAPI);
+                  if (okrMetricsFromAPI.length === 0) {
+                    toast({
+                      title: "No templates available",
+                      description: "Please create OKR templates first in the Templates section",
+                      variant: "destructive"
+                    });
+                    return;
+                  }
+                } catch (error) {
+                  console.error('Error loading templates:', error);
+                }
+                setShowAssignTemplateModal(true);
               }}
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
@@ -1654,6 +1736,201 @@ function OpportunitiesTable() {
             </Button>
             <Button onClick={handleCreateOpportunity} disabled={isCreating}>
               {isCreating ? 'Creating...' : 'Create Opportunity'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Assign Template Modal */}
+      <Dialog open={showAssignTemplateModal} onOpenChange={setShowAssignTemplateModal}>
+        <DialogContent className="sm:max-w-[700px] max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Assign OKR Templates</DialogTitle>
+            <DialogDescription>
+              Select OKR templates to assign to {selectedOpportunities.length} selected opportunity{selectedOpportunities.length !== 1 ? 'ies' : 'y'}. 
+              Templates will be converted to active OKRs with tracking capabilities.
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            {/* Selected Opportunities Summary */}
+            <div className="bg-blue-50 p-4 rounded-lg border border-blue-100">
+              <div className="flex items-center mb-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2 text-blue-600">
+                  <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
+                </svg>
+                <span className="font-medium text-blue-900">
+                  {selectedOpportunities.length} Opportunity{selectedOpportunities.length !== 1 ? 'ies' : 'y'} Selected
+                </span>
+              </div>
+              <div className="text-sm text-blue-700">
+                {selectedOpportunities.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {selectedOpportunities.slice(0, 3).map((oppId) => {
+                      const opp = opportunities.find((o: any) => o.id === oppId);
+                      return opp ? (
+                        <span key={oppId} className="bg-blue-200 px-2 py-1 rounded text-xs">
+                          {opp.title}
+                        </span>
+                      ) : null;
+                    })}
+                    {selectedOpportunities.length > 3 && (
+                      <span className="text-blue-600 text-xs">
+                        +{selectedOpportunities.length - 3} more
+                      </span>
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Available Templates */}
+            <div className="space-y-4">
+              <h3 className="text-lg font-medium">Available OKR Templates</h3>
+              
+              {okrMetricsFromAPI.length === 0 ? (
+                <div className="text-center py-8 text-gray-500">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-4 text-gray-400">
+                    <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+                    <path d="M12 8v4l3 3" />
+                    <circle cx="12" cy="12" r="7" />
+                  </svg>
+                  <p>No OKR templates available</p>
+                  <p className="text-sm">Create templates in the Templates section first</p>
+                </div>
+              ) : (
+                <div className="grid gap-3 max-h-60 overflow-y-auto">
+                  {okrMetricsFromAPI.map((template: any) => {
+                    const isSelected = selectedOKRTemplates.includes(template.id);
+                    const firstTag = template.tags && template.tags.length > 0 ? template.tags[0] : 'General';
+                    const tagColor = okrTags.find((tag: any) => tag.name === firstTag)?.color || '#6B7280';
+                    
+                    return (
+                      <div
+                        key={template.id}
+                        onClick={() => {
+                          if (isSelected) {
+                            setSelectedOKRTemplates(prev => prev.filter(id => id !== template.id));
+                          } else {
+                            setSelectedOKRTemplates(prev => [...prev, template.id]);
+                          }
+                        }}
+                        className={`p-4 border rounded-lg cursor-pointer transition-all ${
+                          isSelected 
+                            ? 'border-blue-500 bg-blue-50' 
+                            : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-2">
+                              <h4 className="font-medium text-gray-900">{template.name}</h4>
+                              <span 
+                                className="px-2 py-1 text-xs rounded-full font-medium"
+                                style={{
+                                  backgroundColor: `${tagColor}20`,
+                                  color: tagColor,
+                                  border: `1px solid ${tagColor}40`
+                                }}
+                              >
+                                {firstTag}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-600 mb-2">
+                              {template.description || 'No description available'}
+                            </p>
+                            <div className="flex items-center gap-4 text-xs text-gray-500">
+                              <span>Type: {template.hierarchy || 'Metric'}</span>
+                              <span>Unit: {template.measure_unit || 'Number'}</span>
+                              <span>Frequency: {template.frequency || 'Monthly'}</span>
+                            </div>
+                          </div>
+                          <div className="ml-4">
+                            <input
+                              type="checkbox"
+                              checked={isSelected}
+                              onChange={() => {}}
+                              className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                            />
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+
+            {/* Assignment Options */}
+            {selectedOKRTemplates.length > 0 && (
+              <div className="space-y-4 bg-gray-50 p-4 rounded-lg border">
+                <h4 className="font-medium text-gray-900">Assignment Options</h4>
+                <div className="space-y-3">
+                  <div className="flex items-center">
+                    <input 
+                      type="checkbox" 
+                      id="set-due-dates" 
+                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <label htmlFor="set-due-dates" className="ml-2 text-sm text-gray-700">
+                      Set custom due dates for assigned OKRs
+                    </label>
+                  </div>
+                  <div className="flex items-center">
+                    <input 
+                      type="checkbox" 
+                      id="assign-responsible" 
+                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <label htmlFor="assign-responsible" className="ml-2 text-sm text-gray-700">
+                      Assign responsible persons during assignment
+                    </label>
+                  </div>
+                  <div className="flex items-center">
+                    <input 
+                      type="checkbox" 
+                      id="send-notifications" 
+                      defaultChecked 
+                      className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    />
+                    <label htmlFor="send-notifications" className="ml-2 text-sm text-gray-700">
+                      Send notifications to assigned users
+                    </label>
+                  </div>
+                </div>
+              </div>
+            )}
+          </div>
+
+          <DialogFooter className="pt-6 border-t">
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowAssignTemplateModal(false);
+                setSelectedOKRTemplates([]);
+              }}
+            >
+              Cancel
+            </Button>
+            <Button 
+              disabled={selectedOKRTemplates.length === 0}
+              onClick={() => {
+                if (selectedOKRTemplates.length > 0 && selectedOpportunities.length > 0) {
+                  assignTemplatesMutation.mutate({
+                    templateIds: selectedOKRTemplates,
+                    opportunityIds: selectedOpportunities
+                  });
+                } else {
+                  toast({
+                    title: "Selection required",
+                    description: "Please select at least one template and one opportunity",
+                    variant: "destructive"
+                  });
+                }
+              }}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              Assign {selectedOKRTemplates.length} Template{selectedOKRTemplates.length !== 1 ? 's' : ''}
             </Button>
           </DialogFooter>
         </DialogContent>
