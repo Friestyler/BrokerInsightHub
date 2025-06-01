@@ -656,7 +656,7 @@ export default function MetricsPage() {
                       color: '#696C8C' 
                     }}
                   >
-                    Name
+                    OKR
                   </TableHead>
                   <TableHead 
                     className="px-3 py-2 min-w-[120px]"
