@@ -424,6 +424,8 @@ function OpportunitiesTable() {
         closeDate: formData.closeDate || null
       });
       
+      console.log('Create opportunity response:', newOpportunity);
+      
       // Invalidate and refetch opportunities data
       queryClient.invalidateQueries({ queryKey: ['/api/opportunities'] });
       
@@ -446,9 +448,10 @@ function OpportunitiesTable() {
       });
       setShowCreateModal(false);
     } catch (error) {
+      console.error('Create opportunity error:', error);
       toast({
         title: "Error",
-        description: "Failed to create opportunity. Please try again.",
+        description: `Failed to create opportunity: ${error?.message || 'Please try again.'}`,
         variant: "destructive"
       });
     } finally {
