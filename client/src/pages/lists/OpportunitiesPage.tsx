@@ -31,6 +31,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
+import { ShareModal } from "@/components/ShareModal";
 
 // Fetch opportunities from database
 const useOpportunitiesData = () => {
@@ -1050,22 +1051,13 @@ function OpportunitiesTable() {
         </DialogContent>
       </Dialog>
       
-      {/* Share List Modal with Extended Options */}
+      {/* Google-Style Share Modal */}
       <Dialog open={showShareListModal} onOpenChange={setShowShareListModal}>
-        <DialogContent className="sm:max-w-2xl bg-[#ffffff] text-[#282A3F] p-[32px]">
-          <DialogHeader>
-            <DialogTitle>
-              {selectedOpportunities.length > 0 
-                ? `Share ${selectedOpportunities.length} Selected Opportunities`
-                : `Share List: ${activeList?.name}`
-              }
+        <DialogContent className="sm:max-w-md bg-[#ffffff] text-[#282A3F] p-6">
+          <DialogHeader className="pb-4">
+            <DialogTitle className="text-lg font-medium">
+              Share "{activeList?.name || 'Selected Items'}"
             </DialogTitle>
-            <DialogDescription>
-              {selectedOpportunities.length > 0 
-                ? `Share the ${selectedOpportunities.length} selected opportunity records with other partners, teams, or individuals.`
-                : "Share this list with partners, teams, or individuals."
-              }
-            </DialogDescription>
           </DialogHeader>
           
           <div className="grid gap-4 py-4">
@@ -1437,6 +1429,111 @@ function OpportunitiesTable() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+      
+      {/* Google-Style Share Modal */}
+      <ShareModal
+        isOpen={showShareListModal}
+        onClose={() => setShowShareListModal(false)}
+        itemName={activeList?.name || 'Selected Items'}
+        currentSharedLink={currentSharedLink}
+        existingSharedLinks={existingSharedLinks}
+        onCopyLink={() => {
+          if (currentSharedLink) {
+            navigator.clipboard.writeText(currentSharedLink);
+            toast({
+              title: "Link copied",
+              description: "The shareable link has been copied to your clipboard.",
+            });
+          }
+        }}
+        onCreateShare={async () => {
+          try {
+            // If there's already a shared link for this list, just show it
+            if (existingSharedLinks.length > 0 && activeList?.id) {
+              const baseUrl = window.location.origin;
+              const existingUrl = `${baseUrl}/share/list/${existingSharedLinks[0].share_token}`;
+              setCurrentSharedLink(existingUrl);
+              
+              toast({
+                title: "Shareable link ready",
+                description: "This list is already shared. Anyone with the link can view it.",
+              });
+              return;
+            }
+
+            // Determine what's being shared
+            const isListShare = selectedOpportunities.length === 0;
+            const isBulkOpportunityShare = selectedOpportunities.length > 0;
+
+            let shareData;
+            
+            if (isListShare && activeList) {
+              // Sharing the entire saved list
+              shareData = {
+                list_name: activeList.name,
+                list_description: activeList.description || null,
+                entity_type: 'opportunities',
+                data: opportunities,
+                message: '',
+                list_id: activeList.id
+              };
+            } else if (isBulkOpportunityShare) {
+              // Sharing selected opportunities
+              const selectedOpportunitiesData = selectedOpportunities
+                .map(id => opportunities.find(o => o.id === id))
+                .filter(Boolean);
+              
+              shareData = {
+                list_name: `${selectedOpportunities.length} Selected Opportunities`,
+                list_description: `Shared opportunities: ${selectedOpportunitiesData.map(o => o.title).slice(0, 3).join(', ')}${selectedOpportunities.length > 3 ? '...' : ''}`,
+                entity_type: 'opportunities',
+                data: selectedOpportunitiesData,
+                message: ''
+              };
+            } else {
+              toast({
+                title: "Nothing to share",
+                description: "Please select opportunities or save a list first.",
+                variant: "destructive"
+              });
+              return;
+            }
+
+            // Create the shared list
+            const result = await createSharedListMutation.mutateAsync(shareData);
+            
+            // Generate the shareable URL
+            const baseUrl = window.location.origin;
+            const shareableUrl = `${baseUrl}/share/list/${result.share_token}`;
+            
+            setCurrentSharedLink(shareableUrl);
+
+            toast({
+              title: "Shareable link created",
+              description: "Your list has been made public. Anyone with the link can view it.",
+            });
+
+            // Clear selection after sharing
+            if (isBulkOpportunityShare) {
+              setSelectedOpportunities([]);
+            }
+
+            // Invalidate the shared links cache to refresh the list
+            if (activeList?.id) {
+              queryClient.invalidateQueries({
+                queryKey: ['/api/shared-lists/by-list', activeList.id]
+              });
+            }
+          } catch (error) {
+            toast({
+              title: "Error creating shared link",
+              description: "Please try again.",
+              variant: "destructive"
+            });
+          }
+        }}
+        isCreating={createSharedListMutation.isPending}
+      />
       
       {/* Table section without a border */}
       <div className="bg-white overflow-x-auto rounded-lg">
