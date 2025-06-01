@@ -3637,20 +3637,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // OKR Comments API endpoints
+  // OKR Comments API endpoints with environment support
   
   // Get comments for a metric
-  app.get('/api/okr-metrics/:id/comments', async (req, res) => {
+  app.get('/api/:envId/okr-metrics/:id/comments', async (req, res) => {
     try {
+      const envId = req.params.envId;
       const metricId = parseInt(req.params.id);
+      const envPool = getEnvironmentPool(envId);
       
-      const result = await db.execute(sql`
-        SELECT c.*, u.username as user_name
-        FROM myqollabi.okr_comments c
-        LEFT JOIN myqollabi.users u ON c.user_id = u.id
-        WHERE c.metric_id = ${metricId}
+      const result = await envPool.query(`
+        SELECT c.*, u.username as user_name, m.name as metric_name
+        FROM ${envId}.okr_comments c
+        LEFT JOIN ${envId}.users u ON c.user_id = u.id
+        LEFT JOIN ${envId}.okr_metrics m ON c.metric_id = m.id
+        WHERE c.metric_id = $1
         ORDER BY c.created_at DESC
-      `);
+      `, [metricId]);
       
       res.json(result.rows);
     } catch (error) {
@@ -3660,16 +3663,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Create comment for a metric
-  app.post('/api/okr-metrics/:id/comments', async (req, res) => {
+  app.post('/api/:envId/okr-metrics/:id/comments', async (req, res) => {
     try {
+      const envId = req.params.envId;
       const metricId = parseInt(req.params.id);
-      const { comment, user_id, contact_id } = req.body;
+      const { comment, user_id, contact_id, partner_id } = req.body;
+      const envPool = getEnvironmentPool(envId);
       
-      const result = await db.execute(sql`
-        INSERT INTO myqollabi.okr_comments (metric_id, user_id, contact_id, comment)
-        VALUES (${metricId}, ${user_id || 1}, ${contact_id}, ${comment})
+      const result = await envPool.query(`
+        INSERT INTO ${envId}.okr_comments (metric_id, user_id, contact_id, comment, partner_id)
+        VALUES ($1, $2, $3, $4, $5)
         RETURNING *
-      `);
+      `, [metricId, user_id || 1, contact_id, comment, partner_id]);
       
       res.status(201).json(result.rows[0]);
     } catch (error) {
@@ -4247,7 +4252,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Activity System API Routes
 
-  // Get activities for a partner (tasks, comments, attachments)
+  // Get activities for a partner (tasks, comments, attachments, OKR comments)
   app.get('/api/:envId/partners/:partnerId/activities', async (req, res) => {
     try {
       const { envId, partnerId } = req.params;
@@ -4263,7 +4268,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ORDER BY t.created_at DESC
       `, [parseInt(partnerId)]);
       
-      // Get comments
+      // Get activity comments
       const commentsResult = await envPool.query(`
         SELECT c.*, u1.full_name as author_name, u2.full_name as assigned_to_name
         FROM ${envId}.activity_comments c
@@ -4271,6 +4276,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
         LEFT JOIN ${envId}.users u2 ON c.assigned_to_id = u2.id
         WHERE c.entity_type = 'partner' AND c.entity_id = $1
         ORDER BY c.created_at DESC
+      `, [parseInt(partnerId)]);
+      
+      // Get OKR comments for this partner
+      const okrCommentsResult = await envPool.query(`
+        SELECT oc.*, u.full_name as author_name, m.name as metric_name, 'okr_comment' as comment_type
+        FROM ${envId}.okr_comments oc
+        LEFT JOIN ${envId}.users u ON oc.user_id = u.id
+        LEFT JOIN ${envId}.okr_metrics m ON oc.metric_id = m.id
+        WHERE oc.partner_id = $1
+        ORDER BY oc.created_at DESC
       `, [parseInt(partnerId)]);
       
       // Get attachments
@@ -4282,9 +4297,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ORDER BY a.created_at DESC
       `, [parseInt(partnerId)]);
       
+      // Combine regular comments and OKR comments
+      const allComments = [
+        ...commentsResult.rows,
+        ...okrCommentsResult.rows.map(okrComment => ({
+          ...okrComment,
+          content: okrComment.comment,
+          okr_metric_name: okrComment.metric_name,
+          is_okr_comment: true
+        }))
+      ];
+      
       res.json({
         tasks: tasksResult.rows,
-        comments: commentsResult.rows,
+        comments: allComments,
         attachments: attachmentsResult.rows
       });
     } catch (error) {

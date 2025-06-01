@@ -677,6 +677,7 @@ export const okrComments = pgTable("okr_comments", {
   metric_id: integer("metric_id").notNull().references(() => okrMetrics.id),
   user_id: integer("user_id").notNull().references(() => users.id),
   contact_id: integer("contact_id"), // for external contacts
+  partner_id: integer("partner_id"), // link to specific partner
   comment: text("comment").notNull(),
   created_at: timestamp("created_at").defaultNow().notNull(),
   updated_at: timestamp("updated_at").defaultNow().notNull(),
@@ -768,6 +769,7 @@ export const insertOkrCommentSchema = createInsertSchema(okrComments).pick({
   metric_id: true,
   user_id: true,
   contact_id: true,
+  partner_id: true,
   comment: true,
 });
 

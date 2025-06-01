@@ -450,13 +450,27 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                   .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
                   .map((comment: any, index: number) => (
                   <div key={comment.id} className="flex items-start gap-3">
-                    <div className="flex-shrink-0 w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                      <span className="text-xs font-medium text-blue-600">
+                    <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center ${
+                      comment.is_okr_comment ? 'bg-purple-100' : 'bg-blue-100'
+                    }`}>
+                      <span className={`text-xs font-medium ${
+                        comment.is_okr_comment ? 'text-purple-600' : 'text-blue-600'
+                      }`}>
                         {comment.author_name ? comment.author_name.charAt(0).toUpperCase() : 'U'}
                       </span>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="bg-gray-50 rounded-lg px-3 py-2">
+                      <div className={`rounded-lg px-3 py-2 ${
+                        comment.is_okr_comment ? 'bg-purple-50 border border-purple-200' : 'bg-gray-50'
+                      }`}>
+                        {comment.is_okr_comment && comment.okr_metric_name && (
+                          <div className="flex items-center gap-1 mb-1">
+                            <Target className="h-3 w-3 text-purple-600" />
+                            <span className="text-xs font-medium text-purple-700">
+                              OKR: {comment.okr_metric_name}
+                            </span>
+                          </div>
+                        )}
                         <p className="text-sm text-gray-900">{comment.content}</p>
                       </div>
                       <div className="flex items-center gap-2 mt-1">
@@ -475,6 +489,13 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                             <span className="text-xs text-gray-400">•</span>
                             <Eye className="h-3 w-3 text-blue-500" />
                             <span className="text-xs text-blue-600">visible</span>
+                          </div>
+                        )}
+                        {comment.is_okr_comment && (
+                          <div className="flex items-center gap-1">
+                            <span className="text-xs text-gray-400">•</span>
+                            <Target className="h-3 w-3 text-purple-500" />
+                            <span className="text-xs text-purple-600">OKR comment</span>
                           </div>
                         )}
                       </div>
