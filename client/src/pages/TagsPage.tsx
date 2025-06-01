@@ -242,20 +242,9 @@ export default function TagsPage() {
                         <h3 className="text-lg font-medium text-[#282A3F] mb-2" style={{ fontFamily: 'Poppins' }}>
                           No tags yet
                         </h3>
-                        <p className="text-[#696C8C] text-center max-w-sm mb-4" style={{ fontFamily: 'Poppins', fontSize: '14px' }}>
+                        <p className="text-[#696C8C] text-center max-w-sm" style={{ fontFamily: 'Poppins', fontSize: '14px' }}>
                           Get started by creating your first tag. Tags help organize and categorize items across the platform.
                         </p>
-                        <Button 
-                          onClick={() => setIsCreateTagOpen(true)}
-                          className="bg-[#3E4DC4] hover:bg-[#3344B8] text-white"
-                          style={{ fontFamily: 'Poppins' }}
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                            <path d="M5 12h14"/>
-                            <path d="M12 5v14"/>
-                          </svg>
-                          Create your first tag
-                        </Button>
                       </div>
                     </TableCell>
                   </TableRow>
