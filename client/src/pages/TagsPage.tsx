@@ -154,7 +154,7 @@ export default function TagsPage() {
   };
 
   return (
-    <div className="flex-1 bg-[#F5F6FA] min-h-screen">
+    <div className="flex-1 bg-white min-h-screen">
       <div className="px-6 py-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
