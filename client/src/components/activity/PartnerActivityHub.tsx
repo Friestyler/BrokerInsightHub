@@ -578,7 +578,7 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                   const isAttachment = item.filename !== undefined;
 
                   return (
-                    <div key={`${isTask ? 'task' : isComment ? 'comment' : 'attachment'}-${item.id}`} className="flex items-start gap-3 relative">
+                    <div key={`${isTask ? 'task' : isComment ? (item.is_okr_comment ? 'okr-comment' : 'comment') : 'attachment'}-${item.id}-${item.created_at}`} className="flex items-start gap-3 relative">
                       {/* Timeline line */}
                       {index < [...tasks, ...comments, ...attachments].length - 1 && (
                         <div className="absolute left-4 top-10 w-px h-8 bg-gray-200"></div>
@@ -599,10 +599,16 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                           </button>
                         )}
                         {isComment && (
-                          <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                            <span className="text-xs font-medium text-blue-600">
-                              {item.author_name ? item.author_name.charAt(0).toUpperCase() : 'U'}
-                            </span>
+                          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                            item.is_okr_comment ? 'bg-purple-100' : 'bg-blue-100'
+                          }`}>
+                            {item.is_okr_comment ? (
+                              <Target className="h-4 w-4 text-purple-600" />
+                            ) : (
+                              <span className="text-xs font-medium text-blue-600">
+                                {item.author_name ? item.author_name.charAt(0).toUpperCase() : 'U'}
+                              </span>
+                            )}
                           </div>
                         )}
                         {isAttachment && (
@@ -614,8 +620,16 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                       
                       <div className="flex-1 min-w-0">
                         {isComment ? (
-                          <div className="bg-gray-50 rounded-lg px-3 py-2">
+                          <div className={`rounded-lg px-3 py-2 ${
+                            item.is_okr_comment ? 'bg-purple-50 border border-purple-200' : 'bg-gray-50'
+                          }`}>
                             <p className="text-sm text-gray-900">{item.content}</p>
+                            {item.is_okr_comment && item.okr_metric_name && (
+                              <div className="flex items-center gap-1 mt-1">
+                                <Target className="h-3 w-3 text-purple-600" />
+                                <span className="text-xs text-purple-700 font-medium">{item.okr_metric_name}</span>
+                              </div>
+                            )}
                           </div>
                         ) : (
                           <div className="bg-white">
