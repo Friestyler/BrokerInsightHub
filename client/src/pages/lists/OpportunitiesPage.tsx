@@ -133,10 +133,10 @@ interface Opportunity {
 }
 
 // Calculate opportunity statistics
-function calculateOpportunityStats(opportunities: Opportunity[]) {
+function calculateOpportunityStats(opportunities: any[]) {
   const totalOpportunities = opportunities.length;
-  const totalValue = opportunities.reduce((sum, opportunity) => sum + (opportunity.value || opportunity.estimatedValue || 0), 0);
-  const weightedValue = opportunities.reduce((sum, opportunity) => sum + ((opportunity.value || opportunity.estimatedValue || 0) * (opportunity.probability || 0) / 100), 0);
+  const totalValue = opportunities.reduce((sum, opportunity) => sum + (opportunity.estimatedValue || 0), 0);
+  const weightedValue = opportunities.reduce((sum, opportunity) => sum + ((opportunity.estimatedValue || 0) * (opportunity.probability || 0) / 100), 0);
   const closedWon = opportunities.filter(o => o.status === 'Closed Won').length;
   
   return {
@@ -352,10 +352,10 @@ function OpportunitiesTable() {
     
     // Apply current filters (from UI or active list/view)
     return opportunitiesData.filter((opportunity: any) => {
-      // Text search - handle both database format and mock format
+      // Text search - using actual API response fields
       const title = opportunity.title || '';
-      const customerName = opportunity.customerName || opportunity.client?.name || '';
-      const partnerName = opportunity.partnerName || opportunity.partner?.name || '';
+      const customerName = opportunity.clientName || opportunity.customerNames || '';
+      const partnerName = opportunity.partnerNames || '';
       
       const matchesText = !filterText || 
         title.toLowerCase().includes(filterText.toLowerCase()) ||
@@ -1262,13 +1262,13 @@ function OpportunitiesTable() {
                   <TemplateBadges type={opportunity.type} status={opportunity.status} />
                 </td>
                 <td className="px-3 py-4 text-sm text-gray-900 w-[140px] truncate">
-                  {opportunity.customerName}
+                  {opportunity.clientName || opportunity.customerNames}
                 </td>
                 <td className="px-3 py-4 text-sm text-gray-900 w-[140px] truncate">
-                  {opportunity.partnerName}
+                  {opportunity.partnerNames}
                 </td>
                 <td className="px-3 py-4 text-sm text-gray-900 w-[120px]">
-                  {formatCurrency(opportunity.value)}
+                  {formatCurrency(opportunity.estimatedValue || 0)}
                 </td>
                 <td className="px-3 py-4 text-sm text-gray-900 w-[100px]">
                   {opportunity.probability}%
