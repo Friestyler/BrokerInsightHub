@@ -104,13 +104,39 @@ const useCreateSharedList = () => {
   });
 };
 
-// All opportunity data now comes from database - no mock data needed
+// Type definitions for opportunities
+interface Opportunity {
+  id: number;
+  title: string;
+  description?: string;
+  status: string;
+  stage: string;
+  type?: string;
+  estimatedValue?: number;
+  value?: number;
+  probability?: number;
+  location?: string;
+  partnerName?: string;
+  customerName?: string;
+  clientName?: string;
+  lastActivityDate?: string;
+  assignedUserId?: string;
+  createdAt: string;
+  updatedAt?: string;
+  expectedCloseDate?: string;
+  deliveryDate?: string;
+  customerId?: number;
+  partnerId?: number;
+  linkedProductIds?: number[];
+  linkedContactIds?: number[];
+  createdBy?: string;
+}
 
 // Calculate opportunity statistics
-function calculateOpportunityStats(opportunities: any[]) {
+function calculateOpportunityStats(opportunities: Opportunity[]) {
   const totalOpportunities = opportunities.length;
-  const totalValue = opportunities.reduce((sum, opportunity) => sum + opportunity.value, 0);
-  const weightedValue = opportunities.reduce((sum, opportunity) => sum + (opportunity.value * opportunity.probability / 100), 0);
+  const totalValue = opportunities.reduce((sum, opportunity) => sum + (opportunity.value || opportunity.estimatedValue || 0), 0);
+  const weightedValue = opportunities.reduce((sum, opportunity) => sum + ((opportunity.value || opportunity.estimatedValue || 0) * (opportunity.probability || 0) / 100), 0);
   const closedWon = opportunities.filter(o => o.status === 'Closed Won').length;
   
   return {
@@ -206,7 +232,7 @@ interface SavedView {
 function OpportunitiesTable() {
   const { toast } = useToast();
   const { environment } = useEnvironment();
-  const { data: opportunities = [], isLoading, error } = useOpportunitiesData();
+  const { data: opportunities = [], isLoading, error } = useOpportunitiesData() as { data: Opportunity[], isLoading: boolean, error: any };
   const { data: savedListsData = [], isLoading: savedListsLoading } = useSavedLists();
   const createSavedListMutation = useCreateSavedList();
   const { data: savedViewsData = [], isLoading: savedViewsLoading } = useSavedViews();
@@ -1106,7 +1132,7 @@ function OpportunitiesTable() {
               
               shareData = {
                 list_name: `${selectedOpportunities.length} Selected Opportunities`,
-                list_description: `Shared opportunities: ${selectedOpportunitiesData.map(o => o.title).slice(0, 3).join(', ')}${selectedOpportunities.length > 3 ? '...' : ''}`,
+                list_description: `Shared opportunities: ${selectedOpportunitiesData.filter(o => o).map(o => o.title).slice(0, 3).join(', ')}${selectedOpportunities.length > 3 ? '...' : ''}`,
                 entity_type: 'opportunities',
                 data: selectedOpportunitiesData,
                 message: ''
