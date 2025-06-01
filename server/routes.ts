@@ -1958,6 +1958,68 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create opportunity for De Goudse environment
+  app.post('/api/degoudse/opportunities', async (req, res) => {
+    try {
+      console.log('De Goudse opportunity creation request body:', req.body);
+      
+      const { 
+        title, 
+        description, 
+        partnerName,
+        customerName,
+        value,
+        probability = 50,
+        status = 'Qualifying',
+        type = 'New Business',
+        closeDate
+      } = req.body;
+      
+      if (!title || !description) {
+        return res.status(400).json({ message: 'Title and description are required' });
+      }
+      
+      console.log('Executing De Goudse opportunity insert query...');
+      
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query(`
+        INSERT INTO degoudse.opportunities (
+          title, description, status, type, probability, 
+          "estimatedValue", "expectedCloseDate", "createdAt", "updatedAt"
+        ) VALUES (
+          $1, $2, $3, $4, $5, $6, $7, NOW(), NOW()
+        ) RETURNING *
+      `, [
+        title, 
+        description, 
+        status, 
+        type, 
+        probability,
+        value || null,
+        closeDate || null
+      ]);
+      
+      const newOpportunity = result.rows[0];
+      console.log('De Goudse opportunity created successfully:', newOpportunity.id);
+      
+      res.status(201).json({
+        id: newOpportunity.id,
+        title: newOpportunity.title,
+        description: newOpportunity.description,
+        status: newOpportunity.status,
+        type: newOpportunity.type,
+        probability: newOpportunity.probability,
+        estimatedValue: newOpportunity.estimatedValue,
+        expectedCloseDate: newOpportunity.expectedCloseDate,
+        createdAt: newOpportunity.createdAt,
+        updatedAt: newOpportunity.updatedAt
+      });
+    } catch (error) {
+      console.error('Detailed error creating De Goudse opportunity:', error);
+      res.status(500).json({ message: 'Failed to create opportunity in De Goudse environment' });
+    }
+  });
+
   // Get single opportunity for De Goudse environment
   app.get('/api/degoudse/opportunities/:id', async (req, res) => {
     try {
