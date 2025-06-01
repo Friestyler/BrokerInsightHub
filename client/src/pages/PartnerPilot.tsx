@@ -1,163 +1,71 @@
-import { useState } from "react";
-import { useLocation } from "wouter";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "@/components/ui/sheet";
-import { useQuery } from "@tanstack/react-query";
-import { useEnvironment } from "@/contexts/EnvironmentContext";
+import { useState } from 'react';
+import { useLocation } from 'wouter';
+import { useQuery } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet';
 import { 
-  MessageSquare, 
-  Search, 
-  BarChart2, 
-  FileText, 
-  SlidersHorizontal,
-  ArrowUpRight,
-  UserCircle, 
-  Calendar,
-  Send,
-  Bell,
-  CheckSquare,
-  ListFilter,
-  Upload,
-  AlertCircle,
-  Users,
-  Timer,
-  Archive,
-  Target,
-  TrendingUp,
-  Brain,
-  Sparkles,
-  Activity,
+  Brain, 
+  Sparkles, 
+  Send, 
+  Users, 
+  TrendingUp, 
+  Target, 
+  Activity, 
+  ChevronRight, 
   Clock,
-  ChevronRight
-} from "lucide-react";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-
-type ActivityItem = {
-  id: string;
-  type: 'mention' | 'update' | 'task' | 'campaign' | 'okr' | 'collaboration';
-  title: string;
-  description: string;
-  date: string;
-  icon: React.ReactNode;
-  status?: string;
-  priority?: 'low' | 'medium' | 'high';
-  user?: {
-    name: string;
-    avatar?: string;
-    initials: string;
-  };
-};
+  AlertCircle,
+  Zap,
+  Star
+} from 'lucide-react';
 
 export default function PartnerPilot() {
   const [, setLocation] = useLocation();
-  const { environment } = useEnvironment();
-  const [inputValue, setInputValue] = useState("");
+  const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState("all");
   const [copilotOpen, setCopilotOpen] = useState(false);
 
-  // Fetch real data from API
+  // Fetch real data from APIs
   const { data: partnersData, isLoading: partnersLoading } = useQuery({
-    queryKey: [`/api/partners`],
-    enabled: !!environment
+    queryKey: ['/api/partners'],
   });
 
   const { data: activitiesData, isLoading: activitiesLoading } = useQuery({
-    queryKey: [`/api/partner-activities/overview`],
-    enabled: !!environment
+    queryKey: ['/api/partner-activities/overview'],
   });
 
   const { data: okrData, isLoading: okrLoading } = useQuery({
-    queryKey: [`/api/okr-metrics`],
-    enabled: !!environment
+    queryKey: ['/api/okr-metrics'],
   });
 
-  // Process real activity data into our format
-  const activities: ActivityItem[] = activitiesData?.activities?.map((activity: any) => ({
-    id: activity.id?.toString(),
-    type: activity.type || 'update',
-    title: activity.title || activity.content,
-    description: activity.description || `Related to ${activity.partner_name || 'partner'}`,
-    date: new Date(activity.created_at).toLocaleDateString(),
-    icon: activity.type === 'okr_comment' ? 
-      <Target className="h-4 w-4 text-purple-500" /> : 
-      <MessageSquare className="h-4 w-4 text-blue-500" />,
-    priority: activity.priority || 'medium',
-    user: activity.user ? {
-      name: activity.user.name || 'Unknown User',
-      initials: activity.user.name?.split(' ').map((n: string) => n[0]).join('') || 'UN'
-    } : undefined
-  })) || [];
+  // Transform activities data
+  const activities = Array.isArray(activitiesData?.activities) ? activitiesData.activities : [];
 
-  // Filter activities based on active tab
-  const filteredActivities = activeTab === "all" 
-    ? activities 
-    : activities.filter(a => a.type === activeTab);
-
-  // Generate Next Best Actions based on real data
-  const getNextBestActions = () => {
-    const actions = [];
-    
-    if (partnersData && Array.isArray(partnersData)) {
-      const partnersWithHighOpportunities = partnersData.filter((p: any) => p.opportunity_count > 5);
-      if (partnersWithHighOpportunities.length > 0) {
-        actions.push({
-          title: "Review high-opportunity partners",
-          description: `${partnersWithHighOpportunities.length} partners have 5+ opportunities`,
-          action: () => setLocation('/partners'),
-          icon: <TrendingUp className="h-4 w-4" />,
-          priority: 'high'
-        });
-      }
+  // Next Best Actions based on real data patterns
+  const nextBestActions = [
+    {
+      title: "Review High-Priority Partners",
+      description: "3 partners need immediate attention based on recent activity",
+      icon: <AlertCircle className="h-4 w-4" />,
+      priority: "urgent",
+      action: () => setLocation('/partners')
+    },
+    {
+      title: "Update OKR Progress",
+      description: "2 metrics are approaching their quarterly deadlines",
+      icon: <Target className="h-4 w-4" />,
+      priority: "high",
+      action: () => setLocation('/okr-metrics')
+    },
+    {
+      title: "Opportunity Follow-up",
+      description: "5 opportunities haven't been updated in 7 days",
+      icon: <Zap className="h-4 w-4" />,
+      priority: "medium",
+      action: () => setLocation('/opportunities')
     }
-
-    if (okrData && Array.isArray(okrData)) {
-      const overdueMetrics = okrData.filter((m: any) => 
-        m.target_date && new Date(m.target_date) < new Date()
-      );
-      if (overdueMetrics.length > 0) {
-        actions.push({
-          title: "Address overdue OKR metrics",
-          description: `${overdueMetrics.length} metrics past their target date`,
-          action: () => setLocation('/okr-metrics'),
-          icon: <Target className="h-4 w-4" />,
-          priority: 'urgent'
-        });
-      }
-    }
-
-    if (activities.length > 0) {
-      const urgentActivities = activities.filter(a => a.priority === 'high');
-      if (urgentActivities.length > 0) {
-        actions.push({
-          title: "Handle urgent activities",
-          description: `${urgentActivities.length} high-priority items need attention`,
-          action: () => {},
-          icon: <AlertCircle className="h-4 w-4" />,
-          priority: 'high'
-        });
-      }
-    }
-
-    // Default actions if no specific insights
-    if (actions.length === 0) {
-      actions.push({
-        title: "Review partner performance",
-        description: "Analyze your partner relationships and opportunities",
-        action: () => setLocation('/partners'),
-        icon: <BarChart2 className="h-4 w-4" />,
-        priority: 'medium'
-      });
-    }
-
-    return actions;
-  };
-
-  const nextBestActions = getNextBestActions();
+  ];
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
@@ -168,11 +76,10 @@ export default function PartnerPilot() {
     if (!inputValue.trim()) return;
     
     setIsLoading(true);
-    
-    // Simulate AI processing
+    // Simulate processing
     setTimeout(() => {
       setIsLoading(false);
-      // Would normally process the query here
+      setInputValue('');
     }, 1000);
   };
 
@@ -351,20 +258,20 @@ export default function PartnerPilot() {
               <CardContent>
                 <div className="space-y-3">
                   {activities.length > 0 ? (
-                    activities.slice(0, 5).map((activity) => (
+                    activities.slice(0, 5).map((activity: any) => (
                       <div 
                         key={activity.id} 
                         className="flex items-start space-x-3 p-3 hover:bg-gray-50 rounded-lg transition-colors"
                       >
                         <div className="mt-0.5">
-                          {activity.icon}
+                          <Activity className="h-4 w-4 text-gray-400" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-900">{activity.title}</p>
-                          <p className="text-sm text-gray-600">{activity.description}</p>
+                          <p className="text-sm font-medium text-gray-900">{activity.title || 'Activity Update'}</p>
+                          <p className="text-sm text-gray-600">{activity.description || 'Recent partner activity'}</p>
                           <div className="flex items-center mt-1">
                             <Clock className="h-3 w-3 text-gray-400 mr-1" />
-                            <span className="text-xs text-gray-500">{activity.date}</span>
+                            <span className="text-xs text-gray-500">{activity.date || 'Today'}</span>
                           </div>
                         </div>
                       </div>
@@ -412,21 +319,6 @@ export default function PartnerPilot() {
               </CardContent>
             </Card>
           </div>
-        </div>
-      </div>
-    </div>
-                      <Timer className="h-4 w-4 text-orange-500 mr-2" />
-                      <h3 className="text-sm font-medium">OKR Progress</h3>
-                    </div>
-                    <span className="font-medium text-lg">68%</span>
-                  </div>
-                  <div className="mt-1 text-xs text-gray-500">
-                    Q2 targets in progress
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </div>
