@@ -2451,6 +2451,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/degoudse/template-assignments/:entityType/:entityId', async (req, res) => {
     try {
       const { entityType, entityId } = req.params;
+      console.log(`DEBUG: Fetching template assignments for ${entityType} ${entityId}`);
       const envPool = getEnvironmentPool('degoudse');
       
       const result = await envPool.query(`
@@ -2465,6 +2466,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ORDER BY ta.assigned_at DESC
       `, [entityType, parseInt(entityId)]);
       
+      console.log(`DEBUG: Found ${result.rows.length} template assignments for ${entityType} ${entityId}:`, result.rows);
       res.json(result.rows);
     } catch (error) {
       console.error('Error fetching template assignments for entity:', error);
