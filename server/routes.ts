@@ -58,11 +58,19 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
-  // Default API redirects to De Goudse environment
+  // All API redirects to De Goudse environment - clean routing
   app.get('/api/contacts', (req, res) => res.redirect('/api/degoudse/contacts'));
   app.post('/api/contacts', (req, res) => res.redirect(307, '/api/degoudse/contacts'));
   app.get('/api/vendors', (req, res) => res.redirect('/api/degoudse/vendors'));
   app.post('/api/vendors', (req, res) => res.redirect(307, '/api/degoudse/vendors'));
+  app.get('/api/partners', (req, res) => res.redirect('/api/degoudse/partners'));
+  app.get('/api/customers', (req, res) => res.redirect('/api/degoudse/customers'));
+  app.get('/api/products', (req, res) => res.redirect('/api/degoudse/products'));
+  app.get('/api/okr-metrics', (req, res) => res.redirect('/api/degoudse/okr-metrics'));
+  app.get('/api/okr-tags', (req, res) => res.redirect('/api/degoudse/okr-tags'));
+  app.get('/api/saved-lists', (req, res) => res.redirect('/api/degoudse/saved-lists' + (req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '')));
+  app.get('/api/saved-views', (req, res) => res.redirect('/api/degoudse/saved-views' + (req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '')));
+  app.get('/api/template-assignments/:entityType/:entityId?', (req, res) => res.redirect(`/api/degoudse/template-assignments/${req.params.entityType}${req.params.entityId ? '/' + req.params.entityId : ''}`));
   
   // Partners API - Returns data from authentic myqollabi partners table
   app.get('/api/partners', async (req, res) => {
@@ -155,45 +163,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Opportunities API - Returns data from myqollabi opportunities table
-  app.get('/api/opportunities', async (req, res) => {
-    try {
-      const result = await db.execute(sql`
-        SELECT o.*, 
-               STRING_AGG(DISTINCT p.name, ', ') as partner_names,
-               STRING_AGG(DISTINCT c.name, ', ') as customer_names
-        FROM myqollabi.opportunities o
-        LEFT JOIN myqollabi.partner_opportunities po ON o.id = po.opportunity_id
-        LEFT JOIN myqollabi.partners p ON p.id = po.partner_id
-        LEFT JOIN myqollabi.customer_opportunities co ON o.id = co.opportunity_id
-        LEFT JOIN myqollabi.customers c ON c.id = co.customer_id
-        GROUP BY o.id, o.title, o.description, o.stage, o.status, o.estimated_value, 
-                 o.expected_close_date, o.assigned_user_ids, o.created_at, o.updated_at
-        ORDER BY o.id
-      `);
-
-      const opportunities = result.rows.map((opp: any) => ({
-        id: opp.id,
-        title: opp.title,
-        description: opp.description,
-        stage: opp.stage,
-        status: opp.status,
-        estimatedValue: opp.estimated_value,
-        expectedCloseDate: opp.expected_close_date,
-        assignedUserIds: opp.assigned_user_ids,
-        createdAt: opp.created_at,
-        updatedAt: opp.updated_at,
-        partnerNames: opp.partner_names || '',
-        customerNames: opp.customer_names || ''
-      }));
-
-      console.log(`Returning ${opportunities.length} opportunities from myqollabi schema`);
-      res.json(opportunities);
-    } catch (error) {
-      console.error('Error fetching opportunities:', error);
-      res.json([]);
-    }
-  });
+  // Redirect opportunities to De Goudse environment
+  app.get('/api/opportunities', (req, res) => res.redirect('/api/degoudse/opportunities'));
 
 
 
@@ -947,49 +918,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Opportunities API - Returns data from clean opportunities_clean table
-  app.get('/api/opportunities', async (req, res) => {
-    try {
-      const result = await db.execute(sql`
-        SELECT o.*, c.name as client_name 
-        FROM myqollabi.opportunities o
-        LEFT JOIN myqollabi.customers c ON o.client_id = c.id
-        ORDER BY o.id
-      `);
-      
-      const opportunities = result.rows.map((opportunity: any) => ({
-        id: opportunity.id,
-        title: opportunity.title,
-        clientId: opportunity.client_id,
-        clientName: opportunity.client_name,
-        status: opportunity.status,
-        stage: opportunity.stage,
-        type: opportunity.type,
-        estimatedValue: opportunity.estimated_value,
-        probability: opportunity.probability,
-        description: opportunity.description,
-        location: opportunity.location,
-        partnerName: opportunity.partner_name,
-        lastActivityDate: opportunity.last_activity_date,
-        assignedUserId: opportunity.assigned_user_id,
-        createdAt: opportunity.created_at,
-        updatedAt: opportunity.updated_at,
-        expected_close_date: opportunity.expected_close_date,
-        delivery_date: opportunity.delivery_date,
-        customer_id: opportunity.customer_id,
-        partner_id: opportunity.partner_id,
-        linked_product_ids: opportunity.linked_product_ids,
-        linked_contact_ids: opportunity.linked_contact_ids,
-        created_by: opportunity.created_by
-      }));
-      
-      console.log(`Returning ${opportunities.length} opportunities from myqollabi table`);
-      res.json(opportunities);
-    } catch (error) {
-      console.error('Error fetching opportunities:', error);
-      res.json([]);
-    }
-  });
+
 
 
 
