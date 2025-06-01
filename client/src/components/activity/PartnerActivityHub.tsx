@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   Plus, MessageSquare, CheckSquare, Paperclip, ChevronDown, ChevronRight, 
-  Sparkles, Clock, User, Send, Eye, EyeOff, Check, X, Calendar, Filter
+  Sparkles, Clock, User, Send, Eye, EyeOff, Check, X, Calendar, Filter, Brain
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/components/ui/collapsible';
@@ -44,10 +44,10 @@ interface NextBestAction {
 }
 
 const activityTypes = [
+  { value: 'timeline', label: 'All', icon: Calendar, color: 'text-gray-600' },
   { value: 'task', label: 'Tasks', icon: CheckSquare, color: 'text-green-600' },
   { value: 'comment', label: 'Comments', icon: MessageSquare, color: 'text-blue-600' },
   { value: 'attachment', label: 'Documents', icon: Paperclip, color: 'text-purple-600' },
-  { value: 'timeline', label: 'All (Timeline)', icon: Calendar, color: 'text-gray-600' },
   { value: 'actions', label: 'Next Best Actions', icon: Sparkles, color: 'text-purple-600' }
 ];
 
@@ -60,7 +60,8 @@ const priorityColors = {
 
 export default function PartnerActivityHub({ partnerId, partnerName }: PartnerActivityHubProps) {
   const [isCollapsed, setIsCollapsed] = useState(true);
-  const [selectedActivityType, setSelectedActivityType] = useState<'task' | 'comment' | 'attachment' | 'timeline' | 'actions'>('task');
+  const [selectedActivityType, setSelectedActivityType] = useState<'task' | 'comment' | 'attachment' | 'timeline' | 'actions'>('timeline');
+  const [highlightActions, setHighlightActions] = useState(false);
   const [showActivityInput, setShowActivityInput] = useState(false);
   
   // Form states
@@ -139,6 +140,12 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
       }).then(res => res.json()),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/partners/${partnerId}/next-actions`] });
+      // Auto-expand and switch to actions tab
+      setIsCollapsed(false);
+      setSelectedActivityType('actions');
+      setHighlightActions(true);
+      // Remove highlight after 3 seconds
+      setTimeout(() => setHighlightActions(false), 3000);
       toast({ title: 'AI recommendations generated successfully' });
     },
     onError: (error: any) => {
@@ -237,8 +244,8 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
               disabled={generateActionsMutation.isPending}
               className="text-xs text-gray-600 hover:text-purple-600"
             >
-              <Sparkles className="h-3 w-3 mr-1" />
-              {generateActionsMutation.isPending ? 'Generating...' : 'Generate AI'}
+              <Brain className="h-3 w-3 mr-1" />
+              {generateActionsMutation.isPending ? 'Generating...' : 'Generate Next Best Action'}
             </Button>
           </div>
         </div>
