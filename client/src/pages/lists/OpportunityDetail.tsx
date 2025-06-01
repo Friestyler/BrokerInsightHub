@@ -48,6 +48,13 @@ export default function OpportunityDetail() {
   const { environment } = useEnvironment();
   const [activeTab, setActiveTab] = useState("partners");
 
+  // Fetch template assignments for this opportunity
+  const { data: templateAssignments = [] } = useQuery({
+    queryKey: [`/api/template-assignments/opportunity/${id}`],
+    enabled: !!id,
+    staleTime: 2 * 60 * 1000,
+  });
+
   // Fetch opportunity data
   const { data: opportunity, isLoading: opportunityLoading } = useQuery<Opportunity>({
     queryKey: [`/api/${environment.id}/opportunities/${id}`],
@@ -185,6 +192,21 @@ export default function OpportunityDetail() {
               <Target className="w-4 h-4 inline mr-2" />
               Products ({relatedProducts?.length || 0})
             </button>
+            <button
+              onClick={() => setActiveTab("okr-plan")}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === "okr-plan"
+                  ? "border-indigo-500 text-indigo-600"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300"
+              }`}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 inline mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+                <path d="M12 8v4l3 3" />
+                <circle cx="12" cy="12" r="7" />
+              </svg>
+              OKR Plan ({templateAssignments?.length || 0})
+            </button>
           </nav>
         </div>
       </div>
@@ -312,6 +334,75 @@ export default function OpportunityDetail() {
                 <p className="text-gray-500">No products associated with this opportunity</p>
               </div>
             )}
+          </div>
+        )}
+
+        {activeTab === "okr-plan" && (
+          <div>
+            <div className="mb-6">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">Assigned OKR Templates</h3>
+              {(!templateAssignments || templateAssignments.length === 0) ? (
+                <div className="text-center py-12">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-4 text-gray-400">
+                    <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+                    <path d="M12 8v4l3 3" />
+                    <circle cx="12" cy="12" r="7" />
+                  </svg>
+                  <p className="text-gray-500 mb-2">No OKR templates assigned</p>
+                  <p className="text-sm text-gray-400">Go to the Opportunities list to assign OKR templates to this opportunity</p>
+                </div>
+              ) : (
+                <div className="grid gap-4">
+                  {templateAssignments.map((assignment: any) => (
+                    <div key={assignment.id} className="bg-white border border-gray-200 rounded-lg p-6">
+                      <div className="flex items-start justify-between mb-4">
+                        <div className="flex-1">
+                          <h4 className="text-lg font-medium text-gray-900">{assignment.template_name}</h4>
+                          <p className="text-sm text-gray-600 mt-1">{assignment.template_description}</p>
+                        </div>
+                        <div className="flex items-center gap-2 ml-4">
+                          {assignment.tags && assignment.tags.length > 0 && (
+                            <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800 font-medium">
+                              {assignment.tags[0]}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                      
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        <div className="bg-gray-50 p-3 rounded">
+                          <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Current Progress</label>
+                          <div className="mt-1 text-sm text-gray-900">
+                            Not started
+                          </div>
+                        </div>
+                        <div className="bg-gray-50 p-3 rounded">
+                          <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Assigned Date</label>
+                          <div className="mt-1 text-sm text-gray-900">
+                            {new Date(assignment.assigned_at).toLocaleDateString()}
+                          </div>
+                        </div>
+                        <div className="bg-gray-50 p-3 rounded">
+                          <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Status</label>
+                          <div className="mt-1">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                              Active
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {assignment.notes && (
+                        <div className="mt-4 p-3 bg-blue-50 rounded">
+                          <label className="text-xs font-medium text-blue-700 uppercase tracking-wide">Notes</label>
+                          <p className="mt-1 text-sm text-blue-900">{assignment.notes}</p>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

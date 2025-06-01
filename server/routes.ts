@@ -2447,6 +2447,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get template assignments for a specific entity ID
+  app.get('/api/template-assignments/:entityType/:entityId', async (req, res) => {
+    try {
+      const { entityType, entityId } = req.params;
+      const envPool = getEnvironmentPool('degoudse');
+      
+      const result = await envPool.query(`
+        SELECT 
+          ta.*,
+          om.name as template_name,
+          om.description as template_description,
+          om.tags
+        FROM degoudse.okr_template_assignments ta
+        LEFT JOIN degoudse.okr_metrics om ON ta.template_id = om.id
+        WHERE ta.entity_type = $1 AND ta.entity_id = $2
+        ORDER BY ta.assigned_at DESC
+      `, [entityType, parseInt(entityId)]);
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching template assignments for entity:', error);
+      res.json([]);
+    }
+  });
+
   app.post('/api/degoudse/template-assignments', async (req, res) => {
     try {
       const { templateIds, entityType, entityId, assignedBy, notes } = req.body;
