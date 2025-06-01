@@ -554,8 +554,9 @@ function OpportunitiesTable() {
                           >
                             <div className="flex flex-1 items-center">
                               <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>{list.name}</span>
-                              {list.isShared && (
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2 text-indigo-500">
+                              {/* Show share icon if list has shared links */}
+                              {existingSharedLinks.length > 0 && activeList?.id === list.id && (
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2 text-green-500" title="Shared publicly">
                                   <circle cx="18" cy="5" r="3"></circle>
                                   <circle cx="6" cy="12" r="3"></circle>
                                   <circle cx="18" cy="19" r="3"></circle>
@@ -1240,38 +1241,17 @@ function OpportunitiesTable() {
                 </Button>
               </div>
               
-              {/* Show existing shared links */}
-              {existingSharedLinks.length > 0 && (
+              {/* Show sharing status */}
+              {existingSharedLinks.length > 0 && activeList?.id && (
                 <div className="mt-3 pt-3 border-t border-gray-200">
-                  <div className="text-sm text-gray-600 mb-2">Previous shared links for this list:</div>
-                  <div className="space-y-2 max-h-32 overflow-y-auto">
-                    {existingSharedLinks.map((link, index) => (
-                      <div key={link.share_token} className="flex items-center justify-between text-xs bg-gray-50 p-2 rounded">
-                        <div className="flex-1 min-w-0">
-                          <div className="text-gray-900 font-medium truncate">
-                            Created {new Date(link.created_at).toLocaleDateString()}
-                          </div>
-                          {link.message && (
-                            <div className="text-gray-500 truncate">{link.message}</div>
-                          )}
-                        </div>
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          className="ml-2 h-6 px-2 text-xs"
-                          onClick={() => {
-                            const linkUrl = `${window.location.origin}/share/list/${link.share_token}`;
-                            navigator.clipboard.writeText(linkUrl);
-                            toast({
-                              title: "Link copied",
-                              description: "The shared link has been copied to your clipboard.",
-                            });
-                          }}
-                        >
-                          Copy
-                        </Button>
-                      </div>
-                    ))}
+                  <div className="flex items-center text-sm text-green-600">
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    This list is shared publicly
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">
+                    Anyone with the link can view this list
                   </div>
                 </div>
               )}
@@ -1284,6 +1264,19 @@ function OpportunitiesTable() {
             </DialogClose>
             <Button onClick={async () => {
               try {
+                // If there's already a shared link for this list, just show it
+                if (existingSharedLinks.length > 0 && activeList?.id) {
+                  const baseUrl = window.location.origin;
+                  const existingUrl = `${baseUrl}/share/list/${existingSharedLinks[0].share_token}`;
+                  setCurrentSharedLink(existingUrl);
+                  
+                  toast({
+                    title: "Shareable link ready",
+                    description: "This list is already shared. Anyone with the link can view it.",
+                  });
+                  return;
+                }
+
                 const message = (document.getElementById('shareMessage') as HTMLTextAreaElement)?.value || '';
                 
                 // Determine what's being shared
@@ -1303,7 +1296,7 @@ function OpportunitiesTable() {
                     list_id: activeList.id
                   };
                 } else if (isBulkOpportunityShare) {
-                  // Sharing selected opportunities
+                  // Sharing selected opportunities (always creates new link for ad-hoc selections)
                   const selectedOpportunitiesData = selectedOpportunities
                     .map(id => opportunities.find(o => o.id === id))
                     .filter(Boolean);
@@ -1364,8 +1357,8 @@ function OpportunitiesTable() {
             >
               {createSharedListMutation.isPending 
                 ? 'Creating Link...' 
-                : existingSharedLinks.length > 0 
-                  ? 'Create New Link' 
+                : existingSharedLinks.length > 0 && activeList?.id
+                  ? 'Get Shareable Link' 
                   : 'Share List'
               }
             </Button>
