@@ -2298,6 +2298,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // De Goudse Users endpoints
+  app.get('/api/degoudse/users', async (req, res) => {
+    try {
+      const envPool = getEnvironmentPool('degoudse');
+      
+      const result = await envPool.query(`
+        SELECT id, username, email, full_name, first_name, last_name, 
+               avatar_initials, role, department, job_title, phone,
+               is_active, last_login_at, created_at, updated_at
+        FROM degoudse.users 
+        WHERE is_active = true
+        ORDER BY full_name ASC
+      `);
+      
+      console.log(`Returning ${result.rows.length} users from De Goudse database`);
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching De Goudse users:', error);
+      res.status(500).json({ error: 'Failed to fetch users' });
+    }
+  });
+
+  app.post('/api/degoudse/users', async (req, res) => {
+    try {
+      const envPool = getEnvironmentPool('degoudse');
+      const { 
+        username, email, firstName, lastName, role, department, 
+        jobTitle, phone, isActive = true 
+      } = req.body;
+      
+      if (!username || !email) {
+        return res.status(400).json({ error: 'Username and email are required' });
+      }
+
+      const fullName = `${firstName || ''} ${lastName || ''}`.trim() || username;
+      const avatarInitials = fullName.split(' ').map(word => word[0]).join('').toUpperCase().slice(0, 2);
+      
+      const result = await envPool.query(`
+        INSERT INTO degoudse.users (
+          username, email, full_name, first_name, last_name, avatar_initials,
+          role, department, job_title, phone, is_active, created_at, updated_at
+        ) VALUES (
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, NOW(), NOW()
+        ) RETURNING id, username, email, full_name, first_name, last_name, 
+                   avatar_initials, role, department, job_title, phone, 
+                   is_active, created_at, updated_at
+      `, [
+        username, email, fullName, firstName || null, lastName || null, avatarInitials,
+        role || 'user', department || null, jobTitle || null, phone || null, isActive
+      ]);
+      
+      const user = result.rows[0];
+      console.log('User created successfully in De Goudse environment:', user);
+      res.status(201).json(user);
+    } catch (error) {
+      console.error('Error creating De Goudse user:', error);
+      res.status(500).json({ error: 'Failed to create user' });
+    }
+  });
+
   app.post('/api/degoudse/okr-tags', async (req, res) => {
     try {
       const { name, color } = req.body;
@@ -3776,6 +3836,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/vendors', (req, res) => res.redirect(307, '/api/degoudse/vendors'));
   app.get('/api/okr-metrics', (req, res) => res.redirect('/api/degoudse/okr-metrics'));
   app.get('/api/okr-tags', (req, res) => res.redirect('/api/degoudse/okr-tags'));
+  app.get('/api/users', (req, res) => res.redirect('/api/degoudse/users'));
+  app.post('/api/users', (req, res) => res.redirect(307, '/api/degoudse/users'));
 
   app.put('/api/saved-views/:id', async (req, res) => {
     try {
