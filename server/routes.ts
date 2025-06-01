@@ -1703,10 +1703,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/degoudse/products', async (req, res) => {
     try {
-      const degoudseDb = getEnvironmentDb('degoudse');
-      const productsList = await degoudseDb.select().from(insuranceProducts);
-      console.log(`Returning ${productsList.length} products from De Goudse database`);
-      res.json(productsList);
+      const result = await db.execute(sql`
+        SELECT * FROM degoudse.products ORDER BY id
+      `);
+      console.log(`Returning ${result.rows.length} authentic products from De Goudse database`);
+      res.json(result.rows);
     } catch (error) {
       console.error('De Goudse products API error:', error);
       res.status(500).json({ message: 'Failed to fetch products for De Goudse environment' });
