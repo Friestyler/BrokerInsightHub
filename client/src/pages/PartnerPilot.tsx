@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import { useLocation } from 'wouter';
-import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -46,35 +45,66 @@ export default function PartnerPilot() {
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
 
-  // Fetch real data from APIs
-  const { data: partnersData, isLoading: partnersLoading } = useQuery({
-    queryKey: ['/api/partners'],
-  });
-
-  const { data: activitiesData, isLoading: activitiesLoading } = useQuery({
-    queryKey: ['/api/partner-activities/overview'],
-  });
-
-  const { data: okrData, isLoading: okrLoading } = useQuery({
-    queryKey: ['/api/okr-metrics'],
-  });
-
-  // Transform activities data - properly handle the response structure
-  const activities: ActivityItem[] = activitiesData?.activities ? activitiesData.activities.map((activity: any) => ({
-    id: activity.id?.toString() || Math.random().toString(),
-    type: activity.type || 'update',
-    title: activity.title || activity.content || 'Activity Update',
-    description: activity.description || activity.content || 'Recent partner activity',
-    date: activity.date || activity.created_at || 'Today',
-    icon: <MessageSquare className="h-4 w-4 text-indigo-500" />,
-    status: activity.status,
-    priority: activity.priority || 'medium',
-    user: activity.user ? {
-      name: activity.user.name || 'User',
-      avatar: activity.user.avatar,
-      initials: activity.user.initials || activity.user.name?.charAt(0) || 'U'
-    } : undefined
-  })) : [];
+  // Sample activities data
+  const activities: ActivityItem[] = [
+    {
+      id: '1',
+      type: 'mention',
+      title: 'John mentioned you in a partner discussion',
+      description: 'Updated the Q2 sales targets for Acme Corp partnership',
+      date: '2 hours ago',
+      icon: <MessageSquare className="h-4 w-4 text-indigo-500" />,
+      priority: 'medium',
+      user: {
+        name: 'John Smith',
+        initials: 'JS'
+      }
+    },
+    {
+      id: '2',
+      type: 'task',
+      title: 'Complete partner onboarding checklist',
+      description: 'TechFlow Solutions requires final documentation review',
+      date: '4 hours ago',
+      icon: <CheckSquare className="h-4 w-4 text-green-500" />,
+      priority: 'high',
+      user: {
+        name: 'Sarah Wilson',
+        initials: 'SW'
+      }
+    },
+    {
+      id: '3',
+      type: 'campaign',
+      title: 'Q2 Partner Outreach Campaign launched',
+      description: 'Successfully sent to 150 potential partners',
+      date: '1 day ago',
+      icon: <Send className="h-4 w-4 text-blue-500" />,
+      priority: 'low'
+    },
+    {
+      id: '4',
+      type: 'okr',
+      title: 'Partner Growth OKR updated',
+      description: 'Current progress: 68% towards Q2 target',
+      date: '2 days ago',
+      icon: <BarChart2 className="h-4 w-4 text-purple-500" />,
+      priority: 'medium'
+    },
+    {
+      id: '5',
+      type: 'collaboration',
+      title: 'New collaboration proposal from GlobalTech',
+      description: 'Joint venture opportunity for European market expansion',
+      date: '3 days ago',
+      icon: <Users className="h-4 w-4 text-orange-500" />,
+      priority: 'high',
+      user: {
+        name: 'Mike Johnson',
+        initials: 'MJ'
+      }
+    }
+  ];
 
   const nextBestActions = [
     {
