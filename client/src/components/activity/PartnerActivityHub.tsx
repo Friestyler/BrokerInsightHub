@@ -167,6 +167,21 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
     }
   });
 
+  // Convert AI recommendation to task
+  const convertToTaskMutation = useMutation({
+    mutationFn: ({ actionId, assignedTo }: { actionId: number, assignedTo: string }) =>
+      fetch(`/api/${currentEnv}/partners/${partnerId}/convert-action-to-task`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ actionId, assignedTo })
+      }).then(res => res.json()),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/partners/${partnerId}/activities`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/partners/${partnerId}/next-actions`] });
+      toast({ title: 'AI recommendation converted to task successfully' });
+    }
+  });
+
   const resetForm = () => {
     setTaskTitle('');
     setCommentContent('');
@@ -181,7 +196,7 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
 
     if (selectedActivityType === 'task') {
       if (!taskTitle.trim()) return;
-      activityData = { ...activityData, title: taskTitle, priority: taskPriority };
+      activityData = { ...activityData, title: taskTitle, priority: taskPriority, assignedTo };
     } else if (selectedActivityType === 'comment') {
       if (!commentContent.trim()) return;
       activityData = { ...activityData, content: commentContent };
@@ -331,6 +346,27 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                         <SelectItem value="urgent">Urgent</SelectItem>
                       </SelectContent>
                     </Select>
+                    <Select value={assignedTo} onValueChange={setAssignedTo}>
+                      <SelectTrigger className="w-40 h-8 text-xs">
+                        <SelectValue placeholder="Assign to..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {teamMembers.map((member) => (
+                          <SelectItem key={member.id} value={member.id}>
+                            <div className="flex items-center gap-2">
+                              <User className="h-3 w-3" />
+                              {member.name}
+                            </div>
+                          </SelectItem>
+                        ))}
+                        <SelectItem value="ai-agent" disabled>
+                          <div className="flex items-center gap-2 text-gray-400">
+                            <Bot className="h-3 w-3" />
+                            AI Agent (coming later)
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
@@ -384,6 +420,12 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                           <Badge className={priorityColors[task.priority as keyof typeof priorityColors]}>
                             {task.priority}
                           </Badge>
+                        )}
+                        {task.assignedTo && (
+                          <div className="flex items-center gap-1 text-xs bg-gray-100 px-2 py-1 rounded">
+                            <User className="h-3 w-3" />
+                            <span>{teamMembers.find(m => m.id === task.assignedTo)?.name || task.assignedTo}</span>
+                          </div>
                         )}
                         {task.visible_to_partner && <Eye className="h-3 w-3 text-blue-500" />}
                         <span className="text-xs text-gray-500">
@@ -554,7 +596,7 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                 </div>
               ) : (
                 <div className="space-y-2">
-                  {actions.map((action: NextBestAction, index) => (
+                  {actions.map((action: NextBestAction, index: number) => (
                     <div 
                       key={action.id} 
                       className={`p-3 bg-white border rounded-lg transition-all duration-300 ${
@@ -570,8 +612,54 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
                         <Badge className={priorityColors[action.priority as keyof typeof priorityColors]}>
                           {action.priority}
                         </Badge>
+                        {highlightActions && (
+                          <Badge className="bg-purple-100 text-purple-800 animate-pulse">
+                            New
+                          </Badge>
+                        )}
                       </div>
-                      <p className="text-xs text-gray-600">{action.description}</p>
+                      <p className="text-xs text-gray-600 mb-3">{action.description}</p>
+                      
+                      {/* Assignment Actions */}
+                      <div className="flex items-center gap-2 pt-2 border-t border-gray-100">
+                        <Select 
+                          onValueChange={(assignedTo) => {
+                            if (assignedTo !== 'ai-agent') {
+                              convertToTaskMutation.mutate({ actionId: action.id, assignedTo });
+                            }
+                          }}
+                        >
+                          <SelectTrigger className="w-36 h-7 text-xs">
+                            <SelectValue placeholder="Assign to..." />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {teamMembers.map((member) => (
+                              <SelectItem key={member.id} value={member.id}>
+                                <div className="flex items-center gap-2">
+                                  <User className="h-3 w-3" />
+                                  <span>{member.name}</span>
+                                </div>
+                              </SelectItem>
+                            ))}
+                            <SelectItem value="ai-agent" disabled>
+                              <div className="flex items-center gap-2 text-gray-400">
+                                <Bot className="h-3 w-3" />
+                                <span>AI Agent (coming later)</span>
+                              </div>
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-7 px-2 text-xs"
+                          onClick={() => convertToTaskMutation.mutate({ actionId: action.id, assignedTo: '' })}
+                          disabled={convertToTaskMutation.isPending}
+                        >
+                          <UserPlus className="h-3 w-3 mr-1" />
+                          Convert to Task
+                        </Button>
+                      </div>
                     </div>
                   ))}
                 </div>
