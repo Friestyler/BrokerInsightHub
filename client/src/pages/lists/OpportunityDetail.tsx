@@ -4,7 +4,9 @@ import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
-import { ArrowLeft, Building2, Users, Target } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ArrowLeft, Building2, Users, Target, Search } from "lucide-react";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 
 interface Opportunity {
@@ -47,6 +49,12 @@ export default function OpportunityDetail() {
   const { id } = useParams();
   const { environment } = useEnvironment();
   const [activeTab, setActiveTab] = useState("okr-plan");
+  
+  // Filter states for OKR plans
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedTag, setSelectedTag] = useState("all");
+  const [selectedUnit, setSelectedUnit] = useState("all");
+  const [selectedRange, setSelectedRange] = useState("all");
 
   // Fetch template assignments for this opportunity
   const { data: templateAssignments = [] } = useQuery({
@@ -338,71 +346,131 @@ export default function OpportunityDetail() {
         )}
 
         {activeTab === "okr-plan" && (
-          <div>
-            <div className="mb-6">
-              <h3 className="text-lg font-medium text-gray-900 mb-4">Assigned OKR Templates</h3>
-              {(!templateAssignments || templateAssignments.length === 0) ? (
-                <div className="text-center py-12">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-4 text-gray-400">
-                    <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
-                    <path d="M12 8v4l3 3" />
-                    <circle cx="12" cy="12" r="7" />
-                  </svg>
-                  <p className="text-gray-500 mb-2">No OKR templates assigned</p>
-                  <p className="text-sm text-gray-400">Go to the Opportunities list to assign OKR templates to this opportunity</p>
-                </div>
-              ) : (
-                <div className="grid gap-4">
-                  {templateAssignments.map((assignment: any) => (
-                    <div key={assignment.id} className="bg-white border border-gray-200 rounded-lg p-6">
-                      <div className="flex items-start justify-between mb-4">
-                        <div className="flex-1">
-                          <h4 className="text-lg font-medium text-gray-900">{assignment.template_name}</h4>
-                          <p className="text-sm text-gray-600 mt-1">{assignment.template_description}</p>
-                        </div>
-                        <div className="flex items-center gap-2 ml-4">
-                          {assignment.tags && assignment.tags.length > 0 && (
-                            <span className="px-2 py-1 text-xs rounded-full bg-blue-100 text-blue-800 font-medium">
-                              {assignment.tags[0]}
-                            </span>
-                          )}
-                        </div>
-                      </div>
-                      
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        <div className="bg-gray-50 p-3 rounded">
-                          <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Current Progress</label>
-                          <div className="mt-1 text-sm text-gray-900">
-                            Not started
-                          </div>
-                        </div>
-                        <div className="bg-gray-50 p-3 rounded">
-                          <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Assigned Date</label>
-                          <div className="mt-1 text-sm text-gray-900">
-                            {new Date(assignment.assigned_at).toLocaleDateString()}
-                          </div>
-                        </div>
-                        <div className="bg-gray-50 p-3 rounded">
-                          <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Status</label>
-                          <div className="mt-1">
-                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
-                              Active
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                      
-                      {assignment.notes && (
-                        <div className="mt-4 p-3 bg-blue-50 rounded">
-                          <label className="text-xs font-medium text-blue-700 uppercase tracking-wide">Notes</label>
-                          <p className="mt-1 text-sm text-blue-900">{assignment.notes}</p>
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
+          <div className="space-y-6">
+            {/* Filter Controls */}
+            <div className="flex flex-wrap gap-4">
+              <div className="relative flex-1 min-w-64">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Input
+                  placeholder="Search..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+              
+              <Select value={selectedTag} onValueChange={setSelectedTag}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="All Tags" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Tags</SelectItem>
+                  <SelectItem value="acquisition">Acquisition</SelectItem>
+                  <SelectItem value="products">Products</SelectItem>
+                  <SelectItem value="claims">Claims</SelectItem>
+                  <SelectItem value="solar">Solar</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <Select value={selectedUnit} onValueChange={setSelectedUnit}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="All Units" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Units</SelectItem>
+                  <SelectItem value="percentage">Percentage</SelectItem>
+                  <SelectItem value="customers">Customers</SelectItem>
+                  <SelectItem value="products">Products</SelectItem>
+                </SelectContent>
+              </Select>
+              
+              <Select value={selectedRange} onValueChange={setSelectedRange}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="All Ranges" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Ranges</SelectItem>
+                  <SelectItem value="0-50">0-50</SelectItem>
+                  <SelectItem value="51-100">51-100</SelectItem>
+                  <SelectItem value="100+">100+</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
+
+            {/* Tag Badges */}
+            {templateAssignments && templateAssignments.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {Array.from(new Set(templateAssignments.flatMap((a: any) => a.tags || []))).map((tag: any) => {
+                  const count = templateAssignments.filter((a: any) => a.tags?.includes(tag)).length;
+                  const tagColors: Record<string, string> = {
+                    'acquisition': 'bg-blue-100 text-blue-800',
+                    'products': 'bg-green-100 text-green-800', 
+                    'claims': 'bg-red-100 text-red-800',
+                    'solar': 'bg-yellow-100 text-yellow-800',
+                    'partnership': 'bg-purple-100 text-purple-800',
+                    'performance': 'bg-indigo-100 text-indigo-800',
+                    'diversification': 'bg-teal-100 text-teal-800'
+                  };
+                  
+                  return (
+                    <span 
+                      key={tag} 
+                      className={`px-3 py-1 text-sm rounded-full font-medium ${tagColors[tag] || 'bg-gray-100 text-gray-800'}`}
+                    >
+                      {tag} ({count} metric{count !== 1 ? 's' : ''})
+                    </span>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Table */}
+            {(!templateAssignments || templateAssignments.length === 0) ? (
+              <div className="text-center py-12">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mx-auto mb-4 text-gray-400">
+                  <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3" />
+                  <path d="M12 8v4l3 3" />
+                  <circle cx="12" cy="12" r="7" />
+                </svg>
+                <p className="text-gray-500 mb-2">No OKR templates assigned</p>
+                <p className="text-sm text-gray-400">Go to the Opportunities list to assign OKR templates to this opportunity</p>
+              </div>
+            ) : (
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="w-12"><Checkbox /></TableHead>
+                    <TableHead>Name</TableHead>
+                    <TableHead>Timeframe</TableHead>
+                    <TableHead>Milestone Frequency</TableHead>
+                    <TableHead>Target</TableHead>
+                    <TableHead className="w-12"></TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {templateAssignments.map((assignment: any) => (
+                    <TableRow key={assignment.id}>
+                      <TableCell><Checkbox /></TableCell>
+                      <TableCell>
+                        <div>
+                          <div className="font-medium text-gray-900">{assignment.template_name}</div>
+                          <div className="text-sm text-gray-600">{assignment.template_description}</div>
+                        </div>
+                      </TableCell>
+                      <TableCell>quarterly</TableCell>
+                      <TableCell>Not set</TableCell>
+                      <TableCell>
+                        <span className="text-gray-900">80</span>
+                        <span className="text-gray-500 ml-1">percentage</span>
+                      </TableCell>
+                      <TableCell>
+                        <Button variant="ghost" size="sm">•••</Button>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
           </div>
         )}
       </div>
