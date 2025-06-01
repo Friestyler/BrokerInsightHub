@@ -1,17 +1,23 @@
 import { useState } from "react";
 import { useParams, Link } from "wouter";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { ArrowLeft, Search, Users, Copy, Trash2, MoreHorizontal } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
+import { ArrowLeft, Search, Users, Copy, Trash2, MoreHorizontal, MessageSquare } from "lucide-react";
 import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
 
 export default function PartnerDetailClean() {
   const { id } = useParams();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("okr-plans");
   
   // OKR metrics state management
@@ -22,6 +28,12 @@ export default function PartnerDetailClean() {
   const [selectedRange, setSelectedRange] = useState("all");
   const [selectedTimeframe, setSelectedTimeframe] = useState("all");
   const [groupBy, setGroupBy] = useState("tag");
+
+  // Comment state management
+  const [isCommentDialogOpen, setIsCommentDialogOpen] = useState(false);
+  const [selectedMetricForComment, setSelectedMetricForComment] = useState<any | null>(null);
+  const [commentText, setCommentText] = useState('');
+  const [visibleToPartner, setVisibleToPartner] = useState(true);
 
   // Fetch partner data from database
   const { data: partners, isLoading: partnersLoading } = useQuery({
@@ -55,6 +67,48 @@ export default function PartnerDetailClean() {
   const { data: tags } = useQuery({
     queryKey: ['/api/okr-tags'],
   });
+
+  // Create comment mutation
+  const createCommentMutation = useMutation({
+    mutationFn: async (data: { content: string; visible_to_partner: boolean; entityType: string; entityId: number }) => {
+      const response = await fetch('/api/activity/comments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ...data,
+          authorId: 1, // Default user ID
+        }),
+      });
+      if (!response.ok) throw new Error('Failed to create comment');
+      return response.json();
+    },
+    onSuccess: () => {
+      setIsCommentDialogOpen(false);
+      setCommentText('');
+      setVisibleToPartner(true);
+      setSelectedMetricForComment(null);
+      toast({ title: "Success", description: "Comment added successfully!" });
+    },
+    onError: () => {
+      toast({ title: "Error", description: "Failed to add comment", variant: "destructive" });
+    },
+  });
+
+  const handleAddComment = (metric: any) => {
+    setSelectedMetricForComment(metric);
+    setIsCommentDialogOpen(true);
+  };
+
+  const handleSubmitComment = () => {
+    if (!selectedMetricForComment || !commentText.trim()) return;
+    
+    createCommentMutation.mutate({
+      content: commentText,
+      visible_to_partner: visibleToPartner,
+      entityType: 'okr_metric',
+      entityId: selectedMetricForComment.id,
+    });
+  };
 
   if (partnersLoading || customersLoading || opportunitiesLoading) {
     return <div className="p-4">Loading...</div>;
@@ -357,6 +411,11 @@ export default function PartnerDetailClean() {
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
+                                  <DropdownMenuItem onClick={() => handleAddComment(metric)}>
+                                    <MessageSquare className="w-4 h-4 mr-2" />
+                                    Add Comment
+                                  </DropdownMenuItem>
+                                  <DropdownMenuSeparator />
                                   <DropdownMenuItem>Edit metric</DropdownMenuItem>
                                   <DropdownMenuItem>Duplicate</DropdownMenuItem>
                                   <DropdownMenuSeparator />
@@ -466,6 +525,62 @@ export default function PartnerDetailClean() {
           </div>
         )}
       </div>
+
+      {/* Comment Dialog */}
+      <Dialog open={isCommentDialogOpen} onOpenChange={setIsCommentDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add Comment to OKR Metric</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            {selectedMetricForComment && (
+              <div className="p-3 bg-gray-50 rounded-lg">
+                <p className="font-medium text-sm">{selectedMetricForComment.name}</p>
+                <p className="text-xs text-gray-600 mt-1">
+                  Current: {selectedMetricForComment.realized_value} {selectedMetricForComment.measure_unit}
+                  {selectedMetricForComment.target_value && (
+                    <span> / Target: {selectedMetricForComment.target_value} {selectedMetricForComment.measure_unit}</span>
+                  )}
+                </p>
+              </div>
+            )}
+            
+            <div className="space-y-2">
+              <Label htmlFor="comment-text">Comment</Label>
+              <Textarea
+                id="comment-text"
+                placeholder="Add your comment about this metric..."
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                rows={4}
+              />
+            </div>
+
+            <div className="flex items-center space-x-2">
+              <Switch
+                checked={visibleToPartner}
+                onCheckedChange={setVisibleToPartner}
+              />
+              <Label className="text-sm">Visible to partner</Label>
+            </div>
+
+            <div className="flex justify-end space-x-2">
+              <Button
+                variant="outline"
+                onClick={() => setIsCommentDialogOpen(false)}
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleSubmitComment}
+                disabled={!commentText.trim() || createCommentMutation.isPending}
+              >
+                {createCommentMutation.isPending ? 'Adding...' : 'Add Comment'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
