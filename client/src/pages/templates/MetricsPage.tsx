@@ -1327,7 +1327,7 @@ export default function MetricsPage() {
                     <div className="flex items-center justify-between mb-3">
                       <div>
                         <h4 className="text-sm font-medium text-gray-900">Customize field labels (optional)</h4>
-                        <p className="text-xs text-gray-600">Change how the target and progress fields are named in the OKR</p>
+                        <p className="text-xs text-gray-600">Change how the target and result fields are named in the OKR</p>
                       </div>
                       <button
                         type="button"
