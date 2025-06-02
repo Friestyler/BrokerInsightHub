@@ -300,7 +300,7 @@ export default function MetricsPage() {
     isTargetRequired: false,
     targetLabel: 'Target',
     realizedLabel: 'Realized',
-    showFieldCustomization: false
+    showAdvancedSettings: false
   });
 
   // Calculate total target whenever target, timeframe, or milestone frequency changes
@@ -415,7 +415,7 @@ export default function MetricsPage() {
       isTargetRequired: false,
       targetLabel: 'Target',
       realizedLabel: 'Realized',
-      showFieldCustomization: false
+      showAdvancedSettings: false
     });
     setIsCreateOKROpen(false);
     setIsCreatingNewTag(false);
@@ -1322,47 +1322,53 @@ export default function MetricsPage() {
                     </div>
                   )}
 
-                  {/* Optional Field Customization */}
+                  {/* Advanced Settings */}
                   <div className="border-t pt-4">
                     <div className="flex items-center justify-between mb-3">
                       <div>
-                        <h4 className="text-sm font-medium text-gray-900">Customize field labels (optional)</h4>
-                        <p className="text-xs text-gray-600">Change how the target and result fields are named in the OKR</p>
+                        <h4 className="text-sm font-medium text-gray-900">Advanced Settings</h4>
+                        <p className="text-xs text-gray-600">Optional customizations for power users</p>
                       </div>
                       <button
                         type="button"
-                        onClick={() => setFormData(prev => ({...prev, showFieldCustomization: !prev.showFieldCustomization}))}
+                        onClick={() => setFormData(prev => ({...prev, showAdvancedSettings: !prev.showAdvancedSettings}))}
                         className="text-xs text-blue-600 hover:text-blue-700"
                       >
-                        {formData.showFieldCustomization ? 'Hide' : 'Customize'}
+                        {formData.showAdvancedSettings ? 'Hide' : 'Show'}
                       </button>
                     </div>
                     
-                    {formData.showFieldCustomization && (
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <label htmlFor="target-label" className="text-xs font-medium text-gray-700">
-                            Target field name
-                          </label>
-                          <Input 
-                            id="target-label"
-                            value={formData.targetLabel || 'Target'}
-                            onChange={(e) => setFormData(prev => ({...prev, targetLabel: e.target.value}))}
-                            placeholder="e.g., YTD, Goal"
-                            className="text-sm border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <label htmlFor="realized-label" className="text-xs font-medium text-gray-700">
-                            Progress field name
-                          </label>
-                          <Input 
-                            id="realized-label"
-                            value={formData.realizedLabel || 'Realized'}
-                            onChange={(e) => setFormData(prev => ({...prev, realizedLabel: e.target.value}))}
-                            placeholder="e.g., Full Year, Progress"
-                            className="text-sm border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                          />
+                    {formData.showAdvancedSettings && (
+                      <div className="space-y-4">
+                        {/* Field Labels */}
+                        <div>
+                          <h5 className="text-xs font-medium text-gray-800 mb-2">Field Labels</h5>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <label htmlFor="target-label" className="text-xs font-medium text-gray-700">
+                                Target field name
+                              </label>
+                              <Input 
+                                id="target-label"
+                                value={formData.targetLabel || 'Target'}
+                                onChange={(e) => setFormData(prev => ({...prev, targetLabel: e.target.value}))}
+                                placeholder="e.g., YTD, Goal"
+                                className="text-sm border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <label htmlFor="realized-label" className="text-xs font-medium text-gray-700">
+                                Progress field name
+                              </label>
+                              <Input 
+                                id="realized-label"
+                                value={formData.realizedLabel || 'Realized'}
+                                onChange={(e) => setFormData(prev => ({...prev, realizedLabel: e.target.value}))}
+                                placeholder="e.g., Full Year, Progress"
+                                className="text-sm border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                              />
+                            </div>
+                          </div>
                         </div>
                       </div>
                     )}
