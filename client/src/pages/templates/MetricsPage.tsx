@@ -471,7 +471,6 @@ export default function MetricsPage() {
           Add OKR metric template
         </Button>
       </div>
-
       {/* Search and filter section for OKR templates */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div className="flex flex-wrap items-center gap-3">
@@ -594,7 +593,6 @@ export default function MetricsPage() {
 
         </div>
       </div>
-
       {/* Bulk Actions Bar */}
       <div className="bg-[#F0F1FB] border border-[#D4D9F3] rounded-lg p-4 min-h-[72px]">
         <div className="flex items-center justify-between h-10">
@@ -650,7 +648,6 @@ export default function MetricsPage() {
           )}
         </div>
       </div>
-
       {/* Group OKRs and display in sections */}
       <div className="mt-6">
         {Object.entries(groupOKRs(filteredOKRs)).sort(([a], [b]) => {
@@ -848,7 +845,6 @@ export default function MetricsPage() {
         </div>
         ))}
       </div>
-
       {/* Create OKR Dialog */}
       <Dialog open={isCreateOKROpen} onOpenChange={setIsCreateOKROpen}>
         <DialogContent className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg sm:max-w-[800px] max-h-[85vh] overflow-y-auto bg-[#ffffff]">
@@ -1138,7 +1134,7 @@ export default function MetricsPage() {
                 <div className="space-y-4">
                   <div className="space-y-3">
                     <h3 className="text-lg font-semibold text-gray-900">Set Your Target</h3>
-                    <p className="text-sm text-gray-600">Define the target value for this OKR template. Users will track their progress against this target.</p>
+                    <p className="text-sm text-gray-600">Define the target value for this OKR template. Users will track their results against this target.</p>
                   </div>
 
                   {/* Target Field - Currency */}
