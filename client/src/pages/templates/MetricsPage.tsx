@@ -287,7 +287,7 @@ export default function MetricsPage() {
     description: '',
     timeframe: '',
     milestoneFrequency: '',
-    target: 0,
+    target: 0 as number | undefined,
     totalTarget: 0,
     hasTarget: false,
     targetValue: '',
@@ -295,11 +295,13 @@ export default function MetricsPage() {
     trafficLightConfig: '',
     progressBar: false,
     dueDateRequired: false,
-    responsibleRequired: false
+    responsibleRequired: false,
+    hasPresetTarget: true,
+    isTargetRequired: false
   });
 
   // Calculate total target whenever target, timeframe, or milestone frequency changes
-  const calculateTotalTarget = (target: number, timeframe: string, frequency: string): number => {
+  const calculateTotalTarget = (target: number | undefined, timeframe: string, frequency: string): number => {
     if (!target || !timeframe || !frequency) {
       return 0;
     }
@@ -397,7 +399,7 @@ export default function MetricsPage() {
       description: '',
       timeframe: '',
       milestoneFrequency: '',
-      target: 0,
+      target: 0 as number | undefined,
       totalTarget: 0,
       hasTarget: false,
       targetValue: '',
@@ -405,7 +407,9 @@ export default function MetricsPage() {
       trafficLightConfig: '',
       progressBar: false,
       dueDateRequired: false,
-      responsibleRequired: false
+      responsibleRequired: false,
+      hasPresetTarget: true,
+      isTargetRequired: false
     });
     setIsCreateOKROpen(false);
     setIsCreatingNewTag(false);
@@ -1126,23 +1130,72 @@ export default function MetricsPage() {
               {/* Target & Measurement Section */}
               {formData.okrType && (
                 <div className="space-y-4">
-                  <div className="space-y-2">
+                  <div className="space-y-3">
                     <h3 className="text-lg font-semibold text-gray-900">Target & Measurement</h3>
-                    <p className="text-sm text-gray-600">
-                      Define the specific targets that need to be achieved. The target per milestone represents what should be accomplished at each milestone interval, while the total target shows the cumulative goal for the entire timeframe.
-                    </p>
+                    
+                    {/* Target Setting Options */}
+                    <div className="bg-gray-50 p-4 rounded-lg space-y-3">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm font-medium text-gray-900">Target Configuration</span>
+                        <div className="flex gap-2">
+                          <button
+                            type="button"
+                            onClick={() => setFormData(prev => ({...prev, hasPresetTarget: true}))}
+                            className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+                              formData.hasPresetTarget 
+                                ? 'bg-blue-600 text-white' 
+                                : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+                            }`}
+                          >
+                            Set target now
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => setFormData(prev => ({...prev, hasPresetTarget: false, target: undefined}))}
+                            className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
+                              !formData.hasPresetTarget 
+                                ? 'bg-blue-600 text-white' 
+                                : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
+                            }`}
+                          >
+                            Set later
+                          </button>
+                        </div>
+                      </div>
+                      
+                      {!formData.hasPresetTarget && (
+                        <div className="flex items-center justify-between pt-2 border-t border-gray-200">
+                          <span className="text-sm text-gray-700">Require target when assigned?</span>
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={formData.isTargetRequired || false}
+                              onChange={(e) => setFormData(prev => ({...prev, isTargetRequired: e.target.checked}))}
+                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
+                            />
+                            <span className="text-sm text-gray-600">Required</span>
+                          </label>
+                        </div>
+                      )}
+                      
+                      <p className="text-xs text-gray-600">
+                        {formData.hasPresetTarget 
+                          ? 'Set a default target that will be applied when this template is assigned.'
+                          : formData.isTargetRequired
+                            ? 'Account managers must set a target when assigning this template.'
+                            : 'Account managers can optionally set a target when assigning this template.'
+                        }
+                      </p>
+                    </div>
                   </div>
 
                   {/* Target Field - Currency */}
-                  {formData.okrType === 'currency' && (
+                  {formData.okrType === 'currency' && formData.hasPresetTarget && (
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <label htmlFor="okr-target" className="text-sm font-medium text-gray-900">
-                          Target per milestone <span className="text-red-500">*</span>
+                          Target per milestone
                         </label>
-                        <p className="text-xs text-gray-500 mb-2">
-                          This target needs to be reached per milestone. For example, every quarter I need to reach a target of 100 euros.
-                        </p>
                         <div className="relative">
                           <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">€</span>
                           <Input 
@@ -1159,9 +1212,6 @@ export default function MetricsPage() {
                         <label htmlFor="okr-total-target" className="text-sm font-medium text-gray-900">
                           Target for full timeframe
                         </label>
-                        <p className="text-xs text-gray-500 mb-2">
-                          This is the total target for the full timeframe selected.
-                        </p>
                         <div className="relative">
                           <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">€</span>
                           <Input 
