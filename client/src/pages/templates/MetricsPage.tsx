@@ -1026,7 +1026,7 @@ export default function MetricsPage() {
                     onValueChange={(value) => setFormData(prev => ({...prev, milestoneFrequency: value}))}
                     disabled={!formData.timeframe}
                   >
-                    <SelectTrigger id="okr-milestone-frequency" className="border-gray-300 focus:border-blue-500">
+                    <SelectTrigger id="okr-milestone-frequency" className="w-[350px] border-gray-300 focus:border-blue-500">
                       <SelectValue placeholder="Select frequency" />
                     </SelectTrigger>
                     <SelectContent>
