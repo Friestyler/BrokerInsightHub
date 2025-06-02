@@ -308,7 +308,9 @@ export default function MetricsPage() {
     enableTrafficLights: false,
     trafficLightStyle: 'system',
     trafficLightYellowThreshold: 50,
-    trafficLightGreenThreshold: 75
+    trafficLightGreenThreshold: 75,
+    targetDistribution: 'equal', // 'equal' or 'custom'
+    customMilestoneTargets: [] as number[]
   });
 
   // Calculate total target whenever target, timeframe, or milestone frequency changes
@@ -431,7 +433,9 @@ export default function MetricsPage() {
       enableTrafficLights: false,
       trafficLightStyle: 'system',
       trafficLightYellowThreshold: 50,
-      trafficLightGreenThreshold: 75
+      trafficLightGreenThreshold: 75,
+      targetDistribution: 'equal',
+      customMilestoneTargets: []
     });
     setIsCreateOKROpen(false);
     setIsCreatingNewTag(false);
@@ -1166,35 +1170,8 @@ export default function MetricsPage() {
 
                   {/* Target Field - Currency */}
                   {formData.okrType === 'currency' && (
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-1">
-                          <label htmlFor="okr-target" className="text-sm font-medium text-gray-900">
-                            {formData.targetLabel || 'Target'} per milestone
-                          </label>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Info className="w-3 h-3 text-gray-400 cursor-help" />
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p className="max-w-xs">This target needs to be reached per milestone. For example, every quarter I need to reach a target of €1000.</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
-                        <div className="relative">
-                          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">€</span>
-                          <Input 
-                            id="okr-target"
-                            type="number"
-                            value={formData.target || ''}
-                            onChange={(e) => setFormData(prev => ({...prev, target: parseFloat(e.target.value) || 0}))}
-                            placeholder="Optional (e.g., 1000)"
-                            className="pl-8 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                          />
-                        </div>
-                      </div>
+                    <div className="space-y-4">
+                      {/* Total Target Input */}
                       <div className="space-y-2">
                         <div className="flex items-center gap-1">
                           <label htmlFor="okr-total-target" className="text-sm font-medium text-gray-900">
@@ -1206,58 +1183,93 @@ export default function MetricsPage() {
                                 <Info className="w-3 h-3 text-gray-400 cursor-help" />
                               </TooltipTrigger>
                               <TooltipContent>
-                                <p className="max-w-xs">This is the total target for the full timeframe selected. It automatically calculates based on your milestone target and timeframe duration.</p>
+                                <p className="max-w-xs">Set the total target amount you want to achieve over the entire timeframe period.</p>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
                         </div>
-                        <div className="relative">
+                        <div className="relative" style={{ width: '350px' }}>
                           <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">€</span>
                           <Input 
                             id="okr-total-target"
                             type="number"
-                            value={formData.totalTarget}
-                            disabled
-                            className="pl-8 text-base border-gray-300 bg-gray-50 text-gray-700"
+                            value={formData.totalTarget || ''}
+                            onChange={(e) => setFormData(prev => ({...prev, totalTarget: parseFloat(e.target.value) || 0}))}
+                            placeholder="Optional (e.g., 12000)"
+                            className="pl-8 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                           />
                         </div>
                       </div>
+
+                      {/* Target Distribution Options */}
+                      {formData.totalTarget > 0 && (
+                        <div className="space-y-3">
+                          <h4 className="text-sm font-medium text-gray-900">Target Distribution</h4>
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="radio"
+                                id="equal-distribution"
+                                name="targetDistribution"
+                                value="equal"
+                                checked={formData.targetDistribution === 'equal'}
+                                onChange={() => setFormData(prev => ({...prev, targetDistribution: 'equal'}))}
+                                className="h-3 w-3 text-blue-600 focus:ring-blue-500"
+                              />
+                              <label htmlFor="equal-distribution" className="text-sm text-gray-900">
+                                <span className="font-medium">Split equally</span> - Divide total target evenly across all milestones
+                              </label>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="radio"
+                                id="custom-distribution"
+                                name="targetDistribution"
+                                value="custom"
+                                checked={formData.targetDistribution === 'custom'}
+                                onChange={() => setFormData(prev => ({...prev, targetDistribution: 'custom'}))}
+                                className="h-3 w-3 text-blue-600 focus:ring-blue-500"
+                              />
+                              <label htmlFor="custom-distribution" className="text-sm text-gray-900">
+                                <span className="font-medium">Custom distribution</span> - Set specific targets for each milestone
+                              </label>
+                            </div>
+                          </div>
+
+                          {/* Equal Distribution Preview */}
+                          {formData.targetDistribution === 'equal' && (
+                            <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
+                              <p className="text-xs text-blue-800 mb-2 font-medium">Equal Distribution Preview</p>
+                              <p className="text-xs text-blue-700">
+                                Target per milestone: €{Math.round(formData.totalTarget / calculateTotalTarget(1, formData.timeframe, formData.milestoneFrequency)).toLocaleString()}
+                              </p>
+                              <p className="text-xs text-blue-600 mt-1">
+                                Total milestones: {calculateTotalTarget(1, formData.timeframe, formData.milestoneFrequency)}
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Custom Distribution Interface */}
+                          {formData.targetDistribution === 'custom' && (
+                            <div className="p-3 bg-orange-50 border border-orange-200 rounded-md">
+                              <p className="text-xs text-orange-800 mb-3 font-medium">Custom Milestone Targets</p>
+                              <p className="text-xs text-orange-700 mb-2">
+                                Set individual targets for each milestone (must total €{formData.totalTarget.toLocaleString()})
+                              </p>
+                              <div className="text-xs text-orange-600">
+                                Custom target configuration will be available when users assign this template to themselves.
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
 
                   {/* Target Field - Percentage */}
                   {formData.okrType === 'percent' && (
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-1">
-                          <label htmlFor="okr-target" className="text-sm font-medium text-gray-900">
-                            {formData.targetLabel || 'Target'} per milestone
-                          </label>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Info className="w-3 h-3 text-gray-400 cursor-help" />
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p className="max-w-xs">This target needs to be reached per milestone. For example, every quarter I need to reach a target of 75%.</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
-                        <div className="relative">
-                          <Input 
-                            id="okr-target"
-                            type="number"
-                            min="0"
-                            max="100"
-                            value={formData.target || ''}
-                            onChange={(e) => setFormData(prev => ({...prev, target: parseFloat(e.target.value) || 0}))}
-                            placeholder="Optional (e.g., 75)"
-                            className="pr-8 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                          />
-                          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">%</span>
-                        </div>
-                      </div>
+                    <div className="space-y-4">
+                      {/* Total Target Input */}
                       <div className="space-y-2">
                         <div className="flex items-center gap-1">
                           <label htmlFor="okr-total-target" className="text-sm font-medium text-gray-900">
@@ -1269,56 +1281,95 @@ export default function MetricsPage() {
                                 <Info className="w-3 h-3 text-gray-400 cursor-help" />
                               </TooltipTrigger>
                               <TooltipContent>
-                                <p className="max-w-xs">This is the total target for the full timeframe selected. It automatically calculates based on your milestone target and timeframe duration.</p>
+                                <p className="max-w-xs">Set the target percentage you want to achieve over the entire timeframe period.</p>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
                         </div>
-                        <div className="relative">
+                        <div className="relative" style={{ width: '350px' }}>
                           <Input 
                             id="okr-total-target"
                             type="number"
-                            value={formData.totalTarget}
-                            disabled
-                            className="pr-8 text-base border-gray-300 bg-gray-50 text-gray-700"
+                            min="0"
+                            max="100"
+                            value={formData.totalTarget || ''}
+                            onChange={(e) => setFormData(prev => ({...prev, totalTarget: parseFloat(e.target.value) || 0}))}
+                            placeholder="Optional (e.g., 85)"
+                            className="pr-8 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                           />
                           <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">%</span>
                         </div>
                       </div>
+
+                      {/* Target Distribution Options */}
+                      {formData.totalTarget > 0 && (
+                        <div className="space-y-3">
+                          <h4 className="text-sm font-medium text-gray-900">Target Distribution</h4>
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="radio"
+                                id="equal-distribution-percent"
+                                name="targetDistribution"
+                                value="equal"
+                                checked={formData.targetDistribution === 'equal'}
+                                onChange={() => setFormData(prev => ({...prev, targetDistribution: 'equal'}))}
+                                className="h-3 w-3 text-blue-600 focus:ring-blue-500"
+                              />
+                              <label htmlFor="equal-distribution-percent" className="text-sm text-gray-900">
+                                <span className="font-medium">Same target for all milestones</span> - Each milestone has the same percentage target
+                              </label>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="radio"
+                                id="custom-distribution-percent"
+                                name="targetDistribution"
+                                value="custom"
+                                checked={formData.targetDistribution === 'custom'}
+                                onChange={() => setFormData(prev => ({...prev, targetDistribution: 'custom'}))}
+                                className="h-3 w-3 text-blue-600 focus:ring-blue-500"
+                              />
+                              <label htmlFor="custom-distribution-percent" className="text-sm text-gray-900">
+                                <span className="font-medium">Custom targets per milestone</span> - Set different percentage targets for each milestone
+                              </label>
+                            </div>
+                          </div>
+
+                          {/* Equal Distribution Preview */}
+                          {formData.targetDistribution === 'equal' && (
+                            <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
+                              <p className="text-xs text-blue-800 mb-2 font-medium">Equal Distribution Preview</p>
+                              <p className="text-xs text-blue-700">
+                                Target per milestone: {formData.totalTarget}%
+                              </p>
+                              <p className="text-xs text-blue-600 mt-1">
+                                Total milestones: {calculateTotalTarget(1, formData.timeframe, formData.milestoneFrequency)}
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Custom Distribution Interface */}
+                          {formData.targetDistribution === 'custom' && (
+                            <div className="p-3 bg-orange-50 border border-orange-200 rounded-md">
+                              <p className="text-xs text-orange-800 mb-3 font-medium">Custom Milestone Targets</p>
+                              <p className="text-xs text-orange-700 mb-2">
+                                Set individual percentage targets for each milestone
+                              </p>
+                              <div className="text-xs text-orange-600">
+                                Custom target configuration will be available when users assign this template to themselves.
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
 
                   {/* Target Field - Number */}
                   {formData.okrType === 'number' && (
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-1">
-                          <label htmlFor="okr-target" className="text-sm font-medium text-gray-900">
-                            {formData.targetLabel || 'Target'} per milestone
-                          </label>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Info className="w-3 h-3 text-gray-400 cursor-help" />
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p className="max-w-xs">This target needs to be reached per milestone. For example, every quarter I need to reach a target of 50 new customers.</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
-                        <div className="relative">
-                          <Input 
-                            id="okr-target"
-                            type="number"
-                            value={formData.target || ''}
-                            onChange={(e) => setFormData(prev => ({...prev, target: parseFloat(e.target.value) || 0}))}
-                            placeholder="Optional (e.g., 50)"
-                            className="pr-8 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                          />
-                          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">#</span>
-                        </div>
-                      </div>
+                    <div className="space-y-4">
+                      {/* Total Target Input */}
                       <div className="space-y-2">
                         <div className="flex items-center gap-1">
                           <label htmlFor="okr-total-target" className="text-sm font-medium text-gray-900">
@@ -1330,22 +1381,86 @@ export default function MetricsPage() {
                                 <Info className="w-3 h-3 text-gray-400 cursor-help" />
                               </TooltipTrigger>
                               <TooltipContent>
-                                <p className="max-w-xs">This is the total target for the full timeframe selected. It automatically calculates based on your milestone target and timeframe duration.</p>
+                                <p className="max-w-xs">Set the total target number you want to achieve over the entire timeframe period.</p>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
                         </div>
-                        <div className="relative">
+                        <div className="relative" style={{ width: '350px' }}>
                           <Input 
                             id="okr-total-target"
                             type="number"
-                            value={formData.totalTarget}
-                            disabled
-                            className="pr-8 text-base border-gray-300 bg-gray-50 text-gray-700"
+                            value={formData.totalTarget || ''}
+                            onChange={(e) => setFormData(prev => ({...prev, totalTarget: parseFloat(e.target.value) || 0}))}
+                            placeholder="Optional (e.g., 200)"
+                            className="pr-8 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                           />
                           <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">#</span>
                         </div>
                       </div>
+
+                      {/* Target Distribution Options */}
+                      {formData.totalTarget > 0 && (
+                        <div className="space-y-3">
+                          <h4 className="text-sm font-medium text-gray-900">Target Distribution</h4>
+                          <div className="space-y-2">
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="radio"
+                                id="equal-distribution-number"
+                                name="targetDistribution"
+                                value="equal"
+                                checked={formData.targetDistribution === 'equal'}
+                                onChange={() => setFormData(prev => ({...prev, targetDistribution: 'equal'}))}
+                                className="h-3 w-3 text-blue-600 focus:ring-blue-500"
+                              />
+                              <label htmlFor="equal-distribution-number" className="text-sm text-gray-900">
+                                <span className="font-medium">Split equally</span> - Divide total target evenly across all milestones
+                              </label>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="radio"
+                                id="custom-distribution-number"
+                                name="targetDistribution"
+                                value="custom"
+                                checked={formData.targetDistribution === 'custom'}
+                                onChange={() => setFormData(prev => ({...prev, targetDistribution: 'custom'}))}
+                                className="h-3 w-3 text-blue-600 focus:ring-blue-500"
+                              />
+                              <label htmlFor="custom-distribution-number" className="text-sm text-gray-900">
+                                <span className="font-medium">Custom distribution</span> - Set specific targets for each milestone
+                              </label>
+                            </div>
+                          </div>
+
+                          {/* Equal Distribution Preview */}
+                          {formData.targetDistribution === 'equal' && (
+                            <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
+                              <p className="text-xs text-blue-800 mb-2 font-medium">Equal Distribution Preview</p>
+                              <p className="text-xs text-blue-700">
+                                Target per milestone: {Math.round(formData.totalTarget / calculateTotalTarget(1, formData.timeframe, formData.milestoneFrequency)).toLocaleString()}
+                              </p>
+                              <p className="text-xs text-blue-600 mt-1">
+                                Total milestones: {calculateTotalTarget(1, formData.timeframe, formData.milestoneFrequency)}
+                              </p>
+                            </div>
+                          )}
+
+                          {/* Custom Distribution Interface */}
+                          {formData.targetDistribution === 'custom' && (
+                            <div className="p-3 bg-orange-50 border border-orange-200 rounded-md">
+                              <p className="text-xs text-orange-800 mb-3 font-medium">Custom Milestone Targets</p>
+                              <p className="text-xs text-orange-700 mb-2">
+                                Set individual targets for each milestone (must total {formData.totalTarget.toLocaleString()})
+                              </p>
+                              <div className="text-xs text-orange-600">
+                                Custom target configuration will be available when users assign this template to themselves.
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   )}
 
