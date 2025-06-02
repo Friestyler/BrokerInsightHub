@@ -1227,15 +1227,12 @@ export default function MetricsPage() {
                   )}
 
                   {/* Target Field - Percentage */}
-                  {formData.okrType === 'percent' && (
+                  {formData.okrType === 'percent' && formData.hasPresetTarget && (
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <label htmlFor="okr-target" className="text-sm font-medium text-gray-900">
-                          Target per milestone <span className="text-red-500">*</span>
+                          Target per milestone
                         </label>
-                        <p className="text-xs text-gray-500 mb-2">
-                          This target needs to be reached per milestone. For example, every quarter I need to reach a target of 100 euros.
-                        </p>
                         <div className="relative">
                           <Input 
                             id="okr-target"
@@ -1254,9 +1251,6 @@ export default function MetricsPage() {
                         <label htmlFor="okr-total-target" className="text-sm font-medium text-gray-900">
                           Target for full timeframe
                         </label>
-                        <p className="text-xs text-gray-500 mb-2">
-                          This is the total target for the full timeframe selected.
-                        </p>
                         <div className="relative">
                           <Input 
                             id="okr-total-target"
@@ -1272,15 +1266,12 @@ export default function MetricsPage() {
                   )}
 
                   {/* Target Field - Number */}
-                  {formData.okrType === 'number' && (
+                  {formData.okrType === 'number' && formData.hasPresetTarget && (
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <label htmlFor="okr-target" className="text-sm font-medium text-gray-900">
-                          Target per milestone <span className="text-red-500">*</span>
+                          Target per milestone
                         </label>
-                        <p className="text-xs text-gray-500 mb-2">
-                          This target needs to be reached per milestone. For example, every quarter I need to reach a target of 100 euros.
-                        </p>
                         <div className="relative">
                           <Input 
                             id="okr-target"
@@ -1297,9 +1288,6 @@ export default function MetricsPage() {
                         <label htmlFor="okr-total-target" className="text-sm font-medium text-gray-900">
                           Target for full timeframe
                         </label>
-                        <p className="text-xs text-gray-500 mb-2">
-                          This is the total target for the full timeframe selected.
-                        </p>
                         <div className="relative">
                           <Input 
                             id="okr-total-target"
