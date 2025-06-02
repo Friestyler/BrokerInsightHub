@@ -300,7 +300,11 @@ export default function MetricsPage() {
     isTargetRequired: false,
     targetLabel: 'Target',
     realizedLabel: 'Realized',
-    showAdvancedSettings: false
+    showAdvancedSettings: false,
+    enableProgressBar: true,
+    progressStyle: 'system',
+    warningThreshold: 50,
+    successThreshold: 80
   });
 
   // Calculate total target whenever target, timeframe, or milestone frequency changes
@@ -415,7 +419,11 @@ export default function MetricsPage() {
       isTargetRequired: false,
       targetLabel: 'Target',
       realizedLabel: 'Realized',
-      showAdvancedSettings: false
+      showAdvancedSettings: false,
+      enableProgressBar: true,
+      progressStyle: 'system',
+      warningThreshold: 50,
+      successThreshold: 80
     });
     setIsCreateOKROpen(false);
     setIsCreatingNewTag(false);
@@ -438,6 +446,13 @@ export default function MetricsPage() {
       setFormData(prev => ({ ...prev, milestoneFrequency: '' }));
     }
   }, [formData.timeframe]);
+
+  // Auto-enable progress bar for currency types
+  React.useEffect(() => {
+    if (formData.okrType === 'currency') {
+      setFormData(prev => ({ ...prev, enableProgressBar: true }));
+    }
+  }, [formData.okrType]);
 
   // Recalculate total target whenever relevant fields change
   React.useEffect(() => {
@@ -1318,6 +1333,107 @@ export default function MetricsPage() {
                       </div>
                     </div>
                   )}
+
+                  {/* Progress Bar Configuration */}
+                  <div className="space-y-4">
+                    <div className="space-y-3">
+                      <h4 className="text-sm font-medium text-gray-900">Progress Visualization</h4>
+                      <p className="text-xs text-gray-600">Configure how progress is displayed to users</p>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div className="flex items-start gap-3">
+                        <input
+                          type="checkbox"
+                          id="enable-progress-bar"
+                          checked={formData.enableProgressBar !== false}
+                          onChange={(e) => setFormData(prev => ({...prev, enableProgressBar: e.target.checked}))}
+                          className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                        <div className="flex-1">
+                          <label htmlFor="enable-progress-bar" className="text-sm font-medium text-gray-900">
+                            Enable progress bar visualization
+                          </label>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {(formData.target || 0) > 0 
+                              ? "Shows a visual progress bar with percentage completion based on target vs realized values"
+                              : "Will be auto-enabled when users add targets to their assigned OKRs"
+                            }
+                          </p>
+                        </div>
+                      </div>
+
+                      {(formData.enableProgressBar !== false) && (
+                        <div className="ml-7 space-y-3">
+                          <div className="space-y-2">
+                            <label className="text-xs font-medium text-gray-700">Progress Bar Style</label>
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="radio"
+                                  id="progress-system"
+                                  name="progressStyle"
+                                  value="system"
+                                  checked={formData.progressStyle !== 'custom'}
+                                  onChange={() => setFormData(prev => ({...prev, progressStyle: 'system'}))}
+                                  className="h-3 w-3 text-blue-600 focus:ring-blue-500"
+                                />
+                                <label htmlFor="progress-system" className="text-xs text-gray-900">
+                                  System (Standard behavior - grey bar, percentage based on target achievement)
+                                </label>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="radio"
+                                  id="progress-custom"
+                                  name="progressStyle"
+                                  value="custom"
+                                  checked={formData.progressStyle === 'custom'}
+                                  onChange={() => setFormData(prev => ({...prev, progressStyle: 'custom'}))}
+                                  className="h-3 w-3 text-blue-600 focus:ring-blue-500"
+                                />
+                                <label htmlFor="progress-custom" className="text-xs text-gray-900">
+                                  Custom (Define custom thresholds and color coding)
+                                </label>
+                              </div>
+                            </div>
+                          </div>
+
+                          {formData.progressStyle === 'custom' && (
+                            <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
+                              <p className="text-xs text-blue-800 mb-2">Custom Progress Configuration</p>
+                              <div className="grid grid-cols-2 gap-3">
+                                <div>
+                                  <label className="text-xs text-gray-700">Warning threshold (%)</label>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    value={formData.warningThreshold || 50}
+                                    onChange={(e) => setFormData(prev => ({...prev, warningThreshold: parseInt(e.target.value)}))}
+                                    className="w-full text-xs border border-gray-300 rounded px-2 py-1 mt-1"
+                                    placeholder="50"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="text-xs text-gray-700">Success threshold (%)</label>
+                                  <input
+                                    type="number"
+                                    min="0"
+                                    max="100"
+                                    value={formData.successThreshold || 80}
+                                    onChange={(e) => setFormData(prev => ({...prev, successThreshold: parseInt(e.target.value)}))}
+                                    className="w-full text-xs border border-gray-300 rounded px-2 py-1 mt-1"
+                                    placeholder="80"
+                                  />
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  </div>
 
                   {/* Advanced Settings */}
                   <div className="border-t pt-6">
