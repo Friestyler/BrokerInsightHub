@@ -1123,134 +1123,146 @@ export default function MetricsPage() {
                 </div>
               )}
 
-              {/* Target Field - Currency */}
-              {formData.okrType === 'currency' && (
-                <div className="grid grid-cols-2 gap-4">
+              {/* Target & Measurement Section */}
+              {formData.okrType && (
+                <div className="space-y-4">
                   <div className="space-y-2">
-                    <label htmlFor="okr-target" className="text-sm font-medium text-gray-900">
-                      Target per milestone <span className="text-red-500">*</span>
-                    </label>
-                    <p className="text-xs text-gray-500 mb-2">
-                      This target needs to be reached per milestone. For example, every quarter I need to reach a target of 100 euros.
+                    <h3 className="text-lg font-semibold text-gray-900">Target & Measurement</h3>
+                    <p className="text-sm text-gray-600">
+                      Define the specific targets that need to be achieved. The target per milestone represents what should be accomplished at each milestone interval, while the total target shows the cumulative goal for the entire timeframe.
                     </p>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">€</span>
-                      <Input 
-                        id="okr-target"
-                        type="number"
-                        value={formData.target || ''}
-                        onChange={(e) => setFormData(prev => ({...prev, target: parseFloat(e.target.value) || 0}))}
-                        placeholder="1000"
-                        className="pl-8 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                      />
-                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <label htmlFor="okr-total-target" className="text-sm font-medium text-gray-900">
-                      Target for full timeframe
-                    </label>
-                    <p className="text-xs text-gray-500 mb-2">
-                      This is the total target for the full timeframe selected.
-                    </p>
-                    <div className="relative">
-                      <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">€</span>
-                      <Input 
-                        id="okr-total-target"
-                        type="number"
-                        value={formData.totalTarget}
-                        disabled
-                        className="pl-8 text-base border-gray-300 bg-gray-50 text-gray-700"
-                      />
-                    </div>
-                  </div>
-                </div>
-              )}
 
-              {/* Target Field - Percentage */}
-              {formData.okrType === 'percent' && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label htmlFor="okr-target" className="text-sm font-medium text-gray-900">
-                      Target per milestone <span className="text-red-500">*</span>
-                    </label>
-                    <p className="text-xs text-gray-500 mb-2">
-                      This target needs to be reached per milestone. For example, every quarter I need to reach a target of 100 euros.
-                    </p>
-                    <div className="relative">
-                      <Input 
-                        id="okr-target"
-                        type="number"
-                        min="0"
-                        max="100"
-                        value={formData.target || ''}
-                        onChange={(e) => setFormData(prev => ({...prev, target: parseFloat(e.target.value) || 0}))}
-                        placeholder="75"
-                        className="pr-8 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                      />
-                      <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">%</span>
+                  {/* Target Field - Currency */}
+                  {formData.okrType === 'currency' && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label htmlFor="okr-target" className="text-sm font-medium text-gray-900">
+                          Target per milestone <span className="text-red-500">*</span>
+                        </label>
+                        <p className="text-xs text-gray-500 mb-2">
+                          This target needs to be reached per milestone. For example, every quarter I need to reach a target of 100 euros.
+                        </p>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">€</span>
+                          <Input 
+                            id="okr-target"
+                            type="number"
+                            value={formData.target || ''}
+                            onChange={(e) => setFormData(prev => ({...prev, target: parseFloat(e.target.value) || 0}))}
+                            placeholder="1000"
+                            className="pl-8 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                          />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label htmlFor="okr-total-target" className="text-sm font-medium text-gray-900">
+                          Target for full timeframe
+                        </label>
+                        <p className="text-xs text-gray-500 mb-2">
+                          This is the total target for the full timeframe selected.
+                        </p>
+                        <div className="relative">
+                          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">€</span>
+                          <Input 
+                            id="okr-total-target"
+                            type="number"
+                            value={formData.totalTarget}
+                            disabled
+                            className="pl-8 text-base border-gray-300 bg-gray-50 text-gray-700"
+                          />
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label htmlFor="okr-total-target" className="text-sm font-medium text-gray-900">
-                      Target for full timeframe
-                    </label>
-                    <p className="text-xs text-gray-500 mb-2">
-                      This is the total target for the full timeframe selected.
-                    </p>
-                    <div className="relative">
-                      <Input 
-                        id="okr-total-target"
-                        type="number"
-                        value={formData.totalTarget}
-                        disabled
-                        className="pr-8 text-base border-gray-300 bg-gray-50 text-gray-700"
-                      />
-                      <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">%</span>
-                    </div>
-                  </div>
-                </div>
-              )}
+                  )}
 
-              {/* Target Field - Number */}
-              {formData.okrType === 'number' && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <label htmlFor="okr-target" className="text-sm font-medium text-gray-900">
-                      Target per milestone <span className="text-red-500">*</span>
-                    </label>
-                    <p className="text-xs text-gray-500 mb-2">
-                      This target needs to be reached per milestone. For example, every quarter I need to reach a target of 100 euros.
-                    </p>
-                    <div className="relative">
-                      <Input 
-                        id="okr-target"
-                        type="number"
-                        value={formData.target || ''}
-                        onChange={(e) => setFormData(prev => ({...prev, target: parseFloat(e.target.value) || 0}))}
-                        placeholder="50"
-                        className="pr-8 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                      />
-                      <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">#</span>
+                  {/* Target Field - Percentage */}
+                  {formData.okrType === 'percent' && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label htmlFor="okr-target" className="text-sm font-medium text-gray-900">
+                          Target per milestone <span className="text-red-500">*</span>
+                        </label>
+                        <p className="text-xs text-gray-500 mb-2">
+                          This target needs to be reached per milestone. For example, every quarter I need to reach a target of 100 euros.
+                        </p>
+                        <div className="relative">
+                          <Input 
+                            id="okr-target"
+                            type="number"
+                            min="0"
+                            max="100"
+                            value={formData.target || ''}
+                            onChange={(e) => setFormData(prev => ({...prev, target: parseFloat(e.target.value) || 0}))}
+                            placeholder="75"
+                            className="pr-8 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                          />
+                          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">%</span>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label htmlFor="okr-total-target" className="text-sm font-medium text-gray-900">
+                          Target for full timeframe
+                        </label>
+                        <p className="text-xs text-gray-500 mb-2">
+                          This is the total target for the full timeframe selected.
+                        </p>
+                        <div className="relative">
+                          <Input 
+                            id="okr-total-target"
+                            type="number"
+                            value={formData.totalTarget}
+                            disabled
+                            className="pr-8 text-base border-gray-300 bg-gray-50 text-gray-700"
+                          />
+                          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">%</span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                  <div className="space-y-2">
-                    <label htmlFor="okr-total-target" className="text-sm font-medium text-gray-900">
-                      Target for full timeframe
-                    </label>
-                    <p className="text-xs text-gray-500 mb-2">
-                      This is the total target for the full timeframe selected.
-                    </p>
-                    <div className="relative">
-                      <Input 
-                        id="okr-total-target"
-                        type="number"
-                        value={formData.totalTarget}
-                        disabled
-                        className="pr-8 text-base border-gray-300 bg-gray-50 text-gray-700"
-                      />
-                      <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">#</span>
+                  )}
+
+                  {/* Target Field - Number */}
+                  {formData.okrType === 'number' && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label htmlFor="okr-target" className="text-sm font-medium text-gray-900">
+                          Target per milestone <span className="text-red-500">*</span>
+                        </label>
+                        <p className="text-xs text-gray-500 mb-2">
+                          This target needs to be reached per milestone. For example, every quarter I need to reach a target of 100 euros.
+                        </p>
+                        <div className="relative">
+                          <Input 
+                            id="okr-target"
+                            type="number"
+                            value={formData.target || ''}
+                            onChange={(e) => setFormData(prev => ({...prev, target: parseFloat(e.target.value) || 0}))}
+                            placeholder="50"
+                            className="pr-8 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                          />
+                          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">#</span>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label htmlFor="okr-total-target" className="text-sm font-medium text-gray-900">
+                          Target for full timeframe
+                        </label>
+                        <p className="text-xs text-gray-500 mb-2">
+                          This is the total target for the full timeframe selected.
+                        </p>
+                        <div className="relative">
+                          <Input 
+                            id="okr-total-target"
+                            type="number"
+                            value={formData.totalTarget}
+                            disabled
+                            className="pr-8 text-base border-gray-300 bg-gray-50 text-gray-700"
+                          />
+                          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">#</span>
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  )}
                 </div>
               )}
             </div>
