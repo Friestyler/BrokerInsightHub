@@ -1132,60 +1132,53 @@ export default function MetricsPage() {
                 <div className="space-y-4">
                   <div className="space-y-3">
                     <h3 className="text-lg font-semibold text-gray-900">Target & Measurement</h3>
+                    <p className="text-sm text-gray-600">Choose how targets will be handled for this OKR template.</p>
                     
-                    {/* Target Setting Options */}
-                    <div className="bg-gray-50 p-4 rounded-lg space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm font-medium text-gray-900">Target Configuration</span>
-                        <div className="flex gap-2">
-                          <button
-                            type="button"
-                            onClick={() => setFormData(prev => ({...prev, hasPresetTarget: true}))}
-                            className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-                              formData.hasPresetTarget 
-                                ? 'bg-blue-600 text-white' 
-                                : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
-                            }`}
-                          >
-                            Set target now
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => setFormData(prev => ({...prev, hasPresetTarget: false, target: undefined}))}
-                            className={`px-3 py-1 text-xs font-medium rounded-md transition-colors ${
-                              !formData.hasPresetTarget 
-                                ? 'bg-blue-600 text-white' 
-                                : 'bg-white text-gray-600 border border-gray-300 hover:bg-gray-50'
-                            }`}
-                          >
-                            Set later
-                          </button>
-                        </div>
+                    {/* Target Options */}
+                    <div className="space-y-3">
+                      <div className="space-y-2">
+                        <label className="flex items-start gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                          <input
+                            type="radio"
+                            name="targetOption"
+                            checked={formData.hasPresetTarget}
+                            onChange={() => setFormData(prev => ({...prev, hasPresetTarget: true}))}
+                            className="w-4 h-4 text-blue-600 border-gray-300 mt-0.5"
+                          />
+                          <div className="flex-1">
+                            <div className="text-sm font-medium text-gray-900">I'll set the target now</div>
+                            <div className="text-xs text-gray-600 mt-1">Define a specific target that will be used by default when assigning this OKR to partners, opportunities, or customers.</div>
+                          </div>
+                        </label>
+                        
+                        <label className="flex items-start gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                          <input
+                            type="radio"
+                            name="targetOption"
+                            checked={!formData.hasPresetTarget && formData.isTargetRequired}
+                            onChange={() => setFormData(prev => ({...prev, hasPresetTarget: false, isTargetRequired: true}))}
+                            className="w-4 h-4 text-blue-600 border-gray-300 mt-0.5"
+                          />
+                          <div className="flex-1">
+                            <div className="text-sm font-medium text-gray-900">Account managers must set targets</div>
+                            <div className="text-xs text-gray-600 mt-1">When assigning this OKR, account managers will be required to enter a specific target.</div>
+                          </div>
+                        </label>
+                        
+                        <label className="flex items-start gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition-colors">
+                          <input
+                            type="radio"
+                            name="targetOption"
+                            checked={!formData.hasPresetTarget && !formData.isTargetRequired}
+                            onChange={() => setFormData(prev => ({...prev, hasPresetTarget: false, isTargetRequired: false}))}
+                            className="w-4 h-4 text-blue-600 border-gray-300 mt-0.5"
+                          />
+                          <div className="flex-1">
+                            <div className="text-sm font-medium text-gray-900">No target needed</div>
+                            <div className="text-xs text-gray-600 mt-1">This OKR can be assigned without any specific target. Account managers can optionally add targets later.</div>
+                          </div>
+                        </label>
                       </div>
-                      
-                      {!formData.hasPresetTarget && (
-                        <div className="flex items-center justify-between pt-2 border-t border-gray-200">
-                          <span className="text-sm text-gray-700">Require target when assigned?</span>
-                          <label className="flex items-center gap-2 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={formData.isTargetRequired || false}
-                              onChange={(e) => setFormData(prev => ({...prev, isTargetRequired: e.target.checked}))}
-                              className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                            />
-                            <span className="text-sm text-gray-600">Required</span>
-                          </label>
-                        </div>
-                      )}
-                      
-                      <p className="text-xs text-gray-600">
-                        {formData.hasPresetTarget 
-                          ? 'Set a default target that will be applied when this template is assigned.'
-                          : formData.isTargetRequired
-                            ? 'Account managers must set a target when assigning this template.'
-                            : 'Account managers can optionally set a target when assigning this template.'
-                        }
-                      </p>
                     </div>
                   </div>
 
