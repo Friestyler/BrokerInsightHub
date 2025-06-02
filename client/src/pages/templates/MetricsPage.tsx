@@ -1341,18 +1341,18 @@ export default function MetricsPage() {
                       <p className="text-xs text-gray-600">Configure how progress is displayed to users</p>
                       
                       {/* Progress Bar Preview */}
-                      <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                      <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
                         <p className="text-xs font-medium text-gray-700 mb-2">Preview: How it will look to users</p>
-                        <div className="flex items-center gap-3">
-                          <span className="text-lg font-semibold text-gray-800">60%</span>
-                          <div className="flex-1 bg-gray-200 rounded-full h-3">
+                        <div className="flex items-center gap-2">
+                          <span className="text-xs font-medium text-gray-800 w-8">60%</span>
+                          <div className="w-[120px] bg-gray-200 rounded-full h-[22px] flex items-center px-1">
                             <div 
-                              className="bg-gray-500 h-3 rounded-full transition-all duration-300"
+                              className="bg-gray-500 h-[18px] rounded-full transition-all duration-300"
                               style={{ width: '60%' }}
                             ></div>
                           </div>
                         </div>
-                        <p className="text-xs text-gray-500 mt-2">This shows progress toward the target (60% of goal achieved)</p>
+                        <p className="text-xs text-gray-500 mt-1">Shows progress toward target (60% achieved)</p>
                       </div>
                     </div>
 
