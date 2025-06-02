@@ -1339,6 +1339,21 @@ export default function MetricsPage() {
                     <div className="space-y-3">
                       <h4 className="text-sm font-medium text-gray-900">Progress Visualization</h4>
                       <p className="text-xs text-gray-600">Configure how progress is displayed to users</p>
+                      
+                      {/* Progress Bar Preview */}
+                      <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
+                        <p className="text-xs font-medium text-gray-700 mb-2">Preview: How it will look to users</p>
+                        <div className="flex items-center gap-3">
+                          <span className="text-lg font-semibold text-gray-800">60%</span>
+                          <div className="flex-1 bg-gray-200 rounded-full h-3">
+                            <div 
+                              className="bg-gray-500 h-3 rounded-full transition-all duration-300"
+                              style={{ width: '60%' }}
+                            ></div>
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-500 mt-2">This shows progress toward the target (60% of goal achieved)</p>
+                      </div>
                     </div>
 
                     <div className="space-y-4">
@@ -1366,7 +1381,7 @@ export default function MetricsPage() {
                       {(formData.enableProgressBar !== false) && (
                         <div className="ml-7 space-y-3">
                           <div className="space-y-2">
-                            <label className="text-xs font-medium text-gray-700">Progress Bar Style</label>
+                            <label className="text-xs font-medium text-gray-700">Choose Progress Bar Style</label>
                             <div className="space-y-2">
                               <div className="flex items-center gap-2">
                                 <input
@@ -1379,7 +1394,7 @@ export default function MetricsPage() {
                                   className="h-3 w-3 text-blue-600 focus:ring-blue-500"
                                 />
                                 <label htmlFor="progress-system" className="text-xs text-gray-900">
-                                  System (Standard behavior - grey bar, percentage based on target achievement)
+                                  <span className="font-medium">Simple grey bar</span> - Shows percentage completion (recommended)
                                 </label>
                               </div>
                               <div className="flex items-center gap-2">
@@ -1393,7 +1408,7 @@ export default function MetricsPage() {
                                   className="h-3 w-3 text-blue-600 focus:ring-blue-500"
                                 />
                                 <label htmlFor="progress-custom" className="text-xs text-gray-900">
-                                  Custom (Define custom thresholds and color coding)
+                                  <span className="font-medium">Color-coded bar</span> - Changes color based on performance levels
                                 </label>
                               </div>
                             </div>
@@ -1401,31 +1416,38 @@ export default function MetricsPage() {
 
                           {formData.progressStyle === 'custom' && (
                             <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
-                              <p className="text-xs text-blue-800 mb-2">Custom Progress Configuration</p>
-                              <div className="grid grid-cols-2 gap-3">
-                                <div>
-                                  <label className="text-xs text-gray-700">Warning threshold (%)</label>
-                                  <input
-                                    type="number"
-                                    min="0"
-                                    max="100"
-                                    value={formData.warningThreshold || 50}
-                                    onChange={(e) => setFormData(prev => ({...prev, warningThreshold: parseInt(e.target.value)}))}
-                                    className="w-full text-xs border border-gray-300 rounded px-2 py-1 mt-1"
-                                    placeholder="50"
-                                  />
+                              <p className="text-xs text-blue-800 mb-3 font-medium">Color-Coded Progress Settings</p>
+                              <div className="space-y-3">
+                                <div className="grid grid-cols-2 gap-3">
+                                  <div>
+                                    <label className="text-xs text-gray-700">Yellow warning at (%)</label>
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      max="100"
+                                      value={formData.warningThreshold || 50}
+                                      onChange={(e) => setFormData(prev => ({...prev, warningThreshold: parseInt(e.target.value)}))}
+                                      className="w-full text-xs border border-gray-300 rounded px-2 py-1 mt-1"
+                                      placeholder="50"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="text-xs text-gray-700">Green success at (%)</label>
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      max="100"
+                                      value={formData.successThreshold || 80}
+                                      onChange={(e) => setFormData(prev => ({...prev, successThreshold: parseInt(e.target.value)}))}
+                                      className="w-full text-xs border border-gray-300 rounded px-2 py-1 mt-1"
+                                      placeholder="80"
+                                    />
+                                  </div>
                                 </div>
-                                <div>
-                                  <label className="text-xs text-gray-700">Success threshold (%)</label>
-                                  <input
-                                    type="number"
-                                    min="0"
-                                    max="100"
-                                    value={formData.successThreshold || 80}
-                                    onChange={(e) => setFormData(prev => ({...prev, successThreshold: parseInt(e.target.value)}))}
-                                    className="w-full text-xs border border-gray-300 rounded px-2 py-1 mt-1"
-                                    placeholder="80"
-                                  />
+                                <div className="text-xs text-gray-600">
+                                  <span className="inline-block w-2 h-2 bg-red-400 rounded-full mr-1"></span>Red: Below {formData.warningThreshold || 50}% • 
+                                  <span className="inline-block w-2 h-2 bg-yellow-400 rounded-full mr-1 ml-2"></span>Yellow: {formData.warningThreshold || 50}%-{formData.successThreshold || 80}% • 
+                                  <span className="inline-block w-2 h-2 bg-green-400 rounded-full mr-1 ml-2"></span>Green: Above {formData.successThreshold || 80}%
                                 </div>
                               </div>
                             </div>
