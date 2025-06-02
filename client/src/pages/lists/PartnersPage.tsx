@@ -1226,7 +1226,7 @@ function PartnersTable() {
         </div>
       </div>
       {/* Bulk Actions Bar */}
-      <div className="bg-[#F5F6FA] border border-[#E6E7F1] rounded-lg p-4 min-h-[72px] mb-4">
+      <div className="bg-[#F0F1FB] border border-[#D4D9F3] rounded-lg p-4 min-h-[72px] mb-4">
         <div className="flex items-center justify-between h-10">
           {selectedPartners.length > 0 ? (
             <>
