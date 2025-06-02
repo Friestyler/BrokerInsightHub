@@ -1,4 +1,4 @@
-# Product Requirements Document: Timeframe Filter - OKR Templates Page
+# Product Requirements Document: Advanced Timeframe Filter (Timeframe2) - OKR Templates Page
 
 ## Overview
 The Timeframe Filter system on the OKR Templates page enables users to filter OKR templates based on their temporal scope and date ranges. This sophisticated filtering mechanism supports both predefined timeframe options and custom date range selection, providing users with powerful temporal navigation capabilities.
