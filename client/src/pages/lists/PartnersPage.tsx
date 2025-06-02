@@ -1236,7 +1236,7 @@ function PartnersTable() {
                 </span>
                 <div className="flex items-center gap-2">
                   <button 
-                    className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 border border-gray-300 rounded-md transition-colors"
+                    className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-[#3E4DC4] bg-white hover:bg-[#F0F1FB] border border-[#3E4DC4] rounded-md transition-colors"
                     onClick={() => setShowSaveListModal(true)}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -1247,7 +1247,7 @@ function PartnersTable() {
                     Add to List
                   </button>
                   <button 
-                    className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 border border-gray-300 rounded-md transition-colors"
+                    className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-[#3E4DC4] bg-white hover:bg-[#F0F1FB] border border-[#3E4DC4] rounded-md transition-colors"
                     onClick={() => {
                       alert('Selected partners can be added to a campaign. This will be available in the Campaigns section');
                     }}
@@ -1259,7 +1259,7 @@ function PartnersTable() {
                     Add to Campaign
                   </button>
                   <button 
-                    className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 border border-gray-300 rounded-md transition-colors"
+                    className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-[#3E4DC4] bg-white hover:bg-[#F0F1FB] border border-[#3E4DC4] rounded-md transition-colors"
                     onClick={() => {
                       // Reload templates when opening the modal
                       const storedTemplates = localStorage.getItem('okrTemplates');
@@ -1284,14 +1284,14 @@ function PartnersTable() {
               </div>
               <button 
                 onClick={() => setSelectedPartners([])}
-                className="flex items-center rounded-md px-4 py-2 text-gray-600 hover:bg-gray-100"
+                className="flex items-center rounded-md px-4 py-2 text-[#3E4DC4] hover:bg-[#F0F1FB]"
                 style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5F6585" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
                   <line x1="18" y1="6" x2="6" y2="18"></line>
                   <line x1="6" y1="6" x2="18" y2="18"></line>
                 </svg>
-                <span className="text-[#5F6585]">Clear selection</span>
+                <span className="text-[#3E4DC4]">Clear selection</span>
               </button>
             </>
           ) : (
