@@ -304,7 +304,11 @@ export default function MetricsPage() {
     enableProgressBar: true,
     progressStyle: 'system',
     warningThreshold: 50,
-    successThreshold: 80
+    successThreshold: 80,
+    enableTrafficLights: false,
+    trafficLightStyle: 'system',
+    trafficLightYellowThreshold: 50,
+    trafficLightGreenThreshold: 75
   });
 
   // Calculate total target whenever target, timeframe, or milestone frequency changes
@@ -423,7 +427,11 @@ export default function MetricsPage() {
       enableProgressBar: true,
       progressStyle: 'system',
       warningThreshold: 50,
-      successThreshold: 80
+      successThreshold: 80,
+      enableTrafficLights: false,
+      trafficLightStyle: 'system',
+      trafficLightYellowThreshold: 50,
+      trafficLightGreenThreshold: 75
     });
     setIsCreateOKROpen(false);
     setIsCreatingNewTag(false);
@@ -463,7 +471,14 @@ export default function MetricsPage() {
   }, [formData.target, formData.timeframe, formData.milestoneFrequency]);
 
   const handleCreateOKR = () => {
-    console.log("Creating OKR with data:", formData);
+    const submissionData = {
+      ...formData,
+      enableTrafficLights: formData.enableTrafficLights,
+      trafficLightStyle: formData.trafficLightStyle,
+      trafficLightYellowThreshold: formData.trafficLightYellowThreshold,
+      trafficLightGreenThreshold: formData.trafficLightGreenThreshold
+    };
+    console.log("Creating OKR with data:", submissionData);
     // Handle form submission here
     resetForm();
   };
@@ -1376,6 +1391,42 @@ export default function MetricsPage() {
                     </div>
                   </div>
 
+                  {/* Traffic Lights Configuration */}
+                  <div className="space-y-4">
+                    <div className="space-y-3">
+                      <h4 className="text-sm font-medium text-gray-900">Traffic Light Status</h4>
+                      <p className="text-xs text-gray-600">Alternative visualization using color-coded status indicators</p>
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="checkbox"
+                        id="enable-traffic-lights"
+                        checked={formData.enableTrafficLights}
+                        onChange={(e) => setFormData(prev => ({...prev, enableTrafficLights: e.target.checked}))}
+                        className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-4 mb-1">
+                          <label htmlFor="enable-traffic-lights" className="text-sm font-medium text-gray-900">
+                            Enable traffic light indicators
+                          </label>
+                          {formData.enableTrafficLights && (
+                            <div className="flex items-center gap-1">
+                              <span className="w-4 h-4 rounded-full bg-gray-300 border border-gray-400"></span>
+                              <span className="w-4 h-4 rounded-full bg-red-500"></span>
+                              <span className="w-4 h-4 rounded-full bg-yellow-500"></span>
+                              <span className="w-4 h-4 rounded-full bg-green-500"></span>
+                            </div>
+                          )}
+                        </div>
+                        <p className="text-xs text-gray-500">
+                          Shows status using colored circles: Gray (no data), Red (off track), Yellow (at risk), Green (on track)
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Advanced Settings */}
                   <div className="border-t pt-6">
                     <div className="flex items-center justify-between mb-4">
@@ -1463,6 +1514,83 @@ export default function MetricsPage() {
                                     <span className="inline-block w-2 h-2 bg-red-400 rounded-full mr-1"></span>Red: Below {formData.warningThreshold || 50}% • 
                                     <span className="inline-block w-2 h-2 bg-yellow-400 rounded-full mr-1 ml-2"></span>Yellow: {formData.warningThreshold || 50}%-{formData.successThreshold || 80}% • 
                                     <span className="inline-block w-2 h-2 bg-green-400 rounded-full mr-1 ml-2"></span>Green: Above {formData.successThreshold || 80}%
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Traffic Light Style Configuration */}
+                        {formData.enableTrafficLights && (
+                          <div>
+                            <h5 className="text-xs font-medium text-gray-800 mb-2">Traffic Light Thresholds</h5>
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="radio"
+                                  id="traffic-system"
+                                  name="trafficLightStyle"
+                                  value="system"
+                                  checked={formData.trafficLightStyle !== 'custom'}
+                                  onChange={() => setFormData(prev => ({...prev, trafficLightStyle: 'system'}))}
+                                  className="h-3 w-3 text-blue-600 focus:ring-blue-500"
+                                />
+                                <label htmlFor="traffic-system" className="text-xs text-gray-900">
+                                  <span className="font-medium">Standard thresholds</span> - Red &lt;50%, Yellow 50-74%, Green ≥75% (recommended)
+                                </label>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="radio"
+                                  id="traffic-custom"
+                                  name="trafficLightStyle"
+                                  value="custom"
+                                  checked={formData.trafficLightStyle === 'custom'}
+                                  onChange={() => setFormData(prev => ({...prev, trafficLightStyle: 'custom'}))}
+                                  className="h-3 w-3 text-blue-600 focus:ring-blue-500"
+                                />
+                                <label htmlFor="traffic-custom" className="text-xs text-gray-900">
+                                  <span className="font-medium">Custom thresholds</span> - Define your own performance ranges
+                                </label>
+                              </div>
+                            </div>
+
+                            {formData.trafficLightStyle === 'custom' && (
+                              <div className="p-3 bg-orange-50 border border-orange-200 rounded-md mt-3">
+                                <p className="text-xs text-orange-800 mb-3 font-medium">Custom Traffic Light Thresholds</p>
+                                <div className="space-y-3">
+                                  <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                      <label className="text-xs text-gray-700">Yellow threshold (%)</label>
+                                      <input
+                                        type="number"
+                                        min="0"
+                                        max="100"
+                                        value={formData.trafficLightYellowThreshold || 50}
+                                        onChange={(e) => setFormData(prev => ({...prev, trafficLightYellowThreshold: parseInt(e.target.value)}))}
+                                        className="w-full text-xs border border-gray-300 rounded px-2 py-1 mt-1"
+                                        placeholder="50"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="text-xs text-gray-700">Green threshold (%)</label>
+                                      <input
+                                        type="number"
+                                        min="0"
+                                        max="100"
+                                        value={formData.trafficLightGreenThreshold || 75}
+                                        onChange={(e) => setFormData(prev => ({...prev, trafficLightGreenThreshold: parseInt(e.target.value)}))}
+                                        className="w-full text-xs border border-gray-300 rounded px-2 py-1 mt-1"
+                                        placeholder="75"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="text-xs text-gray-600">
+                                    <span className="inline-block w-2 h-2 bg-red-500 rounded-full mr-1"></span>Red: Below {formData.trafficLightYellowThreshold || 50}% • 
+                                    <span className="inline-block w-2 h-2 bg-yellow-500 rounded-full mr-1 ml-2"></span>Yellow: {formData.trafficLightYellowThreshold || 50}%-{formData.trafficLightGreenThreshold || 75}% • 
+                                    <span className="inline-block w-2 h-2 bg-green-500 rounded-full mr-1 ml-2"></span>Green: {formData.trafficLightGreenThreshold || 75}%+ • 
+                                    <span className="inline-block w-2 h-2 bg-gray-300 rounded-full mr-1 ml-2"></span>Gray: No data
                                   </div>
                                 </div>
                               </div>
