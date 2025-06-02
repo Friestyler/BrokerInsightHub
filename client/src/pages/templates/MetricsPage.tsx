@@ -297,7 +297,9 @@ export default function MetricsPage() {
     dueDateRequired: false,
     responsibleRequired: false,
     hasPresetTarget: true,
-    isTargetRequired: false
+    isTargetRequired: false,
+    targetLabel: 'Target',
+    realizedLabel: 'Realized'
   });
 
   // Calculate total target whenever target, timeframe, or milestone frequency changes
@@ -409,7 +411,9 @@ export default function MetricsPage() {
       dueDateRequired: false,
       responsibleRequired: false,
       hasPresetTarget: true,
-      isTargetRequired: false
+      isTargetRequired: false,
+      targetLabel: 'Target',
+      realizedLabel: 'Realized'
     });
     setIsCreateOKROpen(false);
     setIsCreatingNewTag(false);
@@ -1133,38 +1137,42 @@ export default function MetricsPage() {
                   <div className="space-y-3">
                     <h3 className="text-lg font-semibold text-gray-900">Target & Measurement</h3>
                     
-                    {/* Simple Toggle */}
-                    <div className="bg-gray-50 p-4 rounded-lg">
-                      <div className="flex items-center justify-between mb-3">
-                        <span className="text-sm font-medium text-gray-900">Set a target for this template?</span>
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={formData.hasPresetTarget}
-                            onChange={(e) => setFormData(prev => ({...prev, hasPresetTarget: e.target.checked}))}
-                            className="w-4 h-4 text-blue-600 border-gray-300 rounded focus:ring-blue-500"
-                          />
-                          <span className="text-sm text-gray-600">Yes, set target</span>
+                    {/* Field Labels */}
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <label htmlFor="target-label" className="text-sm font-medium text-gray-900">
+                          Target field name
                         </label>
+                        <Input 
+                          id="target-label"
+                          value={formData.targetLabel || 'Target'}
+                          onChange={(e) => setFormData(prev => ({...prev, targetLabel: e.target.value}))}
+                          placeholder="e.g., YTD, Target, Goal"
+                          className="text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                        />
                       </div>
-                      
-                      <div className="text-xs text-gray-600 bg-white p-2 rounded border">
-                        {formData.hasPresetTarget ? (
-                          <span>✓ <strong>Target will be set:</strong> This template will include a preset target that gets applied when assigned to partners, opportunities, or customers.</span>
-                        ) : (
-                          <span>• <strong>No preset target:</strong> Account managers will set targets individually when assigning this OKR template.</span>
-                        )}
+                      <div className="space-y-2">
+                        <label htmlFor="realized-label" className="text-sm font-medium text-gray-900">
+                          Progress field name
+                        </label>
+                        <Input 
+                          id="realized-label"
+                          value={formData.realizedLabel || 'Realized'}
+                          onChange={(e) => setFormData(prev => ({...prev, realizedLabel: e.target.value}))}
+                          placeholder="e.g., Full Year, Realized, Progress"
+                          className="text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                        />
                       </div>
                     </div>
                   </div>
 
                   {/* Target Field - Currency */}
-                  {formData.okrType === 'currency' && formData.hasPresetTarget && (
+                  {formData.okrType === 'currency' && (
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <div className="flex items-center gap-1">
                           <label htmlFor="okr-target" className="text-sm font-medium text-gray-900">
-                            Target per milestone
+                            {formData.targetLabel || 'Target'} per milestone
                           </label>
                           <TooltipProvider>
                             <Tooltip>
@@ -1192,7 +1200,7 @@ export default function MetricsPage() {
                       <div className="space-y-2">
                         <div className="flex items-center gap-1">
                           <label htmlFor="okr-total-target" className="text-sm font-medium text-gray-900">
-                            Target for full timeframe
+                            {formData.targetLabel || 'Target'} for full timeframe
                           </label>
                           <TooltipProvider>
                             <Tooltip>
@@ -1220,12 +1228,12 @@ export default function MetricsPage() {
                   )}
 
                   {/* Target Field - Percentage */}
-                  {formData.okrType === 'percent' && formData.hasPresetTarget && (
+                  {formData.okrType === 'percent' && (
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <div className="flex items-center gap-1">
                           <label htmlFor="okr-target" className="text-sm font-medium text-gray-900">
-                            Target per milestone
+                            {formData.targetLabel || 'Target'} per milestone
                           </label>
                           <TooltipProvider>
                             <Tooltip>
@@ -1255,7 +1263,7 @@ export default function MetricsPage() {
                       <div className="space-y-2">
                         <div className="flex items-center gap-1">
                           <label htmlFor="okr-total-target" className="text-sm font-medium text-gray-900">
-                            Target for full timeframe
+                            {formData.targetLabel || 'Target'} for full timeframe
                           </label>
                           <TooltipProvider>
                             <Tooltip>
@@ -1283,12 +1291,12 @@ export default function MetricsPage() {
                   )}
 
                   {/* Target Field - Number */}
-                  {formData.okrType === 'number' && formData.hasPresetTarget && (
+                  {formData.okrType === 'number' && (
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
                         <div className="flex items-center gap-1">
                           <label htmlFor="okr-target" className="text-sm font-medium text-gray-900">
-                            Target per milestone
+                            {formData.targetLabel || 'Target'} per milestone
                           </label>
                           <TooltipProvider>
                             <Tooltip>
@@ -1316,7 +1324,7 @@ export default function MetricsPage() {
                       <div className="space-y-2">
                         <div className="flex items-center gap-1">
                           <label htmlFor="okr-total-target" className="text-sm font-medium text-gray-900">
-                            Target for full timeframe
+                            {formData.targetLabel || 'Target'} for full timeframe
                           </label>
                           <TooltipProvider>
                             <Tooltip>
