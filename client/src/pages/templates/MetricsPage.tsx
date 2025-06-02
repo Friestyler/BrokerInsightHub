@@ -847,8 +847,8 @@ export default function MetricsPage() {
       </div>
       {/* Create OKR Dialog */}
       <Dialog open={isCreateOKROpen} onOpenChange={setIsCreateOKROpen}>
-        <DialogContent className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-4 border p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg sm:max-w-[800px] max-h-[85vh] overflow-y-auto bg-[#ffffff]">
-          <DialogHeader className="pb-6">
+        <DialogContent className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-6 border p-8 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg sm:max-w-[850px] max-h-[85vh] overflow-y-auto bg-[#ffffff]">
+          <DialogHeader className="pb-4">
             <DialogTitle className="text-xl font-semibold text-gray-900">
               Create OKR template
             </DialogTitle>
@@ -857,9 +857,9 @@ export default function MetricsPage() {
             </DialogDescription>
           </DialogHeader>
           
-          <div className="space-y-6">
+          <div className="space-y-8">
             {/* OKR Type Field */}
-            <div className="space-y-3">
+            <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <label className="text-sm font-semibold text-gray-900">
                   OKR Type <span className="text-red-500">*</span>
@@ -913,11 +913,8 @@ export default function MetricsPage() {
               )}
             </div>
 
-            {/* Divider */}
-            <div className="border-t border-gray-200"></div>
-
             {/* Tag Field */}
-            <div className="space-y-2">
+            <div className="space-y-3 pt-6 border-t border-gray-200">
               <label htmlFor="okr-tag" className="text-sm font-medium text-gray-900">
                 Tag
               </label>
@@ -957,7 +954,7 @@ export default function MetricsPage() {
             </div>
 
             {/* Essential Fields */}
-            <div className="space-y-4">
+            <div className="space-y-6">
               {/* Name Field */}
               <div className="space-y-2">
                 <label htmlFor="okr-name" className="text-sm font-medium text-gray-900">
@@ -1131,7 +1128,7 @@ export default function MetricsPage() {
 
               {/* Target & Measurement Section */}
               {formData.okrType && (
-                <div className="space-y-4">
+                <div className="space-y-6 pt-6 border-t border-gray-200">
                   <div className="space-y-3">
                     <h3 className="text-lg font-semibold text-gray-900">Set Your Target <span className="text-sm font-normal text-gray-500">(Optional)</span></h3>
                     <p className="text-sm text-gray-600">You can leave targets empty if you prefer to let users set their own targets, or define default values here. Users will track their results against these targets.</p>
@@ -1323,8 +1320,8 @@ export default function MetricsPage() {
                   )}
 
                   {/* Advanced Settings */}
-                  <div className="border-t pt-4">
-                    <div className="flex items-center justify-between mb-3">
+                  <div className="border-t pt-6">
+                    <div className="flex items-center justify-between mb-4">
                       <div>
                         <h4 className="text-sm font-medium text-gray-900">Advanced Settings</h4>
                         <p className="text-xs text-gray-600">Optional customizations for power users</p>
@@ -1378,7 +1375,7 @@ export default function MetricsPage() {
             </div>
           </div>
           
-          <DialogFooter className="pt-6 border-t flex justify-between">
+          <DialogFooter className="pt-8 border-t flex justify-between">
             <Button 
               variant="outline" 
               onClick={resetForm}
