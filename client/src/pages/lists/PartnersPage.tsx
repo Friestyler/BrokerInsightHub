@@ -1225,81 +1225,82 @@ function PartnersTable() {
           </div>
         </div>
       </div>
-      {/* Selection actions bar - visible when items are selected */}
-      {selectedPartners.length > 0 && (
-        <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between mb-4">
-          <div className="flex items-center">
-            <span className="text-indigo-700 font-medium mr-2 text-[14px]">{selectedPartners.length} partners selected</span>
-            <Button 
-              variant="ghost" 
-              size="sm"
-              className="text-gray-600"
-              onClick={() => setSelectedPartners([])}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                <path d="M18 6 6 18"></path>
-                <path d="m6 6 12 12"></path>
-              </svg>
-              Clear selection
-            </Button>
-          </div>
-          
-          <div className="flex items-center gap-2 flex-wrap">
-            <Button 
-              variant="outline" 
-              size="sm"
-              className="text-indigo-600"
-              onClick={() => setShowSaveListModal(true)}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                <polyline points="7 3 7 8 15 8"></polyline>
-              </svg>
-              Add to List
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              size="sm"
-              className="text-indigo-600"
-              onClick={() => {
-                alert('Selected partners can be added to a campaign. This will be available in the Campaigns section');
-              }}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                <path d="M22 2 11 13" />
-                <path d="M22 2 15 22 11 13 2 9 22 2z" />
-              </svg>
-              Add to Campaign
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => {
-                // Reload templates when opening the modal
-                const storedTemplates = localStorage.getItem('okrTemplates');
-                if (storedTemplates) {
-                  try {
-                    const templates = JSON.parse(storedTemplates);
-                    setOkrTemplatesData(templates);
-                  } catch (error) {
-                    console.error('Error loading templates:', error);
-                  }
-                }
-                setShowAssignTemplateModal(true);
-              }}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                <polyline points="22 4 12 14.01 9 11.01"></polyline>
-              </svg>
-              Assign Template
-            </Button>
-          </div>
+      {/* Bulk Actions Bar */}
+      <div className="bg-[#F5F6FA] border border-[#E6E7F1] rounded-lg p-4 min-h-[72px] mb-4">
+        <div className="flex items-center justify-between h-10">
+          {selectedPartners.length > 0 ? (
+            <>
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins' }}>
+                  {selectedPartners.length} partner{selectedPartners.length > 1 ? 's' : ''} selected
+                </span>
+                <div className="flex items-center gap-2">
+                  <button 
+                    className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 border border-gray-300 rounded-md transition-colors"
+                    onClick={() => setShowSaveListModal(true)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                      <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                      <polyline points="7 3 7 8 15 8"></polyline>
+                    </svg>
+                    Add to List
+                  </button>
+                  <button 
+                    className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 border border-gray-300 rounded-md transition-colors"
+                    onClick={() => {
+                      alert('Selected partners can be added to a campaign. This will be available in the Campaigns section');
+                    }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M22 2 11 13" />
+                      <path d="M22 2 15 22 11 13 2 9 22 2z" />
+                    </svg>
+                    Add to Campaign
+                  </button>
+                  <button 
+                    className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 border border-gray-300 rounded-md transition-colors"
+                    onClick={() => {
+                      // Reload templates when opening the modal
+                      const storedTemplates = localStorage.getItem('okrTemplates');
+                      if (storedTemplates) {
+                        try {
+                          const templates = JSON.parse(storedTemplates);
+                          setOkrTemplatesData(templates);
+                        } catch (error) {
+                          console.error('Error loading templates:', error);
+                        }
+                      }
+                      setShowAssignTemplateModal(true);
+                    }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                      <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                    </svg>
+                    Assign Template
+                  </button>
+                </div>
+              </div>
+              <button 
+                onClick={() => setSelectedPartners([])}
+                className="flex items-center rounded-md px-4 py-2 text-gray-600 hover:bg-gray-100"
+                style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5F6585" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+                <span className="text-[#5F6585]">Clear selection</span>
+              </button>
+            </>
+          ) : (
+            <span className="text-sm font-medium text-[#696C8C]" style={{ fontFamily: 'Poppins' }}>
+              Select at least one partner from the table to perform bulk actions
+            </span>
+          )}
         </div>
-      )}
+      </div>
       {/* Statistics overview */}
       <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <div className="bg-white p-4 rounded-md border border-gray-200">
