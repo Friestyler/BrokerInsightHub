@@ -40,7 +40,7 @@ import {
 } from "@/components/ui/tooltip";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Calendar } from "@/components/ui/calendar";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Info } from "lucide-react";
 import { AdvancedTimeframeFilter } from "@/components/ui/advanced-timeframe-filter";
 import { format } from "date-fns";
 
@@ -1193,7 +1193,7 @@ export default function MetricsPage() {
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <CalendarIcon className="w-3 h-3 text-gray-400 cursor-help" />
+                                <Info className="w-3 h-3 text-gray-400 cursor-help" />
                               </TooltipTrigger>
                               <TooltipContent>
                                 <p className="max-w-xs">This target needs to be reached per milestone. For example, every quarter I need to reach a target of €1000.</p>
@@ -1221,7 +1221,7 @@ export default function MetricsPage() {
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <CalendarIcon className="w-3 h-3 text-gray-400 cursor-help" />
+                                <Info className="w-3 h-3 text-gray-400 cursor-help" />
                               </TooltipTrigger>
                               <TooltipContent>
                                 <p className="max-w-xs">This is the total target for the full timeframe selected. It automatically calculates based on your milestone target and timeframe duration.</p>
@@ -1254,7 +1254,7 @@ export default function MetricsPage() {
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <CalendarIcon className="w-3 h-3 text-gray-400 cursor-help" />
+                                <Info className="w-3 h-3 text-gray-400 cursor-help" />
                               </TooltipTrigger>
                               <TooltipContent>
                                 <p className="max-w-xs">This target needs to be reached per milestone. For example, every quarter I need to reach a target of 75%.</p>
@@ -1284,7 +1284,7 @@ export default function MetricsPage() {
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <CalendarIcon className="w-3 h-3 text-gray-400 cursor-help" />
+                                <Info className="w-3 h-3 text-gray-400 cursor-help" />
                               </TooltipTrigger>
                               <TooltipContent>
                                 <p className="max-w-xs">This is the total target for the full timeframe selected. It automatically calculates based on your milestone target and timeframe duration.</p>
@@ -1317,7 +1317,7 @@ export default function MetricsPage() {
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <CalendarIcon className="w-3 h-3 text-gray-400 cursor-help" />
+                                <Info className="w-3 h-3 text-gray-400 cursor-help" />
                               </TooltipTrigger>
                               <TooltipContent>
                                 <p className="max-w-xs">This target needs to be reached per milestone. For example, every quarter I need to reach a target of 50 new customers.</p>
@@ -1345,7 +1345,7 @@ export default function MetricsPage() {
                           <TooltipProvider>
                             <Tooltip>
                               <TooltipTrigger asChild>
-                                <CalendarIcon className="w-3 h-3 text-gray-400 cursor-help" />
+                                <Info className="w-3 h-3 text-gray-400 cursor-help" />
                               </TooltipTrigger>
                               <TooltipContent>
                                 <p className="max-w-xs">This is the total target for the full timeframe selected. It automatically calculates based on your milestone target and timeframe duration.</p>
