@@ -1186,9 +1186,21 @@ export default function MetricsPage() {
                   {formData.okrType === 'currency' && formData.hasPresetTarget && (
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <label htmlFor="okr-target" className="text-sm font-medium text-gray-900">
-                          Target per milestone
-                        </label>
+                        <div className="flex items-center gap-1">
+                          <label htmlFor="okr-target" className="text-sm font-medium text-gray-900">
+                            Target per milestone
+                          </label>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <CalendarIcon className="w-3 h-3 text-gray-400 cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="max-w-xs">This target needs to be reached per milestone. For example, every quarter I need to reach a target of €1000.</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
                         <div className="relative">
                           <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">€</span>
                           <Input 
@@ -1202,9 +1214,21 @@ export default function MetricsPage() {
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <label htmlFor="okr-total-target" className="text-sm font-medium text-gray-900">
-                          Target for full timeframe
-                        </label>
+                        <div className="flex items-center gap-1">
+                          <label htmlFor="okr-total-target" className="text-sm font-medium text-gray-900">
+                            Target for full timeframe
+                          </label>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <CalendarIcon className="w-3 h-3 text-gray-400 cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="max-w-xs">This is the total target for the full timeframe selected. It automatically calculates based on your milestone target and timeframe duration.</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
                         <div className="relative">
                           <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">€</span>
                           <Input 
@@ -1223,9 +1247,21 @@ export default function MetricsPage() {
                   {formData.okrType === 'percent' && formData.hasPresetTarget && (
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <label htmlFor="okr-target" className="text-sm font-medium text-gray-900">
-                          Target per milestone
-                        </label>
+                        <div className="flex items-center gap-1">
+                          <label htmlFor="okr-target" className="text-sm font-medium text-gray-900">
+                            Target per milestone
+                          </label>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <CalendarIcon className="w-3 h-3 text-gray-400 cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="max-w-xs">This target needs to be reached per milestone. For example, every quarter I need to reach a target of 75%.</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
                         <div className="relative">
                           <Input 
                             id="okr-target"
@@ -1241,9 +1277,21 @@ export default function MetricsPage() {
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <label htmlFor="okr-total-target" className="text-sm font-medium text-gray-900">
-                          Target for full timeframe
-                        </label>
+                        <div className="flex items-center gap-1">
+                          <label htmlFor="okr-total-target" className="text-sm font-medium text-gray-900">
+                            Target for full timeframe
+                          </label>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <CalendarIcon className="w-3 h-3 text-gray-400 cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="max-w-xs">This is the total target for the full timeframe selected. It automatically calculates based on your milestone target and timeframe duration.</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
                         <div className="relative">
                           <Input 
                             id="okr-total-target"
@@ -1262,9 +1310,21 @@ export default function MetricsPage() {
                   {formData.okrType === 'number' && formData.hasPresetTarget && (
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <label htmlFor="okr-target" className="text-sm font-medium text-gray-900">
-                          Target per milestone
-                        </label>
+                        <div className="flex items-center gap-1">
+                          <label htmlFor="okr-target" className="text-sm font-medium text-gray-900">
+                            Target per milestone
+                          </label>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <CalendarIcon className="w-3 h-3 text-gray-400 cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="max-w-xs">This target needs to be reached per milestone. For example, every quarter I need to reach a target of 50 new customers.</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
                         <div className="relative">
                           <Input 
                             id="okr-target"
@@ -1278,9 +1338,21 @@ export default function MetricsPage() {
                         </div>
                       </div>
                       <div className="space-y-2">
-                        <label htmlFor="okr-total-target" className="text-sm font-medium text-gray-900">
-                          Target for full timeframe
-                        </label>
+                        <div className="flex items-center gap-1">
+                          <label htmlFor="okr-total-target" className="text-sm font-medium text-gray-900">
+                            Target for full timeframe
+                          </label>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <CalendarIcon className="w-3 h-3 text-gray-400 cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="max-w-xs">This is the total target for the full timeframe selected. It automatically calculates based on your milestone target and timeframe duration.</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
                         <div className="relative">
                           <Input 
                             id="okr-total-target"
