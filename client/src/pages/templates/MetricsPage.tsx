@@ -586,7 +586,7 @@ export default function MetricsPage() {
       </div>
 
       {/* Bulk Actions Bar */}
-      <div className="bg-[#F5F6FA] border border-[#E6E7F1] rounded-lg p-4 min-h-[72px]">
+      <div className="bg-[#F0F1FB] border border-[#D4D9F3] rounded-lg p-4 min-h-[72px]">
         <div className="flex items-center justify-between h-10">
           {selectedOKRs.length > 0 ? (
             <>
@@ -595,7 +595,7 @@ export default function MetricsPage() {
                   {selectedOKRs.length} OKR{selectedOKRs.length > 1 ? 's' : ''} selected
                 </span>
                 <div className="flex items-center gap-2">
-                  <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 border border-gray-300 rounded-md transition-colors">
+                  <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-[#3E4DC4] bg-white hover:bg-[#F0F1FB] border border-[#3E4DC4] rounded-md transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M8 2v4"/>
                       <path d="M16 2v4"/>
@@ -604,7 +604,7 @@ export default function MetricsPage() {
                     </svg>
                     Assign to entity
                   </button>
-                  <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 border border-gray-300 rounded-md transition-colors">
+                  <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-[#3E4DC4] bg-white hover:bg-[#F0F1FB] border border-[#3E4DC4] rounded-md transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
                       <rect width="8" height="4" x="8" y="2" rx="1" ry="1"/>
@@ -623,14 +623,14 @@ export default function MetricsPage() {
               </div>
               <button 
                 onClick={() => setSelectedOKRs([])}
-                className="flex items-center rounded-md px-4 py-2 text-gray-600 hover:bg-gray-100"
+                className="flex items-center rounded-md px-4 py-2 text-[#3E4DC4] hover:bg-[#F0F1FB]"
                 style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
               >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5F6585" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
                   <line x1="18" y1="6" x2="6" y2="18"></line>
                   <line x1="6" y1="6" x2="18" y2="18"></line>
                 </svg>
-                <span className="text-[#5F6585]">Clear selection</span>
+                <span className="text-[#3E4DC4]">Clear selection</span>
               </button>
             </>
           ) : (
