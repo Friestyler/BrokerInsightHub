@@ -1133,8 +1133,8 @@ export default function MetricsPage() {
               {formData.okrType && (
                 <div className="space-y-4">
                   <div className="space-y-3">
-                    <h3 className="text-lg font-semibold text-gray-900">Set Your Target</h3>
-                    <p className="text-sm text-gray-600">Define the target value for this OKR template. Users will track their results against this target.</p>
+                    <h3 className="text-lg font-semibold text-gray-900">Set Your Target <span className="text-sm font-normal text-gray-500">(Optional)</span></h3>
+                    <p className="text-sm text-gray-600">You can leave targets empty if you prefer to let users set their own targets, or define default values here. Users will track their results against these targets.</p>
                   </div>
 
                   {/* Target Field - Currency */}
@@ -1163,7 +1163,7 @@ export default function MetricsPage() {
                             type="number"
                             value={formData.target || ''}
                             onChange={(e) => setFormData(prev => ({...prev, target: parseFloat(e.target.value) || 0}))}
-                            placeholder="1000"
+                            placeholder="Optional (e.g., 1000)"
                             className="pl-8 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                           />
                         </div>
@@ -1225,7 +1225,7 @@ export default function MetricsPage() {
                             max="100"
                             value={formData.target || ''}
                             onChange={(e) => setFormData(prev => ({...prev, target: parseFloat(e.target.value) || 0}))}
-                            placeholder="75"
+                            placeholder="Optional (e.g., 75)"
                             className="pr-8 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                           />
                           <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">%</span>
@@ -1286,7 +1286,7 @@ export default function MetricsPage() {
                             type="number"
                             value={formData.target || ''}
                             onChange={(e) => setFormData(prev => ({...prev, target: parseFloat(e.target.value) || 0}))}
-                            placeholder="50"
+                            placeholder="Optional (e.g., 50)"
                             className="pr-8 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                           />
                           <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">#</span>
