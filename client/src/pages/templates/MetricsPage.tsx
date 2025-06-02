@@ -1369,17 +1369,17 @@ export default function MetricsPage() {
                           <label htmlFor="enable-progress-bar" className="text-sm font-medium text-gray-900">
                             Enable progress bar visualization
                           </label>
-                          {(formData.enableProgressBar !== false) && (
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium text-gray-800 w-8" style={{ fontSize: '14px', lineHeight: '14px' }}>60%</span>
-                              <div className="w-[120px] bg-gray-200 rounded-full h-[6px]">
-                                <div 
-                                  className="bg-gray-500 h-[6px] rounded-full transition-all duration-300"
-                                  style={{ width: '60%' }}
-                                ></div>
-                              </div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-gray-800 w-8" style={{ fontSize: '14px', lineHeight: '14px' }}>60%</span>
+                            <div className="w-[120px] bg-gray-200 rounded-full h-[6px]">
+                              <div 
+                                className={`h-[6px] rounded-full transition-all duration-300 ${
+                                  formData.enableProgressBar !== false ? 'bg-gray-500' : 'bg-gray-300'
+                                }`}
+                                style={{ width: '60%' }}
+                              ></div>
                             </div>
-                          )}
+                          </div>
                         </div>
                         <p className="text-xs text-gray-500">
                           {(formData.target || 0) > 0 
@@ -1411,14 +1411,32 @@ export default function MetricsPage() {
                           <label htmlFor="enable-traffic-lights" className="text-sm font-medium text-gray-900">
                             Enable traffic light indicators
                           </label>
-                          {formData.enableTrafficLights && (
-                            <div className="flex items-center gap-1">
-                              <span className="w-4 h-4 rounded-full" style={{ backgroundColor: '#bcbcd2' }}></span>
-                              <span className="w-4 h-4 rounded-full" style={{ backgroundColor: '#f4828b' }}></span>
-                              <span className="w-4 h-4 rounded-full" style={{ backgroundColor: '#ffb372' }}></span>
-                              <span className="w-4 h-4 rounded-full" style={{ backgroundColor: '#00c99c' }}></span>
-                            </div>
-                          )}
+                          <div className="flex items-center gap-1">
+                            <span 
+                              className={`w-4 h-4 rounded-full transition-opacity duration-300 ${
+                                formData.enableTrafficLights ? 'opacity-100' : 'opacity-40'
+                              }`} 
+                              style={{ backgroundColor: '#bcbcd2' }}
+                            ></span>
+                            <span 
+                              className={`w-4 h-4 rounded-full transition-opacity duration-300 ${
+                                formData.enableTrafficLights ? 'opacity-100' : 'opacity-40'
+                              }`} 
+                              style={{ backgroundColor: '#f4828b' }}
+                            ></span>
+                            <span 
+                              className={`w-4 h-4 rounded-full transition-opacity duration-300 ${
+                                formData.enableTrafficLights ? 'opacity-100' : 'opacity-40'
+                              }`} 
+                              style={{ backgroundColor: '#ffb372' }}
+                            ></span>
+                            <span 
+                              className={`w-4 h-4 rounded-full transition-opacity duration-300 ${
+                                formData.enableTrafficLights ? 'opacity-100' : 'opacity-40'
+                              }`} 
+                              style={{ backgroundColor: '#00c99c' }}
+                            ></span>
+                          </div>
                         </div>
                         <p className="text-xs text-gray-500">
                           Shows status using colored circles: Gray (no data), Red (off track), Yellow (at risk), Green (on track)
