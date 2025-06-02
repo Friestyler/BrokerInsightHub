@@ -1344,10 +1344,10 @@ export default function MetricsPage() {
                       <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg">
                         <p className="text-xs font-medium text-gray-700 mb-2">Preview: How it will look to users</p>
                         <div className="flex items-center gap-2">
-                          <span className="text-xs font-medium text-gray-800 w-8">60%</span>
-                          <div className="w-[120px] bg-gray-200 rounded-full h-[22px] flex items-center px-1">
+                          <span className="font-medium text-gray-800 w-8" style={{ fontSize: '14px', lineHeight: '14px' }}>60%</span>
+                          <div className="w-[120px] bg-gray-200 rounded-full h-[6px]">
                             <div 
-                              className="bg-gray-500 h-[18px] rounded-full transition-all duration-300"
+                              className="bg-gray-500 h-[6px] rounded-full transition-all duration-300"
                               style={{ width: '60%' }}
                             ></div>
                           </div>
