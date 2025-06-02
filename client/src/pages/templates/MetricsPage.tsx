@@ -1350,8 +1350,8 @@ export default function MetricsPage() {
                   )}
 
                   {/* Progress Bar Configuration */}
-                  <div className="space-y-4">
-                    <div className="space-y-3">
+                  <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                    <div className="space-y-3 mb-4">
                       <h4 className="text-sm font-medium text-gray-900">Progress Visualization</h4>
                       <p className="text-xs text-gray-600">Configure how progress is displayed to users</p>
                     </div>
@@ -1392,8 +1392,8 @@ export default function MetricsPage() {
                   </div>
 
                   {/* Traffic Lights Configuration */}
-                  <div className="space-y-4">
-                    <div className="space-y-3">
+                  <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                    <div className="space-y-3 mb-4">
                       <h4 className="text-sm font-medium text-gray-900">Traffic Light Status</h4>
                       <p className="text-xs text-gray-600">Alternative visualization using color-coded status indicators</p>
                     </div>
