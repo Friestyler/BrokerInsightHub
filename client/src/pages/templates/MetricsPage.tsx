@@ -1005,7 +1005,21 @@ export default function MetricsPage() {
                   <label htmlFor="okr-milestone-frequency" className="text-sm font-medium text-gray-900">
                     Milestone Frequency <span className="text-red-500">*</span>
                   </label>
-                  <Select value={formData.milestoneFrequency} onValueChange={(value) => setFormData(prev => ({...prev, milestoneFrequency: value}))}>
+                  {!formData.timeframe && (
+                    <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline mr-1">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                      </svg>
+                      Please select a timeframe first to set the milestone frequency
+                    </p>
+                  )}
+                  <Select 
+                    value={formData.milestoneFrequency} 
+                    onValueChange={(value) => setFormData(prev => ({...prev, milestoneFrequency: value}))}
+                    disabled={!formData.timeframe}
+                  >
                     <SelectTrigger id="okr-milestone-frequency" className="border-gray-300 focus:border-blue-500">
                       <SelectValue placeholder="Select frequency" />
                     </SelectTrigger>
