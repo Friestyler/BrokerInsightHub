@@ -299,7 +299,8 @@ export default function MetricsPage() {
     hasPresetTarget: true,
     isTargetRequired: false,
     targetLabel: 'Target',
-    realizedLabel: 'Realized'
+    realizedLabel: 'Realized',
+    showFieldCustomization: false
   });
 
   // Calculate total target whenever target, timeframe, or milestone frequency changes
@@ -413,7 +414,8 @@ export default function MetricsPage() {
       hasPresetTarget: true,
       isTargetRequired: false,
       targetLabel: 'Target',
-      realizedLabel: 'Realized'
+      realizedLabel: 'Realized',
+      showFieldCustomization: false
     });
     setIsCreateOKROpen(false);
     setIsCreatingNewTag(false);
@@ -1135,35 +1137,8 @@ export default function MetricsPage() {
               {formData.okrType && (
                 <div className="space-y-4">
                   <div className="space-y-3">
-                    <h3 className="text-lg font-semibold text-gray-900">Target & Measurement</h3>
-                    
-                    {/* Field Labels */}
-                    <div className="grid grid-cols-2 gap-4">
-                      <div className="space-y-2">
-                        <label htmlFor="target-label" className="text-sm font-medium text-gray-900">
-                          Target field name
-                        </label>
-                        <Input 
-                          id="target-label"
-                          value={formData.targetLabel || 'Target'}
-                          onChange={(e) => setFormData(prev => ({...prev, targetLabel: e.target.value}))}
-                          placeholder="e.g., YTD, Target, Goal"
-                          className="text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <label htmlFor="realized-label" className="text-sm font-medium text-gray-900">
-                          Progress field name
-                        </label>
-                        <Input 
-                          id="realized-label"
-                          value={formData.realizedLabel || 'Realized'}
-                          onChange={(e) => setFormData(prev => ({...prev, realizedLabel: e.target.value}))}
-                          placeholder="e.g., Full Year, Realized, Progress"
-                          className="text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                        />
-                      </div>
-                    </div>
+                    <h3 className="text-lg font-semibold text-gray-900">Set Your Target</h3>
+                    <p className="text-sm text-gray-600">Define the target value for this OKR template. Users will track their progress against this target.</p>
                   </div>
 
                   {/* Target Field - Currency */}
@@ -1350,6 +1325,52 @@ export default function MetricsPage() {
                       </div>
                     </div>
                   )}
+
+                  {/* Optional Field Customization */}
+                  <div className="border-t pt-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-900">Customize field labels (optional)</h4>
+                        <p className="text-xs text-gray-600">Change how the target and progress fields are named in the OKR</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setFormData(prev => ({...prev, showFieldCustomization: !prev.showFieldCustomization}))}
+                        className="text-xs text-blue-600 hover:text-blue-700"
+                      >
+                        {formData.showFieldCustomization ? 'Hide' : 'Customize'}
+                      </button>
+                    </div>
+                    
+                    {formData.showFieldCustomization && (
+                      <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <label htmlFor="target-label" className="text-xs font-medium text-gray-700">
+                            Target field name
+                          </label>
+                          <Input 
+                            id="target-label"
+                            value={formData.targetLabel || 'Target'}
+                            onChange={(e) => setFormData(prev => ({...prev, targetLabel: e.target.value}))}
+                            placeholder="e.g., YTD, Goal"
+                            className="text-sm border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <label htmlFor="realized-label" className="text-xs font-medium text-gray-700">
+                            Progress field name
+                          </label>
+                          <Input 
+                            id="realized-label"
+                            value={formData.realizedLabel || 'Realized'}
+                            onChange={(e) => setFormData(prev => ({...prev, realizedLabel: e.target.value}))}
+                            placeholder="e.g., Full Year, Progress"
+                            className="text-sm border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                          />
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               )}
             </div>
