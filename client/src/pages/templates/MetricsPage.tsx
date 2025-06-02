@@ -1131,7 +1131,7 @@ export default function MetricsPage() {
                 <div className="space-y-6 pt-6 border-t border-gray-200">
                   <div className="space-y-3">
                     <h3 className="text-lg font-semibold text-gray-900">Set Your Target <span className="text-sm font-normal text-gray-500">(Optional)</span></h3>
-                    <p className="text-sm text-gray-600">You can leave targets empty if you prefer to let users set their own targets, or define default values here. Users will track their results against these targets.</p>
+                    <p className="text-sm text-gray-600">Users will track their results against these targets. You can leave targets empty if you prefer to let users set their own targets, or define default values here.</p>
                   </div>
 
                   {/* Target Field - Currency */}
