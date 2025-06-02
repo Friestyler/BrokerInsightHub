@@ -1413,10 +1413,10 @@ export default function MetricsPage() {
                           </label>
                           {formData.enableTrafficLights && (
                             <div className="flex items-center gap-1">
-                              <span className="w-4 h-4 rounded-full bg-gray-300 border border-gray-400"></span>
-                              <span className="w-4 h-4 rounded-full bg-red-500"></span>
-                              <span className="w-4 h-4 rounded-full bg-yellow-500"></span>
-                              <span className="w-4 h-4 rounded-full bg-green-500"></span>
+                              <span className="w-4 h-4 rounded-full" style={{ backgroundColor: '#bcbcd2' }}></span>
+                              <span className="w-4 h-4 rounded-full" style={{ backgroundColor: '#f4828b' }}></span>
+                              <span className="w-4 h-4 rounded-full" style={{ backgroundColor: '#ffb372' }}></span>
+                              <span className="w-4 h-4 rounded-full" style={{ backgroundColor: '#00c99c' }}></span>
                             </div>
                           )}
                         </div>
@@ -1587,10 +1587,10 @@ export default function MetricsPage() {
                                     </div>
                                   </div>
                                   <div className="text-xs text-gray-600">
-                                    <span className="inline-block w-2 h-2 bg-red-500 rounded-full mr-1"></span>Red: Below {formData.trafficLightYellowThreshold || 50}% • 
-                                    <span className="inline-block w-2 h-2 bg-yellow-500 rounded-full mr-1 ml-2"></span>Yellow: {formData.trafficLightYellowThreshold || 50}%-{formData.trafficLightGreenThreshold || 75}% • 
-                                    <span className="inline-block w-2 h-2 bg-green-500 rounded-full mr-1 ml-2"></span>Green: {formData.trafficLightGreenThreshold || 75}%+ • 
-                                    <span className="inline-block w-2 h-2 bg-gray-300 rounded-full mr-1 ml-2"></span>Gray: No data
+                                    <span className="inline-block w-2 h-2 rounded-full mr-1" style={{ backgroundColor: '#f4828b' }}></span>Red: Below {formData.trafficLightYellowThreshold || 50}% • 
+                                    <span className="inline-block w-2 h-2 rounded-full mr-1 ml-2" style={{ backgroundColor: '#ffb372' }}></span>Yellow: {formData.trafficLightYellowThreshold || 50}%-{formData.trafficLightGreenThreshold || 75}% • 
+                                    <span className="inline-block w-2 h-2 rounded-full mr-1 ml-2" style={{ backgroundColor: '#00c99c' }}></span>Green: {formData.trafficLightGreenThreshold || 75}%+ • 
+                                    <span className="inline-block w-2 h-2 rounded-full mr-1 ml-2" style={{ backgroundColor: '#bcbcd2' }}></span>Gray: No data
                                   </div>
                                 </div>
                               </div>
