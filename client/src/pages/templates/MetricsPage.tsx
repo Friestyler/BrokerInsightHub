@@ -1537,9 +1537,104 @@ export default function MetricsPage() {
                             ></span>
                           </div>
                         </div>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-xs text-gray-500 mb-3">
                           Shows status using colored circles: Gray (no data), Red (off track), Yellow (at risk), Green (on track)
                         </p>
+
+                        {/* Traffic Light Configuration Options */}
+                        {formData.enableTrafficLights && (
+                          <div className="mt-3 space-y-2">
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="radio"
+                                id="traffic-system-main"
+                                name="trafficLightStyleMain"
+                                value="system"
+                                checked={formData.trafficLightStyle === 'system'}
+                                onChange={() => setFormData(prev => ({...prev, trafficLightStyle: 'system'}))}
+                                className="h-3 w-3 text-blue-600 focus:ring-blue-500"
+                              />
+                              <label htmlFor="traffic-system-main" className="text-xs text-gray-900">
+                                <span className="font-medium">Standard thresholds</span> - Red &lt;50%, Yellow 50-74%, Green ≥75%
+                              </label>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="radio"
+                                id="traffic-manual-main"
+                                name="trafficLightStyleMain"
+                                value="manual"
+                                checked={formData.trafficLightStyle === 'manual'}
+                                onChange={() => setFormData(prev => ({...prev, trafficLightStyle: 'manual'}))}
+                                className="h-3 w-3 text-blue-600 focus:ring-blue-500"
+                              />
+                              <label htmlFor="traffic-manual-main" className="text-xs text-gray-900">
+                                <span className="font-medium">Manual control</span> - Users manually set the traffic light status
+                              </label>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="radio"
+                                id="traffic-custom-main"
+                                name="trafficLightStyleMain"
+                                value="custom"
+                                checked={formData.trafficLightStyle === 'custom'}
+                                onChange={() => setFormData(prev => ({...prev, trafficLightStyle: 'custom'}))}
+                                className="h-3 w-3 text-blue-600 focus:ring-blue-500"
+                              />
+                              <label htmlFor="traffic-custom-main" className="text-xs text-gray-900">
+                                <span className="font-medium">Custom thresholds</span> - Define your own performance ranges
+                              </label>
+                            </div>
+
+                            {formData.trafficLightStyle === 'manual' && (
+                              <div className="p-3 bg-green-50 border border-green-200 rounded-md mt-2">
+                                <p className="text-xs text-green-800 mb-1 font-medium">Manual Traffic Light Control</p>
+                                <p className="text-xs text-green-700">
+                                  Users will manually set Red, Yellow, Green, or Gray status for their OKRs. 
+                                  Perfect for checkbox-type OKRs or qualitative progress tracking.
+                                </p>
+                              </div>
+                            )}
+
+                            {formData.trafficLightStyle === 'custom' && (
+                              <div className="p-3 bg-orange-50 border border-orange-200 rounded-md mt-2">
+                                <p className="text-xs text-orange-800 mb-2 font-medium">Custom Traffic Light Thresholds</p>
+                                <div className="grid grid-cols-2 gap-3 mb-2">
+                                  <div>
+                                    <label className="text-xs text-gray-700">Yellow threshold (%)</label>
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      max="100"
+                                      value={formData.trafficLightYellowThreshold || 50}
+                                      onChange={(e) => setFormData(prev => ({...prev, trafficLightYellowThreshold: parseInt(e.target.value)}))}
+                                      className="w-full text-xs border border-gray-300 rounded px-2 py-1 mt-1"
+                                      placeholder="50"
+                                    />
+                                  </div>
+                                  <div>
+                                    <label className="text-xs text-gray-700">Green threshold (%)</label>
+                                    <input
+                                      type="number"
+                                      min="0"
+                                      max="100"
+                                      value={formData.trafficLightGreenThreshold || 75}
+                                      onChange={(e) => setFormData(prev => ({...prev, trafficLightGreenThreshold: parseInt(e.target.value)}))}
+                                      className="w-full text-xs border border-gray-300 rounded px-2 py-1 mt-1"
+                                      placeholder="75"
+                                    />
+                                  </div>
+                                </div>
+                                <div className="text-xs text-gray-600">
+                                  <span className="inline-block w-2 h-2 rounded-full mr-1" style={{ backgroundColor: '#f4828b' }}></span>Red: Below {formData.trafficLightYellowThreshold || 50}% • 
+                                  <span className="inline-block w-2 h-2 rounded-full mr-1 ml-2" style={{ backgroundColor: '#ffb372' }}></span>Yellow: {formData.trafficLightYellowThreshold || 50}%-{formData.trafficLightGreenThreshold || 75}% • 
+                                  <span className="inline-block w-2 h-2 rounded-full mr-1 ml-2" style={{ backgroundColor: '#00c99c' }}></span>Green: {formData.trafficLightGreenThreshold || 75}%+
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
