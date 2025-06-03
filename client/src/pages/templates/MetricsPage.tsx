@@ -309,7 +309,8 @@ export default function MetricsPage() {
     trafficLightStyle: 'system',
     trafficLightYellowThreshold: 50,
     trafficLightGreenThreshold: 75,
-    targetBehavior: 'increase' // 'increase', 'decrease', 'stay_above', 'stay_below'
+    targetBehavior: 'increase', // 'increase', 'decrease', 'stay_above', 'stay_below'
+    showTargetBehavior: false
   });
 
   // Calculate total target whenever target, timeframe, or milestone frequency changes
@@ -433,7 +434,8 @@ export default function MetricsPage() {
       trafficLightStyle: 'system',
       trafficLightYellowThreshold: 50,
       trafficLightGreenThreshold: 75,
-      targetBehavior: 'increase'
+      targetBehavior: 'increase',
+      showTargetBehavior: false
     });
     setIsCreateOKROpen(false);
     setIsCreatingNewTag(false);
@@ -920,7 +922,16 @@ export default function MetricsPage() {
                         ? `${type.color} shadow-md ring-2 ring-blue-500 ring-opacity-50` 
                         : 'border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50'
                     }`}
-                    onClick={() => setFormData(prev => ({...prev, okrType: type.value}))}
+                    onClick={() => setFormData(prev => ({
+                      ...prev, 
+                      okrType: type.value,
+                      // Auto-configure checkbox type for traffic lights with manual control
+                      ...(type.value === 'checkbox' ? {
+                        enableProgressBar: false,
+                        enableTrafficLights: true,
+                        trafficLightStyle: 'manual'
+                      } : {})
+                    }))}
                   >
                     <div className="text-center">
                       <div className="text-lg mb-1">{type.icon}</div>
@@ -1638,7 +1649,7 @@ export default function MetricsPage() {
                                   id="traffic-system"
                                   name="trafficLightStyle"
                                   value="system"
-                                  checked={formData.trafficLightStyle !== 'custom'}
+                                  checked={formData.trafficLightStyle === 'system'}
                                   onChange={() => setFormData(prev => ({...prev, trafficLightStyle: 'system'}))}
                                   className="h-3 w-3 text-blue-600 focus:ring-blue-500"
                                 />
@@ -1660,7 +1671,31 @@ export default function MetricsPage() {
                                   <span className="font-medium">Custom thresholds</span> - Define your own performance ranges
                                 </label>
                               </div>
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="radio"
+                                  id="traffic-manual"
+                                  name="trafficLightStyle"
+                                  value="manual"
+                                  checked={formData.trafficLightStyle === 'manual'}
+                                  onChange={() => setFormData(prev => ({...prev, trafficLightStyle: 'manual'}))}
+                                  className="h-3 w-3 text-blue-600 focus:ring-blue-500"
+                                />
+                                <label htmlFor="traffic-manual" className="text-xs text-gray-900">
+                                  <span className="font-medium">Manual control</span> - Users manually set the traffic light status
+                                </label>
+                              </div>
                             </div>
+
+                            {formData.trafficLightStyle === 'manual' && (
+                              <div className="p-3 bg-green-50 border border-green-200 rounded-md mt-3">
+                                <p className="text-xs text-green-800 mb-2 font-medium">Manual Traffic Light Control</p>
+                                <p className="text-xs text-green-700">
+                                  Users will be able to manually set the traffic light status (Red, Yellow, Green, or Gray) for their OKRs. 
+                                  This is ideal for checkbox-type OKRs or situations where progress cannot be automatically calculated.
+                                </p>
+                              </div>
+                            )}
 
                             {formData.trafficLightStyle === 'custom' && (
                               <div className="p-3 bg-orange-50 border border-orange-200 rounded-md mt-3">
