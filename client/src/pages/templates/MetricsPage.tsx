@@ -901,19 +901,11 @@ export default function MetricsPage() {
                       {okr.trafficLightStyle === 'system' ? 'Automatic based on progress' :
                        okr.trafficLightStyle === 'custom' ? 'Custom rules' :
                        okr.trafficLightStyle === 'manual' ? 'Users update manually' :
-                       okr.trafficLightStyle === 'disabled' ? 'Disabled' :
-                       'Disabled'}
+                       okr.trafficLightStyle === 'disabled' ? 'Off' :
+                       'Off'}
                     </TableCell>
-                    <TableCell className="px-3 py-2 text-center">
-                      {okr.progressBar ? (
-                        <div className="flex items-center justify-center">
-                          <div className="w-8 bg-gray-200 rounded-full h-1.5">
-                            <div className="h-1.5 rounded-full bg-gray-500" style={{ width: '60%' }}></div>
-                          </div>
-                        </div>
-                      ) : (
-                        <span className="text-gray-400 text-xs">—</span>
-                      )}
+                    <TableCell className="px-3 py-2 text-center text-[#282A3F]" style={{ fontFamily: 'Poppins', fontSize: '12px' }}>
+                      {okr.progressBar ? 'On' : 'Off'}
                     </TableCell>
                     <TableCell className="px-3 py-2 text-right">
                       <div className="flex items-center justify-end gap-1">
