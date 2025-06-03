@@ -308,7 +308,8 @@ export default function MetricsPage() {
     enableTrafficLights: false,
     trafficLightStyle: 'system',
     trafficLightYellowThreshold: 50,
-    trafficLightGreenThreshold: 75
+    trafficLightGreenThreshold: 75,
+    targetBehavior: 'increase' // 'increase', 'decrease', 'stay_above', 'stay_below'
   });
 
   // Calculate total target whenever target, timeframe, or milestone frequency changes
@@ -431,7 +432,8 @@ export default function MetricsPage() {
       enableTrafficLights: false,
       trafficLightStyle: 'system',
       trafficLightYellowThreshold: 50,
-      trafficLightGreenThreshold: 75
+      trafficLightGreenThreshold: 75,
+      targetBehavior: 'increase'
     });
     setIsCreateOKROpen(false);
     setIsCreatingNewTag(false);
@@ -476,7 +478,8 @@ export default function MetricsPage() {
       enableTrafficLights: formData.enableTrafficLights,
       trafficLightStyle: formData.trafficLightStyle,
       trafficLightYellowThreshold: formData.trafficLightYellowThreshold,
-      trafficLightGreenThreshold: formData.trafficLightGreenThreshold
+      trafficLightGreenThreshold: formData.trafficLightGreenThreshold,
+      targetBehavior: formData.targetBehavior
     };
     console.log("Creating OKR with data:", submissionData);
     // Handle form submission here
@@ -1162,6 +1165,70 @@ export default function MetricsPage() {
                   <div className="space-y-3">
                     <h3 className="text-lg font-semibold text-gray-900">Set Your Target <span className="text-sm font-normal text-gray-500">(Optional)</span></h3>
                     <p className="text-sm text-gray-600">Users will track their results against these targets. You can leave targets empty if you prefer to let users set their own targets, or define default values here.</p>
+                  </div>
+
+                  {/* Target Behavior Selection */}
+                  <div className="space-y-3">
+                    <h4 className="text-sm font-medium text-gray-900">Target Behavior</h4>
+                    <p className="text-xs text-gray-600">Define how progress is measured against the target</p>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          id="target-increase"
+                          name="targetBehavior"
+                          value="increase"
+                          checked={formData.targetBehavior === 'increase'}
+                          onChange={(e) => setFormData(prev => ({...prev, targetBehavior: e.target.value as any}))}
+                          className="h-3 w-3 text-blue-600 focus:ring-blue-500"
+                        />
+                        <label htmlFor="target-increase" className="text-sm text-gray-900">
+                          <span className="font-medium">Increase to target</span> - Result should reach or exceed target
+                        </label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          id="target-decrease"
+                          name="targetBehavior"
+                          value="decrease"
+                          checked={formData.targetBehavior === 'decrease'}
+                          onChange={(e) => setFormData(prev => ({...prev, targetBehavior: e.target.value as any}))}
+                          className="h-3 w-3 text-blue-600 focus:ring-blue-500"
+                        />
+                        <label htmlFor="target-decrease" className="text-sm text-gray-900">
+                          <span className="font-medium">Decrease to target</span> - Result should reach or go below target
+                        </label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          id="target-stay-above"
+                          name="targetBehavior"
+                          value="stay_above"
+                          checked={formData.targetBehavior === 'stay_above'}
+                          onChange={(e) => setFormData(prev => ({...prev, targetBehavior: e.target.value as any}))}
+                          className="h-3 w-3 text-blue-600 focus:ring-blue-500"
+                        />
+                        <label htmlFor="target-stay-above" className="text-sm text-gray-900">
+                          <span className="font-medium">Stay above target</span> - Result should always be above target
+                        </label>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="radio"
+                          id="target-stay-below"
+                          name="targetBehavior"
+                          value="stay_below"
+                          checked={formData.targetBehavior === 'stay_below'}
+                          onChange={(e) => setFormData(prev => ({...prev, targetBehavior: e.target.value as any}))}
+                          className="h-3 w-3 text-blue-600 focus:ring-blue-500"
+                        />
+                        <label htmlFor="target-stay-below" className="text-sm text-gray-900">
+                          <span className="font-medium">Stay below target</span> - Result should always be below target
+                        </label>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Target Field - Currency */}
