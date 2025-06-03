@@ -1108,6 +1108,7 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
   const [advancedTimeframe, setAdvancedTimeframe] = useState("");
   const [quickActionInput, setQuickActionInput] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
+  const [isEditingAssignation, setIsEditingAssignation] = useState(false);
   const [expandedOKRs, setExpandedOKRs] = useState<Set<number>>(new Set());
   const [creatingUnderOKR, setCreatingUnderOKR] = useState<number | null>(null);
   const [newOKRName, setNewOKRName] = useState('');
@@ -1507,7 +1508,7 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
   });
 
   // Get available tags from assigned OKRs
-  const availableTags = [...new Set(assignedOKRs.map(okr => okr.tag).filter(Boolean))];
+  const availableTags = Array.from(new Set(assignedOKRs.map(okr => okr.tag).filter(Boolean)));
 
   // Clear all filters
   const clearFilters = () => {
@@ -1592,7 +1593,8 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
 
       {/* Filters Section */}
       <div className="space-y-4">
-        <div className="flex flex-wrap gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex flex-wrap gap-3">
           {/* Search */}
           <div className="relative min-w-[250px]">
             <input
@@ -1657,6 +1659,20 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
               Clear Filters
             </Button>
           )}
+          </div>
+          
+          {/* Edit OKR Assignation Button */}
+          <Button 
+            variant="outline" 
+            onClick={() => setIsEditingAssignation(!isEditingAssignation)}
+            className="flex items-center gap-2"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+              <path d="m15 5 4 4"/>
+            </svg>
+            {isEditingAssignation ? 'Done editing' : 'Edit OKR assignation'}
+          </Button>
         </div>
       </div>
 
