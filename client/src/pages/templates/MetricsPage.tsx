@@ -268,6 +268,7 @@ export default function MetricsPage() {
   const [expandedObjectives, setExpandedObjectives] = useState<Set<number>>(new Set());
   const [parentObjectiveId, setParentObjectiveId] = useState<number | null>(null);
   const [parentObjectiveTag, setParentObjectiveTag] = useState<string>("");
+  const [parentObjectiveName, setParentObjectiveName] = useState<string>("");
   
   // Fetch tags from API
   const { data: tags = [] } = useQuery<Tag[]>({
@@ -438,9 +439,10 @@ export default function MetricsPage() {
     });
   };
 
-  const openCreateActivityDialog = (objectiveId: number, objectiveTag: string) => {
+  const openCreateActivityDialog = (objectiveId: number, objectiveTag: string, objectiveName: string) => {
     setParentObjectiveId(objectiveId);
     setParentObjectiveTag(objectiveTag);
+    setParentObjectiveName(objectiveName);
     setFormData(prev => ({
       ...prev,
       tag: objectiveTag,
@@ -489,6 +491,7 @@ export default function MetricsPage() {
     setNewTagColor("blue");
     setParentObjectiveId(null);
     setParentObjectiveTag("");
+    setParentObjectiveName("");
   };
 
   const handleCreateNewTag = () => {
@@ -955,7 +958,7 @@ export default function MetricsPage() {
                         <TableCell colSpan={5} className="px-3 py-4 text-center">
                           <Button 
                             variant="outline" 
-                            onClick={() => openCreateActivityDialog(okr.id, okr.tag || '')}
+                            onClick={() => openCreateActivityDialog(okr.id, okr.tag || '', okr.title)}
                             className="flex items-center gap-2 bg-white hover:bg-blue-50 border-blue-200 text-blue-700 hover:text-blue-800"
                           >
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -985,7 +988,7 @@ export default function MetricsPage() {
             </DialogTitle>
             <DialogDescription className="text-sm text-gray-600 mt-1">
               {parentObjectiveId 
-                ? `Create a new activity under this objective with tag "${parentObjectiveTag}"`
+                ? `Create a new activity under "${parentObjectiveName}"`
                 : 'Create a new OKR template that can be assigned to partners, opportunities, and customers'
               }
             </DialogDescription>
