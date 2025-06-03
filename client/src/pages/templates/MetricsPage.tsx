@@ -265,6 +265,9 @@ export default function MetricsPage() {
   const [isCreatingNewTag, setIsCreatingNewTag] = useState(false);
   const [newTagName, setNewTagName] = useState("");
   const [newTagColor, setNewTagColor] = useState("blue");
+  const [expandedObjectives, setExpandedObjectives] = useState<Set<number>>(new Set());
+  const [parentObjectiveId, setParentObjectiveId] = useState<number | null>(null);
+  const [parentObjectiveTag, setParentObjectiveTag] = useState<string>("");
   
   // Fetch tags from API
   const { data: tags = [] } = useQuery<Tag[]>({
@@ -421,6 +424,29 @@ export default function MetricsPage() {
     setSelectedTimeframe("");
     setDateRange({ from: undefined, to: undefined });
     setShowNoTarget(false);
+  };
+
+  const toggleObjectiveExpansion = (objectiveId: number) => {
+    setExpandedObjectives(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(objectiveId)) {
+        newSet.delete(objectiveId);
+      } else {
+        newSet.add(objectiveId);
+      }
+      return newSet;
+    });
+  };
+
+  const openCreateActivityDialog = (objectiveId: number, objectiveTag: string) => {
+    setParentObjectiveId(objectiveId);
+    setParentObjectiveTag(objectiveTag);
+    setFormData(prev => ({
+      ...prev,
+      tag: objectiveTag,
+      okrType: 'activity'
+    }));
+    setIsCreateOKROpen(true);
   };
 
   const resetForm = () => {
@@ -821,24 +847,49 @@ export default function MetricsPage() {
               </TableHeader>
               <TableBody>
                 {okrsInGroup.map((okr) => (
-                  <TableRow key={okr.id} className="hover:bg-[#F5F6FA] border-b group" style={{ borderColor: '#E6E7F1' }}>
-                    <TableCell className="w-12 px-1 py-3">
-                      <div className="flex items-center" style={{ gap: '4px' }}>
-                        <input
-                          type="checkbox"
-                          checked={selectedOKRs.includes(okr.id)}
-                          onChange={(e) => {
-                            if (e.target.checked) {
-                              setSelectedOKRs(prev => [...prev, okr.id]);
-                            } else {
-                              setSelectedOKRs(prev => prev.filter(id => id !== okr.id));
-                            }
-                          }}
-                          className="rounded border-gray-300 opacity-0 group-hover:opacity-100 transition-opacity"
-                          style={{ opacity: selectedOKRs.includes(okr.id) ? 1 : undefined }}
-                        />
-                      </div>
-                    </TableCell>
+                  <React.Fragment key={okr.id}>
+                    <TableRow className="hover:bg-[#F5F6FA] border-b group" style={{ borderColor: '#E6E7F1' }}>
+                      <TableCell className="w-12 px-1 py-3">
+                        <div className="flex items-center" style={{ gap: '4px' }}>
+                          {okr.nestedCount > 0 && (
+                            <button
+                              onClick={() => toggleObjectiveExpansion(okr.id)}
+                              className="p-1 hover:bg-gray-100 rounded flex-shrink-0"
+                              style={{ 
+                                width: '20px', 
+                                height: '20px'
+                              }}
+                            >
+                              <svg 
+                                width="8" 
+                                height="13" 
+                                viewBox="0 0 8 13" 
+                                fill="none" 
+                                xmlns="http://www.w3.org/2000/svg"
+                                style={{ 
+                                  transform: expandedObjectives.has(okr.id) ? 'rotate(90deg)' : 'rotate(0deg)',
+                                  transition: 'transform 0.2s'
+                                }}
+                              >
+                                <path d="M6.83984 6.28516C7.08594 6.55859 7.08594 6.96875 6.83984 7.21484L1.58984 12.4648C1.31641 12.7383 0.90625 12.7383 0.660156 12.4648C0.386719 12.2188 0.386719 11.8086 0.660156 11.5625L5.44531 6.77734L0.660156 1.96484C0.386719 1.71875 0.386719 1.30859 0.660156 1.0625C0.90625 0.789062 1.31641 0.789062 1.5625 1.0625L6.83984 6.28516Z" fill="#696C8C"/>
+                              </svg>
+                            </button>
+                          )}
+                          <input
+                            type="checkbox"
+                            checked={selectedOKRs.includes(okr.id)}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setSelectedOKRs(prev => [...prev, okr.id]);
+                              } else {
+                                setSelectedOKRs(prev => prev.filter(id => id !== okr.id));
+                              }
+                            }}
+                            className="rounded border-gray-300 opacity-0 group-hover:opacity-100 transition-opacity"
+                            style={{ opacity: selectedOKRs.includes(okr.id) ? 1 : undefined }}
+                          />
+                        </div>
+                      </TableCell>
                     <TableCell className="p-4 align-middle text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
                       <div className="flex items-center w-full">
                         <span 
@@ -894,6 +945,26 @@ export default function MetricsPage() {
                       </div>
                     </TableCell>
                   </TableRow>
+
+                  {/* Add Activity Row - Show when objective is expanded */}
+                  {okr.nestedCount > 0 && expandedObjectives.has(okr.id) && (
+                    <TableRow className="bg-blue-50 border-b" style={{ borderColor: '#E6E7F1' }}>
+                      <TableCell colSpan={5} className="px-3 py-4 text-center">
+                        <Button 
+                          variant="outline" 
+                          onClick={() => openCreateActivityDialog(okr.id, okr.tag || '')}
+                          className="flex items-center gap-2 bg-white hover:bg-blue-50 border-blue-200 text-blue-700 hover:text-blue-800"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M5 12h14"/>
+                            <path d="M12 5v14"/>
+                          </svg>
+                          Add activity to this OKR template
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  )}
+                  </React.Fragment>
                 ))}
               </TableBody>
             </Table>
