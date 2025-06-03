@@ -57,6 +57,7 @@ const mockOKRTemplates = [
     isExpanded: false,
     nestedCount: 2,
     trafficLights: true,
+    trafficLightStyle: 'system',
     progressBar: true
   },
   {
@@ -70,6 +71,7 @@ const mockOKRTemplates = [
     isExpanded: false,
     nestedCount: 0,
     trafficLights: true,
+    trafficLightStyle: 'custom',
     progressBar: true
   },
   {
@@ -83,6 +85,7 @@ const mockOKRTemplates = [
     isExpanded: false,
     nestedCount: 3,
     trafficLights: true,
+    trafficLightStyle: 'manual',
     progressBar: false
   },
   {
@@ -96,6 +99,7 @@ const mockOKRTemplates = [
     isExpanded: false,
     nestedCount: 1,
     trafficLights: false,
+    trafficLightStyle: 'disabled',
     progressBar: true
   },
   {
@@ -109,6 +113,7 @@ const mockOKRTemplates = [
     isExpanded: false,
     nestedCount: 0,
     trafficLights: true,
+    trafficLightStyle: 'system',
     progressBar: false
   },
   {
@@ -122,6 +127,7 @@ const mockOKRTemplates = [
     isExpanded: false,
     nestedCount: 1,
     trafficLights: false,
+    trafficLightStyle: 'disabled',
     progressBar: false
   }
 ];
@@ -891,16 +897,12 @@ export default function MetricsPage() {
                         okr.target.toString()
                       ) : 'No target'}
                     </TableCell>
-                    <TableCell className="px-3 py-2 text-center">
-                      {okr.trafficLights ? (
-                        <div className="flex items-center justify-center">
-                          <div className="w-4 h-4 rounded-full border-2 flex items-center justify-center" style={{ borderColor: '#00c99c', backgroundColor: 'white' }}>
-                            <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#00c99c' }}></div>
-                          </div>
-                        </div>
-                      ) : (
-                        <span className="text-gray-400 text-xs">—</span>
-                      )}
+                    <TableCell className="px-3 py-2 text-center text-[#282A3F]" style={{ fontFamily: 'Poppins', fontSize: '12px' }}>
+                      {okr.trafficLightStyle === 'system' ? 'Automatic based on progress' :
+                       okr.trafficLightStyle === 'custom' ? 'Custom rules' :
+                       okr.trafficLightStyle === 'manual' ? 'Users update manually' :
+                       okr.trafficLightStyle === 'disabled' ? 'Disabled' :
+                       'Disabled'}
                     </TableCell>
                     <TableCell className="px-3 py-2 text-center">
                       {okr.progressBar ? (
