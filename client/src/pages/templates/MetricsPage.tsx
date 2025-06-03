@@ -1716,7 +1716,7 @@ export default function MetricsPage() {
                 </div>
               )}
 
-                  {/* Advanced Settings */}
+              {/* Advanced Settings */}
                   <div className="border-t pt-6">
                     <div className="flex items-center justify-between mb-4">
                       <div>
@@ -1947,7 +1947,6 @@ export default function MetricsPage() {
                 </div>
               )}
             </div>
-          </div>
           
           <DialogFooter className="pt-8 border-t flex justify-between">
             <Button 
