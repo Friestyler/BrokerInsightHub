@@ -1512,7 +1512,7 @@ export default function MetricsPage() {
 
               {/* Traffic Lights Configuration - Available for non-traffic-light OKR types */}
               {formData.okrType && formData.okrType !== 'traffic-light' && (
-                <div className="space-y-6 pt-6">
+                <div className="space-y-6 pt-3">
                   <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-3">
@@ -1566,8 +1566,13 @@ export default function MetricsPage() {
                     {formData.enableTrafficLights && (
                       <div>
                         <p className="text-xs text-gray-500 mb-3">
-                          Shows status using colored circles: Gray (no data), Red (off track), Yellow (at risk), Green (on track)
+                          Status indicators: Gray (no data), Red (off track), Yellow (at risk), Green (on track)
                         </p>
+
+                        <div className="space-y-1 mb-3">
+                          <h5 className="text-xs font-medium text-gray-800">How should status be determined?</h5>
+                          <p className="text-xs text-gray-600">Choose how the traffic light colors will be set for users</p>
+                        </div>
 
                         {/* Traffic Light Configuration Options */}
                         <div className="space-y-2">
@@ -1583,7 +1588,7 @@ export default function MetricsPage() {
                               className="h-3 w-3 text-blue-600 focus:ring-blue-500"
                             />
                             <label htmlFor="traffic-system-other" className={`text-xs ${formData.okrType === 'checkbox' || formData.okrType === 'traffic-light' ? 'text-gray-400' : 'text-gray-900'}`}>
-                              <span className="font-medium">Standard thresholds</span> - Red &lt;50%, Yellow 50-74%, Green ≥75%
+                              <span className="font-medium">Automatic based on progress</span> - System sets colors based on performance (Red &lt;50%, Yellow 50-74%, Green ≥75%)
                             </label>
                           </div>
                           <div className="flex items-center gap-2">
@@ -1598,7 +1603,7 @@ export default function MetricsPage() {
                               className="h-3 w-3 text-blue-600 focus:ring-blue-500"
                             />
                             <label htmlFor="traffic-custom-other" className={`text-xs ${formData.okrType === 'checkbox' || formData.okrType === 'traffic-light' ? 'text-gray-400' : 'text-gray-900'}`}>
-                              <span className="font-medium">Custom thresholds</span> - Define your own performance ranges
+                              <span className="font-medium">Custom automatic rules</span> - Set your own performance percentages for each color
                             </label>
                           </div>
                           <div className="flex items-center gap-2">
@@ -1612,7 +1617,7 @@ export default function MetricsPage() {
                               className="h-3 w-3 text-blue-600 focus:ring-blue-500"
                             />
                             <label htmlFor="traffic-manual-other" className="text-xs text-gray-900">
-                              <span className="font-medium">Manual control</span> - Users manually set the traffic light status
+                              <span className="font-medium">Let users choose</span> - Users manually select the status color that best represents their progress
                               {(formData.okrType === 'checkbox' || formData.okrType === 'traffic-light') && (
                                 <span className="text-blue-600 ml-1">(Required for {formData.okrType} type)</span>
                               )}
