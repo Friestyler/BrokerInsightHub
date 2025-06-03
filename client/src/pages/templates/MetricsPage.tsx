@@ -55,7 +55,9 @@ const mockOKRTemplates = [
     timeframe: "this-year",
     milestoneFrequency: "Monthly",
     isExpanded: false,
-    nestedCount: 2
+    nestedCount: 2,
+    trafficLights: true,
+    progressBar: true
   },
   {
     id: 2,
@@ -66,7 +68,9 @@ const mockOKRTemplates = [
     timeframe: "this-quarter",
     milestoneFrequency: "Monthly",
     isExpanded: false,
-    nestedCount: 0
+    nestedCount: 0,
+    trafficLights: true,
+    progressBar: true
   },
   {
     id: 3,
@@ -77,7 +81,9 @@ const mockOKRTemplates = [
     timeframe: "next-quarter",
     milestoneFrequency: "Weekly",
     isExpanded: false,
-    nestedCount: 3
+    nestedCount: 3,
+    trafficLights: true,
+    progressBar: false
   },
   {
     id: 4,
@@ -88,7 +94,9 @@ const mockOKRTemplates = [
     timeframe: "last-6-months",
     milestoneFrequency: "Quarterly",
     isExpanded: false,
-    nestedCount: 1
+    nestedCount: 1,
+    trafficLights: false,
+    progressBar: true
   },
   {
     id: 5,
@@ -99,7 +107,9 @@ const mockOKRTemplates = [
     timeframe: "this-month",
     milestoneFrequency: "Weekly",
     isExpanded: false,
-    nestedCount: 0
+    nestedCount: 0,
+    trafficLights: true,
+    progressBar: false
   },
   {
     id: 6,
@@ -110,7 +120,9 @@ const mockOKRTemplates = [
     timeframe: "last-30-days",
     milestoneFrequency: "Weekly",
     isExpanded: false,
-    nestedCount: 1
+    nestedCount: 1,
+    trafficLights: false,
+    progressBar: false
   }
 ];
 
