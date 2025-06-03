@@ -618,7 +618,39 @@ export default function MetricsPage() {
       targetBehavior: formData.targetBehavior
     };
     console.log("Creating OKR with data:", submissionData);
-    // Handle form submission here
+    
+    if (parentObjectiveId) {
+      // Creating an activity under a parent objective
+      const newActivity = {
+        id: Date.now(), // Simple ID generation for demo
+        title: formData.name,
+        type: formData.okrType,
+        target: formData.target,
+        tag: parentObjectiveTag,
+        timeframe: formData.timeframe,
+        milestoneFrequency: formData.milestoneFrequency,
+        trafficLights: formData.enableTrafficLights,
+        trafficLightStyle: formData.trafficLightStyle,
+        progressBar: formData.enableProgressBar,
+        parentId: parentObjectiveId
+      };
+      
+      // Update the okrTemplates state to add the new activity
+      setOkrTemplates(prev => prev.map(okr => {
+        if (okr.id === parentObjectiveId) {
+          return {
+            ...okr,
+            activities: [...(okr.activities || []), newActivity],
+            nestedCount: (okr.activities?.length || 0) + 1
+          };
+        }
+        return okr;
+      }));
+    } else {
+      // Creating a regular OKR template (not implemented yet)
+      console.log("Creating regular OKR template");
+    }
+    
     resetForm();
   };
 
