@@ -1,12 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Link } from 'wouter';
-import { useQuery } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Textarea } from "@/components/ui/textarea";
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
-import {
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import type { Tag, InsertTag } from "@shared/schema";
+import { apiRequest } from "@/lib/queryClient";
+import { useToast } from "@/hooks/use-toast";
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
+import { 
   Dialog,
   DialogContent,
   DialogDescription,
@@ -14,6 +24,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -21,1055 +32,1941 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { apiRequest } from '@/lib/queryClient';
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { CalendarIcon, Info } from "lucide-react";
+import { AdvancedTimeframeFilter } from "@/components/ui/advanced-timeframe-filter";
+import { format } from "date-fns";
 
-// Mock data for metrics with parent-child relationships
-const mockMetrics = [
+// Mock data for OKR templates
+const mockOKRTemplates = [
   {
     id: 1,
-    title: "Revenue Goal",
-    description: "Revenue target for the partnership",
-    unit: "currency",
-    targetValue: 1000000,
-    hierarchy: "objective",
-    tags: ["Financial", "Revenue", "Partner"],
-    children: [3, 4], // References to child metrics
-    createdAt: new Date("2025-03-10"),
-    updatedAt: new Date("2025-04-15"),
+    title: "Increase Annual Revenue",
+    type: "currency",
+    target: 1000000,
+    tag: "Revenue Growth",
+    timeframe: "this-year",
+    milestoneFrequency: "Monthly",
+    isExpanded: false,
+    nestedCount: 2
   },
   {
     id: 2,
-    title: "Pipeline New Business",
-    description: "Target for pipeline of new business opportunities",
-    unit: "currency",
-    targetValue: 2000000,
-    hierarchy: "objective",
-    tags: ["Financial", "Pipeline", "Sales"],
-    children: [], // No children
-    createdAt: new Date("2025-03-12"),
-    updatedAt: new Date("2025-04-16"),
+    title: "Improve Customer Satisfaction Score",
+    type: "percent",
+    target: 85,
+    tag: "Customer Experience",
+    timeframe: "this-quarter",
+    milestoneFrequency: "Monthly",
+    isExpanded: false,
+    nestedCount: 0
   },
   {
     id: 3,
-    title: "Training & Certification",
-    description: "Complete required training and certification courses",
-    unit: "boolean",
-    targetValue: 1,
-    hierarchy: "activity",
-    tags: ["Training", "Certification", "People"],
-    parent: 1, // Parent reference
-    children: [9], // References to child metrics
-    createdAt: new Date("2025-03-15"),
-    updatedAt: new Date("2025-04-10"),
+    title: "Launch New Product Feature",
+    type: "checkbox",
+    target: null,
+    tag: "Product Innovation",
+    timeframe: "next-quarter",
+    milestoneFrequency: "Weekly",
+    isExpanded: false,
+    nestedCount: 3
   },
   {
     id: 4,
-    title: "Marketing Development Funds",
-    description: "Allocated marketing development funds",
-    unit: "currency",
-    targetValue: 100000,
-    hierarchy: "activity",
-    tags: ["Financial", "Marketing", "Budget"],
-    parent: 1, // Parent reference
-    children: [], // No children
-    createdAt: new Date("2025-03-18"),
-    updatedAt: new Date("2025-04-12"),
+    title: "Expand Market Reach",
+    type: "number",
+    target: 50,
+    tag: "Market Expansion",
+    timeframe: "last-6-months",
+    milestoneFrequency: "Quarterly",
+    isExpanded: false,
+    nestedCount: 1
   },
   {
     id: 5,
-    title: "Co-branded Campaigns",
-    description: "Number of co-branded campaigns to launch",
-    unit: "number",
-    targetValue: 4,
-    hierarchy: "objective",
-    tags: ["Marketing", "Campaign", "Brand"],
-    children: [6], // References to child metrics
-    createdAt: new Date("2025-02-15"),
-    updatedAt: new Date("2025-04-10"),
+    title: "Team Development Program",
+    type: "percent",
+    target: 90,
+    tag: "Team Development",
+    timeframe: "this-month",
+    milestoneFrequency: "Weekly",
+    isExpanded: false,
+    nestedCount: 0
   },
   {
     id: 6,
-    title: "Website Overhaul",
-    description: "Complete website redesign project",
-    unit: "boolean",
-    targetValue: 1,
-    hierarchy: "activity",
-    tags: ["Digital", "Website", "Marketing"],
-    parent: 5, // Parent reference
-    children: [],
-    createdAt: new Date("2025-02-20"),
-    updatedAt: new Date("2025-04-05"),
-  },
-  {
-    id: 7,
-    title: "Customer Satisfaction",
-    description: "CSAT score target",
-    unit: "percentage",
-    targetValue: 95,
-    hierarchy: "objective",
-    tags: ["Customer", "Support", "Quality"],
-    children: [8], // References to child metrics
-    createdAt: new Date("2025-01-20"),
-    updatedAt: new Date("2025-03-05"),
-  },
-  {
-    id: 8,
-    title: "Response Time",
-    description: "Average time to first response in hours",
-    unit: "number",
-    targetValue: 4,
-    hierarchy: "activity",
-    tags: ["Support", "Service", "Quality"],
-    parent: 7, // Parent reference
-    children: [10], // References to child metrics
-    createdAt: new Date("2025-01-22"),
-    updatedAt: new Date("2025-03-10"),
-  },
-  {
-    id: 9,
-    title: "Document Review Sessions",
-    description: "Number of document review sessions with team",
-    unit: "number",
-    targetValue: 6,
-    hierarchy: "subactivity",
-    tags: ["Training", "Certification"],
-    parent: 3, // Parent reference
-    children: [],
-    createdAt: new Date("2025-03-16"),
-    updatedAt: new Date("2025-04-11"),
-  },
-  {
-    id: 10,
-    title: "Customer Support Scripts",
-    description: "Creation of standard customer support scripts",
-    unit: "boolean",
-    targetValue: 1,
-    hierarchy: "subactivity",
-    tags: ["Support", "Service"],
-    parent: 8, // Parent reference
-    children: [],
-    createdAt: new Date("2025-01-25"),
-    updatedAt: new Date("2025-03-12"),
+    title: "Customer Onboarding Optimization",
+    type: "number",
+    target: 25,
+    tag: "Operational Excellence",
+    timeframe: "last-30-days",
+    milestoneFrequency: "Weekly",
+    isExpanded: false,
+    nestedCount: 1
   }
 ];
 
-// Mock data for tags
-const mockTags = [
-  { id: 1, name: "Financial", color: "green" },
-  { id: 2, name: "Marketing", color: "purple" },
-  { id: 3, name: "Customer", color: "blue" },
-  { id: 4, name: "Support", color: "cyan" },
-  { id: 5, name: "Sales", color: "amber" },
-  { id: 6, name: "Digital", color: "indigo" },
-  { id: 7, name: "Training", color: "orange" },
-  { id: 8, name: "People", color: "pink" },
-  { id: 9, name: "Revenue", color: "emerald" },
-  { id: 10, name: "Pipeline", color: "yellow" },
-  { id: 11, name: "Certification", color: "rose" },
-  { id: 12, name: "Budget", color: "lime" },
-  { id: 13, name: "Campaign", color: "fuchsia" },
-  { id: 14, name: "Brand", color: "red" },
-  { id: 15, name: "Website", color: "violet" },
-  { id: 16, name: "Quality", color: "sky" },
-  { id: 17, name: "Service", color: "teal" },
-  { id: 18, name: "Partner", color: "slate" },
-];
-
-// Mock data for metric groups
-const mockMetricGroups = [
-  {
-    id: 1,
-    name: "Focus Partner Plan",
-    description: "Standard metrics for managing partner relationships and performance",
-    tags: ["Partner", "Financial", "Marketing"],
-    metrics: [1, 2, 3, 4],
-    createdAt: new Date("2025-03-20"),
-    updatedAt: new Date("2025-04-18"),
-  },
-  {
-    id: 2,
-    name: "Marketing Plan",
-    description: "Metrics for tracking marketing performance and initiatives",
-    tags: ["Marketing", "Campaign", "Digital"],
-    metrics: [4, 5, 6],
-    createdAt: new Date("2025-02-28"),
-    updatedAt: new Date("2025-04-15"),
-  },
-  {
-    id: 3,
-    name: "Customer Support Goals",
-    description: "Metrics for measuring customer support performance",
-    tags: ["Customer", "Support", "Service", "Quality"],
-    metrics: [7, 8],
-    createdAt: new Date("2025-01-25"),
-    updatedAt: new Date("2025-03-15"),
-  }
-];
-
-// Component for the tag badge with colors based on tag name
-const TagBadge = ({ tag }: { tag: string }) => {
-  const getTagColor = (tag: string) => {
-    const foundTag = mockTags.find(t => t.name === tag);
-    if (!foundTag) return "bg-gray-100 text-gray-800";
-    
-    const colorMap: Record<string, string> = {
-      green: "bg-green-100 text-green-800",
-      purple: "bg-purple-100 text-purple-800",
-      blue: "bg-blue-100 text-blue-800",
-      cyan: "bg-cyan-100 text-cyan-800",
-      amber: "bg-amber-100 text-amber-800",
-      indigo: "bg-indigo-100 text-indigo-800",
-      orange: "bg-orange-100 text-orange-800",
-      pink: "bg-pink-100 text-pink-800",
-      emerald: "bg-emerald-100 text-emerald-800",
-      yellow: "bg-yellow-100 text-yellow-800",
-      rose: "bg-rose-100 text-rose-800",
-      lime: "bg-lime-100 text-lime-800",
-      fuchsia: "bg-fuchsia-100 text-fuchsia-800",
-      red: "bg-red-100 text-red-800",
-      violet: "bg-violet-100 text-violet-800",
-      sky: "bg-sky-100 text-sky-800",
-      teal: "bg-teal-100 text-teal-800",
-      slate: "bg-slate-100 text-slate-800",
-    };
-    
-    return colorMap[foundTag.color] || "bg-gray-100 text-gray-800";
+// Function to convert timeframe values to date range display
+const getTimeframeDisplayLabel = (timeframe: string): string => {
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth();
+  const currentDate = now.getDate();
+  
+  const formatDate = (date: Date | null): string => {
+    if (!date) return 'Undefined';
+    return date.toLocaleDateString('en-GB', { 
+      day: 'numeric', 
+      month: 'long', 
+      year: 'numeric' 
+    });
   };
   
+  const getDateRange = (startDate: Date | null, endDate: Date | null): string => {
+    const start = formatDate(startDate);
+    const end = formatDate(endDate);
+    return `${start} - ${end}`;
+  };
+  
+  let startDate: Date | null = null;
+  let endDate: Date | null = null;
+  
+  switch (timeframe) {
+    case 'today':
+      startDate = new Date(currentYear, currentMonth, currentDate);
+      endDate = new Date(currentYear, currentMonth, currentDate);
+      break;
+    case 'yesterday':
+      startDate = new Date(currentYear, currentMonth, currentDate - 1);
+      endDate = new Date(currentYear, currentMonth, currentDate - 1);
+      break;
+    case 'this-month':
+      startDate = new Date(currentYear, currentMonth, 1);
+      endDate = new Date(currentYear, currentMonth + 1, 0);
+      break;
+    case 'next-month':
+      startDate = new Date(currentYear, currentMonth + 1, 1);
+      endDate = new Date(currentYear, currentMonth + 2, 0);
+      break;
+    case 'last-month':
+      startDate = new Date(currentYear, currentMonth - 1, 1);
+      endDate = new Date(currentYear, currentMonth, 0);
+      break;
+    case 'this-quarter':
+      const quarterStart = Math.floor(currentMonth / 3) * 3;
+      startDate = new Date(currentYear, quarterStart, 1);
+      endDate = new Date(currentYear, quarterStart + 3, 0);
+      break;
+    case 'next-quarter':
+      const nextQuarterStart = Math.floor(currentMonth / 3) * 3 + 3;
+      startDate = new Date(currentYear, nextQuarterStart, 1);
+      endDate = new Date(currentYear, nextQuarterStart + 3, 0);
+      break;
+    case 'last-quarter':
+      const lastQuarterStart = Math.floor(currentMonth / 3) * 3 - 3;
+      startDate = new Date(currentYear, lastQuarterStart, 1);
+      endDate = new Date(currentYear, lastQuarterStart + 3, 0);
+      break;
+    case 'this-year':
+      startDate = new Date(currentYear, 0, 1);
+      endDate = new Date(currentYear, 11, 31);
+      break;
+    case 'next-year':
+      startDate = new Date(currentYear + 1, 0, 1);
+      endDate = new Date(currentYear + 1, 11, 31);
+      break;
+    case 'last-year':
+      startDate = new Date(currentYear - 1, 0, 1);
+      endDate = new Date(currentYear - 1, 11, 31);
+      break;
+    case 'last-7-days':
+      startDate = new Date(currentYear, currentMonth, currentDate - 6);
+      endDate = new Date(currentYear, currentMonth, currentDate);
+      break;
+    case 'last-14-days':
+      startDate = new Date(currentYear, currentMonth, currentDate - 13);
+      endDate = new Date(currentYear, currentMonth, currentDate);
+      break;
+    case 'last-30-days':
+      startDate = new Date(currentYear, currentMonth, currentDate - 29);
+      endDate = new Date(currentYear, currentMonth, currentDate);
+      break;
+    case 'last-3-months':
+      startDate = new Date(currentYear, currentMonth - 2, 1);
+      endDate = new Date(currentYear, currentMonth + 1, 0);
+      break;
+    case 'last-6-months':
+      startDate = new Date(currentYear, currentMonth - 5, 1);
+      endDate = new Date(currentYear, currentMonth + 1, 0);
+      break;
+    default:
+      return timeframe;
+  }
+  
+  return getDateRange(startDate, endDate);
+};
+
+// TagBadge component
+const TagBadge = ({ tag }: { tag: string }) => {
+  const tagColors: { [key: string]: string } = {
+    "Revenue Growth": "bg-green-100 text-green-800",
+    "Customer Experience": "bg-blue-100 text-blue-800",
+    "Product Innovation": "bg-purple-100 text-purple-800",
+    "Operational Excellence": "bg-orange-100 text-orange-800",
+    "Market Expansion": "bg-red-100 text-red-800",
+    "Team Development": "bg-yellow-100 text-yellow-800"
+  };
+
   return (
-    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getTagColor(tag)} mr-2 mb-2`}>
+    <Badge className={`${tagColors[tag] || "bg-gray-100 text-gray-800"} text-xs px-2 py-1 rounded-full`}>
       {tag}
-    </span>
+    </Badge>
   );
 };
 
-// Format the target value based on unit
-const formatTargetValue = (value: number | undefined, unit: string) => {
-  if (value === undefined) return "-";
-  
-  switch (unit) {
-    case "currency":
-      return new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'EUR',
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0,
-      }).format(value);
-    case "percentage":
-      return `${value}%`;
-    case "boolean":
-      return value === 1 ? "Complete" : "Not Complete";
-    default:
-      return value.toString();
-  }
-};
-
-// Main Metrics Page component
 export default function MetricsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  const [selectedGroups, setSelectedGroups] = useState<number[]>([]);
-  const [selectedMetrics, setSelectedMetrics] = useState<number[]>([]);
-  const [isCreateMetricOpen, setIsCreateMetricOpen] = useState(false);
-  const [isCreateGroupOpen, setIsCreateGroupOpen] = useState(false);
-  const [isManageTagsOpen, setIsManageTagsOpen] = useState(false);
-  const [metrics, setMetrics] = useState(mockMetrics);
-  const [metricGroups, setMetricGroups] = useState(mockMetricGroups);
-  const [tags, setTags] = useState(mockTags);
-  const [expandedItems, setExpandedItems] = useState<number[]>([]);
-  const [activeTab, setActiveTab] = useState<string>("metrics");
-  const [selectedHierarchy, setSelectedHierarchy] = useState<string>("all");
-  const [selectedUnit, setSelectedUnit] = useState<string>("all");
+  const [selectedOKRs, setSelectedOKRs] = useState<number[]>([]);
+  const [selectedMeasureUnit, setSelectedMeasureUnit] = useState("");
+  const [selectedTargetRange, setSelectedTargetRange] = useState("");
+  const [selectedTimeframe, setSelectedTimeframe] = useState("");
+  const [dateRange, setDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({ from: undefined, to: undefined });
+  const [advancedTimeframe, setAdvancedTimeframe] = useState("");
+  const [showNoTarget, setShowNoTarget] = useState(false);
+  const [groupBy, setGroupBy] = useState("tag");
+  const [isCreateOKROpen, setIsCreateOKROpen] = useState(false);
+  const [isCreatingNewTag, setIsCreatingNewTag] = useState(false);
+  const [newTagName, setNewTagName] = useState("");
+  const [newTagColor, setNewTagColor] = useState("blue");
   
-  // Collect all unique tags, units from metrics
-  const allTagNames = Array.from(
-    new Set(metrics.flatMap(metric => metric.tags))
-  ).sort();
-  
-  const allUnits = Array.from(
-    new Set(metrics.map(metric => metric.unit))
-  ).sort();
-  
-  // Filter metrics based on search, tags, groups, hierarchy, and unit
-  const filteredMetrics = metrics.filter(metric => {
-    const matchesSearch = searchTerm === "" || 
-      metric.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      metric.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesTags = selectedTags.length === 0 || 
-      selectedTags.some(tag => metric.tags.includes(tag));
-    
-    const matchesGroups = selectedGroups.length === 0 ||
-      selectedGroups.some(groupId => 
-        metricGroups.find(g => g.id === groupId)?.metrics.includes(metric.id)
-      );
-    
-    const matchesHierarchy = selectedHierarchy === "all" || 
-      metric.hierarchy === selectedHierarchy;
-    
-    const matchesUnit = selectedUnit === "all" || 
-      metric.unit === selectedUnit;
-    
-    return matchesSearch && matchesTags && matchesGroups && matchesHierarchy && matchesUnit;
+  // Fetch tags from API
+  const { data: tags = [] } = useQuery<Tag[]>({
+    queryKey: ['/api/tags'],
+    queryFn: () => fetch('/api/tags').then(res => res.json()),
   });
-  
-  // Filter groups based on search and tags
-  const filteredGroups = metricGroups.filter(group => {
-    const matchesSearch = searchTerm === "" || 
-      group.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      group.description?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesTags = selectedTags.length === 0 || 
-      selectedTags.some(tag => group.tags.includes(tag));
-    
-    return matchesSearch && matchesTags;
+
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  // Create tag mutation
+  const createTagMutation = useMutation({
+    mutationFn: (tagData: InsertTag) => 
+      apiRequest('POST', '/api/tags', tagData),
+    onSuccess: (newTag: Tag) => {
+      queryClient.invalidateQueries({ queryKey: ['/api/tags'] });
+      setFormData(prev => ({ ...prev, tag: newTag.name }));
+      setIsCreatingNewTag(false);
+      setNewTagName("");
+      setNewTagColor("blue");
+      toast({
+        title: "Tag created",
+        description: `Tag "${newTag.name}" has been created and selected.`,
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create tag",
+        variant: "destructive",
+      });
+    },
   });
-  
-  // Helper function to toggle expansion of a metric
-  const toggleExpand = (id: number) => {
-    setExpandedItems(prev => 
-      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
-    );
-  };
-  
-  // Helper function to toggle metric selection
-  const toggleMetricSelection = (id: number) => {
-    setSelectedMetrics(prev => 
-      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
-    );
-  };
-  
-  // Handle select all metrics
-  const handleSelectAllMetrics = (checked: boolean) => {
-    if (checked) {
-      setSelectedMetrics(filteredMetrics.map(m => m.id));
-    } else {
-      setSelectedMetrics([]);
-    }
-  };
-  
-  // Toggle tag selection
-  const toggleTag = (tag: string) => {
-    setSelectedTags(prev => 
-      prev.includes(tag) 
-        ? prev.filter(t => t !== tag) 
-        : [...prev, tag]
-    );
-  };
-  
-  // Toggle group selection
-  const toggleGroup = (groupId: number) => {
-    setSelectedGroups(prev => 
-      prev.includes(groupId)
-        ? prev.filter(id => id !== groupId)
-        : [...prev, groupId]
-    );
-  };
-  
-  // Handle metric creation
-  const handleCreateMetric = (metricData: any) => {
-    const newMetric = {
-      id: Math.max(0, ...metrics.map(m => m.id)) + 1,
-      ...metricData,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
-    
-    setMetrics([...metrics, newMetric]);
-    
-    // If this metric has a parent, update the parent's children
-    if (metricData.parent) {
-      setMetrics(prev => 
-        prev.map(m => 
-          m.id === metricData.parent 
-            ? { ...m, children: [...(m.children || []), newMetric.id] }
-            : m
-        )
-      );
+  const [formData, setFormData] = useState({
+    okrType: '',
+    tag: '',
+    name: '',
+    description: '',
+    timeframe: '',
+    milestoneFrequency: '',
+    target: 0 as number | undefined,
+    totalTarget: 0,
+    hasTarget: false,
+    targetValue: '',
+    trafficLights: false,
+    trafficLightConfig: '',
+    progressBar: false,
+    dueDateRequired: false,
+    responsibleRequired: false,
+    hasPresetTarget: true,
+    isTargetRequired: false,
+    targetLabel: 'Target',
+    realizedLabel: 'Realized',
+    showAdvancedSettings: false,
+    enableProgressBar: true,
+    progressStyle: 'system',
+    warningThreshold: 50,
+    successThreshold: 80,
+    enableTrafficLights: false,
+    trafficLightStyle: 'system',
+    trafficLightYellowThreshold: 50,
+    trafficLightGreenThreshold: 75,
+    targetBehavior: 'increase', // 'increase', 'decrease', 'stay_above', 'stay_below'
+    showTargetBehavior: false
+  });
+
+  // Calculate total target whenever target, timeframe, or milestone frequency changes
+  const calculateTotalTarget = (target: number | undefined, timeframe: string, frequency: string): number => {
+    if (!target || !timeframe || !frequency) {
+      return 0;
     }
     
-    // Update tags if there are new ones
-    const newTags = metricData.tags.filter((tag: string) => !allTagNames.includes(tag));
-    
-    if (newTags.length > 0) {
-      const tagObjects = newTags.map(tag => ({
-        id: Math.max(0, ...tags.map(t => t.id)) + 1,
-        name: tag,
-        color: "indigo", // Default color
-      }));
-      
-      setTags([...tags, ...tagObjects]);
+    // Determine timeframe duration in months
+    let timeframeDuration = 0;
+    if (timeframe.includes('quarter') || timeframe.includes('Q1') || timeframe.includes('Q2') || timeframe.includes('Q3') || timeframe.includes('Q4')) {
+      timeframeDuration = 3; // Quarter = 3 months
+    } else if (timeframe.includes('H1') || timeframe.includes('H2')) {
+      timeframeDuration = 6; // Half year = 6 months
+    } else if (timeframe === '2024' || timeframe === '2025' || timeframe === 'This year' || timeframe === 'this-year') {
+      timeframeDuration = 12; // Full year = 12 months
+    } else if (timeframe === 'this-month' || timeframe === 'next-month') {
+      timeframeDuration = 1; // Month = 1 month
+    } else if (timeframe === 'today' || timeframe === 'yesterday') {
+      timeframeDuration = 0.033; // Day ≈ 0.033 months
+    } else if (timeframe.includes('days')) {
+      // Extract number of days and convert to months
+      const days = parseInt(timeframe.match(/\d+/)?.[0] || '0');
+      timeframeDuration = days * 0.033; // Convert days to months
+    } else if (timeframe.includes('months')) {
+      // Handle "last X months" timeframes
+      const months = parseInt(timeframe.match(/\d+/)?.[0] || '0');
+      timeframeDuration = months;
     }
-  };
-  
-  // Handle group creation
-  const handleCreateGroup = (groupData: any) => {
-    const newGroup = {
-      id: Math.max(0, ...metricGroups.map(g => g.id)) + 1,
-      ...groupData,
-      createdAt: new Date(),
-      updatedAt: new Date(),
-    };
     
-    setMetricGroups([...metricGroups, newGroup]);
-    setSelectedMetrics([]);
+    // Determine milestone frequency in months
+    let milestoneInterval = 0;
+    switch (frequency) {
+      case 'Weekly':
+        milestoneInterval = 0.25; // ~1 week = 0.25 months
+        break;
+      case 'Monthly':
+        milestoneInterval = 1;
+        break;
+      case 'Quarterly':
+        milestoneInterval = 3;
+        break;
+      case 'Yearly':
+        milestoneInterval = 12;
+        break;
+      case 'Custom':
+        milestoneInterval = 1; // Default to monthly for custom
+        break;
+      case 'No milestone (target needs to be met only once)':
+        return target; // Single target
+      default:
+        return 0;
+    }
+    
+    // Calculate number of milestones
+    const numberOfMilestones = Math.ceil(timeframeDuration / milestoneInterval);
+    const totalTarget = target * numberOfMilestones;
+    
+    return totalTarget;
   };
-  
-  // Clear all selected filters
+
+  const okrTemplates = mockOKRTemplates;
+
+  // Filter and group functions
+  const filteredOKRs = okrTemplates.filter(okr => {
+    const matchesSearch = okr.title.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesTag = selectedTags.length === 0 || selectedTags.includes(okr.tag);
+    const matchesMeasureUnit = !selectedMeasureUnit || okr.type === selectedMeasureUnit;
+    return matchesSearch && matchesTag && matchesMeasureUnit;
+  });
+
+  const groupOKRs = (okrs: typeof okrTemplates) => {
+    if (groupBy === "tag") {
+      return okrs.reduce((groups: { [key: string]: typeof okrs }, okr) => {
+        const tagName = okr.tag || "No Tag";
+        if (!groups[tagName]) groups[tagName] = [];
+        groups[tagName].push(okr);
+        return groups;
+      }, {});
+    }
+    return { "All OKRs": okrs };
+  };
+
   const clearFilters = () => {
     setSearchTerm("");
     setSelectedTags([]);
-    setSelectedGroups([]);
-    setSelectedHierarchy("all");
-    setSelectedUnit("all");
+    setSelectedMeasureUnit("");
+    setSelectedTargetRange("");
+    setSelectedTimeframe("");
+    setDateRange({ from: undefined, to: undefined });
+    setShowNoTarget(false);
   };
-  
-  // Clear metric selection
-  const clearMetricSelection = () => {
-    setSelectedMetrics([]);
-  };
-  
-  // Get all objectives (top-level)
-  const objectives = filteredMetrics.filter(m => m.hierarchy === "objective");
-  
-  // Build the hierarchical tree structure
-  const createHierarchicalMetrics = () => {
-    const result: any[] = [];
-    
-    // Process objectives first
-    objectives.forEach(objective => {
-      result.push({
-        ...objective,
-        level: 0,
-        children: [] as any[]
-      });
-      
-      // Find activities for this objective
-      const activities = filteredMetrics.filter(m => m.parent === objective.id);
-      activities.forEach(activity => {
-        result.push({
-          ...activity,
-          level: 1,
-          parent: objective.id
-        });
-        
-        // Find subactivities for this activity
-        const subactivities = filteredMetrics.filter(m => m.parent === activity.id);
-        subactivities.forEach(subactivity => {
-          result.push({
-            ...subactivity,
-            level: 2, 
-            parent: activity.id,
-            grandparent: objective.id
-          });
-        });
-      });
+
+  const resetForm = () => {
+    setFormData({
+      okrType: '',
+      tag: '',
+      name: '',
+      description: '',
+      timeframe: '',
+      milestoneFrequency: '',
+      target: 0 as number | undefined,
+      totalTarget: 0,
+      hasTarget: false,
+      targetValue: '',
+      trafficLights: false,
+      trafficLightConfig: '',
+      progressBar: false,
+      dueDateRequired: false,
+      responsibleRequired: false,
+      hasPresetTarget: true,
+      isTargetRequired: false,
+      targetLabel: 'Target',
+      realizedLabel: 'Realized',
+      showAdvancedSettings: false,
+      enableProgressBar: true,
+      progressStyle: 'system',
+      warningThreshold: 50,
+      successThreshold: 80,
+      enableTrafficLights: false,
+      trafficLightStyle: 'system',
+      trafficLightYellowThreshold: 50,
+      trafficLightGreenThreshold: 75,
+      targetBehavior: 'increase',
+      showTargetBehavior: false
     });
-    
-    // Add standalone metrics at the end
-    const standalone = filteredMetrics.filter(m => 
-      m.hierarchy !== "objective" && !m.parent
-    );
-    standalone.forEach(metric => {
-      result.push({
-        ...metric,
-        level: 0,
-        isStandalone: true
-      });
-    });
-    
-    return result;
+    setIsCreateOKROpen(false);
+    setIsCreatingNewTag(false);
+    setNewTagName("");
+    setNewTagColor("blue");
   };
-  
-  // Determine what items should be visible based on expanded state
-  const getVisibleMetrics = () => {
-    const hierarchicalMetrics = createHierarchicalMetrics();
+
+  const handleCreateNewTag = () => {
+    if (!newTagName.trim()) return;
     
-    return hierarchicalMetrics.filter(metric => {
-      // Always show objectives and standalone metrics
-      if (metric.level === 0) {
-        return true;
-      }
-      
-      // Show activities if their parent objective is expanded
-      if (metric.level === 1) {
-        return expandedItems.includes(metric.parent);
-      }
-      
-      // Show subactivities if both their parent activity and grandparent objective are expanded
-      if (metric.level === 2) {
-        return expandedItems.includes(metric.parent) && expandedItems.includes(metric.grandparent);
-      }
-      
-      return false;
+    createTagMutation.mutate({
+      name: newTagName.trim(),
+      color: newTagColor,
     });
   };
-  
-  const visibleMetrics = getVisibleMetrics();
-  
+
+  // Clear milestone frequency when timeframe changes to prevent invalid combinations
+  React.useEffect(() => {
+    if (formData.timeframe) {
+      setFormData(prev => ({ ...prev, milestoneFrequency: '' }));
+    }
+  }, [formData.timeframe]);
+
+  // Auto-enable progress bar for currency types
+  React.useEffect(() => {
+    if (formData.okrType === 'currency') {
+      setFormData(prev => ({ ...prev, enableProgressBar: true }));
+    }
+  }, [formData.okrType]);
+
+  // Recalculate total target whenever relevant fields change
+  React.useEffect(() => {
+    const newTotalTarget = calculateTotalTarget(formData.target, formData.timeframe, formData.milestoneFrequency);
+    if (newTotalTarget !== formData.totalTarget) {
+      setFormData(prev => ({ ...prev, totalTarget: newTotalTarget }));
+    }
+  }, [formData.target, formData.timeframe, formData.milestoneFrequency]);
+
+  const handleCreateOKR = () => {
+    const submissionData = {
+      ...formData,
+      enableTrafficLights: formData.enableTrafficLights,
+      trafficLightStyle: formData.trafficLightStyle,
+      trafficLightYellowThreshold: formData.trafficLightYellowThreshold,
+      trafficLightGreenThreshold: formData.trafficLightGreenThreshold,
+      targetBehavior: formData.targetBehavior
+    };
+    console.log("Creating OKR with data:", submissionData);
+    // Handle form submission here
+    resetForm();
+  };
+
   return (
-    <div className="container mx-auto px-4 py-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold tracking-tight">OKR Metrics</h1>
-        
-        <div className="flex gap-2">
-          <Button 
-            variant="outline"
-            onClick={() => setIsManageTagsOpen(true)}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-              <path d="M9 5H2v7l6.29 6.29c.94.94 2.48.94 3.42 0l3.58-3.58c.94-.94.94-2.48 0-3.42L9 5Z"></path>
-              <path d="M6 9.01V9"></path>
-            </svg>
-            Manage Tags
-          </Button>
+    <div className="container mx-auto p-6">
+      <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-3xl font-bold text-gray-900">OKR Templates</h1>
+          <p className="text-gray-600 mt-1">Create and manage OKR templates for your organization</p>
+        </div>
+        <Button 
+          className="bg-indigo-600 hover:bg-indigo-700 text-white"
+          onClick={() => setIsCreateOKROpen(true)}
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+            <path d="M5 12h14"/>
+            <path d="M12 5v14"/>
+          </svg>
+          Add OKR metric template
+        </Button>
+      </div>
+      {/* Search and filter section for OKR templates */}
+      <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+        <div className="flex flex-wrap items-center gap-3">
+          {/* Search field */}
+          <div className="relative w-60">
+            <input
+              type="text"
+              placeholder="Search OKR templates..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
+            />
+            <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                <circle cx="11" cy="11" r="8"></circle>
+                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </button>
+          </div>
           
-          <Button 
-            className="bg-indigo-600 hover:bg-indigo-700"
-            onClick={() => setIsCreateMetricOpen(true)}
-          >
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-              <line x1="12" y1="5" x2="12" y2="19"></line>
-              <line x1="5" y1="12" x2="19" y2="12"></line>
-            </svg>
-            Create Metric
-          </Button>
+          {/* Filter buttons */}
+          <div className="flex items-center gap-2">
+            <Select 
+              value={selectedTags.length === 1 ? selectedTags[0] : ""}
+              onValueChange={(value) => {
+                if (value === "clear") {
+                  setSelectedTags([]);
+                } else if (value && value !== "all_tags") {
+                  setSelectedTags([value]);
+                } else {
+                  setSelectedTags([]);
+                }
+              }}
+            >
+              <SelectTrigger className={`w-[140px] transition-colors border ${
+                selectedTags.length > 0 
+                  ? '!bg-[#E6E7F1] !text-[#51536C] !border-[#E6E7F1] hover:!bg-[#D5D7E5] hover:!text-[#3E4257]' 
+                  : 'bg-white border-gray-300 hover:bg-gray-50'
+              }`}>
+                <SelectValue placeholder="Tag" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all_tags">All Tags</SelectItem>
+                {Array.from(new Set(okrTemplates.map(okr => okr.tag).filter(tag => tag && tag.trim() !== ""))).sort().map(tag => (
+                  <SelectItem key={tag} value={tag}>
+                    {tag}
+                  </SelectItem>
+                ))}
+                {selectedTags.length > 0 && (
+                  <>
+                    <div className="border-t border-gray-200 my-1"></div>
+                    <SelectItem value="clear" className="text-gray-600">
+                      <div className="flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                          <path d="M18 6L6 18"></path>
+                          <path d="M6 6l12 12"></path>
+                        </svg>
+                        Clear filter
+                      </div>
+                    </SelectItem>
+                  </>
+                )}
+              </SelectContent>
+            </Select>
+            
+
+            
+            <AdvancedTimeframeFilter
+              value={advancedTimeframe}
+              onValueChange={(value) => setAdvancedTimeframe(value)}
+              placeholder="Timeframe2"
+              dateRange={dateRange}
+              onDateRangeChange={setDateRange}
+            />
+            
+            {/* Group by dropdown */}
+            <Select value={groupBy} onValueChange={setGroupBy}>
+              <SelectTrigger 
+                className={`w-[140px] transition-colors border ${
+                  groupBy && groupBy !== "none" 
+                    ? '!bg-[#E6E7F1] !text-[#51536C] !border-[#E6E7F1] hover:!bg-[#D5D7E5] hover:!text-[#3E4257]' 
+                    : 'bg-white border-gray-300 hover:bg-gray-50'
+                }`}
+              >
+                <SelectValue>
+                  {groupBy && groupBy !== "none" ? (
+                    <span>Group | {groupBy.charAt(0).toUpperCase() + groupBy.slice(1)}</span>
+                  ) : (
+                    <span className="text-gray-500">Group by</span>
+                  )}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="tag">Tag</SelectItem>
+                <SelectItem value="type">Type</SelectItem>
+                <SelectItem value="status">Status</SelectItem>
+                <SelectItem value="none">None</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+        
+        <div className="flex items-center gap-2">
+          {(selectedTags.length > 0 || searchTerm || selectedMeasureUnit || selectedTargetRange || selectedTimeframe || dateRange.from || dateRange.to) && (
+            <div className="flex items-center gap-2">
+              <button 
+                className="flex items-center rounded-md px-4 py-2 text-gray-600 hover:bg-gray-100"
+                onClick={clearFilters}
+                style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#5F6585" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                  <path d="M18 6L6 18"></path>
+                  <path d="M6 6l12 12"></path>
+                </svg>
+                <span className="text-[#5F6585]">Clear filters</span>
+              </button>
+            </div>
+          )}
+          
+
         </div>
       </div>
-      
-      {/* Main content with tabs */}
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid grid-cols-2 w-64 mb-6">
-          <TabsTrigger value="metrics">Metrics</TabsTrigger>
-          <TabsTrigger value="groups">Metric Groups</TabsTrigger>
-        </TabsList>
-        
-        {/* Filters section */}
-        <div className="bg-white rounded-lg shadow-sm p-4 mb-6">
-          <div className="flex flex-wrap gap-3 items-center">
-            <div className="relative flex-grow">
-              <Input
-                placeholder={`Search ${activeTab === "metrics" ? "metrics" : "groups"}...`}
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <svg className="h-5 w-5 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <circle cx="11" cy="11" r="8"></circle>
-                  <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                </svg>
+      {/* Bulk Actions Bar */}
+      <div className="bg-[#F0F1FB] border border-[#D4D9F3] rounded-lg p-4 min-h-[72px]">
+        <div className="flex items-center justify-between h-10">
+          {selectedOKRs.length > 0 ? (
+            <>
+              <div className="flex items-center gap-3">
+                <span className="text-sm font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins' }}>
+                  {selectedOKRs.length} OKR{selectedOKRs.length > 1 ? 's' : ''} selected
+                </span>
+                <div className="flex items-center gap-2">
+                  <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-[#3E4DC4] bg-white hover:bg-[#F0F1FB] border border-[#3E4DC4] rounded-md transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M8 2v4"/>
+                      <path d="M16 2v4"/>
+                      <rect width="18" height="18" x="3" y="4" rx="2"/>
+                      <path d="M3 10h18"/>
+                    </svg>
+                    Assign to entity
+                  </button>
+                  <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-[#3E4DC4] bg-white hover:bg-[#F0F1FB] border border-[#3E4DC4] rounded-md transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/>
+                      <rect width="8" height="4" x="8" y="2" rx="1" ry="1"/>
+                    </svg>
+                    Duplicate
+                  </button>
+                  <button className="flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-red-600 hover:bg-red-700 rounded-md transition-colors">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 6h18"/>
+                      <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                      <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                    </svg>
+                    Delete
+                  </button>
+                </div>
               </div>
-            </div>
-            
-            <div className="flex space-x-2 items-center">
-              <Select 
-                value={selectedTags.length === 1 ? selectedTags[0] : "all_tags"}
-                onValueChange={(value) => {
-                  if (value && value !== "all_tags") {
-                    setSelectedTags([value]);
-                  } else {
-                    setSelectedTags([]);
-                  }
-                }}
+              <button 
+                onClick={() => setSelectedOKRs([])}
+                className="flex items-center rounded-md px-4 py-2 text-[#3E4DC4] hover:bg-[#F0F1FB]"
+                style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
               >
-                <SelectTrigger className="w-[160px]">
-                  <SelectValue placeholder="Filter by tag" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all_tags">All Tags</SelectItem>
-                  {allTagNames.map(tag => (
-                    <SelectItem key={tag} value={tag}>
-                      {tag}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              
-              {activeTab === "metrics" && (
-                <>
-                  <Select 
-                    value={selectedHierarchy}
-                    onValueChange={setSelectedHierarchy}
-                  >
-                    <SelectTrigger className="w-[160px]">
-                      <SelectValue placeholder="Hierarchy" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Levels</SelectItem>
-                      <SelectItem value="objective">Objectives</SelectItem>
-                      <SelectItem value="activity">Activities</SelectItem>
-                      <SelectItem value="subactivity">Subactivities</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  
-                  <Select 
-                    value={selectedUnit}
-                    onValueChange={setSelectedUnit}
-                  >
-                    <SelectTrigger className="w-[160px]">
-                      <SelectValue placeholder="Unit" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Units</SelectItem>
-                      {allUnits.map(unit => (
-                        <SelectItem key={unit} value={unit} className="capitalize">
-                          {unit}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </>
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3E4DC4" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+                <span className="text-[#3E4DC4]">Clear selection</span>
+              </button>
+            </>
+          ) : (
+            <span className="text-sm font-medium text-[#696C8C]" style={{ fontFamily: 'Poppins' }}>
+              Select at least one OKR from the table to perform bulk actions
+            </span>
+          )}
+        </div>
+      </div>
+      {/* Group OKRs and display in sections */}
+      <div className="mt-6">
+        {Object.entries(groupOKRs(filteredOKRs)).sort(([a], [b]) => {
+        // Sort "No Tag" to the end, otherwise sort alphabetically
+        if (a === "No Tag") return 1;
+        if (b === "No Tag") return -1;
+        return a.localeCompare(b);
+      }).map(([groupName, okrsInGroup]) => (
+        <div key={groupName} className="bg-white" style={{ marginBottom: '32px' }}>
+          <div className="px-6 pb-0 pt-3 bg-[#ffffff] text-[#282A3F]">
+            <div className="flex items-center">
+              {groupBy === "tag" ? (
+                groupName === "No Tag" ? (
+                  <div className="px-3 py-1 bg-gray-200 text-gray-600 rounded-lg text-sm font-medium border border-dashed border-gray-400">
+                    {groupName}
+                  </div>
+                ) : (
+                  <TagBadge tag={groupName} />
+                )
+              ) : groupBy === "none" ? null : (
+                groupName.startsWith("No ") ? (
+                  <div className="px-3 py-1 bg-gray-200 text-gray-600 rounded-lg text-sm font-medium border border-dashed border-gray-400">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline mr-1">
+                      <circle cx="12" cy="12" r="10"></circle>
+                      <line x1="15" y1="9" x2="9" y2="15"></line>
+                      <line x1="9" y1="9" x2="15" y2="15"></line>
+                    </svg>
+                    {groupName}
+                  </div>
+                ) : (
+                  <div className="px-3 py-1 bg-gray-100 text-gray-700 rounded-lg text-sm font-medium">
+                    {groupName}
+                  </div>
+                )
               )}
             </div>
-            
-            {(selectedTags.length > 0 || selectedGroups.length > 0 || searchTerm || selectedHierarchy !== "all" || selectedUnit !== "all") && (
-              <Button variant="ghost" onClick={clearFilters} className="h-10">
-                Clear filters
-              </Button>
-            )}
+          </div>
+          <div className="overflow-x-auto">
+            <Table className="border-b min-w-full" style={{ borderColor: '#E6E7F1' }}>
+              <TableHeader>
+                <TableRow className="border-b hover:bg-[#F5F6FA] group" style={{ borderColor: '#E6E7F1' }}>
+                  <TableHead className="w-12 px-3 py-2">
+                    <input
+                      type="checkbox"
+                      checked={okrsInGroup.length > 0 && okrsInGroup.every(okr => selectedOKRs.includes(okr.id))}
+                      onChange={(e) => {
+                        if (e.target.checked) {
+                          setSelectedOKRs(prev => Array.from(new Set([...prev, ...okrsInGroup.map(okr => okr.id)])));
+                        } else {
+                          setSelectedOKRs(prev => prev.filter(id => !okrsInGroup.map(okr => okr.id).includes(id)));
+                        }
+                      }}
+                      className="rounded border-gray-300 opacity-0 group-hover:opacity-100 transition-opacity"
+                      style={{ 
+                        opacity: okrsInGroup.some(okr => selectedOKRs.includes(okr.id)) ? 1 : undefined 
+                      }}
+                    />
+                  </TableHead>
+                  <TableHead 
+                    className="px-3 py-2 min-w-[300px]"
+                    style={{ 
+                      fontFamily: 'Poppins', 
+                      fontWeight: '500', 
+                      fontSize: '13px', 
+                      color: '#696C8C' 
+                    }}
+                  >
+                    OKR
+                  </TableHead>
+                  <TableHead 
+                    className="px-3 py-2 min-w-[120px]"
+                    style={{ 
+                      fontFamily: 'Poppins', 
+                      fontWeight: '500', 
+                      fontSize: '13px', 
+                      color: '#696C8C' 
+                    }}
+                  >
+                    Timeframe
+                  </TableHead>
+                  <TableHead 
+                    className="px-3 py-2 min-w-[150px]"
+                    style={{ 
+                      fontFamily: 'Poppins', 
+                      fontWeight: '500', 
+                      fontSize: '13px', 
+                      color: '#696C8C' 
+                    }}
+                  >
+                    Milestone Frequency
+                  </TableHead>
+                  <TableHead 
+                    className="text-right px-3 py-2 min-w-[120px]"
+                    style={{ 
+                      fontFamily: 'Poppins', 
+                      fontWeight: '500', 
+                      fontSize: '13px', 
+                      color: '#696C8C' 
+                    }}
+                  >
+                    Target
+                  </TableHead>
+                  <TableHead 
+                    className="text-right px-3 py-2 min-w-[80px]"
+                    style={{ 
+                      fontFamily: 'Poppins', 
+                      fontWeight: '500', 
+                      fontSize: '13px', 
+                      color: '#696C8C' 
+                    }}
+                  >
+                    Actions
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {okrsInGroup.map((okr) => (
+                  <TableRow key={okr.id} className="hover:bg-[#F5F6FA] border-b group" style={{ borderColor: '#E6E7F1' }}>
+                    <TableCell className="w-12 px-1 py-3">
+                      <div className="flex items-center" style={{ gap: '4px' }}>
+                        <input
+                          type="checkbox"
+                          checked={selectedOKRs.includes(okr.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedOKRs(prev => [...prev, okr.id]);
+                            } else {
+                              setSelectedOKRs(prev => prev.filter(id => id !== okr.id));
+                            }
+                          }}
+                          className="rounded border-gray-300 opacity-0 group-hover:opacity-100 transition-opacity"
+                          style={{ opacity: selectedOKRs.includes(okr.id) ? 1 : undefined }}
+                        />
+                      </div>
+                    </TableCell>
+                    <TableCell className="p-4 align-middle text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
+                      <div className="flex items-center w-full">
+                        <span 
+                          className="text-[#282A3F]"
+                          style={{ 
+                            fontFamily: 'Poppins', 
+                            fontWeight: '500', 
+                            fontSize: '14px' 
+                          }}
+                        >
+                          {okr.title}
+                        </span>
+                        {okr.nestedCount > 0 && (
+                          <div className="flex items-center" style={{ marginLeft: '4px' }}>
+                            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                              <circle cx="4" cy="4" r="2" fill="#666666"/>
+                              <circle cx="12" cy="12" r="2" fill="#666666"/>
+                              <path d="M4 6C4 8 6 10 10 12" stroke="#666666" strokeWidth="1.5" fill="none" strokeLinecap="round"/>
+                            </svg>
+                            <span className="text-xs text-gray-500 ml-1">{okr.nestedCount}</span>
+                          </div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell className="px-3 py-2 text-[#282A3F]" style={{ fontFamily: 'Poppins', fontSize: '14px' }}>
+                      {getTimeframeDisplayLabel(okr.timeframe)}
+                    </TableCell>
+                    <TableCell className="px-3 py-2 text-[#282A3F]" style={{ fontFamily: 'Poppins', fontSize: '14px' }}>
+                      {okr.milestoneFrequency}
+                    </TableCell>
+                    <TableCell className="px-3 py-2 text-right text-[#282A3F]" style={{ fontFamily: 'Poppins', fontSize: '14px' }}>
+                      {okr.target ? (
+                        okr.type === 'currency' ? `€${okr.target.toLocaleString()}` :
+                        okr.type === 'percent' ? `${okr.target}%` :
+                        okr.target.toString()
+                      ) : 'No target'}
+                    </TableCell>
+                    <TableCell className="px-3 py-2 text-right">
+                      <div className="flex items-center justify-end gap-1">
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                            <path d="m15 5 4 4"/>
+                          </svg>
+                        </Button>
+                        <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-600">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M3 6h18"></path>
+                            <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                            <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                          </svg>
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
         </div>
-        
-        {/* Selection action bar */}
-        {activeTab === "metrics" && selectedMetrics.length > 0 && (
-          <div className="bg-indigo-50 border border-indigo-100 rounded-lg p-3 mb-6 flex justify-between items-center">
-            <div className="text-sm">
-              <span className="font-medium">{selectedMetrics.length}</span> metrics selected
-            </div>
-            <div className="flex gap-2">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={clearMetricSelection}
-              >
-                Clear Selection
-              </Button>
-              <Button 
-                className="bg-indigo-600 hover:bg-indigo-700"
-                size="sm"
-                onClick={() => setIsCreateGroupOpen(true)}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                  <circle cx="9" cy="7" r="4" />
-                  <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                </svg>
-                Create Group
-              </Button>
-            </div>
-          </div>
-        )}
-        
-        {/* Metrics tab content */}
-        <TabsContent value="metrics">
-          {filteredMetrics.length === 0 ? (
-            <div className="text-center py-12 border border-dashed rounded-md">
-              <h3 className="font-medium">No metrics found</h3>
-              <p className="mt-1 text-sm text-gray-500">
-                {(selectedTags.length > 0 || selectedGroups.length > 0 || selectedHierarchy !== "all" || selectedUnit !== "all") ? 
-                  'Try adjusting your filters.' : 
-                  'Create your first metric to get started.'}
-              </p>
-              <Button 
-                className="mt-4 bg-indigo-600 hover:bg-indigo-700"
-                onClick={() => setIsCreateMetricOpen(true)}
-              >
-                Create New Metric
-              </Button>
-            </div>
-          ) : (
-            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
-              <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-[50px]">
-                      <Checkbox 
-                        checked={filteredMetrics.length > 0 && filteredMetrics.every(m => selectedMetrics.includes(m.id))}
-                        onCheckedChange={handleSelectAllMetrics}
-                      />
-                    </TableHead>
-                    <TableHead>Metric</TableHead>
-                    <TableHead className="whitespace-nowrap">Target</TableHead>
-                    <TableHead>Tags</TableHead>
-                    <TableHead className="text-right">Actions</TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {visibleMetrics.map((metric, idx) => {
-                    // Add visual separator before standalone metrics
-                    const isFirstStandalone = metric.isStandalone && 
-                      (!visibleMetrics[idx-1]?.isStandalone);
-                    
-                    const hasChildren = metrics.some(m => m.parent === metric.id);
-                    const isExpanded = expandedItems.includes(metric.id);
-                    
-                    // Determine indentation and visual indicators
-                    let indentationElement = null;
-                    
-                    if (metric.level === 1) {
-                      // Activity level
-                      indentationElement = (
-                        <div className="w-8 pl-6 flex justify-center">
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                            <polyline points="9 10 4 15 9 20" />
-                            <path d="M20 4v7a4 4 0 0 1-4 4H4" />
-                          </svg>
-                        </div>
-                      );
-                    } else if (metric.level === 2) {
-                      // Subactivity level
-                      indentationElement = (
-                        <>
-                          <div className="w-8 pl-6 flex justify-center opacity-0">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                              <polyline points="9 10 4 15 9 20" />
-                              <path d="M20 4v7a4 4 0 0 1-4 4H4" />
-                            </svg>
-                          </div>
-                          <div className="w-8 ml-8 flex justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                              <circle cx="12" cy="12" r="4" />
-                            </svg>
-                          </div>
-                        </>
-                      );
-                    }
-                    
-                    // Set row style based on metric level
-                    let rowStyle = "";
-                    if (selectedMetrics.includes(metric.id)) {
-                      rowStyle = "bg-indigo-50";
-                    } else if (metric.level === 0 && !metric.isStandalone) {
-                      rowStyle = "hover:bg-amber-50/30 font-medium";
-                    } else {
-                      rowStyle = "hover:bg-slate-50";
-                    }
-                    
-                    // Add top border for standalone metrics section
-                    if (isFirstStandalone) {
-                      return (
-                        <React.Fragment key={`section-${metric.id}`}>
-                          <TableRow className="border-t border-gray-200">
-                            <TableCell colSpan={5} className="py-2">
-                              <h3 className="text-sm font-medium text-gray-500">Standalone Metrics</h3>
-                            </TableCell>
-                          </TableRow>
-                          <TableRow className={rowStyle}>
-                            <TableCell>
-                              <Checkbox 
-                                checked={selectedMetrics.includes(metric.id)}
-                                onCheckedChange={() => toggleMetricSelection(metric.id)}
-                              />
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex items-center">
-                                {indentationElement}
-                                {hasChildren && (
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    className="h-6 w-6 p-0 mr-2" 
-                                    onClick={() => toggleExpand(metric.id)}
-                                  >
-                                    <svg 
-                                      xmlns="http://www.w3.org/2000/svg" 
-                                      width="16" 
-                                      height="16" 
-                                      viewBox="0 0 24 24" 
-                                      fill="none" 
-                                      stroke="currentColor" 
-                                      strokeWidth="2" 
-                                      strokeLinecap="round" 
-                                      strokeLinejoin="round"
-                                      className={`transition-transform ${isExpanded ? 'rotate-90' : ''}`}
-                                    >
-                                      <polyline points="9 18 15 12 9 6"></polyline>
-                                    </svg>
-                                  </Button>
-                                )}
-                                <TooltipProvider>
-                                  <Tooltip>
-                                    <TooltipTrigger asChild>
-                                      <span className={metric.level === 0 ? "font-semibold" : 
-                                                       metric.level === 1 ? "font-medium" : ""}>
-                                        {metric.title.length > 35 
-                                          ? `${metric.title.substring(0, 35)}...` 
-                                          : metric.title
-                                        }
-                                      </span>
-                                    </TooltipTrigger>
-                                    {metric.title.length > 35 && (
-                                      <TooltipContent>
-                                        <div className="max-w-xs">
-                                          <p>{metric.title}</p>
-                                          {metric.description && (
-                                            <p className="text-xs text-gray-500 mt-1">{metric.description}</p>
-                                          )}
-                                        </div>
-                                      </TooltipContent>
-                                    )}
-                                  </Tooltip>
-                                </TooltipProvider>
-                                {metric.description && metric.title.length <= 35 && (
-                                  <TooltipProvider>
-                                    <Tooltip>
-                                      <TooltipTrigger asChild>
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2 text-gray-400">
-                                          <circle cx="12" cy="12" r="10" />
-                                          <line x1="12" y1="16" x2="12" y2="12" />
-                                          <line x1="12" y1="8" x2="12.01" y2="8" />
-                                        </svg>
-                                      </TooltipTrigger>
-                                      <TooltipContent>
-                                        <p className="max-w-xs">{metric.description}</p>
-                                      </TooltipContent>
-                                    </Tooltip>
-                                  </TooltipProvider>
-                                )}
-                              </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="font-medium">{formatTargetValue(metric.targetValue, metric.unit)}</div>
-                              <div className="text-xs text-gray-500 capitalize">{metric.unit}</div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="flex flex-wrap">
-                                {metric.tags.map((tag: string) => (
-                                  <TagBadge key={tag} tag={tag} />
-                                ))}
-                              </div>
-                            </TableCell>
-                            <TableCell className="text-right">
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
-                                  <path d="m15 5 4 4"/>
-                                </svg>
-                              </Button>
-                              <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-600">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                                  <path d="M3 6h18"></path>
-                                  <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-                                  <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-                                </svg>
-                              </Button>
-                            </TableCell>
-                          </TableRow>
-                        </React.Fragment>
-                      );
-                    }
-                    
-                    return (
-                      <TableRow 
-                        key={`metric-${metric.id}`} 
-                        className={rowStyle}
-                      >
-                        <TableCell>
-                          <Checkbox 
-                            checked={selectedMetrics.includes(metric.id)}
-                            onCheckedChange={() => toggleMetricSelection(metric.id)}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex items-center">
-                            {indentationElement}
-                            {hasChildren && (
-                              <Button 
-                                variant="ghost" 
-                                size="sm" 
-                                className="h-6 w-6 p-0 mr-2" 
-                                onClick={() => toggleExpand(metric.id)}
-                              >
-                                <svg 
-                                  xmlns="http://www.w3.org/2000/svg" 
-                                  width="16" 
-                                  height="16" 
-                                  viewBox="0 0 24 24" 
-                                  fill="none" 
-                                  stroke="currentColor" 
-                                  strokeWidth="2" 
-                                  strokeLinecap="round" 
-                                  strokeLinejoin="round"
-                                  className={`transition-transform ${isExpanded ? 'rotate-90' : ''}`}
-                                >
-                                  <polyline points="9 18 15 12 9 6"></polyline>
-                                </svg>
-                              </Button>
-                            )}
-                            <TooltipProvider>
-                              <Tooltip>
-                                <TooltipTrigger asChild>
-                                  <span className={metric.level === 0 ? "font-semibold" : 
-                                                   metric.level === 1 ? "font-medium" : ""}>
-                                    {metric.title.length > 35 
-                                      ? `${metric.title.substring(0, 35)}...` 
-                                      : metric.title
-                                    }
-                                  </span>
-                                </TooltipTrigger>
-                                {metric.title.length > 35 && (
-                                  <TooltipContent>
-                                    <div className="max-w-xs">
-                                      <p>{metric.title}</p>
-                                      {metric.description && (
-                                        <p className="text-xs text-gray-500 mt-1">{metric.description}</p>
-                                      )}
-                                    </div>
-                                  </TooltipContent>
-                                )}
-                              </Tooltip>
-                            </TooltipProvider>
-                            {metric.description && metric.title.length <= 35 && (
-                              <TooltipProvider>
-                                <Tooltip>
-                                  <TooltipTrigger asChild>
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2 text-gray-400">
-                                      <circle cx="12" cy="12" r="10" />
-                                      <line x1="12" y1="16" x2="12" y2="12" />
-                                      <line x1="12" y1="8" x2="12.01" y2="8" />
-                                    </svg>
-                                  </TooltipTrigger>
-                                  <TooltipContent>
-                                    <p className="max-w-xs">{metric.description}</p>
-                                  </TooltipContent>
-                                </Tooltip>
-                              </TooltipProvider>
-                            )}
-                          </div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="font-medium">{formatTargetValue(metric.targetValue, metric.unit)}</div>
-                          <div className="text-xs text-gray-500 capitalize">{metric.unit}</div>
-                        </TableCell>
-                        <TableCell>
-                          <div className="flex flex-wrap">
-                            {metric.tags.map((tag: string) => (
-                              <TagBadge key={tag} tag={tag} />
-                            ))}
-                          </div>
-                        </TableCell>
-                        <TableCell className="text-right">
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
-                              <path d="m15 5 4 4"/>
-                            </svg>
-                          </Button>
-                          <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-600">
-                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <path d="M3 6h18"></path>
-                              <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
-                              <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
-                            </svg>
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    );
-                  })}
-                </TableBody>
-              </Table>
-            </div>
-          )}
-        </TabsContent>
-        
-        {/* Groups tab content */}
-        <TabsContent value="groups">
-          {filteredGroups.length === 0 ? (
-            <div className="text-center py-12 border border-dashed rounded-md">
-              <h3 className="font-medium">No metric groups found</h3>
-              <p className="mt-1 text-sm text-gray-500">
-                {selectedTags.length > 0 ? 
-                  'Try adjusting your filters.' : 
-                  'Create metrics first, then group them into templates.'}
-              </p>
-              <Button 
-                className="mt-4 bg-indigo-600 hover:bg-indigo-700"
-                onClick={() => setIsCreateGroupOpen(true)}
-              >
-                Create New Group
-              </Button>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredGroups.map(group => {
-                const groupMetrics = metrics.filter(m => group.metrics.includes(m.id));
-                
-                return (
-                  <Card 
-                    key={group.id} 
-                    className={`overflow-hidden hover:shadow-md transition-shadow ${selectedGroups.includes(group.id) ? 'border-indigo-500 ring-1 ring-indigo-500' : ''}`}
-                    onClick={() => toggleGroup(group.id)}
+        ))}
+      </div>
+      {/* Create OKR Dialog */}
+      <Dialog open={isCreateOKROpen} onOpenChange={setIsCreateOKROpen}>
+        <DialogContent className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-6 border p-8 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg sm:max-w-[850px] max-h-[85vh] overflow-y-auto bg-[#ffffff]">
+          <DialogHeader className="pb-4">
+            <DialogTitle className="text-xl font-semibold text-gray-900">
+              Create OKR template
+            </DialogTitle>
+            <DialogDescription className="text-sm text-gray-600 mt-1">
+              Create a new OKR template that can be assigned to partners, opportunities, and customers
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-8">
+            {/* OKR Type Field */}
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-semibold text-gray-900">
+                  OKR Type <span className="text-red-500">*</span>
+                </label>
+                <div className="flex items-center gap-1 text-xs text-gray-500 bg-blue-50 px-2 py-1 rounded-full">
+                  <svg className="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Fields below adapt based on your selection
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-5 gap-2">
+                {[
+                  { value: 'currency', icon: '💰', title: 'Currency', color: 'border-green-200 bg-green-50', example: '€1,000' },
+                  { value: 'percent', icon: '📊', title: 'Percentage', color: 'border-blue-200 bg-blue-50', example: '75%' },
+                  { value: 'number', icon: '🔢', title: 'Number', color: 'border-purple-200 bg-purple-50', example: '50#' },
+                  { value: 'checkbox', icon: '✅', title: 'Checkbox', color: 'border-orange-200 bg-orange-50', example: 'Done/Not Done' },
+                  { value: 'traffic-light', icon: '🚦', title: 'Traffic Light', color: 'border-red-200 bg-red-50', example: 'Red/Green' }
+                ].map((type) => (
+                  <div 
+                    key={type.value}
+                    className={`relative p-3 border-2 rounded-lg cursor-pointer transition-all duration-200 hover:shadow-sm ${
+                      formData.okrType === type.value 
+                        ? `${type.color} shadow-md ring-2 ring-blue-500 ring-opacity-50` 
+                        : 'border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50'
+                    }`}
+                    onClick={() => setFormData(prev => ({
+                      ...prev, 
+                      okrType: type.value,
+                      // Auto-configure checkbox and traffic-light types for manual traffic lights
+                      ...(type.value === 'checkbox' || type.value === 'traffic-light' ? {
+                        enableProgressBar: false,
+                        enableTrafficLights: true,
+                        trafficLightStyle: 'manual'
+                      } : {})
+                    }))}
                   >
-                    <CardHeader className="pb-3">
-                      <CardTitle className="flex items-center">
-                        <input 
-                          type="checkbox" 
-                          className="mr-2 h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-500"
-                          checked={selectedGroups.includes(group.id)}
-                          onChange={() => toggleGroup(group.id)}
-                        />
-                        {group.name}
-                      </CardTitle>
-                      <CardDescription>{group.description}</CardDescription>
-                    </CardHeader>
+                    <div className="text-center">
+                      <div className="text-lg mb-1">{type.icon}</div>
+                      <div className="text-xs font-medium text-gray-900 mb-1">{type.title}</div>
+                      <div className="text-xs text-gray-600 leading-tight">{type.example}</div>
+                    </div>
                     
-                    <CardContent className="pb-3">
-                      <div className="mb-3">
-                        {group.tags.map(tag => (
-                          <TagBadge key={tag} tag={tag} />
-                        ))}
+                    {formData.okrType === type.value && (
+                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-blue-600 text-white rounded-full flex items-center justify-center">
+                        <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+              
+              {!formData.okrType && (
+                <p className="text-xs text-gray-500 bg-yellow-50 border border-yellow-200 p-2 rounded text-center">
+                  👆 Choose a measurement type to see how the form adapts
+                </p>
+              )}
+            </div>
+
+            {/* Essential Fields */}
+            <div className="space-y-6 pt-6 border-t border-gray-200">
+              {/* Name Field */}
+              <div className="space-y-2">
+                <label htmlFor="okr-name" className="text-sm font-medium text-gray-900">
+                  Name <span className="text-red-500">*</span>
+                </label>
+                <Input 
+                  id="okr-name"
+                  value={formData.name}
+                  onChange={(e) => setFormData(prev => ({...prev, name: e.target.value}))}
+                  placeholder="e.g., Increase Annual Revenue"
+                  className="text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+
+              {/* Description Field */}
+              <div className="space-y-2">
+                <label htmlFor="okr-description" className="text-sm font-medium text-gray-900">
+                  Description
+                </label>
+                <Textarea 
+                  id="okr-description"
+                  value={formData.description}
+                  onChange={(e) => setFormData(prev => ({...prev, description: e.target.value}))}
+                  placeholder="Add a description to provide context and details..."
+                  rows={3}
+                  className="resize-none border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                />
+              </div>
+
+              {/* Tag Field */}
+              <div className="space-y-3">
+                <label htmlFor="okr-tag" className="text-sm font-medium text-gray-900">
+                  Tag
+                </label>
+                <p className="text-xs text-gray-500 mb-2">
+                  Add a tag if you want to add this OKR to a plan.
+                </p>
+                
+                <Select value={formData.tag} onValueChange={(value) => {
+                  setFormData(prev => ({...prev, tag: value}));
+                }}>
+                  <SelectTrigger id="okr-tag" className="border-gray-300 focus:border-blue-500">
+                    <SelectValue placeholder="Choose tag (optional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {tags.map((tag) => (
+                      <SelectItem key={tag.id} value={tag.name}>
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-2 h-2 rounded-full"
+                            style={{ backgroundColor: 
+                              tag.color === 'blue' ? '#3B82F6' :
+                              tag.color === 'green' ? '#10B981' :
+                              tag.color === 'purple' ? '#8B5CF6' :
+                              tag.color === 'red' ? '#EF4444' :
+                              tag.color === 'orange' ? '#F97316' :
+                              tag.color === 'yellow' ? '#EAB308' :
+                              tag.color === 'pink' ? '#EC4899' :
+                              tag.color === 'gray' ? '#6B7280' : '#3B82F6'
+                            }}
+                          />
+                          {tag.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Timeframe Field */}
+              {formData.okrType && (
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-gray-900">
+                    Timeframe <span className="text-red-500">*</span>
+                  </label>
+                  <div className="mt-2">
+                    <AdvancedTimeframeFilter
+                      value={formData.timeframe}
+                      onValueChange={(value) => setFormData(prev => ({...prev, timeframe: value}))}
+                      placeholder="Select timeframe"
+                      dateRange={dateRange}
+                      onDateRangeChange={setDateRange}
+                      excludeQuickSection={true}
+                      excludeLastOptions={true}
+                      excludeSpecificOptions={['year-to-date', 'all-time', 'since']}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Milestone Frequency Field */}
+              {formData.okrType && (
+                <div className="space-y-2">
+                  <label htmlFor="okr-milestone-frequency" className="text-sm font-medium text-gray-900">
+                    Milestone Frequency <span className="text-red-500">*</span>
+                  </label>
+                  {!formData.timeframe && (
+                    <p className="text-xs text-amber-600 bg-amber-50 border border-amber-200 rounded-md px-3 py-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="inline mr-1">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <line x1="12" y1="8" x2="12" y2="12"></line>
+                        <line x1="12" y1="16" x2="12.01" y2="16"></line>
+                      </svg>
+                      Please select a timeframe first to set the milestone frequency
+                    </p>
+                  )}
+                  <Select 
+                    value={formData.milestoneFrequency} 
+                    onValueChange={(value) => setFormData(prev => ({...prev, milestoneFrequency: value}))}
+                    disabled={!formData.timeframe}
+                  >
+                    <SelectTrigger id="okr-milestone-frequency" className="w-[350px] border-gray-300 focus:border-blue-500">
+                      <SelectValue placeholder="Select frequency" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {(() => {
+                        const timeframe = formData.timeframe;
+                        const availableFrequencies = [];
+                        
+                        // Calculate timeframe duration in months to determine available frequencies
+                        let timeframeDuration = 0;
+                        if (timeframe.includes('quarter') || timeframe.includes('Q1') || timeframe.includes('Q2') || timeframe.includes('Q3') || timeframe.includes('Q4')) {
+                          timeframeDuration = 3;
+                        } else if (timeframe.includes('H1') || timeframe.includes('H2')) {
+                          timeframeDuration = 6;
+                        } else if (timeframe === '2024' || timeframe === '2025' || timeframe === 'this-year') {
+                          timeframeDuration = 12;
+                        } else if (timeframe === 'this-month' || timeframe === 'next-month') {
+                          timeframeDuration = 1;
+                        } else if (timeframe === 'today' || timeframe === 'yesterday') {
+                          timeframeDuration = 0.033;
+                        } else if (timeframe.includes('days')) {
+                          const days = parseInt(timeframe.match(/\d+/)?.[0] || '0');
+                          timeframeDuration = days * 0.033;
+                        } else if (timeframe.includes('months')) {
+                          // Handle "last X months" timeframes
+                          const months = parseInt(timeframe.match(/\d+/)?.[0] || '0');
+                          timeframeDuration = months;
+                        }
+                        
+                        // Determine available frequencies based on timeframe duration
+                        if (timeframeDuration <= 1) {
+                          // 1 month or less: Weekly, No milestone
+                          availableFrequencies.push(
+                            <SelectItem key="weekly" value="Weekly">Weekly</SelectItem>,
+                            <SelectItem key="no-milestone" value="No milestone (target needs to be met only once)">No milestone (target needs to be met only once)</SelectItem>
+                          );
+                        } else if (timeframeDuration > 1 && timeframeDuration < 6) {
+                          // Between 1-6 months: Weekly, Monthly, No milestone
+                          availableFrequencies.push(
+                            <SelectItem key="weekly" value="Weekly">Weekly</SelectItem>,
+                            <SelectItem key="monthly" value="Monthly">Monthly</SelectItem>,
+                            <SelectItem key="no-milestone" value="No milestone (target needs to be met only once)">No milestone (target needs to be met only once)</SelectItem>
+                          );
+                        } else if (timeframeDuration === 6) {
+                          // Exactly 6 months: Weekly, Monthly, Quarterly, No milestone
+                          availableFrequencies.push(
+                            <SelectItem key="weekly" value="Weekly">Weekly</SelectItem>,
+                            <SelectItem key="monthly" value="Monthly">Monthly</SelectItem>,
+                            <SelectItem key="quarterly" value="Quarterly">Quarterly</SelectItem>,
+                            <SelectItem key="no-milestone" value="No milestone (target needs to be met only once)">No milestone (target needs to be met only once)</SelectItem>
+                          );
+                        } else if (timeframeDuration > 6 && timeframeDuration < 12) {
+                          // Between 6-12 months: Weekly, Monthly, Quarterly, No milestone
+                          availableFrequencies.push(
+                            <SelectItem key="weekly" value="Weekly">Weekly</SelectItem>,
+                            <SelectItem key="monthly" value="Monthly">Monthly</SelectItem>,
+                            <SelectItem key="quarterly" value="Quarterly">Quarterly</SelectItem>,
+                            <SelectItem key="no-milestone" value="No milestone (target needs to be met only once)">No milestone (target needs to be met only once)</SelectItem>
+                          );
+                        } else if (timeframeDuration === 12) {
+                          // Exactly 12 months: Weekly, Monthly, Quarterly, No milestone
+                          availableFrequencies.push(
+                            <SelectItem key="weekly" value="Weekly">Weekly</SelectItem>,
+                            <SelectItem key="monthly" value="Monthly">Monthly</SelectItem>,
+                            <SelectItem key="quarterly" value="Quarterly">Quarterly</SelectItem>,
+                            <SelectItem key="no-milestone" value="No milestone (target needs to be met only once)">No milestone (target needs to be met only once)</SelectItem>
+                          );
+                        } else if (timeframeDuration > 12 && timeframeDuration < 24) {
+                          // Between 12-24 months: Weekly, Monthly, Quarterly, No milestone
+                          availableFrequencies.push(
+                            <SelectItem key="weekly" value="Weekly">Weekly</SelectItem>,
+                            <SelectItem key="monthly" value="Monthly">Monthly</SelectItem>,
+                            <SelectItem key="quarterly" value="Quarterly">Quarterly</SelectItem>,
+                            <SelectItem key="no-milestone" value="No milestone (target needs to be met only once)">No milestone (target needs to be met only once)</SelectItem>
+                          );
+                        } else if (timeframeDuration >= 24) {
+                          // 2+ years: Weekly, Monthly, Quarterly, Yearly, No milestone
+                          availableFrequencies.push(
+                            <SelectItem key="weekly" value="Weekly">Weekly</SelectItem>,
+                            <SelectItem key="monthly" value="Monthly">Monthly</SelectItem>,
+                            <SelectItem key="quarterly" value="Quarterly">Quarterly</SelectItem>,
+                            <SelectItem key="yearly" value="Yearly">Yearly</SelectItem>,
+                            <SelectItem key="no-milestone" value="No milestone (target needs to be met only once)">No milestone (target needs to be met only once)</SelectItem>
+                          );
+                        } else {
+                          // Default: show all options
+                          availableFrequencies.push(
+                            <SelectItem key="weekly" value="Weekly">Weekly</SelectItem>,
+                            <SelectItem key="monthly" value="Monthly">Monthly</SelectItem>,
+                            <SelectItem key="quarterly" value="Quarterly">Quarterly</SelectItem>,
+                            <SelectItem key="yearly" value="Yearly">Yearly</SelectItem>,
+                            <SelectItem key="custom" value="Custom">Custom</SelectItem>,
+                            <SelectItem key="no-milestone" value="No milestone (target needs to be met only once)">No milestone (target needs to be met only once)</SelectItem>
+                          );
+                        }
+                        
+                        return availableFrequencies;
+                      })()}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+
+              {/* Progress Bar Configuration - Available for non-traffic-light types */}
+              {formData.okrType && formData.okrType !== 'traffic-light' && (
+                <div className="space-y-6 pt-6 border-t border-gray-200">
+                  <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                    <div className="space-y-3 mb-4">
+                      <h4 className="text-sm font-medium text-gray-900">Progress Visualization</h4>
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="checkbox"
+                        id="enable-progress-bar"
+                        checked={formData.enableProgressBar !== false}
+                        onChange={(e) => setFormData(prev => ({...prev, enableProgressBar: e.target.checked}))}
+                        className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-4 mb-1">
+                          <label htmlFor="enable-progress-bar" className="text-sm font-medium text-gray-900">
+                            Enable progress bar visualization
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-gray-800 w-8" style={{ fontSize: '14px', lineHeight: '14px' }}>60%</span>
+                            <div className="w-[120px] bg-gray-200 rounded-full h-[6px]">
+                              <div 
+                                className={`h-[6px] rounded-full transition-all duration-300 ${
+                                  formData.enableProgressBar !== false ? 'bg-gray-500' : 'bg-gray-300'
+                                }`}
+                                style={{ width: '60%' }}
+                              ></div>
+                            </div>
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-500">
+                          {(formData.target || 0) > 0 
+                            ? "Shows a visual progress bar with percentage completion based on target vs realized values"
+                            : "Will be auto-enabled when users add targets to their assigned OKRs"
+                          }
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Traffic Lights Configuration - Show for traffic-light types after milestone frequency */}
+              {formData.okrType === 'traffic-light' && (
+                <div className="space-y-6 pt-6 border-t border-gray-200">
+                  <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                    <div className="space-y-3 mb-4">
+                      <h4 className="text-sm font-medium text-gray-900">Traffic Light Status</h4>
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="checkbox"
+                        id="enable-traffic-lights"
+                        checked={true}
+                        disabled={true}
+                        className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-4 mb-1">
+                          <label htmlFor="enable-traffic-lights" className="text-sm font-medium text-gray-900">
+                            Enable traffic light indicators
+                            <span className="text-blue-600 ml-1 font-normal">(Required for traffic light type)</span>
+                          </label>
+                          <div className="flex items-center gap-1">
+                            <span className="w-4 h-4 rounded-full" style={{ backgroundColor: '#bcbcd2' }}></span>
+                            <span className="w-4 h-4 rounded-full" style={{ backgroundColor: '#f4828b' }}></span>
+                            <span className="w-4 h-4 rounded-full" style={{ backgroundColor: '#ffb372' }}></span>
+                            <span className="w-4 h-4 rounded-full" style={{ backgroundColor: '#00c99c' }}></span>
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-500 mb-3">
+                          Shows status using colored circles: Gray (no data), Red (off track), Yellow (at risk), Green (on track)
+                        </p>
+
+                        <div className="mt-3 space-y-2">
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="radio"
+                              id="traffic-manual-main"
+                              name="trafficLightStyleMain"
+                              value="manual"
+                              checked={true}
+                              disabled={true}
+                              className="h-3 w-3 text-blue-600 focus:ring-blue-500"
+                            />
+                            <label htmlFor="traffic-manual-main" className="text-xs text-gray-900">
+                              <span className="font-medium">Manual control</span> - Users manually set the traffic light status
+                              <span className="text-blue-600 ml-1">(Required for traffic light type)</span>
+                            </label>
+                          </div>
+                        </div>
+
+                        <div className="p-3 bg-green-50 border border-green-200 rounded-md mt-2">
+                          <p className="text-xs text-green-800 mb-1 font-medium">Manual Traffic Light Control</p>
+                          <p className="text-xs text-green-700">
+                            Users will manually set Red, Yellow, Green, or Gray status for their OKRs. 
+                            This is the only control method available for traffic light type OKRs since they track qualitative progress.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Target & Measurement Section - Hidden for traffic light type */}
+              {formData.okrType && formData.okrType !== 'traffic-light' && (
+                <div className="space-y-6 pt-6 border-t border-gray-200">
+                  <div className="space-y-3">
+                    <h3 className="text-lg font-semibold text-gray-900">Set Your Target <span className="text-sm font-normal text-gray-500">(Optional)</span></h3>
+                    <p className="text-sm text-gray-600">Users will track their results against these targets. You can leave targets empty if you prefer to let users set their own targets, or define default values here.</p>
+                  </div>
+
+                  {/* Target Behavior Selection - Hidden for traffic light type */}
+                  {formData.okrType !== 'traffic-light' && (
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="text-sm font-medium text-gray-900">Target Behavior</h4>
+                          <p className="text-xs text-gray-600">How progress is measured: {
+                            formData.targetBehavior === 'increase' ? 'Increase to target' :
+                            formData.targetBehavior === 'decrease' ? 'Decrease to target' :
+                            formData.targetBehavior === 'stay_above' ? 'Stay above target' :
+                            formData.targetBehavior === 'stay_below' ? 'Stay below target' :
+                            'Increase to target (default)'
+                          }</p>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => setFormData(prev => ({...prev, showTargetBehavior: !prev.showTargetBehavior}))}
+                          className="text-xs text-blue-600 hover:text-blue-700"
+                        >
+                          {formData.showTargetBehavior ? 'Hide' : 'Change'}
+                        </button>
                       </div>
                       
-                      <div className="text-sm text-gray-600">
-                        <div className="mb-1">
-                          <span className="font-medium">{group.metrics.length}</span> metrics included
+                      {formData.showTargetBehavior && (
+                        <div className="grid grid-cols-2 gap-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="radio"
+                              id="target-increase"
+                              name="targetBehavior"
+                              value="increase"
+                              checked={formData.targetBehavior === 'increase'}
+                              onChange={(e) => setFormData(prev => ({...prev, targetBehavior: e.target.value as any}))}
+                              className="h-3 w-3 text-blue-600 focus:ring-blue-500"
+                            />
+                            <label htmlFor="target-increase" className="text-sm text-gray-900">
+                              <span className="font-medium">Increase to target</span> - Result should reach or exceed target
+                            </label>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="radio"
+                              id="target-decrease"
+                              name="targetBehavior"
+                              value="decrease"
+                              checked={formData.targetBehavior === 'decrease'}
+                              onChange={(e) => setFormData(prev => ({...prev, targetBehavior: e.target.value as any}))}
+                              className="h-3 w-3 text-blue-600 focus:ring-blue-500"
+                            />
+                            <label htmlFor="target-decrease" className="text-sm text-gray-900">
+                              <span className="font-medium">Decrease to target</span> - Result should reach or go below target
+                            </label>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="radio"
+                              id="target-stay-above"
+                              name="targetBehavior"
+                              value="stay_above"
+                              checked={formData.targetBehavior === 'stay_above'}
+                              onChange={(e) => setFormData(prev => ({...prev, targetBehavior: e.target.value as any}))}
+                              className="h-3 w-3 text-blue-600 focus:ring-blue-500"
+                            />
+                            <label htmlFor="target-stay-above" className="text-sm text-gray-900">
+                              <span className="font-medium">Stay above target</span> - Result should always be above target
+                            </label>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <input
+                              type="radio"
+                              id="target-stay-below"
+                              name="targetBehavior"
+                              value="stay_below"
+                              checked={formData.targetBehavior === 'stay_below'}
+                              onChange={(e) => setFormData(prev => ({...prev, targetBehavior: e.target.value as any}))}
+                              className="h-3 w-3 text-blue-600 focus:ring-blue-500"
+                            />
+                            <label htmlFor="target-stay-below" className="text-sm text-gray-900">
+                              <span className="font-medium">Stay below target</span> - Result should always be below target
+                            </label>
+                          </div>
                         </div>
-                        <ul className="list-disc pl-5 mt-2 text-gray-700">
-                          {groupMetrics.slice(0, 3).map(metric => (
-                            <li key={metric.id} className="text-sm">{metric.title}</li>
-                          ))}
-                          {groupMetrics.length > 3 && (
-                            <li className="text-sm text-gray-500">+{groupMetrics.length - 3} more metrics</li>
-                          )}
-                        </ul>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Target Field - Currency */}
+                  {formData.okrType === 'currency' && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-1">
+                          <label htmlFor="okr-target" className="text-sm font-medium text-gray-900">
+                            {formData.targetLabel || 'Target'} per milestone
+                          </label>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Info className="w-3 h-3 text-gray-400 cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="max-w-xs">This target needs to be reached per milestone. For example, every quarter I need to reach a target of €1000.</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                        <div className="relative">
+                          <Input 
+                            id="okr-target"
+                            type="number"
+                            value={formData.target || ''}
+                            onChange={(e) => setFormData(prev => ({...prev, target: parseFloat(e.target.value) || 0}))}
+                            placeholder="Optional (e.g., 1000)"
+                            className="pr-8 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                          />
+                          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">€</span>
+                        </div>
                       </div>
-                    </CardContent>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-1">
+                          <label htmlFor="okr-total-target" className="text-sm font-medium text-gray-900">
+                            {formData.targetLabel || 'Target'} for full timeframe
+                          </label>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Info className="w-3 h-3 text-gray-400 cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="max-w-xs">This is the total target for the full timeframe selected. It automatically calculates based on your milestone target and timeframe duration.</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                        <div className="relative">
+                          <Input 
+                            id="okr-total-target"
+                            type="number"
+                            value={formData.totalTarget}
+                            disabled
+                            className="pr-8 text-base border-gray-300 bg-gray-50 text-gray-700"
+                          />
+                          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">€</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Target Field - Percentage */}
+                  {formData.okrType === 'percent' && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-1">
+                          <label htmlFor="okr-target" className="text-sm font-medium text-gray-900">
+                            {formData.targetLabel || 'Target'} per milestone
+                          </label>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Info className="w-3 h-3 text-gray-400 cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="max-w-xs">This target needs to be reached per milestone. For example, every quarter I need to reach a target of 75%.</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                        <div className="relative">
+                          <Input 
+                            id="okr-target"
+                            type="number"
+                            min="0"
+                            max="100"
+                            value={formData.target || ''}
+                            onChange={(e) => setFormData(prev => ({...prev, target: parseFloat(e.target.value) || 0}))}
+                            placeholder="Optional (e.g., 75)"
+                            className="pr-8 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                          />
+                          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">%</span>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-1">
+                          <label htmlFor="okr-total-target" className="text-sm font-medium text-gray-900">
+                            {formData.targetLabel || 'Target'} for full timeframe
+                          </label>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Info className="w-3 h-3 text-gray-400 cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="max-w-xs">This is the total target for the full timeframe selected. It automatically calculates based on your milestone target and timeframe duration.</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                        <div className="relative">
+                          <Input 
+                            id="okr-total-target"
+                            type="number"
+                            value={formData.totalTarget}
+                            disabled
+                            className="pr-8 text-base border-gray-300 bg-gray-50 text-gray-700"
+                          />
+                          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">%</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Target Field - Number */}
+                  {formData.okrType === 'number' && (
+                    <div className="grid grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-1">
+                          <label htmlFor="okr-target" className="text-sm font-medium text-gray-900">
+                            {formData.targetLabel || 'Target'} per milestone
+                          </label>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Info className="w-3 h-3 text-gray-400 cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="max-w-xs">This target needs to be reached per milestone. For example, every quarter I need to reach a target of 50 new customers.</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                        <div className="relative">
+                          <Input 
+                            id="okr-target"
+                            type="number"
+                            value={formData.target || ''}
+                            onChange={(e) => setFormData(prev => ({...prev, target: parseFloat(e.target.value) || 0}))}
+                            placeholder="Optional (e.g., 50)"
+                            className="pr-8 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                          />
+                          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">#</span>
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-1">
+                          <label htmlFor="okr-total-target" className="text-sm font-medium text-gray-900">
+                            {formData.targetLabel || 'Target'} for full timeframe
+                          </label>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Info className="w-3 h-3 text-gray-400 cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="max-w-xs">This is the total target for the full timeframe selected. It automatically calculates based on your milestone target and timeframe duration.</p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
+                        <div className="relative">
+                          <Input 
+                            id="okr-total-target"
+                            type="number"
+                            value={formData.totalTarget}
+                            disabled
+                            className="pr-8 text-base border-gray-300 bg-gray-50 text-gray-700"
+                          />
+                          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">#</span>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                </div>
+              )}
+
+              {/* Traffic Lights Configuration - Available for non-traffic-light OKR types */}
+              {formData.okrType && formData.okrType !== 'traffic-light' && (
+                <div className="space-y-6 pt-6 border-t border-gray-200">
+                  <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                    <div className="space-y-3 mb-4">
+                      <h4 className="text-sm font-medium text-gray-900">Traffic Light Status</h4>
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="checkbox"
+                        id="enable-traffic-lights-other"
+                        checked={formData.enableTrafficLights}
+                        onChange={(e) => setFormData(prev => ({...prev, enableTrafficLights: e.target.checked}))}
+                        className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-4 mb-1">
+                          <label htmlFor="enable-traffic-lights-other" className="text-sm font-medium text-gray-900">
+                            Enable traffic light indicators
+                          </label>
+                          <div className="flex items-center gap-1">
+                            <span 
+                              className={`w-4 h-4 rounded-full transition-opacity duration-300 ${
+                                formData.enableTrafficLights ? 'opacity-100' : 'opacity-40'
+                              }`} 
+                              style={{ backgroundColor: '#bcbcd2' }}
+                            ></span>
+                            <span 
+                              className={`w-4 h-4 rounded-full transition-opacity duration-300 ${
+                                formData.enableTrafficLights ? 'opacity-100' : 'opacity-40'
+                              }`} 
+                              style={{ backgroundColor: '#f4828b' }}
+                            ></span>
+                            <span 
+                              className={`w-4 h-4 rounded-full transition-opacity duration-300 ${
+                                formData.enableTrafficLights ? 'opacity-100' : 'opacity-40'
+                              }`} 
+                              style={{ backgroundColor: '#ffb372' }}
+                            ></span>
+                            <span 
+                              className={`w-4 h-4 rounded-full transition-opacity duration-300 ${
+                                formData.enableTrafficLights ? 'opacity-100' : 'opacity-40'
+                              }`} 
+                              style={{ backgroundColor: '#00c99c' }}
+                            ></span>
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-500 mb-3">
+                          Shows status using colored circles: Gray (no data), Red (off track), Yellow (at risk), Green (on track)
+                        </p>
+
+                        {/* Traffic Light Configuration Options */}
+                        {formData.enableTrafficLights && (
+                          <div className="mt-3 space-y-2">
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="radio"
+                                id="traffic-system-other"
+                                name="trafficLightStyleOther"
+                                value="system"
+                                checked={formData.trafficLightStyle === 'system'}
+                                onChange={() => setFormData(prev => ({...prev, trafficLightStyle: 'system'}))}
+                                className="h-3 w-3 text-blue-600 focus:ring-blue-500"
+                              />
+                              <label htmlFor="traffic-system-other" className="text-xs text-gray-900">
+                                <span className="font-medium">Standard thresholds</span> - Red &lt;50%, Yellow 50-74%, Green ≥75%
+                              </label>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="radio"
+                                id="traffic-custom-other"
+                                name="trafficLightStyleOther"
+                                value="custom"
+                                checked={formData.trafficLightStyle === 'custom'}
+                                onChange={() => setFormData(prev => ({...prev, trafficLightStyle: 'custom'}))}
+                                className="h-3 w-3 text-blue-600 focus:ring-blue-500"
+                              />
+                              <label htmlFor="traffic-custom-other" className="text-xs text-gray-900">
+                                <span className="font-medium">Custom thresholds</span> - Define your own performance ranges
+                              </label>
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <input
+                                type="radio"
+                                id="traffic-manual-other"
+                                name="trafficLightStyleOther"
+                                value="manual"
+                                checked={formData.trafficLightStyle === 'manual'}
+                                onChange={() => setFormData(prev => ({...prev, trafficLightStyle: 'manual'}))}
+                                className="h-3 w-3 text-blue-600 focus:ring-blue-500"
+                              />
+                              <label htmlFor="traffic-manual-other" className="text-xs text-gray-900">
+                                <span className="font-medium">Manual control</span> - Users manually set the traffic light status
+                              </label>
+                            </div>
+                          </div>
+                        )}
+
+                        {formData.trafficLightStyle === 'manual' && (
+                          <div className="p-3 bg-green-50 border border-green-200 rounded-md mt-2">
+                            <p className="text-xs text-green-800 mb-1 font-medium">Manual Traffic Light Control</p>
+                            <p className="text-xs text-green-700">
+                              Users will manually set Red, Yellow, Green, or Gray status for their OKRs. 
+                              Perfect for checkbox-type OKRs or qualitative progress tracking.
+                            </p>
+                          </div>
+                        )}
+
+                        {formData.trafficLightStyle === 'custom' && (
+                          <div className="p-3 bg-orange-50 border border-orange-200 rounded-md mt-2">
+                            <p className="text-xs text-orange-800 mb-2 font-medium">Custom Traffic Light Thresholds</p>
+                            <div className="grid grid-cols-2 gap-3 mb-2">
+                              <div>
+                                <label className="text-xs text-gray-700">Yellow threshold (%)</label>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  max="100"
+                                  value={formData.trafficLightYellowThreshold || 50}
+                                  onChange={(e) => setFormData(prev => ({...prev, trafficLightYellowThreshold: parseInt(e.target.value)}))}
+                                  className="w-full text-xs border border-gray-300 rounded px-2 py-1 mt-1"
+                                  placeholder="50"
+                                />
+                              </div>
+                              <div>
+                                <label className="text-xs text-gray-700">Green threshold (%)</label>
+                                <input
+                                  type="number"
+                                  min="0"
+                                  max="100"
+                                  value={formData.trafficLightGreenThreshold || 75}
+                                  onChange={(e) => setFormData(prev => ({...prev, trafficLightGreenThreshold: parseInt(e.target.value)}))}
+                                  className="w-full text-xs border border-gray-300 rounded px-2 py-1 mt-1"
+                                  placeholder="75"
+                                />
+                              </div>
+                            </div>
+                            <div className="text-xs text-gray-600">
+                              <span className="inline-block w-2 h-2 rounded-full mr-1" style={{ backgroundColor: '#f4828b' }}></span>Red: Below {formData.trafficLightYellowThreshold || 50}% • 
+                              <span className="inline-block w-2 h-2 rounded-full mr-1 ml-2" style={{ backgroundColor: '#ffb372' }}></span>Yellow: {formData.trafficLightYellowThreshold || 50}%-{formData.trafficLightGreenThreshold || 75}% • 
+                              <span className="inline-block w-2 h-2 rounded-full mr-1 ml-2" style={{ backgroundColor: '#00c99c' }}></span>Green: {formData.trafficLightGreenThreshold || 75}%+
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+                  {/* Advanced Settings */}
+                  <div className="border-t pt-6">
+                    <div className="flex items-center justify-between mb-4">
+                      <div>
+                        <h4 className="text-sm font-medium text-gray-900">Advanced Settings</h4>
+                        <p className="text-xs text-gray-600">Optional customizations for power users</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => setFormData(prev => ({...prev, showAdvancedSettings: !prev.showAdvancedSettings}))}
+                        className="text-xs text-blue-600 hover:text-blue-700"
+                      >
+                        {formData.showAdvancedSettings ? 'Hide' : 'Show'}
+                      </button>
+                    </div>
                     
-                    <CardFooter className="flex justify-between pt-0">
-                      <Button variant="outline" size="sm">
-                        Apply
-                      </Button>
-                      <Link href={`/templates/groups/${group.id}`}>
-                        <Button size="sm" className="bg-indigo-600 hover:bg-indigo-700">
-                          Edit Group
-                        </Button>
-                      </Link>
-                    </CardFooter>
-                  </Card>
-                );
-              })}
+                    {formData.showAdvancedSettings && (
+                      <div className="space-y-4">
+                        {/* Progress Bar Style Configuration */}
+                        {(formData.enableProgressBar !== false) && (
+                          <div>
+                            <h5 className="text-xs font-medium text-gray-800 mb-2">Progress Bar Style</h5>
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="radio"
+                                  id="progress-system"
+                                  name="progressStyle"
+                                  value="system"
+                                  checked={formData.progressStyle !== 'custom'}
+                                  onChange={() => setFormData(prev => ({...prev, progressStyle: 'system'}))}
+                                  className="h-3 w-3 text-blue-600 focus:ring-blue-500"
+                                />
+                                <label htmlFor="progress-system" className="text-xs text-gray-900">
+                                  <span className="font-medium">Simple grey bar</span> - Shows percentage completion (recommended)
+                                </label>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="radio"
+                                  id="progress-custom"
+                                  name="progressStyle"
+                                  value="custom"
+                                  checked={formData.progressStyle === 'custom'}
+                                  onChange={() => setFormData(prev => ({...prev, progressStyle: 'custom'}))}
+                                  className="h-3 w-3 text-blue-600 focus:ring-blue-500"
+                                />
+                                <label htmlFor="progress-custom" className="text-xs text-gray-900">
+                                  <span className="font-medium">Color-coded bar</span> - Changes color based on performance levels
+                                </label>
+                              </div>
+                            </div>
+
+                            {formData.progressStyle === 'custom' && (
+                              <div className="p-3 bg-blue-50 border border-blue-200 rounded-md mt-3">
+                                <p className="text-xs text-blue-800 mb-3 font-medium">Color-Coded Progress Settings</p>
+                                <div className="space-y-3">
+                                  <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                      <label className="text-xs text-gray-700">Yellow warning at (%)</label>
+                                      <input
+                                        type="number"
+                                        min="0"
+                                        max="100"
+                                        value={formData.warningThreshold || 50}
+                                        onChange={(e) => setFormData(prev => ({...prev, warningThreshold: parseInt(e.target.value)}))}
+                                        className="w-full text-xs border border-gray-300 rounded px-2 py-1 mt-1"
+                                        placeholder="50"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="text-xs text-gray-700">Green success at (%)</label>
+                                      <input
+                                        type="number"
+                                        min="0"
+                                        max="100"
+                                        value={formData.successThreshold || 80}
+                                        onChange={(e) => setFormData(prev => ({...prev, successThreshold: parseInt(e.target.value)}))}
+                                        className="w-full text-xs border border-gray-300 rounded px-2 py-1 mt-1"
+                                        placeholder="80"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="text-xs text-gray-600">
+                                    <span className="inline-block w-2 h-2 bg-red-400 rounded-full mr-1"></span>Red: Below {formData.warningThreshold || 50}% • 
+                                    <span className="inline-block w-2 h-2 bg-yellow-400 rounded-full mr-1 ml-2"></span>Yellow: {formData.warningThreshold || 50}%-{formData.successThreshold || 80}% • 
+                                    <span className="inline-block w-2 h-2 bg-green-400 rounded-full mr-1 ml-2"></span>Green: Above {formData.successThreshold || 80}%
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Traffic Light Style Configuration */}
+                        {formData.enableTrafficLights && (
+                          <div>
+                            <h5 className="text-xs font-medium text-gray-800 mb-2">Traffic Light Thresholds</h5>
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="radio"
+                                  id="traffic-system"
+                                  name="trafficLightStyle"
+                                  value="system"
+                                  checked={formData.trafficLightStyle === 'system'}
+                                  onChange={() => setFormData(prev => ({...prev, trafficLightStyle: 'system'}))}
+                                  className="h-3 w-3 text-blue-600 focus:ring-blue-500"
+                                />
+                                <label htmlFor="traffic-system" className="text-xs text-gray-900">
+                                  <span className="font-medium">Standard thresholds</span> - Red &lt;50%, Yellow 50-74%, Green ≥75% (recommended)
+                                </label>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="radio"
+                                  id="traffic-custom"
+                                  name="trafficLightStyle"
+                                  value="custom"
+                                  checked={formData.trafficLightStyle === 'custom'}
+                                  onChange={() => setFormData(prev => ({...prev, trafficLightStyle: 'custom'}))}
+                                  className="h-3 w-3 text-blue-600 focus:ring-blue-500"
+                                />
+                                <label htmlFor="traffic-custom" className="text-xs text-gray-900">
+                                  <span className="font-medium">Custom thresholds</span> - Define your own performance ranges
+                                </label>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="radio"
+                                  id="traffic-manual"
+                                  name="trafficLightStyle"
+                                  value="manual"
+                                  checked={formData.trafficLightStyle === 'manual'}
+                                  onChange={() => setFormData(prev => ({...prev, trafficLightStyle: 'manual'}))}
+                                  className="h-3 w-3 text-blue-600 focus:ring-blue-500"
+                                />
+                                <label htmlFor="traffic-manual" className="text-xs text-gray-900">
+                                  <span className="font-medium">Manual control</span> - Users manually set the traffic light status
+                                </label>
+                              </div>
+                            </div>
+
+                            {formData.trafficLightStyle === 'manual' && (
+                              <div className="p-3 bg-green-50 border border-green-200 rounded-md mt-3">
+                                <p className="text-xs text-green-800 mb-2 font-medium">Manual Traffic Light Control</p>
+                                <p className="text-xs text-green-700">
+                                  Users will be able to manually set the traffic light status (Red, Yellow, Green, or Gray) for their OKRs. 
+                                  This is ideal for checkbox-type OKRs or situations where progress cannot be automatically calculated.
+                                </p>
+                              </div>
+                            )}
+
+                            {formData.trafficLightStyle === 'custom' && (
+                              <div className="p-3 bg-orange-50 border border-orange-200 rounded-md mt-3">
+                                <p className="text-xs text-orange-800 mb-3 font-medium">Custom Traffic Light Thresholds</p>
+                                <div className="space-y-3">
+                                  <div className="grid grid-cols-2 gap-3">
+                                    <div>
+                                      <label className="text-xs text-gray-700">Yellow threshold (%)</label>
+                                      <input
+                                        type="number"
+                                        min="0"
+                                        max="100"
+                                        value={formData.trafficLightYellowThreshold || 50}
+                                        onChange={(e) => setFormData(prev => ({...prev, trafficLightYellowThreshold: parseInt(e.target.value)}))}
+                                        className="w-full text-xs border border-gray-300 rounded px-2 py-1 mt-1"
+                                        placeholder="50"
+                                      />
+                                    </div>
+                                    <div>
+                                      <label className="text-xs text-gray-700">Green threshold (%)</label>
+                                      <input
+                                        type="number"
+                                        min="0"
+                                        max="100"
+                                        value={formData.trafficLightGreenThreshold || 75}
+                                        onChange={(e) => setFormData(prev => ({...prev, trafficLightGreenThreshold: parseInt(e.target.value)}))}
+                                        className="w-full text-xs border border-gray-300 rounded px-2 py-1 mt-1"
+                                        placeholder="75"
+                                      />
+                                    </div>
+                                  </div>
+                                  <div className="text-xs text-gray-600">
+                                    <span className="inline-block w-2 h-2 rounded-full mr-1" style={{ backgroundColor: '#f4828b' }}></span>Red: Below {formData.trafficLightYellowThreshold || 50}% • 
+                                    <span className="inline-block w-2 h-2 rounded-full mr-1 ml-2" style={{ backgroundColor: '#ffb372' }}></span>Yellow: {formData.trafficLightYellowThreshold || 50}%-{formData.trafficLightGreenThreshold || 75}% • 
+                                    <span className="inline-block w-2 h-2 rounded-full mr-1 ml-2" style={{ backgroundColor: '#00c99c' }}></span>Green: {formData.trafficLightGreenThreshold || 75}%+ • 
+                                    <span className="inline-block w-2 h-2 rounded-full mr-1 ml-2" style={{ backgroundColor: '#bcbcd2' }}></span>Gray: No data
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Field Labels */}
+                        <div>
+                          <h5 className="text-xs font-medium text-gray-800 mb-2">Field Labels</h5>
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <label htmlFor="target-label" className="text-xs font-medium text-gray-700">
+                                Target field name
+                              </label>
+                              <Input 
+                                id="target-label"
+                                value={formData.targetLabel || 'Target'}
+                                onChange={(e) => setFormData(prev => ({...prev, targetLabel: e.target.value}))}
+                                placeholder="e.g., YTD, Goal"
+                                className="text-sm border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                              />
+                            </div>
+                            <div className="space-y-2">
+                              <label htmlFor="realized-label" className="text-xs font-medium text-gray-700">
+                                Progress field name
+                              </label>
+                              <Input 
+                                id="realized-label"
+                                value={formData.realizedLabel || 'Realized'}
+                                onChange={(e) => setFormData(prev => ({...prev, realizedLabel: e.target.value}))}
+                                placeholder="e.g., Full Year, Progress"
+                                className="text-sm border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
-          )}
-        </TabsContent>
-      </Tabs>
+          </div>
+          
+          <DialogFooter className="pt-8 border-t flex justify-between">
+            <Button 
+              variant="outline" 
+              onClick={resetForm}
+              className="px-4 py-2"
+            >
+              Cancel
+            </Button>
+            
+            <Button 
+              className="bg-blue-600 hover:bg-blue-700 px-4 py-2"
+              onClick={handleCreateOKR}
+            >
+              Create Template
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
