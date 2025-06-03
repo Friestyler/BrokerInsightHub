@@ -1223,60 +1223,57 @@ export default function MetricsPage() {
               {formData.okrType === 'traffic-light' && (
                 <div className="space-y-6 pt-6 border-t border-gray-200">
                   <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                    <div className="space-y-3 mb-4">
-                      <h4 className="text-sm font-medium text-gray-900">Traffic Light Status</h4>
+                    <div className="flex items-center justify-between mb-4">
+                      <div className="flex items-center gap-3">
+                        <input
+                          type="checkbox"
+                          id="enable-traffic-lights"
+                          checked={true}
+                          disabled={true}
+                          className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
+                        <label htmlFor="enable-traffic-lights" className="text-sm font-medium text-gray-900">
+                          Show traffic light status
+                          <span className="text-blue-600 ml-1 font-normal">(Required for traffic light type)</span>
+                        </label>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="w-4 h-4 rounded-full" style={{ backgroundColor: '#bcbcd2' }}></span>
+                        <span className="w-4 h-4 rounded-full" style={{ backgroundColor: '#f4828b' }}></span>
+                        <span className="w-4 h-4 rounded-full" style={{ backgroundColor: '#ffb372' }}></span>
+                        <span className="w-4 h-4 rounded-full" style={{ backgroundColor: '#00c99c' }}></span>
+                      </div>
                     </div>
 
-                    <div className="flex items-start gap-3">
-                      <input
-                        type="checkbox"
-                        id="enable-traffic-lights"
-                        checked={true}
-                        disabled={true}
-                        className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                      />
-                      <div className="flex-1">
-                        <div className="flex items-center gap-4 mb-1">
-                          <label htmlFor="enable-traffic-lights" className="text-sm font-medium text-gray-900">
-                            Enable traffic light indicators
-                            <span className="text-blue-600 ml-1 font-normal">(Required for traffic light type)</span>
+                    <div>
+                      <p className="text-xs text-gray-500 mb-3">
+                        Shows status using colored circles: Gray (no data), Red (off track), Yellow (at risk), Green (on track)
+                      </p>
+
+                      <div className="space-y-2">
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="radio"
+                            id="traffic-manual-main"
+                            name="trafficLightStyleMain"
+                            value="manual"
+                            checked={true}
+                            disabled={true}
+                            className="h-3 w-3 text-blue-600 focus:ring-blue-500"
+                          />
+                          <label htmlFor="traffic-manual-main" className="text-xs text-gray-900">
+                            <span className="font-medium">Manual control</span> - Users manually set the traffic light status
+                            <span className="text-blue-600 ml-1">(Required for traffic light type)</span>
                           </label>
-                          <div className="flex items-center gap-1">
-                            <span className="w-4 h-4 rounded-full" style={{ backgroundColor: '#bcbcd2' }}></span>
-                            <span className="w-4 h-4 rounded-full" style={{ backgroundColor: '#f4828b' }}></span>
-                            <span className="w-4 h-4 rounded-full" style={{ backgroundColor: '#ffb372' }}></span>
-                            <span className="w-4 h-4 rounded-full" style={{ backgroundColor: '#00c99c' }}></span>
-                          </div>
                         </div>
-                        <p className="text-xs text-gray-500 mb-3">
-                          Shows status using colored circles: Gray (no data), Red (off track), Yellow (at risk), Green (on track)
+                      </div>
+
+                      <div className="p-3 bg-green-50 border border-green-200 rounded-md mt-3">
+                        <p className="text-xs text-green-800 mb-1 font-medium">Manual Traffic Light Control</p>
+                        <p className="text-xs text-green-700">
+                          Users will manually set Red, Yellow, Green, or Gray status for their OKRs. 
+                          This is the only control method available for traffic light type OKRs since they track qualitative progress.
                         </p>
-
-                        <div className="mt-3 space-y-2">
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="radio"
-                              id="traffic-manual-main"
-                              name="trafficLightStyleMain"
-                              value="manual"
-                              checked={true}
-                              disabled={true}
-                              className="h-3 w-3 text-blue-600 focus:ring-blue-500"
-                            />
-                            <label htmlFor="traffic-manual-main" className="text-xs text-gray-900">
-                              <span className="font-medium">Manual control</span> - Users manually set the traffic light status
-                              <span className="text-blue-600 ml-1">(Required for traffic light type)</span>
-                            </label>
-                          </div>
-                        </div>
-
-                        <div className="p-3 bg-green-50 border border-green-200 rounded-md mt-2">
-                          <p className="text-xs text-green-800 mb-1 font-medium">Manual Traffic Light Control</p>
-                          <p className="text-xs text-green-700">
-                            Users will manually set Red, Yellow, Green, or Gray status for their OKRs. 
-                            This is the only control method available for traffic light type OKRs since they track qualitative progress.
-                          </p>
-                        </div>
                       </div>
                     </div>
                   </div>
