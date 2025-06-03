@@ -1260,86 +1260,24 @@ export default function MetricsPage() {
                   {/* Target Behavior Selection - Hidden for traffic light type */}
                   {formData.okrType !== 'traffic-light' && (
                     <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h4 className="text-sm font-medium text-gray-900">Target Behavior</h4>
-                          <p className="text-xs text-gray-600">How progress is measured: {
-                            formData.targetBehavior === 'increase' ? 'Increase to target' :
-                            formData.targetBehavior === 'decrease' ? 'Decrease to target' :
-                            formData.targetBehavior === 'stay_above' ? 'Stay above target' :
-                            formData.targetBehavior === 'stay_below' ? 'Stay below target' :
-                            'Increase to target (default)'
-                          }</p>
-                        </div>
-                        <button
-                          type="button"
-                          onClick={() => setFormData(prev => ({...prev, showTargetBehavior: !prev.showTargetBehavior}))}
-                          className="text-xs text-blue-600 hover:text-blue-700"
+                      <div className="space-y-2">
+                        <h4 className="text-sm font-medium text-gray-900">Target Behavior</h4>
+                        <Select
+                          value={formData.targetBehavior || 'increase'}
+                          onValueChange={(value) => setFormData(prev => ({...prev, targetBehavior: value}))}
                         >
-                          {formData.showTargetBehavior ? 'Hide' : 'Change'}
-                        </button>
+                          <SelectTrigger className="w-full text-sm border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                            <SelectValue placeholder="Select target behavior" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="increase">Increase to target - Result should reach or exceed target</SelectItem>
+                            <SelectItem value="decrease">Decrease to target - Result should reach or go below target</SelectItem>
+                            <SelectItem value="stay_above">Stay above target - Result should always be above target</SelectItem>
+                            <SelectItem value="stay_below">Stay below target - Result should always be below target</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
-                      
-                      {formData.showTargetBehavior && (
-                        <div className="grid grid-cols-2 gap-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="radio"
-                              id="target-increase"
-                              name="targetBehavior"
-                              value="increase"
-                              checked={formData.targetBehavior === 'increase'}
-                              onChange={(e) => setFormData(prev => ({...prev, targetBehavior: e.target.value as any}))}
-                              className="h-3 w-3 text-blue-600 focus:ring-blue-500"
-                            />
-                            <label htmlFor="target-increase" className="text-sm text-gray-900">
-                              <span className="font-medium">Increase to target</span> - Result should reach or exceed target
-                            </label>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="radio"
-                              id="target-decrease"
-                              name="targetBehavior"
-                              value="decrease"
-                              checked={formData.targetBehavior === 'decrease'}
-                              onChange={(e) => setFormData(prev => ({...prev, targetBehavior: e.target.value as any}))}
-                              className="h-3 w-3 text-blue-600 focus:ring-blue-500"
-                            />
-                            <label htmlFor="target-decrease" className="text-sm text-gray-900">
-                              <span className="font-medium">Decrease to target</span> - Result should reach or go below target
-                            </label>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="radio"
-                              id="target-stay-above"
-                              name="targetBehavior"
-                              value="stay_above"
-                              checked={formData.targetBehavior === 'stay_above'}
-                              onChange={(e) => setFormData(prev => ({...prev, targetBehavior: e.target.value as any}))}
-                              className="h-3 w-3 text-blue-600 focus:ring-blue-500"
-                            />
-                            <label htmlFor="target-stay-above" className="text-sm text-gray-900">
-                              <span className="font-medium">Stay above target</span> - Result should always be above target
-                            </label>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="radio"
-                              id="target-stay-below"
-                              name="targetBehavior"
-                              value="stay_below"
-                              checked={formData.targetBehavior === 'stay_below'}
-                              onChange={(e) => setFormData(prev => ({...prev, targetBehavior: e.target.value as any}))}
-                              className="h-3 w-3 text-blue-600 focus:ring-blue-500"
-                            />
-                            <label htmlFor="target-stay-below" className="text-sm text-gray-900">
-                              <span className="font-medium">Stay below target</span> - Result should always be below target
-                            </label>
-                          </div>
-                        </div>
-                      )}
+
                     </div>
                   )}
 
