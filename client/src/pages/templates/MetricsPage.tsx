@@ -536,7 +536,7 @@ export default function MetricsPage() {
 
   const resetForm = () => {
     setFormData({
-      okrType: '',
+      okrType: 'currency',
       tag: '',
       name: '',
       description: '',
