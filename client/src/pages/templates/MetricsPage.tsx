@@ -1569,61 +1569,80 @@ export default function MetricsPage() {
                           Status indicators: Gray (no data), Red (off track), Yellow (at risk), Green (on track)
                         </p>
 
-                        <div className="space-y-1 mb-3">
-                          <h5 className="text-xs font-medium text-gray-800">How should status be determined?</h5>
-                          <p className="text-xs text-gray-600">Choose how the traffic light colors will be set for users</p>
+                        <div className="flex items-center justify-between mb-3">
+                          <div className="space-y-1">
+                            <h5 className="text-xs font-medium text-gray-800">
+                              Status mode: {
+                                formData.trafficLightStyle === 'system' ? 'Automatic based on progress' :
+                                formData.trafficLightStyle === 'custom' ? 'Custom automatic rules' :
+                                formData.trafficLightStyle === 'manual' ? 'Let users choose' :
+                                'Automatic based on progress'
+                              }
+                            </h5>
+                            <p className="text-xs text-gray-600">How traffic light colors will be determined</p>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => setFormData(prev => ({...prev, showTrafficLightConfig: !prev.showTrafficLightConfig}))}
+                            className="text-xs text-blue-600 hover:text-blue-700"
+                          >
+                            {formData.showTrafficLightConfig ? 'Hide' : 'Configure'}
+                          </button>
                         </div>
 
-                        {/* Traffic Light Configuration Options */}
-                        <div className="space-y-2">
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="radio"
-                              id="traffic-system-other"
-                              name="trafficLightStyleOther"
-                              value="system"
-                              checked={formData.trafficLightStyle === 'system'}
-                              onChange={() => setFormData(prev => ({...prev, trafficLightStyle: 'system'}))}
-                              disabled={formData.okrType === 'checkbox' || formData.okrType === 'traffic-light'}
-                              className="h-3 w-3 text-blue-600 focus:ring-blue-500"
-                            />
-                            <label htmlFor="traffic-system-other" className={`text-xs ${formData.okrType === 'checkbox' || formData.okrType === 'traffic-light' ? 'text-gray-400' : 'text-gray-900'}`}>
-                              <span className="font-medium">Automatic based on progress</span> - System sets colors based on performance (Red &lt;50%, Yellow 50-74%, Green ≥75%)
-                            </label>
+                        {formData.showTrafficLightConfig && (
+                          <div className="p-3 bg-blue-50 border border-blue-200 rounded-md mb-3">
+                            <div className="space-y-2">
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="radio"
+                                  id="traffic-system-other"
+                                  name="trafficLightStyleOther"
+                                  value="system"
+                                  checked={formData.trafficLightStyle === 'system'}
+                                  onChange={() => setFormData(prev => ({...prev, trafficLightStyle: 'system'}))}
+                                  disabled={formData.okrType === 'checkbox' || formData.okrType === 'traffic-light'}
+                                  className="h-3 w-3 text-blue-600 focus:ring-blue-500"
+                                />
+                                <label htmlFor="traffic-system-other" className={`text-xs ${formData.okrType === 'checkbox' || formData.okrType === 'traffic-light' ? 'text-gray-400' : 'text-gray-900'}`}>
+                                  <span className="font-medium">Automatic based on progress</span> - System sets colors based on performance (Red &lt;50%, Yellow 50-74%, Green ≥75%)
+                                </label>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="radio"
+                                  id="traffic-custom-other"
+                                  name="trafficLightStyleOther"
+                                  value="custom"
+                                  checked={formData.trafficLightStyle === 'custom'}
+                                  onChange={() => setFormData(prev => ({...prev, trafficLightStyle: 'custom'}))}
+                                  disabled={formData.okrType === 'checkbox' || formData.okrType === 'traffic-light'}
+                                  className="h-3 w-3 text-blue-600 focus:ring-blue-500"
+                                />
+                                <label htmlFor="traffic-custom-other" className={`text-xs ${formData.okrType === 'checkbox' || formData.okrType === 'traffic-light' ? 'text-gray-400' : 'text-gray-900'}`}>
+                                  <span className="font-medium">Custom automatic rules</span> - Set your own performance percentages for each color
+                                </label>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <input
+                                  type="radio"
+                                  id="traffic-manual-other"
+                                  name="trafficLightStyleOther"
+                                  value="manual"
+                                  checked={formData.trafficLightStyle === 'manual'}
+                                  onChange={() => setFormData(prev => ({...prev, trafficLightStyle: 'manual'}))}
+                                  className="h-3 w-3 text-blue-600 focus:ring-blue-500"
+                                />
+                                <label htmlFor="traffic-manual-other" className="text-xs text-gray-900">
+                                  <span className="font-medium">Let users choose</span> - Users manually select the status color that best represents their progress
+                                  {(formData.okrType === 'checkbox' || formData.okrType === 'traffic-light') && (
+                                    <span className="text-blue-600 ml-1">(Required for {formData.okrType} type)</span>
+                                  )}
+                                </label>
+                              </div>
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="radio"
-                              id="traffic-custom-other"
-                              name="trafficLightStyleOther"
-                              value="custom"
-                              checked={formData.trafficLightStyle === 'custom'}
-                              onChange={() => setFormData(prev => ({...prev, trafficLightStyle: 'custom'}))}
-                              disabled={formData.okrType === 'checkbox' || formData.okrType === 'traffic-light'}
-                              className="h-3 w-3 text-blue-600 focus:ring-blue-500"
-                            />
-                            <label htmlFor="traffic-custom-other" className={`text-xs ${formData.okrType === 'checkbox' || formData.okrType === 'traffic-light' ? 'text-gray-400' : 'text-gray-900'}`}>
-                              <span className="font-medium">Custom automatic rules</span> - Set your own performance percentages for each color
-                            </label>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <input
-                              type="radio"
-                              id="traffic-manual-other"
-                              name="trafficLightStyleOther"
-                              value="manual"
-                              checked={formData.trafficLightStyle === 'manual'}
-                              onChange={() => setFormData(prev => ({...prev, trafficLightStyle: 'manual'}))}
-                              className="h-3 w-3 text-blue-600 focus:ring-blue-500"
-                            />
-                            <label htmlFor="traffic-manual-other" className="text-xs text-gray-900">
-                              <span className="font-medium">Let users choose</span> - Users manually select the status color that best represents their progress
-                              {(formData.okrType === 'checkbox' || formData.okrType === 'traffic-light') && (
-                                <span className="text-blue-600 ml-1">(Required for {formData.okrType} type)</span>
-                              )}
-                            </label>
-                          </div>
-                        </div>
+                        )}
 
                         {formData.trafficLightStyle === 'manual' && (
                           <div className="p-3 bg-green-50 border border-green-200 rounded-md mt-3">
