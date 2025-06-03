@@ -58,7 +58,35 @@ const mockOKRTemplates = [
     nestedCount: 2,
     trafficLights: true,
     trafficLightStyle: 'system',
-    progressBar: true
+    progressBar: true,
+    activities: [
+      {
+        id: 101,
+        title: "Q1 Sales Campaign",
+        type: "currency",
+        target: 250000,
+        tag: "Revenue Growth",
+        timeframe: "Q1-2024",
+        milestoneFrequency: "Monthly",
+        trafficLights: true,
+        trafficLightStyle: 'system',
+        progressBar: true,
+        parentId: 1
+      },
+      {
+        id: 102,
+        title: "Enterprise Client Outreach",
+        type: "number",
+        target: 15,
+        tag: "Revenue Growth",
+        timeframe: "this-quarter",
+        milestoneFrequency: "Weekly",
+        trafficLights: true,
+        trafficLightStyle: 'manual',
+        progressBar: true,
+        parentId: 1
+      }
+    ]
   },
   {
     id: 2,
@@ -86,7 +114,48 @@ const mockOKRTemplates = [
     nestedCount: 3,
     trafficLights: true,
     trafficLightStyle: 'manual',
-    progressBar: false
+    progressBar: false,
+    activities: [
+      {
+        id: 301,
+        title: "User Research & Requirements",
+        type: "checkbox",
+        target: null,
+        tag: "Product Innovation",
+        timeframe: "this-month",
+        milestoneFrequency: "Weekly",
+        trafficLights: true,
+        trafficLightStyle: 'manual',
+        progressBar: false,
+        parentId: 3
+      },
+      {
+        id: 302,
+        title: "Development Sprint Planning",
+        type: "number",
+        target: 5,
+        tag: "Product Innovation",
+        timeframe: "next-month",
+        milestoneFrequency: "Weekly",
+        trafficLights: true,
+        trafficLightStyle: 'system',
+        progressBar: true,
+        parentId: 3
+      },
+      {
+        id: 303,
+        title: "Beta Testing Program",
+        type: "percent",
+        target: 95,
+        tag: "Product Innovation",
+        timeframe: "Q2-2024",
+        milestoneFrequency: "Weekly",
+        trafficLights: true,
+        trafficLightStyle: 'system',
+        progressBar: true,
+        parentId: 3
+      }
+    ]
   },
   {
     id: 4,
@@ -100,7 +169,22 @@ const mockOKRTemplates = [
     nestedCount: 1,
     trafficLights: false,
     trafficLightStyle: 'disabled',
-    progressBar: true
+    progressBar: true,
+    activities: [
+      {
+        id: 401,
+        title: "Regional Market Analysis",
+        type: "percent",
+        target: 100,
+        tag: "Market Expansion",
+        timeframe: "this-quarter",
+        milestoneFrequency: "Monthly",
+        trafficLights: true,
+        trafficLightStyle: 'system',
+        progressBar: true,
+        parentId: 4
+      }
+    ]
   },
   {
     id: 5,
@@ -269,6 +353,7 @@ export default function MetricsPage() {
   const [parentObjectiveId, setParentObjectiveId] = useState<number | null>(null);
   const [parentObjectiveTag, setParentObjectiveTag] = useState<string>("");
   const [parentObjectiveName, setParentObjectiveName] = useState<string>("");
+  const [okrTemplates, setOkrTemplates] = useState(mockOKRTemplates);
   
   // Fetch tags from API
   const { data: tags = [] } = useQuery<Tag[]>({
@@ -394,8 +479,6 @@ export default function MetricsPage() {
     
     return totalTarget;
   };
-
-  const okrTemplates = mockOKRTemplates;
 
   // Filter and group functions
   const filteredOKRs = okrTemplates.filter(okr => {
@@ -952,6 +1035,79 @@ export default function MetricsPage() {
                   </TableRow>
 
                     
+                    {/* Show Activities when objective is expanded */}
+                    {okr.nestedCount > 0 && expandedObjectives.has(okr.id) && okr.activities && okr.activities.map((activity) => (
+                      <TableRow key={activity.id} className="hover:bg-[#F8F9FB] border-b bg-blue-25" style={{ borderColor: '#E6E7F1', backgroundColor: '#FAFBFC' }}>
+                        <TableCell className="w-12 px-1 py-3">
+                          <div className="flex items-center" style={{ gap: '4px', paddingLeft: '24px' }}>
+                            <input
+                              type="checkbox"
+                              checked={selectedOKRs.includes(activity.id)}
+                              onChange={(e) => {
+                                if (e.target.checked) {
+                                  setSelectedOKRs(prev => [...prev, activity.id]);
+                                } else {
+                                  setSelectedOKRs(prev => prev.filter(id => id !== activity.id));
+                                }
+                              }}
+                              className="rounded border-gray-300 opacity-0 group-hover:opacity-100 transition-opacity"
+                              style={{ opacity: selectedOKRs.includes(activity.id) ? 1 : undefined }}
+                            />
+                          </div>
+                        </TableCell>
+                        <TableCell className="p-4 align-middle text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
+                          <div className="flex items-center w-full" style={{ paddingLeft: '20px' }}>
+                            <div className="flex items-center mr-2">
+                              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-gray-400">
+                                <path d="M1 6h4m0 0V2m0 4v4m0-4h4" stroke="currentColor" strokeWidth="1" strokeLinecap="round"/>
+                              </svg>
+                            </div>
+                            <span 
+                              className="text-[#282A3F]"
+                              style={{ 
+                                fontFamily: 'Poppins', 
+                                fontWeight: '400', 
+                                fontSize: '13px',
+                                fontStyle: 'italic'
+                              }}
+                            >
+                              {activity.title}
+                            </span>
+                          </div>
+                        </TableCell>
+                        <TableCell className="px-3 py-2 text-[#282A3F]" style={{ fontFamily: 'Poppins', fontSize: '13px' }}>
+                          {getTimeframeDisplayLabel(activity.timeframe)}
+                        </TableCell>
+                        <TableCell className="px-3 py-2 text-[#282A3F]" style={{ fontFamily: 'Poppins', fontSize: '13px' }}>
+                          {activity.milestoneFrequency}
+                        </TableCell>
+                        <TableCell className="px-3 py-2 text-right text-[#282A3F]" style={{ fontFamily: 'Poppins', fontSize: '13px' }}>
+                          {activity.target ? (
+                            activity.type === 'currency' ? `€${activity.target.toLocaleString()}` :
+                            activity.type === 'percent' ? `${activity.target}%` :
+                            activity.target.toString()
+                          ) : 'No target'}
+                        </TableCell>
+                        <TableCell className="px-3 py-2 text-right">
+                          <div className="flex items-center justify-end gap-1">
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                                <path d="m15 5 4 4"/>
+                              </svg>
+                            </Button>
+                            <Button variant="ghost" size="sm" className="h-8 w-8 p-0 text-red-600">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M3 6h18"></path>
+                                <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path>
+                                <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path>
+                              </svg>
+                            </Button>
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    ))}
+
                     {/* Add Activity Row - Show when objective is expanded */}
                     {okr.nestedCount > 0 && expandedObjectives.has(okr.id) && (
                       <TableRow className="bg-blue-50 border-b" style={{ borderColor: '#E6E7F1' }}>
