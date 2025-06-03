@@ -673,7 +673,7 @@ export default function MetricsPage() {
             <path d="M5 12h14"/>
             <path d="M12 5v14"/>
           </svg>
-          Add OKR metric template
+          Add OKR template
         </Button>
       </div>
       {/* Search and filter section for OKR templates */}
