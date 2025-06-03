@@ -1947,24 +1947,23 @@ export default function MetricsPage() {
                 </div>
               )}
             </div>
-          </div>
           
-          <DialogFooter className="pt-8 border-t flex justify-between">
-            <Button 
-              variant="outline" 
-              onClick={resetForm}
-              className="px-4 py-2"
-            >
-              Cancel
-            </Button>
-            
-            <Button 
-              className="bg-blue-600 hover:bg-blue-700 px-4 py-2"
-              onClick={handleCreateOKR}
-            >
-              Create Template
-            </Button>
-          </DialogFooter>
+            <DialogFooter className="pt-8 border-t flex justify-between">
+              <Button 
+                variant="outline" 
+                onClick={resetForm}
+                className="px-4 py-2"
+              >
+                Cancel
+              </Button>
+              
+              <Button 
+                className="bg-blue-600 hover:bg-blue-700 px-4 py-2"
+                onClick={handleCreateOKR}
+              >
+                Create Template
+              </Button>
+            </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
