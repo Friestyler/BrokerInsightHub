@@ -1071,7 +1071,7 @@ export default function MetricsPage() {
                     {okr.nestedCount > 0 && expandedObjectives.has(okr.id) && okr.activities && okr.activities.map((activity) => (
                       <TableRow key={activity.id} className="hover:bg-[#F8F9FB] border-b bg-blue-25" style={{ borderColor: '#E6E7F1', backgroundColor: '#FAFBFC' }}>
                         <TableCell className="w-12 px-1 py-3">
-                          <div className="flex items-center" style={{ gap: '4px', paddingLeft: '24px' }}>
+                          <div className="flex items-center" style={{ gap: '4px' }}>
                             <input
                               type="checkbox"
                               checked={selectedOKRs.includes(activity.id)}
@@ -1088,32 +1088,26 @@ export default function MetricsPage() {
                           </div>
                         </TableCell>
                         <TableCell className="p-4 align-middle text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
-                          <div className="flex items-center w-full" style={{ paddingLeft: '20px' }}>
-                            <div className="flex items-center mr-2">
-                              <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-gray-400">
-                                <path d="M1 6h4m0 0V2m0 4v4m0-4h4" stroke="currentColor" strokeWidth="1" strokeLinecap="round"/>
-                              </svg>
-                            </div>
+                          <div className="flex items-center w-full">
                             <span 
                               className="text-[#282A3F]"
                               style={{ 
                                 fontFamily: 'Poppins', 
-                                fontWeight: '400', 
-                                fontSize: '13px',
-                                fontStyle: 'italic'
+                                fontWeight: '500', 
+                                fontSize: '14px'
                               }}
                             >
                               {activity.title}
                             </span>
                           </div>
                         </TableCell>
-                        <TableCell className="px-3 py-2 text-[#282A3F]" style={{ fontFamily: 'Poppins', fontSize: '13px' }}>
+                        <TableCell className="px-3 py-2 text-[#282A3F]" style={{ fontFamily: 'Poppins', fontSize: '14px' }}>
                           {getTimeframeDisplayLabel(activity.timeframe)}
                         </TableCell>
-                        <TableCell className="px-3 py-2 text-[#282A3F]" style={{ fontFamily: 'Poppins', fontSize: '13px' }}>
+                        <TableCell className="px-3 py-2 text-[#282A3F]" style={{ fontFamily: 'Poppins', fontSize: '14px' }}>
                           {activity.milestoneFrequency}
                         </TableCell>
-                        <TableCell className="px-3 py-2 text-right text-[#282A3F]" style={{ fontFamily: 'Poppins', fontSize: '13px' }}>
+                        <TableCell className="px-3 py-2 text-right text-[#282A3F]" style={{ fontFamily: 'Poppins', fontSize: '14px' }}>
                           {activity.target ? (
                             activity.type === 'currency' ? `€${activity.target.toLocaleString()}` :
                             activity.type === 'percent' ? `${activity.target}%` :
