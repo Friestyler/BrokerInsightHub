@@ -1173,6 +1173,51 @@ export default function MetricsPage() {
                 </div>
               )}
 
+              {/* Progress Bar Configuration - Available for non-traffic-light types */}
+              {formData.okrType && formData.okrType !== 'traffic-light' && (
+                <div className="space-y-6 pt-6 border-t border-gray-200">
+                  <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+                    <div className="space-y-3 mb-4">
+                      <h4 className="text-sm font-medium text-gray-900">Progress Visualization</h4>
+                    </div>
+
+                    <div className="flex items-start gap-3">
+                      <input
+                        type="checkbox"
+                        id="enable-progress-bar"
+                        checked={formData.enableProgressBar !== false}
+                        onChange={(e) => setFormData(prev => ({...prev, enableProgressBar: e.target.checked}))}
+                        className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                      />
+                      <div className="flex-1">
+                        <div className="flex items-center gap-4 mb-1">
+                          <label htmlFor="enable-progress-bar" className="text-sm font-medium text-gray-900">
+                            Enable progress bar visualization
+                          </label>
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-gray-800 w-8" style={{ fontSize: '14px', lineHeight: '14px' }}>60%</span>
+                            <div className="w-[120px] bg-gray-200 rounded-full h-[6px]">
+                              <div 
+                                className={`h-[6px] rounded-full transition-all duration-300 ${
+                                  formData.enableProgressBar !== false ? 'bg-gray-500' : 'bg-gray-300'
+                                }`}
+                                style={{ width: '60%' }}
+                              ></div>
+                            </div>
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-500">
+                          {(formData.target || 0) > 0 
+                            ? "Shows a visual progress bar with percentage completion based on target vs realized values"
+                            : "Will be auto-enabled when users add targets to their assigned OKRs"
+                          }
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* Traffic Lights Configuration - Show for traffic-light types after milestone frequency */}
               {formData.okrType === 'traffic-light' && (
                 <div className="space-y-6 pt-6 border-t border-gray-200">
@@ -1516,48 +1561,8 @@ export default function MetricsPage() {
                     </div>
                   )}
 
-                  {/* Progress Bar Configuration - Hidden for traffic light type */}
-                  {formData.okrType !== 'traffic-light' && (
-                    <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
-                      <div className="space-y-3 mb-4">
-                        <h4 className="text-sm font-medium text-gray-900">Progress Visualization</h4>
-                      </div>
-
-                      <div className="flex items-start gap-3">
-                        <input
-                          type="checkbox"
-                          id="enable-progress-bar"
-                          checked={formData.enableProgressBar !== false}
-                          onChange={(e) => setFormData(prev => ({...prev, enableProgressBar: e.target.checked}))}
-                          className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                        />
-                        <div className="flex-1">
-                          <div className="flex items-center gap-4 mb-1">
-                            <label htmlFor="enable-progress-bar" className="text-sm font-medium text-gray-900">
-                              Enable progress bar visualization
-                            </label>
-                            <div className="flex items-center gap-2">
-                              <span className="font-medium text-gray-800 w-8" style={{ fontSize: '14px', lineHeight: '14px' }}>60%</span>
-                              <div className="w-[120px] bg-gray-200 rounded-full h-[6px]">
-                                <div 
-                                  className={`h-[6px] rounded-full transition-all duration-300 ${
-                                    formData.enableProgressBar !== false ? 'bg-gray-500' : 'bg-gray-300'
-                                  }`}
-                                  style={{ width: '60%' }}
-                                ></div>
-                              </div>
-                            </div>
-                          </div>
-                          <p className="text-xs text-gray-500">
-                            {(formData.target || 0) > 0 
-                              ? "Shows a visual progress bar with percentage completion based on target vs realized values"
-                              : "Will be auto-enabled when users add targets to their assigned OKRs"
-                            }
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
+                </div>
+              )}
 
               {/* Traffic Lights Configuration - Available for non-traffic-light OKR types */}
               {formData.okrType && formData.okrType !== 'traffic-light' && (
