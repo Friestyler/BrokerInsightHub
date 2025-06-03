@@ -1,4 +1,4 @@
-import { useState, useRef, DragEvent, useEffect } from 'react';
+import React, { useState, useRef, DragEvent, useEffect } from 'react';
 import { useParams, Link, useLocation } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { ChevronLeft } from 'lucide-react';
@@ -1111,6 +1111,8 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
   const [isEditingAssignation, setIsEditingAssignation] = useState(false);
   const [allOKRTemplates, setAllOKRTemplates] = useState<any[]>([]);
   const [assignedOKRIds, setAssignedOKRIds] = useState<number[]>([]);
+  const [trafficLightStatuses, setTrafficLightStatuses] = useState<Record<number, 'green' | 'yellow' | 'red'>>({});
+  const [showTrafficLightDropdown, setShowTrafficLightDropdown] = useState<number | null>(null);
   const [expandedOKRs, setExpandedOKRs] = useState<Set<number>>(new Set());
   const [creatingUnderOKR, setCreatingUnderOKR] = useState<number | null>(null);
   const [newOKRName, setNewOKRName] = useState('');
@@ -1543,6 +1545,83 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
     }
     
     localStorage.setItem('partnerOKRAssignments', JSON.stringify(assignments));
+  };
+
+  // Handle traffic light status change
+  const handleTrafficLightChange = (okrId: number, status: 'green' | 'yellow' | 'red') => {
+    setTrafficLightStatuses(prev => ({ ...prev, [okrId]: status }));
+    setShowTrafficLightDropdown(null);
+    
+    // Save to localStorage
+    const storageKey = `trafficLightStatuses_${partnerId}`;
+    const currentStatuses = localStorage.getItem(storageKey);
+    let statuses = {};
+    if (currentStatuses) {
+      try {
+        statuses = JSON.parse(currentStatuses);
+      } catch (error) {
+        console.error('Error parsing traffic light statuses:', error);
+      }
+    }
+    (statuses as Record<number, string>)[okrId] = status;
+    localStorage.setItem(storageKey, JSON.stringify(statuses));
+  };
+
+  // Load traffic light statuses from localStorage
+  React.useEffect(() => {
+    const storageKey = `trafficLightStatuses_${partnerId}`;
+    const storedStatuses = localStorage.getItem(storageKey);
+    if (storedStatuses) {
+      try {
+        const statuses = JSON.parse(storedStatuses);
+        setTrafficLightStatuses(statuses);
+      } catch (error) {
+        console.error('Error loading traffic light statuses:', error);
+      }
+    }
+  }, [partnerId]);
+
+  // Close dropdown when clicking outside
+  React.useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (showTrafficLightDropdown !== null) {
+        setShowTrafficLightDropdown(null);
+      }
+    };
+
+    if (showTrafficLightDropdown !== null) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showTrafficLightDropdown]);
+
+  // Get traffic light color for an OKR
+  const getTrafficLightColor = (okr: any): { borderColor: string; fillColor: string } | null => {
+    // Check if traffic lights are enabled for this OKR
+    if (!okr.trafficLights) {
+      return null;
+    }
+
+    const status = trafficLightStatuses[okr.id] || 'green'; // Default to green
+    
+    switch (status) {
+      case 'green':
+        return { borderColor: '#00c99c', fillColor: '#00c99c' };
+      case 'yellow':
+        return { borderColor: '#f59e0b', fillColor: '#f59e0b' };
+      case 'red':
+        return { borderColor: '#ef4444', fillColor: '#ef4444' };
+      default:
+        return { borderColor: '#00c99c', fillColor: '#00c99c' };
+    }
+  };
+
+  // Check if OKR allows manual traffic light control
+  const isManualTrafficLight = (okr: any): boolean => {
+    return okr.trafficLights && okr.trafficLightStyle === 'manual';
   };
 
   // Get the OKRs to display (either assigned only or all templates based on edit mode)
@@ -2060,17 +2139,72 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                           
                           {/* Traffic Lights Column */}
                           <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
-                            <div className="flex items-center gap-1">
-                              <div className="w-4 h-4 rounded-full border-2 flex items-center justify-center cursor-pointer hover:scale-110 transition-transform" style={{ borderColor: '#00c99c', backgroundColor: 'white' }} title="On track">
-                                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#00c99c' }}></div>
-                              </div>
-                              <div className="w-4 h-4 rounded-full border-2 flex items-center justify-center cursor-pointer hover:scale-110 transition-transform" style={{ borderColor: '#e5e7eb', backgroundColor: 'white' }} title="At risk">
-                                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#e5e7eb' }}></div>
-                              </div>
-                              <div className="w-4 h-4 rounded-full border-2 flex items-center justify-center cursor-pointer hover:scale-110 transition-transform" style={{ borderColor: '#e5e7eb', backgroundColor: 'white' }} title="Off track">
-                                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#e5e7eb' }}></div>
-                              </div>
-                            </div>
+                            {(() => {
+                              const trafficLightColor = getTrafficLightColor(okr);
+                              
+                              if (!trafficLightColor) {
+                                // Traffic lights are disabled for this OKR
+                                return <div className="w-4 h-4"></div>;
+                              }
+
+                              const isManual = isManualTrafficLight(okr);
+                              const currentStatus = trafficLightStatuses[okr.id] || 'green';
+
+                              return (
+                                <div className="relative">
+                                  <div 
+                                    className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-transform ${
+                                      isManual ? 'cursor-pointer hover:scale-110' : ''
+                                    }`}
+                                    style={{ borderColor: trafficLightColor.borderColor, backgroundColor: 'white' }}
+                                    title={
+                                      currentStatus === 'green' ? 'On track' :
+                                      currentStatus === 'yellow' ? 'At risk' : 'Off track'
+                                    }
+                                    onClick={() => {
+                                      if (isManual) {
+                                        setShowTrafficLightDropdown(showTrafficLightDropdown === okr.id ? null : okr.id);
+                                      }
+                                    }}
+                                  >
+                                    <div className="w-2 h-2 rounded-full" style={{ backgroundColor: trafficLightColor.fillColor }}></div>
+                                  </div>
+
+                                  {/* Dropdown for manual traffic light control */}
+                                  {isManual && showTrafficLightDropdown === okr.id && (
+                                    <div className="absolute top-6 left-0 z-50 bg-white border border-gray-200 rounded-md shadow-lg py-1 min-w-[120px]">
+                                      <button
+                                        className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
+                                        onClick={() => handleTrafficLightChange(okr.id, 'green')}
+                                      >
+                                        <div className="w-3 h-3 rounded-full border-2 flex items-center justify-center" style={{ borderColor: '#00c99c', backgroundColor: 'white' }}>
+                                          <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#00c99c' }}></div>
+                                        </div>
+                                        On track
+                                      </button>
+                                      <button
+                                        className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
+                                        onClick={() => handleTrafficLightChange(okr.id, 'yellow')}
+                                      >
+                                        <div className="w-3 h-3 rounded-full border-2 flex items-center justify-center" style={{ borderColor: '#f59e0b', backgroundColor: 'white' }}>
+                                          <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#f59e0b' }}></div>
+                                        </div>
+                                        At risk
+                                      </button>
+                                      <button
+                                        className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center gap-2"
+                                        onClick={() => handleTrafficLightChange(okr.id, 'red')}
+                                      >
+                                        <div className="w-3 h-3 rounded-full border-2 flex items-center justify-center" style={{ borderColor: '#ef4444', backgroundColor: 'white' }}>
+                                          <div className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: '#ef4444' }}></div>
+                                        </div>
+                                        Off track
+                                      </button>
+                                    </div>
+                                  )}
+                                </div>
+                              );
+                            })()}
                           </TableCell>
                           
                           {/* Progress Column */}
