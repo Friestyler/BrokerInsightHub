@@ -1555,8 +1555,8 @@ export default function MetricsPage() {
                 </div>
               )}
 
-              {/* Target & Measurement Section - Hidden for traffic light type */}
-              {formData.okrType && formData.okrType !== 'traffic-light' && (
+              {/* Target & Measurement Section - Hidden for traffic light and checkbox types */}
+              {formData.okrType && formData.okrType !== 'traffic-light' && formData.okrType !== 'checkbox' && (
                 <div className="space-y-6 pt-6 border-t border-gray-200">
                   <div className="space-y-3">
                     <h3 className="text-lg font-semibold text-gray-900">Set Your Target <span className="text-sm font-normal text-gray-500">(Optional)</span></h3>
