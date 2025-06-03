@@ -926,12 +926,16 @@ export default function MetricsPage() {
                     onClick={() => setFormData(prev => ({
                       ...prev, 
                       okrType: type.value,
-                      // Auto-configure checkbox and traffic-light types for manual traffic lights
+                      // Enable traffic lights by default for all types
+                      enableTrafficLights: true,
+                      // Configure based on OKR type
                       ...(type.value === 'checkbox' || type.value === 'traffic-light' ? {
                         enableProgressBar: false,
-                        enableTrafficLights: true,
                         trafficLightStyle: 'manual'
-                      } : {})
+                      } : {
+                        // For currency, number, and percentage - default to standard thresholds
+                        trafficLightStyle: 'system'
+                      })
                     }))}
                   >
                     <div className="text-center">
@@ -1639,9 +1643,10 @@ export default function MetricsPage() {
                               value="system"
                               checked={formData.trafficLightStyle === 'system'}
                               onChange={() => setFormData(prev => ({...prev, trafficLightStyle: 'system'}))}
+                              disabled={formData.okrType === 'checkbox' || formData.okrType === 'traffic-light'}
                               className="h-3 w-3 text-blue-600 focus:ring-blue-500"
                             />
-                            <label htmlFor="traffic-system-other" className="text-xs text-gray-900">
+                            <label htmlFor="traffic-system-other" className={`text-xs ${formData.okrType === 'checkbox' || formData.okrType === 'traffic-light' ? 'text-gray-400' : 'text-gray-900'}`}>
                               <span className="font-medium">Standard thresholds</span> - Red &lt;50%, Yellow 50-74%, Green ≥75%
                             </label>
                           </div>
@@ -1653,9 +1658,10 @@ export default function MetricsPage() {
                               value="custom"
                               checked={formData.trafficLightStyle === 'custom'}
                               onChange={() => setFormData(prev => ({...prev, trafficLightStyle: 'custom'}))}
+                              disabled={formData.okrType === 'checkbox' || formData.okrType === 'traffic-light'}
                               className="h-3 w-3 text-blue-600 focus:ring-blue-500"
                             />
-                            <label htmlFor="traffic-custom-other" className="text-xs text-gray-900">
+                            <label htmlFor="traffic-custom-other" className={`text-xs ${formData.okrType === 'checkbox' || formData.okrType === 'traffic-light' ? 'text-gray-400' : 'text-gray-900'}`}>
                               <span className="font-medium">Custom thresholds</span> - Define your own performance ranges
                             </label>
                           </div>
@@ -1671,6 +1677,9 @@ export default function MetricsPage() {
                             />
                             <label htmlFor="traffic-manual-other" className="text-xs text-gray-900">
                               <span className="font-medium">Manual control</span> - Users manually set the traffic light status
+                              {(formData.okrType === 'checkbox' || formData.okrType === 'traffic-light') && (
+                                <span className="text-blue-600 ml-1">(Required for {formData.okrType} type)</span>
+                              )}
                             </label>
                           </div>
                         </div>
