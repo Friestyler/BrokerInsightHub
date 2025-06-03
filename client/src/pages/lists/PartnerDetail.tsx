@@ -1109,6 +1109,8 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
   const [quickActionInput, setQuickActionInput] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isEditingAssignation, setIsEditingAssignation] = useState(false);
+  const [allOKRTemplates, setAllOKRTemplates] = useState<any[]>([]);
+  const [assignedOKRIds, setAssignedOKRIds] = useState<number[]>([]);
   const [expandedOKRs, setExpandedOKRs] = useState<Set<number>>(new Set());
   const [creatingUnderOKR, setCreatingUnderOKR] = useState<number | null>(null);
   const [newOKRName, setNewOKRName] = useState('');
@@ -1460,11 +1462,13 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
         try {
           const assignments = JSON.parse(storedAssignments);
           const partnerAssignments = assignments[partnerId] || [];
+          setAssignedOKRIds(partnerAssignments);
           
           // Get the full template data
           const storedTemplates = localStorage.getItem('okrTemplates');
           if (storedTemplates) {
             const templates = JSON.parse(storedTemplates);
+            setAllOKRTemplates(templates);
             const assignedTemplates = templates.filter((template: any) => 
               partnerAssignments.includes(template.id)
             );
@@ -1473,9 +1477,21 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
         } catch (error) {
           console.error('Error loading assigned OKRs:', error);
           setAssignedOKRs([]);
+          setAssignedOKRIds([]);
         }
       } else {
+        // Load all templates even if no assignments
+        const storedTemplates = localStorage.getItem('okrTemplates');
+        if (storedTemplates) {
+          try {
+            const templates = JSON.parse(storedTemplates);
+            setAllOKRTemplates(templates);
+          } catch (error) {
+            console.error('Error loading OKR templates:', error);
+          }
+        }
         setAssignedOKRs([]);
+        setAssignedOKRIds([]);
       }
     };
 
@@ -1492,8 +1508,48 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
     return () => window.removeEventListener('storage', handleStorageChange);
   }, [partnerId]);
 
+  // Handle OKR assignment/deassignment
+  const handleOKRAssignmentChange = (okrId: number, isAssigned: boolean) => {
+    if (isAssigned) {
+      // Assign OKR to partner
+      setAssignedOKRIds(prev => [...prev, okrId]);
+      const okrToAssign = allOKRTemplates.find(okr => okr.id === okrId);
+      if (okrToAssign) {
+        setAssignedOKRs(prev => [...prev, okrToAssign]);
+      }
+    } else {
+      // Remove OKR from partner
+      setAssignedOKRIds(prev => prev.filter(id => id !== okrId));
+      setAssignedOKRs(prev => prev.filter(okr => okr.id !== okrId));
+    }
+    
+    // Update localStorage
+    const storedAssignments = localStorage.getItem('partnerOKRAssignments');
+    let assignments: Record<string, number[]> = {};
+    if (storedAssignments) {
+      try {
+        assignments = JSON.parse(storedAssignments);
+      } catch (error) {
+        console.error('Error parsing stored assignments:', error);
+      }
+    }
+    
+    if (isAssigned) {
+      const currentAssignments = assignments[partnerId] || [];
+      assignments[partnerId] = [...currentAssignments, okrId];
+    } else {
+      const currentAssignments = assignments[partnerId] || [];
+      assignments[partnerId] = currentAssignments.filter((id: number) => id !== okrId);
+    }
+    
+    localStorage.setItem('partnerOKRAssignments', JSON.stringify(assignments));
+  };
+
+  // Get the OKRs to display (either assigned only or all templates based on edit mode)
+  const okrsToDisplay = isEditingAssignation ? allOKRTemplates : assignedOKRs;
+
   // Filter OKRs based on search and filters
-  const filteredOKRs = assignedOKRs.filter(okr => {
+  const filteredOKRs = okrsToDisplay.filter(okr => {
     const matchesSearch = searchTerm === "" || 
       okr.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
       okr.description?.toLowerCase().includes(searchTerm.toLowerCase());
@@ -1743,7 +1799,11 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                           checked={okrsInGroup.length > 0 && okrsInGroup.every(okr => selectedOKRs.includes(okr.id))}
                           onChange={(e) => {
                             if (e.target.checked) {
-                              setSelectedOKRs(prev => [...new Set([...prev, ...okrsInGroup.map(okr => okr.id)])]);
+                              const newIds = okrsInGroup.map(okr => okr.id);
+                              setSelectedOKRs(prev => {
+                                const combined = [...prev, ...newIds];
+                                return combined.filter((id, index) => combined.indexOf(id) === index);
+                              });
                             } else {
                               setSelectedOKRs(prev => prev.filter(id => !okrsInGroup.map(okr => okr.id).includes(id)));
                             }
@@ -1854,16 +1914,20 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                             <div className="flex items-center" style={{ gap: '4px' }}>
                               <input
                                 type="checkbox"
-                                checked={selectedOKRs.includes(okr.id)}
+                                checked={isEditingAssignation ? assignedOKRIds.includes(okr.id) : selectedOKRs.includes(okr.id)}
                                 onChange={(e) => {
-                                  if (e.target.checked) {
-                                    setSelectedOKRs(prev => [...prev, okr.id]);
+                                  if (isEditingAssignation) {
+                                    handleOKRAssignmentChange(okr.id, e.target.checked);
                                   } else {
-                                    setSelectedOKRs(prev => prev.filter(id => id !== okr.id));
+                                    if (e.target.checked) {
+                                      setSelectedOKRs(prev => [...prev, okr.id]);
+                                    } else {
+                                      setSelectedOKRs(prev => prev.filter(id => id !== okr.id));
+                                    }
                                   }
                                 }}
                                 className="rounded border-gray-300 opacity-0 group-hover:opacity-100 transition-opacity"
-                                style={{ opacity: selectedOKRs.includes(okr.id) ? 1 : undefined }}
+                                style={{ opacity: isEditingAssignation || selectedOKRs.includes(okr.id) || assignedOKRIds.includes(okr.id) ? 1 : undefined }}
                               />
                               {/* Expand/collapse arrow - show on hover for OKRs without children */}
                               {canShowExpandArrow(okr) && (
