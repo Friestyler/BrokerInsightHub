@@ -805,28 +805,7 @@ export default function MetricsPage() {
                   >
                     Target
                   </TableHead>
-                  <TableHead 
-                    className="text-center px-3 py-2 min-w-[100px]"
-                    style={{ 
-                      fontFamily: 'Poppins', 
-                      fontWeight: '500', 
-                      fontSize: '13px', 
-                      color: '#696C8C' 
-                    }}
-                  >
-                    Traffic Lights
-                  </TableHead>
-                  <TableHead 
-                    className="text-center px-3 py-2 min-w-[100px]"
-                    style={{ 
-                      fontFamily: 'Poppins', 
-                      fontWeight: '500', 
-                      fontSize: '13px', 
-                      color: '#696C8C' 
-                    }}
-                  >
-                    Progress Bar
-                  </TableHead>
+
                   <TableHead 
                     className="text-right px-3 py-2 min-w-[80px]"
                     style={{ 
@@ -896,16 +875,6 @@ export default function MetricsPage() {
                         okr.type === 'percent' ? `${okr.target}%` :
                         okr.target.toString()
                       ) : 'No target'}
-                    </TableCell>
-                    <TableCell className="px-3 py-2 text-center text-[#282A3F]" style={{ fontFamily: 'Poppins', fontSize: '12px' }}>
-                      {okr.trafficLightStyle === 'system' ? 'Automatic based on progress' :
-                       okr.trafficLightStyle === 'custom' ? 'Custom rules' :
-                       okr.trafficLightStyle === 'manual' ? 'Users update manually' :
-                       okr.trafficLightStyle === 'disabled' ? 'Off' :
-                       'Off'}
-                    </TableCell>
-                    <TableCell className="px-3 py-2 text-center text-[#282A3F]" style={{ fontFamily: 'Poppins', fontSize: '12px' }}>
-                      {okr.progressBar ? 'On' : 'Off'}
                     </TableCell>
                     <TableCell className="px-3 py-2 text-right">
                       <div className="flex items-center justify-end gap-1">
