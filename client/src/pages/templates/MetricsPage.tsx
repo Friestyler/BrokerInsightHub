@@ -1423,7 +1423,6 @@ export default function MetricsPage() {
                   <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
                     <div className="space-y-3 mb-4">
                       <h4 className="text-sm font-medium text-gray-900">Progress Visualization</h4>
-                      <p className="text-xs text-gray-600">Configure how progress is displayed to users</p>
                     </div>
 
                     <div className="flex items-start gap-3">
