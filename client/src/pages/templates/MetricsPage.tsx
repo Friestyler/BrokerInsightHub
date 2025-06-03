@@ -487,6 +487,8 @@ export default function MetricsPage() {
     setIsCreatingNewTag(false);
     setNewTagName("");
     setNewTagColor("blue");
+    setParentObjectiveId(null);
+    setParentObjectiveTag("");
   };
 
   const handleCreateNewTag = () => {
@@ -946,24 +948,25 @@ export default function MetricsPage() {
                     </TableCell>
                   </TableRow>
 
-                  {/* Add Activity Row - Show when objective is expanded */}
-                  {okr.nestedCount > 0 && expandedObjectives.has(okr.id) && (
-                    <TableRow className="bg-blue-50 border-b" style={{ borderColor: '#E6E7F1' }}>
-                      <TableCell colSpan={5} className="px-3 py-4 text-center">
-                        <Button 
-                          variant="outline" 
-                          onClick={() => openCreateActivityDialog(okr.id, okr.tag || '')}
-                          className="flex items-center gap-2 bg-white hover:bg-blue-50 border-blue-200 text-blue-700 hover:text-blue-800"
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M5 12h14"/>
-                            <path d="M12 5v14"/>
-                          </svg>
-                          Add activity to this OKR template
-                        </Button>
-                      </TableCell>
-                    </TableRow>
-                  )}
+                    
+                    {/* Add Activity Row - Show when objective is expanded */}
+                    {okr.nestedCount > 0 && expandedObjectives.has(okr.id) && (
+                      <TableRow className="bg-blue-50 border-b" style={{ borderColor: '#E6E7F1' }}>
+                        <TableCell colSpan={5} className="px-3 py-4 text-center">
+                          <Button 
+                            variant="outline" 
+                            onClick={() => openCreateActivityDialog(okr.id, okr.tag || '')}
+                            className="flex items-center gap-2 bg-white hover:bg-blue-50 border-blue-200 text-blue-700 hover:text-blue-800"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M5 12h14"/>
+                              <path d="M12 5v14"/>
+                            </svg>
+                            Add activity to this OKR template
+                          </Button>
+                        </TableCell>
+                      </TableRow>
+                    )}
                   </React.Fragment>
                 ))}
               </TableBody>
@@ -978,10 +981,13 @@ export default function MetricsPage() {
           <DialogContent className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-6 border p-8 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg sm:max-w-[850px] max-h-[85vh] overflow-y-auto bg-[#ffffff]">
           <DialogHeader className="pb-4">
             <DialogTitle className="text-xl font-semibold text-gray-900">
-              Create OKR template
+              {parentObjectiveId ? 'Create Activity' : 'Create OKR template'}
             </DialogTitle>
             <DialogDescription className="text-sm text-gray-600 mt-1">
-              Create a new OKR template that can be assigned to partners, opportunities, and customers
+              {parentObjectiveId 
+                ? `Create a new activity under this objective with tag "${parentObjectiveTag}"`
+                : 'Create a new OKR template that can be assigned to partners, opportunities, and customers'
+              }
             </DialogDescription>
           </DialogHeader>
           
@@ -1088,41 +1094,68 @@ export default function MetricsPage() {
               {/* Tag Field */}
               <div className="space-y-3">
                 <label htmlFor="okr-tag" className="text-sm font-medium text-gray-900">
-                  Tag
+                  Tag {parentObjectiveId && <span className="text-blue-600">(inherited from objective)</span>}
                 </label>
                 <p className="text-xs text-gray-500 mb-2">
-                  Add a tag if you want to add this OKR to a plan.
+                  {parentObjectiveId 
+                    ? "This activity will inherit the tag from its parent objective."
+                    : "Add a tag if you want to add this OKR to a plan."
+                  }
                 </p>
                 
-                <Select value={formData.tag} onValueChange={(value) => {
-                  setFormData(prev => ({...prev, tag: value}));
-                }}>
-                  <SelectTrigger id="okr-tag" className="border-gray-300 focus:border-blue-500">
-                    <SelectValue placeholder="Choose tag (optional)" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {tags.map((tag) => (
-                      <SelectItem key={tag.id} value={tag.name}>
-                        <div className="flex items-center gap-2">
-                          <div 
-                            className="w-2 h-2 rounded-full"
-                            style={{ backgroundColor: 
-                              tag.color === 'blue' ? '#3B82F6' :
-                              tag.color === 'green' ? '#10B981' :
-                              tag.color === 'purple' ? '#8B5CF6' :
-                              tag.color === 'red' ? '#EF4444' :
-                              tag.color === 'orange' ? '#F97316' :
-                              tag.color === 'yellow' ? '#EAB308' :
-                              tag.color === 'pink' ? '#EC4899' :
-                              tag.color === 'gray' ? '#6B7280' : '#3B82F6'
-                            }}
-                          />
-                          {tag.name}
-                        </div>
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                {parentObjectiveId ? (
+                  <div className="p-3 bg-gray-50 border border-gray-200 rounded-lg flex items-center gap-2">
+                    <div 
+                      className="w-2 h-2 rounded-full"
+                      style={{ backgroundColor: 
+                        tags.find(tag => tag.name === parentObjectiveTag)?.color === 'blue' ? '#3B82F6' :
+                        tags.find(tag => tag.name === parentObjectiveTag)?.color === 'green' ? '#10B981' :
+                        tags.find(tag => tag.name === parentObjectiveTag)?.color === 'purple' ? '#8B5CF6' :
+                        tags.find(tag => tag.name === parentObjectiveTag)?.color === 'red' ? '#EF4444' :
+                        tags.find(tag => tag.name === parentObjectiveTag)?.color === 'orange' ? '#F97316' :
+                        tags.find(tag => tag.name === parentObjectiveTag)?.color === 'yellow' ? '#EAB308' :
+                        tags.find(tag => tag.name === parentObjectiveTag)?.color === 'pink' ? '#EC4899' :
+                        tags.find(tag => tag.name === parentObjectiveTag)?.color === 'gray' ? '#6B7280' : '#3B82F6'
+                      }}
+                    />
+                    <span className="text-sm text-gray-700">{parentObjectiveTag}</span>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                      <rect width="18" height="11" x="3" y="11" rx="2" ry="2"/>
+                      <circle cx="12" cy="16" r="1"/>
+                      <path d="m7 11 0-5a5 5 0 0 1 10 0v5"/>
+                    </svg>
+                  </div>
+                ) : (
+                  <Select value={formData.tag} onValueChange={(value) => {
+                    setFormData(prev => ({...prev, tag: value}));
+                  }}>
+                    <SelectTrigger id="okr-tag" className="border-gray-300 focus:border-blue-500">
+                      <SelectValue placeholder="Choose tag (optional)" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {tags.map((tag) => (
+                        <SelectItem key={tag.id} value={tag.name}>
+                          <div className="flex items-center gap-2">
+                            <div 
+                              className="w-2 h-2 rounded-full"
+                              style={{ backgroundColor: 
+                                tag.color === 'blue' ? '#3B82F6' :
+                                tag.color === 'green' ? '#10B981' :
+                                tag.color === 'purple' ? '#8B5CF6' :
+                                tag.color === 'red' ? '#EF4444' :
+                                tag.color === 'orange' ? '#F97316' :
+                                tag.color === 'yellow' ? '#EAB308' :
+                                tag.color === 'pink' ? '#EC4899' :
+                                tag.color === 'gray' ? '#6B7280' : '#3B82F6'
+                              }}
+                            />
+                            {tag.name}
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
               </div>
 
               {/* Timeframe Field */}
