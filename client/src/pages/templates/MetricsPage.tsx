@@ -560,7 +560,7 @@ export default function MetricsPage() {
       progressStyle: 'system',
       warningThreshold: 50,
       successThreshold: 80,
-      enableTrafficLights: false,
+      enableTrafficLights: true,
       trafficLightStyle: 'system',
       trafficLightYellowThreshold: 50,
       trafficLightGreenThreshold: 75,
