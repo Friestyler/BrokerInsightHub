@@ -883,6 +883,7 @@ export default function MetricsPage() {
       {/* Create OKR Dialog */}
       <Dialog open={isCreateOKROpen} onOpenChange={setIsCreateOKROpen}>
         <DialogContent className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-6 border p-8 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg sm:max-w-[850px] max-h-[85vh] overflow-y-auto bg-[#ffffff]">
+          <div>
           <DialogHeader className="pb-4">
             <DialogTitle className="text-xl font-semibold text-gray-900">
               Create OKR template
@@ -1716,8 +1717,8 @@ export default function MetricsPage() {
                 </div>
               )}
 
-                  {/* Advanced Settings */}
-                  <div className="border-t pt-6">
+              {/* Advanced Settings */}
+              <div className="border-t pt-6">
                     <div className="flex items-center justify-between mb-4">
                       <div>
                         <h4 className="text-sm font-medium text-gray-900">Advanced Settings</h4>
@@ -1944,8 +1945,6 @@ export default function MetricsPage() {
                       </div>
                     )}
                   </div>
-                </div>
-              )}
             </div>
           
             <DialogFooter className="pt-8 border-t flex justify-between">
