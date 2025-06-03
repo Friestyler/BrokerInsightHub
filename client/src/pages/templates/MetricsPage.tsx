@@ -946,48 +946,8 @@ export default function MetricsPage() {
               )}
             </div>
 
-            {/* Tag Field */}
-            <div className="space-y-3 pt-6 border-t border-gray-200">
-              <label htmlFor="okr-tag" className="text-sm font-medium text-gray-900">
-                Tag
-              </label>
-              <p className="text-xs text-gray-500 mb-2">
-                Add a tag if you want to add this OKR to a plan.
-              </p>
-              
-              <Select value={formData.tag} onValueChange={(value) => {
-                setFormData(prev => ({...prev, tag: value}));
-              }}>
-                <SelectTrigger id="okr-tag" className="border-gray-300 focus:border-blue-500">
-                  <SelectValue placeholder="Choose tag (optional)" />
-                </SelectTrigger>
-                <SelectContent>
-                  {tags.map((tag) => (
-                    <SelectItem key={tag.id} value={tag.name}>
-                      <div className="flex items-center gap-2">
-                        <div 
-                          className="w-2 h-2 rounded-full"
-                          style={{ backgroundColor: 
-                            tag.color === 'blue' ? '#3B82F6' :
-                            tag.color === 'green' ? '#10B981' :
-                            tag.color === 'purple' ? '#8B5CF6' :
-                            tag.color === 'red' ? '#EF4444' :
-                            tag.color === 'orange' ? '#F97316' :
-                            tag.color === 'yellow' ? '#EAB308' :
-                            tag.color === 'pink' ? '#EC4899' :
-                            tag.color === 'gray' ? '#6B7280' : '#3B82F6'
-                          }}
-                        />
-                        {tag.name}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-
             {/* Essential Fields */}
-            <div className="space-y-6">
+            <div className="space-y-6 pt-6 border-t border-gray-200">
               {/* Name Field */}
               <div className="space-y-2">
                 <label htmlFor="okr-name" className="text-sm font-medium text-gray-900">
@@ -1015,6 +975,46 @@ export default function MetricsPage() {
                   rows={3}
                   className="resize-none border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                 />
+              </div>
+
+              {/* Tag Field */}
+              <div className="space-y-3">
+                <label htmlFor="okr-tag" className="text-sm font-medium text-gray-900">
+                  Tag
+                </label>
+                <p className="text-xs text-gray-500 mb-2">
+                  Add a tag if you want to add this OKR to a plan.
+                </p>
+                
+                <Select value={formData.tag} onValueChange={(value) => {
+                  setFormData(prev => ({...prev, tag: value}));
+                }}>
+                  <SelectTrigger id="okr-tag" className="border-gray-300 focus:border-blue-500">
+                    <SelectValue placeholder="Choose tag (optional)" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {tags.map((tag) => (
+                      <SelectItem key={tag.id} value={tag.name}>
+                        <div className="flex items-center gap-2">
+                          <div 
+                            className="w-2 h-2 rounded-full"
+                            style={{ backgroundColor: 
+                              tag.color === 'blue' ? '#3B82F6' :
+                              tag.color === 'green' ? '#10B981' :
+                              tag.color === 'purple' ? '#8B5CF6' :
+                              tag.color === 'red' ? '#EF4444' :
+                              tag.color === 'orange' ? '#F97316' :
+                              tag.color === 'yellow' ? '#EAB308' :
+                              tag.color === 'pink' ? '#EC4899' :
+                              tag.color === 'gray' ? '#6B7280' : '#3B82F6'
+                            }}
+                          />
+                          {tag.name}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {/* Timeframe Field */}
