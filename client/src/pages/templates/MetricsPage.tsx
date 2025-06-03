@@ -1507,37 +1507,41 @@ export default function MetricsPage() {
                       <input
                         type="checkbox"
                         id="enable-traffic-lights"
-                        checked={formData.enableTrafficLights}
-                        onChange={(e) => setFormData(prev => ({...prev, enableTrafficLights: e.target.checked}))}
+                        checked={formData.enableTrafficLights || formData.okrType === 'traffic-light'}
+                        onChange={(e) => formData.okrType !== 'traffic-light' && setFormData(prev => ({...prev, enableTrafficLights: e.target.checked}))}
                         className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        disabled={formData.okrType === 'traffic-light'}
                       />
                       <div className="flex-1">
                         <div className="flex items-center gap-4 mb-1">
                           <label htmlFor="enable-traffic-lights" className="text-sm font-medium text-gray-900">
                             Enable traffic light indicators
+                            {formData.okrType === 'traffic-light' && (
+                              <span className="text-blue-600 ml-1 font-normal">(Required for traffic light type)</span>
+                            )}
                           </label>
                           <div className="flex items-center gap-1">
                             <span 
                               className={`w-4 h-4 rounded-full transition-opacity duration-300 ${
-                                formData.enableTrafficLights ? 'opacity-100' : 'opacity-40'
+                                (formData.enableTrafficLights || formData.okrType === 'traffic-light') ? 'opacity-100' : 'opacity-40'
                               }`} 
                               style={{ backgroundColor: '#bcbcd2' }}
                             ></span>
                             <span 
                               className={`w-4 h-4 rounded-full transition-opacity duration-300 ${
-                                formData.enableTrafficLights ? 'opacity-100' : 'opacity-40'
+                                (formData.enableTrafficLights || formData.okrType === 'traffic-light') ? 'opacity-100' : 'opacity-40'
                               }`} 
                               style={{ backgroundColor: '#f4828b' }}
                             ></span>
                             <span 
                               className={`w-4 h-4 rounded-full transition-opacity duration-300 ${
-                                formData.enableTrafficLights ? 'opacity-100' : 'opacity-40'
+                                (formData.enableTrafficLights || formData.okrType === 'traffic-light') ? 'opacity-100' : 'opacity-40'
                               }`} 
                               style={{ backgroundColor: '#ffb372' }}
                             ></span>
                             <span 
                               className={`w-4 h-4 rounded-full transition-opacity duration-300 ${
-                                formData.enableTrafficLights ? 'opacity-100' : 'opacity-40'
+                                (formData.enableTrafficLights || formData.okrType === 'traffic-light') ? 'opacity-100' : 'opacity-40'
                               }`} 
                               style={{ backgroundColor: '#00c99c' }}
                             ></span>
@@ -1548,7 +1552,7 @@ export default function MetricsPage() {
                         </p>
 
                         {/* Traffic Light Configuration Options */}
-                        {formData.enableTrafficLights && (
+                        {(formData.enableTrafficLights || formData.okrType === 'traffic-light') && (
                           <div className="mt-3 space-y-2">
                             {/* Show all options for non-traffic-light types */}
                             {formData.okrType !== 'traffic-light' && (
@@ -1584,7 +1588,7 @@ export default function MetricsPage() {
                               </>
                             )}
                             
-                            {/* Manual option - always available, but only option for traffic-light type */}
+                            {/* Manual option - always available, but forced for traffic-light type */}
                             <div className="flex items-center gap-2">
                               <input
                                 type="radio"
@@ -1592,14 +1596,14 @@ export default function MetricsPage() {
                                 name="trafficLightStyleMain"
                                 value="manual"
                                 checked={formData.trafficLightStyle === 'manual' || formData.okrType === 'traffic-light'}
-                                onChange={() => setFormData(prev => ({...prev, trafficLightStyle: 'manual'}))}
+                                onChange={() => formData.okrType !== 'traffic-light' && setFormData(prev => ({...prev, trafficLightStyle: 'manual'}))}
                                 className="h-3 w-3 text-blue-600 focus:ring-blue-500"
-                                readOnly={formData.okrType === 'traffic-light'}
+                                disabled={formData.okrType === 'traffic-light'}
                               />
                               <label htmlFor="traffic-manual-main" className="text-xs text-gray-900">
                                 <span className="font-medium">Manual control</span> - Users manually set the traffic light status
                                 {formData.okrType === 'traffic-light' && (
-                                  <span className="text-blue-600 ml-1">(Only option for traffic light type)</span>
+                                  <span className="text-blue-600 ml-1">(Required for traffic light type)</span>
                                 )}
                               </label>
                             </div>
@@ -1611,12 +1615,15 @@ export default function MetricsPage() {
                             <p className="text-xs text-green-800 mb-1 font-medium">Manual Traffic Light Control</p>
                             <p className="text-xs text-green-700">
                               Users will manually set Red, Yellow, Green, or Gray status for their OKRs. 
-                              Perfect for {formData.okrType === 'traffic-light' ? 'traffic light type OKRs' : 'checkbox-type OKRs'} or qualitative progress tracking.
+                              {formData.okrType === 'traffic-light' 
+                                ? 'This is the only control method available for traffic light type OKRs since they track qualitative progress.' 
+                                : 'Perfect for checkbox-type OKRs or qualitative progress tracking.'
+                              }
                             </p>
                           </div>
                         )}
 
-                        {formData.trafficLightStyle === 'custom' && (
+                        {formData.trafficLightStyle === 'custom' && formData.okrType !== 'traffic-light' && (
                           <div className="p-3 bg-orange-50 border border-orange-200 rounded-md mt-2">
                             <p className="text-xs text-orange-800 mb-2 font-medium">Custom Traffic Light Thresholds</p>
                             <div className="grid grid-cols-2 gap-3 mb-2">
