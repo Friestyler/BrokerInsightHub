@@ -1173,8 +1173,8 @@ export default function MetricsPage() {
                 </div>
               )}
 
-              {/* Target & Measurement Section */}
-              {formData.okrType && (
+              {/* Target & Measurement Section - Hidden for traffic light type */}
+              {formData.okrType && formData.okrType !== 'traffic-light' && (
                 <div className="space-y-6 pt-6 border-t border-gray-200">
                   <div className="space-y-3">
                     <h3 className="text-lg font-semibold text-gray-900">Set Your Target <span className="text-sm font-normal text-gray-500">(Optional)</span></h3>
@@ -1495,7 +1495,9 @@ export default function MetricsPage() {
                     </div>
                   )}
 
-                  {/* Traffic Lights Configuration */}
+              {/* Traffic Lights Configuration - Available for all OKR types */}
+              {formData.okrType && (
+                <div className="space-y-6 pt-6 border-t border-gray-200">
                   <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
                     <div className="space-y-3 mb-4">
                       <h4 className="text-sm font-medium text-gray-900">Traffic Light Status</h4>
@@ -1589,10 +1591,10 @@ export default function MetricsPage() {
                                 id="traffic-manual-main"
                                 name="trafficLightStyleMain"
                                 value="manual"
-                                checked={formData.trafficLightStyle === 'manual'}
+                                checked={formData.trafficLightStyle === 'manual' || formData.okrType === 'traffic-light'}
                                 onChange={() => setFormData(prev => ({...prev, trafficLightStyle: 'manual'}))}
                                 className="h-3 w-3 text-blue-600 focus:ring-blue-500"
-                                disabled={formData.okrType === 'traffic-light'}
+                                readOnly={formData.okrType === 'traffic-light'}
                               />
                               <label htmlFor="traffic-manual-main" className="text-xs text-gray-900">
                                 <span className="font-medium">Manual control</span> - Users manually set the traffic light status
@@ -1604,12 +1606,12 @@ export default function MetricsPage() {
                           </div>
                         )}
 
-                        {formData.trafficLightStyle === 'manual' && (
+                        {(formData.trafficLightStyle === 'manual' || formData.okrType === 'traffic-light') && (
                           <div className="p-3 bg-green-50 border border-green-200 rounded-md mt-2">
                             <p className="text-xs text-green-800 mb-1 font-medium">Manual Traffic Light Control</p>
                             <p className="text-xs text-green-700">
                               Users will manually set Red, Yellow, Green, or Gray status for their OKRs. 
-                              Perfect for checkbox-type OKRs or qualitative progress tracking.
+                              Perfect for {formData.okrType === 'traffic-light' ? 'traffic light type OKRs' : 'checkbox-type OKRs'} or qualitative progress tracking.
                             </p>
                           </div>
                         )}
@@ -1653,6 +1655,8 @@ export default function MetricsPage() {
                       </div>
                     </div>
                   </div>
+                </div>
+              )}
 
                   {/* Advanced Settings */}
                   <div className="border-t pt-6">
