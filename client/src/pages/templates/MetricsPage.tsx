@@ -1574,7 +1574,7 @@ export default function MetricsPage() {
 
               {/* Traffic Lights Configuration - Available for non-traffic-light OKR types */}
               {formData.okrType && formData.okrType !== 'traffic-light' && (
-                <div className="space-y-6 pt-6 border-t border-gray-200">
+                <div className="space-y-6 pt-6">
                   <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-3">
