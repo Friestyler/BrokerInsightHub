@@ -309,8 +309,9 @@ export default function MetricsPage() {
     trafficLightStyle: 'system',
     trafficLightYellowThreshold: 50,
     trafficLightGreenThreshold: 75,
-    targetBehavior: 'increase', // 'increase', 'decrease', 'stay_above', 'stay_below'
-    showTargetBehavior: false
+    targetBehavior: 'increase',
+    showTargetBehavior: false,
+    showTrafficLightConfig: false
   });
 
   // Calculate total target whenever target, timeframe, or milestone frequency changes
@@ -435,7 +436,8 @@ export default function MetricsPage() {
       trafficLightYellowThreshold: 50,
       trafficLightGreenThreshold: 75,
       targetBehavior: 'increase',
-      showTargetBehavior: false
+      showTargetBehavior: false,
+      showTrafficLightConfig: false
     });
     setIsCreateOKROpen(false);
     setIsCreatingNewTag(false);
@@ -1572,14 +1574,14 @@ export default function MetricsPage() {
                         <div className="flex items-center justify-between mb-3">
                           <div className="space-y-1">
                             <h5 className="text-xs font-medium text-gray-800">
-                              Status mode: {
-                                formData.trafficLightStyle === 'system' ? 'Automatic based on progress' :
-                                formData.trafficLightStyle === 'custom' ? 'Custom automatic rules' :
-                                formData.trafficLightStyle === 'manual' ? 'Let users choose' :
-                                'Automatic based on progress'
+                              {
+                                formData.trafficLightStyle === 'system' ? 'Traffic light colors will change automatically based on Qollabi standard rules' :
+                                formData.trafficLightStyle === 'custom' ? 'Traffic light colors will change automatically based on your custom rules' :
+                                formData.trafficLightStyle === 'manual' ? 'Users will choose their own traffic light colors' :
+                                'Traffic light colors will change automatically based on Qollabi standard rules'
                               }
                             </h5>
-                            <p className="text-xs text-gray-600">How traffic light colors will be determined</p>
+                            <p className="text-xs text-gray-600">Current setting for this template</p>
                           </div>
                           <button
                             type="button"
