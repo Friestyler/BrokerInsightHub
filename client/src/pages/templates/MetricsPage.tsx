@@ -1254,15 +1254,15 @@ export default function MetricsPage() {
                           </TooltipProvider>
                         </div>
                         <div className="relative">
-                          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">€</span>
                           <Input 
                             id="okr-target"
                             type="number"
                             value={formData.target || ''}
                             onChange={(e) => setFormData(prev => ({...prev, target: parseFloat(e.target.value) || 0}))}
                             placeholder="Optional (e.g., 1000)"
-                            className="pl-8 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                            className="pr-8 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                           />
+                          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">€</span>
                         </div>
                       </div>
                       <div className="space-y-2">
@@ -1282,14 +1282,14 @@ export default function MetricsPage() {
                           </TooltipProvider>
                         </div>
                         <div className="relative">
-                          <span className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500">€</span>
                           <Input 
                             id="okr-total-target"
                             type="number"
                             value={formData.totalTarget}
                             disabled
-                            className="pl-8 text-base border-gray-300 bg-gray-50 text-gray-700"
+                            className="pr-8 text-base border-gray-300 bg-gray-50 text-gray-700"
                           />
+                          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">€</span>
                         </div>
                       </div>
                     </div>
@@ -1464,7 +1464,6 @@ export default function MetricsPage() {
                   <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
                     <div className="space-y-3 mb-4">
                       <h4 className="text-sm font-medium text-gray-900">Traffic Light Status</h4>
-                      <p className="text-xs text-gray-600">Alternative visualization using color-coded status indicators</p>
                     </div>
 
                     <div className="flex items-start gap-3">
