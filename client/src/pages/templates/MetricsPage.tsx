@@ -1576,6 +1576,7 @@ export default function MetricsPage() {
                             <SelectItem value="decrease">Decrease to target - Result should reach or go below target</SelectItem>
                             <SelectItem value="stay_above">Stay above target - Result should always be above target</SelectItem>
                             <SelectItem value="stay_below">Stay below target - Result should always be below target</SelectItem>
+                            <SelectItem value="on_target">Always on target - Result should not go over or below target</SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
