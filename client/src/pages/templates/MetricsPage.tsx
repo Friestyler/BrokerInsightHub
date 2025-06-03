@@ -1717,13 +1717,13 @@ export default function MetricsPage() {
               )}
 
               {/* Advanced Settings */}
-                  <div className="border-t pt-6">
-                    <div className="flex items-center justify-between mb-4">
-                      <div>
-                        <h4 className="text-sm font-medium text-gray-900">Advanced Settings</h4>
-                        <p className="text-xs text-gray-600">Optional customizations for power users</p>
-                      </div>
-                      <button
+              <div className="border-t pt-6">
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <h4 className="text-sm font-medium text-gray-900">Advanced Settings</h4>
+                    <p className="text-xs text-gray-600">Optional customizations for power users</p>
+                  </div>
+                  <button
                         type="button"
                         onClick={() => setFormData(prev => ({...prev, showAdvancedSettings: !prev.showAdvancedSettings}))}
                         className="text-xs text-blue-600 hover:text-blue-700"
@@ -1945,27 +1945,27 @@ export default function MetricsPage() {
                     )}
                   </div>
                 </div>
-              )}
-            </div>
-          
-          <DialogFooter className="pt-8 border-t flex justify-between">
-            <Button 
-              variant="outline" 
-              onClick={resetForm}
-              className="px-4 py-2"
-            >
-              Cancel
-            </Button>
-            
-            <Button 
-              className="bg-blue-600 hover:bg-blue-700 px-4 py-2"
-              onClick={handleCreateOKR}
-            >
-              Create Template
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+              </div>
+              <DialogFooter className="pt-8 border-t flex justify-between">
+                <Button 
+                  variant="outline" 
+                  onClick={resetForm}
+                  className="px-4 py-2"
+                >
+                  Cancel
+                </Button>
+                
+                <Button 
+                  className="bg-blue-600 hover:bg-blue-700 px-4 py-2"
+                  onClick={handleCreateOKR}
+                >
+                  Create Template
+                </Button>
+              </DialogFooter>
+            </DialogContent>
+          </Dialog>
+        </div>
+      )}
     </div>
   );
 }
