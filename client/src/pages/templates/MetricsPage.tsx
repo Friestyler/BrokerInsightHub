@@ -1238,10 +1238,18 @@ export default function MetricsPage() {
                         </label>
                       </div>
                       <div className="flex items-center gap-1">
-                        <span className="w-4 h-4 rounded-full" style={{ backgroundColor: '#bcbcd2' }}></span>
-                        <span className="w-4 h-4 rounded-full" style={{ backgroundColor: '#f4828b' }}></span>
-                        <span className="w-4 h-4 rounded-full" style={{ backgroundColor: '#ffb372' }}></span>
-                        <span className="w-4 h-4 rounded-full" style={{ backgroundColor: '#00c99c' }}></span>
+                        <div className="w-4 h-4 rounded-full border-2 flex items-center justify-center" style={{ borderColor: '#bcbcd2', backgroundColor: 'white' }}>
+                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#bcbcd2' }}></div>
+                        </div>
+                        <div className="w-4 h-4 rounded-full border-2 flex items-center justify-center" style={{ borderColor: '#f4828b', backgroundColor: 'white' }}>
+                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#f4828b' }}></div>
+                        </div>
+                        <div className="w-4 h-4 rounded-full border-2 flex items-center justify-center" style={{ borderColor: '#ffb372', backgroundColor: 'white' }}>
+                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#ffb372' }}></div>
+                        </div>
+                        <div className="w-4 h-4 rounded-full border-2 flex items-center justify-center" style={{ borderColor: '#00c99c', backgroundColor: 'white' }}>
+                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#00c99c' }}></div>
+                        </div>
                       </div>
                     </div>
 
@@ -1580,30 +1588,38 @@ export default function MetricsPage() {
                         </label>
                       </div>
                       <div className="flex items-center gap-1">
-                        <span 
-                          className={`w-4 h-4 rounded-full transition-opacity duration-300 ${
+                        <div 
+                          className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-opacity duration-300 ${
                             formData.enableTrafficLights ? 'opacity-100' : 'opacity-40'
                           }`} 
-                          style={{ backgroundColor: '#bcbcd2' }}
-                        ></span>
-                        <span 
-                          className={`w-4 h-4 rounded-full transition-opacity duration-300 ${
+                          style={{ borderColor: '#bcbcd2', backgroundColor: 'white' }}
+                        >
+                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#bcbcd2' }}></div>
+                        </div>
+                        <div 
+                          className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-opacity duration-300 ${
                             formData.enableTrafficLights ? 'opacity-100' : 'opacity-40'
                           }`} 
-                          style={{ backgroundColor: '#f4828b' }}
-                        ></span>
-                        <span 
-                          className={`w-4 h-4 rounded-full transition-opacity duration-300 ${
+                          style={{ borderColor: '#f4828b', backgroundColor: 'white' }}
+                        >
+                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#f4828b' }}></div>
+                        </div>
+                        <div 
+                          className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-opacity duration-300 ${
                             formData.enableTrafficLights ? 'opacity-100' : 'opacity-40'
                           }`} 
-                          style={{ backgroundColor: '#ffb372' }}
-                        ></span>
-                        <span 
-                          className={`w-4 h-4 rounded-full transition-opacity duration-300 ${
+                          style={{ borderColor: '#ffb372', backgroundColor: 'white' }}
+                        >
+                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#ffb372' }}></div>
+                        </div>
+                        <div 
+                          className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-opacity duration-300 ${
                             formData.enableTrafficLights ? 'opacity-100' : 'opacity-40'
                           }`} 
-                          style={{ backgroundColor: '#00c99c' }}
-                        ></span>
+                          style={{ borderColor: '#00c99c', backgroundColor: 'white' }}
+                        >
+                          <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#00c99c' }}></div>
+                        </div>
                       </div>
                     </div>
 
