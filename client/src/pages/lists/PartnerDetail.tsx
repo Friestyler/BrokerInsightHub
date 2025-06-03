@@ -1670,8 +1670,8 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
 
   return (
     <div className="space-y-6">
-      {/* Quick Action Creation Block */}
-      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4">
+      {/* Old AI quick actions - Hidden */}
+      <div className="bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-200 rounded-lg p-4" style={{ display: 'none' }}>
         <div className="flex items-center gap-3">
           <div className="flex-shrink-0">
             <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
