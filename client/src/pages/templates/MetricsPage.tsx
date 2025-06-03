@@ -1030,6 +1030,8 @@ export default function MetricsPage() {
                       placeholder="Select timeframe"
                       dateRange={dateRange}
                       onDateRangeChange={setDateRange}
+                      excludeQuickSection={true}
+                      excludeLastOptions={true}
                     />
                   </div>
                 </div>

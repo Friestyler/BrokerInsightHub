@@ -12,9 +12,11 @@ interface AdvancedTimeframeFilterProps {
   dateRange?: { from: Date | undefined; to: Date | undefined };
   onDateRangeChange?: (dateRange: { from: Date | undefined; to: Date | undefined }) => void;
   className?: string;
+  excludeQuickSection?: boolean;
+  excludeLastOptions?: boolean;
 }
 
-export function AdvancedTimeframeFilter({ value, onValueChange, placeholder, dateRange, onDateRangeChange, className }: AdvancedTimeframeFilterProps) {
+export function AdvancedTimeframeFilter({ value, onValueChange, placeholder, dateRange, onDateRangeChange, className, excludeQuickSection = false, excludeLastOptions = false }: AdvancedTimeframeFilterProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedPreset, setSelectedPreset] = useState(value || '');
   const [customDateRange, setCustomDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
@@ -23,7 +25,7 @@ export function AdvancedTimeframeFilter({ value, onValueChange, placeholder, dat
   });
 
 
-  const presetOptions = [
+  const allPresetOptions = [
     { section: 'Quick', items: [
       { value: 'today', label: 'Today' },
       { value: 'yesterday', label: 'Yesterday' },
@@ -63,6 +65,27 @@ export function AdvancedTimeframeFilter({ value, onValueChange, placeholder, dat
       { value: 'custom', label: 'Custom' },
     ]},
   ];
+
+  // Filter preset options based on props
+  const presetOptions = allPresetOptions
+    .filter(section => {
+      // Exclude Quick section if requested
+      if (excludeQuickSection && section.section === 'Quick') {
+        return false;
+      }
+      return true;
+    })
+    .map(section => ({
+      ...section,
+      items: section.items.filter(item => {
+        // Exclude items with "last" in the label if requested
+        if (excludeLastOptions && item.label.toLowerCase().includes('last')) {
+          return false;
+        }
+        return true;
+      })
+    }))
+    .filter(section => section.items.length > 0); // Remove empty sections
 
   const handlePresetSelect = (preset: string) => {
     setSelectedPreset(preset);
