@@ -925,8 +925,8 @@ export default function MetricsPage() {
                     onClick={() => setFormData(prev => ({
                       ...prev, 
                       okrType: type.value,
-                      // Auto-configure checkbox type for traffic lights with manual control
-                      ...(type.value === 'checkbox' ? {
+                      // Auto-configure checkbox and traffic-light types for manual traffic lights
+                      ...(type.value === 'checkbox' || type.value === 'traffic-light' ? {
                         enableProgressBar: false,
                         enableTrafficLights: true,
                         trafficLightStyle: 'manual'
@@ -1451,7 +1451,7 @@ export default function MetricsPage() {
                   )}
 
                   {/* Progress Bar Configuration - Hidden for traffic light type */}
-                  {formData.okrType !== 'traffic light' && (
+                  {formData.okrType !== 'traffic-light' && (
                     <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
                       <div className="space-y-3 mb-4">
                         <h4 className="text-sm font-medium text-gray-900">Progress Visualization</h4>
