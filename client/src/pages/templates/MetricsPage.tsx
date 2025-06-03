@@ -1471,8 +1471,8 @@ export default function MetricsPage() {
                 </div>
               )}
 
-              {/* Progress Bar Configuration - Available for non-traffic-light types */}
-              {formData.okrType && formData.okrType !== 'traffic-light' && (
+              {/* Progress Bar Configuration - Available for numeric types only */}
+              {formData.okrType && formData.okrType !== 'traffic-light' && formData.okrType !== 'checkbox' && (
                 <div className="space-y-6 pt-6 border-t border-gray-200">
                   <div className="border border-gray-200 rounded-lg p-4 bg-gray-50">
                     <div className="flex items-center justify-between mb-4">
@@ -1581,7 +1581,6 @@ export default function MetricsPage() {
                                 'Traffic light colors will change automatically based on Qollabi standard rules'
                               }
                             </h5>
-                            <p className="text-xs text-gray-600">Current setting for this template</p>
                           </div>
                           <button
                             type="button"
