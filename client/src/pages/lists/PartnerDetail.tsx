@@ -2061,9 +2061,15 @@ function OKRPlansSection({ partnerId }: { partnerId: string }) {
                           {/* Traffic Lights Column */}
                           <TableCell className="p-4 align-middle [&:has([role=checkbox])]:pr-0 text-[#282A3F] pt-[12px] pb-[12px] pl-[16px] pr-[16px]">
                             <div className="flex items-center gap-1">
-                              <div className="w-3 h-3 rounded-full bg-green-500 cursor-pointer hover:scale-110 transition-transform" title="On track"></div>
-                              <div className="w-3 h-3 rounded-full bg-gray-200 cursor-pointer hover:scale-110 transition-transform" title="At risk"></div>
-                              <div className="w-3 h-3 rounded-full bg-gray-200 cursor-pointer hover:scale-110 transition-transform" title="Off track"></div>
+                              <div className="w-4 h-4 rounded-full border-2 flex items-center justify-center cursor-pointer hover:scale-110 transition-transform" style={{ borderColor: '#00c99c', backgroundColor: 'white' }} title="On track">
+                                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#00c99c' }}></div>
+                              </div>
+                              <div className="w-4 h-4 rounded-full border-2 flex items-center justify-center cursor-pointer hover:scale-110 transition-transform" style={{ borderColor: '#e5e7eb', backgroundColor: 'white' }} title="At risk">
+                                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#e5e7eb' }}></div>
+                              </div>
+                              <div className="w-4 h-4 rounded-full border-2 flex items-center justify-center cursor-pointer hover:scale-110 transition-transform" style={{ borderColor: '#e5e7eb', backgroundColor: 'white' }} title="Off track">
+                                <div className="w-2 h-2 rounded-full" style={{ backgroundColor: '#e5e7eb' }}></div>
+                              </div>
                             </div>
                           </TableCell>
                           
