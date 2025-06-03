@@ -14,9 +14,10 @@ interface AdvancedTimeframeFilterProps {
   className?: string;
   excludeQuickSection?: boolean;
   excludeLastOptions?: boolean;
+  excludeSpecificOptions?: string[];
 }
 
-export function AdvancedTimeframeFilter({ value, onValueChange, placeholder, dateRange, onDateRangeChange, className, excludeQuickSection = false, excludeLastOptions = false }: AdvancedTimeframeFilterProps) {
+export function AdvancedTimeframeFilter({ value, onValueChange, placeholder, dateRange, onDateRangeChange, className, excludeQuickSection = false, excludeLastOptions = false, excludeSpecificOptions = [] }: AdvancedTimeframeFilterProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [selectedPreset, setSelectedPreset] = useState(value || '');
   const [customDateRange, setCustomDateRange] = useState<{ from: Date | undefined; to: Date | undefined }>({
@@ -80,6 +81,10 @@ export function AdvancedTimeframeFilter({ value, onValueChange, placeholder, dat
       items: section.items.filter(item => {
         // Exclude items with "last" in the label if requested
         if (excludeLastOptions && item.label.toLowerCase().includes('last')) {
+          return false;
+        }
+        // Exclude specific options by value if requested
+        if (excludeSpecificOptions.includes(item.value)) {
           return false;
         }
         return true;

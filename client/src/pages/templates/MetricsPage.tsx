@@ -1032,6 +1032,7 @@ export default function MetricsPage() {
                       onDateRangeChange={setDateRange}
                       excludeQuickSection={true}
                       excludeLastOptions={true}
+                      excludeSpecificOptions={['year-to-date', 'all-time', 'since']}
                     />
                   </div>
                 </div>
