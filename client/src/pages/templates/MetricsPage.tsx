@@ -1208,6 +1208,10 @@ export default function MetricsPage() {
           <div className="space-y-8">
             {/* Essential Fields */}
             <div className="space-y-6">
+              <div className="space-y-3">
+                <h3 className="text-lg font-semibold text-gray-900">What are you trying to achieve?</h3>
+              </div>
+
               {/* Name Field */}
               <div className="space-y-2">
                 <label htmlFor="okr-name" className="text-sm font-medium text-gray-900">
@@ -1309,7 +1313,7 @@ export default function MetricsPage() {
             <div className="space-y-4 pt-6 border-t border-gray-200">
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <label className="text-sm font-semibold text-gray-900">
+                  <label className="text-sm text-gray-900 font-medium">
                     How would you like to measure this OKR? <span className="text-red-500">*</span>
                   </label>
                   <TooltipProvider>
