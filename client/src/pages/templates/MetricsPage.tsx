@@ -1621,7 +1621,7 @@ export default function MetricsPage() {
                           <Input 
                             id="okr-total-target"
                             type="number"
-                            value={formData.totalTarget}
+                            value={formData.target ? formData.totalTarget : ''}
                             disabled
                             className="pr-8 text-base border-gray-300 bg-gray-50 text-gray-700"
                           />
@@ -1684,7 +1684,7 @@ export default function MetricsPage() {
                           <Input 
                             id="okr-total-target"
                             type="number"
-                            value={formData.totalTarget}
+                            value={formData.target ? formData.totalTarget : ''}
                             disabled
                             className="pr-8 text-base border-gray-300 bg-gray-50 text-gray-700"
                           />
@@ -1745,7 +1745,7 @@ export default function MetricsPage() {
                           <Input 
                             id="okr-total-target"
                             type="number"
-                            value={formData.totalTarget}
+                            value={formData.target ? formData.totalTarget : ''}
                             disabled
                             className="pr-8 text-base border-gray-300 bg-gray-50 text-gray-700"
                           />
@@ -1824,7 +1824,7 @@ export default function MetricsPage() {
                       </div>
                     </div>
                     <p className="text-xs text-gray-500">
-                      {(formData.target || 0) > 0 
+                      {formData.target && formData.target > 0
                         ? "Shows a visual progress bar with percentage completion based on target vs realized values"
                         : "Will be auto-enabled when users add targets to their assigned OKRs"
                       }
