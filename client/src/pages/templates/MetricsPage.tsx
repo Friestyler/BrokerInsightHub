@@ -1217,7 +1217,7 @@ export default function MetricsPage() {
                   id="okr-name"
                   value={formData.name}
                   onChange={(e) => setFormData(prev => ({...prev, name: e.target.value}))}
-                  placeholder="e.g., Increase Annual Revenue"
+                  placeholder="e.g., Increase annual revenue"
                   className="text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                 />
               </div>
@@ -1276,7 +1276,7 @@ export default function MetricsPage() {
                     setFormData(prev => ({...prev, tag: value}));
                   }}>
                     <SelectTrigger id="okr-tag" className="border-gray-300 focus:border-blue-500">
-                      <SelectValue placeholder="Choose tag (optional)" />
+                      <SelectValue placeholder="Select a tag" />
                     </SelectTrigger>
                     <SelectContent>
                       {tags.map((tag) => (
