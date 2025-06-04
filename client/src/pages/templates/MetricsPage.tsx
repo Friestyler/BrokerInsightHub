@@ -1700,7 +1700,7 @@ export default function MetricsPage() {
                       <div className="space-y-2">
                         <div className="flex items-center gap-1">
                           <label htmlFor="okr-target" className="text-sm font-medium text-gray-900">
-                            {formData.targetLabel || 'Target value'}{formData.milestoneFrequency ? ' per milestone' : ''}
+                            {formData.targetLabel || 'Target value'}{formData.milestoneFrequency && !formData.milestoneFrequency.includes('No milestone') ? ' per milestone' : ''}
                           </label>
                           <TooltipProvider>
                             <Tooltip>
