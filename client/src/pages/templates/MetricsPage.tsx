@@ -422,7 +422,10 @@ export default function MetricsPage() {
     // Indefinite timeframe specific fields
     firstMilestoneStartDate: undefined as Date | undefined,
     numberOfMilestones: undefined as number | undefined,
-    showTrafficLightConfig: false
+    showTrafficLightConfig: false,
+    // Per-milestone targets
+    showPerMilestoneTargets: false,
+    milestoneCount: 4
   });
 
   // Calculate total target whenever target, timeframe, or milestone frequency changes
@@ -581,7 +584,10 @@ export default function MetricsPage() {
       showTrafficLightConfig: false,
       // Indefinite timeframe specific fields
       firstMilestoneStartDate: undefined as Date | undefined,
-      numberOfMilestones: undefined as number | undefined
+      numberOfMilestones: undefined as number | undefined,
+      // Per-milestone targets
+      showPerMilestoneTargets: false,
+      milestoneCount: 4
     });
     setIsCreateOKROpen(false);
     setIsCreatingNewTag(false);
@@ -1828,6 +1834,44 @@ Each one starts from zero, is tracked separately, and contributes to the bigger 
                           />
                           <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">€</span>
                         </div>
+                        
+                        {formData.milestoneFrequency && !formData.milestoneFrequency.includes('No milestone') && (
+                          <div className="mt-3">
+                            <button
+                              type="button"
+                              onClick={() => setFormData(prev => ({...prev, showPerMilestoneTargets: !prev.showPerMilestoneTargets}))}
+                              className="text-xs text-blue-600 hover:text-blue-700 underline"
+                            >
+                              Want to set different targets per milestone?
+                            </button>
+                            
+                            {formData.showPerMilestoneTargets && (
+                              <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                                <p className="text-xs text-gray-700 mb-3">Set individual targets for each milestone:</p>
+                                <div className="space-y-2">
+                                  {Array.from({ length: formData.milestoneCount || 4 }, (_, index) => (
+                                    <div key={index} className="flex items-center gap-3">
+                                      <label className="text-xs font-medium text-gray-700 w-8">
+                                        {formData.milestoneFrequency?.includes('Quarter') ? `Q${index + 1}` :
+                                         formData.milestoneFrequency?.includes('Month') ? `M${index + 1}` :
+                                         formData.milestoneFrequency?.includes('Week') ? `W${index + 1}` :
+                                         `#${index + 1}`}:
+                                      </label>
+                                      <div className="relative flex-1">
+                                        <Input
+                                          type="number"
+                                          placeholder="e.g., 1000"
+                                          className="pr-8 text-xs border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                                        />
+                                        <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-xs">€</span>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                       
                       {formData.target && formData.milestoneFrequency && !formData.milestoneFrequency.includes('No milestone') && (
@@ -1883,6 +1927,46 @@ Each one starts from zero, is tracked separately, and contributes to the bigger 
                           />
                           <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">%</span>
                         </div>
+                        
+                        {formData.milestoneFrequency && !formData.milestoneFrequency.includes('No milestone') && (
+                          <div className="mt-3">
+                            <button
+                              type="button"
+                              onClick={() => setFormData(prev => ({...prev, showPerMilestoneTargets: !prev.showPerMilestoneTargets}))}
+                              className="text-xs text-blue-600 hover:text-blue-700 underline"
+                            >
+                              Want to set different targets per milestone?
+                            </button>
+                            
+                            {formData.showPerMilestoneTargets && (
+                              <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                                <p className="text-xs text-gray-700 mb-3">Set individual targets for each milestone:</p>
+                                <div className="space-y-2">
+                                  {Array.from({ length: formData.milestoneCount || 4 }, (_, index) => (
+                                    <div key={index} className="flex items-center gap-3">
+                                      <label className="text-xs font-medium text-gray-700 w-8">
+                                        {formData.milestoneFrequency?.includes('Quarter') ? `Q${index + 1}` :
+                                         formData.milestoneFrequency?.includes('Month') ? `M${index + 1}` :
+                                         formData.milestoneFrequency?.includes('Week') ? `W${index + 1}` :
+                                         `#${index + 1}`}:
+                                      </label>
+                                      <div className="relative flex-1">
+                                        <Input
+                                          type="number"
+                                          min="0"
+                                          max="100"
+                                          placeholder="e.g., 75"
+                                          className="pr-8 text-xs border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                                        />
+                                        <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-xs">%</span>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                       
                       {formData.target && formData.milestoneFrequency && !formData.milestoneFrequency.includes('No milestone') && (
@@ -1936,6 +2020,44 @@ Each one starts from zero, is tracked separately, and contributes to the bigger 
                           />
                           <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">#</span>
                         </div>
+                        
+                        {formData.milestoneFrequency && !formData.milestoneFrequency.includes('No milestone') && (
+                          <div className="mt-3">
+                            <button
+                              type="button"
+                              onClick={() => setFormData(prev => ({...prev, showPerMilestoneTargets: !prev.showPerMilestoneTargets}))}
+                              className="text-xs text-blue-600 hover:text-blue-700 underline"
+                            >
+                              Want to set different targets per milestone?
+                            </button>
+                            
+                            {formData.showPerMilestoneTargets && (
+                              <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                                <p className="text-xs text-gray-700 mb-3">Set individual targets for each milestone:</p>
+                                <div className="space-y-2">
+                                  {Array.from({ length: formData.milestoneCount || 4 }, (_, index) => (
+                                    <div key={index} className="flex items-center gap-3">
+                                      <label className="text-xs font-medium text-gray-700 w-8">
+                                        {formData.milestoneFrequency?.includes('Quarter') ? `Q${index + 1}` :
+                                         formData.milestoneFrequency?.includes('Month') ? `M${index + 1}` :
+                                         formData.milestoneFrequency?.includes('Week') ? `W${index + 1}` :
+                                         `#${index + 1}`}:
+                                      </label>
+                                      <div className="relative flex-1">
+                                        <Input
+                                          type="number"
+                                          placeholder="e.g., 50"
+                                          className="pr-8 text-xs border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                                        />
+                                        <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-xs">#</span>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                       
                       {formData.target && formData.milestoneFrequency && !formData.milestoneFrequency.includes('No milestone') && (
