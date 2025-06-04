@@ -1812,6 +1812,11 @@ Each one starts from zero, is tracked separately, and contributes to the bigger 
                             </Tooltip>
                           </TooltipProvider>
                         </div>
+                        {formData.milestoneFrequency && !formData.milestoneFrequency.includes('No milestone') && (
+                          <p className="text-xs text-gray-600 mb-2">
+                            Set the result you expect to achieve in each milestone (e.g., 2 campaigns per quarter).
+                          </p>
+                        )}
                         <div className="relative">
                           <Input 
                             id="okr-target"
@@ -1860,6 +1865,11 @@ Each one starts from zero, is tracked separately, and contributes to the bigger 
                             </Tooltip>
                           </TooltipProvider>
                         </div>
+                        {formData.milestoneFrequency && !formData.milestoneFrequency.includes('No milestone') && (
+                          <p className="text-xs text-gray-600 mb-2">
+                            Set the result you expect to achieve in each milestone (e.g., 2 campaigns per quarter).
+                          </p>
+                        )}
                         <div className="relative">
                           <Input 
                             id="okr-target"
@@ -1910,6 +1920,11 @@ Each one starts from zero, is tracked separately, and contributes to the bigger 
                             </Tooltip>
                           </TooltipProvider>
                         </div>
+                        {formData.milestoneFrequency && !formData.milestoneFrequency.includes('No milestone') && (
+                          <p className="text-xs text-gray-600 mb-2">
+                            Set the result you expect to achieve in each milestone (e.g., 2 campaigns per quarter).
+                          </p>
+                        )}
                         <div className="relative">
                           <Input 
                             id="okr-target"
