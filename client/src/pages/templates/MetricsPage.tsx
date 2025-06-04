@@ -1570,31 +1570,6 @@ export default function MetricsPage() {
                     <p className="text-sm text-gray-600">Users will track their results against these targets. You can leave targets empty if you prefer to let users set their own targets.</p>
                   </div>
 
-                  {/* Target Behavior Selection - Hidden for traffic light type */}
-                  {formData.okrType !== 'traffic-light' && (
-                    <div className="space-y-3">
-                      <div className="space-y-2">
-                        <h4 className="text-sm font-medium text-gray-900">Target Behavior</h4>
-                        <Select
-                          value={formData.targetBehavior || 'increase'}
-                          onValueChange={(value) => setFormData(prev => ({...prev, targetBehavior: value}))}
-                        >
-                          <SelectTrigger className="w-full text-sm border-gray-300 focus:border-blue-500 focus:ring-blue-500">
-                            <SelectValue placeholder="Select target behavior" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            <SelectItem value="increase">Increase to target - Result should reach or exceed target</SelectItem>
-                            <SelectItem value="decrease">Decrease to target - Result should reach or go below target</SelectItem>
-                            <SelectItem value="stay_above">Stay above target - Result should always be above target</SelectItem>
-                            <SelectItem value="stay_below">Stay below target - Result should always be below target</SelectItem>
-                            <SelectItem value="on_target">Always on target - Result should not go over or below target</SelectItem>
-                          </SelectContent>
-                        </Select>
-                      </div>
-
-                    </div>
-                  )}
-
                   {/* Target Field - Currency */}
                   {formData.okrType === 'currency' && (
                     <div className="grid grid-cols-2 gap-4">
@@ -1776,6 +1751,30 @@ export default function MetricsPage() {
                           />
                           <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">#</span>
                         </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Target Behavior Selection - Hidden for traffic light type */}
+                  {formData.okrType !== 'traffic-light' && (
+                    <div className="space-y-3">
+                      <div className="space-y-2">
+                        <h4 className="text-sm font-medium text-gray-900">Target Behavior</h4>
+                        <Select
+                          value={formData.targetBehavior || 'increase'}
+                          onValueChange={(value) => setFormData(prev => ({...prev, targetBehavior: value}))}
+                        >
+                          <SelectTrigger className="w-full text-sm border-gray-300 focus:border-blue-500 focus:ring-blue-500">
+                            <SelectValue placeholder="Select target behavior" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="increase">Increase to target - Result should reach or exceed target</SelectItem>
+                            <SelectItem value="decrease">Decrease to target - Result should reach or go below target</SelectItem>
+                            <SelectItem value="stay_above">Stay above target - Result should always be above target</SelectItem>
+                            <SelectItem value="stay_below">Stay below target - Result should always be below target</SelectItem>
+                            <SelectItem value="on_target">Always on target - Result should not go over or below target</SelectItem>
+                          </SelectContent>
+                        </Select>
                       </div>
                     </div>
                   )}
