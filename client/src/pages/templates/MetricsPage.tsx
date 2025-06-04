@@ -1384,7 +1384,7 @@ export default function MetricsPage() {
                     onValueChange={(value) => setFormData(prev => ({...prev, milestoneFrequency: value}))}
                   >
                     <SelectTrigger id="okr-milestone-frequency" className="w-[350px] border-gray-300 focus:border-blue-500">
-                      <SelectValue placeholder="Select frequency" />
+                      <SelectValue placeholder="Select milestone" />
                     </SelectTrigger>
                     <SelectContent>
                       {(() => {

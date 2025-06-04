@@ -128,7 +128,7 @@ export function AdvancedTimeframeFilter({ value, onValueChange, placeholder, dat
       return preset?.label || selectedPreset;
     }
     
-    return 'Select timeframe 2';
+    return 'Select time frame';
   };
 
   return (
