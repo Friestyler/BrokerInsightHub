@@ -1307,32 +1307,35 @@ export default function MetricsPage() {
 
             {/* OKR Type Field */}
             <div className="space-y-4 pt-6 border-t border-gray-200">
-              <div className="flex items-center gap-2">
-                <label className="text-sm font-semibold text-gray-900">
-                  How would you like to measure this OKR? <span className="text-red-500">*</span>
-                </label>
-                <TooltipProvider>
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Info className="w-4 h-4 text-gray-400 cursor-help" />
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="max-w-sm text-xs">
-                        <strong>Developer Info:</strong> This sets the okrType field which determines:<br/>
-                        • Input validation (currency formatting, percentage limits)<br/>
-                        • Display components (progress bars, traffic lights)<br/>
-                        • Target behavior options<br/>
-                        • Calculation logic for milestones and totals
-                      </p>
-                    </TooltipContent>
-                  </Tooltip>
-                </TooltipProvider>
-                <div className="flex items-center gap-1 text-xs text-gray-500 bg-blue-50 px-2 py-1 rounded-full">
-                  <svg className="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Fields below adapt based on your selection
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <label className="text-sm font-semibold text-gray-900">
+                    How would you like to measure this OKR? <span className="text-red-500">*</span>
+                  </label>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="w-4 h-4 text-gray-400 cursor-help" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="max-w-sm text-xs">
+                          <strong>Developer Info:</strong> This sets the okrType field which determines:<br/>
+                          • Input validation (currency formatting, percentage limits)<br/>
+                          • Display components (progress bars, traffic lights)<br/>
+                          • Target behavior options<br/>
+                          • Calculation logic for milestones and totals
+                        </p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                  <div className="flex items-center gap-1 text-xs text-gray-500 bg-blue-50 px-2 py-1 rounded-full">
+                    <svg className="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Fields below adapt based on your selection
+                  </div>
                 </div>
+                <p className="text-gray-600 text-[12px]">Choose the format that best fits how progress will be tracked for this OKR.</p>
               </div>
               
               <div className="grid grid-cols-5 gap-2">
