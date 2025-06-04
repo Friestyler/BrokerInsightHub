@@ -1873,16 +1873,27 @@ Each one starts from zero, is tracked separately, and contributes to the bigger 
                             Set the result you expect to achieve in each milestone (e.g., 2 campaigns per quarter).
                           </p>
                         )}
-                        <div className="relative">
-                          <Input 
-                            id="okr-target"
-                            type="number"
-                            value={formData.target || ''}
-                            onChange={(e) => setFormData(prev => ({...prev, target: e.target.value ? parseFloat(e.target.value) : undefined}))}
-                            placeholder="e.g., 1000"
-                            className="pr-8 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                          />
-                          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">€</span>
+                        <div className="flex items-center gap-2">
+                          <div className="relative flex-1">
+                            <Input 
+                              id="okr-target"
+                              type="number"
+                              value={formData.target || ''}
+                              onChange={(e) => setFormData(prev => ({...prev, target: e.target.value ? parseFloat(e.target.value) : undefined}))}
+                              placeholder="e.g., 1000"
+                              className="pr-8 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                            />
+                            <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">€</span>
+                          </div>
+                          {formData.milestoneFrequency && !formData.milestoneFrequency.includes('No milestone') && (
+                            <span className="text-sm text-gray-600 whitespace-nowrap">
+                              per {formData.milestoneFrequency === 'Weekly' ? 'week' :
+                                   formData.milestoneFrequency === 'Monthly' ? 'month' :
+                                   formData.milestoneFrequency === 'Quarterly' ? 'quarter' :
+                                   formData.milestoneFrequency === 'Yearly' ? 'year' :
+                                   'milestone'}
+                            </span>
+                          )}
                         </div>
                         
                         {formData.milestoneFrequency && !formData.milestoneFrequency.includes('No milestone') && (
@@ -1964,18 +1975,29 @@ Each one starts from zero, is tracked separately, and contributes to the bigger 
                             Set the result you expect to achieve in each milestone (e.g., 2 campaigns per quarter).
                           </p>
                         )}
-                        <div className="relative">
-                          <Input 
-                            id="okr-target"
-                            type="number"
-                            min="0"
-                            max="100"
-                            value={formData.target || ''}
-                            onChange={(e) => setFormData(prev => ({...prev, target: e.target.value ? parseFloat(e.target.value) : undefined}))}
-                            placeholder="e.g., 75"
-                            className="pr-8 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                          />
-                          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">%</span>
+                        <div className="flex items-center gap-2">
+                          <div className="relative flex-1">
+                            <Input 
+                              id="okr-target"
+                              type="number"
+                              min="0"
+                              max="100"
+                              value={formData.target || ''}
+                              onChange={(e) => setFormData(prev => ({...prev, target: e.target.value ? parseFloat(e.target.value) : undefined}))}
+                              placeholder="e.g., 75"
+                              className="pr-8 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                            />
+                            <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">%</span>
+                          </div>
+                          {formData.milestoneFrequency && !formData.milestoneFrequency.includes('No milestone') && (
+                            <span className="text-sm text-gray-600 whitespace-nowrap">
+                              per {formData.milestoneFrequency === 'Weekly' ? 'week' :
+                                   formData.milestoneFrequency === 'Monthly' ? 'month' :
+                                   formData.milestoneFrequency === 'Quarterly' ? 'quarter' :
+                                   formData.milestoneFrequency === 'Yearly' ? 'year' :
+                                   'milestone'}
+                            </span>
+                          )}
                         </div>
                         
                         {formData.milestoneFrequency && !formData.milestoneFrequency.includes('No milestone') && (
@@ -2059,16 +2081,27 @@ Each one starts from zero, is tracked separately, and contributes to the bigger 
                             Set the result you expect to achieve in each milestone (e.g., 2 campaigns per quarter).
                           </p>
                         )}
-                        <div className="relative">
-                          <Input 
-                            id="okr-target"
-                            type="number"
-                            value={formData.target || ''}
-                            onChange={(e) => setFormData(prev => ({...prev, target: e.target.value ? parseFloat(e.target.value) : undefined}))}
-                            placeholder="e.g., 50"
-                            className="pr-8 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
-                          />
-                          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">#</span>
+                        <div className="flex items-center gap-2">
+                          <div className="relative flex-1">
+                            <Input 
+                              id="okr-target"
+                              type="number"
+                              value={formData.target || ''}
+                              onChange={(e) => setFormData(prev => ({...prev, target: e.target.value ? parseFloat(e.target.value) : undefined}))}
+                              placeholder="e.g., 50"
+                              className="pr-8 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                            />
+                            <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">#</span>
+                          </div>
+                          {formData.milestoneFrequency && !formData.milestoneFrequency.includes('No milestone') && (
+                            <span className="text-sm text-gray-600 whitespace-nowrap">
+                              per {formData.milestoneFrequency === 'Weekly' ? 'week' :
+                                   formData.milestoneFrequency === 'Monthly' ? 'month' :
+                                   formData.milestoneFrequency === 'Quarterly' ? 'quarter' :
+                                   formData.milestoneFrequency === 'Yearly' ? 'year' :
+                                   'milestone'}
+                            </span>
+                          )}
                         </div>
                         
                         {formData.milestoneFrequency && !formData.milestoneFrequency.includes('No milestone') && (
