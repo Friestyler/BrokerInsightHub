@@ -1181,76 +1181,8 @@ export default function MetricsPage() {
           </DialogHeader>
           
           <div className="space-y-8">
-            {/* OKR Type Field */}
-            <div className="space-y-4">
-              <div className="flex items-center gap-2">
-                <label className="text-sm font-semibold text-gray-900">
-                  How would you like to measure this OKR? <span className="text-red-500">*</span>
-                </label>
-                <div className="flex items-center gap-1 text-xs text-gray-500 bg-blue-50 px-2 py-1 rounded-full">
-                  <svg className="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Fields below adapt based on your selection
-                </div>
-              </div>
-              
-              <div className="grid grid-cols-5 gap-2">
-                {[
-                  { value: 'currency', icon: '💰', title: 'Currency', color: 'border-green-200 bg-green-50', example: '€1,000' },
-                  { value: 'percent', icon: '📊', title: 'Percentage', color: 'border-blue-200 bg-blue-50', example: '75%' },
-                  { value: 'number', icon: '🔢', title: 'Number', color: 'border-purple-200 bg-purple-50', example: '50#' },
-                  { value: 'checkbox', icon: '✅', title: 'Checkbox', color: 'border-orange-200 bg-orange-50', example: 'Done/Not Done' },
-                  { value: 'traffic-light', icon: '🚦', title: 'Traffic Light', color: 'border-red-200 bg-red-50', example: 'Red/Green' }
-                ].map((type) => (
-                  <div 
-                    key={type.value}
-                    className={`relative p-3 border-2 rounded-lg cursor-pointer transition-all duration-200 hover:shadow-sm ${
-                      formData.okrType === type.value 
-                        ? `${type.color} shadow-md ring-2 ring-blue-500 ring-opacity-50` 
-                        : 'border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50'
-                    }`}
-                    onClick={() => setFormData(prev => ({
-                      ...prev, 
-                      okrType: type.value,
-                      // Enable traffic lights by default for all types
-                      enableTrafficLights: true,
-                      // Configure based on OKR type
-                      ...(type.value === 'checkbox' || type.value === 'traffic-light' ? {
-                        enableProgressBar: false,
-                        trafficLightStyle: 'manual'
-                      } : {
-                        // For currency, number, and percentage - default to standard thresholds
-                        trafficLightStyle: 'system'
-                      })
-                    }))}
-                  >
-                    <div className="text-center">
-                      <div className="text-lg mb-1">{type.icon}</div>
-                      <div className="text-xs font-medium text-gray-900 mb-1">{type.title}</div>
-                      <div className="text-xs text-gray-600 leading-tight">{type.example}</div>
-                    </div>
-                    
-                    {formData.okrType === type.value && (
-                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-blue-600 text-white rounded-full flex items-center justify-center">
-                        <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
-                        </svg>
-                      </div>
-                    )}
-                  </div>
-                ))}
-              </div>
-              
-              {!formData.okrType && (
-                <p className="text-xs text-gray-500 bg-yellow-50 border border-yellow-200 p-2 rounded text-center">
-                  👆 Choose a measurement type to see how the form adapts
-                </p>
-              )}
-            </div>
-
             {/* Essential Fields */}
-            <div className="space-y-6 pt-6 border-t border-gray-200">
+            <div className="space-y-6">
               {/* Name Field */}
               <div className="space-y-2">
                 <label htmlFor="okr-name" className="text-sm font-medium text-gray-900">
@@ -1346,6 +1278,78 @@ export default function MetricsPage() {
                   </Select>
                 )}
               </div>
+            </div>
+
+            {/* OKR Type Field */}
+            <div className="space-y-4 pt-6 border-t border-gray-200">
+              <div className="flex items-center gap-2">
+                <label className="text-sm font-semibold text-gray-900">
+                  How would you like to measure this OKR? <span className="text-red-500">*</span>
+                </label>
+                <div className="flex items-center gap-1 text-xs text-gray-500 bg-blue-50 px-2 py-1 rounded-full">
+                  <svg className="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                  Fields below adapt based on your selection
+                </div>
+              </div>
+              
+              <div className="grid grid-cols-5 gap-2">
+                {[
+                  { value: 'currency', icon: '💰', title: 'Currency', color: 'border-green-200 bg-green-50', example: '€1,000' },
+                  { value: 'percent', icon: '📊', title: 'Percentage', color: 'border-blue-200 bg-blue-50', example: '75%' },
+                  { value: 'number', icon: '🔢', title: 'Number', color: 'border-purple-200 bg-purple-50', example: '50#' },
+                  { value: 'checkbox', icon: '✅', title: 'Checkbox', color: 'border-orange-200 bg-orange-50', example: 'Done/Not Done' },
+                  { value: 'traffic-light', icon: '🚦', title: 'Traffic Light', color: 'border-red-200 bg-red-50', example: 'Red/Green' }
+                ].map((type) => (
+                  <div 
+                    key={type.value}
+                    className={`relative p-3 border-2 rounded-lg cursor-pointer transition-all duration-200 hover:shadow-sm ${
+                      formData.okrType === type.value 
+                        ? `${type.color} shadow-md ring-2 ring-blue-500 ring-opacity-50` 
+                        : 'border-gray-200 hover:border-gray-300 bg-white hover:bg-gray-50'
+                    }`}
+                    onClick={() => setFormData(prev => ({
+                      ...prev, 
+                      okrType: type.value,
+                      // Enable traffic lights by default for all types
+                      enableTrafficLights: true,
+                      // Configure based on OKR type
+                      ...(type.value === 'checkbox' || type.value === 'traffic-light' ? {
+                        enableProgressBar: false,
+                        trafficLightStyle: 'manual'
+                      } : {
+                        // For currency, number, and percentage - default to standard thresholds
+                        trafficLightStyle: 'system'
+                      })
+                    }))}
+                  >
+                    <div className="text-center">
+                      <div className="text-lg mb-1">{type.icon}</div>
+                      <div className="text-xs font-medium text-gray-900 mb-1">{type.title}</div>
+                      <div className="text-xs text-gray-600 leading-tight">{type.example}</div>
+                    </div>
+                    
+                    {formData.okrType === type.value && (
+                      <div className="absolute -top-1 -right-1 w-4 h-4 bg-blue-600 text-white rounded-full flex items-center justify-center">
+                        <svg className="w-2.5 h-2.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                        </svg>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+              
+              {!formData.okrType && (
+                <p className="text-xs text-gray-500 bg-yellow-50 border border-yellow-200 p-2 rounded text-center">
+                  👆 Choose a measurement type to see how the form adapts
+                </p>
+              )}
+            </div>
+
+            {/* Dynamic Fields based on OKR Type */}
+            <div className="space-y-6 pt-6 border-t border-gray-200">
 
               {/* Timeframe Field */}
               {formData.okrType && (
