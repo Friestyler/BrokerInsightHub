@@ -1355,7 +1355,7 @@ export default function MetricsPage() {
               {formData.okrType && (
                 <div className="space-y-2">
                   <label className="text-sm font-medium text-gray-900">
-                    Timeframe <span className="text-red-500">*</span>
+                    Over what time frame will you measure this OKR? <span className="text-red-500">*</span>
                   </label>
                   <div className="mt-2">
                     <AdvancedTimeframeFilter
