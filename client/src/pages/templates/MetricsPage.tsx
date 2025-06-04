@@ -1489,7 +1489,7 @@ export default function MetricsPage() {
                     </TooltipProvider>
                   </div>
                   
-                  <p className="text-sm text-gray-600">
+                  <p className="text-gray-600 text-[12px]">
                     Instead of tracking one big result over the full time frame, you can split it into smaller chunks — like monthly or quarterly milestones. Each one will be tracked separately and sum up over time.
                   </p>
 
