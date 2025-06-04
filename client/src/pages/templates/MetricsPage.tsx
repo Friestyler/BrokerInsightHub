@@ -425,9 +425,17 @@ export default function MetricsPage() {
   });
 
   // Calculate total target whenever target, timeframe, or milestone frequency changes
-  const calculateTotalTarget = (target: number | undefined, timeframe: string, frequency: string): number => {
+  const calculateTotalTarget = (target: number | undefined, timeframe: string, frequency: string, numberOfMilestones?: number): number => {
     if (!target || !timeframe || !frequency) {
       return 0;
+    }
+    
+    // Handle indefinite timeframe case
+    if (timeframe === 'indefinite') {
+      if (numberOfMilestones) {
+        return target * numberOfMilestones;
+      }
+      return 0; // Can't calculate without number of milestones
     }
     
     // Determine timeframe duration in months
@@ -477,8 +485,8 @@ export default function MetricsPage() {
     }
     
     // Calculate number of milestones
-    const numberOfMilestones = Math.ceil(timeframeDuration / milestoneInterval);
-    const totalTarget = target * numberOfMilestones;
+    const calculatedNumberOfMilestones = Math.ceil(timeframeDuration / milestoneInterval);
+    const totalTarget = target * calculatedNumberOfMilestones;
     
     return totalTarget;
   };
@@ -569,7 +577,10 @@ export default function MetricsPage() {
       trafficLightGreenThreshold: 75,
       targetBehavior: 'increase',
       showTargetBehavior: false,
-      showTrafficLightConfig: false
+      showTrafficLightConfig: false,
+      // Indefinite timeframe specific fields
+      firstMilestoneStartDate: undefined as Date | undefined,
+      numberOfMilestones: undefined as number | undefined
     });
     setIsCreateOKROpen(false);
     setIsCreatingNewTag(false);
@@ -1447,6 +1458,17 @@ export default function MetricsPage() {
                         const timeframe = formData.timeframe;
                         const availableFrequencies = [];
                         
+                        // If indefinite timeframe is selected, milestone is required (no "No milestone" option)
+                        if (timeframe === 'indefinite') {
+                          availableFrequencies.push(
+                            <SelectItem key="weekly" value="Weekly">Weekly</SelectItem>,
+                            <SelectItem key="monthly" value="Monthly">Monthly</SelectItem>,
+                            <SelectItem key="quarterly" value="Quarterly">Quarterly</SelectItem>,
+                            <SelectItem key="yearly" value="Yearly">Yearly</SelectItem>
+                          );
+                          return availableFrequencies;
+                        }
+                        
                         // If no timeframe is selected, show all options
                         if (!timeframe) {
                           availableFrequencies.push(
@@ -1555,7 +1577,74 @@ export default function MetricsPage() {
                 </div>
               )}
 
+              {/* Indefinite Timeframe Configuration - Show when indefinite timeframe is selected */}
+              {formData.timeframe === 'indefinite' && formData.milestoneFrequency && (
+                <div className="space-y-4 pt-6 border-t border-gray-200">
+                  <div className="space-y-3">
+                    <h3 className="text-lg font-semibold text-gray-900">Milestone Configuration</h3>
+                    <p className="text-sm text-gray-600">
+                      Since you selected an indefinite timeframe, please configure when milestones should start and how many to create ahead.
+                    </p>
+                  </div>
 
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* First Milestone Start Date */}
+                    <div className="space-y-2">
+                      <label htmlFor="first-milestone-start" className="text-sm font-medium text-gray-900">
+                        When should the first milestone start? <span className="text-red-500">*</span>
+                      </label>
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <Button
+                            variant="outline"
+                            className={`w-full justify-start text-left font-normal border-gray-300 ${
+                              !formData.firstMilestoneStartDate && "text-muted-foreground"
+                            }`}
+                          >
+                            <CalendarIcon className="mr-2 h-4 w-4" />
+                            {formData.firstMilestoneStartDate ? (
+                              format(formData.firstMilestoneStartDate, "PPP")
+                            ) : (
+                              <span>Pick a date</span>
+                            )}
+                          </Button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-auto p-0" align="start">
+                          <Calendar
+                            mode="single"
+                            selected={formData.firstMilestoneStartDate}
+                            onSelect={(date) => setFormData(prev => ({...prev, firstMilestoneStartDate: date}))}
+                            disabled={(date) =>
+                              date < new Date() || date < new Date("1900-01-01")
+                            }
+                            initialFocus
+                          />
+                        </PopoverContent>
+                      </Popover>
+                    </div>
+
+                    {/* Number of Milestones */}
+                    <div className="space-y-2">
+                      <label htmlFor="number-of-milestones" className="text-sm font-medium text-gray-900">
+                        How many milestones should we create ahead? <span className="text-red-500">*</span>
+                      </label>
+                      <input
+                        type="number"
+                        id="number-of-milestones"
+                        min="1"
+                        max="100"
+                        value={formData.numberOfMilestones || ''}
+                        onChange={(e) => setFormData(prev => ({...prev, numberOfMilestones: parseInt(e.target.value) || undefined}))}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:ring-blue-500 focus:border-blue-500"
+                        placeholder="Enter number (e.g., 12)"
+                      />
+                      <p className="text-xs text-gray-500">
+                        We'll create {formData.numberOfMilestones || 'X'} {formData.milestoneFrequency?.toLowerCase()} milestones starting from your selected date
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
 
               {/* Traffic Lights Configuration - Show for traffic-light types after milestone frequency */}
               {formData.okrType === 'traffic-light' && (
