@@ -1479,7 +1479,7 @@ export default function MetricsPage() {
             </div>
 
             {/* Dynamic Fields based on OKR Type */}
-            <div className="space-y-6 pt-6 border-t border-gray-200">
+            <div className="space-y-6 pt-6">
 
               {/* Timeframe Field */}
               {formData.okrType && (
