@@ -1796,7 +1796,10 @@ Each one starts from zero, is tracked separately, and contributes to the bigger 
                       <div className="space-y-2">
                         <div className="flex items-center gap-1">
                           <label htmlFor="okr-target" className="text-sm font-medium text-gray-900">
-                            {formData.targetLabel || 'Target value'}{formData.milestoneFrequency && !formData.milestoneFrequency.includes('No milestone') ? ' per milestone' : ''}
+                            {formData.milestoneFrequency && !formData.milestoneFrequency.includes('No milestone') 
+                              ? 'What should the target be for each milestone?' 
+                              : (formData.targetLabel || 'Target value')
+                            }
                           </label>
                           <TooltipProvider>
                             <Tooltip>
@@ -1857,7 +1860,10 @@ Each one starts from zero, is tracked separately, and contributes to the bigger 
                       <div className="space-y-2">
                         <div className="flex items-center gap-1">
                           <label htmlFor="okr-target" className="text-sm font-medium text-gray-900">
-                            {formData.targetLabel || 'Target value'}{formData.milestoneFrequency && !formData.milestoneFrequency.includes('No milestone') ? ' per milestone' : ''}
+                            {formData.milestoneFrequency && !formData.milestoneFrequency.includes('No milestone') 
+                              ? 'What should the target be for each milestone?' 
+                              : (formData.targetLabel || 'Target value')
+                            }
                           </label>
                           <TooltipProvider>
                             <Tooltip>
@@ -1920,7 +1926,10 @@ Each one starts from zero, is tracked separately, and contributes to the bigger 
                       <div className="space-y-2">
                         <div className="flex items-center gap-1">
                           <label htmlFor="okr-target" className="text-sm font-medium text-gray-900">
-                            {formData.targetLabel || 'Target value'}{formData.milestoneFrequency && !formData.milestoneFrequency.includes('No milestone') ? ' per milestone' : ''}
+                            {formData.milestoneFrequency && !formData.milestoneFrequency.includes('No milestone') 
+                              ? 'What should the target be for each milestone?' 
+                              : (formData.targetLabel || 'Target value')
+                            }
                           </label>
                           <TooltipProvider>
                             <Tooltip>
