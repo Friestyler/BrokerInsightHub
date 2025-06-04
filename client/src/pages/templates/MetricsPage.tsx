@@ -1411,7 +1411,7 @@ export default function MetricsPage() {
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <label htmlFor="okr-milestone-frequency" className="text-sm font-medium text-gray-900">
-                      Select a milestone frequency to define how often progress will be tracked <span className="text-red-500">*</span>
+                      Select how often you want to report on your results <span className="text-red-500">*</span>
                     </label>
                     <TooltipProvider>
                       <Tooltip>
@@ -1857,7 +1857,7 @@ export default function MetricsPage() {
                           </TooltipProvider>
                         </div>
                         <Select
-                          value={formData.targetBehavior || 'increase'}
+                          value={formData.targetBehavior || 'stay_above'}
                           onValueChange={(value) => setFormData(prev => ({...prev, targetBehavior: value}))}
                         >
                           <SelectTrigger className="w-full text-sm border-gray-300 focus:border-blue-500 focus:ring-blue-500">
@@ -1866,17 +1866,11 @@ export default function MetricsPage() {
                           <SelectContent>
                             {formData.target && formData.target > 0 ? (
                               <>
-                                <SelectItem value="increase">
-                                  You want to reach or exceed {formData.okrType === 'currency' ? '€' : ''}{formData.target?.toLocaleString()}{formData.okrType === 'percent' ? '%' : formData.okrType === 'number' ? '#' : ''}
-                                </SelectItem>
-                                <SelectItem value="decrease">
-                                  You want to reach or go below {formData.okrType === 'currency' ? '€' : ''}{formData.target?.toLocaleString()}{formData.okrType === 'percent' ? '%' : formData.okrType === 'number' ? '#' : ''}
+                                <SelectItem value="stay_below">
+                                  You want to reach or stay below {formData.okrType === 'currency' ? '€' : ''}{formData.target?.toLocaleString()}{formData.okrType === 'percent' ? '%' : formData.okrType === 'number' ? '#' : ''}
                                 </SelectItem>
                                 <SelectItem value="stay_above">
-                                  You want to stay above {formData.okrType === 'currency' ? '€' : ''}{formData.target?.toLocaleString()}{formData.okrType === 'percent' ? '%' : formData.okrType === 'number' ? '#' : ''}
-                                </SelectItem>
-                                <SelectItem value="stay_below">
-                                  You want to stay below {formData.okrType === 'currency' ? '€' : ''}{formData.target?.toLocaleString()}{formData.okrType === 'percent' ? '%' : formData.okrType === 'number' ? '#' : ''}
+                                  You want to reach or stay above {formData.okrType === 'currency' ? '€' : ''}{formData.target?.toLocaleString()}{formData.okrType === 'percent' ? '%' : formData.okrType === 'number' ? '#' : ''}
                                 </SelectItem>
                                 <SelectItem value="on_target">
                                   You want to stay exactly at {formData.okrType === 'currency' ? '€' : ''}{formData.target?.toLocaleString()}{formData.okrType === 'percent' ? '%' : formData.okrType === 'number' ? '#' : ''}
@@ -1884,17 +1878,11 @@ export default function MetricsPage() {
                               </>
                             ) : (
                               <>
-                                <SelectItem value="increase">
-                                  You want to reach or exceed your target value
-                                </SelectItem>
-                                <SelectItem value="decrease">
-                                  You want to reach or go below your target value
+                                <SelectItem value="stay_below">
+                                  You want to reach or stay below your target value
                                 </SelectItem>
                                 <SelectItem value="stay_above">
-                                  You want to stay above your target value
-                                </SelectItem>
-                                <SelectItem value="stay_below">
-                                  You want to stay below your target value
+                                  You want to reach or stay above your target value
                                 </SelectItem>
                                 <SelectItem value="on_target">
                                   You want to stay exactly at your target value
@@ -1926,6 +1914,23 @@ export default function MetricsPage() {
                         <label htmlFor="enable-progress-bar-targets" className="text-sm font-medium text-gray-900">
                           Show progress bar
                         </label>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Info className="w-4 h-4 text-gray-400 cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="max-w-sm text-xs">
+                                <strong>Developer Info:</strong> Progress bar component:<br/>
+                                • Calculates percentage from current vs target values<br/>
+                                • Supports color-coded vs simple grey styling<br/>
+                                • Auto-enabled when users set targets at runtime<br/>
+                                • Integrates with real-time progress tracking<br/>
+                                • Disabled for checkbox/traffic-light types
+                              </p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </div>
                       <div className="flex items-center gap-2">
                         <span className={`font-medium text-gray-800 w-8 transition-opacity duration-300 ${
@@ -1967,6 +1972,23 @@ export default function MetricsPage() {
                         <label htmlFor="enable-traffic-lights-other" className="text-sm font-medium text-gray-900">
                           Show traffic light status
                         </label>
+                        <TooltipProvider>
+                          <Tooltip>
+                            <TooltipTrigger asChild>
+                              <Info className="w-4 h-4 text-gray-400 cursor-help" />
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p className="max-w-sm text-xs">
+                                <strong>Developer Info:</strong> Traffic light system:<br/>
+                                • Three modes: system (auto %), custom (user %), manual (user choice)<br/>
+                                • Color calculation based on progress vs thresholds<br/>
+                                • Custom thresholds stored in trafficLightYellowThreshold/GreenThreshold<br/>
+                                • Manual mode for checkbox/traffic-light types<br/>
+                                • Status affects dashboard alerts and notifications
+                              </p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
                       </div>
                       <div className="flex items-center gap-1">
                         <div 
