@@ -1823,7 +1823,7 @@ Each one starts from zero, is tracked separately, and contributes to the bigger 
                             type="number"
                             value={formData.target || ''}
                             onChange={(e) => setFormData(prev => ({...prev, target: e.target.value ? parseFloat(e.target.value) : undefined}))}
-                            placeholder="Optional (e.g., 1000)"
+                            placeholder="e.g., 1000"
                             className="pr-8 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                           />
                           <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">€</span>
@@ -1878,7 +1878,7 @@ Each one starts from zero, is tracked separately, and contributes to the bigger 
                             max="100"
                             value={formData.target || ''}
                             onChange={(e) => setFormData(prev => ({...prev, target: e.target.value ? parseFloat(e.target.value) : undefined}))}
-                            placeholder="Optional (e.g., 75)"
+                            placeholder="e.g., 75"
                             className="pr-8 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                           />
                           <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">%</span>
@@ -1931,7 +1931,7 @@ Each one starts from zero, is tracked separately, and contributes to the bigger 
                             type="number"
                             value={formData.target || ''}
                             onChange={(e) => setFormData(prev => ({...prev, target: e.target.value ? parseFloat(e.target.value) : undefined}))}
-                            placeholder="Optional (e.g., 50)"
+                            placeholder="e.g., 50"
                             className="pr-8 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                           />
                           <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">#</span>
