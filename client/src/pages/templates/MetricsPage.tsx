@@ -1464,7 +1464,7 @@ export default function MetricsPage() {
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <label htmlFor="okr-milestone-frequency" className="text-sm font-medium text-gray-900">
-                      Select how often you want to report on your results <span className="text-red-500">*</span>
+                      Would you like to break this OKR into smaller goals? <span className="text-red-500">*</span>
                     </label>
                     <TooltipProvider>
                       <Tooltip>
@@ -1484,6 +1484,10 @@ export default function MetricsPage() {
                       </Tooltip>
                     </TooltipProvider>
                   </div>
+                  
+                  <p className="text-sm text-gray-600">
+                    Instead of tracking one big result over the full time frame, you can split it into smaller chunks — like monthly or quarterly milestones. Each one will be tracked separately and sum up over time.
+                  </p>
 
                   <Select 
                     value={formData.milestoneFrequency} 
