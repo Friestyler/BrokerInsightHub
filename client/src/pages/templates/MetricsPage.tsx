@@ -1340,7 +1340,16 @@ export default function MetricsPage() {
               
               <div className="grid grid-cols-5 gap-2">
                 {[
-                  { value: 'currency', icon: '💰', title: 'Currency', color: 'border-green-200 bg-green-50', example: '€1,000' },
+                  { value: 'currency', icon: (<svg width="18" height="18" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clipPath="url(#clip0_1212_11413)">
+<path d="M5.12578 3.5625H6.87422L7.19766 3.76875C8.46328 4.57969 10.875 6.49219 10.875 9.75C10.875 10.3711 10.3711 10.875 9.75 10.875H2.25C1.62891 10.875 1.125 10.3711 1.125 9.75C1.125 6.49219 3.53672 4.57969 4.80234 3.76875L5.12578 3.5625ZM6.70312 2.4375H5.29688L5.12109 2.18437L4.39219 1.125H7.60781L6.87891 2.18437L6.70312 2.4375ZM3.53438 3.27891C2.09531 4.34766 0 6.44063 0 9.75C0 10.9922 1.00781 12 2.25 12H9.75C10.9922 12 12 10.9922 12 9.75C12 6.44063 9.90469 4.34766 8.46563 3.27891L8.125 3.04688L7.3125 2.4375L7.98047 1.35938C8.17031 1.04531 7.94531 0.65625 7.60781 0.65625H4.39219C4.05469 0.65625 3.82969 1.04531 4.01953 1.35938L4.6875 2.4375L3.875 3.04688L3.53438 3.27891Z" fill="currentColor"/>
+</g>
+<defs>
+<clipPath id="clip0_1212_11413">
+<rect width="12" height="12" fill="white"/>
+</clipPath>
+</defs>
+</svg>), title: 'Currency', color: 'border-green-200 bg-green-50', example: '€1,000' },
                   { value: 'percent', icon: '📊', title: 'Percentage', color: 'border-blue-200 bg-blue-50', example: '75%' },
                   { value: 'number', icon: '🔢', title: 'Number', color: 'border-purple-200 bg-purple-50', example: '50#' },
                   { value: 'checkbox', icon: '✅', title: 'Checkbox', color: 'border-orange-200 bg-orange-50', example: 'Done/Not Done' },
@@ -1369,7 +1378,9 @@ export default function MetricsPage() {
                     }))}
                   >
                     <div className="text-center">
-                      <div className="text-lg mb-1">{type.icon}</div>
+                      <div className="text-lg mb-1 flex justify-center items-center h-6">
+                        {typeof type.icon === 'string' ? type.icon : <span className="text-green-600">{type.icon}</span>}
+                      </div>
                       <div className="text-xs font-medium text-gray-900 mb-1">{type.title}</div>
                       <div className="text-xs text-gray-600 leading-tight">{type.example}</div>
                     </div>
