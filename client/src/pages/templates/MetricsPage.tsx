@@ -1792,7 +1792,7 @@ Each one starts from zero, is tracked separately, and contributes to the bigger 
 
                   {/* Target Field - Currency */}
                   {formData.okrType === 'currency' && (
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-3">
                       <div className="space-y-2">
                         <div className="flex items-center gap-1">
                           <label htmlFor="okr-target" className="text-sm font-medium text-gray-900">
@@ -1824,39 +1824,23 @@ Each one starts from zero, is tracked separately, and contributes to the bigger 
                           <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">€</span>
                         </div>
                       </div>
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-1">
-                          <label htmlFor="okr-total-target" className="text-sm font-medium text-gray-900">
-                            {formData.targetLabel || 'Target'} for full timeframe
-                          </label>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Info className="w-3 h-3 text-gray-400 cursor-help" />
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p className="max-w-xs">This is the total target for the full timeframe selected. It automatically calculates based on your milestone target and timeframe duration.</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
+                      
+                      {formData.target && formData.milestoneFrequency && !formData.milestoneFrequency.includes('No milestone') && (
+                        <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-gray-600">Total for full timeframe:</span>
+                            <span className="text-sm font-medium text-gray-900">
+                              €{formData.totalTarget?.toLocaleString()}
+                            </span>
+                          </div>
                         </div>
-                        <div className="relative">
-                          <Input 
-                            id="okr-total-target"
-                            type="number"
-                            value={formData.target ? formData.totalTarget : ''}
-                            disabled
-                            className="pr-8 text-base border-gray-300 bg-gray-50 text-gray-700"
-                          />
-                          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">€</span>
-                        </div>
-                      </div>
+                      )}
                     </div>
                   )}
 
                   {/* Target Field - Percentage */}
                   {formData.okrType === 'percent' && (
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-3">
                       <div className="space-y-2">
                         <div className="flex items-center gap-1">
                           <label htmlFor="okr-target" className="text-sm font-medium text-gray-900">
@@ -1890,39 +1874,23 @@ Each one starts from zero, is tracked separately, and contributes to the bigger 
                           <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">%</span>
                         </div>
                       </div>
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-1">
-                          <label htmlFor="okr-total-target" className="text-sm font-medium text-gray-900">
-                            {formData.targetLabel || 'Target'} for full timeframe
-                          </label>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Info className="w-3 h-3 text-gray-400 cursor-help" />
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p className="max-w-xs">This is the total target for the full timeframe selected. It automatically calculates based on your milestone target and timeframe duration.</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
+                      
+                      {formData.target && formData.milestoneFrequency && !formData.milestoneFrequency.includes('No milestone') && (
+                        <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-gray-600">Total for full timeframe:</span>
+                            <span className="text-sm font-medium text-gray-900">
+                              {formData.totalTarget}%
+                            </span>
+                          </div>
                         </div>
-                        <div className="relative">
-                          <Input 
-                            id="okr-total-target"
-                            type="number"
-                            value={formData.target ? formData.totalTarget : ''}
-                            disabled
-                            className="pr-8 text-base border-gray-300 bg-gray-50 text-gray-700"
-                          />
-                          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">%</span>
-                        </div>
-                      </div>
+                      )}
                     </div>
                   )}
 
                   {/* Target Field - Number */}
                   {formData.okrType === 'number' && (
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-3">
                       <div className="space-y-2">
                         <div className="flex items-center gap-1">
                           <label htmlFor="okr-target" className="text-sm font-medium text-gray-900">
@@ -1954,33 +1922,17 @@ Each one starts from zero, is tracked separately, and contributes to the bigger 
                           <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">#</span>
                         </div>
                       </div>
-                      <div className="space-y-2">
-                        <div className="flex items-center gap-1">
-                          <label htmlFor="okr-total-target" className="text-sm font-medium text-gray-900">
-                            {formData.targetLabel || 'Target'} for full timeframe
-                          </label>
-                          <TooltipProvider>
-                            <Tooltip>
-                              <TooltipTrigger asChild>
-                                <Info className="w-3 h-3 text-gray-400 cursor-help" />
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p className="max-w-xs">This is the total target for the full timeframe selected. It automatically calculates based on your milestone target and timeframe duration.</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
+                      
+                      {formData.target && formData.milestoneFrequency && !formData.milestoneFrequency.includes('No milestone') && (
+                        <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs text-gray-600">Total for full timeframe:</span>
+                            <span className="text-sm font-medium text-gray-900">
+                              {formData.totalTarget?.toLocaleString()}#
+                            </span>
+                          </div>
                         </div>
-                        <div className="relative">
-                          <Input 
-                            id="okr-total-target"
-                            type="number"
-                            value={formData.target ? formData.totalTarget : ''}
-                            disabled
-                            className="pr-8 text-base border-gray-300 bg-gray-50 text-gray-700"
-                          />
-                          <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500">#</span>
-                        </div>
-                      </div>
+                      )}
                     </div>
                   )}
 
