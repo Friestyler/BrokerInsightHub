@@ -428,6 +428,56 @@ export default function MetricsPage() {
     milestoneCount: 4
   });
 
+  // Calculate the number of milestone periods based on timeframe and frequency
+  const calculateMilestoneCount = (timeframe: string, frequency: string, numberOfMilestones?: number): number => {
+    if (timeframe === 'indefinite') {
+      return numberOfMilestones || 4;
+    }
+    
+    // Determine timeframe duration in days
+    let timeframeDays = 0;
+    if (timeframe.includes('quarter') || timeframe.includes('Q1') || timeframe.includes('Q2') || timeframe.includes('Q3') || timeframe.includes('Q4')) {
+      timeframeDays = 90; // Quarter = 90 days
+    } else if (timeframe.includes('H1') || timeframe.includes('H2')) {
+      timeframeDays = 180; // Half year = 180 days
+    } else if (timeframe === '2024' || timeframe === '2025' || timeframe === 'This year' || timeframe === 'this-year') {
+      timeframeDays = 365; // Full year = 365 days
+    } else if (timeframe === 'this-month' || timeframe === 'next-month') {
+      timeframeDays = 30; // Month = 30 days
+    } else if (timeframe === 'today' || timeframe === 'yesterday') {
+      timeframeDays = 1; // Day = 1 day
+    } else if (timeframe.includes('days')) {
+      const days = parseInt(timeframe.match(/\d+/)?.[0] || '0');
+      timeframeDays = days;
+    } else if (timeframe.includes('months')) {
+      const months = parseInt(timeframe.match(/\d+/)?.[0] || '0');
+      timeframeDays = months * 30;
+    }
+    
+    // Determine milestone frequency in days
+    let milestoneInterval = 0;
+    switch (frequency) {
+      case 'Weekly':
+        milestoneInterval = 7;
+        break;
+      case 'Monthly':
+        milestoneInterval = 30;
+        break;
+      case 'Quarterly':
+        milestoneInterval = 90;
+        break;
+      case 'Yearly':
+        milestoneInterval = 365;
+        break;
+      default:
+        milestoneInterval = 30; // Default to monthly
+    }
+    
+    // Calculate number of milestones
+    if (milestoneInterval === 0) return 1;
+    return Math.max(1, Math.ceil(timeframeDays / milestoneInterval));
+  };
+
   // Calculate total target whenever target, timeframe, or milestone frequency changes
   const calculateTotalTarget = (target: number | undefined, timeframe: string, frequency: string, numberOfMilestones?: number): number => {
     if (!target || !timeframe || !frequency) {
@@ -1849,7 +1899,7 @@ Each one starts from zero, is tracked separately, and contributes to the bigger 
                               <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
                                 <p className="text-xs text-gray-700 mb-3">Set individual targets for each milestone:</p>
                                 <div className="space-y-2">
-                                  {Array.from({ length: formData.milestoneCount || 4 }, (_, index) => (
+                                  {Array.from({ length: calculateMilestoneCount(formData.timeframe, formData.milestoneFrequency, formData.numberOfMilestones) }, (_, index) => (
                                     <div key={index} className="flex items-center gap-3">
                                       <label className="text-xs font-medium text-gray-700 w-8">
                                         {formData.milestoneFrequency?.includes('Quarter') ? `Q${index + 1}` :
@@ -1942,7 +1992,7 @@ Each one starts from zero, is tracked separately, and contributes to the bigger 
                               <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
                                 <p className="text-xs text-gray-700 mb-3">Set individual targets for each milestone:</p>
                                 <div className="space-y-2">
-                                  {Array.from({ length: formData.milestoneCount || 4 }, (_, index) => (
+                                  {Array.from({ length: calculateMilestoneCount(formData.timeframe, formData.milestoneFrequency, formData.numberOfMilestones) }, (_, index) => (
                                     <div key={index} className="flex items-center gap-3">
                                       <label className="text-xs font-medium text-gray-700 w-8">
                                         {formData.milestoneFrequency?.includes('Quarter') ? `Q${index + 1}` :
@@ -2035,7 +2085,7 @@ Each one starts from zero, is tracked separately, and contributes to the bigger 
                               <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
                                 <p className="text-xs text-gray-700 mb-3">Set individual targets for each milestone:</p>
                                 <div className="space-y-2">
-                                  {Array.from({ length: formData.milestoneCount || 4 }, (_, index) => (
+                                  {Array.from({ length: calculateMilestoneCount(formData.timeframe, formData.milestoneFrequency, formData.numberOfMilestones) }, (_, index) => (
                                     <div key={index} className="flex items-center gap-3">
                                       <label className="text-xs font-medium text-gray-700 w-8">
                                         {formData.milestoneFrequency?.includes('Quarter') ? `Q${index + 1}` :
