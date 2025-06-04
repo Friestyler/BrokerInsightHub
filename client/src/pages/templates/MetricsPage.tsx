@@ -1594,7 +1594,7 @@ export default function MetricsPage() {
                             id="okr-target"
                             type="number"
                             value={formData.target || ''}
-                            onChange={(e) => setFormData(prev => ({...prev, target: parseFloat(e.target.value) || 0}))}
+                            onChange={(e) => setFormData(prev => ({...prev, target: e.target.value ? parseFloat(e.target.value) : undefined}))}
                             placeholder="Optional (e.g., 1000)"
                             className="pr-8 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                           />
@@ -1657,7 +1657,7 @@ export default function MetricsPage() {
                             min="0"
                             max="100"
                             value={formData.target || ''}
-                            onChange={(e) => setFormData(prev => ({...prev, target: parseFloat(e.target.value) || 0}))}
+                            onChange={(e) => setFormData(prev => ({...prev, target: e.target.value ? parseFloat(e.target.value) : undefined}))}
                             placeholder="Optional (e.g., 75)"
                             className="pr-8 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                           />
@@ -1718,7 +1718,7 @@ export default function MetricsPage() {
                             id="okr-target"
                             type="number"
                             value={formData.target || ''}
-                            onChange={(e) => setFormData(prev => ({...prev, target: parseFloat(e.target.value) || 0}))}
+                            onChange={(e) => setFormData(prev => ({...prev, target: e.target.value ? parseFloat(e.target.value) : undefined}))}
                             placeholder="Optional (e.g., 50)"
                             className="pr-8 text-base border-gray-300 focus:border-blue-500 focus:ring-blue-500"
                           />
