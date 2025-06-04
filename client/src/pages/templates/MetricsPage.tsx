@@ -1798,7 +1798,7 @@ Each one starts from zero, is tracked separately, and contributes to the bigger 
                           <label htmlFor="okr-target" className="text-sm font-medium text-gray-900">
                             {formData.milestoneFrequency && !formData.milestoneFrequency.includes('No milestone') 
                               ? 'What should the target be for each milestone?' 
-                              : (formData.targetLabel || 'Target value')
+                              : (formData.targetLabel || 'What should the target be?')
                             }
                           </label>
                           <TooltipProvider>
@@ -1846,7 +1846,7 @@ Each one starts from zero, is tracked separately, and contributes to the bigger 
                           <label htmlFor="okr-target" className="text-sm font-medium text-gray-900">
                             {formData.milestoneFrequency && !formData.milestoneFrequency.includes('No milestone') 
                               ? 'What should the target be for each milestone?' 
-                              : (formData.targetLabel || 'Target value')
+                              : (formData.targetLabel || 'What should the target be?')
                             }
                           </label>
                           <TooltipProvider>
@@ -1896,7 +1896,7 @@ Each one starts from zero, is tracked separately, and contributes to the bigger 
                           <label htmlFor="okr-target" className="text-sm font-medium text-gray-900">
                             {formData.milestoneFrequency && !formData.milestoneFrequency.includes('No milestone') 
                               ? 'What should the target be for each milestone?' 
-                              : (formData.targetLabel || 'Target value')
+                              : (formData.targetLabel || 'What should the target be?')
                             }
                           </label>
                           <TooltipProvider>
