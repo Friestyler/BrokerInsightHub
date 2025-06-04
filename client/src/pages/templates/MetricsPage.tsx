@@ -1554,8 +1554,7 @@ export default function MetricsPage() {
                   </div>
                   
                   <p className="text-gray-600 text-[12px]">
-                    Split this OKR into smaller steps — like monthly or quarterly milestones. 
-Each one starts from zero, is tracked separately, and contributes to the bigger goal.
+                    Split this OKR into smaller steps — like monthly or quarterly milestones.
                   </p>
 
                   <Select 
