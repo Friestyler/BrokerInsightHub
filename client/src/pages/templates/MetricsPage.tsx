@@ -418,6 +418,9 @@ export default function MetricsPage() {
     trafficLightGreenThreshold: 75,
     targetBehavior: 'increase',
     showTargetBehavior: false,
+    // Indefinite timeframe specific fields
+    firstMilestoneStartDate: undefined as Date | undefined,
+    numberOfMilestones: undefined as number | undefined,
     showTrafficLightConfig: false
   });
 

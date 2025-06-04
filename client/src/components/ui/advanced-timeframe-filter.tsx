@@ -64,6 +64,7 @@ export function AdvancedTimeframeFilter({ value, onValueChange, placeholder, dat
       { value: 'all-time', label: 'All time' },
       { value: 'since', label: 'Since' },
       { value: 'custom', label: 'Custom' },
+      { value: 'indefinite', label: 'Indefinite' },
     ]},
   ];
 
