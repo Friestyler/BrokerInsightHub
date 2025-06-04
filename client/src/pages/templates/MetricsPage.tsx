@@ -1376,7 +1376,7 @@ export default function MetricsPage() {
               {formData.okrType && (
                 <div className="space-y-2">
                   <label htmlFor="okr-milestone-frequency" className="text-sm font-medium text-gray-900">
-                    Milestone Frequency <span className="text-red-500">*</span>
+                    Select a milestone frequency to define how often progress will be tracked <span className="text-red-500">*</span>
                   </label>
 
                   <Select 
