@@ -354,6 +354,7 @@ export default function MetricsPage() {
   const [parentObjectiveTag, setParentObjectiveTag] = useState<string>("");
   const [parentObjectiveName, setParentObjectiveName] = useState<string>("");
   const [okrTemplates, setOkrTemplates] = useState(mockOKRTemplates);
+  const [isMilestoneInfoOpen, setIsMilestoneInfoOpen] = useState(false);
   
   // Fetch tags from API
   const { data: tags = [] } = useQuery<Tag[]>({
@@ -1470,6 +1471,13 @@ export default function MetricsPage() {
                     <label htmlFor="okr-milestone-frequency" className="text-sm font-medium text-gray-900">
                       Would you like to break this OKR into smaller goals? <span className="text-red-500">*</span>
                     </label>
+                    <button
+                      type="button"
+                      onClick={() => setIsMilestoneInfoOpen(true)}
+                      className="text-xs text-blue-600 hover:text-blue-800 underline font-medium"
+                    >
+                      What is this?
+                    </button>
                     <TooltipProvider>
                       <Tooltip>
                         <TooltipTrigger asChild>
@@ -2437,6 +2445,57 @@ Each one starts from zero, is tracked separately, and contributes to the bigger 
             </DialogContent>
           </Dialog>
       )}
+
+      {/* Milestone Information Dialog */}
+      <Dialog open={isMilestoneInfoOpen} onOpenChange={setIsMilestoneInfoOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>How this works</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div className="space-y-3">
+              <div className="space-y-2">
+                <p className="text-sm text-gray-700">
+                  • <strong>Milestones split the OKR into smaller time-based goals</strong> (e.g., monthly or quarterly)
+                </p>
+                <p className="text-sm text-gray-700">
+                  • <strong>You decide whether the target stays the same</strong> across milestones or varies per period
+                </p>
+                <p className="text-sm text-gray-700">
+                  • <strong>Each milestone starts at 0 and is tracked separately</strong>
+                </p>
+                <p className="text-sm text-gray-700">
+                  • <strong>Your team's progress in each milestone is then added up</strong> toward the full OKR
+                </p>
+              </div>
+            </div>
+
+            <div className="border-t pt-4">
+              <h4 className="font-medium text-gray-900 mb-3">Example:</h4>
+              <div className="bg-gray-50 p-4 rounded-lg space-y-2">
+                <p className="text-sm text-gray-700">
+                  You're working with a partner to run joint marketing campaigns.
+                </p>
+                <p className="text-sm text-gray-700">
+                  You agree to launch 2 campaigns per quarter:
+                </p>
+                <div className="ml-4 space-y-1">
+                  <p className="text-sm text-gray-700">• Q1: 2 / 2 campaigns</p>
+                  <p className="text-sm text-gray-700">• Q2: 1 / 2 campaigns</p>
+                </div>
+                <p className="text-sm text-gray-700 font-medium">
+                  → So far: 3 campaigns launched out of 8 planned this year
+                </p>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setIsMilestoneInfoOpen(false)}>
+              Got it
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
