@@ -1779,7 +1779,7 @@ Each one starts from zero, is tracked separately, and contributes to the bigger 
                         </Tooltip>
                       </TooltipProvider>
                     </div>
-                    <p className="text-sm text-gray-600">Users will track their results against these targets. You can leave targets empty if you prefer to let users set their own targets.</p>
+                    <p className="text-gray-600 text-[12px]">Users will track their results against these targets. You can leave targets empty if you prefer to let users set their own targets.</p>
                   </div>
 
                   {/* Target Field - Currency */}
