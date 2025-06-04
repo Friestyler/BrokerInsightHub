@@ -1604,7 +1604,7 @@ Each one starts from zero, is tracked separately, and contributes to the bigger 
                             <SelectItem key="monthly" value="Monthly">Monthly</SelectItem>,
                             <SelectItem key="quarterly" value="Quarterly">Quarterly</SelectItem>,
                             <SelectItem key="yearly" value="Yearly">Yearly</SelectItem>,
-                            <SelectItem key="no-milestone" value="No milestone (target needs to be met only once)">No milestone (target needs to be met only once)</SelectItem>
+                            <SelectItem key="no-milestone" value="No milestone (I don't want to split this OKR into smaller chunks)">No milestone (I don't want to split this OKR into smaller chunks)</SelectItem>
                           );
                         } else {
                           // Default: show all options
@@ -1614,7 +1614,7 @@ Each one starts from zero, is tracked separately, and contributes to the bigger 
                             <SelectItem key="quarterly" value="Quarterly">Quarterly</SelectItem>,
                             <SelectItem key="yearly" value="Yearly">Yearly</SelectItem>,
                             <SelectItem key="custom" value="Custom">Custom</SelectItem>,
-                            <SelectItem key="no-milestone" value="No milestone (target needs to be met only once)">No milestone (target needs to be met only once)</SelectItem>
+                            <SelectItem key="no-milestone" value="No milestone (I don't want to split this OKR into smaller chunks)">No milestone (I don't want to split this OKR into smaller chunks)</SelectItem>
                           );
                         }
                         
