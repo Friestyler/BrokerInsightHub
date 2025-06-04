@@ -603,7 +603,13 @@ export default function MetricsPage() {
   // Clear milestone frequency when timeframe changes to prevent invalid combinations
   React.useEffect(() => {
     if (formData.timeframe) {
-      setFormData(prev => ({ ...prev, milestoneFrequency: '' }));
+      setFormData(prev => ({ 
+        ...prev, 
+        milestoneFrequency: '',
+        // Clear indefinite timeframe fields when changing timeframe
+        firstMilestoneStartDate: formData.timeframe !== 'indefinite' ? undefined : prev.firstMilestoneStartDate,
+        numberOfMilestones: formData.timeframe !== 'indefinite' ? undefined : prev.numberOfMilestones
+      }));
     }
   }, [formData.timeframe]);
 
@@ -616,11 +622,16 @@ export default function MetricsPage() {
 
   // Recalculate total target whenever relevant fields change
   React.useEffect(() => {
-    const newTotalTarget = calculateTotalTarget(formData.target, formData.timeframe, formData.milestoneFrequency);
+    const newTotalTarget = calculateTotalTarget(
+      formData.target, 
+      formData.timeframe, 
+      formData.milestoneFrequency,
+      formData.numberOfMilestones
+    );
     if (newTotalTarget !== formData.totalTarget) {
       setFormData(prev => ({ ...prev, totalTarget: newTotalTarget }));
     }
-  }, [formData.target, formData.timeframe, formData.milestoneFrequency]);
+  }, [formData.target, formData.timeframe, formData.milestoneFrequency, formData.numberOfMilestones]);
 
   const handleCreateOKR = () => {
     const submissionData = {
