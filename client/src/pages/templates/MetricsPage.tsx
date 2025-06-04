@@ -1863,7 +1863,14 @@ Each one starts from zero, is tracked separately, and contributes to the bigger 
                                 <Info className="w-3 h-3 text-gray-400 cursor-help" />
                               </TooltipTrigger>
                               <TooltipContent>
-                                <p className="max-w-xs">This target needs to be reached per milestone. For example, every quarter I need to reach a target of €1000.</p>
+                                <p className="max-w-sm text-xs">
+                                  <strong>Developer Info:</strong> Per-milestone targeting system:<br/>
+                                  • Target value applies per milestone period (week/month/quarter/year)<br/>
+                                  • Dynamic milestone count calculated from timeframe + frequency<br/>
+                                  • Total target = target × milestone count (e.g., €1000 × 4 quarters = €4000)<br/>
+                                  • Per-milestone override available for custom period targets<br/>
+                                  • Supports 52 weekly, 12 monthly, 4 quarterly milestone inputs
+                                </p>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
@@ -1965,7 +1972,14 @@ Each one starts from zero, is tracked separately, and contributes to the bigger 
                                 <Info className="w-3 h-3 text-gray-400 cursor-help" />
                               </TooltipTrigger>
                               <TooltipContent>
-                                <p className="max-w-xs">This target needs to be reached per milestone. For example, every quarter I need to reach a target of 75%.</p>
+                                <p className="max-w-sm text-xs">
+                                  <strong>Developer Info:</strong> Per-milestone targeting system:<br/>
+                                  • Target value applies per milestone period (week/month/quarter/year)<br/>
+                                  • Dynamic milestone count calculated from timeframe + frequency<br/>
+                                  • Percentage targets maintain consistency across all milestones<br/>
+                                  • Per-milestone override allows different % targets per period<br/>
+                                  • Supports 52 weekly, 12 monthly, 4 quarterly milestone inputs
+                                </p>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
@@ -2071,7 +2085,14 @@ Each one starts from zero, is tracked separately, and contributes to the bigger 
                                 <Info className="w-3 h-3 text-gray-400 cursor-help" />
                               </TooltipTrigger>
                               <TooltipContent>
-                                <p className="max-w-xs">This target needs to be reached per milestone. For example, every quarter I need to reach a target of 50 new customers.</p>
+                                <p className="max-w-sm text-xs">
+                                  <strong>Developer Info:</strong> Per-milestone targeting system:<br/>
+                                  • Target value applies per milestone period (week/month/quarter/year)<br/>
+                                  • Dynamic milestone count calculated from timeframe + frequency<br/>
+                                  • Total target = target × milestone count (e.g., 50 × 4 quarters = 200)<br/>
+                                  • Per-milestone override allows different counts per period<br/>
+                                  • Supports 52 weekly, 12 monthly, 4 quarterly milestone inputs
+                                </p>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
@@ -2176,10 +2197,10 @@ Each one starts from zero, is tracked separately, and contributes to the bigger 
                                 <p className="max-w-sm text-xs">
                                   <strong>Developer Info:</strong> Target behavior controls:<br/>
                                   • Progress evaluation logic (increase/decrease/stay_above/stay_below/on_target)<br/>
-                                  • Traffic light color calculation algorithms<br/>
-                                  • Success/failure determination for dashboards<br/>
-                                  • Dynamic option text based on actual target values<br/>
-                                  • Affects automated notifications and alerts
+                                  • Traffic light color calculation algorithms across milestone periods<br/>
+                                  • Success/failure determination for dashboards and milestone tracking<br/>
+                                  • Dynamic option text based on per-milestone target values<br/>
+                                  • Affects automated notifications and milestone-based alerts
                                 </p>
                               </TooltipContent>
                             </Tooltip>
@@ -2252,10 +2273,10 @@ Each one starts from zero, is tracked separately, and contributes to the bigger 
                               <p className="max-w-sm text-xs">
                                 <strong>Developer Info:</strong> Progress bar component:<br/>
                                 • Calculates percentage from current vs target values<br/>
-                                • Supports color-coded vs simple grey styling<br/>
+                                • Works with per-milestone targets and dynamic milestone counts<br/>
+                                • Supports milestone-based progress tracking (weekly/monthly/quarterly)<br/>
                                 • Auto-enabled when users set targets at runtime<br/>
-                                • Integrates with real-time progress tracking<br/>
-                                • Disabled for checkbox/traffic-light types
+                                • Integrates with real-time progress tracking across all milestone periods
                               </p>
                             </TooltipContent>
                           </Tooltip>
@@ -2310,10 +2331,10 @@ Each one starts from zero, is tracked separately, and contributes to the bigger 
                               <p className="max-w-sm text-xs">
                                 <strong>Developer Info:</strong> Traffic light system:<br/>
                                 • Three modes: system (auto %), custom (user %), manual (user choice)<br/>
-                                • Color calculation based on progress vs thresholds<br/>
+                                • Color calculation based on milestone progress vs thresholds<br/>
+                                • Works with per-milestone targets and dynamic milestone counts<br/>
                                 • Custom thresholds stored in trafficLightYellowThreshold/GreenThreshold<br/>
-                                • Manual mode for checkbox/traffic-light types<br/>
-                                • Status affects dashboard alerts and notifications
+                                • Status affects dashboard alerts and milestone-based notifications
                               </p>
                             </TooltipContent>
                           </Tooltip>
