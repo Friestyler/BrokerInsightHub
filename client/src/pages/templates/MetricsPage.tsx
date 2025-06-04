@@ -417,7 +417,7 @@ export default function MetricsPage() {
     trafficLightStyle: 'system',
     trafficLightYellowThreshold: 50,
     trafficLightGreenThreshold: 75,
-    targetBehavior: 'increase',
+    targetBehavior: 'stay_above',
     showTargetBehavior: false,
     // Indefinite timeframe specific fields
     firstMilestoneStartDate: undefined as Date | undefined,
@@ -629,7 +629,7 @@ export default function MetricsPage() {
       trafficLightStyle: 'system',
       trafficLightYellowThreshold: 50,
       trafficLightGreenThreshold: 75,
-      targetBehavior: 'increase',
+      targetBehavior: 'stay_above',
       showTargetBehavior: false,
       showTrafficLightConfig: false,
       // Indefinite timeframe specific fields
