@@ -2215,26 +2215,44 @@ export default function MetricsPage() {
                           <SelectContent>
                             {formData.target && formData.target > 0 ? (
                               <>
-                                <SelectItem value="stay_below">
-                                  You want to reach or stay below {formData.okrType === 'currency' ? '€' : ''}{formData.target?.toLocaleString()}{formData.okrType === 'percent' ? '%' : formData.okrType === 'number' ? '#' : ''}
-                                </SelectItem>
                                 <SelectItem value="stay_above">
-                                  You want to reach or stay above {formData.okrType === 'currency' ? '€' : ''}{formData.target?.toLocaleString()}{formData.okrType === 'percent' ? '%' : formData.okrType === 'number' ? '#' : ''}
+                                  <div>
+                                    <div>I want to achieve the target or go higher</div>
+                                    <div className="text-xs text-gray-500 mt-1">e.g., "Reach at least {formData.okrType === 'currency' ? '€' + formData.target?.toLocaleString() : formData.target?.toLocaleString() + (formData.okrType === 'percent' ? '%' : formData.okrType === 'number' ? ' certifications' : '')}"</div>
+                                  </div>
+                                </SelectItem>
+                                <SelectItem value="stay_below">
+                                  <div>
+                                    <div>I want to achieve the target or stay below</div>
+                                    <div className="text-xs text-gray-500 mt-1">e.g., "Keep escalations under {formData.target?.toLocaleString()}{formData.okrType === 'percent' ? '%' : formData.okrType === 'number' ? '#' : ''}"</div>
+                                  </div>
                                 </SelectItem>
                                 <SelectItem value="on_target">
-                                  You want to stay exactly at {formData.okrType === 'currency' ? '€' : ''}{formData.target?.toLocaleString()}{formData.okrType === 'percent' ? '%' : formData.okrType === 'number' ? '#' : ''}
+                                  <div>
+                                    <div>I want to match the target exactly</div>
+                                    <div className="text-xs text-gray-500 mt-1">e.g., "Maintain exactly {formData.okrType === 'currency' ? '€' + formData.target?.toLocaleString() : formData.target?.toLocaleString() + (formData.okrType === 'percent' ? '%' : formData.okrType === 'number' ? ' consultants' : '')}"</div>
+                                  </div>
                                 </SelectItem>
                               </>
                             ) : (
                               <>
-                                <SelectItem value="stay_below">
-                                  You want to reach or stay below your target value
-                                </SelectItem>
                                 <SelectItem value="stay_above">
-                                  You want to reach or stay above your target value
+                                  <div>
+                                    <div>I want to achieve the target or go higher</div>
+                                    <div className="text-xs text-gray-500 mt-1">e.g., "Reach at least 10 certifications," "Sell more than €20K"</div>
+                                  </div>
+                                </SelectItem>
+                                <SelectItem value="stay_below">
+                                  <div>
+                                    <div>I want to achieve the target or stay below</div>
+                                    <div className="text-xs text-gray-500 mt-1">e.g., "Keep escalations under 5," "Reduce churn below 8%"</div>
+                                  </div>
                                 </SelectItem>
                                 <SelectItem value="on_target">
-                                  You want to stay exactly at your target value
+                                  <div>
+                                    <div>I want to match the target exactly</div>
+                                    <div className="text-xs text-gray-500 mt-1">e.g., "Maintain 5 certified consultants," "Hold a steady NPS of 40"</div>
+                                  </div>
                                 </SelectItem>
                               </>
                             )}
