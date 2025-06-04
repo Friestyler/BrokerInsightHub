@@ -2182,7 +2182,7 @@ export default function MetricsPage() {
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
                           <h4 className="text-sm font-medium text-gray-900">
-                            How should the target behave?
+                            What kind of result are you aiming for?
                             {(!formData.target || formData.target === 0) && (
                               <span className="text-xs font-normal text-gray-500 ml-1">(This will apply once a target is added)</span>
                             )}
