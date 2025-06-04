@@ -1756,7 +1756,7 @@ export default function MetricsPage() {
                   )}
 
                   {/* Target Behavior Selection - Hidden for traffic light type */}
-                  {formData.okrType !== 'traffic-light' && (
+                  {formData.okrType !== 'traffic-light' && formData.target && formData.target > 0 && (
                     <div className="space-y-3">
                       <div className="space-y-2">
                         <h4 className="text-sm font-medium text-gray-900">Target Behavior</h4>
@@ -1768,11 +1768,21 @@ export default function MetricsPage() {
                             <SelectValue placeholder="Select target behavior" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="increase">Increase to target - Result should reach or exceed target</SelectItem>
-                            <SelectItem value="decrease">Decrease to target - Result should reach or go below target</SelectItem>
-                            <SelectItem value="stay_above">Stay above target - Result should always be above target</SelectItem>
-                            <SelectItem value="stay_below">Stay below target - Result should always be below target</SelectItem>
-                            <SelectItem value="on_target">Always on target - Result should not go over or below target</SelectItem>
+                            <SelectItem value="increase">
+                              You want to reach or exceed {formData.okrType === 'currency' ? '€' : ''}{formData.target?.toLocaleString()}{formData.okrType === 'percent' ? '%' : formData.okrType === 'number' ? '#' : ''}
+                            </SelectItem>
+                            <SelectItem value="decrease">
+                              You want to reach or go below {formData.okrType === 'currency' ? '€' : ''}{formData.target?.toLocaleString()}{formData.okrType === 'percent' ? '%' : formData.okrType === 'number' ? '#' : ''}
+                            </SelectItem>
+                            <SelectItem value="stay_above">
+                              You want to stay above {formData.okrType === 'currency' ? '€' : ''}{formData.target?.toLocaleString()}{formData.okrType === 'percent' ? '%' : formData.okrType === 'number' ? '#' : ''}
+                            </SelectItem>
+                            <SelectItem value="stay_below">
+                              You want to stay below {formData.okrType === 'currency' ? '€' : ''}{formData.target?.toLocaleString()}{formData.okrType === 'percent' ? '%' : formData.okrType === 'number' ? '#' : ''}
+                            </SelectItem>
+                            <SelectItem value="on_target">
+                              You want to stay exactly at {formData.okrType === 'currency' ? '€' : ''}{formData.target?.toLocaleString()}{formData.okrType === 'percent' ? '%' : formData.okrType === 'number' ? '#' : ''}
+                            </SelectItem>
                           </SelectContent>
                         </Select>
                       </div>
