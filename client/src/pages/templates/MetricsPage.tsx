@@ -1286,6 +1286,22 @@ export default function MetricsPage() {
                 <label className="text-sm font-semibold text-gray-900">
                   How would you like to measure this OKR? <span className="text-red-500">*</span>
                 </label>
+                <TooltipProvider>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Info className="w-4 h-4 text-gray-400 cursor-help" />
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="max-w-sm text-xs">
+                        <strong>Developer Info:</strong> This sets the okrType field which determines:<br/>
+                        • Input validation (currency formatting, percentage limits)<br/>
+                        • Display components (progress bars, traffic lights)<br/>
+                        • Target behavior options<br/>
+                        • Calculation logic for milestones and totals
+                      </p>
+                    </TooltipContent>
+                  </Tooltip>
+                </TooltipProvider>
                 <div className="flex items-center gap-1 text-xs text-gray-500 bg-blue-50 px-2 py-1 rounded-full">
                   <svg className="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -1354,9 +1370,27 @@ export default function MetricsPage() {
               {/* Timeframe Field */}
               {formData.okrType && (
                 <div className="space-y-2">
-                  <label className="text-sm font-medium text-gray-900">
-                    Over what time frame will you measure this OKR? <span className="text-red-500">*</span>
-                  </label>
+                  <div className="flex items-center gap-2">
+                    <label className="text-sm font-medium text-gray-900">
+                      Over what time frame will you measure this OKR? <span className="text-red-500">*</span>
+                    </label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="w-4 h-4 text-gray-400 cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="max-w-sm text-xs">
+                            <strong>Developer Info:</strong> This timeframe selection:<br/>
+                            • Drives milestone frequency options (weekly for short periods, quarterly for longer)<br/>
+                            • Calculates totalTarget by multiplying target × number of milestones<br/>
+                            • Uses AdvancedTimeframeFilter component with date range logic<br/>
+                            • Affects progress tracking intervals and reporting periods
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
                   <div className="mt-2">
                     <AdvancedTimeframeFilter
                       value={formData.timeframe}
@@ -1375,9 +1409,28 @@ export default function MetricsPage() {
               {/* Milestone Frequency Field */}
               {formData.okrType && (
                 <div className="space-y-2">
-                  <label htmlFor="okr-milestone-frequency" className="text-sm font-medium text-gray-900">
-                    Select a milestone frequency to define how often progress will be tracked <span className="text-red-500">*</span>
-                  </label>
+                  <div className="flex items-center gap-2">
+                    <label htmlFor="okr-milestone-frequency" className="text-sm font-medium text-gray-900">
+                      Select a milestone frequency to define how often progress will be tracked <span className="text-red-500">*</span>
+                    </label>
+                    <TooltipProvider>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Info className="w-4 h-4 text-gray-400 cursor-help" />
+                        </TooltipTrigger>
+                        <TooltipContent>
+                          <p className="max-w-sm text-xs">
+                            <strong>Developer Info:</strong> Milestone frequency controls:<br/>
+                            • Dynamic options based on timeframe duration calculation<br/>
+                            • Affects target label display ("per milestone" vs "value")<br/>
+                            • Determines totalTarget calculation (target × milestones)<br/>
+                            • Sets progress tracking intervals for user dashboards<br/>
+                            • "No milestone" option disables per-milestone calculations
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </TooltipProvider>
+                  </div>
 
                   <Select 
                     value={formData.milestoneFrequency} 
@@ -1566,7 +1619,26 @@ export default function MetricsPage() {
               {formData.okrType && formData.okrType !== 'traffic-light' && formData.okrType !== 'checkbox' && (
                 <div className="space-y-6 pt-6 border-t border-gray-200">
                   <div className="space-y-3">
-                    <h3 className="text-lg font-semibold text-gray-900">Set your target(s) and behavior <span className="text-sm font-normal text-gray-500">(Optional)</span></h3>
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-lg font-semibold text-gray-900">Set your target(s) and behavior <span className="text-sm font-normal text-gray-500">(Optional)</span></h3>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Info className="w-4 h-4 text-gray-400 cursor-help" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="max-w-sm text-xs">
+                              <strong>Developer Info:</strong> Target system includes:<br/>
+                              • Dynamic input validation based on okrType (currency format, percentage 0-100)<br/>
+                              • Auto-calculation of totalTarget using calculateTotalTarget() function<br/>
+                              • Conditional display logic for milestone vs non-milestone targets<br/>
+                              • Target behavior options that affect progress evaluation algorithms<br/>
+                              • Empty targets allow user-defined values at runtime
+                            </p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
                     <p className="text-sm text-gray-600">Users will track their results against these targets. You can leave targets empty if you prefer to let users set their own targets.</p>
                   </div>
 
@@ -1756,10 +1828,34 @@ export default function MetricsPage() {
                   )}
 
                   {/* Target Behavior Selection - Hidden for traffic light type */}
-                  {formData.okrType !== 'traffic-light' && formData.target && formData.target > 0 && (
+                  {formData.okrType !== 'traffic-light' && (
                     <div className="space-y-3">
                       <div className="space-y-2">
-                        <h4 className="text-sm font-medium text-gray-900">Target Behavior</h4>
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-sm font-medium text-gray-900">
+                            How should the target behave?
+                            {(!formData.target || formData.target === 0) && (
+                              <span className="text-xs font-normal text-gray-500 ml-1">(This will apply once a target is added)</span>
+                            )}
+                          </h4>
+                          <TooltipProvider>
+                            <Tooltip>
+                              <TooltipTrigger asChild>
+                                <Info className="w-4 h-4 text-gray-400 cursor-help" />
+                              </TooltipTrigger>
+                              <TooltipContent>
+                                <p className="max-w-sm text-xs">
+                                  <strong>Developer Info:</strong> Target behavior controls:<br/>
+                                  • Progress evaluation logic (increase/decrease/stay_above/stay_below/on_target)<br/>
+                                  • Traffic light color calculation algorithms<br/>
+                                  • Success/failure determination for dashboards<br/>
+                                  • Dynamic option text based on actual target values<br/>
+                                  • Affects automated notifications and alerts
+                                </p>
+                              </TooltipContent>
+                            </Tooltip>
+                          </TooltipProvider>
+                        </div>
                         <Select
                           value={formData.targetBehavior || 'increase'}
                           onValueChange={(value) => setFormData(prev => ({...prev, targetBehavior: value}))}
@@ -1768,21 +1864,43 @@ export default function MetricsPage() {
                             <SelectValue placeholder="Select target behavior" />
                           </SelectTrigger>
                           <SelectContent>
-                            <SelectItem value="increase">
-                              You want to reach or exceed {formData.okrType === 'currency' ? '€' : ''}{formData.target?.toLocaleString()}{formData.okrType === 'percent' ? '%' : formData.okrType === 'number' ? '#' : ''}
-                            </SelectItem>
-                            <SelectItem value="decrease">
-                              You want to reach or go below {formData.okrType === 'currency' ? '€' : ''}{formData.target?.toLocaleString()}{formData.okrType === 'percent' ? '%' : formData.okrType === 'number' ? '#' : ''}
-                            </SelectItem>
-                            <SelectItem value="stay_above">
-                              You want to stay above {formData.okrType === 'currency' ? '€' : ''}{formData.target?.toLocaleString()}{formData.okrType === 'percent' ? '%' : formData.okrType === 'number' ? '#' : ''}
-                            </SelectItem>
-                            <SelectItem value="stay_below">
-                              You want to stay below {formData.okrType === 'currency' ? '€' : ''}{formData.target?.toLocaleString()}{formData.okrType === 'percent' ? '%' : formData.okrType === 'number' ? '#' : ''}
-                            </SelectItem>
-                            <SelectItem value="on_target">
-                              You want to stay exactly at {formData.okrType === 'currency' ? '€' : ''}{formData.target?.toLocaleString()}{formData.okrType === 'percent' ? '%' : formData.okrType === 'number' ? '#' : ''}
-                            </SelectItem>
+                            {formData.target && formData.target > 0 ? (
+                              <>
+                                <SelectItem value="increase">
+                                  You want to reach or exceed {formData.okrType === 'currency' ? '€' : ''}{formData.target?.toLocaleString()}{formData.okrType === 'percent' ? '%' : formData.okrType === 'number' ? '#' : ''}
+                                </SelectItem>
+                                <SelectItem value="decrease">
+                                  You want to reach or go below {formData.okrType === 'currency' ? '€' : ''}{formData.target?.toLocaleString()}{formData.okrType === 'percent' ? '%' : formData.okrType === 'number' ? '#' : ''}
+                                </SelectItem>
+                                <SelectItem value="stay_above">
+                                  You want to stay above {formData.okrType === 'currency' ? '€' : ''}{formData.target?.toLocaleString()}{formData.okrType === 'percent' ? '%' : formData.okrType === 'number' ? '#' : ''}
+                                </SelectItem>
+                                <SelectItem value="stay_below">
+                                  You want to stay below {formData.okrType === 'currency' ? '€' : ''}{formData.target?.toLocaleString()}{formData.okrType === 'percent' ? '%' : formData.okrType === 'number' ? '#' : ''}
+                                </SelectItem>
+                                <SelectItem value="on_target">
+                                  You want to stay exactly at {formData.okrType === 'currency' ? '€' : ''}{formData.target?.toLocaleString()}{formData.okrType === 'percent' ? '%' : formData.okrType === 'number' ? '#' : ''}
+                                </SelectItem>
+                              </>
+                            ) : (
+                              <>
+                                <SelectItem value="increase">
+                                  You want to reach or exceed your target value
+                                </SelectItem>
+                                <SelectItem value="decrease">
+                                  You want to reach or go below your target value
+                                </SelectItem>
+                                <SelectItem value="stay_above">
+                                  You want to stay above your target value
+                                </SelectItem>
+                                <SelectItem value="stay_below">
+                                  You want to stay below your target value
+                                </SelectItem>
+                                <SelectItem value="on_target">
+                                  You want to stay exactly at your target value
+                                </SelectItem>
+                              </>
+                            )}
                           </SelectContent>
                         </Select>
                       </div>
