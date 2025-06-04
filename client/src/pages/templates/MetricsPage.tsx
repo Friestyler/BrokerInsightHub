@@ -1185,7 +1185,7 @@ export default function MetricsPage() {
             <div className="space-y-4">
               <div className="flex items-center gap-2">
                 <label className="text-sm font-semibold text-gray-900">
-                  OKR Type <span className="text-red-500">*</span>
+                  How would you like to measure this OKR? <span className="text-red-500">*</span>
                 </label>
                 <div className="flex items-center gap-1 text-xs text-gray-500 bg-blue-50 px-2 py-1 rounded-full">
                   <svg className="w-3 h-3 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
