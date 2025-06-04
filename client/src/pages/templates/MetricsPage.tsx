@@ -1525,7 +1525,7 @@ Each one starts from zero, is tracked separately, and contributes to the bigger 
                             <SelectItem key="quarterly" value="Quarterly">Quarterly</SelectItem>,
                             <SelectItem key="yearly" value="Yearly">Yearly</SelectItem>,
                             <SelectItem key="custom" value="Custom">Custom</SelectItem>,
-                            <SelectItem key="no-milestone" value="No milestone (target needs to be met only once)">No milestone (target needs to be met only once)</SelectItem>
+                            <SelectItem key="no-milestone" value="No milestone (I don't want to split this OKR into smaller chunks)">No milestone (I don't want to split this OKR into smaller chunks)</SelectItem>
                           );
                           return availableFrequencies;
                         }
@@ -1556,14 +1556,14 @@ Each one starts from zero, is tracked separately, and contributes to the bigger 
                           // 1 month or less: Weekly, No milestone
                           availableFrequencies.push(
                             <SelectItem key="weekly" value="Weekly">Weekly</SelectItem>,
-                            <SelectItem key="no-milestone" value="No milestone (target needs to be met only once)">No milestone (target needs to be met only once)</SelectItem>
+                            <SelectItem key="no-milestone" value="No milestone (I don't want to split this OKR into smaller chunks)">No milestone (I don't want to split this OKR into smaller chunks)</SelectItem>
                           );
                         } else if (timeframeDuration > 1 && timeframeDuration < 6) {
                           // Between 1-6 months: Weekly, Monthly, No milestone
                           availableFrequencies.push(
                             <SelectItem key="weekly" value="Weekly">Weekly</SelectItem>,
                             <SelectItem key="monthly" value="Monthly">Monthly</SelectItem>,
-                            <SelectItem key="no-milestone" value="No milestone (target needs to be met only once)">No milestone (target needs to be met only once)</SelectItem>
+                            <SelectItem key="no-milestone" value="No milestone (I don't want to split this OKR into smaller chunks)">No milestone (I don't want to split this OKR into smaller chunks)</SelectItem>
                           );
                         } else if (timeframeDuration === 6) {
                           // Exactly 6 months: Weekly, Monthly, Quarterly, No milestone
@@ -1571,7 +1571,7 @@ Each one starts from zero, is tracked separately, and contributes to the bigger 
                             <SelectItem key="weekly" value="Weekly">Weekly</SelectItem>,
                             <SelectItem key="monthly" value="Monthly">Monthly</SelectItem>,
                             <SelectItem key="quarterly" value="Quarterly">Quarterly</SelectItem>,
-                            <SelectItem key="no-milestone" value="No milestone (target needs to be met only once)">No milestone (target needs to be met only once)</SelectItem>
+                            <SelectItem key="no-milestone" value="No milestone (I don't want to split this OKR into smaller chunks)">No milestone (I don't want to split this OKR into smaller chunks)</SelectItem>
                           );
                         } else if (timeframeDuration > 6 && timeframeDuration < 12) {
                           // Between 6-12 months: Weekly, Monthly, Quarterly, No milestone
@@ -1579,7 +1579,7 @@ Each one starts from zero, is tracked separately, and contributes to the bigger 
                             <SelectItem key="weekly" value="Weekly">Weekly</SelectItem>,
                             <SelectItem key="monthly" value="Monthly">Monthly</SelectItem>,
                             <SelectItem key="quarterly" value="Quarterly">Quarterly</SelectItem>,
-                            <SelectItem key="no-milestone" value="No milestone (target needs to be met only once)">No milestone (target needs to be met only once)</SelectItem>
+                            <SelectItem key="no-milestone" value="No milestone (I don't want to split this OKR into smaller chunks)">No milestone (I don't want to split this OKR into smaller chunks)</SelectItem>
                           );
                         } else if (timeframeDuration === 12) {
                           // Exactly 12 months: Weekly, Monthly, Quarterly, No milestone
@@ -1587,7 +1587,7 @@ Each one starts from zero, is tracked separately, and contributes to the bigger 
                             <SelectItem key="weekly" value="Weekly">Weekly</SelectItem>,
                             <SelectItem key="monthly" value="Monthly">Monthly</SelectItem>,
                             <SelectItem key="quarterly" value="Quarterly">Quarterly</SelectItem>,
-                            <SelectItem key="no-milestone" value="No milestone (target needs to be met only once)">No milestone (target needs to be met only once)</SelectItem>
+                            <SelectItem key="no-milestone" value="No milestone (I don't want to split this OKR into smaller chunks)">No milestone (I don't want to split this OKR into smaller chunks)</SelectItem>
                           );
                         } else if (timeframeDuration > 12 && timeframeDuration < 24) {
                           // Between 12-24 months: Weekly, Monthly, Quarterly, No milestone
@@ -1595,7 +1595,7 @@ Each one starts from zero, is tracked separately, and contributes to the bigger 
                             <SelectItem key="weekly" value="Weekly">Weekly</SelectItem>,
                             <SelectItem key="monthly" value="Monthly">Monthly</SelectItem>,
                             <SelectItem key="quarterly" value="Quarterly">Quarterly</SelectItem>,
-                            <SelectItem key="no-milestone" value="No milestone (target needs to be met only once)">No milestone (target needs to be met only once)</SelectItem>
+                            <SelectItem key="no-milestone" value="No milestone (I don't want to split this OKR into smaller chunks)">No milestone (I don't want to split this OKR into smaller chunks)</SelectItem>
                           );
                         } else if (timeframeDuration >= 24) {
                           // 2+ years: Weekly, Monthly, Quarterly, Yearly, No milestone
