@@ -1489,8 +1489,10 @@ export default function MetricsPage() {
                     </TooltipProvider>
                   </div>
                   
-                  <p className="text-gray-600 text-[12px]">Split this OKR into smaller steps — like monthly or quarterly milestones. 
-                  Each one starts from zero, is tracked separately, and contributes to the bigger goal.</p>
+                  <p className="text-gray-600 text-[12px]">
+                    Split this OKR into smaller steps — like monthly or quarterly milestones. 
+Each one starts from zero, is tracked separately, and contributes to the bigger goal.
+                  </p>
 
                   <Select 
                     value={formData.milestoneFrequency} 
