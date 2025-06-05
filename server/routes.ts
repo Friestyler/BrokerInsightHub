@@ -1395,7 +1395,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         LEFT JOIN degoudse.partner_customers pc ON p.id = pc.partner_id
         LEFT JOIN degoudse.partner_opportunities po ON p.id = po.partner_id
         LEFT JOIN degoudse.customers c ON c.id = pc.customer_id
-        GROUP BY p.id, p.name, p.description, p.owner_id, p.created_at, p.updated_at
+        GROUP BY p.id, p.name, p.description, p.status, p.location, p.contact_email, 
+                 p.primary_contact, p.partner_type, p.region, p.assigned_user_ids, 
+                 p.linked_opportunity_ids, p.created_at, p.updated_at
         ORDER BY p.id
       `);
       
@@ -1405,14 +1407,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description: partner.description,
         initials: partner.name.split(' ').map((word: string) => word[0]).join('').toUpperCase().slice(0, 2),
         industry: "Insurance",
-        type: "Partner", 
+        type: partner.partner_type || "Partner", 
         size: "medium",
-        status: "active",
+        status: partner.status,
         customers: partner.customer_count || 0,
         opportunities: partner.opportunity_count || 0,
-        ownerId: partner.owner_id,
-        createdAt: partner.created_at,
-        updatedAt: partner.updated_at,
+        location: partner.location,
+        contactEmail: partner.contact_email,
+        primaryContact: partner.primary_contact,
+        region: partner.region,
         customerNames: partner.customer_names
       }));
       
@@ -1673,7 +1676,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         LEFT JOIN degoudse.partner_customers pc ON c.id = pc.customer_id
         LEFT JOIN degoudse.customer_opportunities co ON c.id = co.customer_id
         LEFT JOIN degoudse.partners p ON p.id = pc.partner_id
-        GROUP BY c.id, c.name, c.description, c.owner_id, c.created_at, c.updated_at
+        GROUP BY c.id, c.name, c.description, c."ownerId", c."createdAt", c."updatedAt"
         ORDER BY c.id
       `);
       
@@ -1682,9 +1685,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         name: customer.name,
         description: customer.description,
         initials: customer.name.split(' ').map((word: string) => word[0]).join('').toUpperCase().slice(0, 2),
-        ownerId: customer.owner_id,
-        createdAt: customer.created_at,
-        updatedAt: customer.updated_at,
+        ownerId: customer.ownerId,
+        createdAt: customer.createdAt,
+        updatedAt: customer.updatedAt,
         partnerCount: customer.partner_count || 0,
         opportunityCount: customer.opportunity_count || 0,
         partnerNames: customer.partner_names
@@ -1916,9 +1919,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         LEFT JOIN degoudse.partners p ON p.id = po.partner_id
         LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
         LEFT JOIN degoudse.products pr ON pr.id = op.product_id
-        GROUP BY o.id, o.title, o.description, o.status, o.stage, o.estimated_value, 
-                 o.expected_close_date, o.client_id, o.product_id, 
-                 o.probability, o.type, o.created_at, o.updated_at
+        GROUP BY o.id, o.title, o.description, o.status, o.stage, o."estimatedValue", 
+                 o."expectedCloseDate", o."clientId", o."partnerId", o."productId", 
+                 o."ownerId", o.probability, o.type, o."createdAt", o."updatedAt"
         ORDER BY o.id
       `);
       
@@ -1928,19 +1931,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description: opp.description,
         status: opp.status,
         stage: opp.stage,
-        estimatedValue: opp.estimated_value,
-        expectedCloseDate: opp.expected_close_date,
-        clientId: opp.client_id,
+        estimatedValue: opp.estimatedValue,
+        expectedCloseDate: opp.expectedCloseDate,
+        clientId: opp.clientId,
         clientName: opp.customer_names || '',
         customerNames: opp.customer_names || '',
-        partnerId: opp.partner_id,
+        partnerId: opp.partnerId,
         partnerNames: opp.partner_names || '',
-        productId: opp.product_id,
+        productId: opp.productId,
         productNames: opp.product_names || '',
+        ownerId: opp.ownerId,
         probability: opp.probability,
         type: opp.type,
-        createdAt: opp.created_at,
-        updatedAt: opp.updated_at,
+        createdAt: opp.createdAt,
+        updatedAt: opp.updatedAt,
         customerCount: parseInt(opp.customer_count) || 0,
         partnerCount: parseInt(opp.partner_count) || 0,
         productCount: parseInt(opp.product_count) || 0
