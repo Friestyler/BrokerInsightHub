@@ -52,7 +52,7 @@ export function ShareModal({
   const [selectedEmail, setSelectedEmail] = useState('');
   const [selectedAccessLevel, setSelectedAccessLevel] = useState('viewer');
   const [emailMessage, setEmailMessage] = useState('');
-  const [notifyPeople, setNotifyPeople] = useState(true);
+
   const [isSending, setIsSending] = useState(false);
   
   // Email input and suggestions
@@ -367,18 +367,6 @@ export function ShareModal({
                   </SelectContent>
                 </Select>
               </div>
-            </div>
-            
-            {/* Notify people checkbox */}
-            <div className="flex items-center space-x-2">
-              <Checkbox 
-                id="notify-people" 
-                checked={notifyPeople} 
-                onCheckedChange={(checked) => setNotifyPeople(checked === true)}
-              />
-              <label htmlFor="notify-people" className="text-sm font-medium">
-                Notify people
-              </label>
             </div>
             
             {/* Message editor */}
