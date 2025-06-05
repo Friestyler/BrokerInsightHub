@@ -1901,6 +1901,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create a new saved list for degoudse
+  app.post('/api/degoudse/saved-lists', async (req, res) => {
+    try {
+      const { name, description, type, entity_type, members, filters, is_shared } = req.body;
+      
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query(`
+        INSERT INTO degoudse.saved_lists (name, description, type, entity_type, members, filters, is_shared, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+        RETURNING *
+      `, [name, description, type, entity_type, JSON.stringify(members), JSON.stringify(filters), is_shared]);
+      
+      console.log('Created saved list:', result.rows[0]);
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error creating saved list:', error);
+      res.status(500).json({ error: 'Failed to create saved list' });
+    }
+  });
+
   app.get('/api/degoudse/opportunities', async (req, res) => {
     try {
       const envPool = getEnvironmentPool('degoudse');
@@ -3860,6 +3880,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/saved-lists', (req, res) => {
     const queryParams = req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '';
     res.redirect(`/api/degoudse/saved-lists${queryParams}`);
+  });
+
+  app.post('/api/saved-lists', (req, res) => {
+    res.redirect(307, '/api/degoudse/saved-lists');
   });
 
   // REMOVED: Shadow endpoint causing conflicts with environment-specific endpoints
