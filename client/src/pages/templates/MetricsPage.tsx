@@ -1829,29 +1829,7 @@ export default function MetricsPage() {
               {/* Target & Measurement Section - Hidden for traffic light and checkbox types */}
               {formData.okrType && formData.okrType !== 'traffic-light' && formData.okrType !== 'checkbox' && (
                 <div className="space-y-6 pt-6 border-t border-gray-200">
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2">
-                      <h3 className="text-lg font-semibold text-gray-900">Set your target(s) and behavior <span className="text-sm font-normal text-gray-500">(Optional)</span></h3>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Info className="w-4 h-4 text-gray-400 cursor-help" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="max-w-sm text-xs">
-                              <strong>Developer Info:</strong> Target system includes:<br/>
-                              • Dynamic input validation based on okrType (currency format, percentage 0-100)<br/>
-                              • Auto-calculation of totalTarget using calculateTotalTarget() function<br/>
-                              • Conditional display logic for milestone vs non-milestone targets<br/>
-                              • Target behavior options that affect progress evaluation algorithms<br/>
-                              • Empty targets allow user-defined values at runtime
-                            </p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                    <p className="text-gray-600 text-[12px]">Users will track their results against these targets. You can leave targets empty if you prefer to let users set their own targets.</p>
-                  </div>
+                  <p className="text-gray-600 text-[12px]">Users will track their results against these targets. You can leave targets empty if you prefer to let users set their own targets.</p>
 
 
 
