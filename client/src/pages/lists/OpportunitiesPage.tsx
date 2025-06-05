@@ -59,7 +59,11 @@ const useCreateSavedList = () => {
       return apiRequest('POST', '/api/saved-lists', newList);
     },
     onSuccess: () => {
+      // Invalidate all saved lists queries to refresh the dropdown
       queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'opportunities'] });
+      // Force refetch of saved lists data
+      queryClient.refetchQueries({ queryKey: ['/api/saved-lists', 'opportunities'] });
     }
   });
 };

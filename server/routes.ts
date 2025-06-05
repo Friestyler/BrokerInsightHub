@@ -1907,11 +1907,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { name, description, type, entity_type, members, filters, is_shared } = req.body;
       
       const envPool = getEnvironmentPool('degoudse');
+      
+      // Convert members array to PostgreSQL array format if it exists
+      let membersArray = null;
+      if (members && Array.isArray(members)) {
+        membersArray = `{${members.join(',')}}`;
+      }
+      
       const result = await envPool.query(`
         INSERT INTO degoudse.saved_lists (name, description, type, entity_type, members, filters, is_shared, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, NOW(), NOW())
+        VALUES ($1, $2, $3, $4, $5::integer[], $6, $7, NOW(), NOW())
         RETURNING *
-      `, [name, description, type, entity_type, JSON.stringify(members), JSON.stringify(filters), is_shared]);
+      `, [name, description, type, entity_type, membersArray, JSON.stringify(filters), is_shared]);
       
       console.log('Created saved list:', result.rows[0]);
       res.json(result.rows[0]);
@@ -2524,12 +2531,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { listId } = req.params;
       const envPool = getEnvironmentPool('degoudse');
       
-      const result = await envPool.query(`
-        SELECT share_token, list_name, list_description, message, created_at, expires_at
-        FROM degoudse.shared_lists 
-        WHERE list_id = $1 AND expires_at > NOW()
-        ORDER BY created_at DESC
-      `, [listId]);
+      // Check if listId is a numeric value (actual list ID) or a share token
+      const isNumericListId = /^\d+$/.test(listId) && parseInt(listId) < 2147483647; // Max int32
+      
+      let result;
+      if (isNumericListId) {
+        // Query by list_id
+        result = await envPool.query(`
+          SELECT share_token, list_name, list_description, message, created_at, expires_at
+          FROM degoudse.shared_lists 
+          WHERE list_id = $1 AND expires_at > NOW()
+          ORDER BY created_at DESC
+        `, [parseInt(listId)]);
+      } else {
+        // Query by share_token
+        result = await envPool.query(`
+          SELECT share_token, list_name, list_description, message, created_at, expires_at
+          FROM degoudse.shared_lists 
+          WHERE share_token = $1 AND expires_at > NOW()
+          ORDER BY created_at DESC
+        `, [listId]);
+      }
       
       res.json(result.rows);
     } catch (error) {
