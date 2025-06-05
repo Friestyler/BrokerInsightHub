@@ -42,114 +42,113 @@ const ProjectsPage = () => <div className="p-6"><h1 className="text-2xl font-bol
 
 function Router() {
   return (
-    <Layout>
-      <Switch>
-        <Route path="/" component={PartnerPilot} />
-        
-        {/* Primary entity routes */}
-        <Route path="/partners" component={PartnersPage} />
-        <Route path="/lists/partners/:id" component={PartnerDetail} />
-        <Route path="/customers" component={CustomersPage} />
-        <Route path="/lists/customers/:id" component={CustomerDetail} />
-        <Route path="/opportunities" component={OpportunitiesPage} />
-        <Route path="/opportunities/:id" component={OpportunityDetail} />
-        <Route path="/vendors" component={VendorsPage} />
-        <Route path="/products" component={ProductsPage} />
-        <Route path="/lists/products/:id" component={ProductDetail} />
-        <Route path="/projects" component={ProjectsPage} />
-        <Route path="/contacts" component={ContactsPage} />
-        
-        {/* Campaign routes */}
-        <Route path="/campaigns">
-          {() => (
-            <EnvironmentRouteGuard
-              component={CampaignsPage} 
-              excludedEnvironments={["acme"]} 
-            />
-          )}
-        </Route>
-        <Route path="/campaigns/new">
-          {() => (
-            <EnvironmentRouteGuard
-              component={CampaignBuilder} 
-              excludedEnvironments={["acme"]} 
-            />
-          )}
-        </Route>
-
-        <Route path="/campaigns/:id">
-          {() => (
-            <EnvironmentRouteGuard
-              component={CampaignDetail} 
-              excludedEnvironments={["acme"]} 
-            />
-          )}
-        </Route>
-        
-        {/* Data Upload routes */}
-        <Route path="/data-upload">
-          {() => (
-            <EnvironmentRouteGuard
-              component={DataUploadOptions} 
-              excludedEnvironments={[]} 
-            />
-          )}
-        </Route>
-        <Route path="/data-upload/brio">
-          {() => (
-            <EnvironmentRouteGuard
-              component={BrioUploadFlow} 
-              excludedEnvironments={[]} 
-            />
-          )}
-        </Route>
-        <Route path="/data-upload/degoudse">
-          {() => (
-            <EnvironmentRouteGuard
-              component={DeGoudseUploadWizard} 
-              excludedEnvironments={[]} 
-            />
-          )}
-        </Route>
-        
-        {/* Reports section route */}
-        <Route path="/reports" component={ReportsPage} />
-        
-        {/* Templates section routes */}
-        <Route path="/templates/okr-metrics" component={OKRTemplatesPage} />
-        <Route path="/templates/groups/:id" component={GroupDetail} />
-        
-        {/* Smart Updates routes */}
-        <Route path="/smart-updates/notifications" component={NotificationsPage} />
-        <Route path="/smart-updates/automated" component={SmartUpdatesPage} />
-        
-        {/* Settings routes */}
-        <Route path="/settings/users" component={UserManagement} />
-        <Route path="/settings/contacts" component={ContactsPage} />
-        <Route path="/settings/developer" component={DeveloperPage} />
-        <Route path="/settings/database" component={DatabaseAdmin} />
-        
-        {/* Public shared list route - no layout */}
-        <Route path="/share/list/:shareToken">
-          {() => (
-            <div>
-              <SharedListView />
-            </div>
-          )}
-        </Route>
-        
-        {/* Partner view route - no layout */}
-        <Route path="/partner-view/list/:listId">
-          {() => (
-            <div>
-              <PartnerView />
-            </div>
-          )}
-        </Route>
-        
-        <Route component={NotFound} />
-      </Switch>
-    </Layout>
+    <Switch>
+      {/* Routes that don't use the main layout */}
+      <Route path="/share/list/:shareToken">
+        {() => (
+          <div>
+            <SharedListView />
+          </div>
+        )}
+      </Route>
+      
+      <Route path="/partner-view/list/:listId" component={PartnerView} />
+      
+      {/* All other routes use the main layout */}
+      <Route>
+        {() => (
+          <Layout>
+            <Switch>
+              <Route path="/" component={PartnerPilot} />
+              
+              {/* Primary entity routes */}
+              <Route path="/partners" component={PartnersPage} />
+              <Route path="/lists/partners/:id" component={PartnerDetail} />
+              <Route path="/customers" component={CustomersPage} />
+              <Route path="/lists/customers/:id" component={CustomerDetail} />
+              <Route path="/opportunities" component={OpportunitiesPage} />
+              <Route path="/opportunities/:id" component={OpportunityDetail} />
+              <Route path="/vendors" component={VendorsPage} />
+              <Route path="/products" component={ProductsPage} />
+              <Route path="/lists/products/:id" component={ProductDetail} />
+              <Route path="/projects" component={ProjectsPage} />
+              <Route path="/contacts" component={ContactsPage} />
+              
+              {/* Campaign routes */}
+              <Route path="/campaigns">
+                {() => (
+                  <EnvironmentRouteGuard
+                    component={CampaignsPage} 
+                    excludedEnvironments={["acme"]} 
+                  />
+                )}
+              </Route>
+              <Route path="/campaigns/create">
+                {() => (
+                  <EnvironmentRouteGuard
+                    component={CampaignBuilder} 
+                    excludedEnvironments={["acme"]} 
+                  />
+                )}
+              </Route>
+              <Route path="/campaigns/:id">
+                {() => (
+                  <EnvironmentRouteGuard
+                    component={CampaignDetail} 
+                    excludedEnvironments={["acme"]} 
+                  />
+                )}
+              </Route>
+              
+              {/* Data Upload routes */}
+              <Route path="/data-upload">
+                {() => (
+                  <EnvironmentRouteGuard
+                    component={DataUploadOptions} 
+                    excludedEnvironments={[]} 
+                  />
+                )}
+              </Route>
+              <Route path="/data-upload/brio">
+                {() => (
+                  <EnvironmentRouteGuard
+                    component={BrioUploadFlow} 
+                    excludedEnvironments={[]} 
+                  />
+                )}
+              </Route>
+              <Route path="/data-upload/degoudse">
+                {() => (
+                  <EnvironmentRouteGuard
+                    component={DeGoudseUploadWizard} 
+                    excludedEnvironments={[]} 
+                  />
+                )}
+              </Route>
+              
+              {/* Reports section route */}
+              <Route path="/reports" component={ReportsPage} />
+              
+              {/* Templates section routes */}
+              <Route path="/templates/okr-metrics" component={OKRTemplatesPage} />
+              <Route path="/templates/groups/:id" component={GroupDetail} />
+              
+              {/* Smart Updates section routes */}
+              <Route path="/smart-updates" component={SmartUpdatesPage} />
+              <Route path="/smart-updates/notifications" component={NotificationsPage} />
+              
+              {/* Settings routes */}
+              <Route path="/settings/users" component={UserManagement} />
+              <Route path="/settings/contacts" component={ContactsPage} />
+              <Route path="/settings/developer" component={DeveloperPage} />
+              <Route path="/settings/database" component={DatabaseAdmin} />
+              
+              <Route component={NotFound} />
+            </Switch>
+          </Layout>
+        )}
+      </Route>
+    </Switch>
   );
 }
 
