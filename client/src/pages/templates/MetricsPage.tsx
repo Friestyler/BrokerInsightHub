@@ -2243,14 +2243,13 @@ export default function MetricsPage() {
                           </div>
                           
                           {/* Milestone frequency display */}
-                          {formData.milestoneFrequency && (
+                          {formData.milestoneFrequency && formData.milestoneFrequency !== 'none' && (
                             <>
                               <span className="text-gray-700">per</span>
                               <span className="text-blue-600 font-medium">
                                 {formData.milestoneFrequency === 'weekly' ? 'week' :
                                  formData.milestoneFrequency === 'monthly' ? 'month' :
                                  formData.milestoneFrequency === 'quarterly' ? 'quarter' :
-                                 formData.milestoneFrequency === 'none' ? 'total timeframe' :
                                  formData.milestoneFrequency}
                               </span>
                             </>
