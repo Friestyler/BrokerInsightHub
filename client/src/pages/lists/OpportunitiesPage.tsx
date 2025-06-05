@@ -929,8 +929,8 @@ function OpportunitiesTable() {
                               )}
                             </div>
                             
-                            {/* Three dots menu for shared lists only */}
-                            {!list.isDefault && existingSharedLinks.some((link: any) => link.list_id === list.id) && (
+                            {/* Three dots menu for non-default lists */}
+                            {!list.isDefault && (
                               <div className="relative ml-1">
                                 <button
                                   className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-slate-200 transition-all"
