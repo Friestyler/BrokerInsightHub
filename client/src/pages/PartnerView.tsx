@@ -3,6 +3,7 @@ import { useParams } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Menu } from 'lucide-react';
 
 // Partner View Layout Component with same structure as main Layout
@@ -141,8 +142,22 @@ function PartnerLayout({ children }: { children: React.ReactNode }) {
 export default function PartnerView() {
   const { listId } = useParams<{ listId: string }>();
   const [opportunities, setOpportunities] = useState<any[]>([]);
+  
+  // State for Lists dropdown and filters
+  const [showListsDropdown, setShowListsDropdown] = useState(false);
+  const [activeList, setActiveList] = useState<any>(null);
+  const [filterText, setFilterText] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('');
+  const [selectedType, setSelectedType] = useState('');
 
-  // Fetch the shared list details
+  // Fetch all shared lists that a partner can see
+  const { data: sharedLists = [], isLoading: sharedListsLoading } = useQuery({
+    queryKey: ['/api/degoudse/saved-lists'],
+    queryFn: () => apiRequest('GET', '/api/degoudse/saved-lists'),
+    staleTime: 2 * 60 * 1000,
+  });
+
+  // Fetch the shared list details for the current list
   const { data: listData, isLoading: listLoading } = useQuery({
     queryKey: ['/api/degoudse/saved-lists', listId],
     queryFn: async () => {
@@ -159,40 +174,55 @@ export default function PartnerView() {
     staleTime: 2 * 60 * 1000,
   });
 
-  // Filter opportunities based on list members
+  // Filter opportunities based on list members and current filters
   useEffect(() => {
-    if (listData && allOpportunities.length > 0) {
-      if (listData.members && listData.members.length > 0) {
-        // Filter by specific opportunity IDs
-        const filteredOpps = allOpportunities.filter((opp: any) => 
+    if (allOpportunities.length > 0) {
+      let filtered = allOpportunities;
+      
+      // First, filter by list members if we have a specific list
+      if (listData && listData.members && listData.members.length > 0) {
+        filtered = filtered.filter((opp: any) => 
           listData.members.includes(opp.id)
         );
-        setOpportunities(filteredOpps);
-      } else {
-        // Apply filters from the list
-        let filtered = allOpportunities;
-        if (listData.filters) {
-          const filters = typeof listData.filters === 'string' ? JSON.parse(listData.filters) : listData.filters;
-          
-          if (filters.searchText) {
-            filtered = filtered.filter((opp: any) =>
-              opp.title?.toLowerCase().includes(filters.searchText.toLowerCase()) ||
-              opp.description?.toLowerCase().includes(filters.searchText.toLowerCase())
-            );
-          }
-          
-          if (filters.status) {
-            filtered = filtered.filter((opp: any) => opp.status === filters.status);
-          }
-          
-          if (filters.type) {
-            filtered = filtered.filter((opp: any) => opp.type === filters.type);
-          }
+      } else if (listData && listData.filters) {
+        // Apply saved list filters
+        const filters = typeof listData.filters === 'string' ? JSON.parse(listData.filters) : listData.filters;
+        
+        if (filters.searchText) {
+          filtered = filtered.filter((opp: any) =>
+            opp.title?.toLowerCase().includes(filters.searchText.toLowerCase()) ||
+            opp.description?.toLowerCase().includes(filters.searchText.toLowerCase())
+          );
         }
-        setOpportunities(filtered);
+        
+        if (filters.status) {
+          filtered = filtered.filter((opp: any) => opp.status === filters.status);
+        }
+        
+        if (filters.type) {
+          filtered = filtered.filter((opp: any) => opp.type === filters.type);
+        }
       }
+      
+      // Then apply current user filters
+      if (filterText) {
+        filtered = filtered.filter((opp: any) =>
+          opp.title?.toLowerCase().includes(filterText.toLowerCase()) ||
+          opp.description?.toLowerCase().includes(filterText.toLowerCase())
+        );
+      }
+      
+      if (selectedStatus) {
+        filtered = filtered.filter((opp: any) => opp.status === selectedStatus);
+      }
+      
+      if (selectedType) {
+        filtered = filtered.filter((opp: any) => opp.type === selectedType);
+      }
+      
+      setOpportunities(filtered);
     }
-  }, [listData, allOpportunities]);
+  }, [listData, allOpportunities, filterText, selectedStatus, selectedType]);
 
   // Status color mapping
   const getStatusColor = (status: string) => {
@@ -249,96 +279,250 @@ export default function PartnerView() {
   return (
     <PartnerLayout>
       <div className="p-6">
-        {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900">{listData.name}</h1>
-              {listData.description && (
-                <p className="text-gray-600 mt-1">{listData.description}</p>
-              )}
-              <div className="flex items-center mt-2 text-sm text-gray-500">
-                <span>{opportunities.length} opportunities</span>
-                <span className="mx-2">•</span>
-                <span>Shared by De Goudse</span>
-              </div>
-            </div>
-            <div className="text-right">
-              <div className="text-sm text-gray-500">Total Value</div>
-              <div className="text-2xl font-bold text-gray-900">
-                {formatCurrency(opportunities.reduce((sum, opp) => sum + (opp.estimatedValue || 0), 0))}
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* Opportunities table */}
-        <div className="bg-white shadow rounded-lg overflow-hidden">
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Opportunity
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Value
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Probability
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Type
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {opportunities.map((opportunity) => (
-                  <tr key={opportunity.id} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div>
-                        <div className="text-sm font-medium text-gray-900">
-                          {opportunity.title}
-                        </div>
-                        <div className="text-sm text-gray-500">
-                          {opportunity.description}
+        <div className="space-y-4">
+          {/* Enhanced unified toolbar */}
+          <div className="bg-white p-4 rounded-lg shadow-sm">
+            <div className="flex flex-col gap-4">
+              {/* Top row with saved lists */}
+              <div className="flex flex-wrap items-center justify-between">
+                {/* Left side - Shared Lists dropdown */}
+                <div className="flex items-center gap-3">
+                  {/* Lists heading */}
+                  <div className="flex flex-col mr-2">
+                    <span className="text-base font-semibold text-gray-800 mb-2">Lists</span>
+                  </div>
+                  {/* Shared Lists dropdown */}
+                  <div className="relative">
+                    <button 
+                      className="flex items-center space-x-2 px-4 py-2.5 border rounded-md text-sm font-medium shadow-sm bg-white hover:bg-gray-50"
+                      onClick={() => setShowListsDropdown(!showListsDropdown)}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-indigo-600">
+                        <path d="M5.25 1.5V4.25H12.6875V2C12.6875 1.725 12.4906 1.5 12.25 1.5H5.25ZM3.9375 1.5H1.75C1.50937 1.5 1.3125 1.725 1.3125 2V4.25H3.9375V1.5ZM1.3125 5.75V8.25H3.9375V5.75H1.3125ZM1.3125 9.75V12C1.3125 12.275 1.50937 12.5 1.75 12.5H3.9375V9.75H1.3125ZM5.25 12.5H12.25C12.4906 12.5 12.6875 12.275 12.6875 12V9.75H5.25V12.5ZM12.6875 8.25V5.75H5.25V8.25H12.6875ZM0 2C0 0.896875 0.784766 0 1.75 0H12.25C13.2152 0 14 0.896875 14 2V12C14 13.1031 13.2152 14 12.25 14H1.75C0.784766 14 0 13.1031 0 12V2Z" fill="#3E4DC4"/>
+                      </svg>
+                      <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
+                        {activeList ? activeList.name : listData?.name || "All Opportunities"}
+                      </span>
+                      <svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        width="14" 
+                        height="14" 
+                        viewBox="0 0 24 24" 
+                        fill="none" 
+                        stroke="currentColor" 
+                        strokeWidth="2" 
+                        strokeLinecap="round" 
+                        strokeLinejoin="round" 
+                        className={`transition-transform ${showListsDropdown ? 'rotate-180' : ''}`}
+                      >
+                        <polyline points="6 9 12 15 18 9" />
+                      </svg>
+                    </button>
+                    
+                    {/* Shared Lists dropdown menu */}
+                    {showListsDropdown && (
+                      <div className="absolute z-50 mt-1.5 w-80 rounded-md border border-slate-200 bg-white text-slate-950 shadow-md animate-in fade-in-80">
+                        <div className="max-h-[300px] overflow-y-auto p-1">
+                          {/* Show shared lists that partner has access to */}
+                          {sharedLists.map((list: any) => (
+                            <div key={list.id} className="relative">
+                              <div
+                                className={`flex flex-1 cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 ${listData?.id === list.id ? 'bg-indigo-50 text-indigo-900' : 'text-slate-700'}`}
+                                onClick={() => {
+                                  // Navigate to the selected shared list
+                                  window.location.href = `/partner-view/list/${list.id}`;
+                                  setShowListsDropdown(false);
+                                }}
+                              >
+                                <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>{list.name}</span>
+                                <div className="ml-auto">
+                                  <span className="text-xs text-[#282A3F] italic" style={{ fontFamily: 'Poppins, sans-serif' }}>Shared</span>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                          
+                          {/* Show message if no shared lists */}
+                          {sharedLists.length === 0 && (
+                            <div className="px-2 py-3 text-sm text-gray-500 text-center">
+                              No shared lists available
+                            </div>
+                          )}
                         </div>
                       </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <Badge className={`${getStatusColor(opportunity.status)} border-0`}>
-                        {opportunity.status}
-                      </Badge>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {formatCurrency(opportunity.estimatedValue)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {opportunity.probability}%
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {opportunity.type}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                    )}
+                  </div>
+                </div>
+              </div>
+              
+              {/* Bottom row with search and filters */}
+              <div className="flex flex-wrap items-center justify-between gap-3">
+                <div className="flex flex-wrap items-center gap-3 flex-grow">
+                  {/* Search field */}
+                  <div className="relative w-60">
+                    <input
+                      type="text"
+                      placeholder="Search opportunities..."
+                      value={filterText}
+                      onChange={(e) => setFilterText(e.target.value)}
+                      className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
+                    />
+                    <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                      </svg>
+                    </button>
+                  </div>
+                  
+                  {/* Filter buttons */}
+                  <div className="flex items-center gap-2 ml-3">
+                    <button 
+                      className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedStatus ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+                      onClick={() => setSelectedStatus(selectedStatus ? '' : 'In Progress')}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                      </svg>
+                      <span>{selectedStatus ? `Status: ${selectedStatus}` : 'Status'}</span>
+                      {selectedStatus && (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
+                          <line x1="18" y1="6" x2="6" y2="18"></line>
+                          <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                      )}
+                    </button>
+                    
+                    <button 
+                      className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedType ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+                      onClick={() => setSelectedType(selectedType ? '' : 'Renewal')}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                      </svg>
+                      <span>{selectedType ? `Type: ${selectedType}` : 'Type'}</span>
+                      {selectedType && (
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
+                          <line x1="18" y1="6" x2="6" y2="18"></line>
+                          <line x1="6" y1="6" x2="18" y2="18"></line>
+                        </svg>
+                      )}
+                    </button>
+                  </div>
+                </div>
+                
+                {/* Clear filters button */}
+                {(filterText || selectedStatus || selectedType) && (
+                  <button 
+                    onClick={() => {
+                      setFilterText('');
+                      setSelectedStatus('');
+                      setSelectedType('');
+                    }}
+                    className="text-xs text-gray-500 hover:text-gray-700 flex items-center px-2 py-1 hover:bg-gray-50 rounded-md transition-colors"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                      <path d="M18 6L6 18"></path>
+                      <path d="M6 6l12 12"></path>
+                    </svg>
+                    Clear filters
+                  </button>
+                )}
+              </div>
+            </div>
           </div>
-        </div>
+          
+          {/* Header with list info */}
+          <div className="bg-white p-4 rounded-lg shadow-sm">
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900">{listData?.name || "Opportunities"}</h1>
+                {listData?.description && (
+                  <p className="text-gray-600 mt-1">{listData.description}</p>
+                )}
+                <div className="flex items-center mt-2 text-sm text-gray-500">
+                  <span>{opportunities.length} opportunities</span>
+                  <span className="mx-2">•</span>
+                  <span>Shared by De Goudse</span>
+                </div>
+              </div>
+              <div className="text-right">
+                <div className="text-sm text-gray-500">Total Value</div>
+                <div className="text-2xl font-bold text-gray-900">
+                  {formatCurrency(opportunities.reduce((sum, opp) => sum + (opp.estimatedValue || 0), 0))}
+                </div>
+              </div>
+            </div>
+          </div>
 
-        {/* Empty state */}
-        {opportunities.length === 0 && (
-          <div className="text-center py-12">
-            <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-            <h3 className="mt-2 text-sm font-medium text-gray-900">No opportunities</h3>
-            <p className="mt-1 text-sm text-gray-500">This list doesn't contain any opportunities.</p>
+          {/* Opportunities table */}
+          <div className="bg-white shadow rounded-lg overflow-hidden">
+            <div className="overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Opportunity
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Status
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Value
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Probability
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Type
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {opportunities.map((opportunity) => (
+                    <tr key={opportunity.id} className="hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div>
+                          <div className="text-sm font-medium text-gray-900">
+                            {opportunity.title}
+                          </div>
+                          <div className="text-sm text-gray-500">
+                            {opportunity.description}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <Badge className={`${getStatusColor(opportunity.status)} border-0`}>
+                          {opportunity.status}
+                        </Badge>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {formatCurrency(opportunity.estimatedValue)}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {opportunity.probability}%
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {opportunity.type}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
-        )}
+
+          {/* Empty state */}
+          {opportunities.length === 0 && (
+            <div className="text-center py-12">
+              <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+              </svg>
+              <h3 className="mt-2 text-sm font-medium text-gray-900">No opportunities</h3>
+              <p className="mt-1 text-sm text-gray-500">This list doesn't contain any opportunities.</p>
+            </div>
+          )}
+        </div>
       </div>
     </PartnerLayout>
   );
