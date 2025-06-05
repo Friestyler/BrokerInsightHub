@@ -374,7 +374,7 @@ export function ShareModal({
               <Checkbox 
                 id="notify-people" 
                 checked={notifyPeople} 
-                onCheckedChange={setNotifyPeople}
+                onCheckedChange={(checked) => setNotifyPeople(checked === true)}
               />
               <label htmlFor="notify-people" className="text-sm font-medium">
                 Notify people

@@ -1547,7 +1547,7 @@ function OpportunitiesTable() {
                 
                 shareData = {
                   list_name: `${selectedOpportunities.length} Selected Opportunities`,
-                  list_description: `Shared opportunities: ${selectedOpportunitiesData.filter(o => o).map(o => o.title).slice(0, 3).join(', ')}${selectedOpportunities.length > 3 ? '...' : ''}`,
+                  list_description: `Shared opportunities: ${selectedOpportunitiesData.filter(o => o).map(o => o?.title).slice(0, 3).join(', ')}${selectedOpportunities.length > 3 ? '...' : ''}`,
                   entity_type: 'opportunities',
                   data: selectedOpportunitiesData,
                   message: ''
@@ -1562,18 +1562,31 @@ function OpportunitiesTable() {
               setCurrentSharedLink(shareUrl);
             }
 
-            // Send the email invitation
-            const response = await apiRequest('POST', '/api/send-invitation', {
-              email,
-              accessLevel,
-              message,
-              listName: activeList?.name || 'Selected Opportunities',
-              shareUrl
-            });
+            // For now, show a confirmation dialog instead of sending actual emails
+            const confirmed = window.confirm(
+              `Share invitation ready!\n\n` +
+              `To: ${email}\n` +
+              `Access Level: ${accessLevel}\n` +
+              `List: ${activeList?.name || 'Selected Opportunities'}\n` +
+              `Share URL: ${shareUrl}\n\n` +
+              `${message ? `Message: ${message}\n\n` : ''}` +
+              `Click OK to simulate sending the invitation.`
+            );
 
-            return response.success === true;
+            if (confirmed) {
+              // Simulate email sending success
+              setTimeout(() => {
+                toast({
+                  title: "Invitation sent",
+                  description: `${email} has been invited to view "${activeList?.name || 'Selected Opportunities'}".`,
+                });
+              }, 500);
+              return true;
+            }
+            
+            return false;
           } catch (error) {
-            console.error('Error sending email invitation:', error);
+            console.error('Error preparing invitation:', error);
             return false;
           }
         }}
