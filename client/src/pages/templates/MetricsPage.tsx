@@ -1553,9 +1553,17 @@ export default function MetricsPage() {
                     </TooltipProvider>
                   </div>
                   
-                  <p className="text-gray-600 text-[12px]">
-                    Split this OKR into smaller steps — like monthly or quarterly milestones.
-                  </p>
+                  {formData.timeframe === 'indefinite' ? (
+                    <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
+                      <p className="text-blue-800 text-[12px] font-medium">
+                        Since you selected an indefinite timeframe, you must choose how to break this OKR into milestones for tracking progress.
+                      </p>
+                    </div>
+                  ) : (
+                    <p className="text-gray-600 text-[12px]">
+                      Split this OKR into smaller steps — like monthly or quarterly milestones.
+                    </p>
+                  )}
 
                   <Select 
                     value={formData.milestoneFrequency} 
