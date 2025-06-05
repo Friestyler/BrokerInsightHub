@@ -1395,9 +1395,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         LEFT JOIN degoudse.partner_customers pc ON p.id = pc.partner_id
         LEFT JOIN degoudse.partner_opportunities po ON p.id = po.partner_id
         LEFT JOIN degoudse.customers c ON c.id = pc.customer_id
-        GROUP BY p.id, p.name, p.description, p.status, p.location, p.contact_email, 
-                 p.primary_contact, p.partner_type, p.region, p.assigned_user_ids, 
-                 p.linked_opportunity_ids, p.created_at, p.updated_at
+        GROUP BY p.id, p.name, p.description, p.owner_id, p.created_at, p.updated_at
         ORDER BY p.id
       `);
       
@@ -1407,15 +1405,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
         description: partner.description,
         initials: partner.name.split(' ').map((word: string) => word[0]).join('').toUpperCase().slice(0, 2),
         industry: "Insurance",
-        type: partner.partner_type || "Partner", 
+        type: "Partner", 
         size: "medium",
-        status: partner.status,
+        status: "active",
         customers: partner.customer_count || 0,
         opportunities: partner.opportunity_count || 0,
-        location: partner.location,
-        contactEmail: partner.contact_email,
-        primaryContact: partner.primary_contact,
-        region: partner.region,
+        ownerId: partner.owner_id,
+        createdAt: partner.created_at,
+        updatedAt: partner.updated_at,
         customerNames: partner.customer_names
       }));
       
@@ -1461,7 +1458,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         SELECT o.*, c.name as client_name
         FROM degoudse.opportunities o
         INNER JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
-        LEFT JOIN degoudse.customers c ON o."clientId" = c.id
+        LEFT JOIN degoudse.customers c ON o.client_id = c.id
         WHERE po.partner_id = $1
         ORDER BY o.id
       `, [partnerId]);
