@@ -432,29 +432,6 @@ export default function PartnerView() {
             </div>
           </div>
           
-          {/* Header with list info */}
-          <div className="bg-white p-4 rounded-lg shadow-sm">
-            <div className="flex items-center justify-between">
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">{listData?.name || "Opportunities"}</h1>
-                {listData?.description && (
-                  <p className="text-gray-600 mt-1">{listData.description}</p>
-                )}
-                <div className="flex items-center mt-2 text-sm text-gray-500">
-                  <span>{opportunities.length} opportunities</span>
-                  <span className="mx-2">•</span>
-                  <span>Shared by De Goudse</span>
-                </div>
-              </div>
-              <div className="text-right">
-                <div className="text-sm text-gray-500">Total Value</div>
-                <div className="text-2xl font-bold text-gray-900">
-                  {formatCurrency(opportunities.reduce((sum, opp) => sum + (opp.estimatedValue || 0), 0))}
-                </div>
-              </div>
-            </div>
-          </div>
-
           {/* Opportunities table */}
           <div className="bg-white shadow rounded-lg overflow-hidden">
             <div className="overflow-x-auto">
@@ -462,7 +439,16 @@ export default function PartnerView() {
                 <thead className="bg-gray-50">
                   <tr>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Opportunity
+                      Title
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Customer
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Partner
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Product
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Status
@@ -475,6 +461,9 @@ export default function PartnerView() {
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Type
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                      Close Date
                     </th>
                   </tr>
                 </thead>
@@ -491,6 +480,15 @@ export default function PartnerView() {
                           </div>
                         </div>
                       </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {opportunity.customerName}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {opportunity.partnerName}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {opportunity.productName}
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <Badge className={`${getStatusColor(opportunity.status)} border-0`}>
                           {opportunity.status}
@@ -504,6 +502,9 @@ export default function PartnerView() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                         {opportunity.type}
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                        {opportunity.expectedCloseDate}
                       </td>
                     </tr>
                   ))}
