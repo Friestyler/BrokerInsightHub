@@ -35,6 +35,7 @@ import SmartUpdatesPage from "@/pages/smart-updates/SmartUpdatesPage";
 import NotFound from "@/pages/not-found";
 import EnvironmentRouteGuard from "@/components/EnvironmentRouteGuard";
 import SharedListView from "@/pages/shared/SharedListView";
+import PartnerView from "@/pages/PartnerView";
 
 // Temporary placeholder components for other list pages
 const ProjectsPage = () => <div className="p-6"><h1 className="text-2xl font-bold">Projects List (Coming Soon)</h1></div>;
@@ -133,6 +134,15 @@ function Router() {
           {() => (
             <div>
               <SharedListView />
+            </div>
+          )}
+        </Route>
+        
+        {/* Partner view route - no layout */}
+        <Route path="/partner-view/list/:listId">
+          {() => (
+            <div>
+              <PartnerView />
             </div>
           )}
         </Route>

@@ -505,6 +505,7 @@ function OpportunitiesTable() {
   const [showUnsavedChangesModal, setShowUnsavedChangesModal] = useState(false);
   const [currentSharedLink, setCurrentSharedLink] = useState<string>('');
   const [existingSharedLinks, setExistingSharedLinks] = useState<any[]>([]);
+  const [activeDropdownId, setActiveDropdownId] = useState<number | null>(null);
   
   // Create opportunity state
   const [showCreateModal, setShowCreateModal] = useState(false);
@@ -858,71 +859,117 @@ function OpportunitiesTable() {
                           key={list.id}
                           className="relative"
                         >
-                          <div
-                            className={`relative flex w-full cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 ${activeList?.id === list.id ? 'bg-indigo-50 text-indigo-900' : 'text-slate-700'}`}
-                            onClick={() => {
-                              // Don't do anything if clicking on already active list
-                              if (activeList?.id === list.id) {
+                          <div className="group relative flex items-center">
+                            <div
+                              className={`flex flex-1 cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 ${activeList?.id === list.id ? 'bg-indigo-50 text-indigo-900' : 'text-slate-700'}`}
+                              onClick={() => {
+                                // Don't do anything if clicking on already active list
+                                if (activeList?.id === list.id) {
+                                  setShowListsDropdown(false);
+                                  return;
+                                }
+                                
+                                // Check if we're in list editing mode before switching lists
+                                if (isEditingList) {
+                                  // Store the pending action and show confirmation dialog
+                                  setPendingListAction({
+                                    type: list.isDefault && list.name === "All Opportunities" ? 'clear' : 'select',
+                                    list: list.isDefault && list.name === "All Opportunities" ? undefined : list
+                                  });
+                                  setShowUnsavedChangesModal(true);
+                                  setShowListsDropdown(false);
+                                  return;
+                                }
+                                
+                                // Special handling for "All Opportunities" default list
+                                if (list.isDefault && list.name === "All Opportunities") {
+                                  // Clear filters and active list (same behavior as "Return to all opportunities" button)
+                                  setActiveList(null);
+                                  setOriginalListFilters(null);
+                                  setFilterText('');
+                                  setSelectedStatus('');
+                                  setSelectedType('');
+                                  setHasUnsavedChanges(false);
+                                } else {
+                                  // Normal behavior for other lists
+                                  setActiveList(list);
+                                  // Store the original filters to enable reverting changes
+                                  setOriginalListFilters(list.filters);
+                                  // Apply filter settings
+                                  setFilterText(list.filters.searchText || '');
+                                  setSelectedStatus(list.filters.status || '');
+                                  setSelectedType(list.filters.type || '');
+                                  setHasUnsavedChanges(false);
+                                }
+                                
+                                // Clear any active view when switching lists
+                                setActiveView(null);
                                 setShowListsDropdown(false);
-                                return;
-                              }
+                              }}
+                            >
+                              <div className="flex flex-1 items-center">
+                                <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>{list.name}</span>
+                                {/* Show share icon if list has shared links */}
+                                {existingSharedLinks.length > 0 && activeList?.id === list.id && (
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2 text-green-500" title="Shared publicly">
+                                    <circle cx="18" cy="5" r="3"></circle>
+                                    <circle cx="6" cy="12" r="3"></circle>
+                                    <circle cx="18" cy="19" r="3"></circle>
+                                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                                  </svg>
+                                )}
+                              </div>
                               
-                              // Check if we're in list editing mode before switching lists
-                              if (isEditingList) {
-                                // Store the pending action and show confirmation dialog
-                                setPendingListAction({
-                                  type: list.isDefault && list.name === "All Opportunities" ? 'clear' : 'select',
-                                  list: list.isDefault && list.name === "All Opportunities" ? undefined : list
-                                });
-                                setShowUnsavedChangesModal(true);
-                                setShowListsDropdown(false);
-                                return;
-                              }
-                              
-                              // Special handling for "All Opportunities" default list
-                              if (list.isDefault && list.name === "All Opportunities") {
-                                // Clear filters and active list (same behavior as "Return to all opportunities" button)
-                                setActiveList(null);
-                                setOriginalListFilters(null);
-                                setFilterText('');
-                                setSelectedStatus('');
-                                setSelectedType('');
-                                setHasUnsavedChanges(false);
-                              } else {
-                                // Normal behavior for other lists
-                                setActiveList(list);
-                                // Store the original filters to enable reverting changes
-                                setOriginalListFilters(list.filters);
-                                // Apply filter settings
-                                setFilterText(list.filters.searchText || '');
-                                setSelectedStatus(list.filters.status || '');
-                                setSelectedType(list.filters.type || '');
-                                setHasUnsavedChanges(false);
-                              }
-                              
-                              // Clear any active view when switching lists
-                              setActiveView(null);
-                              setShowListsDropdown(false);
-                            }}
-                          >
-                            <div className="flex flex-1 items-center">
-                              <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>{list.name}</span>
-                              {/* Show share icon if list has shared links */}
-                              {existingSharedLinks.length > 0 && activeList?.id === list.id && (
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2 text-green-500" title="Shared publicly">
-                                  <circle cx="18" cy="5" r="3"></circle>
-                                  <circle cx="6" cy="12" r="3"></circle>
-                                  <circle cx="18" cy="19" r="3"></circle>
-                                  <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                                  <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                                </svg>
+                              {/* Visual indicator for default list */}
+                              {list.isDefault && (
+                                <div className="ml-auto">
+                                  <span className="text-xs text-[#282A3F] italic" style={{ fontFamily: 'Poppins, sans-serif' }}>Default</span>
+                                </div>
                               )}
                             </div>
                             
-                            {/* Visual indicator for default list */}
-                            {list.isDefault && (
-                              <div className="ml-auto">
-                                <span className="text-xs text-[#282A3F] italic" style={{ fontFamily: 'Poppins, sans-serif' }}>Default</span>
+                            {/* Three dots menu for shared lists only */}
+                            {!list.isDefault && existingSharedLinks.some((link: any) => link.list_id === list.id) && (
+                              <div className="relative ml-1">
+                                <button
+                                  className="opacity-0 group-hover:opacity-100 p-1 rounded hover:bg-slate-200 transition-all"
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setActiveDropdownId(activeDropdownId === list.id ? null : list.id);
+                                  }}
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <circle cx="12" cy="12" r="1"></circle>
+                                    <circle cx="12" cy="5" r="1"></circle>
+                                    <circle cx="12" cy="19" r="1"></circle>
+                                  </svg>
+                                </button>
+                                
+                                {/* Dropdown menu */}
+                                {activeDropdownId === list.id && (
+                                  <div className="absolute right-0 top-full mt-1 w-48 rounded-md border border-slate-200 bg-white shadow-md z-50">
+                                    <div className="p-1">
+                                      <button
+                                        className="flex w-full items-center px-2 py-1.5 text-sm rounded-sm hover:bg-slate-100 text-left"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          // Navigate to partner view
+                                          window.open(`/partner-view/list/${list.id}`, '_blank');
+                                          setActiveDropdownId(null);
+                                          setShowListsDropdown(false);
+                                        }}
+                                      >
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                                          <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+                                          <polyline points="10 17 15 12 10 7"></polyline>
+                                          <line x1="15" y1="12" x2="3" y2="12"></line>
+                                        </svg>
+                                        Open list as partner
+                                      </button>
+                                    </div>
+                                  </div>
+                                )}
                               </div>
                             )}
                           </div>
