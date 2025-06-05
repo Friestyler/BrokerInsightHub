@@ -758,14 +758,14 @@ export default function MetricsPage() {
           Add Key Metric template
         </Button>
       </div>
-      {/* Search and filter section for OKR templates */}
+      {/* Search and filter section for Key Metric templates */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
         <div className="flex flex-wrap items-center gap-3">
           {/* Search field */}
           <div className="relative w-60">
             <input
               type="text"
-              placeholder="Search OKR templates..."
+              placeholder="Search Key Metric templates..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
@@ -1595,7 +1595,7 @@ export default function MetricsPage() {
                             <SelectItem key="monthly" value="Monthly">Monthly</SelectItem>,
                             <SelectItem key="quarterly" value="Quarterly">Quarterly</SelectItem>,
                             <SelectItem key="yearly" value="Yearly">Yearly</SelectItem>,
-                            <SelectItem key="no-milestone" value="No milestone (I don't want to split this OKR into smaller chunks)">No milestone (I don't want to split this OKR into smaller chunks)</SelectItem>
+                            <SelectItem key="no-milestone" value="No milestone (I don't want to split this Key Metric into smaller chunks)">No milestone (I don't want to split this Key Metric into smaller chunks)</SelectItem>
                           );
                           return availableFrequencies;
                         }
@@ -1626,14 +1626,14 @@ export default function MetricsPage() {
                           // 1 month or less: Weekly, No milestone
                           availableFrequencies.push(
                             <SelectItem key="weekly" value="Weekly">Weekly</SelectItem>,
-                            <SelectItem key="no-milestone" value="No milestone (I don't want to split this OKR into smaller chunks)">No milestone (I don't want to split this OKR into smaller chunks)</SelectItem>
+                            <SelectItem key="no-milestone" value="No milestone (I don't want to split this Key Metric into smaller chunks)">No milestone (I don't want to split this Key Metric into smaller chunks)</SelectItem>
                           );
                         } else if (timeframeDuration > 1 && timeframeDuration < 6) {
                           // Between 1-6 months: Weekly, Monthly, No milestone
                           availableFrequencies.push(
                             <SelectItem key="weekly" value="Weekly">Weekly</SelectItem>,
                             <SelectItem key="monthly" value="Monthly">Monthly</SelectItem>,
-                            <SelectItem key="no-milestone" value="No milestone (I don't want to split this OKR into smaller chunks)">No milestone (I don't want to split this OKR into smaller chunks)</SelectItem>
+                            <SelectItem key="no-milestone" value="No milestone (I don't want to split this Key Metric into smaller chunks)">No milestone (I don't want to split this Key Metric into smaller chunks)</SelectItem>
                           );
                         } else if (timeframeDuration === 6) {
                           // Exactly 6 months: Weekly, Monthly, Quarterly, No milestone
