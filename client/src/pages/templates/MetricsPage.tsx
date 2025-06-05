@@ -1928,10 +1928,7 @@ export default function MetricsPage() {
                           )}
                         </div>
                         
-                        {/* Helper text */}
-                        <p className="text-xs text-gray-500">
-                          This creates a clear target that team members can track against during each milestone period.
-                        </p>
+
 
                         {/* Per-milestone targets option */}
                         {formData.milestoneFrequency && !formData.milestoneFrequency.includes('No milestone') && (
