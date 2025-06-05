@@ -2203,7 +2203,7 @@ export default function MetricsPage() {
                         </div>
                         
                         {/* Single sentence input */}
-                        <div className="flex items-center gap-2 text-sm p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                        <div className="flex items-center gap-2 text-sm">
                           <span className="text-gray-700">I want to</span>
                           
                           {/* Behavior dropdown */}
