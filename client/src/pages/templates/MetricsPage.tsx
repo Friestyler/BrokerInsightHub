@@ -1829,7 +1829,7 @@ export default function MetricsPage() {
               {/* Target & Measurement Section - Hidden for traffic light and checkbox types */}
               {formData.okrType && formData.okrType !== 'traffic-light' && formData.okrType !== 'checkbox' && (
                 <div className="space-y-6 pt-6 border-t border-gray-200">
-                  <p className="text-gray-600 text-[12px]">Users will track their results against these targets. You can leave targets empty if you prefer to let users set their own targets.</p>
+                  <p className="text-gray-600 text-[12px]">You can leave targets empty if you prefer to let users set their own targets.</p>
 
 
 
@@ -2371,7 +2371,6 @@ export default function MetricsPage() {
             </DialogContent>
           </Dialog>
       )}
-
       {/* Milestone Information Dialog */}
       <Dialog open={isMilestoneInfoOpen} onOpenChange={setIsMilestoneInfoOpen}>
         <DialogContent className="max-w-2xl">
