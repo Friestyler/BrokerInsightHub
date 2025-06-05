@@ -1914,14 +1914,15 @@ export default function MetricsPage() {
                           </div>
                           
                           {/* Milestone frequency display */}
-                          {formData.milestoneFrequency && formData.milestoneFrequency !== 'none' && (
+                          {formData.milestoneFrequency && !formData.milestoneFrequency.includes('No milestone') && (
                             <>
                               <span className="text-gray-700">per</span>
                               <span className="text-blue-600 font-medium">
-                                {formData.milestoneFrequency === 'weekly' ? 'week' :
-                                 formData.milestoneFrequency === 'monthly' ? 'month' :
-                                 formData.milestoneFrequency === 'quarterly' ? 'quarter' :
-                                 formData.milestoneFrequency}
+                                {formData.milestoneFrequency === 'Weekly' ? 'week' :
+                                 formData.milestoneFrequency === 'Monthly' ? 'month' :
+                                 formData.milestoneFrequency === 'Quarterly' ? 'quarter' :
+                                 formData.milestoneFrequency === 'Yearly' ? 'year' :
+                                 'milestone'}
                               </span>
                             </>
                           )}
@@ -1933,7 +1934,7 @@ export default function MetricsPage() {
                         </p>
 
                         {/* Per-milestone targets option */}
-                        {formData.milestoneFrequency && formData.milestoneFrequency !== 'none' && (
+                        {formData.milestoneFrequency && !formData.milestoneFrequency.includes('No milestone') && (
                           <div className="mt-3">
                             <button
                               type="button"
@@ -1950,9 +1951,9 @@ export default function MetricsPage() {
                                   {Array.from({ length: calculateMilestoneCount(formData.timeframe, formData.milestoneFrequency, formData.numberOfMilestones) }, (_, index) => (
                                     <div key={index} className="flex items-center gap-3">
                                       <label className="text-xs font-medium text-gray-700 w-8">
-                                        {formData.milestoneFrequency === 'quarterly' ? `Q${index + 1}` :
-                                         formData.milestoneFrequency === 'monthly' ? `M${index + 1}` :
-                                         formData.milestoneFrequency === 'weekly' ? `W${index + 1}` :
+                                        {formData.milestoneFrequency === 'Quarterly' ? `Q${index + 1}` :
+                                         formData.milestoneFrequency === 'Monthly' ? `M${index + 1}` :
+                                         formData.milestoneFrequency === 'Weekly' ? `W${index + 1}` :
                                          `#${index + 1}`}:
                                       </label>
                                       <div className="relative flex-1">
