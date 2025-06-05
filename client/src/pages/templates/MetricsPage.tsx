@@ -740,8 +740,8 @@ export default function MetricsPage() {
     <div className="container mx-auto p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-3xl font-bold text-gray-900">OKR Templates</h1>
-          <p className="text-gray-600 mt-1">Create and manage OKR templates for your organization</p>
+          <h1 className="text-3xl font-bold text-gray-900">Key Metric Templates</h1>
+          <p className="text-gray-600 mt-1">Create and manage key metric templates for your organization</p>
         </div>
         <Button 
           className="bg-indigo-600 hover:bg-indigo-700 text-white"
@@ -755,7 +755,7 @@ export default function MetricsPage() {
             <path d="M5 12h14"/>
             <path d="M12 5v14"/>
           </svg>
-          Add OKR template
+          Add Key Metric template
         </Button>
       </div>
       {/* Search and filter section for OKR templates */}
@@ -1233,7 +1233,7 @@ export default function MetricsPage() {
                               <path d="M5 12h14"/>
                               <path d="M12 5v14"/>
                             </svg>
-                            Add activity to this OKR template
+                            Add activity to this Key Metric template
                           </Button>
                         </TableCell>
                       </TableRow>
@@ -1252,12 +1252,12 @@ export default function MetricsPage() {
           <DialogContent className="fixed left-[50%] top-[50%] z-50 grid w-full max-w-lg translate-x-[-50%] translate-y-[-50%] gap-6 border p-8 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg sm:max-w-[850px] max-h-[85vh] overflow-y-auto bg-[#ffffff]">
           <DialogHeader className="pb-4">
             <DialogTitle className="text-xl font-semibold text-gray-900">
-              {parentObjectiveId ? 'Create Activity' : 'Create OKR template'}
+              {parentObjectiveId ? 'Create Activity' : 'Create Key Metric template'}
             </DialogTitle>
             <DialogDescription className="text-sm text-gray-600 mt-1">
               {parentObjectiveId 
                 ? `Create a new activity under "${parentObjectiveName}"`
-                : 'Create a new OKR template that can be assigned to partners, opportunities, and customers'
+                : 'Create a new Key Metric template that can be assigned to partners, opportunities, and customers'
               }
             </DialogDescription>
           </DialogHeader>
@@ -1525,7 +1525,7 @@ export default function MetricsPage() {
                 <div className="space-y-2">
                   <div className="flex items-center gap-2">
                     <label htmlFor="okr-milestone-frequency" className="text-sm font-medium text-gray-900">
-                      Would you like to break this OKR into smaller goals? <span className="text-red-500">*</span>
+                      Would you like to break this Key Metric into smaller goals? <span className="text-red-500">*</span>
                     </label>
                     <button
                       type="button"
@@ -1556,12 +1556,12 @@ export default function MetricsPage() {
                   {formData.timeframe === 'indefinite' ? (
                     <div className="p-3 bg-blue-50 border border-blue-200 rounded-md">
                       <p className="text-blue-800 text-[12px] font-medium">
-                        Since you selected an indefinite timeframe, you must choose how to break this OKR into milestones for tracking progress.
+                        Since you selected an indefinite timeframe, you must choose how to break this Key Metric into milestones for tracking progress.
                       </p>
                     </div>
                   ) : (
                     <p className="text-gray-600 text-[12px]">
-                      Split this OKR into smaller steps — like monthly or quarterly milestones.
+                      Split this Key Metric into smaller steps — like monthly or quarterly milestones.
                     </p>
                   )}
 
