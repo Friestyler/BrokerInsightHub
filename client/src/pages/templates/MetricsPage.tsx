@@ -1053,7 +1053,7 @@ export default function MetricsPage() {
               </TableHeader>
               <TableBody>
                 {okrsInGroup.map((okr) => (
-                  <div key={okr.id}>
+                  <React.Fragment key={okr.id}>
                     <TableRow className="hover:bg-[#F5F6FA] border-b group" style={{ borderColor: '#E6E7F1' }}>
                       <TableCell className="w-12 px-1 py-3">
                         <div className="flex items-center" style={{ gap: '4px' }}>
@@ -1238,7 +1238,7 @@ export default function MetricsPage() {
                         </TableCell>
                       </TableRow>
                     )}
-                  </div>
+                  </React.Fragment>
                 ))}
               </TableBody>
             </Table>
@@ -2025,10 +2025,11 @@ export default function MetricsPage() {
                         }`} style={{ fontSize: '14px', lineHeight: '14px' }}>60%</span>
                         <div className="w-[120px] bg-gray-200 rounded-full h-[6px]">
                           <div 
-                            className={`h-[6px] rounded-full transition-all duration-300 ${
-                              formData.enableProgressBar !== false ? 'bg-gray-500' : 'bg-gray-300'
-                            }`}
-                            style={{ width: '60%' }}
+                            className="h-[6px] rounded-full transition-all duration-300"
+                            style={{ 
+                              backgroundColor: formData.enableProgressBar !== false ? '#3E4DC4' : '#d1d5db',
+                              width: '60%' 
+                            }}
                           ></div>
                         </div>
                       </div>
