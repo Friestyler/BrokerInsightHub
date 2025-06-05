@@ -2,76 +2,140 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
-import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { Menu } from 'lucide-react';
 
-// Partner View Layout Component
+// Partner View Layout Component with same structure as main Layout
 function PartnerLayout({ children }: { children: React.ReactNode }) {
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [dataMenuOpen, setDataMenuOpen] = useState(true); // Start with collaborate menu open
+
+  const toggleSidebar = () => {
+    setSidebarCollapsed(!sidebarCollapsed);
+  };
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* Navigation sidebar for partner view */}
-      <div className="fixed inset-y-0 left-0 z-50 w-64 bg-white shadow-lg">
-        <div className="flex h-full flex-col">
-          {/* Logo section */}
-          <div className="flex h-16 items-center justify-center border-b px-4">
-            <div className="flex items-center space-x-2">
-              <div className="h-8 w-8 rounded bg-blue-600 flex items-center justify-center">
-                <span className="text-white font-bold text-sm">DG</span>
-              </div>
-              <span className="text-lg font-semibold text-gray-900">De Goudse</span>
+    <div className="h-screen flex overflow-hidden">
+      {/* Sidebar - using same structure as main sidebar */}
+      <div className={`${sidebarCollapsed ? "w-16" : "w-16 md:w-64"} bg-gray-50 flex flex-col h-full overflow-hidden transition-all duration-300 relative`}>
+        
+        {/* De Goudse Logo */}
+        <div className="pt-4 px-4 pb-1 flex justify-center md:justify-start flex-shrink-0">
+          <div className={`${sidebarCollapsed ? "w-10 h-10" : "w-12 h-12"} flex items-center justify-center`}>
+            <div className="w-10 h-10 rounded bg-blue-600 flex items-center justify-center">
+              <span className="text-white font-bold text-sm">DG</span>
             </div>
           </div>
-
-          {/* Navigation menu */}
-          <nav className="flex-1 space-y-1 px-2 py-4">
-            {/* Broker Copilot - disabled */}
-            <div className="flex items-center px-2 py-2 text-sm font-medium text-gray-400 cursor-not-allowed">
-              <svg className="mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014.846 21H9.154a3.374 3.374 0 00-2.569-1.1l-.548-.547z" />
-              </svg>
-              Broker Copilot
+          {!sidebarCollapsed && (
+            <div className="ml-3 hidden md:flex items-center">
+              <span className="text-lg font-semibold text-gray-900">De Goudse</span>
             </div>
+          )}
+        </div>
+        
+        {/* No Environment Selector - hidden as requested */}
+        
+        {/* Navigation Links */}
+        <div className="flex flex-col flex-shrink-0 overflow-y-auto px-2 pt-4">
+          {/* Broker Copilot - disabled */}
+          <div className="flex items-center py-2.5 px-4 rounded-md text-gray-400 cursor-not-allowed">
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-center" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
+              <path d="M5 3v4" />
+              <path d="M19 17v4" />
+              <path d="M3 5h4" />
+              <path d="M17 19h4" />
+            </svg>
+            <span className={`ml-3 text-sm ${sidebarCollapsed ? "hidden" : "hidden md:inline-block"}`}>
+              Broker Copilot
+            </span>
+          </div>
 
-            {/* Collaborate section */}
-            <div className="mt-6">
-              <div className="px-2 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wide">
+          {/* Collaborate section */}
+          <div className="relative">
+            <button 
+              className={`flex items-center py-2.5 px-4 rounded-md w-full text-left ${dataMenuOpen ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
+              onClick={() => setDataMenuOpen(!dataMenuOpen)}
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-center" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <ellipse cx="12" cy="5" rx="9" ry="3" />
+                <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5" />
+                <path d="M3 12c0 1.66 4 3 9 3s9-1.34 9-3" />
+              </svg>
+              <span className={`ml-3 text-sm ${sidebarCollapsed ? "hidden" : "hidden md:inline-block"}`}>
                 Collaborate
-              </div>
-              <div className="mt-2 space-y-1">
-                <a
-                  href="/partner-view"
-                  className="bg-blue-50 text-blue-700 group flex items-center px-2 py-2 text-sm font-medium rounded-md"
+              </span>
+              {!sidebarCollapsed && (
+                <svg 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  width="14" 
+                  height="14" 
+                  viewBox="0 0 24 24" 
+                  fill="none" 
+                  stroke="currentColor" 
+                  strokeWidth="2" 
+                  strokeLinecap="round" 
+                  strokeLinejoin="round"
+                  className={`ml-auto transition-transform ${dataMenuOpen ? 'rotate-180' : ''} ${sidebarCollapsed ? "hidden" : "hidden md:inline-block"}`}
                 >
-                  <svg className="text-blue-500 mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-4m-5 0H3m2 0h3M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                  <polyline points="6 9 12 15 18 9" />
+                </svg>
+              )}
+            </button>
+            
+            {/* Dropdown menu - only show Opportunities */}
+            {dataMenuOpen && (
+              <div className={`${sidebarCollapsed ? "absolute left-16 top-0 bg-white border border-gray-200 rounded-md shadow-md py-1 z-50 w-48" : "mt-0.5"}`}>
+                <div className={`flex py-2 text-sm ${sidebarCollapsed ? "px-4" : "pl-12"} w-full text-left bg-indigo-50 text-indigo-600 font-medium`}>
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
                   </svg>
                   Opportunities
-                </a>
+                </div>
               </div>
-            </div>
+            )}
+          </div>
 
-            {/* Campaigns */}
-            <div className="mt-6">
-              <a
-                href="#"
-                className="text-gray-600 hover:bg-gray-50 hover:text-gray-900 group flex items-center px-2 py-2 text-sm font-medium rounded-md"
-              >
-                <svg className="text-gray-400 mr-3 h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 3.055A9.001 9.001 0 1020.945 13H11V3.055z" />
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.488 9H15V3.512A9.025 9.025 0 0120.488 9z" />
-                </svg>
-                Campaigns
-              </a>
-            </div>
-          </nav>
+          {/* Campaigns */}
+          <div className="flex items-center py-2.5 px-4 rounded-md text-gray-700 hover:bg-indigo-50 hover:text-indigo-600 cursor-pointer">
+            <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-center" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M22 2 11 13" />
+              <path d="M22 2 15 22 11 13 2 9 22 2z" />
+            </svg>
+            <span className={`ml-3 text-sm ${sidebarCollapsed ? "hidden" : "hidden md:inline-block"}`}>Campaigns</span>
+          </div>
+
+          {/* Templates, Smart Updates, Settings - all hidden as requested */}
         </div>
       </div>
-
-      {/* Main content */}
-      <div className="pl-64">
-        <main className="flex-1">
+      
+      {/* Main content column with top bar */}
+      <div className="flex-1 flex flex-col bg-white overflow-hidden">
+        {/* Top bar - similar to main layout but simplified */}
+        <div className="h-14 border-b border-gray-100 flex items-center justify-between px-4 flex-shrink-0">
+          <div className="flex items-center space-x-4">
+            <button 
+              className="text-gray-600 hover:text-indigo-600 p-1.5 rounded-md hover:bg-indigo-50 focus:outline-none"
+              onClick={toggleSidebar}
+            >
+              <Menu size={18} />
+            </button>
+            <div className="text-sm text-gray-600">Partner View</div>
+          </div>
+          
+          <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2">
+              <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-white font-medium text-sm cursor-pointer hover:bg-blue-700">
+                DG
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        {/* Main content area - scrollable */}
+        <div className="flex-1 overflow-y-auto">
           {children}
-        </main>
+        </div>
       </div>
     </div>
   );
