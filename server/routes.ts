@@ -1915,10 +1915,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const result = await envPool.query(`
-        INSERT INTO degoudse.saved_lists (name, description, type, entity_type, members, filters, is_shared, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5::integer[], $6, $7, NOW(), NOW())
+        INSERT INTO degoudse.saved_lists (name, description, type, entity_type, members, filters, is_shared, created_by, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5::integer[], $6, $7, $8, NOW(), NOW())
         RETURNING *
-      `, [name, description, type, entity_type, membersArray, JSON.stringify(filters), is_shared]);
+      `, [name, description, type, entity_type, membersArray, JSON.stringify(filters), is_shared, 1]);
       
       console.log('Created saved list:', result.rows[0]);
       res.json(result.rows[0]);
