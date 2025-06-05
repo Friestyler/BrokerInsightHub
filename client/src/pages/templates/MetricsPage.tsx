@@ -2176,16 +2176,13 @@ export default function MetricsPage() {
                     </div>
                   )}
 
-                  {/* Target Behavior Selection - Hidden for traffic light type */}
+                  {/* Single Sentence Target Input - Hidden for traffic light type */}
                   {formData.okrType !== 'traffic-light' && (
                     <div className="space-y-3">
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
                           <h4 className="text-sm font-medium text-gray-900">
-                            What kind of result are you aiming for?
-                            {(!formData.target || formData.target === 0) && (
-                              <span className="text-xs font-normal text-gray-500 ml-1">(This will apply once a target is added)</span>
-                            )}
+                            Target and behavior
                           </h4>
                           <TooltipProvider>
                             <Tooltip>
@@ -2194,70 +2191,76 @@ export default function MetricsPage() {
                               </TooltipTrigger>
                               <TooltipContent>
                                 <p className="max-w-sm text-xs">
-                                  <strong>Developer Info:</strong> Target behavior controls:<br/>
-                                  • Progress evaluation logic (increase/decrease/stay_above/stay_below/on_target)<br/>
-                                  • Traffic light color calculation algorithms across milestone periods<br/>
-                                  • Success/failure determination for dashboards and milestone tracking<br/>
-                                  • Dynamic option text based on per-milestone target values<br/>
-                                  • Affects automated notifications and milestone-based alerts
+                                  <strong>Developer Info:</strong> Single sentence target input:<br/>
+                                  • Combines target behavior, value, and milestone frequency<br/>
+                                  • Dynamic currency/unit display based on OKR type<br/>
+                                  • Milestone frequency updates automatically from selection above<br/>
+                                  • Maps to targetBehavior and target form data fields
                                 </p>
                               </TooltipContent>
                             </Tooltip>
                           </TooltipProvider>
                         </div>
-                        <Select
-                          value={formData.targetBehavior || 'stay_above'}
-                          onValueChange={(value) => setFormData(prev => ({...prev, targetBehavior: value}))}
-                        >
-                          <SelectTrigger className="w-full text-sm border-gray-300 focus:border-blue-500 focus:ring-blue-500">
-                            <SelectValue placeholder="Select target behavior" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {formData.target && formData.target > 0 ? (
-                              <>
-                                <SelectItem value="stay_above">
-                                  <div>
-                                    <div>I want to achieve the target or go higher</div>
-                                    <div className="text-xs text-gray-500 mt-1">e.g., "Reach at least {formData.okrType === 'currency' ? '€' + formData.target?.toLocaleString() : formData.target?.toLocaleString() + (formData.okrType === 'percent' ? '%' : formData.okrType === 'number' ? ' certifications' : '')}"</div>
-                                  </div>
-                                </SelectItem>
-                                <SelectItem value="stay_below">
-                                  <div>
-                                    <div>I want to achieve the target or stay below</div>
-                                    <div className="text-xs text-gray-500 mt-1">e.g., "Keep escalations under {formData.target?.toLocaleString()}{formData.okrType === 'percent' ? '%' : formData.okrType === 'number' ? '#' : ''}"</div>
-                                  </div>
-                                </SelectItem>
-                                <SelectItem value="on_target">
-                                  <div>
-                                    <div>I want to match the target exactly</div>
-                                    <div className="text-xs text-gray-500 mt-1">e.g., "Maintain exactly {formData.okrType === 'currency' ? '€' + formData.target?.toLocaleString() : formData.target?.toLocaleString() + (formData.okrType === 'percent' ? '%' : formData.okrType === 'number' ? ' consultants' : '')}"</div>
-                                  </div>
-                                </SelectItem>
-                              </>
-                            ) : (
-                              <>
-                                <SelectItem value="stay_above">
-                                  <div>
-                                    <div>I want to achieve the target or go higher</div>
-                                    <div className="text-xs text-gray-500 mt-1">e.g., "Reach at least 10 certifications," "Sell more than €20K"</div>
-                                  </div>
-                                </SelectItem>
-                                <SelectItem value="stay_below">
-                                  <div>
-                                    <div>I want to achieve the target or stay below</div>
-                                    <div className="text-xs text-gray-500 mt-1">e.g., "Keep escalations under 5," "Reduce churn below 8%"</div>
-                                  </div>
-                                </SelectItem>
-                                <SelectItem value="on_target">
-                                  <div>
-                                    <div>I want to match the target exactly</div>
-                                    <div className="text-xs text-gray-500 mt-1">e.g., "Maintain 5 certified consultants," "Hold a steady NPS of 40"</div>
-                                  </div>
-                                </SelectItem>
-                              </>
-                            )}
-                          </SelectContent>
-                        </Select>
+                        
+                        {/* Single sentence input */}
+                        <div className="flex items-center gap-2 text-sm p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                          <span className="text-gray-700">I want to</span>
+                          
+                          {/* Behavior dropdown */}
+                          <Select
+                            value={formData.targetBehavior || 'stay_above'}
+                            onValueChange={(value) => setFormData(prev => ({...prev, targetBehavior: value}))}
+                          >
+                            <SelectTrigger className="w-auto min-w-[140px] h-8 text-sm border-gray-300 bg-white">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="stay_above">reach or exceed</SelectItem>
+                              <SelectItem value="stay_below">stay below</SelectItem>
+                              <SelectItem value="on_target">match exactly</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          
+                          <span className="text-gray-700">a target of</span>
+                          
+                          {/* Target value input */}
+                          <div className="flex items-center">
+                            <Input
+                              type="number"
+                              value={formData.target || ''}
+                              onChange={(e) => {
+                                const value = parseFloat(e.target.value) || 0;
+                                setFormData(prev => ({...prev, target: value}));
+                              }}
+                              placeholder="1000"
+                              className="w-20 h-8 text-sm text-center border-gray-300"
+                            />
+                            <span className="ml-1 text-gray-700 font-medium">
+                              {formData.okrType === 'currency' ? '€' : 
+                               formData.okrType === 'percent' ? '%' : 
+                               formData.okrType === 'number' ? '#' : ''}
+                            </span>
+                          </div>
+                          
+                          {/* Milestone frequency display */}
+                          {formData.milestoneFrequency && (
+                            <>
+                              <span className="text-gray-700">per</span>
+                              <span className="text-blue-600 font-medium">
+                                {formData.milestoneFrequency === 'weekly' ? 'week' :
+                                 formData.milestoneFrequency === 'monthly' ? 'month' :
+                                 formData.milestoneFrequency === 'quarterly' ? 'quarter' :
+                                 formData.milestoneFrequency === 'none' ? 'total timeframe' :
+                                 formData.milestoneFrequency}
+                              </span>
+                            </>
+                          )}
+                        </div>
+                        
+                        {/* Helper text */}
+                        <p className="text-xs text-gray-500">
+                          This creates a clear target that team members can track against during each milestone period.
+                        </p>
                       </div>
                     </div>
                   )}
