@@ -1931,6 +1931,53 @@ export default function MetricsPage() {
                         <p className="text-xs text-gray-500">
                           This creates a clear target that team members can track against during each milestone period.
                         </p>
+
+                        {/* Per-milestone targets option */}
+                        {formData.milestoneFrequency && formData.milestoneFrequency !== 'none' && (
+                          <div className="mt-3">
+                            <button
+                              type="button"
+                              onClick={() => setFormData(prev => ({...prev, showPerMilestoneTargets: !prev.showPerMilestoneTargets}))}
+                              className="text-xs text-blue-600 hover:text-blue-700 underline"
+                            >
+                              Want to set different targets per milestone?
+                            </button>
+                            
+                            {formData.showPerMilestoneTargets && (
+                              <div className="mt-3 p-3 bg-blue-50 border border-blue-200 rounded-md">
+                                <p className="text-xs text-gray-700 mb-3">Set individual targets for each milestone:</p>
+                                <div className="space-y-2 max-h-60 overflow-y-auto">
+                                  {Array.from({ length: calculateMilestoneCount(formData.timeframe, formData.milestoneFrequency, formData.numberOfMilestones) }, (_, index) => (
+                                    <div key={index} className="flex items-center gap-3">
+                                      <label className="text-xs font-medium text-gray-700 w-8">
+                                        {formData.milestoneFrequency === 'quarterly' ? `Q${index + 1}` :
+                                         formData.milestoneFrequency === 'monthly' ? `M${index + 1}` :
+                                         formData.milestoneFrequency === 'weekly' ? `W${index + 1}` :
+                                         `#${index + 1}`}:
+                                      </label>
+                                      <div className="relative flex-1">
+                                        <Input
+                                          type="number"
+                                          placeholder={formData.okrType === 'currency' ? 'e.g., 1000' :
+                                                     formData.okrType === 'percent' ? 'e.g., 75' :
+                                                     'e.g., 50'}
+                                          min={formData.okrType === 'percent' ? '0' : undefined}
+                                          max={formData.okrType === 'percent' ? '100' : undefined}
+                                          className="pr-8 text-xs border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                                        />
+                                        <span className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500 text-xs">
+                                          {formData.okrType === 'currency' ? '€' : 
+                                           formData.okrType === 'percent' ? '%' : 
+                                           formData.okrType === 'number' ? '#' : ''}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}
