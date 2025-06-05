@@ -1,6 +1,8 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Dialog, 
   DialogContent, 
@@ -27,6 +29,7 @@ interface ShareModalProps {
   onCopyLink: () => void;
   onCreateShare: () => void;
   isCreating?: boolean;
+  onSendEmailInvite?: (email: string, accessLevel: string, message: string) => Promise<boolean>;
 }
 
 export function ShareModal({
@@ -37,176 +40,380 @@ export function ShareModal({
   existingSharedLinks,
   onCopyLink,
   onCreateShare,
-  isCreating = false
+  isCreating = false,
+  onSendEmailInvite
 }: ShareModalProps) {
   const { toast } = useToast();
   const { environment } = useEnvironment();
   const [linkAccess, setLinkAccess] = useState(existingSharedLinks.length > 0 ? "anyone" : "restricted");
   
+  // Modal state management
+  const [currentView, setCurrentView] = useState<'main' | 'compose'>('main');
+  const [selectedEmail, setSelectedEmail] = useState('');
+  const [selectedAccessLevel, setSelectedAccessLevel] = useState('viewer');
+  const [emailMessage, setEmailMessage] = useState('');
+  const [notifyPeople, setNotifyPeople] = useState(true);
+  const [isSending, setIsSending] = useState(false);
+  
+  // Email input and suggestions
+  const [emailInput, setEmailInput] = useState('');
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const emailInputRef = useRef<HTMLInputElement>(null);
+  
+  // Mock email suggestions - in real app, these would come from API
+  const emailSuggestions = [
+    { email: 'kameliakolev@gmail.com', name: 'Kamelia Kolev', avatar: 'K' },
+    { email: 'john.smith@partner.com', name: 'John Smith', avatar: 'J' },
+    { email: 'maria.garcia@company.com', name: 'Maria Garcia', avatar: 'M' },
+    { email: 'alex.johnson@degoudse.com', name: 'Alex Johnson', avatar: 'A' }
+  ];
+  
+  const filteredSuggestions = emailSuggestions.filter(suggestion =>
+    suggestion.email.toLowerCase().includes(emailInput.toLowerCase()) ||
+    suggestion.name.toLowerCase().includes(emailInput.toLowerCase())
+  );
+  
+  const isValidEmail = (email: string) => {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+  };
+  
+  const handleEmailSelect = (email: string, name: string) => {
+    setSelectedEmail(email);
+    setEmailInput(email);
+    setShowSuggestions(false);
+    setCurrentView('compose');
+  };
+  
+  const handleSendInvite = async () => {
+    if (!selectedEmail || !isValidEmail(selectedEmail)) {
+      toast({
+        title: "Invalid email",
+        description: "Please enter a valid email address.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setIsSending(true);
+    
+    try {
+      if (onSendEmailInvite) {
+        const success = await onSendEmailInvite(selectedEmail, selectedAccessLevel, emailMessage);
+        if (success) {
+          toast({
+            title: "Invitation sent",
+            description: `${selectedEmail} has been invited to view "${itemName}".`,
+          });
+          // Reset form
+          setSelectedEmail('');
+          setEmailInput('');
+          setEmailMessage('');
+          setCurrentView('main');
+        } else {
+          toast({
+            title: "Failed to send invitation",
+            description: "Please try again or contact support.",
+            variant: "destructive"
+          });
+        }
+      } else {
+        // Fallback if no email function provided
+        toast({
+          title: "Email functionality not available",
+          description: "Please contact your administrator to enable email invitations.",
+          variant: "destructive"
+        });
+      }
+    } catch (error) {
+      toast({
+        title: "Failed to send invitation",
+        description: "An error occurred while sending the invitation.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSending(false);
+    }
+  };
+  
+  const handleBackToMain = () => {
+    setCurrentView('main');
+    setSelectedEmail('');
+    setEmailInput('');
+    setEmailMessage('');
+  };
+  
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-md bg-[#ffffff] text-[#282A3F] p-6">
+      <DialogContent className="sm:max-w-md bg-[#ffffff] text-[#282A3F] p-6" aria-describedby="share-modal-description">
+        <div id="share-modal-description" className="sr-only">
+          Share {itemName} with others by adding their email addresses or copying a shareable link
+        </div>
+        
         <DialogHeader className="pb-4">
-          <DialogTitle className="text-lg font-medium">
-            Share "{itemName}"
-          </DialogTitle>
+          <div className="flex items-center space-x-2">
+            {currentView === 'compose' && (
+              <Button 
+                variant="ghost" 
+                size="sm" 
+                onClick={handleBackToMain}
+                className="p-1 h-auto"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                </svg>
+              </Button>
+            )}
+            <DialogTitle className="text-lg font-medium">
+              Share "{itemName}"
+            </DialogTitle>
+          </div>
         </DialogHeader>
         
-        <div className="space-y-4">
-          {/* Add people section */}
-          <div className="space-y-3">
-            <div className="flex items-center space-x-2">
-              <Input 
-                placeholder="Add people and groups"
-                className="flex-1"
-              />
-              <Select defaultValue="viewer">
-                <SelectTrigger className="w-28">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="viewer">Viewer</SelectItem>
-                  <SelectItem value="commenter">Commenter</SelectItem>
-                  <SelectItem value="editor">Editor</SelectItem>
-                </SelectContent>
-              </Select>
-              <Button size="sm" disabled>Send</Button>
+        {currentView === 'main' ? (
+          <div className="space-y-4">
+            {/* Add people section */}
+            <div className="space-y-3">
+              <div className="flex items-center space-x-2">
+                <div className="relative flex-1">
+                  <Input 
+                    ref={emailInputRef}
+                    value={emailInput}
+                    onChange={(e) => {
+                      setEmailInput(e.target.value);
+                      setShowSuggestions(e.target.value.length > 0);
+                    }}
+                    onFocus={() => setShowSuggestions(emailInput.length > 0)}
+                    placeholder="Add people and groups"
+                    className="flex-1"
+                  />
+                  {showSuggestions && filteredSuggestions.length > 0 && (
+                    <div className="absolute top-full left-0 right-0 bg-white border border-gray-200 rounded-md shadow-lg z-10 max-h-48 overflow-y-auto">
+                      {filteredSuggestions.map((suggestion) => (
+                        <div
+                          key={suggestion.email}
+                          className="flex items-center space-x-3 p-3 hover:bg-gray-50 cursor-pointer"
+                          onClick={() => handleEmailSelect(suggestion.email, suggestion.name)}
+                        >
+                          <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                            {suggestion.avatar}
+                          </div>
+                          <div className="flex-1">
+                            <div className="text-sm font-medium">{suggestion.name}</div>
+                            <div className="text-xs text-gray-500">{suggestion.email}</div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                <Select value={selectedAccessLevel} onValueChange={setSelectedAccessLevel}>
+                  <SelectTrigger className="w-28">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="viewer">Viewer</SelectItem>
+                    <SelectItem value="commenter">Commenter</SelectItem>
+                    <SelectItem value="editor">Editor</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button 
+                  size="sm" 
+                  disabled={!emailInput || !isValidEmail(emailInput)}
+                  onClick={() => {
+                    if (isValidEmail(emailInput)) {
+                      setSelectedEmail(emailInput);
+                      setCurrentView('compose');
+                    }
+                  }}
+                >
+                  Send
+                </Button>
+              </div>
+              
+              {/* Current collaborators section */}
+              <div className="text-sm text-gray-500">
+                People with access
+              </div>
+              
+              {/* Owner */}
+              <div className="flex items-center space-x-3 py-2">
+                <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                  {environment?.name?.charAt(0) || 'U'}
+                </div>
+                <div className="flex-1">
+                  <div className="text-sm font-medium">{environment?.name || 'You'}</div>
+                  <div className="text-xs text-gray-500">{environment?.name?.toLowerCase() || 'you'}@company.com</div>
+                </div>
+                <div className="text-sm text-gray-500">Owner</div>
+              </div>
+              
+              {/* Existing collaborators */}
+              <div className="flex items-center space-x-3 py-2">
+                <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                  J
+                </div>
+                <div className="flex-1">
+                  <div className="text-sm font-medium">John Smith</div>
+                  <div className="text-xs text-gray-500">john.smith@partner.com</div>
+                </div>
+                <Select defaultValue="viewer">
+                  <SelectTrigger className="w-24 h-8">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="viewer">Viewer</SelectItem>
+                    <SelectItem value="commenter">Commenter</SelectItem>
+                    <SelectItem value="editor">Editor</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
             
-            {/* Current collaborators section */}
-            <div className="text-sm text-gray-500">
-              People with access
+            <div className="border-t pt-4">
+              {/* Get link section */}
+              <div className="space-y-3">
+                <div className="text-sm font-medium">Get link</div>
+                
+                <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg">
+                  <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
+                  </svg>
+                  <div className="flex-1">
+                    <Select value={linkAccess} onValueChange={setLinkAccess}>
+                      <SelectTrigger className="w-full border-0 bg-transparent p-0 h-auto">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="restricted">
+                          <div>
+                            <div className="font-medium">Restricted</div>
+                            <div className="text-xs text-gray-500">Only people with access can open with this link</div>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="anyone">
+                          <div>
+                            <div className="font-medium">Anyone with the link</div>
+                            <div className="text-xs text-gray-500">Anyone on the internet with this link can view</div>
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  {linkAccess === "anyone" && (
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      disabled={!currentSharedLink || isCreating}
+                      onClick={() => {
+                        if (currentSharedLink) {
+                          onCopyLink();
+                        } else {
+                          onCreateShare();
+                        }
+                      }}
+                    >
+                      {isCreating ? "Creating..." : currentSharedLink ? "Copy link" : "Create link"}
+                    </Button>
+                  )}
+                </div>
+                
+                {/* Show sharing status */}
+                {linkAccess === "anyone" && existingSharedLinks.length > 0 ? (
+                  <div className="flex items-center text-sm text-green-600">
+                    <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    Link sharing is on
+                  </div>
+                ) : linkAccess === "anyone" ? (
+                  <div className="text-sm text-gray-500">
+                    Click "Create link" to enable link sharing
+                  </div>
+                ) : (
+                  <div className="text-sm text-gray-500">
+                    Link sharing is off
+                  </div>
+                )}
+              </div>
             </div>
             
-            {/* Owner */}
-            <div className="flex items-center space-x-3 py-2">
-              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
-                {environment?.name?.charAt(0) || 'U'}
-              </div>
-              <div className="flex-1">
-                <div className="text-sm font-medium">{environment?.name || 'You'}</div>
-                <div className="text-xs text-gray-500">{environment?.name?.toLowerCase() || 'you'}@company.com</div>
-              </div>
-              <div className="text-sm text-gray-500">Owner</div>
-            </div>
-            
-            {/* Sample collaborators */}
-            <div className="flex items-center space-x-3 py-2">
-              <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
-                J
-              </div>
-              <div className="flex-1">
-                <div className="text-sm font-medium">John Smith</div>
-                <div className="text-xs text-gray-500">john.smith@partner.com</div>
-              </div>
-              <Select defaultValue="viewer">
-                <SelectTrigger className="w-24 h-8">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="viewer">Viewer</SelectItem>
-                  <SelectItem value="commenter">Commenter</SelectItem>
-                  <SelectItem value="editor">Editor</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div className="flex items-center space-x-3 py-2">
-              <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
-                M
-              </div>
-              <div className="flex-1">
-                <div className="text-sm font-medium">Maria Garcia</div>
-                <div className="text-xs text-gray-500">maria.garcia@company.com</div>
-              </div>
-              <Select defaultValue="editor">
-                <SelectTrigger className="w-24 h-8">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="viewer">Viewer</SelectItem>
-                  <SelectItem value="commenter">Commenter</SelectItem>
-                  <SelectItem value="editor">Editor</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="flex justify-end pt-4">
+              <DialogClose asChild>
+                <Button variant="outline">Done</Button>
+              </DialogClose>
             </div>
           </div>
-          
-          <div className="border-t pt-4">
-            {/* Get link section */}
-            <div className="space-y-3">
-              <div className="text-sm font-medium">Get link</div>
-              
-              <div className="flex items-center space-x-2 p-3 bg-gray-50 rounded-lg">
+        ) : (
+          // Compose email view
+          <div className="space-y-4">
+            {/* Selected person */}
+            <div className="border border-blue-200 rounded-lg p-3 bg-blue-50">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
+                    {selectedEmail.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="text-sm font-medium">{selectedEmail}</div>
+                </div>
+                <Select value={selectedAccessLevel} onValueChange={setSelectedAccessLevel}>
+                  <SelectTrigger className="w-24 h-8">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="viewer">Viewer</SelectItem>
+                    <SelectItem value="commenter">Commenter</SelectItem>
+                    <SelectItem value="editor">Editor</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            
+            {/* Notify people checkbox */}
+            <div className="flex items-center space-x-2">
+              <Checkbox 
+                id="notify-people" 
+                checked={notifyPeople} 
+                onCheckedChange={setNotifyPeople}
+              />
+              <label htmlFor="notify-people" className="text-sm font-medium">
+                Notify people
+              </label>
+            </div>
+            
+            {/* Message editor */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-gray-700">Message</label>
+              <Textarea
+                value={emailMessage}
+                onChange={(e) => setEmailMessage(e.target.value)}
+                placeholder="Add a message (optional)"
+                className="min-h-[120px] resize-none"
+              />
+            </div>
+            
+            {/* Action buttons */}
+            <div className="flex justify-between pt-4">
+              <div className="flex items-center">
                 <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13.828 10.172a4 4 0 00-5.656 0l-4 4a4 4 0 105.656 5.656l1.102-1.101m-.758-4.899a4 4 0 005.656 0l4-4a4 4 0 00-5.656-5.656l-1.1 1.1" />
                 </svg>
-                <div className="flex-1">
-                  <Select value={linkAccess} onValueChange={setLinkAccess}>
-                    <SelectTrigger className="w-full border-0 bg-transparent p-0 h-auto">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="restricted">
-                        <div>
-                          <div className="font-medium">Restricted</div>
-                          <div className="text-xs text-gray-500">Only people with access can open with this link</div>
-                        </div>
-                      </SelectItem>
-                      <SelectItem value="anyone">
-                        <div>
-                          <div className="font-medium">Anyone with the link</div>
-                          <div className="text-xs text-gray-500">Anyone on the internet with this link can view</div>
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                {linkAccess === "anyone" && (
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    disabled={!currentSharedLink || isCreating}
-                    onClick={() => {
-                      if (currentSharedLink) {
-                        onCopyLink();
-                      } else {
-                        onCreateShare();
-                      }
-                    }}
-                  >
-                    {isCreating ? "Creating..." : currentSharedLink ? "Copy link" : "Create link"}
-                  </Button>
-                )}
               </div>
-              
-              {/* Show sharing status */}
-              {linkAccess === "anyone" && existingSharedLinks.length > 0 ? (
-                <div className="flex items-center text-sm text-green-600">
-                  <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                  Link sharing is on
-                </div>
-              ) : linkAccess === "anyone" ? (
-                <div className="text-sm text-gray-500">
-                  Click "Create link" to enable link sharing
-                </div>
-              ) : (
-                <div className="text-sm text-gray-500">
-                  Link sharing is off
-                </div>
-              )}
+              <div className="flex space-x-2">
+                <Button variant="outline" onClick={handleBackToMain}>
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleSendInvite}
+                  disabled={isSending}
+                  className="bg-blue-600 hover:bg-blue-700"
+                >
+                  {isSending ? "Sending..." : "Send"}
+                </Button>
+              </div>
             </div>
           </div>
-        </div>
-        
-        <div className="flex justify-end pt-4">
-          <DialogClose asChild>
-            <Button variant="outline">Done</Button>
-          </DialogClose>
-        </div>
+        )}
       </DialogContent>
     </Dialog>
   );

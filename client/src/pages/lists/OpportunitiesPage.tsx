@@ -1519,6 +1519,64 @@ function OpportunitiesTable() {
           }
         }}
         isCreating={createSharedListMutation.isPending}
+        onSendEmailInvite={async (email: string, accessLevel: string, message: string) => {
+          try {
+            // First, ensure we have a shareable link
+            let shareUrl = currentSharedLink;
+            
+            if (!shareUrl) {
+              // Create a shared list first if it doesn't exist
+              const isListShare = selectedOpportunities.length === 0;
+              const isBulkOpportunityShare = selectedOpportunities.length > 0;
+
+              let shareData;
+              
+              if (isListShare && activeList) {
+                shareData = {
+                  list_name: activeList.name,
+                  list_description: activeList.description || null,
+                  entity_type: 'opportunities',
+                  data: opportunities,
+                  message: '',
+                  list_id: activeList.id
+                };
+              } else if (isBulkOpportunityShare) {
+                const selectedOpportunitiesData = selectedOpportunities
+                  .map(id => opportunities.find(o => o.id === id))
+                  .filter(Boolean);
+                
+                shareData = {
+                  list_name: `${selectedOpportunities.length} Selected Opportunities`,
+                  list_description: `Shared opportunities: ${selectedOpportunitiesData.filter(o => o).map(o => o.title).slice(0, 3).join(', ')}${selectedOpportunities.length > 3 ? '...' : ''}`,
+                  entity_type: 'opportunities',
+                  data: selectedOpportunitiesData,
+                  message: ''
+                };
+              } else {
+                throw new Error('Nothing to share');
+              }
+
+              const result = await createSharedListMutation.mutateAsync(shareData);
+              const baseUrl = window.location.origin;
+              shareUrl = `${baseUrl}/share/list/${result.share_token}`;
+              setCurrentSharedLink(shareUrl);
+            }
+
+            // Send the email invitation
+            const response = await apiRequest('POST', '/api/send-invitation', {
+              email,
+              accessLevel,
+              message,
+              listName: activeList?.name || 'Selected Opportunities',
+              shareUrl
+            });
+
+            return response.success === true;
+          } catch (error) {
+            console.error('Error sending email invitation:', error);
+            return false;
+          }
+        }}
       />
       
       {/* Table section without a border */}

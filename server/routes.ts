@@ -2518,6 +2518,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Send email invitation
+  app.post('/api/degoudse/send-invitation', async (req, res) => {
+    try {
+      const { email, accessLevel, message, listName, shareUrl } = req.body;
+      
+      if (!process.env.SENDGRID_API_KEY) {
+        return res.status(400).json({ 
+          error: 'Email service not configured',
+          message: 'SendGrid API key is required for sending invitations'
+        });
+      }
+
+      const sgMail = require('@sendgrid/mail');
+      sgMail.setApiKey(process.env.SENDGRID_API_KEY);
+
+      const emailContent = `
+        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
+          <h2 style="color: #333;">You've been invited to view "${listName}"</h2>
+          
+          <p>You have been granted <strong>${accessLevel}</strong> access to this list of opportunities.</p>
+          
+          ${message ? `
+            <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
+              <strong>Message from sender:</strong>
+              <p style="margin: 10px 0 0 0;">${message}</p>
+            </div>
+          ` : ''}
+          
+          <div style="margin: 30px 0;">
+            <a href="${shareUrl}" 
+               style="background-color: #0066cc; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
+              View List
+            </a>
+          </div>
+          
+          <p style="color: #666; font-size: 14px;">
+            This invitation allows you to ${accessLevel === 'editor' ? 'view and edit' : accessLevel === 'commenter' ? 'view and comment on' : 'view'} the shared list.
+          </p>
+          
+          <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+          <p style="color: #999; font-size: 12px;">
+            This email was sent from the De Goudse CRM system. If you did not expect this invitation, please contact the sender.
+          </p>
+        </div>
+      `;
+
+      const msg = {
+        to: email,
+        from: 'noreply@degoudse.com', // Use your verified sender
+        subject: `Invitation to view "${listName}"`,
+        html: emailContent,
+      };
+
+      await sgMail.send(msg);
+      
+      res.json({ success: true, message: 'Invitation sent successfully' });
+    } catch (error) {
+      console.error('Error sending invitation:', error);
+      res.status(500).json({ 
+        error: 'Failed to send invitation',
+        message: error.message 
+      });
+    }
+  });
+
   // List sharing API endpoints for De Goudse
   app.post('/api/degoudse/shared-lists', async (req, res) => {
     try {
