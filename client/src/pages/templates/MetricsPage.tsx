@@ -1828,10 +1828,6 @@ export default function MetricsPage() {
               {/* Target & Measurement Section - Hidden for traffic light and checkbox types */}
               {formData.okrType && formData.okrType !== 'traffic-light' && formData.okrType !== 'checkbox' && (
                 <div className="space-y-6 pt-6 border-t border-gray-200">
-                  <p className="text-gray-600 text-[12px]">You can leave targets empty if you prefer to let users set their own targets.</p>
-
-
-
                   {/* Single Sentence Target Input - Hidden for traffic light type */}
                   {formData.okrType !== 'traffic-light' && (
                     <div className="space-y-3">
@@ -1859,6 +1855,7 @@ export default function MetricsPage() {
                             </Tooltip>
                           </TooltipProvider>
                         </div>
+                        <p className="text-gray-600 text-[12px]">You can leave targets empty if you prefer to let users set their own targets.</p>
                         
                         {/* Single sentence input */}
                         <div className="flex items-center gap-2 text-sm">
