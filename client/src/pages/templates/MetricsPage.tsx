@@ -1053,7 +1053,7 @@ export default function MetricsPage() {
               </TableHeader>
               <TableBody>
                 {okrsInGroup.map((okr) => (
-                  <React.Fragment key={okr.id}>
+                  <div key={okr.id}>
                     <TableRow className="hover:bg-[#F5F6FA] border-b group" style={{ borderColor: '#E6E7F1' }}>
                       <TableCell className="w-12 px-1 py-3">
                         <div className="flex items-center" style={{ gap: '4px' }}>
@@ -1238,7 +1238,7 @@ export default function MetricsPage() {
                         </TableCell>
                       </TableRow>
                     )}
-                  </React.Fragment>
+                  </div>
                 ))}
               </TableBody>
             </Table>
@@ -1853,7 +1853,9 @@ export default function MetricsPage() {
                       <div className="space-y-2">
                         <div className="flex items-center gap-2">
                           <h4 className="text-sm font-medium text-gray-900">
-                            Target and behavior
+                            {formData.milestoneFrequency && !formData.milestoneFrequency.includes('No milestone')
+                              ? 'What should the target be for each milestone?'
+                              : 'What should the target be'}
                           </h4>
                           <TooltipProvider>
                             <Tooltip>
