@@ -69,7 +69,7 @@ export default function PartnerDetailClean() {
   });
 
   // Filter saved lists to show partner-relevant lists
-  const partnerRelevantLists = (savedListsData || []).filter((list: any) => {
+  const partnerRelevantLists = (savedListsData as any[] || []).filter((list: any) => {
     // Show lists that are shared with this partner or contain opportunities from this partner
     if (list.filters?.partner_shared_with && String(list.filters.partner_shared_with) === String(id)) {
       return true;
@@ -79,7 +79,7 @@ export default function PartnerDetailClean() {
   });
 
   // Filter opportunities based on search and active list
-  const filteredOpportunities = (relatedOpportunities || []).filter((opportunity: any) => {
+  const filteredOpportunities = (relatedOpportunities as any[] || []).filter((opportunity: any) => {
     // Filter by search text
     if (filterText) {
       const searchLower = filterText.toLowerCase();
@@ -90,10 +90,16 @@ export default function PartnerDetailClean() {
       if (!matchesSearch) return false;
     }
     
-    // If a specific list is selected, apply its filters
-    if (activeList && activeList.filters) {
-      // Apply list-specific filtering logic here
-      // For now, we'll show all opportunities when a list is selected
+    // If a specific list is selected, filter by its members
+    if (activeList) {
+      // If the list has members (specific opportunity IDs), only show those
+      if (activeList.members && activeList.members.length > 0) {
+        return activeList.members.includes(opportunity.id);
+      }
+      // If the list has filters, apply them
+      if (activeList.filters) {
+        // Additional filter logic can be added here if needed
+      }
     }
     
     return true;
@@ -212,18 +218,18 @@ export default function PartnerDetailClean() {
     return <div className="p-4">Loading...</div>;
   }
 
-  const partner = partners?.find((p: any) => p.id === parseInt(id || '1'));
+  const partner = (partners as any[] || []).find((p: any) => p.id === parseInt(id || '1'));
   
   if (!partner) {
     return <div className="p-4">Partner not found</div>;
   }
 
   // Get attached metrics for this partner
-  const partnerAssignments = templateAssignments?.filter((assignment: any) => 
+  const partnerAssignments = (templateAssignments as any[] || []).filter((assignment: any) => 
     assignment.entity_type === 'partner' && assignment.entity_id === parseInt(id || '0')
-  ) || [];
+  );
   const attachedMetricIds = partnerAssignments.map((assignment: any) => assignment.template_id) || [];
-  const attachedMetrics = allMetrics?.filter((metric: any) => attachedMetricIds.includes(metric.id)) || [];
+  const attachedMetrics = (allMetrics as any[] || []).filter((metric: any) => attachedMetricIds.includes(metric.id));
 
   // Filter and search logic for OKR metrics (same as template page)
   const filteredMetrics = attachedMetrics.filter((metric: any) => {
@@ -323,7 +329,7 @@ export default function PartnerDetailClean() {
                   : "text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300"
               }`}
             >
-              Opportunities ({relatedOpportunities?.length || 0})
+              Opportunities ({(relatedOpportunities as any[] || []).length})
             </button>
             <button 
               onClick={() => setActiveTab("customers")}
@@ -333,7 +339,7 @@ export default function PartnerDetailClean() {
                   : "text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300"
               }`}
             >
-              Customers ({relatedCustomers?.length || 0})
+              Customers ({(relatedCustomers as any[] || []).length})
             </button>
           </nav>
         </div>
