@@ -20,7 +20,7 @@ import CustomersPage from "@/pages/lists/CustomersPage";
 import CustomerDetail from "@/pages/lists/CustomerDetailNew";
 import OpportunitiesPage from "@/pages/lists/OpportunitiesPage";
 import OpportunityDetail from "@/pages/lists/OpportunityDetail";
-import OpportunityDetailforPartner from "@/pages/lists/OpportunityDetailforPartner";
+import OpportunityDetailBrokerPOV from "@/pages/lists/OpportunityDetailBrokerPOV";
 import PartnersViewforPartner from "@/pages/PartnersViewforPartner";
 import VendorsPage from "@/pages/lists/VendorsPage";
 import ProductsPage from "@/pages/lists/ProductsPage";
@@ -56,7 +56,7 @@ function Router() {
       
       <Route path="/broker-view/list/:listId" component={PartnerView} />
       <Route path="/broker-view/partners" component={PartnerView} />
-      <Route path="/broker-view/opportunity/:opportunityId" component={OpportunityDetailforPartner} />
+      <Route path="/broker-view/opportunity/:opportunityId" component={OpportunityDetailBrokerPOV} />
       
       {/* All other routes use the main layout */}
       <Route>

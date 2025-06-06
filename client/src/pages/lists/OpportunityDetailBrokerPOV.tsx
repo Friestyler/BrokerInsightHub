@@ -101,8 +101,8 @@ const getStatusColor = (status: string) => {
   }
 };
 
-// Partner Opportunity Detail Page Component
-export default function OpportunityDetailforPartner() {
+// Broker POV Opportunity Detail Page Component
+export default function OpportunityDetailBrokerPOV() {
   const { opportunityId } = useParams<{ opportunityId: string }>();
   
   // Get the shared list ID from session storage or default to the first available list
