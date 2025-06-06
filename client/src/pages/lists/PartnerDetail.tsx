@@ -282,11 +282,6 @@ export default function PartnerDetail() {
           </div>
         </div>
 
-        {/* Activity Hub */}
-        <div className="px-6">
-          <PartnerActivityHub partnerId={parseInt(id!)} partnerName={partner?.name || 'Partner'} />
-        </div>
-
         {/* Tabs */}
         <div className="px-6">
           <nav className="flex space-x-8">
