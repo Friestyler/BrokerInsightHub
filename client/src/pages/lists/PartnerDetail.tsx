@@ -50,10 +50,22 @@ export default function PartnerDetail() {
   // Mutation for creating new lists
   const createListMutation = useMutation({
     mutationFn: async (listData: any) => {
-      return await apiRequest('POST', '/api/saved-lists', listData);
+      try {
+        console.log('Creating list with data:', listData);
+        const result = await apiRequest('POST', '/api/saved-lists', listData);
+        console.log('List creation API result:', result);
+        return result;
+      } catch (error) {
+        console.error('API request failed:', error);
+        throw error;
+      }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Mutation onSuccess called with:', data);
       queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
+    },
+    onError: (error) => {
+      console.error('Mutation onError called with:', error);
     }
   });
 
