@@ -1820,8 +1820,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         );
         return res.json(result.rows);
       } else if (entityType) {
-        // Filter by entity type only
-        const result = await envPool.query('SELECT * FROM degoudse.saved_lists WHERE entity_type = $1 ORDER BY created_at DESC', [entityType]);
+        // Filter by entity type only, exclude partner-specific lists (partner_id IS NULL for general lists)
+        const result = await envPool.query('SELECT * FROM degoudse.saved_lists WHERE entity_type = $1 AND partner_id IS NULL ORDER BY created_at DESC', [entityType]);
         return res.json(result.rows);
       } else {
         // Return all lists
