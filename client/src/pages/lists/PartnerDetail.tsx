@@ -740,7 +740,7 @@ export default function PartnerDetailClean() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {relatedOpportunities?.map((opportunity: any) => (
+                  {filteredOpportunities.map((opportunity: any) => (
                     <TableRow key={opportunity.id}>
                       <TableCell><Checkbox /></TableCell>
                       <TableCell>
