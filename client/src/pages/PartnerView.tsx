@@ -512,7 +512,7 @@ export default function PartnerView() {
                     <tr key={opportunity.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
-                          <Link href={`/partner-view/opportunity/${opportunity.id}`}>
+                          <Link href={`/broker-view/opportunity/${opportunity.id}`}>
                             <div className="text-sm font-medium text-indigo-600 hover:text-indigo-800 hover:underline cursor-pointer">
                               {opportunity.title}
                             </div>
