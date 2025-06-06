@@ -1824,6 +1824,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.post('/api/degoudse/saved-lists', async (req, res) => {
+    try {
+      const { name, description, entity_type, members, isShared } = req.body;
+      const envPool = getEnvironmentPool('degoudse');
+      const created_by = 1; // Default user ID for now
+      
+      const membersArray = members && Array.isArray(members) ? members : [];
+      
+      const result = await envPool.query(`
+        INSERT INTO degoudse.saved_lists 
+        (name, description, entity_type, members, is_shared, created_by, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+        RETURNING *
+      `, [name, description || '', entity_type, membersArray, isShared || false, created_by]);
+      
+      console.log('Created saved list:', result.rows[0]);
+      res.status(201).json(result.rows[0]);
+    } catch (error) {
+      console.error('Error creating saved list in De Goudse:', error);
+      res.status(500).json({ error: 'Failed to create saved list' });
+    }
+  });
+
   app.get('/api/degoudse/opportunities', async (req, res) => {
     try {
       const envPool = getEnvironmentPool('degoudse');
