@@ -1803,6 +1803,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Original route with fixed filtering logic
   app.get('/api/degoudse/saved-lists', async (req, res) => {
     const entityType = req.query.entity_type as string;
+    const partnerId = req.query.partner_id as string;
     
     res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
     res.set('Pragma', 'no-cache'); 
@@ -1811,10 +1812,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const envPool = getEnvironmentPool('degoudse');
       
-      if (entityType) {
+      if (entityType && partnerId) {
+        // Filter by entity type and partner context (include both partner-specific lists and general lists)
+        const result = await envPool.query(
+          'SELECT * FROM degoudse.saved_lists WHERE entity_type = $1 AND (partner_id = $2 OR partner_id IS NULL) ORDER BY created_at DESC', 
+          [entityType, parseInt(partnerId)]
+        );
+        return res.json(result.rows);
+      } else if (entityType) {
+        // Filter by entity type only
         const result = await envPool.query('SELECT * FROM degoudse.saved_lists WHERE entity_type = $1 ORDER BY created_at DESC', [entityType]);
         return res.json(result.rows);
       } else {
+        // Return all lists
         const result = await envPool.query('SELECT * FROM degoudse.saved_lists ORDER BY created_at DESC');
         return res.json(result.rows);
       }
@@ -1826,7 +1836,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/degoudse/saved-lists', async (req, res) => {
     try {
-      const { name, description, entity_type, members, isShared } = req.body;
+      const { name, description, entity_type, members, isShared, partner_id, context } = req.body;
       const envPool = getEnvironmentPool('degoudse');
       const created_by = 1; // Default user ID for now
       
@@ -1835,10 +1845,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       const result = await envPool.query(`
         INSERT INTO degoudse.saved_lists 
-        (name, description, type, entity_type, members, filters, is_shared, created_by, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
+        (name, description, type, entity_type, members, filters, is_shared, created_by, partner_id, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
         RETURNING *
-      `, [name, description || '', type, entity_type, membersArray, JSON.stringify({}), isShared || false, created_by]);
+      `, [name, description || '', type, entity_type, membersArray, JSON.stringify({}), isShared || false, created_by, partner_id || null]);
       
       console.log('Created saved list:', result.rows[0]);
       res.status(201).json(result.rows[0]);

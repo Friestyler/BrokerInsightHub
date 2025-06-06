@@ -76,6 +76,7 @@ export default function PartnerDetail() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'opportunities', 'partner', id] });
     }
   });
 
@@ -98,8 +99,9 @@ export default function PartnerDetail() {
 
   // Fetch saved lists for opportunities that include this partner
   const { data: savedListsData } = useQuery({
-    queryKey: ['/api/saved-lists', 'opportunities'],
-    queryFn: () => fetch(`/api/saved-lists?entity_type=opportunities`).then(res => res.json()),
+    queryKey: ['/api/saved-lists', 'opportunities', 'partner', id],
+    queryFn: () => apiRequest('GET', `/api/saved-lists?entity_type=opportunities&partner_id=${id}`),
+    enabled: !!id,
   });
 
   // Fetch all opportunity lists for the modal
@@ -1214,7 +1216,9 @@ export default function PartnerDetail() {
                     description: listDescriptionInput?.value || '',
                     entity_type: 'opportunities',
                     members: selectedOpportunities,
-                    isShared: shareListCheckbox?.checked || false
+                    isShared: shareListCheckbox?.checked || false,
+                    partner_id: parseInt(id || '0'), // Associate with current partner
+                    context: 'partner' // Mark as partner-specific list
                   };
 
                   createListMutation.mutate(listData, {
