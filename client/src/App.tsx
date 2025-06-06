@@ -21,6 +21,7 @@ import CustomerDetail from "@/pages/lists/CustomerDetailNew";
 import OpportunitiesPage from "@/pages/lists/OpportunitiesPage";
 import OpportunityDetail from "@/pages/lists/OpportunityDetail";
 import OpportunityDetailBrokerPOV from "@/pages/lists/OpportunityDetailBrokerPOV";
+import PartnerDetailBrokerPOV from "@/pages/lists/PartnerDetailBrokerPOV";
 import PartnersViewforPartner from "@/pages/PartnersViewforPartner";
 import VendorsPage from "@/pages/lists/VendorsPage";
 import ProductsPage from "@/pages/lists/ProductsPage";
@@ -57,6 +58,7 @@ function Router() {
       <Route path="/broker-view/list/:listId" component={PartnerView} />
       <Route path="/broker-view/partners" component={PartnerView} />
       <Route path="/broker-view/opportunity/:opportunityId" component={OpportunityDetailBrokerPOV} />
+      <Route path="/broker-view/partner/:partnerId" component={PartnerDetailBrokerPOV} />
       
       {/* All other routes use the main layout */}
       <Route>

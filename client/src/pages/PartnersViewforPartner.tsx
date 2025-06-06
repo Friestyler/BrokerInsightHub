@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { Button } from '@/components/ui/button';
@@ -221,7 +222,9 @@ function PartnerTable() {
                         </div>
                       </div>
                       <div className="ml-4">
-                        <div className="font-medium text-gray-900">{partner.name}</div>
+                        <Link href={`/broker-view/partner/${partner.id}`}>
+                          <div className="font-medium text-gray-900 hover:text-indigo-600 cursor-pointer">{partner.name}</div>
+                        </Link>
                         {partner.id === 'degoudse' && (
                           <div className="text-xs text-indigo-600 font-medium">List Shared By</div>
                         )}
