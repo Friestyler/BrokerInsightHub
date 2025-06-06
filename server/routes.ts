@@ -1250,7 +1250,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Fix De Goudse Relationships Endpoint
   app.post('/api/degoudse/fix-relationships', async (req: Request, res: Response) => {
     try {
-      const envPool = getEnvironmentSql('degoudse');
+      const envPool = getEnvironmentPool('degoudse');
       let relationshipsCreated = 0;
       
       // Get all opportunities and available partners/customers
@@ -1385,7 +1385,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // De Goudse environment API routes (using proper database isolation)
   app.get('/api/degoudse/partners', async (req, res) => {
     try {
-      const envPool = getEnvironmentSql('degoudse');
+      const envPool = getEnvironmentPool('degoudse');
       const result = await envPool.query(`
         SELECT p.*, 
                COUNT(DISTINCT pc.customer_id) as customer_count,
@@ -1431,7 +1431,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/degoudse/partners/:id/customers', async (req, res) => {
     try {
       const partnerId = parseInt(req.params.id);
-      const envPool = getEnvironmentSql('degoudse');
+      const envPool = getEnvironmentPool('degoudse');
       const result = await envPool.query(`
         SELECT c.id, c.name, c.description
         FROM degoudse.customers c
@@ -1456,7 +1456,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/degoudse/partners/:id/opportunities', async (req, res) => {
     try {
       const partnerId = parseInt(req.params.id);
-      const envPool = getEnvironmentSql('degoudse');
+      const envPool = getEnvironmentPool('degoudse');
       const result = await envPool.query(`
         SELECT o.*, c.name as client_name
         FROM degoudse.opportunities o
@@ -1487,7 +1487,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/degoudse/customers/:id/partners', async (req, res) => {
     try {
       const customerId = parseInt(req.params.id);
-      const envPool = getEnvironmentSql('degoudse');
+      const envPool = getEnvironmentPool('degoudse');
       const result = await envPool.query(`
         SELECT p.*
         FROM degoudse.partners p
@@ -1515,7 +1515,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/degoudse/customers/:id/opportunities', async (req, res) => {
     try {
       const customerId = parseInt(req.params.id);
-      const envPool = getEnvironmentSql('degoudse');
+      const envPool = getEnvironmentPool('degoudse');
       const result = await envPool.query(`
         SELECT o.*, p.name as partner_name
         FROM degoudse.opportunities o
@@ -1548,7 +1548,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/degoudse/customers/:id/products', async (req, res) => {
     try {
       const customerId = parseInt(req.params.id);
-      const envPool = getEnvironmentSql('degoudse');
+      const envPool = getEnvironmentPool('degoudse');
       const result = await envPool.query(`
         SELECT DISTINCT p.*, v.name as vendor_name
         FROM degoudse.products p
@@ -1582,7 +1582,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/degoudse/opportunities/:id/products', async (req, res) => {
     try {
       const opportunityId = parseInt(req.params.id);
-      const envPool = getEnvironmentSql('degoudse');
+      const envPool = getEnvironmentPool('degoudse');
       const result = await envPool.query(`
         SELECT pr.*
         FROM degoudse.products pr
@@ -1609,7 +1609,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/degoudse/opportunities/:id/partners', async (req, res) => {
     try {
       const opportunityId = parseInt(req.params.id);
-      const envPool = getEnvironmentSql('degoudse');
+      const envPool = getEnvironmentPool('degoudse');
       const result = await envPool.query(`
         SELECT p.*
         FROM degoudse.partners p
@@ -1639,7 +1639,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/degoudse/opportunities/:id/customers', async (req, res) => {
     try {
       const opportunityId = parseInt(req.params.id);
-      const envPool = getEnvironmentSql('degoudse');
+      const envPool = getEnvironmentPool('degoudse');
       const result = await envPool.query(`
         SELECT c.*
         FROM degoudse.customers c
@@ -1666,7 +1666,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/degoudse/customers', async (req, res) => {
     try {
-      const envPool = getEnvironmentSql('degoudse');
+      const envPool = getEnvironmentPool('degoudse');
       const result = await envPool.query(`
         SELECT c.*, 
                COUNT(DISTINCT pc.partner_id) as partner_count,
@@ -1721,7 +1721,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     try {
       const entityType = req.query.entity_type as string;
-      const envPool = getEnvironmentSql('degoudse');
+      const envPool = getEnvironmentPool('degoudse');
       
       console.log(`TEST ROUTE: entityType='${entityType}'`);
       
@@ -1749,7 +1749,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     try {
       const entityType = req.query.entity_type as string;
-      const envPool = getEnvironmentSql('degoudse');
+      const envPool = getEnvironmentPool('degoudse');
       
       console.log(`FIXED: De Goudse saved views: entityType='${entityType}'`);
       
@@ -1779,7 +1779,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.set('Expires', '0');
     
     try {
-      const envPool = getEnvironmentSql('degoudse');
+      const envPool = getEnvironmentPool('degoudse');
       
       if (entityType === 'partners') {
         const result = await envPool.query('SELECT * FROM degoudse.saved_lists WHERE entity_type = $1 ORDER BY created_at DESC', ['partners']);
@@ -1809,7 +1809,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.set('Expires', '0');
     
     try {
-      const envPool = getEnvironmentSql('degoudse');
+      const envPool = getEnvironmentPool('degoudse');
       
       if (entityType) {
         const result = await envPool.query('SELECT * FROM degoudse.saved_lists WHERE entity_type = $1 ORDER BY created_at DESC', [entityType]);
@@ -1826,7 +1826,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/degoudse/opportunities', async (req, res) => {
     try {
-      const envPool = getEnvironmentSql('degoudse');
+      const envPool = getEnvironmentPool('degoudse');
       const result = await envPool.query(`
         SELECT o.*, 
                STRING_AGG(DISTINCT c.name, ', ') as customer_names,
@@ -1885,7 +1885,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/degoudse/opportunities/:id', async (req, res) => {
     try {
       const opportunityId = parseInt(req.params.id);
-      const envPool = getEnvironmentSql('degoudse');
+      const envPool = getEnvironmentPool('degoudse');
       
       const result = await envPool.query(`
         SELECT o.*, 
@@ -1948,7 +1948,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // De Goudse OKR Metrics endpoints
   app.get('/api/degoudse/okr-metrics', async (req, res) => {
     try {
-      const envPool = getEnvironmentSql('degoudse');
+      const envPool = getEnvironmentPool('degoudse');
       const result = await envPool.query('SELECT * FROM degoudse.okr_metrics ORDER BY id');
       res.json(result.rows);
     } catch (error) {
@@ -1960,7 +1960,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // De Goudse OKR Tags endpoints
   app.get('/api/degoudse/okr-tags', async (req, res) => {
     try {
-      const envPool = getEnvironmentSql('degoudse');
+      const envPool = getEnvironmentPool('degoudse');
       const result = await envPool.query('SELECT * FROM degoudse.okr_tags ORDER BY name ASC');
       res.json(result.rows);
     } catch (error) {
@@ -1972,7 +1972,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // De Goudse Contacts endpoints
   app.get('/api/degoudse/contacts', async (req, res) => {
     try {
-      const envPool = getEnvironmentSql('degoudse');
+      const envPool = getEnvironmentPool('degoudse');
       const { linkedEntityType, linkedEntityId } = req.query;
       
       let queryConditions = '';
@@ -2009,7 +2009,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/degoudse/contacts', async (req, res) => {
     try {
-      const envPool = getEnvironmentSql('degoudse');
+      const envPool = getEnvironmentPool('degoudse');
       const { 
         firstName, lastName, email, phone, 
         company, position, department, linkedEntityType, linkedEntityId, 
@@ -2048,7 +2048,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // De Goudse Vendors endpoints
   app.get('/api/degoudse/vendors', async (req, res) => {
     try {
-      const envPool = getEnvironmentSql('degoudse');
+      const envPool = getEnvironmentPool('degoudse');
       const result = await envPool.query(`
         SELECT id, name, description, initials, contact_name, contact_email, 
                contact_phone, "ownerId", "createdAt", "updatedAt"
@@ -2071,7 +2071,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/degoudse/vendors', async (req, res) => {
     try {
-      const envPool = getEnvironmentSql('degoudse');
+      const envPool = getEnvironmentPool('degoudse');
       const { 
         name, 
         description, 
@@ -2115,7 +2115,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/degoudse/okr-metrics', async (req, res) => {
     try {
       const { name, description, realized_value, target_value, measure_unit, frequency, hierarchy, tags } = req.body;
-      const envPool = getEnvironmentSql('degoudse');
+      const envPool = getEnvironmentPool('degoudse');
       
       const tagsArray = Array.isArray(tags) ? tags : [];
       const tagsLiteral = tagsArray.length > 0 ? `ARRAY[${tagsArray.map(tag => `'${tag.replace(/'/g, "''")}'`).join(',')}]::text[]` : 'ARRAY[]::text[]';
@@ -2144,7 +2144,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/degoudse/okr-tags', async (req, res) => {
     try {
-      const envPool = getEnvironmentSql('degoudse');
+      const envPool = getEnvironmentPool('degoudse');
       const result = await envPool.query('SELECT * FROM degoudse.okr_tags ORDER BY name');
       res.json(result.rows);
     } catch (error) {
@@ -2156,7 +2156,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/degoudse/okr-tags', async (req, res) => {
     try {
       const { name, color } = req.body;
-      const envPool = getEnvironmentSql('degoudse');
+      const envPool = getEnvironmentPool('degoudse');
       
       const result = await envPool.query(`
         INSERT INTO degoudse.okr_tags (name, color)
@@ -2175,7 +2175,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const { name, color } = req.body;
-      const envPool = getEnvironmentSql('degoudse');
+      const envPool = getEnvironmentPool('degoudse');
       
       const result = await envPool.query(`
         UPDATE degoudse.okr_tags 
@@ -2198,7 +2198,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/degoudse/okr-tags/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const envPool = getEnvironmentSql('degoudse');
+      const envPool = getEnvironmentPool('degoudse');
       
       const result = await envPool.query(`
         DELETE FROM degoudse.okr_tags WHERE id = $1
@@ -2219,7 +2219,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/degoudse/template-assignments/:entityType', async (req, res) => {
     try {
       const { entityType } = req.params;
-      const envPool = getEnvironmentSql('degoudse');
+      const envPool = getEnvironmentPool('degoudse');
       
       const result = await envPool.query(`
         SELECT 
@@ -2243,7 +2243,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/degoudse/template-assignments', async (req, res) => {
     try {
       const { templateIds, entityType, entityId, assignedBy, notes } = req.body;
-      const envPool = getEnvironmentSql('degoudse');
+      const envPool = getEnvironmentPool('degoudse');
       
       const results = [];
       for (const templateId of templateIds) {
@@ -2268,7 +2268,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/degoudse/shared-lists/by-list/:listId', async (req, res) => {
     try {
       const { listId } = req.params;
-      const envPool = getEnvironmentSql('degoudse');
+      const envPool = getEnvironmentPool('degoudse');
       
       const result = await envPool.query(`
         SELECT share_token, list_name, list_description, message, created_at, expires_at
@@ -2288,7 +2288,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/degoudse/shared-lists', async (req, res) => {
     try {
       const { list_name, list_description, entity_type, data, message, list_id } = req.body;
-      const envPool = getEnvironmentSql('degoudse');
+      const envPool = getEnvironmentPool('degoudse');
       
       // Generate a unique share token
       const shareToken = Math.random().toString(36).substring(2) + Date.now().toString(36);
@@ -2313,7 +2313,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/shared-lists/:shareToken', async (req, res) => {
     try {
       const { shareToken } = req.params;
-      const envPool = getEnvironmentSql('degoudse');
+      const envPool = getEnvironmentPool('degoudse');
       
       // Get shared list info
       const shareResult = await envPool.query(`
@@ -2368,7 +2368,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Mapping templates API endpoints for De Goudse
   app.get('/api/degoudse/mapping-templates', async (req, res) => {
     try {
-      const envPool = getEnvironmentSql('degoudse');
+      const envPool = getEnvironmentPool('degoudse');
       const result = await envPool.query(
         `SELECT * FROM degoudse.mapping_templates ORDER BY created_at DESC`
       );
@@ -2382,7 +2382,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/degoudse/mapping-templates', async (req, res) => {
     try {
       const { name, description, columnMappings } = req.body;
-      const envPool = getEnvironmentSql('degoudse');
+      const envPool = getEnvironmentPool('degoudse');
       
       const result = await envPool.query(
         `INSERT INTO degoudse.mapping_templates (name, description, column_mappings, created_at, updated_at)
@@ -2461,7 +2461,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           } else if (mapping.mappingType === 'entity_relationship' && mapping.entityType) {
             // Handle entity relationships
             try {
-              const envPool = getEnvironmentSql('degoudse');
+              const envPool = getEnvironmentPool('degoudse');
               
               if (mapping.entityType === 'customer') {
                 const result = await envPool.query(
@@ -2600,7 +2600,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
         try {
           // Create the opportunity using direct SQL
-          const envPool = getEnvironmentSql('degoudse');
+          const envPool = getEnvironmentPool('degoudse');
           
           const opportunityResult = await envPool.query(
             `INSERT INTO degoudse.opportunities 
@@ -2993,19 +2993,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/admin/environment-stats', async (req, res) => {
     try {
       // Get environments dynamically from database
-      const { sql } = await import('./db');
-      const schemasResult = await sql`
+      const { pool } = await import('./db');
+      const schemasResult = await pool.query(`
         SELECT schema_name 
         FROM information_schema.schemata 
         WHERE schema_name NOT IN ('information_schema', 'pg_catalog', 'pg_toast', 'public') 
         ORDER BY schema_name
-      `;
+      `);
       
-      const environments = schemasResult.map((row: any) => row.schema_name);
+      const environments = schemasResult.rows.map((row: any) => row.schema_name);
       const stats: Record<string, any> = {};
 
       for (const envId of environments) {
-        const envPool = getEnvironmentSql(envId);
+        const envPool = getEnvironmentPool(envId);
         
         // Get table counts for this environment
         const customerCount = await envPool.query(`SELECT COUNT(*) as count FROM ${envId}.customers`);
@@ -3048,7 +3048,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Environment ID is required' });
       }
 
-      const envPool = getEnvironmentSql(envId);
+      const envPool = getEnvironmentPool(envId);
       const results = [];
 
       if (!entityType || entityType === 'all' || entityType === 'customers') {
@@ -3110,8 +3110,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       console.log('Clone environment request:', { sourceEnvId, targetEnvId, name, description });
 
-      const sourcePool = getEnvironmentSql(sourceEnvId);
-      const targetPool = getEnvironmentSql(targetEnvId);
+      const sourcePool = getEnvironmentPool(sourceEnvId);
+      const targetPool = getEnvironmentPool(targetEnvId);
 
       // Create the new schema using a safer approach
       // PostgreSQL doesn't support parameterized schema names, so we need to sanitize manually
@@ -3197,7 +3197,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         });
       }
 
-      const envPool = getEnvironmentSql(envId);
+      const envPool = getEnvironmentPool(envId);
       
       // Import OpenAI dynamically to avoid build issues if not available
       const { default: OpenAI } = await import('openai');
@@ -3342,7 +3342,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Create or update environment metadata table to track archived status
-      const envPool = getEnvironmentSql(envId);
+      const envPool = getEnvironmentPool(envId);
       
       await envPool.query(`
         CREATE TABLE IF NOT EXISTS ${envId}.environment_metadata (
@@ -3387,7 +3387,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
 
       // Get environment pool
-      const envPool = getEnvironmentSql(envId);
+      const envPool = getEnvironmentPool(envId);
       
       // Drop the entire schema and all its contents (properly quoted)
       await envPool.query(`DROP SCHEMA IF EXISTS "${envId}" CASCADE`);
@@ -3563,7 +3563,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.set('Pragma', 'no-cache');
       res.set('Expires', '0');
       
-      const envPool = getEnvironmentSql(envId as string);
+      const envPool = getEnvironmentPool(envId as string);
       
       if (entityType && entityType.trim()) {
         const result = await envPool.query(
@@ -3643,7 +3643,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const entityType = req.query.entity_type as string;
       const envId = req.headers['x-environment-id'] || 'myqollabi';
-      const envPool = getEnvironmentSql(envId as string);
+      const envPool = getEnvironmentPool(envId as string);
       
       console.log(`Saved views API: entityType=${entityType}, envId=${envId}`);
       
