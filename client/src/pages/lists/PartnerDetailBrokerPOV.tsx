@@ -7,43 +7,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Search, Menu } from "lucide-react";
-// Simplified Activity Hub for Broker View
-function BrokerActivityHub({ partnerName, opportunityCount }: { partnerName: string; opportunityCount: number }) {
-  return (
-    <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
-      <div className="flex items-center justify-between mb-4">
-        <h2 className="text-lg font-semibold text-gray-900">Activity Hub</h2>
-        <div className="text-sm text-gray-500">Partner: {partnerName}</div>
-      </div>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-blue-50 p-4 rounded-lg">
-          <div className="text-sm text-blue-600 font-medium">Recent Activity</div>
-          <div className="text-2xl font-bold text-blue-900 mt-1">{opportunityCount}</div>
-          <div className="text-xs text-blue-600 mt-1">Opportunities shared</div>
-        </div>
-        
-        <div className="bg-green-50 p-4 rounded-lg">
-          <div className="text-sm text-green-600 font-medium">Collaboration</div>
-          <div className="text-2xl font-bold text-green-900 mt-1">Active</div>
-          <div className="text-xs text-green-600 mt-1">Partnership status</div>
-        </div>
-        
-        <div className="bg-yellow-50 p-4 rounded-lg">
-          <div className="text-sm text-yellow-600 font-medium">Communication</div>
-          <div className="text-2xl font-bold text-yellow-900 mt-1">Open</div>
-          <div className="text-xs text-yellow-600 mt-1">Available for contact</div>
-        </div>
-      </div>
-      
-      <div className="mt-4 p-3 bg-gray-50 rounded-lg">
-        <div className="text-sm text-gray-600">
-          <strong>Recent Activity:</strong> {partnerName} shared a list of opportunities for review and collaboration.
-        </div>
-      </div>
-    </div>
-  );
-}
+import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
 
 // Broker View Layout Component
 function BrokerLayout({ children }: { children: React.ReactNode }) {
@@ -304,7 +268,7 @@ export default function PartnerDetailBrokerPOV() {
           <p className="text-gray-600 mb-6">Joint action & business plan to drive growth with insurance business</p>
 
           {/* Activity Hub */}
-          <BrokerActivityHub partnerName={partner.name} opportunityCount={relatedOpportunities.length} />
+          <PartnerActivityHub partnerId={1} partnerName={partner.name} />
 
           {/* Tab Navigation */}
           <div className="border-b border-gray-200">
