@@ -1,9 +1,6 @@
-import { Pool, neonConfig } from '@neondatabase/serverless';
-import { drizzle } from 'drizzle-orm/neon-serverless';
-import ws from "ws";
+import { neon } from '@neondatabase/serverless';
+import { drizzle } from 'drizzle-orm/neon-http';
 import * as schema from "@shared/schema";
-
-neonConfig.webSocketConstructor = ws;
 
 // Environment configuration - each environment gets its own dedicated database
 interface DatabaseConfig {
@@ -30,18 +27,18 @@ if (!process.env.DATABASE_URL) {
   );
 }
 
-// Create a pool for each environment
-const pools: Record<string, Pool> = {};
+// Create HTTP clients for each environment
+const clients: Record<string, ReturnType<typeof neon>> = {};
 const dbs: Record<string, ReturnType<typeof drizzle>> = {};
 
-// Initialize database connections for all environments
+// Initialize database connections for all environments using HTTP
 Object.entries(environmentConfigs).forEach(([envName, config]) => {
-  pools[envName] = new Pool({ connectionString: config.connectionString });
-  dbs[envName] = drizzle({ client: pools[envName], schema });
+  clients[envName] = neon(config.connectionString);
+  dbs[envName] = drizzle(clients[envName], { schema });
 });
 
 // Default connections (De Goudse only)
-export const pool = pools.degoudse;
+export const sql = clients.degoudse;
 export const db = dbs.degoudse;
 
 // Helper function to get database connection for a specific environment
@@ -49,7 +46,7 @@ export function getEnvironmentDb(envId = 'degoudse') {
   return dbs[envId] || db;
 }
 
-// Helper function to get database pool for a specific environment
-export function getEnvironmentPool(envId = 'degoudse') {
-  return pools[envId] || pool;
+// Helper function to get SQL client for a specific environment
+export function getEnvironmentSql(envId = 'degoudse') {
+  return clients[envId] || sql;
 }
