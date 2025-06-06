@@ -2299,7 +2299,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           updated_at = NOW()
         WHERE id = $2
         RETURNING *
-      `, [JSON.stringify(uniqueMembers), listId]);
+      `, [uniqueMembers, listId]);
       
       res.json(result.rows[0]);
     } catch (error) {
