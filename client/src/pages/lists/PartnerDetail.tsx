@@ -1206,7 +1206,8 @@ export default function PartnerDetail() {
                   };
 
                   createListMutation.mutate(listData, {
-                    onSuccess: () => {
+                    onSuccess: (data) => {
+                      console.log('List creation successful:', data);
                       toast({
                         title: "List created successfully",
                         description: `"${listData.name}" has been saved with ${selectedOpportunities.length} opportunities.`,
@@ -1215,7 +1216,8 @@ export default function PartnerDetail() {
                       setSelectedOpportunities([]);
                       setSaveListMode('new');
                     },
-                    onError: () => {
+                    onError: (error) => {
+                      console.error('List creation error:', error);
                       toast({
                         title: "Error creating list",
                         description: "Failed to save the list. Please try again.",
