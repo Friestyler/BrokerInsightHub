@@ -319,6 +319,13 @@ export default function PartnerView() {
                       </svg>
                     </button>
                     
+                    {/* Shared by indicator */}
+                    {(activeList || listData) && (
+                      <div className="ml-3 text-sm text-gray-600">
+                        Shared by <span className="font-medium">{(activeList || listData)?.sharedBy || 'De Goudse'}</span>
+                      </div>
+                    )}
+                    
                     {/* Shared Lists dropdown menu */}
                     {showListsDropdown && (
                       <div className="absolute z-50 mt-1.5 w-80 rounded-md border border-slate-200 bg-white text-slate-950 shadow-md animate-in fade-in-80">
