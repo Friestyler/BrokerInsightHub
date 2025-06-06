@@ -5,7 +5,7 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
@@ -994,6 +994,9 @@ export default function PartnerDetail() {
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Add Comment to OKR Metric</DialogTitle>
+            <DialogDescription>
+              Add a comment to provide context or updates about this OKR metric's progress.
+            </DialogDescription>
           </DialogHeader>
           <div className="space-y-4">
             {selectedMetricForComment && (
@@ -1064,9 +1067,9 @@ export default function PartnerDetail() {
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Save Selected Opportunities</DialogTitle>
-            <p className="text-sm text-gray-600">
+            <DialogDescription>
               Choose how to save your {selectedOpportunities.length} selected {selectedOpportunities.length === 1 ? 'opportunity' : 'opportunities'}
-            </p>
+            </DialogDescription>
           </DialogHeader>
           
           <div className="space-y-6">
