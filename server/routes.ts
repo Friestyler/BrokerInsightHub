@@ -1831,13 +1831,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const created_by = 1; // Default user ID for now
       
       const membersArray = members && Array.isArray(members) ? members : [];
+      const type = 'selection'; // Required field based on existing data
       
       const result = await envPool.query(`
         INSERT INTO degoudse.saved_lists 
-        (name, description, entity_type, members, is_shared, created_by, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+        (name, description, type, entity_type, members, filters, is_shared, created_by, created_at, updated_at)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW())
         RETURNING *
-      `, [name, description || '', entity_type, membersArray, isShared || false, created_by]);
+      `, [name, description || '', type, entity_type, membersArray, JSON.stringify({}), isShared || false, created_by]);
       
       console.log('Created saved list:', result.rows[0]);
       res.status(201).json(result.rows[0]);
