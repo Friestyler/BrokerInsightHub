@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "wouter";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
@@ -37,6 +37,14 @@ export default function PartnerDetailClean() {
   const [visibleToPartner, setVisibleToPartner] = useState(true);
   const [assignedTo, setAssignedTo] = useState<string>('');
 
+  // Opportunities toolbar state management
+  const [showListsDropdown, setShowListsDropdown] = useState(false);
+  const [activeList, setActiveList] = useState<any>(null);
+  const [filterText, setFilterText] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('');
+  const [selectedType, setSelectedType] = useState('');
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
   // Fetch partner data from database
   const { data: partners, isLoading: partnersLoading } = useQuery({
     queryKey: ['/api/partners'],
@@ -53,6 +61,57 @@ export default function PartnerDetailClean() {
     queryKey: [`/api/partners/${id}/opportunities`],
     enabled: !!id,
   });
+
+  // Fetch saved lists for opportunities that include this partner
+  const { data: savedListsData } = useQuery({
+    queryKey: ['/api/saved-lists', 'opportunities'],
+    queryFn: () => fetch(`/api/saved-lists?entity_type=opportunities`).then(res => res.json()),
+  });
+
+  // Filter saved lists to show partner-relevant lists
+  const partnerRelevantLists = (savedListsData || []).filter((list: any) => {
+    // Show lists that are shared with this partner or contain opportunities from this partner
+    if (list.filters?.partner_shared_with && String(list.filters.partner_shared_with) === String(id)) {
+      return true;
+    }
+    // You could also check if the list contains opportunities that belong to this partner
+    return false;
+  });
+
+  // Filter opportunities based on search and active list
+  const filteredOpportunities = (relatedOpportunities || []).filter((opportunity: any) => {
+    // Filter by search text
+    if (filterText) {
+      const searchLower = filterText.toLowerCase();
+      const matchesSearch = 
+        opportunity.title?.toLowerCase().includes(searchLower) ||
+        opportunity.clientName?.toLowerCase().includes(searchLower) ||
+        opportunity.stage?.toLowerCase().includes(searchLower);
+      if (!matchesSearch) return false;
+    }
+    
+    // If a specific list is selected, apply its filters
+    if (activeList && activeList.filters) {
+      // Apply list-specific filtering logic here
+      // For now, we'll show all opportunities when a list is selected
+    }
+    
+    return true;
+  });
+
+  // Click outside handler to close dropdown
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowListsDropdown(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   // Fetch template assignments for this partner
   const { data: templateAssignments } = useQuery({
@@ -488,17 +547,17 @@ export default function PartnerDetailClean() {
                     <div className="flex flex-col mr-2">
                       <span className="text-base font-semibold text-gray-800 mb-2">Lists</span>
                     </div>
-                    {/* Saved Lists dropdown - redesigned to match provided image */}
-                    <div className="relative">
+                    {/* Saved Lists dropdown - functional implementation */}
+                    <div className="relative" ref={dropdownRef}>
                       <button 
                         className="flex items-center space-x-2 px-4 py-2.5 border rounded-md text-sm font-medium shadow-sm bg-white hover:bg-gray-50"
-                        onClick={() => {/* Handle lists dropdown */}}
+                        onClick={() => setShowListsDropdown(!showListsDropdown)}
                       >
                         <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-indigo-600">
                           <path d="M5.25 1.5V4.25H12.6875V2C12.6875 1.725 12.4906 1.5 12.25 1.5H5.25ZM3.9375 1.5H1.75C1.50937 1.5 1.3125 1.725 1.3125 2V4.25H3.9375V1.5ZM1.3125 5.75V8.25H3.9375V5.75H1.3125ZM1.3125 9.75V12C1.3125 12.275 1.50937 12.5 1.75 12.5H3.9375V9.75H1.3125ZM5.25 12.5H12.25C12.4906 12.5 12.6875 12.275 12.6875 12V9.75H5.25V12.5ZM12.6875 8.25V5.75H5.25V8.25H12.6875ZM0 2C0 0.896875 0.784766 0 1.75 0H12.25C13.2152 0 14 0.896875 14 2V12C14 13.1031 13.2152 14 12.25 14H1.75C0.784766 14 0 13.1031 0 12V2Z" fill="#3E4DC4"/>
                         </svg>
                         <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
-                          Partner Opportunities
+                          {activeList ? activeList.name : 'All opportunities'}
                         </span>
                         <svg 
                           xmlns="http://www.w3.org/2000/svg" 
@@ -510,11 +569,60 @@ export default function PartnerDetailClean() {
                           strokeWidth="2" 
                           strokeLinecap="round" 
                           strokeLinejoin="round" 
-                          className="transition-transform"
+                          className={`transition-transform ${showListsDropdown ? 'rotate-180' : ''}`}
                         >
                           <polyline points="6 9 12 15 18 9" />
                         </svg>
                       </button>
+                      
+                      {/* Dropdown menu */}
+                      {showListsDropdown && (
+                        <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                          <div className="p-2">
+                            {/* Default "All opportunities" option */}
+                            <button
+                              className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 ${
+                                !activeList ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+                              }`}
+                              onClick={() => {
+                                setActiveList(null);
+                                setShowListsDropdown(false);
+                              }}
+                            >
+                              <div className="flex items-center space-x-2">
+                                <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                                <span>All opportunities</span>
+                              </div>
+                            </button>
+                            
+                            {/* Partner-relevant saved lists */}
+                            {partnerRelevantLists.length > 0 && (
+                              <div className="border-t border-gray-100 my-2 pt-2">
+                                <div className="px-3 py-1 text-xs font-medium text-gray-500 uppercase tracking-wide">
+                                  Shared Lists
+                                </div>
+                                {partnerRelevantLists.map((list: any) => (
+                                  <button
+                                    key={list.id}
+                                    className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 ${
+                                      activeList?.id === list.id ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+                                    }`}
+                                    onClick={() => {
+                                      setActiveList(list);
+                                      setShowListsDropdown(false);
+                                    }}
+                                  >
+                                    <div className="flex items-center space-x-2">
+                                      <div className="w-2 h-2 bg-indigo-600 rounded-full"></div>
+                                      <span>{list.name}</span>
+                                    </div>
+                                  </button>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                   
@@ -551,6 +659,8 @@ export default function PartnerDetailClean() {
                       <input
                         type="text"
                         placeholder="Search opportunities..."
+                        value={filterText}
+                        onChange={(e) => setFilterText(e.target.value)}
                         className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
                       />
                       <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
