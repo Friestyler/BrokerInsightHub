@@ -194,6 +194,23 @@ export default function PartnerDetailBrokerPOV() {
     }
   });
 
+  // Fetch all saved lists to find the one referenced in URL
+  const { data: allSavedLists = [] } = useQuery({
+    queryKey: ['/api/degoudse/saved-lists'],
+    queryFn: () => apiRequest('GET', '/api/degoudse/saved-lists'),
+    staleTime: 2 * 60 * 1000,
+  });
+
+  // Set active list based on URL parameter
+  useEffect(() => {
+    if (listParam && allSavedLists.length > 0) {
+      const targetList = allSavedLists.find((list: any) => list.id === parseInt(listParam));
+      if (targetList) {
+        setActiveOpportunitiesList(targetList);
+      }
+    }
+  }, [listParam, allSavedLists]);
+
   // Fetch saved lists for opportunities that include this partner
   const { data: savedListsData } = useQuery({
     queryKey: ['/api/saved-lists', 'opportunities'],
@@ -219,16 +236,24 @@ export default function PartnerDetailBrokerPOV() {
     }
   }, [listParam, savedListsData]);
 
-  // Filter opportunities based on the shared list
+  // Filter opportunities based on the active list (either from URL param or listData)
+  const getActiveListForFiltering = () => {
+    if (activeOpportunitiesList) return activeOpportunitiesList;
+    if (listData) return listData;
+    return null;
+  };
+
+  const activeFilterList = getActiveListForFiltering();
+
   const baseOpportunities = allOpportunities.filter((opp: any) => {
-    if (listData && listData.members && listData.members.length > 0) {
-      return listData.members.includes(opp.id);
+    if (activeFilterList && activeFilterList.members && activeFilterList.members.length > 0) {
+      return activeFilterList.members.includes(opp.id);
     }
     // If no specific list members, show all opportunities
     return true;
   });
 
-  // Further filter opportunities based on search and active list
+  // Further filter opportunities based on search and selected filters
   const filteredOpportunities = baseOpportunities.filter((opportunity: any) => {
     // Filter by search text
     if (filterText) {
@@ -240,9 +265,14 @@ export default function PartnerDetailBrokerPOV() {
       if (!matchesSearch) return false;
     }
     
-    // If a specific list is selected, apply its filters
-    if (activeOpportunitiesList && activeOpportunitiesList.filters) {
-      // Apply list-specific filtering logic here
+    // Filter by status if selected
+    if (selectedStatus && selectedStatus !== 'all' && opportunity.stage !== selectedStatus) {
+      return false;
+    }
+    
+    // Filter by opportunity type if selected
+    if (selectedOpportunityType && selectedOpportunityType !== 'all' && opportunity.type !== selectedOpportunityType) {
+      return false;
     }
     
     return true;
