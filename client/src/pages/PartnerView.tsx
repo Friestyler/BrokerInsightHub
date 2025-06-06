@@ -272,6 +272,15 @@ export default function PartnerView() {
     }).format(value || 0);
   };
 
+  // If we're on the partners page, render the Partners component
+  if (isPartnersPage) {
+    return (
+      <PartnerLayout>
+        <PartnersViewforPartner />
+      </PartnerLayout>
+    );
+  }
+
   if (listLoading || opportunitiesLoading) {
     return (
       <PartnerLayout>
@@ -298,15 +307,6 @@ export default function PartnerView() {
             <p className="text-gray-600">The shared list you're looking for doesn't exist or has been removed.</p>
           </div>
         </div>
-      </PartnerLayout>
-    );
-  }
-
-  // If we're on the partners page, render the Partners component
-  if (isPartnersPage) {
-    return (
-      <PartnerLayout>
-        <PartnersViewforPartner />
       </PartnerLayout>
     );
   }
