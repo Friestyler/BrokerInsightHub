@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Search, Copy, Users, Trash2, MoreHorizontal, MessageSquare } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
+import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
 
 export default function PartnerDetail() {
   const { id } = useParams();
@@ -279,6 +280,11 @@ export default function PartnerDetail() {
               </Button>
             </div>
           </div>
+        </div>
+
+        {/* Activity Hub */}
+        <div className="px-6">
+          <PartnerActivityHub partnerId={parseInt(id!)} partnerName={partner?.name || 'Partner'} />
         </div>
 
         {/* Tabs */}
