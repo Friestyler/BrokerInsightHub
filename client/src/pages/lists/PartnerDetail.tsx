@@ -1022,7 +1022,7 @@ export default function PartnerDetail() {
               <Checkbox
                 id="visible-to-partner"
                 checked={visibleToPartner}
-                onCheckedChange={setVisibleToPartner}
+                onCheckedChange={(checked) => setVisibleToPartner(!!checked)}
               />
               <label
                 htmlFor="visible-to-partner"
