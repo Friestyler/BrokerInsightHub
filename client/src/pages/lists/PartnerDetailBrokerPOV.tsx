@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { apiRequest } from '@/lib/queryClient';
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Search, Menu } from "lucide-react";
@@ -143,6 +144,14 @@ export default function PartnerDetailBrokerPOV() {
   const [selectedTag, setSelectedTag] = useState("all");
   const [selectedUnit, setSelectedUnit] = useState("all");
 
+  // Opportunities toolbar state management
+  const [showListsDropdown, setShowListsDropdown] = useState(false);
+  const [activeOpportunitiesList, setActiveOpportunitiesList] = useState<any>(null);
+  const [filterText, setFilterText] = useState('');
+  const [selectedStatus, setSelectedStatus] = useState('');
+  const [selectedOpportunityType, setSelectedOpportunityType] = useState('');
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
   // For broker view, show De Goudse as the sharing partner
   const partner = {
     id: 'degoudse',
@@ -176,14 +185,63 @@ export default function PartnerDetailBrokerPOV() {
     }
   });
 
+  // Fetch saved lists for opportunities that include this partner
+  const { data: savedListsData } = useQuery({
+    queryKey: ['/api/saved-lists', 'opportunities'],
+    queryFn: () => fetch(`/api/saved-lists?entity_type=opportunities`).then(res => res.json()),
+  });
+
+  // Filter saved lists to show partner-relevant lists (shared with broker)
+  const partnerRelevantLists = (savedListsData || []).filter((list: any) => {
+    // Show lists that are shared with this partner (broker view)
+    if (list.filters?.partner_shared_with && String(list.filters.partner_shared_with) === "4") {
+      return true;
+    }
+    return false;
+  });
+
   // Filter opportunities based on the shared list
-  const relatedOpportunities = allOpportunities.filter((opp: any) => {
+  const baseOpportunities = allOpportunities.filter((opp: any) => {
     if (listData && listData.members && listData.members.length > 0) {
       return listData.members.includes(opp.id);
     }
     // If no specific list members, show all opportunities
     return true;
   });
+
+  // Further filter opportunities based on search and active list
+  const filteredOpportunities = baseOpportunities.filter((opportunity: any) => {
+    // Filter by search text
+    if (filterText) {
+      const searchLower = filterText.toLowerCase();
+      const matchesSearch = 
+        opportunity.title?.toLowerCase().includes(searchLower) ||
+        opportunity.clientName?.toLowerCase().includes(searchLower) ||
+        opportunity.stage?.toLowerCase().includes(searchLower);
+      if (!matchesSearch) return false;
+    }
+    
+    // If a specific list is selected, apply its filters
+    if (activeOpportunitiesList && activeOpportunitiesList.filters) {
+      // Apply list-specific filtering logic here
+    }
+    
+    return true;
+  });
+
+  // Click outside handler to close dropdown
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setShowListsDropdown(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   // Fetch OKR tags for filtering
   const { data: tags = [] } = useQuery({
@@ -417,64 +475,251 @@ export default function PartnerDetailBrokerPOV() {
           )}
 
           {activeTab === "opportunities" && (
-            <div className="space-y-6">
+            <div className="space-y-4">
+              {/* Enhanced unified toolbar - same as OpportunitiesPage */}
+              <div className="bg-white p-4 rounded-lg shadow-sm">
+                <div className="flex flex-col gap-4">
+                  {/* Top row with saved lists and views */}
+                  <div className="flex flex-wrap items-center justify-between">
+                    {/* Left side - Saved Lists with actions */}
+                    <div className="flex items-center gap-3">
+                      {/* Lists heading */}
+                      <div className="flex flex-col mr-2">
+                        <span className="text-base font-semibold text-gray-800 mb-2">Lists</span>
+                      </div>
+                      {/* Saved Lists dropdown - functional implementation */}
+                      <div className="relative" ref={dropdownRef}>
+                        <button 
+                          className="flex items-center space-x-2 px-4 py-2.5 border rounded-md text-sm font-medium shadow-sm bg-white hover:bg-gray-50"
+                          onClick={() => setShowListsDropdown(!showListsDropdown)}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-indigo-600">
+                            <path d="M5.25 1.5V4.25H12.6875V2C12.6875 1.725 12.4906 1.5 12.25 1.5H5.25ZM3.9375 1.5H1.75C1.50937 1.5 1.3125 1.725 1.3125 2V4.25H3.9375V1.5ZM1.3125 5.75V8.25H3.9375V5.75H1.3125ZM1.3125 9.75V12C1.3125 12.275 1.50937 12.5 1.75 12.5H3.9375V9.75H1.3125ZM5.25 12.5H12.25C12.4906 12.5 12.6875 12.275 12.6875 12V9.75H5.25V12.5ZM12.6875 8.25V5.75H5.25V8.25H12.6875ZM0 2C0 0.896875 0.784766 0 1.75 0H12.25C13.2152 0 14 0.896875 14 2V12C14 13.1031 13.2152 14 12.25 14H1.75C0.784766 14 0 13.1031 0 12V2Z" fill="#3E4DC4"/>
+                          </svg>
+                          <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
+                            {activeOpportunitiesList ? activeOpportunitiesList.name : 'All opportunities'}
+                          </span>
+                          <svg 
+                            xmlns="http://www.w3.org/2000/svg" 
+                            width="14" 
+                            height="14" 
+                            viewBox="0 0 24 24" 
+                            fill="none" 
+                            stroke="currentColor" 
+                            strokeWidth="2" 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round" 
+                            className={`transition-transform ${showListsDropdown ? 'rotate-180' : ''}`}
+                          >
+                            <polyline points="6 9 12 15 18 9" />
+                          </svg>
+                        </button>
+                        
+                        {/* Dropdown menu */}
+                        {showListsDropdown && (
+                          <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                            <div className="p-2">
+                              {/* Default "All opportunities" option */}
+                              <button
+                                className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 ${
+                                  !activeOpportunitiesList ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+                                }`}
+                                onClick={() => {
+                                  setActiveOpportunitiesList(null);
+                                  setShowListsDropdown(false);
+                                }}
+                              >
+                                <div className="flex items-center space-x-2">
+                                  <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+                                  <span>All opportunities</span>
+                                </div>
+                              </button>
+                              
+                              {/* Partner-relevant saved lists */}
+                              {partnerRelevantLists.length > 0 && (
+                                <div className="border-t border-gray-100 my-2 pt-2">
+                                  <div className="px-3 py-1 text-xs font-medium text-gray-500 uppercase tracking-wide">
+                                    Shared Lists
+                                  </div>
+                                  {partnerRelevantLists.map((list: any) => (
+                                    <button
+                                      key={list.id}
+                                      className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 ${
+                                        activeOpportunitiesList?.id === list.id ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+                                      }`}
+                                      onClick={() => {
+                                        setActiveOpportunitiesList(list);
+                                        setShowListsDropdown(false);
+                                      }}
+                                    >
+                                      <div className="flex items-center space-x-2">
+                                        <div className="w-2 h-2 bg-indigo-600 rounded-full"></div>
+                                        <span>{list.name}</span>
+                                      </div>
+                                    </button>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Right-side action buttons */}
+                    <div className="flex items-center gap-2">
+                      <Button variant="outline" size="sm" className="hidden md:flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                          <polyline points="7 10 12 15 17 10"></polyline>
+                          <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        Export
+                      </Button>
+                      
+                      <Button 
+                        size="sm" 
+                        className="flex items-center bg-indigo-600 hover:bg-indigo-700"
+                        onClick={() => {/* Handle new opportunity creation */}}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                          <line x1="12" y1="5" x2="12" y2="19"></line>
+                          <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        New
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  {/* Bottom row with search, views, and filters */}
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex flex-wrap items-center gap-3 flex-grow">
+                      {/* Search field */}
+                      <div className="relative w-60">
+                        <input
+                          type="text"
+                          placeholder="Search opportunities..."
+                          value={filterText}
+                          onChange={(e) => setFilterText(e.target.value)}
+                          className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
+                        />
+                        <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                          </svg>
+                        </button>
+                      </div>
+                      
+                      {/* Views dropdown - next to search field */}
+                      <div className="relative">
+                        <button 
+                          className="flex items-center space-x-2 px-3 py-2 border rounded-md text-sm font-medium border-gray-300 hover:border-gray-400"
+                          onClick={() => {/* Handle views dropdown */}}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500">
+                            <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
+                            <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                          </svg>
+                          <span className="max-w-[120px] truncate">Views</span>
+                          <svg 
+                            xmlns="http://www.w3.org/2000/svg" 
+                            width="14" 
+                            height="14" 
+                            viewBox="0 0 24 24" 
+                            fill="none" 
+                            stroke="currentColor" 
+                            strokeWidth="2" 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round" 
+                            className="transition-transform"
+                          >
+                            <polyline points="6 9 12 15 18 9" />
+                          </svg>
+                        </button>
+                      </div>
+                      
+                      {/* Filter buttons next to the views dropdown */}
+                      <div className="flex items-center gap-2 ml-3">
+                        <button 
+                          className="flex items-center px-3 py-2 border rounded-md text-sm font-medium border-gray-300 text-gray-700"
+                          onClick={() => {/* Handle status filter */}}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                          </svg>
+                          <span>Status</span>
+                        </button>
+                        
+                        <button 
+                          className="flex items-center px-3 py-2 border rounded-md text-sm font-medium border-gray-300 text-gray-700"
+                          onClick={() => {/* Handle type filter */}}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                          </svg>
+                          <span>Type</span>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Opportunities Table */}
               {opportunitiesLoading ? (
                 <div className="text-center py-12">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
                   <p className="mt-2 text-gray-600">Loading opportunities...</p>
                 </div>
-              ) : relatedOpportunities.length === 0 ? (
+              ) : filteredOpportunities.length === 0 ? (
                 <div className="text-center py-12">
                   <p className="text-gray-500">No opportunities found for this partner</p>
                 </div>
               ) : (
-                <div className="bg-white shadow rounded-lg overflow-hidden">
-                  <div className="overflow-x-auto">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Title</TableHead>
-                          <TableHead>Customer</TableHead>
-                          <TableHead>Product</TableHead>
-                          <TableHead>Status</TableHead>
-                          <TableHead>Value</TableHead>
-                          <TableHead>Close Date</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {relatedOpportunities.map((opportunity: any) => (
-                          <TableRow key={opportunity.id}>
-                            <TableCell>
-                              <Link href={`/broker-view/opportunity/${opportunity.id}`}>
-                                <div className="text-sm font-medium text-indigo-600 hover:text-indigo-800 hover:underline cursor-pointer">
-                                  {opportunity.title}
-                                </div>
-                              </Link>
-                            </TableCell>
-                            <TableCell>{opportunity.customerName}</TableCell>
-                            <TableCell>{opportunity.productName}</TableCell>
-                            <TableCell>
-                              <span className={`px-2 py-1 text-xs rounded-full ${
-                                opportunity.status === 'Closed Won' ? 'bg-green-100 text-green-800' :
-                                opportunity.status === 'Closed Lost' ? 'bg-red-100 text-red-800' :
-                                'bg-yellow-100 text-yellow-800'
-                              }`}>
-                                {opportunity.status}
+                <div className="bg-white rounded-lg shadow-sm">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead className="w-12"><Checkbox /></TableHead>
+                        <TableHead>Opportunity</TableHead>
+                        <TableHead>Customer</TableHead>
+                        <TableHead>Stage</TableHead>
+                        <TableHead>Value</TableHead>
+                        <TableHead>Close Date</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredOpportunities.map((opportunity: any) => (
+                        <TableRow key={opportunity.id}>
+                          <TableCell><Checkbox /></TableCell>
+                          <TableCell>
+                            <Link href={`/broker-view/opportunity/${opportunity.id}`}>
+                              <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
+                                {opportunity.title}
                               </span>
-                            </TableCell>
-                            <TableCell>
-                              {new Intl.NumberFormat('en-US', { 
-                                style: 'currency', 
-                                currency: 'USD',
-                                maximumFractionDigits: 0
-                              }).format(opportunity.estimatedValue || 0)}
-                            </TableCell>
-                            <TableCell>{opportunity.expectedCloseDate}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
+                            </Link>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-gray-900">
+                              {opportunity.clientName || 'Unknown Customer'}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
+                              {opportunity.stage}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            €{opportunity.estimated_value ? Number(opportunity.estimated_value).toLocaleString() : '0'}
+                          </TableCell>
+                          <TableCell>
+                            {opportunity.expected_close_date ? new Date(opportunity.expected_close_date).toLocaleDateString() : 'Not set'}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
                 </div>
               )}
             </div>
