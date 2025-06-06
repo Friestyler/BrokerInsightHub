@@ -341,7 +341,12 @@ export default function PartnerView() {
                                   setShowListsDropdown(false);
                                 }}
                               >
-                                <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>{list.name}</span>
+                                <div className="flex flex-col flex-1">
+                                  <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>{list.name}</span>
+                                  <span className="text-xs text-gray-500" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                                    Shared by {list.sharedBy || 'De Goudse'}
+                                  </span>
+                                </div>
                                 <div className="ml-auto">
                                   <span className="text-xs text-[#282A3F] italic" style={{ fontFamily: 'Poppins, sans-serif' }}>Shared</span>
                                 </div>
@@ -360,13 +365,6 @@ export default function PartnerView() {
                     )}
                   </div>
                 </div>
-                
-                {/* Right side - Shared by indicator */}
-                {(activeList || listData) && (
-                  <div className="text-sm text-gray-600">
-                    Shared by <span className="font-medium">{(activeList || listData)?.sharedBy || 'De Goudse'}</span>
-                  </div>
-                )}
               </div>
               
               {/* Bottom row with search and filters */}
