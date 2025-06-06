@@ -7,7 +7,43 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Search, Menu } from "lucide-react";
-import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
+// Simplified Activity Hub for Broker View
+function BrokerActivityHub({ partnerName, opportunityCount }: { partnerName: string; opportunityCount: number }) {
+  return (
+    <div className="bg-white rounded-lg border border-gray-200 p-6 mb-6">
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-lg font-semibold text-gray-900">Activity Hub</h2>
+        <div className="text-sm text-gray-500">Partner: {partnerName}</div>
+      </div>
+      
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-blue-50 p-4 rounded-lg">
+          <div className="text-sm text-blue-600 font-medium">Recent Activity</div>
+          <div className="text-2xl font-bold text-blue-900 mt-1">{opportunityCount}</div>
+          <div className="text-xs text-blue-600 mt-1">Opportunities shared</div>
+        </div>
+        
+        <div className="bg-green-50 p-4 rounded-lg">
+          <div className="text-sm text-green-600 font-medium">Collaboration</div>
+          <div className="text-2xl font-bold text-green-900 mt-1">Active</div>
+          <div className="text-xs text-green-600 mt-1">Partnership status</div>
+        </div>
+        
+        <div className="bg-yellow-50 p-4 rounded-lg">
+          <div className="text-sm text-yellow-600 font-medium">Communication</div>
+          <div className="text-2xl font-bold text-yellow-900 mt-1">Open</div>
+          <div className="text-xs text-yellow-600 mt-1">Available for contact</div>
+        </div>
+      </div>
+      
+      <div className="mt-4 p-3 bg-gray-50 rounded-lg">
+        <div className="text-sm text-gray-600">
+          <strong>Recent Activity:</strong> {partnerName} shared a list of opportunities for review and collaboration.
+        </div>
+      </div>
+    </div>
+  );
+}
 
 // Broker View Layout Component
 function BrokerLayout({ children }: { children: React.ReactNode }) {
@@ -154,11 +190,35 @@ export default function PartnerDetailBrokerPOV() {
     phone: '+31 20 123 4567'
   };
 
-  // Fetch related opportunities for this partner from degoudse environment
-  const { data: relatedOpportunities = [], isLoading: opportunitiesLoading } = useQuery({
-    queryKey: [`/api/degoudse/partners/${partnerId}/opportunities`],
-    queryFn: () => apiRequest('GET', `/api/degoudse/partners/${partnerId}/opportunities`),
-    enabled: !!partnerId,
+  // For De Goudse partner in broker view, show the shared opportunities from the list
+  const { data: allOpportunities = [], isLoading: opportunitiesLoading } = useQuery({
+    queryKey: ['/api/degoudse/opportunities'],
+    queryFn: () => apiRequest('GET', '/api/degoudse/opportunities'),
+    staleTime: 2 * 60 * 1000,
+  });
+
+  // Get the saved list ID from session storage to filter opportunities
+  const getSharedListId = () => {
+    const savedListId = sessionStorage.getItem('partnerViewListId');
+    return savedListId ? parseInt(savedListId) : 2; // Default to list 2 if not found
+  };
+
+  // Fetch the shared list details
+  const { data: listData } = useQuery({
+    queryKey: ['/api/degoudse/saved-lists', getSharedListId()],
+    queryFn: async () => {
+      const response = await apiRequest('GET', `/api/degoudse/saved-lists`);
+      return response.find((list: any) => list.id === getSharedListId());
+    }
+  });
+
+  // Filter opportunities based on the shared list
+  const relatedOpportunities = allOpportunities.filter((opp: any) => {
+    if (listData && listData.members && listData.members.length > 0) {
+      return listData.members.includes(opp.id);
+    }
+    // If no specific list members, show all opportunities
+    return true;
   });
 
   // Fetch OKR tags for filtering
@@ -244,7 +304,7 @@ export default function PartnerDetailBrokerPOV() {
           <p className="text-gray-600 mb-6">Joint action & business plan to drive growth with insurance business</p>
 
           {/* Activity Hub */}
-          <PartnerActivityHub partnerId={parseInt(partnerId!)} partnerName={partner.name} />
+          <BrokerActivityHub partnerName={partner.name} opportunityCount={relatedOpportunities.length} />
 
           {/* Tab Navigation */}
           <div className="border-b border-gray-200">
