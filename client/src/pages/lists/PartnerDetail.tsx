@@ -35,6 +35,8 @@ export default function PartnerDetail() {
   const [activeDropdownId, setActiveDropdownId] = useState<number | null>(null);
   const [selectedOpportunities, setSelectedOpportunities] = useState<number[]>([]);
   const [showSaveListModal, setShowSaveListModal] = useState(false);
+  const [saveListMode, setSaveListMode] = useState<'new' | 'existing'>('new');
+  const [selectedExistingList, setSelectedExistingList] = useState<number | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const { toast } = useToast();
@@ -981,45 +983,119 @@ export default function PartnerDetail() {
 
       {/* Save List Modal */}
       <Dialog open={showSaveListModal} onOpenChange={setShowSaveListModal}>
-        <DialogContent className="sm:max-w-md">
+        <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>Save Selected Opportunities</DialogTitle>
+            <p className="text-sm text-gray-600">
+              Choose how to save your {selectedOpportunities.length} selected {selectedOpportunities.length === 1 ? 'opportunity' : 'opportunities'}
+            </p>
           </DialogHeader>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                List Name
-              </label>
-              <Input 
-                placeholder="Enter a name for this list"
-                id="listName"
-              />
+          
+          <div className="space-y-6">
+            {/* Mode Selection */}
+            <div className="space-y-3">
+              <label className="block text-sm font-medium text-gray-700">Action</label>
+              <div className="space-y-2">
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    id="createNew"
+                    name="saveMode"
+                    checked={saveListMode === 'new'}
+                    onChange={() => setSaveListMode('new')}
+                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
+                  />
+                  <label htmlFor="createNew" className="text-sm text-gray-700">
+                    Create new list
+                  </label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="radio"
+                    id="addToExisting"
+                    name="saveMode"
+                    checked={saveListMode === 'existing'}
+                    onChange={() => setSaveListMode('existing')}
+                    className="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300"
+                  />
+                  <label htmlFor="addToExisting" className="text-sm text-gray-700">
+                    Add to existing list
+                  </label>
+                </div>
+              </div>
             </div>
+
+            {/* New List Form */}
+            {saveListMode === 'new' && (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    List Name *
+                  </label>
+                  <Input 
+                    placeholder="Enter a name for this list"
+                    id="listName"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Description (Optional)
+                  </label>
+                  <Textarea 
+                    placeholder="Add a description for this list"
+                    rows={3}
+                    id="listDescription"
+                  />
+                </div>
+                
+                <div className="flex items-center space-x-2">
+                  <Checkbox id="shareList" />
+                  <label htmlFor="shareList" className="text-sm text-gray-700">
+                    Share this list with partners
+                  </label>
+                </div>
+              </div>
+            )}
+
+            {/* Existing List Selection */}
+            {saveListMode === 'existing' && (
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">
+                    Select List
+                  </label>
+                  <select
+                    value={selectedExistingList || ''}
+                    onChange={(e) => setSelectedExistingList(e.target.value ? Number(e.target.value) : null)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
+                  >
+                    <option value="">Choose an existing list...</option>
+                    {opportunityLists?.filter((list: any) => list.entity_type === 'opportunities').map((list: any) => (
+                      <option key={list.id} value={list.id}>
+                        {list.name} ({list.members?.length || 0} opportunities)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                
+                {selectedExistingList && (
+                  <div className="p-3 bg-blue-50 rounded-lg">
+                    <p className="text-sm text-blue-700">
+                      Selected opportunities will be added to this list. Duplicates will be automatically removed.
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
             
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                Description (Optional)
-              </label>
-              <Textarea 
-                placeholder="Add a description for this list"
-                rows={3}
-                id="listDescription"
-              />
-            </div>
-            
-            <div className="flex items-center space-x-2">
-              <Checkbox id="shareList" />
-              <label
-                htmlFor="shareList"
-                className="text-sm text-gray-700"
-              >
-                Share this list with partners
-              </label>
-            </div>
-            
+            {/* Summary */}
             <div className="p-3 bg-gray-50 rounded-lg">
               <p className="text-sm text-gray-600">
-                {selectedOpportunities.length} {selectedOpportunities.length === 1 ? 'opportunity' : 'opportunities'} will be saved to this list
+                {saveListMode === 'new' 
+                  ? `${selectedOpportunities.length} ${selectedOpportunities.length === 1 ? 'opportunity' : 'opportunities'} will be saved to a new list`
+                  : `${selectedOpportunities.length} ${selectedOpportunities.length === 1 ? 'opportunity' : 'opportunities'} will be added to the selected list`
+                }
               </p>
             </div>
           </div>
@@ -1027,54 +1103,89 @@ export default function PartnerDetail() {
           <div className="flex justify-end space-x-2 mt-6">
             <Button 
               variant="outline" 
-              onClick={() => setShowSaveListModal(false)}
+              onClick={() => {
+                setShowSaveListModal(false);
+                setSaveListMode('new');
+                setSelectedExistingList(null);
+              }}
             >
               Cancel
             </Button>
             <Button 
               onClick={async () => {
-                const listNameInput = document.getElementById('listName') as HTMLInputElement;
-                const listDescriptionInput = document.getElementById('listDescription') as HTMLTextAreaElement;
-                const shareListCheckbox = document.getElementById('shareList') as HTMLInputElement;
-                
-                if (!listNameInput?.value.trim()) {
-                  toast({
-                    title: "Missing list name",
-                    description: "Please enter a name for your list.",
-                    variant: "destructive"
-                  });
-                  return;
-                }
+                if (saveListMode === 'new') {
+                  const listNameInput = document.getElementById('listName') as HTMLInputElement;
+                  const listDescriptionInput = document.getElementById('listDescription') as HTMLTextAreaElement;
+                  const shareListCheckbox = document.getElementById('shareList') as HTMLInputElement;
+                  
+                  if (!listNameInput?.value.trim()) {
+                    toast({
+                      title: "Missing list name",
+                      description: "Please enter a name for your list.",
+                      variant: "destructive"
+                    });
+                    return;
+                  }
 
-                try {
-                  // Create the list with selected opportunities
-                  const listData = {
-                    name: listNameInput.value.trim(),
-                    description: listDescriptionInput?.value || '',
-                    entity_type: 'opportunities',
-                    members: selectedOpportunities,
-                    isShared: shareListCheckbox?.checked || false
-                  };
+                  try {
+                    const listData = {
+                      name: listNameInput.value.trim(),
+                      description: listDescriptionInput?.value || '',
+                      entity_type: 'opportunities',
+                      members: selectedOpportunities,
+                      isShared: shareListCheckbox?.checked || false
+                    };
 
-                  // Here you would typically call an API to save the list
-                  // For now, show success message
-                  toast({
-                    title: "List created successfully",
-                    description: `"${listData.name}" has been saved with ${selectedOpportunities.length} opportunities.`,
-                  });
+                    toast({
+                      title: "List created successfully",
+                      description: `"${listData.name}" has been saved with ${selectedOpportunities.length} opportunities.`,
+                    });
 
-                  setShowSaveListModal(false);
-                  setSelectedOpportunities([]);
-                } catch (error) {
-                  toast({
-                    title: "Error creating list",
-                    description: "Failed to save the list. Please try again.",
-                    variant: "destructive"
-                  });
+                    setShowSaveListModal(false);
+                    setSelectedOpportunities([]);
+                    setSaveListMode('new');
+                  } catch (error) {
+                    toast({
+                      title: "Error creating list",
+                      description: "Failed to save the list. Please try again.",
+                      variant: "destructive"
+                    });
+                  }
+                } else {
+                  // Add to existing list
+                  if (!selectedExistingList) {
+                    toast({
+                      title: "No list selected",
+                      description: "Please select an existing list.",
+                      variant: "destructive"
+                    });
+                    return;
+                  }
+
+                  try {
+                    const selectedList = opportunityLists?.find((list: any) => list.id === selectedExistingList);
+                    
+                    toast({
+                      title: "Opportunities added successfully",
+                      description: `${selectedOpportunities.length} opportunities added to "${selectedList?.name}".`,
+                    });
+
+                    setShowSaveListModal(false);
+                    setSelectedOpportunities([]);
+                    setSaveListMode('new');
+                    setSelectedExistingList(null);
+                  } catch (error) {
+                    toast({
+                      title: "Error adding to list",
+                      description: "Failed to add opportunities to the list. Please try again.",
+                      variant: "destructive"
+                    });
+                  }
                 }
               }}
+              disabled={saveListMode === 'existing' && !selectedExistingList}
             >
-              Save List
+              {saveListMode === 'new' ? 'Create List' : 'Add to List'}
             </Button>
           </div>
         </DialogContent>
