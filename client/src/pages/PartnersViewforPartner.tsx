@@ -15,14 +15,7 @@ function PartnerTable() {
     direction: 'asc' as 'asc' | 'desc'
   });
 
-  // Fetch partners data
-  const { data: partnersData = [], isLoading: partnersLoading } = useQuery({
-    queryKey: ['/api/degoudse/partners'],
-    queryFn: () => apiRequest('GET', '/api/degoudse/partners'),
-    staleTime: 2 * 60 * 1000,
-  });
-
-  // Add De Goudse as default partner since they shared the list
+  // Show only De Goudse as the partner since they shared the list
   const deGoudsePartner = {
     id: 'degoudse',
     name: 'De Goudse',
@@ -36,11 +29,12 @@ function PartnerTable() {
     status: 'Active',
     size: 'Large',
     region: 'Netherlands',
-    relationship_count: partnersData.length || 0
+    relationship_count: 1
   };
 
-  // Combine De Goudse with existing partners
-  const allPartners = [deGoudsePartner, ...partnersData];
+  // Only show De Goudse in broker view
+  const allPartners = [deGoudsePartner];
+  const partnersLoading = false;
 
   // Handle table sorting
   const handleSort = (key: string) => {
