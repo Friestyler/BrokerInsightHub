@@ -618,8 +618,16 @@ export default function PartnerDetail() {
                                           <DropdownMenuItem 
                                             onClick={(e) => {
                                               e.stopPropagation();
+                                              console.log('Opening broker view for list:', list.id);
                                               // Navigate to broker view
-                                              window.open(`/broker-view/list/${list.id}`, '_blank');
+                                              const url = `/broker-view/list/${list.id}`;
+                                              console.log('Opening URL:', url);
+                                              const newWindow = window.open(url, '_blank');
+                                              if (!newWindow) {
+                                                console.error('Popup blocked or failed to open');
+                                                // Fallback: navigate in same window
+                                                window.location.href = url;
+                                              }
                                             }}
                                           >
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
