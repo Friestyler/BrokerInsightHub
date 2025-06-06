@@ -263,7 +263,7 @@ export default function PartnerDetail() {
             <div className="flex items-center space-x-4">
               <Link href="/partners">
                 <Button variant="ghost" size="sm" className="p-2">
-                  <Search className="w-4 h-4" />
+                  <ArrowLeft className="w-4 h-4" />
                 </Button>
               </Link>
               <div className="flex-1">
