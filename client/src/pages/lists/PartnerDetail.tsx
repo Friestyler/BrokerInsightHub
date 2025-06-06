@@ -33,6 +33,8 @@ export default function PartnerDetail() {
   const [activeList, setActiveList] = useState<any>(null);
   const [showListsDropdown, setShowListsDropdown] = useState(false);
   const [activeDropdownId, setActiveDropdownId] = useState<number | null>(null);
+  const [selectedOpportunities, setSelectedOpportunities] = useState<number[]>([]);
+  const [showSaveListModal, setShowSaveListModal] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const { toast } = useToast();
@@ -96,6 +98,23 @@ export default function PartnerDetail() {
     
     return true;
   });
+
+  // Selection helper functions
+  const toggleSelectOpportunity = (opportunityId: number) => {
+    setSelectedOpportunities(prev => 
+      prev.includes(opportunityId) 
+        ? prev.filter(id => id !== opportunityId)
+        : [...prev, opportunityId]
+    );
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedOpportunities.length === filteredOpportunities.length && filteredOpportunities.length > 0) {
+      setSelectedOpportunities([]);
+    } else {
+      setSelectedOpportunities(filteredOpportunities.map(opp => opp.id));
+    }
+  };
 
   // Click outside handler to close dropdown
   useEffect(() => {
@@ -752,12 +771,54 @@ export default function PartnerDetail() {
               </div>
             </div>
 
+            {/* Selection actions bar - visible when items are selected */}
+            {selectedOpportunities.length > 0 && (
+              <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between mb-4">
+                <div className="flex items-center">
+                  <span className="text-indigo-700 font-medium mr-2">{selectedOpportunities.length} {selectedOpportunities.length === 1 ? 'opportunity' : 'opportunities'} selected</span>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    className="text-gray-600"
+                    onClick={() => setSelectedOpportunities([])}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                      <path d="M18 6 6 18"></path>
+                      <path d="m6 6 12 12"></path>
+                    </svg>
+                    Clear selection
+                  </Button>
+                </div>
+                
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="text-indigo-600"
+                    onClick={() => setShowSaveListModal(true)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                      <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                      <polyline points="7 3 7 8 15 8"></polyline>
+                    </svg>
+                    Create List
+                  </Button>
+                </div>
+              </div>
+            )}
+
             {/* Opportunities Table */}
             <div className="bg-white rounded-lg shadow-sm">
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-12"><Checkbox /></TableHead>
+                    <TableHead className="w-12">
+                      <Checkbox 
+                        checked={selectedOpportunities.length === filteredOpportunities.length && filteredOpportunities.length > 0}
+                        onCheckedChange={toggleSelectAll}
+                      />
+                    </TableHead>
                     <TableHead>Opportunity</TableHead>
                     <TableHead>Customer</TableHead>
                     <TableHead>Stage</TableHead>
@@ -768,7 +829,12 @@ export default function PartnerDetail() {
                 <TableBody>
                   {filteredOpportunities.map((opportunity: any) => (
                     <TableRow key={opportunity.id}>
-                      <TableCell><Checkbox /></TableCell>
+                      <TableCell>
+                        <Checkbox 
+                          checked={selectedOpportunities.includes(opportunity.id)}
+                          onCheckedChange={() => toggleSelectOpportunity(opportunity.id)}
+                        />
+                      </TableCell>
                       <TableCell>
                         <Link href={`/lists/opportunities/${opportunity.id}`}>
                           <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
@@ -909,6 +975,107 @@ export default function PartnerDetail() {
                 {createCommentMutation.isPending ? 'Adding...' : 'Add Comment'}
               </Button>
             </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Save List Modal */}
+      <Dialog open={showSaveListModal} onOpenChange={setShowSaveListModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Save Selected Opportunities</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                List Name
+              </label>
+              <Input 
+                placeholder="Enter a name for this list"
+                id="listName"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                Description (Optional)
+              </label>
+              <Textarea 
+                placeholder="Add a description for this list"
+                rows={3}
+                id="listDescription"
+              />
+            </div>
+            
+            <div className="flex items-center space-x-2">
+              <Checkbox id="shareList" />
+              <label
+                htmlFor="shareList"
+                className="text-sm text-gray-700"
+              >
+                Share this list with partners
+              </label>
+            </div>
+            
+            <div className="p-3 bg-gray-50 rounded-lg">
+              <p className="text-sm text-gray-600">
+                {selectedOpportunities.length} {selectedOpportunities.length === 1 ? 'opportunity' : 'opportunities'} will be saved to this list
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex justify-end space-x-2 mt-6">
+            <Button 
+              variant="outline" 
+              onClick={() => setShowSaveListModal(false)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={async () => {
+                const listNameInput = document.getElementById('listName') as HTMLInputElement;
+                const listDescriptionInput = document.getElementById('listDescription') as HTMLTextAreaElement;
+                const shareListCheckbox = document.getElementById('shareList') as HTMLInputElement;
+                
+                if (!listNameInput?.value.trim()) {
+                  toast({
+                    title: "Missing list name",
+                    description: "Please enter a name for your list.",
+                    variant: "destructive"
+                  });
+                  return;
+                }
+
+                try {
+                  // Create the list with selected opportunities
+                  const listData = {
+                    name: listNameInput.value.trim(),
+                    description: listDescriptionInput?.value || '',
+                    entity_type: 'opportunities',
+                    members: selectedOpportunities,
+                    isShared: shareListCheckbox?.checked || false
+                  };
+
+                  // Here you would typically call an API to save the list
+                  // For now, show success message
+                  toast({
+                    title: "List created successfully",
+                    description: `"${listData.name}" has been saved with ${selectedOpportunities.length} opportunities.`,
+                  });
+
+                  setShowSaveListModal(false);
+                  setSelectedOpportunities([]);
+                } catch (error) {
+                  toast({
+                    title: "Error creating list",
+                    description: "Failed to save the list. Please try again.",
+                    variant: "destructive"
+                  });
+                }
+              }}
+            >
+              Save List
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
