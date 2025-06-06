@@ -257,38 +257,80 @@ export default function PartnerDetail() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b">
-        <div className="px-6 py-4">
-          <div className="flex items-center justify-between">
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between py-6">
             <div className="flex items-center space-x-4">
-              <div className="w-12 h-12 bg-indigo-600 rounded-lg flex items-center justify-center">
-                <span className="text-white font-bold text-lg">{partner.initials}</span>
-              </div>
+              <Link href="/partners">
+                <Button variant="ghost" size="sm">
+                  <Search className="w-4 h-4 mr-2" />
+                  Back to Partners
+                </Button>
+              </Link>
               <div>
                 <h1 className="text-2xl font-bold text-gray-900">{partner.name}</h1>
-                <p className="text-gray-600">{partner.type} • {partner.size}</p>
+                <p className="text-sm text-gray-500">
+                  {partner.type} • {partner.location}
+                </p>
               </div>
             </div>
             <div className="flex items-center space-x-3">
-              <Button variant="outline">
-                <MessageSquare className="w-4 h-4 mr-2" />
-                Message
-              </Button>
-              <Button>
-                <Users className="w-4 h-4 mr-2" />
-                Assign Tasks
-              </Button>
+              <Button variant="outline">Edit</Button>
+              <Button>View Details</Button>
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Activity Hub */}
-        <div className="px-6">
+      {/* Partner Overview */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div>
+              <h3 className="text-sm font-medium text-gray-500">Total Opportunities</h3>
+              <p className="mt-1 text-2xl font-semibold text-gray-900">
+                {(relatedOpportunities as any[] || []).length}
+              </p>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-500">Active Customers</h3>
+              <p className="mt-1 text-2xl font-semibold text-gray-900">
+                {(relatedCustomers as any[] || []).length}
+              </p>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-500">Primary Contact</h3>
+              <p className="mt-1 text-lg text-gray-900">
+                {partner.primary_contact || 'Not set'}
+              </p>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-500">Contact Email</h3>
+              <p className="mt-1 text-lg text-gray-900">
+                {partner.contact_email || 'Not set'}
+              </p>
+            </div>
+          </div>
+          
+          {partner.description && (
+            <div className="mt-6">
+              <h3 className="text-sm font-medium text-gray-500">Description</h3>
+              <p className="mt-1 text-gray-900">{partner.description}</p>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Activity Hub */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <PartnerActivityHub partnerId={parseInt(id!)} partnerName={partner?.name || 'Partner'} />
         </div>
+      </div>
 
-        {/* Tabs */}
-        <div className="px-6">
+      {/* Tabs */}
+      <div className="bg-white border-b border-gray-200">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <nav className="flex space-x-8">
             <button 
               onClick={() => setActiveTab("okr-plans")}
@@ -324,8 +366,8 @@ export default function PartnerDetail() {
         </div>
       </div>
 
-      {/* Content area */}
-      <div className="px-6 py-6">
+      {/* Tab Content */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {activeTab === "okr-plans" && (
           <div className="space-y-6">
             {/* Filters Section - Exact same as template page */}
