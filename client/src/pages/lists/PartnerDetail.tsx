@@ -616,8 +616,8 @@ export default function PartnerDetail() {
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end" className="w-48">
                                           <DropdownMenuItem 
-                                            onClick={(e) => {
-                                              e.stopPropagation();
+                                            onSelect={(e) => {
+                                              e.preventDefault();
                                               console.log('Opening broker view for list:', list.id);
                                               // Navigate to broker view
                                               const url = `/broker-view/list/${list.id}`;
