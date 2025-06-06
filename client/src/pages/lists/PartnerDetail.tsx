@@ -615,27 +615,29 @@ export default function PartnerDetail() {
                                           </button>
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end" className="w-48">
-                                          <DropdownMenuItem 
-                                            onSelect={(e) => {
-                                              e.preventDefault();
-                                              console.log('Opening broker view for list:', list.id);
-                                              // Navigate to broker view
-                                              const url = `/broker-view/list/${list.id}`;
-                                              console.log('Opening URL:', url);
-                                              const newWindow = window.open(url, '_blank');
-                                              if (!newWindow) {
-                                                console.error('Popup blocked or failed to open');
-                                                // Fallback: navigate in same window
-                                                window.location.href = url;
-                                              }
-                                            }}
-                                          >
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                                              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
-                                              <polyline points="10 17 15 12 10 7"></polyline>
-                                              <line x1="15" y1="12" x2="3" y2="12"></line>
-                                            </svg>
-                                            Open list as partner
+                                          <DropdownMenuItem asChild>
+                                            <button
+                                              className="flex w-full items-center px-2 py-1.5 text-sm"
+                                              onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                console.log('TEST: Button clicked for list:', list.id);
+                                                const url = `/broker-view/list/${list.id}`;
+                                                console.log('TEST: Opening URL:', url);
+                                                const newWindow = window.open(url, '_blank');
+                                                if (!newWindow) {
+                                                  console.error('TEST: Popup blocked, using fallback');
+                                                  window.location.href = url;
+                                                }
+                                              }}
+                                            >
+                                              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                                                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+                                                <polyline points="10 17 15 12 10 7"></polyline>
+                                                <line x1="15" y1="12" x2="3" y2="12"></line>
+                                              </svg>
+                                              Open list as partner
+                                            </button>
                                           </DropdownMenuItem>
                                         </DropdownMenuContent>
                                       </DropdownMenu>
