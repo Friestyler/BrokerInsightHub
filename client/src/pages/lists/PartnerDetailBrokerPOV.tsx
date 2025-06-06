@@ -143,13 +143,13 @@ export default function PartnerDetailBrokerPOV() {
   const [selectedTag, setSelectedTag] = useState("all");
   const [selectedUnit, setSelectedUnit] = useState("all");
 
-  // For De Goudse partner, we'll show static data since it's the sharing partner
+  // For broker view, show De Goudse as the sharing partner
   const partner = {
     id: 'degoudse',
     name: 'De Goudse',
-    description: 'Insurance company that shared this list',
-    primary_contact: 'Partner Representative',
-    contact_email: 'partner@degoudse.nl',
+    description: 'Insurance company that shared this list with Regional Insurance Partners',
+    primary_contact: 'Partnership Manager',
+    contact_email: 'partnerships@degoudse.nl',
     location: 'Netherlands',
     phone: '+31 20 123 4567'
   };
