@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useParams } from 'wouter';
+import { useParams, Link } from 'wouter';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { Badge } from '@/components/ui/badge';
@@ -479,9 +479,11 @@ export default function PartnerView() {
                     <tr key={opportunity.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
-                          <div className="text-sm font-medium text-gray-900">
-                            {opportunity.title}
-                          </div>
+                          <Link href={`/partner-view/opportunity/${opportunity.id}`}>
+                            <div className="text-sm font-medium text-indigo-600 hover:text-indigo-800 hover:underline cursor-pointer">
+                              {opportunity.title}
+                            </div>
+                          </Link>
                           <div className="text-sm text-gray-500">
                             {opportunity.description}
                           </div>
