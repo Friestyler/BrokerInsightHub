@@ -2264,6 +2264,47 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Add opportunities to existing saved list
+  app.post('/api/saved-lists/:id/add-opportunities', async (req, res) => {
+    try {
+      const listId = parseInt(req.params.id);
+      const { opportunityIds } = req.body;
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      
+      if (!Array.isArray(opportunityIds) || opportunityIds.length === 0) {
+        return res.status(400).json({ error: 'opportunityIds must be a non-empty array' });
+      }
+
+      // Get current list to merge opportunities
+      const currentListResult = await db.execute(sql`
+        SELECT members FROM ${sql.identifier(envId as string)}.saved_lists 
+        WHERE id = ${listId}
+      `);
+      
+      if (currentListResult.rows.length === 0) {
+        return res.status(404).json({ error: 'List not found' });
+      }
+
+      const currentMembers = currentListResult.rows[0].members || [];
+      const newMembers = [...new Set([...currentMembers, ...opportunityIds])]; // Remove duplicates
+
+      // Update the list with merged opportunities
+      const result = await db.execute(sql`
+        UPDATE ${sql.identifier(envId as string)}.saved_lists 
+        SET 
+          members = ${JSON.stringify(newMembers)},
+          updated_at = NOW()
+        WHERE id = ${listId}
+        RETURNING *
+      `);
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error adding opportunities to list:', error);
+      res.status(500).json({ error: 'Failed to add opportunities to list' });
+    }
+  });
+
   // Get existing shared links for a list
   app.get('/api/degoudse/shared-lists/by-list/:listId', async (req, res) => {
     try {

@@ -42,6 +42,38 @@ export default function PartnerDetail() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Mutation for creating new lists
+  const createListMutation = useMutation({
+    mutationFn: async (listData: any) => {
+      const response = await fetch('/api/saved-lists', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(listData)
+      });
+      if (!response.ok) throw new Error('Failed to create list');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
+    }
+  });
+
+  // Mutation for adding opportunities to existing lists
+  const updateListMutation = useMutation({
+    mutationFn: async ({ listId, opportunityIds }: { listId: number, opportunityIds: number[] }) => {
+      const response = await fetch(`/api/saved-lists/${listId}/add-opportunities`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ opportunityIds })
+      });
+      if (!response.ok) throw new Error('Failed to update list');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
+    }
+  });
+
   // Fetch all partners to find this specific partner
   const { data: partners, isLoading: partnersLoading } = useQuery({
     queryKey: ['/api/partners'],
@@ -62,6 +94,12 @@ export default function PartnerDetail() {
   // Fetch saved lists for opportunities that include this partner
   const { data: savedListsData } = useQuery({
     queryKey: ['/api/saved-lists', 'opportunities'],
+    queryFn: () => fetch(`/api/saved-lists?entity_type=opportunities`).then(res => res.json()),
+  });
+
+  // Fetch all opportunity lists for the modal
+  const { data: opportunityLists } = useQuery({
+    queryKey: ['/api/saved-lists', 'opportunities', 'all'],
     queryFn: () => fetch(`/api/saved-lists?entity_type=opportunities`).then(res => res.json()),
   });
 
@@ -1127,30 +1165,32 @@ export default function PartnerDetail() {
                     return;
                   }
 
-                  try {
-                    const listData = {
-                      name: listNameInput.value.trim(),
-                      description: listDescriptionInput?.value || '',
-                      entity_type: 'opportunities',
-                      members: selectedOpportunities,
-                      isShared: shareListCheckbox?.checked || false
-                    };
+                  const listData = {
+                    name: listNameInput.value.trim(),
+                    description: listDescriptionInput?.value || '',
+                    entity_type: 'opportunities',
+                    members: selectedOpportunities,
+                    isShared: shareListCheckbox?.checked || false
+                  };
 
-                    toast({
-                      title: "List created successfully",
-                      description: `"${listData.name}" has been saved with ${selectedOpportunities.length} opportunities.`,
-                    });
-
-                    setShowSaveListModal(false);
-                    setSelectedOpportunities([]);
-                    setSaveListMode('new');
-                  } catch (error) {
-                    toast({
-                      title: "Error creating list",
-                      description: "Failed to save the list. Please try again.",
-                      variant: "destructive"
-                    });
-                  }
+                  createListMutation.mutate(listData, {
+                    onSuccess: () => {
+                      toast({
+                        title: "List created successfully",
+                        description: `"${listData.name}" has been saved with ${selectedOpportunities.length} opportunities.`,
+                      });
+                      setShowSaveListModal(false);
+                      setSelectedOpportunities([]);
+                      setSaveListMode('new');
+                    },
+                    onError: () => {
+                      toast({
+                        title: "Error creating list",
+                        description: "Failed to save the list. Please try again.",
+                        variant: "destructive"
+                      });
+                    }
+                  });
                 } else {
                   // Add to existing list
                   if (!selectedExistingList) {
@@ -1162,25 +1202,29 @@ export default function PartnerDetail() {
                     return;
                   }
 
-                  try {
-                    const selectedList = opportunityLists?.find((list: any) => list.id === selectedExistingList);
-                    
-                    toast({
-                      title: "Opportunities added successfully",
-                      description: `${selectedOpportunities.length} opportunities added to "${selectedList?.name}".`,
-                    });
-
-                    setShowSaveListModal(false);
-                    setSelectedOpportunities([]);
-                    setSaveListMode('new');
-                    setSelectedExistingList(null);
-                  } catch (error) {
-                    toast({
-                      title: "Error adding to list",
-                      description: "Failed to add opportunities to the list. Please try again.",
-                      variant: "destructive"
-                    });
-                  }
+                  updateListMutation.mutate({ 
+                    listId: selectedExistingList, 
+                    opportunityIds: selectedOpportunities 
+                  }, {
+                    onSuccess: () => {
+                      const selectedList = opportunityLists?.find((list: any) => list.id === selectedExistingList);
+                      toast({
+                        title: "Opportunities added successfully",
+                        description: `${selectedOpportunities.length} opportunities added to "${selectedList?.name}".`,
+                      });
+                      setShowSaveListModal(false);
+                      setSelectedOpportunities([]);
+                      setSaveListMode('new');
+                      setSelectedExistingList(null);
+                    },
+                    onError: () => {
+                      toast({
+                        title: "Error adding to list",
+                        description: "Failed to add opportunities to the list. Please try again.",
+                        variant: "destructive"
+                      });
+                    }
+                  });
                 }
               }}
               disabled={saveListMode === 'existing' && !selectedExistingList}
