@@ -14,6 +14,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { useToast } from "@/hooks/use-toast";
 import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
 import { ShareModal } from "@/components/ShareModal";
+import { apiRequest } from "@/lib/queryClient";
 
 export default function PartnerDetail() {
   const { id } = useParams();
@@ -49,13 +50,7 @@ export default function PartnerDetail() {
   // Mutation for creating new lists
   const createListMutation = useMutation({
     mutationFn: async (listData: any) => {
-      const response = await fetch('/api/saved-lists', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(listData)
-      });
-      if (!response.ok) throw new Error('Failed to create list');
-      return response.json();
+      return await apiRequest('POST', '/api/saved-lists', listData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
@@ -65,13 +60,7 @@ export default function PartnerDetail() {
   // Mutation for adding opportunities to existing lists
   const updateListMutation = useMutation({
     mutationFn: async ({ listId, opportunityIds }: { listId: number, opportunityIds: number[] }) => {
-      const response = await fetch(`/api/saved-lists/${listId}/add-opportunities`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ opportunityIds })
-      });
-      if (!response.ok) throw new Error('Failed to update list');
-      return response.json();
+      return await apiRequest('POST', `/api/saved-lists/${listId}/add-opportunities`, { opportunityIds });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
