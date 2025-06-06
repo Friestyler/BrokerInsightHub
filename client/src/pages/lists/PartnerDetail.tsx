@@ -581,21 +581,51 @@ export default function PartnerDetail() {
                                   Shared Lists
                                 </div>
                                 {partnerRelevantLists.map((list: any) => (
-                                  <button
+                                  <div
                                     key={list.id}
-                                    className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 ${
+                                    className={`flex items-center justify-between px-3 py-2 text-sm rounded hover:bg-gray-100 ${
                                       activeList?.id === list.id ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
                                     }`}
-                                    onClick={() => {
-                                      setActiveList(list);
-                                      setShowListsDropdown(false);
-                                    }}
                                   >
-                                    <div className="flex items-center space-x-2">
+                                    <button
+                                      className="flex-1 text-left flex items-center space-x-2"
+                                      onClick={() => {
+                                        setActiveList(list);
+                                        setShowListsDropdown(false);
+                                      }}
+                                    >
                                       <div className="w-2 h-2 bg-indigo-600 rounded-full"></div>
                                       <span>{list.name}</span>
+                                    </button>
+                                    
+                                    {/* Three dots menu for broker view */}
+                                    <div className="relative">
+                                      <DropdownMenu>
+                                        <DropdownMenuTrigger asChild>
+                                          <button
+                                            className="p-1 hover:bg-gray-200 rounded"
+                                            onClick={(e) => e.stopPropagation()}
+                                          >
+                                            <MoreHorizontal className="w-3 h-3" />
+                                          </button>
+                                        </DropdownMenuTrigger>
+                                        <DropdownMenuContent align="end" className="w-48">
+                                          <DropdownMenuItem 
+                                            onClick={() => {
+                                              // Navigate to broker view with this list selected
+                                              window.location.href = `/broker-view/partners/${id}?tab=opportunities&list=${list.id}`;
+                                            }}
+                                          >
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                                              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                              <circle cx="12" cy="12" r="3"></circle>
+                                            </svg>
+                                            View as broker
+                                          </DropdownMenuItem>
+                                        </DropdownMenuContent>
+                                      </DropdownMenu>
                                     </div>
-                                  </button>
+                                  </div>
                                 ))}
                               </div>
                             )}

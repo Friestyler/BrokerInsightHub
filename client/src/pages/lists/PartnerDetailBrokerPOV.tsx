@@ -137,7 +137,13 @@ function BrokerLayout({ children }: { children: React.ReactNode }) {
 
 export default function PartnerDetailBrokerPOV() {
   const { partnerId } = useParams<{ partnerId: string }>();
-  const [activeTab, setActiveTab] = useState("okr-plans");
+  
+  // Get URL parameters for tab and list selection
+  const urlParams = new URLSearchParams(window.location.search);
+  const tabParam = urlParams.get('tab');
+  const listParam = urlParams.get('list');
+  
+  const [activeTab, setActiveTab] = useState(tabParam || "okr-plans");
   
   // State for filtering
   const [searchTerm, setSearchTerm] = useState("");
@@ -147,6 +153,16 @@ export default function PartnerDetailBrokerPOV() {
   // Opportunities toolbar state management
   const [showListsDropdown, setShowListsDropdown] = useState(false);
   const [activeOpportunitiesList, setActiveOpportunitiesList] = useState<any>(null);
+  
+  // Set active list based on URL parameter
+  useEffect(() => {
+    if (listParam && savedListsData) {
+      const targetList = savedListsData.find((list: any) => list.id === parseInt(listParam));
+      if (targetList) {
+        setActiveOpportunitiesList(targetList);
+      }
+    }
+  }, [listParam, savedListsData]);
   const [filterText, setFilterText] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedOpportunityType, setSelectedOpportunityType] = useState('');
@@ -170,8 +186,11 @@ export default function PartnerDetailBrokerPOV() {
     staleTime: 2 * 60 * 1000,
   });
 
-  // Get the saved list ID from session storage to filter opportunities
+  // Get the saved list ID from URL parameter or session storage to filter opportunities
   const getSharedListId = () => {
+    if (listParam) {
+      return parseInt(listParam);
+    }
     const savedListId = sessionStorage.getItem('partnerViewListId');
     return savedListId ? parseInt(savedListId) : 2; // Default to list 2 if not found
   };
