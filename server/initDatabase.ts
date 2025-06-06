@@ -1,4 +1,4 @@
-import { sql } from './db';
+import { pool } from './db';
 
 // Only De Goudse schema - our primary environment
 const schemas = ['degoudse'];
@@ -14,18 +14,25 @@ export async function initializeSchemas() {
     try {
       console.log('Initializing database schemas for all environments...');
       
-      // Test the connection first
-      await sql`SELECT 1`;
-      console.log('Database connection established successfully');
+      // Connect to the database with timeout
+      const client = await pool.connect();
       
-      // Create schemas for each environment if they don't exist
-      for (const schema of schemas) {
-        await sql`CREATE SCHEMA IF NOT EXISTS ${sql(schema)}`;
-        console.log(`Schema "${schema}" created or verified.`);
+      try {
+        // Test the connection first
+        await client.query('SELECT 1');
+        console.log('Database connection established successfully');
+        
+        // Create schemas for each environment if they don't exist
+        for (const schema of schemas) {
+          await client.query(`CREATE SCHEMA IF NOT EXISTS "${schema}"`);
+          console.log(`Schema "${schema}" created or verified.`);
+        }
+        
+        console.log('All database schemas initialized successfully');
+        return; // Success, exit function
+      } finally {
+        client.release();
       }
-      
-      console.log('All database schemas initialized successfully');
-      return; // Success, exit function
     } catch (error) {
       lastError = error;
       retries--;
