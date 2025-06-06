@@ -31,7 +31,7 @@ function PartnerLayout({ children }: { children: React.ReactNode }) {
               {!sidebarCollapsed && 'Collaborate'}
             </div>
             
-            <Link href="/partner-view">
+            <Link href="/broker-view">
               <div className="flex items-center space-x-3 px-3 py-2 rounded-md text-gray-700 hover:bg-gray-100 cursor-pointer">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
@@ -162,7 +162,7 @@ export default function OpportunityDetailforPartner() {
           <div className="text-center py-12">
             <h2 className="text-xl font-semibold text-gray-900 mb-2">Opportunity not found</h2>
             <p className="text-gray-600">The opportunity you're looking for doesn't exist or has been removed.</p>
-            <Link href="/partner-view">
+            <Link href="/broker-view">
               <Button className="mt-4">Back to Opportunities</Button>
             </Link>
           </div>
@@ -179,7 +179,7 @@ export default function OpportunityDetailforPartner() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between py-6">
               <div className="flex items-center space-x-4">
-                <Link href={`/partner-view/list/${getSharedListId()}`}>
+                <Link href={`/broker-view/list/${getSharedListId()}`}>
                   <Button variant="ghost" size="sm">
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     Back to Opportunities
