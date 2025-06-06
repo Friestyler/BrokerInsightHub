@@ -954,8 +954,8 @@ function OpportunitiesTable() {
                                         className="flex w-full items-center px-2 py-1.5 text-sm rounded-sm hover:bg-slate-100 text-left"
                                         onClick={(e) => {
                                           e.stopPropagation();
-                                          // Navigate to partner view
-                                          window.open(`/partner-view/list/${list.id}`, '_blank');
+                                          // Navigate to broker view
+                                          window.open(`/broker-view/list/${list.id}`, '_blank');
                                           setActiveDropdownId(null);
                                           setShowListsDropdown(false);
                                         }}
