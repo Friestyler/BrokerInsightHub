@@ -15,7 +15,7 @@ import {
   contacts
 } from '@shared/schema';
 import { eq, sql } from 'drizzle-orm';
-import { db, getEnvironmentPool, getEnvironmentDb } from './db';
+import { db, getEnvironmentSql, getEnvironmentDb } from './db';
 import multer from 'multer';
 import { copyEnvironmentData } from './initDatabase';
 import path from 'path';
@@ -1703,90 +1703,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/degoudse/products', async (req, res) => {
     try {
-      const result = await db.execute(sql`
-        SELECT * FROM degoudse.products ORDER BY id
-      `);
-      console.log(`Returning ${result.rows.length} authentic products from De Goudse database`);
-      res.json(result.rows);
+      const degoudseDb = getEnvironmentDb('degoudse');
+      const productsList = await degoudseDb.select().from(insuranceProducts);
+      console.log(`Returning ${productsList.length} products from De Goudse database`);
+      res.json(productsList);
     } catch (error) {
       console.error('De Goudse products API error:', error);
       res.status(500).json({ message: 'Failed to fetch products for De Goudse environment' });
-    }
-  });
-
-  app.get('/api/degoudse/products/:id', async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const result = await db.execute(sql`
-        SELECT * FROM degoudse.products WHERE id = ${id}
-      `);
-      
-      if (result.rows.length === 0) {
-        return res.status(404).json({ message: 'Product not found' });
-      }
-      
-      console.log(`Returning product ${id} from De Goudse database`);
-      res.json(result.rows[0]);
-    } catch (error) {
-      console.error('De Goudse product detail API error:', error);
-      res.status(500).json({ message: 'Failed to fetch product details for De Goudse environment' });
-    }
-  });
-
-  app.patch('/api/degoudse/products/:id', async (req, res) => {
-    try {
-      const id = parseInt(req.params.id);
-      const updates = req.body;
-      
-      // Build dynamic update query based on provided fields
-      const updateFields = [];
-      const values = [];
-      let paramCount = 1;
-      
-      if (updates.name) {
-        updateFields.push(`name = $${paramCount++}`);
-        values.push(updates.name);
-      }
-      if (updates.description) {
-        updateFields.push(`description = $${paramCount++}`);
-        values.push(updates.description);
-      }
-      if (updates.category) {
-        updateFields.push(`category = $${paramCount++}`);
-        values.push(updates.category);
-      }
-      if (updates.sku !== undefined) {
-        updateFields.push(`sku = $${paramCount++}`);
-        values.push(updates.sku);
-      }
-      if (updates.price !== undefined) {
-        updateFields.push(`price = $${paramCount++}`);
-        values.push(updates.price);
-      }
-      if (updates.vendorId) {
-        updateFields.push(`vendor_id = $${paramCount++}`);
-        values.push(updates.vendorId);
-      }
-      
-      updateFields.push(`updated_at = NOW()`);
-      values.push(id);
-      
-      const result = await db.execute(sql`
-        UPDATE degoudse.products 
-        SET ${sql.raw(updateFields.join(', '))}
-        WHERE id = $${paramCount}
-        RETURNING *
-      `);
-      
-      if (result.rows.length === 0) {
-        return res.status(404).json({ message: 'Product not found' });
-      }
-      
-      console.log(`Updated product ${id} in De Goudse database`);
-      res.json(result.rows[0]);
-    } catch (error) {
-      console.error('De Goudse product update API error:', error);
-      res.status(500).json({ message: 'Failed to update product for De Goudse environment' });
     }
   });
 
@@ -1901,33 +1824,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Create a new saved list for degoudse
-  app.post('/api/degoudse/saved-lists', async (req, res) => {
-    try {
-      const { name, description, type, entity_type, members, filters, is_shared } = req.body;
-      
-      const envPool = getEnvironmentPool('degoudse');
-      
-      // Convert members array to PostgreSQL array format if it exists
-      let membersArray = null;
-      if (members && Array.isArray(members)) {
-        membersArray = `{${members.join(',')}}`;
-      }
-      
-      const result = await envPool.query(`
-        INSERT INTO degoudse.saved_lists (name, description, type, entity_type, members, filters, is_shared, created_by, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5::integer[], $6, $7, $8, NOW(), NOW())
-        RETURNING *
-      `, [name, description, type, entity_type, membersArray, JSON.stringify(filters), is_shared, 1]);
-      
-      console.log('Created saved list:', result.rows[0]);
-      res.json(result.rows[0]);
-    } catch (error) {
-      console.error('Error creating saved list:', error);
-      res.status(500).json({ error: 'Failed to create saved list' });
-    }
-  });
-
   app.get('/api/degoudse/opportunities', async (req, res) => {
     try {
       const envPool = getEnvironmentPool('degoudse');
@@ -1982,74 +1878,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('De Goudse opportunities API error:', error);
       res.status(500).json({ message: 'Failed to fetch opportunities for De Goudse environment' });
-    }
-  });
-
-  // Create opportunity for De Goudse environment
-  app.post('/api/degoudse/opportunities', async (req, res) => {
-    try {
-      console.log('De Goudse opportunity creation request body:', req.body);
-      
-      const { 
-        title, 
-        description, 
-        clientId,
-        productId,
-        value,
-        probability = 50,
-        status = 'Qualifying',
-        type = 'New Business',
-        closeDate
-      } = req.body;
-      
-      if (!title || !description) {
-        return res.status(400).json({ message: 'Title and description are required' });
-      }
-      
-      if (!clientId || !productId) {
-        return res.status(400).json({ message: 'Customer and product selection are required' });
-      }
-      
-      console.log('Executing De Goudse opportunity insert query...');
-      
-      const envPool = getEnvironmentPool('degoudse');
-      const result = await envPool.query(`
-        INSERT INTO degoudse.opportunities (
-          title, description, "clientId", "productId", status, type, probability, 
-          "estimatedValue", "expectedCloseDate", "createdAt", "updatedAt"
-        ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW()
-        ) RETURNING *
-      `, [
-        title, 
-        description, 
-        clientId,
-        productId,
-        status, 
-        type, 
-        probability,
-        value || 0,
-        closeDate || null
-      ]);
-      
-      const newOpportunity = result.rows[0];
-      console.log('De Goudse opportunity created successfully:', newOpportunity.id);
-      
-      res.status(201).json({
-        id: newOpportunity.id,
-        title: newOpportunity.title,
-        description: newOpportunity.description,
-        status: newOpportunity.status,
-        type: newOpportunity.type,
-        probability: newOpportunity.probability,
-        estimatedValue: newOpportunity.estimatedValue,
-        expectedCloseDate: newOpportunity.expectedCloseDate,
-        createdAt: newOpportunity.createdAt,
-        updatedAt: newOpportunity.updatedAt
-      });
-    } catch (error) {
-      console.error('Detailed error creating De Goudse opportunity:', error);
-      res.status(500).json({ message: 'Failed to create opportunity in De Goudse environment' });
     }
   });
 
@@ -2325,68 +2153,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // De Goudse Users endpoints
-  app.get('/api/degoudse/users', async (req, res) => {
-    try {
-      const envPool = getEnvironmentPool('degoudse');
-      
-      const result = await envPool.query(`
-        SELECT id, username, email, full_name, first_name, last_name, 
-               avatar_initials, role, department,
-               is_active, last_login_at, created_at, updated_at
-        FROM degoudse.users 
-        WHERE is_active = true
-        ORDER BY full_name ASC
-      `);
-      
-      console.log(`Returning ${result.rows.length} users from De Goudse database`);
-      res.json(result.rows);
-    } catch (error) {
-      console.error('Error fetching De Goudse users:', error);
-      res.status(500).json({ error: 'Failed to fetch users' });
-    }
-  });
-
-  app.post('/api/degoudse/users', async (req, res) => {
-    try {
-      const envPool = getEnvironmentPool('degoudse');
-      const { 
-        username, email, firstName, lastName, role, department, 
-        password, isActive = true 
-      } = req.body;
-      
-      if (!username || !email) {
-        return res.status(400).json({ error: 'Username and email are required' });
-      }
-
-      const fullName = `${firstName || ''} ${lastName || ''}`.trim() || username;
-      const avatarInitials = fullName.split(' ').map((word: string) => word[0]).join('').toUpperCase().slice(0, 2);
-      
-      // Use a default password if none provided (for demo purposes)
-      const userPassword = password || 'defaultPassword123';
-      
-      const result = await envPool.query(`
-        INSERT INTO degoudse.users (
-          username, email, password, full_name, first_name, last_name, avatar_initials,
-          role, department, is_active, created_at, updated_at
-        ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, NOW(), NOW()
-        ) RETURNING id, username, email, full_name, first_name, last_name, 
-                   avatar_initials, role, department, is_active, created_at, updated_at
-      `, [
-        username, email, userPassword, fullName, firstName || null, lastName || null, avatarInitials,
-        role || 'user', department || null, isActive
-      ]);
-      
-      const user = result.rows[0];
-      console.log('User created successfully in De Goudse environment:', user);
-      res.status(201).json(user);
-    } catch (error) {
-      console.error('Error creating De Goudse user:', error);
-      res.status(500).json({ error: 'Failed to create user' });
-    }
-  });
-
   app.post('/api/degoudse/okr-tags', async (req, res) => {
     try {
       const { name, color } = req.body;
@@ -2474,33 +2240,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get template assignments for a specific entity ID
-  app.get('/api/degoudse/template-assignments/:entityType/:entityId', async (req, res) => {
-    try {
-      const { entityType, entityId } = req.params;
-      console.log(`DEBUG: Fetching template assignments for ${entityType} ${entityId}`);
-      const envPool = getEnvironmentPool('degoudse');
-      
-      const result = await envPool.query(`
-        SELECT 
-          ta.*,
-          om.name as template_name,
-          om.description as template_description,
-          om.tags
-        FROM degoudse.okr_template_assignments ta
-        LEFT JOIN degoudse.okr_metrics om ON ta.template_id = om.id
-        WHERE ta.entity_type = $1 AND ta.entity_id = $2
-        ORDER BY ta.assigned_at DESC
-      `, [entityType, parseInt(entityId)]);
-      
-      console.log(`DEBUG: Found ${result.rows.length} template assignments for ${entityType} ${entityId}:`, result.rows);
-      res.json(result.rows);
-    } catch (error) {
-      console.error('Error fetching template assignments for entity:', error);
-      res.json([]);
-    }
-  });
-
   app.post('/api/degoudse/template-assignments', async (req, res) => {
     try {
       const { templateIds, entityType, entityId, assignedBy, notes } = req.body;
@@ -2531,97 +2270,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { listId } = req.params;
       const envPool = getEnvironmentPool('degoudse');
       
-      // Check if listId is a numeric value (actual list ID) or a share token
-      const isNumericListId = /^\d+$/.test(listId) && parseInt(listId) < 2147483647; // Max int32
-      
-      let result;
-      if (isNumericListId) {
-        // Query by list_id
-        result = await envPool.query(`
-          SELECT share_token, list_name, list_description, message, created_at, expires_at
-          FROM degoudse.shared_lists 
-          WHERE list_id = $1 AND expires_at > NOW()
-          ORDER BY created_at DESC
-        `, [parseInt(listId)]);
-      } else {
-        // Query by share_token
-        result = await envPool.query(`
-          SELECT share_token, list_name, list_description, message, created_at, expires_at
-          FROM degoudse.shared_lists 
-          WHERE share_token = $1 AND expires_at > NOW()
-          ORDER BY created_at DESC
-        `, [listId]);
-      }
+      const result = await envPool.query(`
+        SELECT share_token, list_name, list_description, message, created_at, expires_at
+        FROM degoudse.shared_lists 
+        WHERE list_id = $1 AND expires_at > NOW()
+        ORDER BY created_at DESC
+      `, [listId]);
       
       res.json(result.rows);
     } catch (error) {
       console.error('Error fetching shared links:', error);
       res.status(500).json({ error: 'Failed to fetch shared links' });
-    }
-  });
-
-  // Send email invitation
-  app.post('/api/degoudse/send-invitation', async (req, res) => {
-    try {
-      const { email, accessLevel, message, listName, shareUrl } = req.body;
-      
-      if (!process.env.SENDGRID_API_KEY) {
-        return res.status(400).json({ 
-          error: 'Email service not configured',
-          message: 'SendGrid API key is required for sending invitations'
-        });
-      }
-
-      const sgMail = require('@sendgrid/mail');
-      sgMail.setApiKey(process.env.SENDGRID_API_KEY);
-
-      const emailContent = `
-        <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto;">
-          <h2 style="color: #333;">You've been invited to view "${listName}"</h2>
-          
-          <p>You have been granted <strong>${accessLevel}</strong> access to this list of opportunities.</p>
-          
-          ${message ? `
-            <div style="background-color: #f5f5f5; padding: 15px; border-radius: 5px; margin: 20px 0;">
-              <strong>Message from sender:</strong>
-              <p style="margin: 10px 0 0 0;">${message}</p>
-            </div>
-          ` : ''}
-          
-          <div style="margin: 30px 0;">
-            <a href="${shareUrl}" 
-               style="background-color: #0066cc; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">
-              View List
-            </a>
-          </div>
-          
-          <p style="color: #666; font-size: 14px;">
-            This invitation allows you to ${accessLevel === 'editor' ? 'view and edit' : accessLevel === 'commenter' ? 'view and comment on' : 'view'} the shared list.
-          </p>
-          
-          <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
-          <p style="color: #999; font-size: 12px;">
-            This email was sent from the De Goudse CRM system. If you did not expect this invitation, please contact the sender.
-          </p>
-        </div>
-      `;
-
-      const msg = {
-        to: email,
-        from: 'noreply@degoudse.com', // Use your verified sender
-        subject: `Invitation to view "${listName}"`,
-        html: emailContent,
-      };
-
-      await sgMail.send(msg);
-      
-      res.json({ success: true, message: 'Invitation sent successfully' });
-    } catch (error) {
-      console.error('Error sending invitation:', error);
-      res.status(500).json({ 
-        error: 'Failed to send invitation',
-        message: error.message 
-      });
     }
   });
 
@@ -3212,7 +2871,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const result = await db.execute(sql`
         SELECT column_name, data_type, is_nullable 
         FROM information_schema.columns 
-        WHERE table_schema = 'degoudse' AND table_name = 'okr_metrics'
+        WHERE table_schema = 'myqollabi' AND table_name = 'okr_metrics'
         ORDER BY ordinal_position
       `);
       
@@ -3678,7 +3337,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Environment ID is required' });
       }
 
-      if (envId === 'degoudse' || envId === 'degoudse') {
+      if (envId === 'myqollabi' || envId === 'degoudse') {
         return res.status(400).json({ error: 'Cannot archive protected environments' });
       }
 
@@ -3723,7 +3382,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Environment ID is required' });
       }
 
-      if (envId === 'degoudse' || envId === 'degoudse') {
+      if (envId === 'myqollabi' || envId === 'degoudse') {
         return res.status(400).json({ error: 'Cannot delete protected environments' });
       }
 
@@ -3744,23 +3403,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // OKR Comments API endpoints with environment support
+  // OKR Comments API endpoints
   
   // Get comments for a metric
-  app.get('/api/:envId/okr-metrics/:id/comments', async (req, res) => {
+  app.get('/api/okr-metrics/:id/comments', async (req, res) => {
     try {
-      const envId = req.params.envId;
       const metricId = parseInt(req.params.id);
-      const envPool = getEnvironmentPool(envId);
       
-      const result = await envPool.query(`
-        SELECT c.*, u.username as user_name, m.name as metric_name
-        FROM ${envId}.okr_comments c
-        LEFT JOIN ${envId}.users u ON c.user_id = u.id
-        LEFT JOIN ${envId}.okr_metrics m ON c.metric_id = m.id
-        WHERE c.metric_id = $1
+      const result = await db.execute(sql`
+        SELECT c.*, u.username as user_name
+        FROM myqollabi.okr_comments c
+        LEFT JOIN myqollabi.users u ON c.user_id = u.id
+        WHERE c.metric_id = ${metricId}
         ORDER BY c.created_at DESC
-      `, [metricId]);
+      `);
       
       res.json(result.rows);
     } catch (error) {
@@ -3770,18 +3426,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Create comment for a metric
-  app.post('/api/:envId/okr-metrics/:id/comments', async (req, res) => {
+  app.post('/api/okr-metrics/:id/comments', async (req, res) => {
     try {
-      const envId = req.params.envId;
       const metricId = parseInt(req.params.id);
-      const { comment, user_id, contact_id, partner_id } = req.body;
-      const envPool = getEnvironmentPool(envId);
+      const { comment, user_id, contact_id } = req.body;
       
-      const result = await envPool.query(`
-        INSERT INTO ${envId}.okr_comments (metric_id, user_id, contact_id, comment, partner_id)
-        VALUES ($1, $2, $3, $4, $5)
+      const result = await db.execute(sql`
+        INSERT INTO myqollabi.okr_comments (metric_id, user_id, contact_id, comment)
+        VALUES (${metricId}, ${user_id || 1}, ${contact_id}, ${comment})
         RETURNING *
-      `, [metricId, user_id || 1, contact_id, comment, partner_id]);
+      `);
       
       res.status(201).json(result.rows[0]);
     } catch (error) {
@@ -3898,14 +3552,35 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Saved Lists API endpoints - redirect to De Goudse
-  app.get('/api/saved-lists', (req, res) => {
-    const queryParams = req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '';
-    res.redirect(`/api/degoudse/saved-lists${queryParams}`);
-  });
-
-  app.post('/api/saved-lists', (req, res) => {
-    res.redirect(307, '/api/degoudse/saved-lists');
+  // Saved Lists API endpoints
+  app.get('/api/saved-lists', async (req, res) => {
+    try {
+      const entityType = req.query.entity_type as string;
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      
+      // Disable caching for this response
+      res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.set('Pragma', 'no-cache');
+      res.set('Expires', '0');
+      
+      const envPool = getEnvironmentPool(envId as string);
+      
+      if (entityType && entityType.trim()) {
+        const result = await envPool.query(
+          `SELECT * FROM ${envId}.saved_lists WHERE entity_type = $1 ORDER BY created_at DESC`,
+          [entityType]
+        );
+        res.json(result.rows);
+      } else {
+        const result = await envPool.query(
+          `SELECT * FROM ${envId}.saved_lists ORDER BY created_at DESC`
+        );
+        res.json(result.rows);
+      }
+    } catch (error) {
+      console.error('[GENERAL ROUTE] Error:', error);
+      res.status(500).json({ error: 'Failed to fetch saved lists' });
+    }
   });
 
   // REMOVED: Shadow endpoint causing conflicts with environment-specific endpoints
@@ -3915,7 +3590,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const { name, description, members, filters, is_shared } = req.body;
-      const envId = req.headers['x-environment-id'] || 'degoudse';
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
       
       const result = await db.execute(sql`
         UPDATE ${sql.identifier(envId as string)}.saved_lists 
@@ -3944,7 +3619,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/saved-lists/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const envId = req.headers['x-environment-id'] || 'degoudse';
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
       
       const result = await db.execute(sql`
         DELETE FROM ${sql.identifier(envId as string)}.saved_lists 
@@ -3963,32 +3638,44 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Saved Views API endpoints - redirect to De Goudse
-  app.get('/api/saved-views', (req, res) => {
-    const queryParams = req.url.includes('?') ? req.url.substring(req.url.indexOf('?')) : '';
-    res.redirect(`/api/degoudse/saved-views${queryParams}`);
+  // Saved Views API endpoints
+  app.get('/api/saved-views', async (req, res) => {
+    try {
+      const entityType = req.query.entity_type as string;
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      const envPool = getEnvironmentPool(envId as string);
+      
+      console.log(`Saved views API: entityType=${entityType}, envId=${envId}`);
+      
+      let query = `SELECT * FROM ${envId}.saved_views`;
+      const params = [];
+      
+      if (entityType) {
+        query += ` WHERE entity_type = $1`;
+        params.push(entityType);
+      }
+      
+      query += ` ORDER BY created_at DESC`;
+      
+      console.log(`Executing query: ${query} with params:`, params);
+      const result = await envPool.query(query, params);
+      console.log(`Query returned ${result.rows.length} rows`);
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching saved views:', error);
+      res.status(500).json({ error: 'Failed to fetch saved views' });
+    }
   });
 
-  // Main entity routes - redirect all to De Goudse
-  app.get('/api/opportunities', (req, res) => res.redirect('/api/degoudse/opportunities'));
-  app.post('/api/opportunities', (req, res) => res.redirect(307, '/api/degoudse/opportunities'));
-  app.get('/api/partners', (req, res) => res.redirect('/api/degoudse/partners'));
-  app.get('/api/customers', (req, res) => res.redirect('/api/degoudse/customers'));
-  app.get('/api/products', (req, res) => res.redirect('/api/degoudse/products'));
-  app.get('/api/contacts', (req, res) => res.redirect('/api/degoudse/contacts'));
-  app.post('/api/contacts', (req, res) => res.redirect(307, '/api/degoudse/contacts'));
-  app.get('/api/vendors', (req, res) => res.redirect('/api/degoudse/vendors'));
-  app.post('/api/vendors', (req, res) => res.redirect(307, '/api/degoudse/vendors'));
-  app.get('/api/okr-metrics', (req, res) => res.redirect('/api/degoudse/okr-metrics'));
-  app.get('/api/okr-tags', (req, res) => res.redirect('/api/degoudse/okr-tags'));
-  app.get('/api/users', (req, res) => res.redirect('/api/degoudse/users'));
-  app.post('/api/users', (req, res) => res.redirect(307, '/api/degoudse/users'));
+  // REMOVED: Shadow endpoint causing conflicts with environment-specific endpoints
+  // Use /api/degoudse/saved-views instead
 
   app.put('/api/saved-views/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
       const { name, description, filters, is_shared } = req.body;
-      const envId = req.headers['x-environment-id'] || 'degoudse';
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
       
       const result = await db.execute(sql`
         UPDATE ${sql.identifier(envId as string)}.saved_views 
@@ -4016,7 +3703,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/saved-views/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const envId = req.headers['x-environment-id'] || 'degoudse';
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
       
       const result = await db.execute(sql`
         DELETE FROM ${sql.identifier(envId as string)}.saved_views 
@@ -4038,7 +3725,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // User Management API endpoints
   app.get('/api/users', async (req, res) => {
     try {
-      const envId = req.headers['x-environment-id'] || 'degoudse';
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
       
       const result = await db.execute(sql`
         SELECT id, username, email, full_name, first_name, last_name, 
@@ -4059,7 +3746,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/users/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const envId = req.headers['x-environment-id'] || 'degoudse';
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
       
       const result = await db.execute(sql`
         SELECT id, username, email, full_name, first_name, last_name, 
@@ -4082,7 +3769,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/users', async (req, res) => {
     try {
-      const envId = req.headers['x-environment-id'] || 'degoudse';
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
       const { 
         username, email, password, fullName, firstName, lastName, 
         avatarInitials, role, department, jobTitle, phone, isActive 
@@ -4112,7 +3799,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put('/api/users/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const envId = req.headers['x-environment-id'] || 'degoudse';
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
       const { 
         username, email, fullName, firstName, lastName, avatarInitials, 
         role, department, jobTitle, phone, isActive 
@@ -4153,7 +3840,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/users/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const envId = req.headers['x-environment-id'] || 'degoudse';
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
       
       // Soft delete - set is_active to false
       const result = await db.execute(sql`
@@ -4179,7 +3866,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/contacts/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const envId = req.headers['x-environment-id'] || 'degoudse';
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
       
       const result = await db.execute(sql`
         SELECT id, first_name, last_name, email, phone, 
@@ -4203,7 +3890,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/contacts', async (req, res) => {
     try {
-      const envId = req.headers['x-environment-id'] || 'degoudse';
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
       const { 
         firstName, lastName, email, phone, 
         company, position, linkedEntityType, linkedEntityId, 
@@ -4240,7 +3927,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.put('/api/contacts/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const envId = req.headers['x-environment-id'] || 'degoudse';
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
       const { 
         firstName, lastName, fullName, email, phone, jobTitle, 
         department, company, linkedEntityType, linkedEntityId, 
@@ -4286,7 +3973,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.delete('/api/contacts/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const envId = req.headers['x-environment-id'] || 'degoudse';
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
       
       // Soft delete - set is_active to false
       const result = await db.execute(sql`
@@ -4311,7 +3998,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/contacts/:id/link', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
-      const envId = req.headers['x-environment-id'] || 'degoudse';
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
       const { linkedEntityType, linkedEntityId, isPrimary } = req.body;
       
       const result = await db.execute(sql`
@@ -4341,7 +4028,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/entities/:entityType/:entityId/contacts', async (req, res) => {
     try {
       const { entityType, entityId } = req.params;
-      const envId = req.headers['x-environment-id'] || 'degoudse';
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
       
       const result = await db.execute(sql`
         SELECT id, first_name, last_name, full_name, email, phone, 
@@ -4358,286 +4045,6 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching entity contacts:', error);
       res.status(500).json({ error: 'Failed to fetch entity contacts' });
-    }
-  });
-
-  // Activity System API Routes
-
-  // Get activities for a partner (tasks, comments, attachments, OKR comments)
-  app.get('/api/:envId/partners/:partnerId/activities', async (req, res) => {
-    try {
-      const { envId, partnerId } = req.params;
-      const envPool = getEnvironmentPool(envId);
-      
-      // Get tasks
-      const tasksResult = await envPool.query(`
-        SELECT t.*, u1.full_name as assigned_to_name, u2.full_name as assigned_by_name
-        FROM ${envId}.activity_tasks t
-        LEFT JOIN ${envId}.users u1 ON t.assigned_to_id = u1.id
-        LEFT JOIN ${envId}.users u2 ON t.assigned_by_id = u2.id
-        WHERE t.entity_type = 'partner' AND t.entity_id = $1
-        ORDER BY t.created_at DESC
-      `, [parseInt(partnerId)]);
-      
-      // Get activity comments
-      const commentsResult = await envPool.query(`
-        SELECT c.*, u1.full_name as author_name, u2.full_name as assigned_to_name
-        FROM ${envId}.activity_comments c
-        LEFT JOIN ${envId}.users u1 ON c.author_id = u1.id
-        LEFT JOIN ${envId}.users u2 ON c.assigned_to_id = u2.id
-        WHERE c.entity_type = 'partner' AND c.entity_id = $1
-        ORDER BY c.created_at DESC
-      `, [parseInt(partnerId)]);
-      
-      // Get OKR comments for this partner
-      const okrCommentsResult = await envPool.query(`
-        SELECT oc.*, u.full_name as author_name, m.name as metric_name, 'okr_comment' as comment_type
-        FROM ${envId}.okr_comments oc
-        LEFT JOIN ${envId}.users u ON oc.user_id = u.id
-        LEFT JOIN ${envId}.okr_metrics m ON oc.metric_id = m.id
-        WHERE oc.partner_id = $1
-        ORDER BY oc.created_at DESC
-      `, [parseInt(partnerId)]);
-      
-      // Get attachments
-      const attachmentsResult = await envPool.query(`
-        SELECT a.*, u.full_name as uploaded_by_name
-        FROM ${envId}.activity_attachments a
-        LEFT JOIN ${envId}.users u ON a.uploaded_by_id = u.id
-        WHERE a.entity_type = 'partner' AND a.entity_id = $1
-        ORDER BY a.created_at DESC
-      `, [parseInt(partnerId)]);
-      
-      // Combine regular comments and OKR comments
-      const allComments = [
-        ...commentsResult.rows,
-        ...okrCommentsResult.rows.map(okrComment => ({
-          ...okrComment,
-          content: okrComment.comment,
-          okr_metric_name: okrComment.metric_name,
-          is_okr_comment: true
-        }))
-      ];
-      
-      res.json({
-        tasks: tasksResult.rows,
-        comments: allComments,
-        attachments: attachmentsResult.rows
-      });
-    } catch (error) {
-      console.error('Error fetching partner activities:', error);
-      res.status(500).json({ error: 'Failed to fetch partner activities' });
-    }
-  });
-
-  // Create a new task
-  app.post('/api/:envId/activity/tasks', async (req, res) => {
-    try {
-      const { envId } = req.params;
-      const { title, description, entityType, entityId, assignedToId, assignedById, priority, dueDate, visibleToPartner } = req.body;
-      const envPool = getEnvironmentPool(envId);
-      
-      const result = await envPool.query(`
-        INSERT INTO ${envId}.activity_tasks (title, description, entity_type, entity_id, assigned_to_id, assigned_by_id, priority, due_date, visible_to_partner, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW()) RETURNING *
-      `, [title, description, entityType, parseInt(entityId), assignedToId, assignedById, priority || 'medium', dueDate, visibleToPartner || false]);
-      
-      res.json(result.rows[0]);
-    } catch (error) {
-      console.error('Error creating task:', error);
-      res.status(500).json({ error: 'Failed to create task' });
-    }
-  });
-
-  // Update task completion status
-  app.patch('/api/:envId/activity/tasks/:taskId', async (req, res) => {
-    try {
-      const { envId, taskId } = req.params;
-      const { completed, completedAt } = req.body;
-      const envPool = getEnvironmentPool(envId);
-      
-      const result = await envPool.query(`
-        UPDATE ${envId}.activity_tasks 
-        SET completed = $1, completed_at = $2, updated_at = NOW()
-        WHERE id = $3 
-        RETURNING *
-      `, [completed, completedAt, parseInt(taskId)]);
-      
-      res.json(result.rows[0]);
-    } catch (error) {
-      console.error('Error updating task:', error);
-      res.status(500).json({ error: 'Failed to update task' });
-    }
-  });
-
-  // Create a new comment
-  app.post('/api/:envId/activity/comments', async (req, res) => {
-    try {
-      const { envId } = req.params;
-      const { content, authorId, entityType, entityId, assignedToId, parentCommentId, isInternal, visibleToPartner } = req.body;
-      const envPool = getEnvironmentPool(envId);
-      
-      const result = await envPool.query(`
-        INSERT INTO ${envId}.activity_comments (content, author_id, entity_type, entity_id, assigned_to_id, parent_comment_id, is_internal, visible_to_partner, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, NOW(), NOW()) RETURNING *
-      `, [content, authorId, entityType, parseInt(entityId), assignedToId, parentCommentId, isInternal || false, visibleToPartner || false]);
-      
-      res.json(result.rows[0]);
-    } catch (error) {
-      console.error('Error creating comment:', error);
-      res.status(500).json({ error: 'Failed to create comment' });
-    }
-  });
-
-  // Create a new OKR comment
-  app.post('/api/:envId/okr/comments', async (req, res) => {
-    try {
-      const { envId } = req.params;
-      const { metricId, partnerId, comment, userId } = req.body;
-      const envPool = getEnvironmentPool(envId);
-      
-      const result = await envPool.query(`
-        INSERT INTO ${envId}.okr_comments (metric_id, user_id, partner_id, comment, created_at, updated_at)
-        VALUES ($1, $2, $3, $4, NOW(), NOW()) RETURNING *
-      `, [metricId, userId, partnerId, comment]);
-      
-      res.json(result.rows[0]);
-    } catch (error) {
-      console.error('Error creating OKR comment:', error);
-      res.status(500).json({ error: 'Failed to create OKR comment' });
-    }
-  });
-
-  // Get unified timeline for a partner
-  app.get('/api/:envId/partners/:partnerId/timeline', async (req, res) => {
-    try {
-      const { envId, partnerId } = req.params;
-      const envPool = getEnvironmentPool(envId);
-      
-      const result = await envPool.query(`
-        SELECT * FROM ${envId}.unified_activities 
-        WHERE entity_type = 'partner' AND entity_id = $1 
-        ORDER BY created_at DESC
-      `, [parseInt(partnerId)]);
-      
-      res.json(result.rows);
-    } catch (error) {
-      console.error('Error fetching partner timeline:', error);
-      res.status(500).json({ error: 'Failed to fetch partner timeline' });
-    }
-  });
-
-  // Get AI next best actions for a partner
-  app.get('/api/:envId/partners/:partnerId/next-actions', async (req, res) => {
-    try {
-      const { envId, partnerId } = req.params;
-      const envPool = getEnvironmentPool(envId);
-      
-      const result = await envPool.query(`
-        SELECT * FROM ${envId}.next_best_actions
-        WHERE partner_id = $1 AND status IN ('pending', 'in_progress')
-        ORDER BY priority DESC, confidence DESC, created_at DESC
-      `, [parseInt(partnerId)]);
-      
-      res.json(result.rows);
-    } catch (error) {
-      console.error('Error fetching next best actions:', error);
-      res.status(500).json({ error: 'Failed to fetch next best actions' });
-    }
-  });
-
-  // Generate AI next best actions for a partner
-  app.post('/api/:envId/partners/:partnerId/generate-actions', async (req, res) => {
-    try {
-      const { envId, partnerId } = req.params;
-      const envPool = getEnvironmentPool(envId);
-      
-      if (!process.env.OPENAI_API_KEY) {
-        return res.status(400).json({ 
-          error: 'OpenAI API key is required for AI recommendations. Please provide your OpenAI API key.' 
-        });
-      }
-      
-      // Get partner context
-      const partnerResult = await envPool.query(`
-        SELECT * FROM ${envId}.customers WHERE id = $1
-      `, [parseInt(partnerId)]);
-      
-      const partner = partnerResult.rows[0];
-      if (!partner) {
-        return res.status(404).json({ error: 'Partner not found' });
-      }
-      
-      // Get related data for context
-      const [customersResult, opportunitiesResult, tasksResult, commentsResult] = await Promise.all([
-        envPool.query(`SELECT * FROM ${envId}.customers WHERE id IN (SELECT customer_id FROM ${envId}.customer_partners WHERE partner_id = $1) LIMIT 5`, [parseInt(partnerId)]),
-        envPool.query(`SELECT * FROM ${envId}.opportunities WHERE id IN (SELECT opportunity_id FROM ${envId}.partner_opportunities WHERE partner_id = $1) LIMIT 5`, [parseInt(partnerId)]),
-        envPool.query(`SELECT * FROM ${envId}.activity_tasks WHERE entity_type = 'partner' AND entity_id = $1 ORDER BY created_at DESC LIMIT 5`, [parseInt(partnerId)]),
-        envPool.query(`SELECT * FROM ${envId}.activity_comments WHERE entity_type = 'partner' AND entity_id = $1 ORDER BY created_at DESC LIMIT 5`, [parseInt(partnerId)])
-      ]);
-      
-      const contextData = {
-        partner,
-        customers: customersResult.rows,
-        opportunities: opportunitiesResult.rows,
-        recentTasks: tasksResult.rows,
-        recentComments: commentsResult.rows
-      };
-      
-      // Generate AI recommendations using OpenAI
-      const { default: OpenAI } = await import('openai');
-      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
-      
-      const response = await openai.chat.completions.create({
-        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
-        messages: [
-          {
-            role: "system",
-            content: "You are an AI assistant that analyzes partner relationships and suggests next best actions. Provide specific, actionable recommendations based on the partner context. Respond with JSON containing an array of actions."
-          },
-          {
-            role: "user",
-            content: `Analyze this partner context and suggest 3-5 next best actions:
-            
-            Partner: ${JSON.stringify(partner, null, 2)}
-            Customers: ${JSON.stringify(contextData.customers, null, 2)}
-            Opportunities: ${JSON.stringify(contextData.opportunities, null, 2)}
-            Recent Tasks: ${JSON.stringify(contextData.recentTasks, null, 2)}
-            Recent Comments: ${JSON.stringify(contextData.recentComments, null, 2)}
-            
-            Return a JSON object with an "actions" array. Each action should have: actionType, title, description, priority (low/medium/high/urgent), confidence (0-1), reasoning, and suggestedDate.`
-          }
-        ],
-        response_format: { type: "json_object" },
-      });
-      
-      const aiResult = JSON.parse(response.choices[0].message.content);
-      const actions = aiResult.actions || [];
-      
-      // Save generated actions to database
-      const savedActions = [];
-      for (const action of actions) {
-        const result = await envPool.query(`
-          INSERT INTO ${envId}.next_best_actions (partner_id, action_type, title, description, priority, confidence, reasoning, context_data, suggested_date, created_at, updated_at)
-          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW()) RETURNING *
-        `, [
-          parseInt(partnerId),
-          action.actionType,
-          action.title,
-          action.description,
-          action.priority || 'medium',
-          action.confidence || 0.8,
-          action.reasoning,
-          JSON.stringify(contextData),
-          action.suggestedDate
-        ]);
-        savedActions.push(result.rows[0]);
-      }
-      
-      res.json(savedActions);
-    } catch (error) {
-      console.error('Error generating AI actions:', error);
-      res.status(500).json({ error: 'Failed to generate AI recommendations' });
     }
   });
 
