@@ -2269,34 +2269,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const listId = parseInt(req.params.id);
       const { opportunityIds } = req.body;
-      const envId = req.headers['x-environment-id'] || 'myqollabi';
       
       if (!Array.isArray(opportunityIds) || opportunityIds.length === 0) {
         return res.status(400).json({ error: 'opportunityIds must be a non-empty array' });
       }
 
+      // Use degoudse environment pool directly since lists are in degoudse schema
+      const envPool = getEnvironmentPool('degoudse');
+
       // Get current list to merge opportunities
-      const currentListResult = await db.execute(sql`
-        SELECT members FROM ${sql.identifier(envId as string)}.saved_lists 
-        WHERE id = ${listId}
-      `);
+      const currentListResult = await envPool.query(`
+        SELECT members FROM degoudse.saved_lists 
+        WHERE id = $1
+      `, [listId]);
       
       if (currentListResult.rows.length === 0) {
         return res.status(404).json({ error: 'List not found' });
       }
 
-      const currentMembers = currentListResult.rows[0].members || [];
-      const newMembers = [...new Set([...currentMembers, ...opportunityIds])]; // Remove duplicates
+      const currentMembers = Array.isArray(currentListResult.rows[0].members) ? currentListResult.rows[0].members : [];
+      const combinedMembers = currentMembers.concat(opportunityIds);
+      const uniqueMembers = combinedMembers.filter((item: any, index: number) => combinedMembers.indexOf(item) === index);
 
       // Update the list with merged opportunities
-      const result = await db.execute(sql`
-        UPDATE ${sql.identifier(envId as string)}.saved_lists 
+      const result = await envPool.query(`
+        UPDATE degoudse.saved_lists 
         SET 
-          members = ${JSON.stringify(newMembers)},
+          members = $1,
           updated_at = NOW()
-        WHERE id = ${listId}
+        WHERE id = $2
         RETURNING *
-      `);
+      `, [JSON.stringify(uniqueMembers), listId]);
       
       res.json(result.rows[0]);
     } catch (error) {
