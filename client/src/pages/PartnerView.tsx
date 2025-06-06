@@ -174,6 +174,13 @@ export default function PartnerView() {
     staleTime: 2 * 60 * 1000,
   });
 
+  // Save current list ID to session storage for back navigation
+  useEffect(() => {
+    if (listId) {
+      sessionStorage.setItem('partnerViewListId', listId);
+    }
+  }, [listId]);
+
   // Filter opportunities based on list members and current filters
   useEffect(() => {
     if (allOpportunities.length > 0) {

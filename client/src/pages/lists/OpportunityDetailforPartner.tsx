@@ -105,6 +105,12 @@ const getStatusColor = (status: string) => {
 export default function OpportunityDetailforPartner() {
   const { opportunityId } = useParams<{ opportunityId: string }>();
   
+  // Get the shared list ID from session storage or default to the first available list
+  const getSharedListId = () => {
+    const savedListId = sessionStorage.getItem('partnerViewListId');
+    return savedListId || '2'; // Default to list ID 2 if none saved
+  };
+  
   // Fetch opportunity details
   const { data: opportunity, isLoading: opportunityLoading } = useQuery({
     queryKey: ['/api/degoudse/opportunities', opportunityId],
@@ -173,7 +179,7 @@ export default function OpportunityDetailforPartner() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between py-6">
               <div className="flex items-center space-x-4">
-                <Link href="/partner-view">
+                <Link href={`/partner-view/list/${getSharedListId()}`}>
                   <Button variant="ghost" size="sm">
                     <ArrowLeft className="w-4 h-4 mr-2" />
                     Back to Opportunities
