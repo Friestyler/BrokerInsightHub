@@ -55,8 +55,8 @@ function Router() {
       </Route>
       
       <Route path="/partner-view/list/:listId" component={PartnerView} />
+      <Route path="/partner-view/partners" component={PartnerView} />
       <Route path="/partner-view/opportunity/:opportunityId" component={OpportunityDetailforPartner} />
-      <Route path="/partner-view/partners" component={PartnersViewforPartner} />
       
       {/* All other routes use the main layout */}
       <Route>

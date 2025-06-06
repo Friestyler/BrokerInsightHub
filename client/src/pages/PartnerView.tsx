@@ -156,7 +156,11 @@ function PartnerLayout({ children }: { children: React.ReactNode }) {
 // Partner View Page Component
 export default function PartnerView() {
   const { listId } = useParams<{ listId: string }>();
+  const [location] = useLocation();
   const [opportunities, setOpportunities] = useState<any[]>([]);
+  
+  // Check if we're on the partners page
+  const isPartnersPage = location === '/partner-view/partners';
   
   // State for Lists dropdown and filters
   const [showListsDropdown, setShowListsDropdown] = useState(false);
@@ -294,6 +298,15 @@ export default function PartnerView() {
             <p className="text-gray-600">The shared list you're looking for doesn't exist or has been removed.</p>
           </div>
         </div>
+      </PartnerLayout>
+    );
+  }
+
+  // If we're on the partners page, render the Partners component
+  if (isPartnersPage) {
+    return (
+      <PartnerLayout>
+        <PartnersViewforPartner />
       </PartnerLayout>
     );
   }
