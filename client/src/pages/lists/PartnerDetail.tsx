@@ -255,9 +255,9 @@ export default function PartnerDetail() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-white">
       {/* Header */}
-      <div className="bg-white border-b">
+      <div className="bg-white">
         <div className="px-6 py-4">
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-4">
@@ -284,49 +284,47 @@ export default function PartnerDetail() {
 
           {/* Activity Hub */}
           <PartnerActivityHub partnerId={parseInt(id!)} partnerName={partner?.name || 'Partner'} />
-        </div>
-      </div>
 
-      {/* Tabs */}
-      <div className="px-6">
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8">
-            <button 
-              onClick={() => setActiveTab("okr-plans")}
-              className={`py-2 px-4 text-sm font-medium border-b-2 whitespace-nowrap ${
-                activeTab === "okr-plans" 
-                  ? "bg-blue-100 text-blue-700 border-blue-600" 
-                  : "text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300"
-              }`}
-            >
-              OKR plans
-            </button>
-            <button 
-              onClick={() => setActiveTab("opportunities")}
-              className={`py-2 px-1 text-sm font-medium border-b-2 whitespace-nowrap ${
-                activeTab === "opportunities" 
-                  ? "bg-blue-100 text-blue-700 border-blue-600" 
-                  : "text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300"
-              }`}
-            >
-              Opportunities ({(relatedOpportunities as any[] || []).length})
-            </button>
-            <button 
-              onClick={() => setActiveTab("customers")}
-              className={`py-2 px-1 text-sm font-medium border-b-2 whitespace-nowrap ${
-                activeTab === "customers" 
-                  ? "bg-blue-100 text-blue-700 border-blue-600" 
-                  : "text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300"
-              }`}
-            >
-              Customers ({(relatedCustomers as any[] || []).length})
-            </button>
-          </nav>
+          {/* Tabs */}
+          <div className="border-b border-gray-200 mt-6">
+            <nav className="-mb-px flex space-x-8">
+              <button 
+                onClick={() => setActiveTab("okr-plans")}
+                className={`py-2 px-4 text-sm font-medium border-b-2 whitespace-nowrap ${
+                  activeTab === "okr-plans" 
+                    ? "bg-blue-100 text-blue-700 border-blue-600" 
+                    : "text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300"
+                }`}
+              >
+                OKR plans
+              </button>
+              <button 
+                onClick={() => setActiveTab("opportunities")}
+                className={`py-2 px-1 text-sm font-medium border-b-2 whitespace-nowrap ${
+                  activeTab === "opportunities" 
+                    ? "bg-blue-100 text-blue-700 border-blue-600" 
+                    : "text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300"
+                }`}
+              >
+                Opportunities ({(relatedOpportunities as any[] || []).length})
+              </button>
+              <button 
+                onClick={() => setActiveTab("customers")}
+                className={`py-2 px-1 text-sm font-medium border-b-2 whitespace-nowrap ${
+                  activeTab === "customers" 
+                    ? "bg-blue-100 text-blue-700 border-blue-600" 
+                    : "text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300"
+                }`}
+              >
+                Customers ({(relatedCustomers as any[] || []).length})
+              </button>
+            </nav>
+          </div>
         </div>
       </div>
 
       {/* Content area */}
-      <div className="px-6 py-6">
+      <div className="px-6 py-6 bg-white">
         {activeTab === "okr-plans" && (
           <div className="space-y-6">
             {/* Filters Section - Exact same as template page */}
