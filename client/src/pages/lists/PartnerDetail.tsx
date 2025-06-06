@@ -13,6 +13,7 @@ import { Search, Copy, Users, Trash2, MoreHorizontal, MessageSquare, ArrowLeft }
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
+import { ShareModal } from "@/components/ShareModal";
 
 export default function PartnerDetail() {
   const { id } = useParams();
@@ -37,6 +38,9 @@ export default function PartnerDetail() {
   const [showSaveListModal, setShowSaveListModal] = useState(false);
   const [saveListMode, setSaveListMode] = useState<'new' | 'existing'>('new');
   const [selectedExistingList, setSelectedExistingList] = useState<number | null>(null);
+  const [showShareListModal, setShowShareListModal] = useState(false);
+  const [currentSharedLink, setCurrentSharedLink] = useState<string | null>(null);
+  const [existingSharedLinks, setExistingSharedLinks] = useState<any[]>([]);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const { toast } = useToast();
@@ -844,6 +848,37 @@ export default function PartnerDetail() {
                     </svg>
                     Create List
                   </Button>
+                  
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="text-indigo-600"
+                    onClick={() => setShowShareListModal(true)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                      <circle cx="18" cy="5" r="3"></circle>
+                      <circle cx="6" cy="12" r="3"></circle>
+                      <circle cx="18" cy="19" r="3"></circle>
+                      <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                      <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                    </svg>
+                    Share
+                  </Button>
+                  
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="text-indigo-600"
+                    onClick={() => {
+                      alert('Selected opportunities can be added to a campaign. This will be available in the Campaigns section');
+                    }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                      <path d="M22 2 11 13" />
+                      <path d="M22 2 15 22 11 13 2 9 22 2z" />
+                    </svg>
+                    Add to Campaign
+                  </Button>
                 </div>
               </div>
             )}
@@ -1234,6 +1269,41 @@ export default function PartnerDetail() {
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Share Modal */}
+      <ShareModal
+        isOpen={showShareListModal}
+        onClose={() => setShowShareListModal(false)}
+        itemName={selectedOpportunities.length > 0 ? `${selectedOpportunities.length} Selected Opportunities` : 'Opportunities'}
+        currentSharedLink={currentSharedLink || ''}
+        existingSharedLinks={existingSharedLinks}
+        onCopyLink={() => {
+          if (currentSharedLink) {
+            navigator.clipboard.writeText(currentSharedLink);
+            toast({
+              title: "Link copied",
+              description: "The share link has been copied to your clipboard.",
+            });
+          }
+        }}
+        onCreateShare={() => {
+          // Generate a shareable link for the selected opportunities
+          const shareId = Math.random().toString(36).substring(7);
+          const newLink = `${window.location.origin}/shared/opportunities/${shareId}`;
+          setCurrentSharedLink(newLink);
+          setExistingSharedLinks(prev => [...prev, {
+            id: shareId,
+            url: newLink,
+            createdAt: new Date(),
+            createdBy: 'Current User'
+          }]);
+          
+          toast({
+            title: "Share link created",
+            description: "A new share link has been generated for the selected opportunities.",
+          });
+        }}
+      />
     </div>
   );
 }
