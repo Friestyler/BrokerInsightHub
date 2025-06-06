@@ -153,16 +153,6 @@ export default function PartnerDetailBrokerPOV() {
   // Opportunities toolbar state management
   const [showListsDropdown, setShowListsDropdown] = useState(false);
   const [activeOpportunitiesList, setActiveOpportunitiesList] = useState<any>(null);
-  
-  // Set active list based on URL parameter
-  useEffect(() => {
-    if (listParam && savedListsData) {
-      const targetList = savedListsData.find((list: any) => list.id === parseInt(listParam));
-      if (targetList) {
-        setActiveOpportunitiesList(targetList);
-      }
-    }
-  }, [listParam, savedListsData]);
   const [filterText, setFilterText] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedOpportunityType, setSelectedOpportunityType] = useState('');
@@ -218,6 +208,16 @@ export default function PartnerDetailBrokerPOV() {
     }
     return false;
   });
+
+  // Set active list based on URL parameter
+  useEffect(() => {
+    if (listParam && savedListsData) {
+      const targetList = savedListsData.find((list: any) => list.id === parseInt(listParam));
+      if (targetList) {
+        setActiveOpportunitiesList(targetList);
+      }
+    }
+  }, [listParam, savedListsData]);
 
   // Filter opportunities based on the shared list
   const baseOpportunities = allOpportunities.filter((opp: any) => {

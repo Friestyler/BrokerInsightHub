@@ -611,16 +611,18 @@ export default function PartnerDetail() {
                                         </DropdownMenuTrigger>
                                         <DropdownMenuContent align="end" className="w-48">
                                           <DropdownMenuItem 
-                                            onClick={() => {
-                                              // Navigate to broker view with this list selected
-                                              window.location.href = `/broker-view/partners/${id}?tab=opportunities&list=${list.id}`;
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              // Navigate to De Goudse broker view with opportunities tab and shared list selected
+                                              window.open(`/broker-view/partners/degoudse?tab=opportunities&list=${list.id}`, '_blank');
                                             }}
                                           >
                                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                                              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                              <circle cx="12" cy="12" r="3"></circle>
+                                              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+                                              <polyline points="10 17 15 12 10 7"></polyline>
+                                              <line x1="15" y1="12" x2="3" y2="12"></line>
                                             </svg>
-                                            View as broker
+                                            Open list as partner
                                           </DropdownMenuItem>
                                         </DropdownMenuContent>
                                       </DropdownMenu>
