@@ -257,90 +257,49 @@ export default function PartnerDetail() {
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex items-center justify-between py-6">
+      <div className="bg-white border-b">
+        <div className="px-6 py-4">
+          <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-4">
               <Link href="/partners">
-                <Button variant="ghost" size="sm">
-                  <Search className="w-4 h-4 mr-2" />
-                  Back to Partners
+                <Button variant="ghost" size="sm" className="p-2">
+                  <Search className="w-4 h-4" />
                 </Button>
               </Link>
-              <div>
+              <div className="flex-1">
                 <h1 className="text-2xl font-bold text-gray-900">{partner.name}</h1>
-                <p className="text-sm text-gray-500">
-                  {partner.type} • {partner.location}
-                </p>
+                <div className="flex items-center space-x-4 mt-1">
+                  <span className="text-gray-600">{partner.description || 'Partner created from zonnepanelen'}</span>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm bg-gray-100 text-gray-700 px-2 py-1 rounded">Details</span>
+                    <span className="text-sm bg-gray-100 text-gray-700 px-2 py-1 rounded">Partner</span>
+                    <span className="text-sm text-gray-500">Owner: <span className="text-blue-600">NA</span></span>
+                  </div>
+                </div>
               </div>
-            </div>
-            <div className="flex items-center space-x-3">
-              <Button variant="outline">Edit</Button>
-              <Button>View Details</Button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* Partner Overview */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div>
-              <h3 className="text-sm font-medium text-gray-500">Total Opportunities</h3>
-              <p className="mt-1 text-2xl font-semibold text-gray-900">
-                {(relatedOpportunities as any[] || []).length}
-              </p>
-            </div>
-            <div>
-              <h3 className="text-sm font-medium text-gray-500">Active Customers</h3>
-              <p className="mt-1 text-2xl font-semibold text-gray-900">
-                {(relatedCustomers as any[] || []).length}
-              </p>
-            </div>
-            <div>
-              <h3 className="text-sm font-medium text-gray-500">Primary Contact</h3>
-              <p className="mt-1 text-lg text-gray-900">
-                {partner.primary_contact || 'Not set'}
-              </p>
-            </div>
-            <div>
-              <h3 className="text-sm font-medium text-gray-500">Contact Email</h3>
-              <p className="mt-1 text-lg text-gray-900">
-                {partner.contact_email || 'Not set'}
-              </p>
             </div>
           </div>
           
-          {partner.description && (
-            <div className="mt-6">
-              <h3 className="text-sm font-medium text-gray-500">Description</h3>
-              <p className="mt-1 text-gray-900">{partner.description}</p>
-            </div>
-          )}
-        </div>
-      </div>
+          <p className="text-gray-600 mb-6">Joint action & business plan to drive growth with insurance business</p>
 
-      {/* Activity Hub */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+          {/* Activity Hub */}
           <PartnerActivityHub partnerId={parseInt(id!)} partnerName={partner?.name || 'Partner'} />
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <nav className="flex space-x-8">
+      <div className="px-6">
+        <div className="border-b border-gray-200">
+          <nav className="-mb-px flex space-x-8">
             <button 
               onClick={() => setActiveTab("okr-plans")}
-              className={`py-2 px-1 text-sm font-medium border-b-2 whitespace-nowrap ${
+              className={`py-2 px-4 text-sm font-medium border-b-2 whitespace-nowrap ${
                 activeTab === "okr-plans" 
                   ? "bg-blue-100 text-blue-700 border-blue-600" 
                   : "text-gray-500 hover:text-gray-700 border-transparent hover:border-gray-300"
               }`}
             >
-              OKR Plans ({attachedMetrics.length})
+              OKR plans
             </button>
             <button 
               onClick={() => setActiveTab("opportunities")}
@@ -366,8 +325,8 @@ export default function PartnerDetail() {
         </div>
       </div>
 
-      {/* Tab Content */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      {/* Content area */}
+      <div className="px-6 py-6">
         {activeTab === "okr-plans" && (
           <div className="space-y-6">
             {/* Filters Section - Exact same as template page */}
