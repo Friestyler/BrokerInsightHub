@@ -1805,6 +1805,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const entityType = req.query.entity_type as string;
     const partnerId = req.query.partner_id as string;
     
+    console.log('SAVED LISTS DEBUG: entityType=', entityType, 'partnerId=', partnerId);
+    
     res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
     res.set('Pragma', 'no-cache'); 
     res.set('Expires', '0');
@@ -1814,18 +1816,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (entityType && partnerId) {
         // Filter by entity type and partner context (include both partner-specific lists and general lists)
+        console.log('SAVED LISTS DEBUG: Using partner-specific query');
         const result = await envPool.query(
           'SELECT * FROM degoudse.saved_lists WHERE entity_type = $1 AND (partner_id = $2 OR partner_id IS NULL) ORDER BY created_at DESC', 
           [entityType, parseInt(partnerId)]
         );
+        console.log('SAVED LISTS DEBUG: Partner-specific result count:', result.rows.length);
         return res.json(result.rows);
       } else if (entityType) {
         // Filter by entity type only, exclude partner-specific lists (partner_id IS NULL for general lists)
+        console.log('SAVED LISTS DEBUG: Using general query, excluding partner-specific lists');
         const result = await envPool.query('SELECT * FROM degoudse.saved_lists WHERE entity_type = $1 AND partner_id IS NULL ORDER BY created_at DESC', [entityType]);
+        console.log('SAVED LISTS DEBUG: General result count:', result.rows.length, 'rows:', result.rows.map(r => ({id: r.id, name: r.name, partner_id: r.partner_id})));
         return res.json(result.rows);
       } else {
         // Return all lists
+        console.log('SAVED LISTS DEBUG: Using all lists query');
         const result = await envPool.query('SELECT * FROM degoudse.saved_lists ORDER BY created_at DESC');
+        console.log('SAVED LISTS DEBUG: All lists result count:', result.rows.length);
         return res.json(result.rows);
       }
     } catch (error) {
