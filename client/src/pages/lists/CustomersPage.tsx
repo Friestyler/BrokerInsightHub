@@ -132,6 +132,10 @@ export default function CustomersPageClean() {
   const [activeView, setActiveView] = useState<any>(null);
   const [showSaveViewModal, setShowSaveViewModal] = useState(false);
   const [viewNameInput, setViewNameInput] = useState('');
+  
+  // Account Mapping state
+  const [showAccountMappingModal, setShowAccountMappingModal] = useState(false);
+  const [selectedMappingFields, setSelectedMappingFields] = useState<string[]>([]);
   const [showViewsDropdown, setShowViewsDropdown] = useState(false);
   
   // Filter dropdown states
