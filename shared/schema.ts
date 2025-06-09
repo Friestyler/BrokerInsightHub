@@ -389,6 +389,20 @@ export const savedLists = pgTable("saved_lists", {
   updated_at: timestamp("updated_at").defaultNow().notNull(),
 });
 
+// List Collaborators table - for managing list-specific access permissions
+export const listCollaborators = pgTable("list_collaborators", {
+  id: serial("id").primaryKey(),
+  listId: integer("list_id").notNull().references(() => savedLists.id, { onDelete: "cascade" }),
+  userId: integer("user_id").references(() => users.id),
+  email: text("email"), // For external collaborators not yet in the system
+  name: text("name"), // Display name for external collaborators
+  accessLevel: text("access_level").notNull().default("viewer"), // 'viewer', 'commenter', 'editor'
+  invitedById: integer("invited_by_id").notNull().references(() => users.id),
+  invitedAt: timestamp("invited_at").notNull().defaultNow(),
+  acceptedAt: timestamp("accepted_at"),
+  isActive: boolean("is_active").notNull().default(true),
+});
+
 // Saved Views table - for storing user-created filter views
 export const savedViews = pgTable("saved_views", {
   id: serial("id").primaryKey(),
@@ -404,9 +418,25 @@ export const savedViews = pgTable("saved_views", {
 });
 
 // Define relationships for saved lists and views
-export const savedListsRelations = relations(savedLists, ({ one }) => ({
+export const savedListsRelations = relations(savedLists, ({ one, many }) => ({
   createdBy: one(users, {
     fields: [savedLists.created_by],
+    references: [users.id],
+  }),
+  collaborators: many(listCollaborators),
+}));
+
+export const listCollaboratorsRelations = relations(listCollaborators, ({ one }) => ({
+  list: one(savedLists, {
+    fields: [listCollaborators.listId],
+    references: [savedLists.id],
+  }),
+  user: one(users, {
+    fields: [listCollaborators.userId],
+    references: [users.id],
+  }),
+  invitedBy: one(users, {
+    fields: [listCollaborators.invitedById],
     references: [users.id],
   }),
 }));

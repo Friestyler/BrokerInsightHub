@@ -42,32 +42,42 @@ export default function PartnerDetail() {
   const [showShareListModal, setShowShareListModal] = useState(false);
   const [currentSharedLink, setCurrentSharedLink] = useState<string | null>(null);
   const [existingSharedLinks, setExistingSharedLinks] = useState<any[]>([]);
-  const [collaborators, setCollaborators] = useState([
-    {
-      id: '1',
-      name: 'John Smith',
-      email: 'john.smith@partner.com',
-      accessLevel: 'editor' as const,
-      avatar: 'J',
-      isOwner: false
-    },
-    {
-      id: '2',
-      name: 'Maria Garcia',
-      email: 'maria.garcia@company.com',
-      accessLevel: 'viewer' as const,
-      avatar: 'M',
-      isOwner: false
-    },
-    {
-      id: '3',
-      name: 'Alex Johnson',
-      email: 'alex.johnson@degoudse.com',
-      accessLevel: 'commenter' as const,
-      avatar: 'A',
-      isOwner: false
+  // State to track collaborators for each list
+  const [listCollaborators, setListCollaborators] = useState<Record<number, any[]>>({});
+
+  // Get collaborators for the currently active list
+  const getCollaboratorsForList = (listId: number) => {
+    return listCollaborators[listId] || [];
+  };
+
+  // Initialize collaborators for demo purposes when a list is selected
+  const initializeCollaboratorsForList = (listId: number) => {
+    if (!listCollaborators[listId]) {
+      const sampleCollaborators = [
+        {
+          id: `${listId}-1`,
+          name: 'John Smith',
+          email: 'john.smith@partner.com',
+          accessLevel: 'editor' as const,
+          avatar: 'J',
+          isOwner: false
+        },
+        {
+          id: `${listId}-2`,
+          name: 'Maria Garcia',
+          email: 'maria.garcia@company.com',
+          accessLevel: 'viewer' as const,
+          avatar: 'M',
+          isOwner: false
+        }
+      ];
+      
+      setListCollaborators(prev => ({
+        ...prev,
+        [listId]: sampleCollaborators
+      }));
     }
-  ]);
+  };
   const [isEditingList, setIsEditingList] = useState(false);
   const [editedListMembers, setEditedListMembers] = useState<number[]>([]);
   const [isSavingList, setIsSavingList] = useState(false);
@@ -1544,10 +1554,14 @@ export default function PartnerDetail() {
       <ShareModal
         isOpen={showShareListModal}
         onClose={() => setShowShareListModal(false)}
-        itemName={selectedOpportunities.length > 0 ? `${selectedOpportunities.length} Selected Opportunities` : 'Opportunities'}
+        itemName={activeList ? `${activeList.name} (List #${activeList.id})` : 'Opportunities'}
         currentSharedLink={currentSharedLink || ''}
         existingSharedLinks={existingSharedLinks}
-        collaborators={collaborators}
+        collaborators={activeList ? (() => {
+          // Initialize collaborators for this list if not already done
+          initializeCollaboratorsForList(activeList.id);
+          return getCollaboratorsForList(activeList.id);
+        })() : []}
         onCopyLink={() => {
           if (currentSharedLink) {
             navigator.clipboard.writeText(currentSharedLink);
@@ -1575,31 +1589,51 @@ export default function PartnerDetail() {
           });
         }}
         onRemoveCollaborator={async (collaboratorId: string) => {
-          // Remove collaborator from the list
-          setCollaborators(prev => prev.filter(c => c.id !== collaboratorId));
+          if (!activeList) return false;
           
-          // In a real app, this would make an API call to remove access
-          // await apiRequest('DELETE', `/api/lists/${activeList?.id}/collaborators/${collaboratorId}`);
+          // In a real app, this would make an API call to remove access from THIS specific list
+          // await apiRequest('DELETE', `/api/lists/${activeList.id}/collaborators/${collaboratorId}`);
+          
+          // Remove collaborator only from this specific list's collaborators
+          setListCollaborators(prev => ({
+            ...prev,
+            [activeList.id]: prev[activeList.id]?.filter(c => c.id !== collaboratorId) || []
+          }));
+          
+          toast({
+            title: "Access removed",
+            description: `Collaborator removed from "${activeList.name}" only.`,
+          });
           
           return true; // Return success
         }}
         onUpdateAccessLevel={async (collaboratorId: string, newAccessLevel: string) => {
-          // Update collaborator access level
-          setCollaborators(prev => prev.map(c => 
-            c.id === collaboratorId 
-              ? { ...c, accessLevel: newAccessLevel as 'viewer' | 'commenter' | 'editor' }
-              : c
-          ));
+          if (!activeList) return false;
+          
+          // Update collaborator access level for this specific list
+          setListCollaborators(prev => ({
+            ...prev,
+            [activeList.id]: prev[activeList.id]?.map(c => 
+              c.id === collaboratorId 
+                ? { ...c, accessLevel: newAccessLevel as 'viewer' | 'commenter' | 'editor' }
+                : c
+            ) || []
+          }));
           
           // In a real app, this would make an API call to update access
-          // await apiRequest('PATCH', `/api/lists/${activeList?.id}/collaborators/${collaboratorId}`, { accessLevel: newAccessLevel });
+          // await apiRequest('PATCH', `/api/lists/${activeList.id}/collaborators/${collaboratorId}`, { accessLevel: newAccessLevel });
           
           return true; // Return success
         }}
         onSendEmailInvite={async (email: string, accessLevel: string, message: string) => {
-          // Add new collaborator to the list
+          if (!activeList) return false;
+          
+          // Initialize collaborators for this list if needed
+          initializeCollaboratorsForList(activeList.id);
+          
+          // Add new collaborator to this specific list
           const newCollaborator = {
-            id: Math.random().toString(36).substring(7),
+            id: `${activeList.id}-${Math.random().toString(36).substring(7)}`,
             name: email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
             email,
             accessLevel: accessLevel as 'viewer' | 'commenter' | 'editor',
@@ -1607,10 +1641,13 @@ export default function PartnerDetail() {
             isOwner: false
           };
           
-          setCollaborators(prev => [...prev, newCollaborator]);
+          setListCollaborators(prev => ({
+            ...prev,
+            [activeList.id]: [...(prev[activeList.id] || []), newCollaborator]
+          }));
           
           // In a real app, this would make an API call to send invitation
-          // await apiRequest('POST', `/api/lists/${activeList?.id}/collaborators`, { email, accessLevel, message });
+          // await apiRequest('POST', `/api/lists/${activeList.id}/collaborators`, { email, accessLevel, message });
           
           return true; // Return success
         }}
