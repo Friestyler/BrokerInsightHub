@@ -42,6 +42,9 @@ export default function PartnerDetail() {
   const [showShareListModal, setShowShareListModal] = useState(false);
   const [currentSharedLink, setCurrentSharedLink] = useState<string | null>(null);
   const [existingSharedLinks, setExistingSharedLinks] = useState<any[]>([]);
+  const [isEditingList, setIsEditingList] = useState(false);
+  const [editedListMembers, setEditedListMembers] = useState<number[]>([]);
+  const [isSavingList, setIsSavingList] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const { toast } = useToast();
@@ -77,6 +80,31 @@ export default function PartnerDetail() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
       queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'opportunities', 'partner', id] });
+    }
+  });
+
+  // Mutation for updating list members (edit list functionality)
+  const editListMutation = useMutation({
+    mutationFn: async ({ listId, members }: { listId: number, members: number[] }) => {
+      return await apiRequest('PUT', `/api/saved-lists/${listId}`, { members });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'opportunities', 'partner', id] });
+      toast({
+        title: "List updated",
+        description: "Your changes to the list have been saved.",
+      });
+      setIsEditingList(false);
+      setIsSavingList(false);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error updating list",
+        description: "Failed to update the list. Please try again.",
+        variant: "destructive"
+      });
+      setIsSavingList(false);
     }
   });
 
@@ -117,6 +145,13 @@ export default function PartnerDetail() {
     return true;
   });
 
+  // Initialize edit mode when a list is selected
+  useEffect(() => {
+    if (activeList && isEditingList) {
+      setEditedListMembers(activeList.members || []);
+    }
+  }, [activeList, isEditingList]);
+
   // Filter opportunities based on search and active list
   const filteredOpportunities = (relatedOpportunities as any[] || []).filter((opportunity: any) => {
     // Filter by search text
@@ -130,7 +165,7 @@ export default function PartnerDetail() {
     }
     
     // If a specific list is selected, filter by its members
-    if (activeList) {
+    if (activeList && !isEditingList) {
       // If the list has members (specific opportunity IDs), only show those
       if (activeList.members && activeList.members.length > 0) {
         return activeList.members.includes(opportunity.id);
@@ -146,11 +181,29 @@ export default function PartnerDetail() {
 
   // Selection helper functions
   const toggleSelectOpportunity = (opportunityId: number) => {
-    setSelectedOpportunities(prev => 
-      prev.includes(opportunityId) 
-        ? prev.filter(id => id !== opportunityId)
-        : [...prev, opportunityId]
-    );
+    if (isEditingList) {
+      // In edit mode, update the edited list members
+      setEditedListMembers(prev => 
+        prev.includes(opportunityId) 
+          ? prev.filter(id => id !== opportunityId)
+          : [...prev, opportunityId]
+      );
+    } else {
+      // Normal selection mode
+      setSelectedOpportunities(prev => 
+        prev.includes(opportunityId) 
+          ? prev.filter(id => id !== opportunityId)
+          : [...prev, opportunityId]
+      );
+    }
+  };
+
+  // Helper function to check if an opportunity is selected
+  const isOpportunitySelected = (opportunityId: number) => {
+    if (isEditingList) {
+      return editedListMembers.includes(opportunityId);
+    }
+    return selectedOpportunities.includes(opportunityId);
   };
 
   const toggleSelectAll = () => {
