@@ -319,11 +319,24 @@ export default function PartnerDetailBrokerPOV() {
 
   const activeFilterList = getActiveListForFiltering();
 
+  console.log('Active filter list state:', {
+    listId: activeFilterList?.id,
+    listName: activeFilterList?.name,
+    members: activeFilterList?.members,
+    allOpportunitiesCount: allOpportunities?.length
+  });
+
   const baseOpportunities = allOpportunities.filter((opp: any) => {
     if (activeFilterList) {
       // Check if list has specific members (opportunity IDs)
       if (activeFilterList.members && activeFilterList.members.length > 0) {
-        return activeFilterList.members.includes(opp.id);
+        const isIncluded = activeFilterList.members.includes(opp.id);
+        console.log(`Opportunity ${opp.id} (${opp.title}) - included: ${isIncluded}`, {
+          oppId: opp.id,
+          listMembers: activeFilterList.members,
+          isIncluded
+        });
+        return isIncluded;
       }
       
       // If no specific members, apply list filters
