@@ -493,6 +493,7 @@ function OpportunitiesTable() {
   const [activeList, setActiveList] = useState<any>(null);
   const [showSaveListModal, setShowSaveListModal] = useState(false);
   const [showShareListModal, setShowShareListModal] = useState(false);
+  const [shareListData, setShareListData] = useState<any>(null);
   const [showListsDropdown, setShowListsDropdown] = useState(false);
   const [showRenameListModal, setShowRenameListModal] = useState(false);
   const [showDeleteListModal, setShowDeleteListModal] = useState(false);
@@ -926,8 +927,9 @@ function OpportunitiesTable() {
                                     title="Click to manage sharing" 
                                     onClick={(e) => {
                                       e.stopPropagation();
-                                      // Set this list as active and open share modal
-                                      setActiveList(list);
+                                      console.log('Share icon clicked for list:', list);
+                                      // Store the specific list data for sharing
+                                      setShareListData(list);
                                       setShowShareListModal(true);
                                       setShowListsDropdown(false);
                                     }}
@@ -1493,9 +1495,12 @@ function OpportunitiesTable() {
       {/* Google-Style Share Modal */}
       <ShareModal
         isOpen={showShareListModal}
-        onClose={() => setShowShareListModal(false)}
-        itemName={activeList?.name || 'Selected Items'}
-        listId={activeList?.id || 0}
+        onClose={() => {
+          setShowShareListModal(false);
+          setShareListData(null);
+        }}
+        itemName={shareListData?.name || activeList?.name || 'Selected Items'}
+        listId={shareListData?.id || activeList?.id || 0}
         envId={environment.id}
         currentSharedLink={currentSharedLink}
         existingSharedLinks={existingSharedLinks}
