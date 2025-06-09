@@ -3668,13 +3668,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const id = parseInt(req.params.id);
       const { name, description, members, filters, is_shared } = req.body;
-      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      const envId = req.headers['x-environment-id'] || req.headers['x-environment'] || 'myqollabi';
+      
+      console.log('PUT /api/saved-lists/:id - Request data:', {
+        id,
+        envId,
+        requestBody: { name, description, members, filters, is_shared }
+      });
+      
+      // Validate required fields
+      if (!name) {
+        return res.status(400).json({ error: 'Name is required' });
+      }
       
       const result = await db.execute(sql`
         UPDATE ${sql.identifier(envId as string)}.saved_lists 
         SET 
           name = ${name},
-          description = ${description},
+          description = ${description || ''},
           members = ${JSON.stringify(members || [])},
           filters = ${JSON.stringify(filters || {})},
           is_shared = ${is_shared || false},
@@ -3683,14 +3694,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
         RETURNING *
       `);
       
+      console.log('PUT /api/saved-lists/:id - Update result:', result.rows);
+      
       if (result.rows.length === 0) {
         return res.status(404).json({ message: 'Saved list not found' });
       }
       
-      res.json(result.rows[0]);
+      const updatedList = result.rows[0];
+      console.log('PUT /api/saved-lists/:id - Sending response:', updatedList);
+      
+      res.json(updatedList);
     } catch (error) {
       console.error('Error updating saved list:', error);
-      res.status(500).json({ error: 'Failed to update saved list' });
+      res.status(500).json({ error: 'Failed to update saved list', details: error.message });
     }
   });
 
