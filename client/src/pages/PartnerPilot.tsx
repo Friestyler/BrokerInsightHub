@@ -164,10 +164,6 @@ export default function PartnerPilot() {
           <Upload className="h-4 w-4 mr-2" />
           Data Upload
         </Button>
-        <Button variant="ghost">
-          <Users className="h-4 w-4 mr-2" />
-          Account Mapping
-        </Button>
       </div>
 
       {/* ChatGPT-style Assistant Section */}
