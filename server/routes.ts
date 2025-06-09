@@ -3741,7 +3741,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
            updated_at = NOW()
          WHERE id = $6
          RETURNING *`,
-        [name, description || '', JSON.stringify(members || []), JSON.stringify(filters || {}), is_shared || false, id]
+        [name, description || '', members || [], JSON.stringify(filters || {}), is_shared || false, id]
       );
       
       console.log(`PUT /api/${envId}/saved-lists/${id} - Update result:`, result.rows);
