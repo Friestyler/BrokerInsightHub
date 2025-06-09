@@ -237,6 +237,16 @@ export default function PartnerDetailBrokerPOV() {
     }
   }, [savedListsData, activeOpportunitiesList?.id]);
 
+  // Track when activeOpportunitiesList changes
+  useEffect(() => {
+    console.log('=== ACTIVE LIST STATE CHANGED ===', {
+      listId: activeOpportunitiesList?.id,
+      listName: activeOpportunitiesList?.name,
+      members: activeOpportunitiesList?.members,
+      timestamp: new Date().toISOString()
+    });
+  }, [activeOpportunitiesList]);
+
   // Edit list mutation
   const editListMutation = useMutation({
     mutationFn: async ({ listId, members }: { listId: number, members: number[] }) => {
@@ -279,10 +289,15 @@ export default function PartnerDetailBrokerPOV() {
       }
     },
     onSuccess: (data) => {
+      console.log('=== MUTATION SUCCESS ===');
       console.log('List update successful, updating active list immediately:', data);
+      console.log('Current active list before update:', activeOpportunitiesList);
       
-      // Immediately update the active list with the response data
-      setActiveOpportunitiesList(data);
+      // Force a state update by creating a new object
+      const updatedList = { ...data };
+      setActiveOpportunitiesList(updatedList);
+      
+      console.log('Set new active list:', updatedList);
       
       const currentEnv = window.__APP_ENV__ || localStorage.getItem('selectedEnvironment') || 'myqollabi';
       
@@ -300,6 +315,10 @@ export default function PartnerDetailBrokerPOV() {
       });
       setIsEditingList(false);
       setIsSavingList(false);
+      
+      // Force a re-render by updating the edited members state too
+      setEditedListMembers(data.members || []);
+      console.log('=== MUTATION SUCCESS COMPLETE ===');
     },
     onError: (error) => {
       console.error('Edit list mutation error:', error);
