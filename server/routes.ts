@@ -1814,12 +1814,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       if (entityType && partnerId) {
         // Filter by entity type and partner context (include both partner-specific lists and general lists)
-        console.log('PARTNER QUERY DEBUG: entityType=', entityType, 'partnerId=', partnerId);
         const result = await envPool.query(
           'SELECT * FROM degoudse.saved_lists WHERE entity_type = $1 AND (partner_id = $2 OR partner_id IS NULL) ORDER BY created_at DESC', 
           [entityType, parseInt(partnerId)]
         );
-        console.log('PARTNER QUERY DEBUG: Result count:', result.rows.length, 'rows:', result.rows.map(r => ({id: r.id, name: r.name, partner_id: r.partner_id})));
         return res.json(result.rows);
       } else if (entityType) {
         // Filter by entity type only, exclude partner-specific lists (partner_id IS NULL for general lists)

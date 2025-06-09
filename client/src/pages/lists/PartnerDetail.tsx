@@ -112,11 +112,9 @@ export default function PartnerDetail() {
 
   // Filter saved lists to show partner-relevant lists
   const partnerRelevantLists = (savedListsData as any[] || []).filter((list: any) => {
-    // Show lists that are shared with this partner or contain opportunities from this partner
-    if (list.filters?.partner_shared_with && String(list.filters.partner_shared_with) === String(id)) {
-      return true;
-    }
-    return false;
+    // Show lists that belong to this partner (partner_id matches) or are general lists (partner_id is null)
+    // The backend already handles this filtering, so we can show all returned lists
+    return true;
   });
 
   // Filter opportunities based on search and active list
