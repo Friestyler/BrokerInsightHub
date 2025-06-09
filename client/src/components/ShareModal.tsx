@@ -78,8 +78,19 @@ export function ShareModal({
 
   // Fetch collaborators from API when modal opens
   useEffect(() => {
+    console.log('ShareModal useEffect:', { isOpen, listId, envId });
     if (isOpen && listId && envId) {
+      console.log('Conditions met, calling fetchCollaborators');
       fetchCollaborators();
+    } else {
+      console.log('Conditions not met for fetchCollaborators:', { 
+        isOpen, 
+        listId, 
+        envId,
+        listIdValid: !!listId,
+        listIdType: typeof listId,
+        listIdValue: listId
+      });
     }
   }, [isOpen, listId, envId]);
 
