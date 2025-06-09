@@ -190,6 +190,8 @@ export default function PartnerDetailBrokerPOV() {
   const { data: savedListsData } = useQuery({
     queryKey: ['/api/degoudse/saved-lists', 'opportunities', 'partner', '4'],
     queryFn: () => apiRequest('GET', '/api/degoudse/saved-lists?entity_type=opportunities&partner_id=4'),
+    staleTime: 0, // Always refresh to get latest data
+    refetchOnWindowFocus: true,
   });
 
   // All returned lists are relevant for this partner (backend already filters)
@@ -335,6 +337,12 @@ export default function PartnerDetailBrokerPOV() {
 
   // Filter opportunities based on the active list
   const getActiveListForFiltering = () => {
+    // Always use the latest data from React Query instead of local state
+    if (listParam && savedListsData) {
+      const freshList = savedListsData.find((list: any) => list.id === parseInt(listParam));
+      console.log('Using fresh list from query data:', freshList);
+      return freshList;
+    }
     return activeOpportunitiesList;
   };
 
@@ -344,7 +352,9 @@ export default function PartnerDetailBrokerPOV() {
     listId: activeFilterList?.id,
     listName: activeFilterList?.name,
     members: activeFilterList?.members,
-    allOpportunitiesCount: allOpportunities?.length
+    allOpportunitiesCount: allOpportunities?.length,
+    listParam,
+    savedListsDataCount: savedListsData?.length
   });
 
   const baseOpportunities = allOpportunities.filter((opp: any) => {
