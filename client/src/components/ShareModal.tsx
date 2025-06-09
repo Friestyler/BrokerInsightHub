@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
+import { apiRequest } from "@/lib/queryClient";
 
 interface Collaborator {
   id: string;
@@ -33,30 +34,30 @@ interface ShareModalProps {
   isOpen: boolean;
   onClose: () => void;
   itemName: string;
+  listId: number;
+  envId: string;
   currentSharedLink: string;
   existingSharedLinks: any[];
   collaborators?: Collaborator[];
   onCopyLink: () => void;
   onCreateShare: () => void;
   isCreating?: boolean;
-  onSendEmailInvite?: (email: string, accessLevel: string, message: string) => Promise<boolean>;
-  onRemoveCollaborator?: (collaboratorId: string) => Promise<boolean>;
-  onUpdateAccessLevel?: (collaboratorId: string, newAccessLevel: string) => Promise<boolean>;
+  onRefreshList?: () => void;
 }
 
 export function ShareModal({
   isOpen,
   onClose,
   itemName,
+  listId,
+  envId,
   currentSharedLink,
   existingSharedLinks,
   collaborators = [],
   onCopyLink,
   onCreateShare,
   isCreating = false,
-  onSendEmailInvite,
-  onRemoveCollaborator,
-  onUpdateAccessLevel
+  onRefreshList
 }: ShareModalProps) {
   const { toast } = useToast();
   const { environment } = useEnvironment();
@@ -71,6 +72,33 @@ export function ShareModal({
   const [isSending, setIsSending] = useState(false);
   const [removingCollaboratorId, setRemovingCollaboratorId] = useState<string | null>(null);
   const [updatingAccessId, setUpdatingAccessId] = useState<string | null>(null);
+  
+  // Local collaborators state with real API data
+  const [localCollaborators, setLocalCollaborators] = useState<Collaborator[]>([]);
+
+  // Fetch collaborators from API when modal opens
+  useEffect(() => {
+    if (isOpen && listId && envId) {
+      fetchCollaborators();
+    }
+  }, [isOpen, listId, envId]);
+
+  const fetchCollaborators = async () => {
+    try {
+      const response = await apiRequest('GET', `/api/${envId}/saved-lists/${listId}/collaborators`);
+      const apiCollaborators = response.map((collab: any) => ({
+        id: collab.id.toString(),
+        name: collab.name || collab.user_name || collab.email.split('@')[0],
+        email: collab.email || collab.user_email,
+        accessLevel: collab.access_level,
+        avatar: (collab.name || collab.user_name || collab.email).charAt(0).toUpperCase(),
+        isOwner: false
+      }));
+      setLocalCollaborators(apiCollaborators);
+    } catch (error) {
+      console.error('Error fetching collaborators:', error);
+    }
+  };
   
   // Email input and suggestions
   const [emailInput, setEmailInput] = useState('');
@@ -102,19 +130,22 @@ export function ShareModal({
   };
   
   const handleRemoveCollaborator = async (collaboratorId: string) => {
-    if (!onRemoveCollaborator) return;
-    
     setRemovingCollaboratorId(collaboratorId);
     
     try {
-      const success = await onRemoveCollaborator(collaboratorId);
-      if (success) {
-        toast({
-          title: "Access removed",
-          description: "Collaborator access has been removed.",
-        });
-      } else {
-        throw new Error("Failed to remove access");
+      await apiRequest('DELETE', `/api/${envId}/saved-lists/${listId}/collaborators/${collaboratorId}`);
+      
+      toast({
+        title: "Access removed",
+        description: "Collaborator access has been removed.",
+      });
+      
+      // Remove from local state
+      setLocalCollaborators(prev => prev.filter(collab => collab.id !== collaboratorId));
+      
+      // Refresh list to update is_shared flag
+      if (onRefreshList) {
+        onRefreshList();
       }
     } catch (error) {
       toast({

@@ -3782,6 +3782,195 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Helper function to sync is_shared flag based on collaborators
+  async function syncListSharedFlag(listId: number, envId: string) {
+    try {
+      const envPool = getEnvironmentPool(envId);
+      
+      // Check if list has any active collaborators
+      const collaboratorResult = await envPool.query(
+        `SELECT COUNT(*) as collaborator_count 
+         FROM ${envId}.list_collaborators 
+         WHERE list_id = $1 AND is_active = true`,
+        [listId]
+      );
+      
+      const hasCollaborators = parseInt(collaboratorResult.rows[0].collaborator_count) > 0;
+      
+      // Update is_shared flag to match collaborator presence
+      await envPool.query(
+        `UPDATE ${envId}.saved_lists 
+         SET is_shared = $1, updated_at = NOW()
+         WHERE id = $2`,
+        [hasCollaborators, listId]
+      );
+      
+      console.log(`Synced is_shared flag for list ${listId}: ${hasCollaborators}`);
+      return hasCollaborators;
+    } catch (error) {
+      console.error('Error syncing list shared flag:', error);
+      return false;
+    }
+  }
+
+  // List Collaborators API endpoints
+  app.get('/api/:envId/saved-lists/:listId/collaborators', async (req, res) => {
+    try {
+      const { envId, listId } = req.params;
+      const envPool = getEnvironmentPool(envId);
+      
+      const result = await envPool.query(
+        `SELECT lc.*, u.name as user_name, u.email as user_email 
+         FROM ${envId}.list_collaborators lc
+         LEFT JOIN ${envId}.users u ON lc.user_id = u.id
+         WHERE lc.list_id = $1 AND lc.is_active = true
+         ORDER BY lc.invited_at ASC`,
+        [parseInt(listId)]
+      );
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching list collaborators:', error);
+      res.status(500).json({ error: 'Failed to fetch collaborators' });
+    }
+  });
+
+  app.post('/api/:envId/saved-lists/:listId/collaborators', async (req, res) => {
+    try {
+      const { envId, listId } = req.params;
+      const { email, name, accessLevel, message } = req.body;
+      const envPool = getEnvironmentPool(envId);
+      
+      // Insert new collaborator
+      const result = await envPool.query(
+        `INSERT INTO ${envId}.list_collaborators 
+         (list_id, email, name, access_level, invited_by_id, invited_at, is_active)
+         VALUES ($1, $2, $3, $4, $5, NOW(), true)
+         RETURNING *`,
+        [parseInt(listId), email, name, accessLevel || 'viewer', 1]
+      );
+      
+      // Sync the is_shared flag
+      await syncListSharedFlag(parseInt(listId), envId);
+      
+      res.status(201).json(result.rows[0]);
+    } catch (error) {
+      console.error('Error adding collaborator:', error);
+      res.status(500).json({ error: 'Failed to add collaborator' });
+    }
+  });
+
+  app.patch('/api/:envId/saved-lists/:listId/collaborators/:collaboratorId', async (req, res) => {
+    try {
+      const { envId, listId, collaboratorId } = req.params;
+      const { accessLevel } = req.body;
+      const envPool = getEnvironmentPool(envId);
+      
+      const result = await envPool.query(
+        `UPDATE ${envId}.list_collaborators 
+         SET access_level = $1
+         WHERE id = $2 AND list_id = $3 AND is_active = true
+         RETURNING *`,
+        [accessLevel, parseInt(collaboratorId), parseInt(listId)]
+      );
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Collaborator not found' });
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error updating collaborator access:', error);
+      res.status(500).json({ error: 'Failed to update collaborator access' });
+    }
+  });
+
+  app.delete('/api/:envId/saved-lists/:listId/collaborators/:collaboratorId', async (req, res) => {
+    try {
+      const { envId, listId, collaboratorId } = req.params;
+      const envPool = getEnvironmentPool(envId);
+      
+      // Mark collaborator as inactive instead of deleting
+      const result = await envPool.query(
+        `UPDATE ${envId}.list_collaborators 
+         SET is_active = false
+         WHERE id = $1 AND list_id = $2
+         RETURNING *`,
+        [parseInt(collaboratorId), parseInt(listId)]
+      );
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Collaborator not found' });
+      }
+      
+      // Sync the is_shared flag after removal
+      await syncListSharedFlag(parseInt(listId), envId);
+      
+      res.json({ message: 'Collaborator removed successfully' });
+    } catch (error) {
+      console.error('Error removing collaborator:', error);
+      res.status(500).json({ error: 'Failed to remove collaborator' });
+    }
+  });
+
+  // Enhanced saved lists endpoint that includes collaborator data and syncs is_shared flag
+  app.get('/api/:envId/saved-lists', async (req, res) => {
+    try {
+      const { envId } = req.params;
+      const entityType = req.query.entity_type as string;
+      const partnerId = req.query.partner_id as string;
+      const envPool = getEnvironmentPool(envId);
+      
+      // Disable caching for this response
+      res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
+      res.set('Pragma', 'no-cache');
+      res.set('Expires', '0');
+      
+      let query = `
+        SELECT sl.*, 
+               COUNT(lc.id) as collaborator_count,
+               CASE WHEN COUNT(lc.id) > 0 THEN true ELSE false END as has_collaborators
+        FROM ${envId}.saved_lists sl
+        LEFT JOIN ${envId}.list_collaborators lc ON sl.id = lc.list_id AND lc.is_active = true
+      `;
+      const params = [];
+      const conditions = [];
+      
+      if (entityType) {
+        conditions.push(`sl.entity_type = $${params.length + 1}`);
+        params.push(entityType);
+      }
+      
+      if (partnerId) {
+        conditions.push(`sl.partner_id = $${params.length + 1}`);
+        params.push(parseInt(partnerId));
+      }
+      
+      if (conditions.length > 0) {
+        query += ` WHERE ${conditions.join(' AND ')}`;
+      }
+      
+      query += ` GROUP BY sl.id ORDER BY sl.created_at DESC`;
+      
+      const result = await envPool.query(query, params);
+      
+      // Sync is_shared flags for all lists that have mismatched states
+      for (const list of result.rows) {
+        const shouldBeShared = list.collaborator_count > 0;
+        if (list.is_shared !== shouldBeShared) {
+          console.log(`Syncing list ${list.id}: is_shared ${list.is_shared} -> ${shouldBeShared}`);
+          await syncListSharedFlag(list.id, envId);
+          list.is_shared = shouldBeShared; // Update the response data
+        }
+      }
+      
+      res.json(result.rows);
+    } catch (error) {
+      console.error(`Error fetching saved lists from ${req.params.envId}:`, error);
+      res.status(500).json({ error: 'Failed to fetch saved lists' });
+    }
+  });
+
   // Saved Views API endpoints
   app.get('/api/saved-views', async (req, res) => {
     try {
