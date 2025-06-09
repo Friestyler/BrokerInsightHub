@@ -209,21 +209,33 @@ export default function PartnerDetailBrokerPOV() {
 
   // Update active list when savedListsData changes (after edits)
   useEffect(() => {
+    console.log('SavedListsData changed, checking for updates:', {
+      hasActiveList: !!activeOpportunitiesList,
+      activeListId: activeOpportunitiesList?.id,
+      listsCount: savedListsData?.length
+    });
+    
     if (activeOpportunitiesList && savedListsData) {
       const updatedList = savedListsData.find((list: any) => list.id === activeOpportunitiesList.id);
+      console.log('Found updated list:', updatedList);
+      
       if (updatedList) {
         // Compare members arrays directly to detect changes
         const currentMembers = activeOpportunitiesList.members || [];
         const updatedMembers = updatedList.members || [];
         
+        console.log('Comparing members:', { currentMembers, updatedMembers });
+        
         if (currentMembers.length !== updatedMembers.length || 
             !currentMembers.every((id: number) => updatedMembers.includes(id))) {
-          console.log('Updating active list with new members:', updatedMembers);
+          console.log('Members changed, updating active list');
           setActiveOpportunitiesList(updatedList);
+        } else {
+          console.log('Members are the same, no update needed');
         }
       }
     }
-  }, [savedListsData]);
+  }, [savedListsData, activeOpportunitiesList?.id]);
 
   // Edit list mutation
   const editListMutation = useMutation({
@@ -266,7 +278,12 @@ export default function PartnerDetailBrokerPOV() {
         throw error;
       }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('List update successful, updating active list immediately:', data);
+      
+      // Immediately update the active list with the response data
+      setActiveOpportunitiesList(data);
+      
       const currentEnv = window.__APP_ENV__ || localStorage.getItem('selectedEnvironment') || 'myqollabi';
       
       queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
