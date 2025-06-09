@@ -45,6 +45,8 @@ export default function PartnerDetail() {
   const [isEditingList, setIsEditingList] = useState(false);
   const [editedListMembers, setEditedListMembers] = useState<number[]>([]);
   const [isSavingList, setIsSavingList] = useState(false);
+  const [editingListId, setEditingListId] = useState<number | null>(null);
+  const [renderKey, setRenderKey] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const { toast } = useToast();
@@ -126,7 +128,8 @@ export default function PartnerDetail() {
         throw error;
       }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Edit list response:', data);
       // Invalidate both environment-specific and generic queries
       const currentEnv = window.__APP_ENV__ || localStorage.getItem('selectedEnvironment') || 'myqollabi';
       
@@ -143,8 +146,19 @@ export default function PartnerDetail() {
         title: "List updated",
         description: "Your changes to the list have been saved.",
       });
+      
+      // Only update activeList if we're editing the currently active list
+      if (editingListId === activeList?.id) {
+        setActiveList(data);
+      }
+      
+      // Reset editing state completely
       setIsEditingList(false);
+      setEditingListId(null);
+      setEditedListMembers([]);
       setIsSavingList(false);
+      setRenderKey(prev => prev + 1);
+      console.log('=== MUTATION SUCCESS COMPLETE ===');
     },
     onError: (error) => {
       console.error('Edit list mutation error:', error);
@@ -194,12 +208,25 @@ export default function PartnerDetail() {
     return true;
   });
 
+  // Function to get fresh list data directly from React Query
+  const getActiveListForFiltering = () => {
+    // Always use the latest data from React Query instead of local state
+    if (activeList && savedListsData) {
+      const freshList = savedListsData.find((list: any) => list.id === activeList.id);
+      console.log('Using fresh list from query data:', freshList);
+      return freshList || activeList;
+    }
+    return activeList;
+  };
+
+  const activeFilterList = getActiveListForFiltering();
+  
   // Initialize edit mode when a list is selected
   useEffect(() => {
-    if (activeList && isEditingList) {
-      setEditedListMembers(activeList.members || []);
+    if (activeFilterList && isEditingList) {
+      setEditedListMembers(activeFilterList.members || []);
     }
-  }, [activeList, isEditingList]);
+  }, [activeFilterList, isEditingList]);
 
   // Filter opportunities based on search and active list
   const filteredOpportunities = (relatedOpportunities as any[] || []).filter((opportunity: any) => {
@@ -214,13 +241,13 @@ export default function PartnerDetail() {
     }
     
     // If a specific list is selected, filter by its members
-    if (activeList && !isEditingList) {
+    if (activeFilterList && !isEditingList) {
       // If the list has members (specific opportunity IDs), only show those
-      if (activeList.members && activeList.members.length > 0) {
-        return activeList.members.includes(opportunity.id);
+      if (activeFilterList.members && activeFilterList.members.length > 0) {
+        return activeFilterList.members.includes(opportunity.id);
       }
       // If the list has filters, apply them
-      if (activeList.filters) {
+      if (activeFilterList.filters) {
         // Additional filter logic can be added here if needed
       }
     }
@@ -877,11 +904,15 @@ export default function PartnerDetail() {
                             if (isEditingList) {
                               // Cancel edit mode
                               setIsEditingList(false);
-                              setEditedListMembers(activeList.members || []);
+                              setEditingListId(null);
+                              setEditedListMembers([]);
                             } else {
-                              // Enter edit mode
+                              // Enter edit mode - use fresh list data
+                              const freshList = activeFilterList || activeList;
+                              console.log('Entering edit mode with fresh list:', freshList);
                               setIsEditingList(true);
-                              setEditedListMembers(activeList.members || []);
+                              setEditingListId(freshList?.id || null);
+                              setEditedListMembers(freshList?.members || []);
                             }
                           }}
                           disabled={isSavingList}
@@ -900,11 +931,13 @@ export default function PartnerDetail() {
                             size="sm" 
                             className="bg-indigo-600 hover:bg-indigo-700"
                             onClick={() => {
-                              setIsSavingList(true);
-                              editListMutation.mutate({
-                                listId: activeList.id,
-                                members: editedListMembers
-                              });
+                              if (editingListId) {
+                                setIsSavingList(true);
+                                editListMutation.mutate({
+                                  listId: editingListId,
+                                  members: editedListMembers
+                                });
+                              }
                             }}
                             disabled={isSavingList}
                           >
