@@ -751,7 +751,7 @@ export default function PartnerDetailBrokerPOV() {
                           </TableCell>
                           <TableCell>
                             <span className="text-gray-900">
-                              {opportunity.clientName || 'Unknown Customer'}
+                              {opportunity.customer_names || opportunity.customerName || opportunity.clientName || 'Unknown Customer'}
                             </span>
                           </TableCell>
                           <TableCell>
