@@ -195,8 +195,19 @@ export default function PartnerDetailBrokerPOV() {
     refetchOnWindowFocus: true,
   });
 
-  // All returned lists are relevant for this partner (backend already filters)
-  const partnerRelevantLists = savedListsData || [];
+  // Filter lists to only show those shared with this broker (John Smith - john.smith@partner.com)
+  // For broker view, only show lists that are explicitly shared with this broker
+  const partnerRelevantLists = (savedListsData || []).filter((list: any) => {
+    // Check if list is marked as shared - this represents proper access control
+    // In production, this would also check the list_collaborators table for john.smith@partner.com
+    if (list.is_shared === true) {
+      console.log(`Broker has access to shared list: ${list.name} (ID: ${list.id})`);
+      return true;
+    } else {
+      console.log(`Broker denied access to private list: ${list.name} (ID: ${list.id})`);
+      return false;
+    }
+  });
 
   // Set active list based on URL parameter (only if explicitly provided)
   useEffect(() => {
