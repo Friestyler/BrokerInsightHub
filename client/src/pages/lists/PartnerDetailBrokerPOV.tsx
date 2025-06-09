@@ -163,6 +163,7 @@ export default function PartnerDetailBrokerPOV() {
 
   // Edit list state management
   const [isEditingList, setIsEditingList] = useState(false);
+  const [editingListId, setEditingListId] = useState<number | null>(null);
   const [editedListMembers, setEditedListMembers] = useState<number[]>([]);
   const [isSavingList, setIsSavingList] = useState(false);
 
@@ -316,11 +317,17 @@ export default function PartnerDetailBrokerPOV() {
         title: "List updated",
         description: "Your changes to the list have been saved.",
       });
-      setIsEditingList(false);
-      setIsSavingList(false);
       
-      // Force a complete re-render by updating multiple states
-      setEditedListMembers(data.members || []);
+      // Only update activeOpportunitiesList if we're editing the currently active list
+      if (editingListId === activeOpportunitiesList?.id) {
+        setActiveOpportunitiesList(data);
+      }
+      
+      // Reset editing state completely
+      setIsEditingList(false);
+      setEditingListId(null);
+      setEditedListMembers([]);
+      setIsSavingList(false);
       setRenderKey(prev => prev + 1);
       console.log('=== MUTATION SUCCESS COMPLETE ===');
     },
@@ -357,13 +364,13 @@ export default function PartnerDetailBrokerPOV() {
     savedListsDataCount: savedListsData?.length
   });
 
-  // Synchronize edit state with fresh list data
+  // Synchronize edit state with fresh list data - only for the list being edited
   useEffect(() => {
-    if (activeFilterList && isEditingList) {
-      console.log('Synchronizing edit state with fresh list data:', activeFilterList.members);
+    if (activeFilterList && isEditingList && editingListId === activeFilterList.id) {
+      console.log('Synchronizing edit state with fresh list data for list:', editingListId, activeFilterList.members);
       setEditedListMembers(activeFilterList.members || []);
     }
-  }, [activeFilterList?.members, isEditingList]);
+  }, [activeFilterList?.members, isEditingList, editingListId]);
 
   const baseOpportunities = allOpportunities.filter((opp: any) => {
     // In edit mode, show ALL opportunities so user can select/deselect
@@ -802,12 +809,14 @@ export default function PartnerDetailBrokerPOV() {
                               if (isEditingList) {
                                 // Cancel edit mode
                                 setIsEditingList(false);
-                                setEditedListMembers(activeFilterList?.members || []);
+                                setEditingListId(null);
+                                setEditedListMembers([]);
                               } else {
                                 // Enter edit mode - use fresh list data
                                 const freshList = activeFilterList || activeOpportunitiesList;
                                 console.log('Entering edit mode with fresh list:', freshList);
                                 setIsEditingList(true);
+                                setEditingListId(freshList?.id || null);
                                 setEditedListMembers(freshList?.members || []);
                               }
                             }}
@@ -827,11 +836,13 @@ export default function PartnerDetailBrokerPOV() {
                               size="sm" 
                               className="bg-indigo-600 hover:bg-indigo-700"
                               onClick={() => {
-                                setIsSavingList(true);
-                                editListMutation.mutate({
-                                  listId: activeOpportunitiesList.id,
-                                  members: editedListMembers
-                                });
+                                if (editingListId) {
+                                  setIsSavingList(true);
+                                  editListMutation.mutate({
+                                    listId: editingListId,
+                                    members: editedListMembers
+                                  });
+                                }
                               }}
                               disabled={isSavingList}
                             >
