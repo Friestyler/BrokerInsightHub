@@ -366,6 +366,12 @@ export default function PartnerDetailBrokerPOV() {
   }, [activeFilterList?.members, isEditingList]);
 
   const baseOpportunities = allOpportunities.filter((opp: any) => {
+    // In edit mode, show ALL opportunities so user can select/deselect
+    if (isEditingList) {
+      return true;
+    }
+    
+    // In normal mode, filter based on the active list
     if (activeFilterList) {
       // Check if list has specific members (opportunity IDs)
       if (activeFilterList.members && activeFilterList.members.length > 0) {
