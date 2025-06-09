@@ -20,16 +20,28 @@ import {
 import { useToast } from "@/hooks/use-toast";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 
+interface Collaborator {
+  id: string;
+  name: string;
+  email: string;
+  accessLevel: 'viewer' | 'commenter' | 'editor';
+  avatar?: string;
+  isOwner?: boolean;
+}
+
 interface ShareModalProps {
   isOpen: boolean;
   onClose: () => void;
   itemName: string;
   currentSharedLink: string;
   existingSharedLinks: any[];
+  collaborators?: Collaborator[];
   onCopyLink: () => void;
   onCreateShare: () => void;
   isCreating?: boolean;
   onSendEmailInvite?: (email: string, accessLevel: string, message: string) => Promise<boolean>;
+  onRemoveCollaborator?: (collaboratorId: string) => Promise<boolean>;
+  onUpdateAccessLevel?: (collaboratorId: string, newAccessLevel: string) => Promise<boolean>;
 }
 
 export function ShareModal({
@@ -38,10 +50,13 @@ export function ShareModal({
   itemName,
   currentSharedLink,
   existingSharedLinks,
+  collaborators = [],
   onCopyLink,
   onCreateShare,
   isCreating = false,
-  onSendEmailInvite
+  onSendEmailInvite,
+  onRemoveCollaborator,
+  onUpdateAccessLevel
 }: ShareModalProps) {
   const { toast } = useToast();
   const { environment } = useEnvironment();
@@ -54,6 +69,8 @@ export function ShareModal({
   const [emailMessage, setEmailMessage] = useState('');
 
   const [isSending, setIsSending] = useState(false);
+  const [removingCollaboratorId, setRemovingCollaboratorId] = useState<string | null>(null);
+  const [updatingAccessId, setUpdatingAccessId] = useState<string | null>(null);
   
   // Email input and suggestions
   const [emailInput, setEmailInput] = useState('');
@@ -84,6 +101,58 @@ export function ShareModal({
     setCurrentView('compose');
   };
   
+  const handleRemoveCollaborator = async (collaboratorId: string) => {
+    if (!onRemoveCollaborator) return;
+    
+    setRemovingCollaboratorId(collaboratorId);
+    
+    try {
+      const success = await onRemoveCollaborator(collaboratorId);
+      if (success) {
+        toast({
+          title: "Access removed",
+          description: "Collaborator access has been removed.",
+        });
+      } else {
+        throw new Error("Failed to remove access");
+      }
+    } catch (error) {
+      toast({
+        title: "Error removing access",
+        description: "Failed to remove collaborator access. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setRemovingCollaboratorId(null);
+    }
+  };
+
+  const handleUpdateAccessLevel = async (collaboratorId: string, newAccessLevel: string) => {
+    if (!onUpdateAccessLevel) return;
+    
+    setUpdatingAccessId(collaboratorId);
+    
+    try {
+      const success = await onUpdateAccessLevel(collaboratorId, newAccessLevel);
+      if (success) {
+        toast({
+          title: "Access updated",
+          description: "Collaborator access level has been updated.",
+        });
+      } else {
+        throw new Error("Failed to update access");
+      }
+    } catch (error) {
+      toast({
+        title: "Error updating access",
+        description: "Failed to update access level. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setUpdatingAccessId(null);
+    }
+  };
+
   const handleSendInvite = async () => {
     if (!selectedEmail || !isValidEmail(selectedEmail)) {
       toast({
@@ -247,26 +316,60 @@ export function ShareModal({
                 <div className="text-sm text-gray-500">Owner</div>
               </div>
               
-              {/* Existing collaborators */}
-              <div className="flex items-center space-x-3 py-2">
-                <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center text-white text-sm font-medium">
-                  J
+              {/* Dynamic collaborators list */}
+              {collaborators.map((collaborator) => (
+                <div key={collaborator.id} className="flex items-center space-x-3 py-2 group">
+                  <div className={`w-8 h-8 ${collaborator.isOwner ? 'bg-blue-600' : 'bg-green-600'} rounded-full flex items-center justify-center text-white text-sm font-medium`}>
+                    {collaborator.avatar || collaborator.name.charAt(0).toUpperCase()}
+                  </div>
+                  <div className="flex-1">
+                    <div className="text-sm font-medium">{collaborator.name}</div>
+                    <div className="text-xs text-gray-500">{collaborator.email}</div>
+                  </div>
+                  
+                  {collaborator.isOwner ? (
+                    <div className="text-sm text-gray-500">Owner</div>
+                  ) : (
+                    <div className="flex items-center space-x-2">
+                      <Select 
+                        value={collaborator.accessLevel} 
+                        onValueChange={(value) => handleUpdateAccessLevel(collaborator.id, value)}
+                        disabled={updatingAccessId === collaborator.id}
+                      >
+                        <SelectTrigger className="w-24 h-8">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="viewer">Viewer</SelectItem>
+                          <SelectItem value="commenter">Commenter</SelectItem>
+                          <SelectItem value="editor">Editor</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      
+                      {/* Remove button - only visible on hover */}
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="w-8 h-8 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                        onClick={() => handleRemoveCollaborator(collaborator.id)}
+                        disabled={removingCollaboratorId === collaborator.id}
+                        title="Remove access"
+                      >
+                        {removingCollaboratorId === collaborator.id ? (
+                          <svg className="w-4 h-4 animate-spin" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                          </svg>
+                        ) : (
+                          <svg className="w-4 h-4 text-gray-400 hover:text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        )}
+                      </Button>
+                    </div>
+                  )}
                 </div>
-                <div className="flex-1">
-                  <div className="text-sm font-medium">John Smith</div>
-                  <div className="text-xs text-gray-500">john.smith@partner.com</div>
-                </div>
-                <Select defaultValue="viewer">
-                  <SelectTrigger className="w-24 h-8">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="viewer">Viewer</SelectItem>
-                    <SelectItem value="commenter">Commenter</SelectItem>
-                    <SelectItem value="editor">Editor</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+              ))}
             </div>
             
             <div className="border-t pt-4">

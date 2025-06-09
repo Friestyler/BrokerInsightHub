@@ -42,6 +42,32 @@ export default function PartnerDetail() {
   const [showShareListModal, setShowShareListModal] = useState(false);
   const [currentSharedLink, setCurrentSharedLink] = useState<string | null>(null);
   const [existingSharedLinks, setExistingSharedLinks] = useState<any[]>([]);
+  const [collaborators, setCollaborators] = useState([
+    {
+      id: '1',
+      name: 'John Smith',
+      email: 'john.smith@partner.com',
+      accessLevel: 'editor' as const,
+      avatar: 'J',
+      isOwner: false
+    },
+    {
+      id: '2',
+      name: 'Maria Garcia',
+      email: 'maria.garcia@company.com',
+      accessLevel: 'viewer' as const,
+      avatar: 'M',
+      isOwner: false
+    },
+    {
+      id: '3',
+      name: 'Alex Johnson',
+      email: 'alex.johnson@degoudse.com',
+      accessLevel: 'commenter' as const,
+      avatar: 'A',
+      isOwner: false
+    }
+  ]);
   const [isEditingList, setIsEditingList] = useState(false);
   const [editedListMembers, setEditedListMembers] = useState<number[]>([]);
   const [isSavingList, setIsSavingList] = useState(false);
@@ -1521,6 +1547,7 @@ export default function PartnerDetail() {
         itemName={selectedOpportunities.length > 0 ? `${selectedOpportunities.length} Selected Opportunities` : 'Opportunities'}
         currentSharedLink={currentSharedLink || ''}
         existingSharedLinks={existingSharedLinks}
+        collaborators={collaborators}
         onCopyLink={() => {
           if (currentSharedLink) {
             navigator.clipboard.writeText(currentSharedLink);
@@ -1546,6 +1573,46 @@ export default function PartnerDetail() {
             title: "Share link created",
             description: "A new share link has been generated for the selected opportunities.",
           });
+        }}
+        onRemoveCollaborator={async (collaboratorId: string) => {
+          // Remove collaborator from the list
+          setCollaborators(prev => prev.filter(c => c.id !== collaboratorId));
+          
+          // In a real app, this would make an API call to remove access
+          // await apiRequest('DELETE', `/api/lists/${activeList?.id}/collaborators/${collaboratorId}`);
+          
+          return true; // Return success
+        }}
+        onUpdateAccessLevel={async (collaboratorId: string, newAccessLevel: string) => {
+          // Update collaborator access level
+          setCollaborators(prev => prev.map(c => 
+            c.id === collaboratorId 
+              ? { ...c, accessLevel: newAccessLevel as 'viewer' | 'commenter' | 'editor' }
+              : c
+          ));
+          
+          // In a real app, this would make an API call to update access
+          // await apiRequest('PATCH', `/api/lists/${activeList?.id}/collaborators/${collaboratorId}`, { accessLevel: newAccessLevel });
+          
+          return true; // Return success
+        }}
+        onSendEmailInvite={async (email: string, accessLevel: string, message: string) => {
+          // Add new collaborator to the list
+          const newCollaborator = {
+            id: Math.random().toString(36).substring(7),
+            name: email.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+            email,
+            accessLevel: accessLevel as 'viewer' | 'commenter' | 'editor',
+            avatar: email.charAt(0).toUpperCase(),
+            isOwner: false
+          };
+          
+          setCollaborators(prev => [...prev, newCollaborator]);
+          
+          // In a real app, this would make an API call to send invitation
+          // await apiRequest('POST', `/api/lists/${activeList?.id}/collaborators`, { email, accessLevel, message });
+          
+          return true; // Return success
         }}
       />
     </div>
