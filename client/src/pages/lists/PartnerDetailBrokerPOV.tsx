@@ -357,6 +357,14 @@ export default function PartnerDetailBrokerPOV() {
     savedListsDataCount: savedListsData?.length
   });
 
+  // Synchronize edit state with fresh list data
+  useEffect(() => {
+    if (activeFilterList && isEditingList) {
+      console.log('Synchronizing edit state with fresh list data:', activeFilterList.members);
+      setEditedListMembers(activeFilterList.members || []);
+    }
+  }, [activeFilterList?.members, isEditingList]);
+
   const baseOpportunities = allOpportunities.filter((opp: any) => {
     if (activeFilterList) {
       // Check if list has specific members (opportunity IDs)
@@ -776,11 +784,13 @@ export default function PartnerDetailBrokerPOV() {
                               if (isEditingList) {
                                 // Cancel edit mode
                                 setIsEditingList(false);
-                                setEditedListMembers(activeOpportunitiesList.members || []);
+                                setEditedListMembers(activeFilterList?.members || []);
                               } else {
-                                // Enter edit mode
+                                // Enter edit mode - use fresh list data
+                                const freshList = activeFilterList || activeOpportunitiesList;
+                                console.log('Entering edit mode with fresh list:', freshList);
                                 setIsEditingList(true);
-                                setEditedListMembers(activeOpportunitiesList.members || []);
+                                setEditedListMembers(freshList?.members || []);
                               }
                             }}
                             disabled={isSavingList}
