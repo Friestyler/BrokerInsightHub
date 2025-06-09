@@ -86,7 +86,15 @@ export default function PartnerDetail() {
   // Mutation for updating list members (edit list functionality)
   const editListMutation = useMutation({
     mutationFn: async ({ listId, members }: { listId: number, members: number[] }) => {
-      return await apiRequest('PUT', `/api/saved-lists/${listId}`, { members });
+      // Include the existing list data to preserve other fields
+      const updateData = {
+        name: activeList?.name,
+        description: activeList?.description,
+        members,
+        filters: activeList?.filters || {},
+        is_shared: activeList?.is_shared || false
+      };
+      return await apiRequest('PUT', `/api/saved-lists/${listId}`, updateData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
