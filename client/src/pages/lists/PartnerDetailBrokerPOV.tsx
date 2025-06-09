@@ -1,11 +1,9 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "wouter";
-import { useQuery, useMutation } from "@tanstack/react-query";
-import { apiRequest, queryClient } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
+import { useQuery } from "@tanstack/react-query";
+import { apiRequest } from '@/lib/queryClient';
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Search, Menu } from "lucide-react";
@@ -161,11 +159,7 @@ export default function PartnerDetailBrokerPOV() {
   const [renderKey, setRenderKey] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Edit list state management
-  const [isEditingList, setIsEditingList] = useState(false);
-  const [editingListId, setEditingListId] = useState<number | null>(null);
-  const [editedListMembers, setEditedListMembers] = useState<number[]>([]);
-  const [isSavingList, setIsSavingList] = useState(false);
+
 
   // For broker view, show De Goudse as the sharing partner
   const partner = {
@@ -816,76 +810,6 @@ export default function PartnerDetailBrokerPOV() {
                     
                     {/* Right-side action buttons */}
                     <div className="flex items-center gap-2">
-                      {/* Edit list button - only shown for non-default lists */}
-                      {activeOpportunitiesList && (
-                        <>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            className={`text-indigo-600 ${isEditingList ? 'opacity-50 cursor-not-allowed' : ''}`}
-                            onClick={() => {
-                              if (isEditingList) {
-                                // Cancel edit mode
-                                setIsEditingList(false);
-                                setEditingListId(null);
-                                setEditedListMembers([]);
-                              } else {
-                                // Enter edit mode - use fresh list data
-                                const freshList = activeFilterList || activeOpportunitiesList;
-                                console.log('Entering edit mode with fresh list:', freshList);
-                                setIsEditingList(true);
-                                setEditingListId(freshList?.id || null);
-                                setEditedListMembers(freshList?.members || []);
-                              }
-                            }}
-                            disabled={isSavingList}
-                          >
-                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
-                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
-                            </svg>
-                            {isEditingList ? 'Cancel' : 'Edit list'}
-                          </Button>
-                          
-                          {/* Save button - only visible in edit mode */}
-                          {isEditingList && (
-                            <Button 
-                              variant="default" 
-                              size="sm" 
-                              className="bg-indigo-600 hover:bg-indigo-700"
-                              onClick={() => {
-                                if (editingListId) {
-                                  setIsSavingList(true);
-                                  editListMutation.mutate({
-                                    listId: editingListId,
-                                    members: editedListMembers
-                                  });
-                                }
-                              }}
-                              disabled={isSavingList}
-                            >
-                              {isSavingList ? (
-                                <>
-                                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                                  </svg>
-                                  Saving...
-                                </>
-                              ) : (
-                                <>
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                                    <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                                    <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                                    <polyline points="7 3 7 8 15 8"></polyline>
-                                  </svg>
-                                  Save changes
-                                </>
-                              )}
-                            </Button>
-                          )}
-                        </>
-                      )}
 
                       <Button variant="outline" size="sm" className="hidden md:flex items-center">
                         <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
