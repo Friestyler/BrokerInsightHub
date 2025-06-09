@@ -1461,7 +1461,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         SELECT o.*, c.name as client_name
         FROM degoudse.opportunities o
         INNER JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
-        LEFT JOIN degoudse.customers c ON o."clientId" = c.id
+        LEFT JOIN degoudse.customers c ON o.client_id = c.id
         WHERE po.partner_id = $1
         ORDER BY o.id
       `, [partnerId]);
