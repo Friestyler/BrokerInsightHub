@@ -127,8 +127,18 @@ export default function PartnerDetail() {
       }
     },
     onSuccess: () => {
+      // Invalidate both environment-specific and generic queries
+      const currentEnv = window.__APP_ENV__ || localStorage.getItem('selectedEnvironment') || 'myqollabi';
+      
       queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
       queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'opportunities', 'partner', id] });
+      
+      // Environment-specific invalidations
+      if (currentEnv !== 'myqollabi') {
+        queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/saved-lists`] });
+        queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/saved-lists`, 'opportunities', 'partner', id] });
+      }
+      
       toast({
         title: "List updated",
         description: "Your changes to the list have been saved.",

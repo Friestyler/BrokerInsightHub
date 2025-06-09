@@ -200,6 +200,16 @@ export default function PartnerDetailBrokerPOV() {
     }
   }, [listParam, savedListsData]);
 
+  // Update active list when savedListsData changes (after edits)
+  useEffect(() => {
+    if (activeOpportunitiesList && savedListsData) {
+      const updatedList = savedListsData.find((list: any) => list.id === activeOpportunitiesList.id);
+      if (updatedList && JSON.stringify(updatedList) !== JSON.stringify(activeOpportunitiesList)) {
+        setActiveOpportunitiesList(updatedList);
+      }
+    }
+  }, [savedListsData, activeOpportunitiesList]);
+
   // Filter opportunities based on the active list
   const getActiveListForFiltering = () => {
     return activeOpportunitiesList;
