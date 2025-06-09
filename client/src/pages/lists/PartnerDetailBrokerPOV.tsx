@@ -1,7 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "wouter";
-import { useQuery } from "@tanstack/react-query";
-import { apiRequest } from '@/lib/queryClient';
+import { useQuery, useMutation } from "@tanstack/react-query";
+import { apiRequest, queryClient } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -137,6 +138,7 @@ function BrokerLayout({ children }: { children: React.ReactNode }) {
 
 export default function PartnerDetailBrokerPOV() {
   const { partnerId } = useParams<{ partnerId: string }>();
+  const { toast } = useToast();
   
   // Get URL parameters for tab and list selection
   const urlParams = new URLSearchParams(window.location.search);
@@ -157,6 +159,11 @@ export default function PartnerDetailBrokerPOV() {
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedOpportunityType, setSelectedOpportunityType] = useState('');
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Edit list state management
+  const [isEditingList, setIsEditingList] = useState(false);
+  const [editedListMembers, setEditedListMembers] = useState<number[]>([]);
+  const [isSavingList, setIsSavingList] = useState(false);
 
   // For broker view, show De Goudse as the sharing partner
   const partner = {
@@ -209,6 +216,76 @@ export default function PartnerDetailBrokerPOV() {
       }
     }
   }, [savedListsData, activeOpportunitiesList]);
+
+  // Edit list mutation
+  const editListMutation = useMutation({
+    mutationFn: async ({ listId, members }: { listId: number, members: number[] }) => {
+      try {
+        const updateData = {
+          name: activeOpportunitiesList?.name,
+          description: activeOpportunitiesList?.description,
+          members,
+          filters: activeOpportunitiesList?.filters || {},
+          is_shared: activeOpportunitiesList?.is_shared || false
+        };
+        console.log('Sending edit list request:', { listId, updateData });
+        
+        const envUrl = `/api/saved-lists/${listId}`;
+        const currentEnv = window.__APP_ENV__ || localStorage.getItem('selectedEnvironment') || 'myqollabi';
+        const finalUrl = currentEnv !== 'myqollabi' ? envUrl.replace('/api/', `/api/${currentEnv}/`) : envUrl;
+        
+        const response = await fetch(finalUrl, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Environment': currentEnv,
+            'x-environment-id': currentEnv
+          },
+          body: JSON.stringify(updateData),
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`${response.status}: ${errorText}`);
+        }
+        
+        const result = await response.json();
+        console.log('Edit list response:', result);
+        return result;
+      } catch (error) {
+        console.error('Edit list request failed:', error);
+        throw error;
+      }
+    },
+    onSuccess: () => {
+      const currentEnv = window.__APP_ENV__ || localStorage.getItem('selectedEnvironment') || 'myqollabi';
+      
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-lists', 'opportunities', 'partner', '4'] });
+      
+      if (currentEnv !== 'myqollabi') {
+        queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/saved-lists`] });
+        queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/saved-lists`, 'opportunities', 'partner', '4'] });
+      }
+      
+      toast({
+        title: "List updated",
+        description: "Your changes to the list have been saved.",
+      });
+      setIsEditingList(false);
+      setIsSavingList(false);
+    },
+    onError: (error) => {
+      console.error('Edit list mutation error:', error);
+      toast({
+        title: "Error updating list",
+        description: `Failed to update the list: ${error.message || 'Unknown error'}`,
+        variant: "destructive"
+      });
+      setIsSavingList(false);
+    }
+  });
 
   // Filter opportunities based on the active list
   const getActiveListForFiltering = () => {
@@ -732,7 +809,22 @@ export default function PartnerDetailBrokerPOV() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead className="w-12"><Checkbox /></TableHead>
+                        {isEditingList && (
+                          <TableHead className="w-12">
+                            <Checkbox 
+                              checked={filteredOpportunities.length > 0 && filteredOpportunities.every((opp: any) => editedListMembers.includes(opp.id))}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  const oppIds = filteredOpportunities.map((opp: any) => opp.id);
+                                  setEditedListMembers(Array.from(new Set([...editedListMembers, ...oppIds])));
+                                } else {
+                                  const oppIds = filteredOpportunities.map((opp: any) => opp.id);
+                                  setEditedListMembers(editedListMembers.filter(id => !oppIds.includes(id)));
+                                }
+                              }}
+                            />
+                          </TableHead>
+                        )}
                         <TableHead>Opportunity</TableHead>
                         <TableHead>Customer</TableHead>
                         <TableHead>Stage</TableHead>
@@ -743,7 +835,20 @@ export default function PartnerDetailBrokerPOV() {
                     <TableBody>
                       {filteredOpportunities.map((opportunity: any) => (
                         <TableRow key={opportunity.id}>
-                          <TableCell><Checkbox /></TableCell>
+                          {isEditingList && (
+                            <TableCell>
+                              <Checkbox 
+                                checked={editedListMembers.includes(opportunity.id)}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    setEditedListMembers([...editedListMembers, opportunity.id]);
+                                  } else {
+                                    setEditedListMembers(editedListMembers.filter(id => id !== opportunity.id));
+                                  }
+                                }}
+                              />
+                            </TableCell>
+                          )}
                           <TableCell>
                             <Link href={`/broker-view/opportunity/${opportunity.id}`}>
                               <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
