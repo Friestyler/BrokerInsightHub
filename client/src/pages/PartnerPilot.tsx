@@ -164,10 +164,7 @@ export default function PartnerPilot() {
           <Upload className="h-4 w-4 mr-2" />
           Data Upload
         </Button>
-        <Button 
-          variant="ghost"
-          onClick={() => setLocation("/account-mapping")}
-        >
+        <Button variant="ghost">
           <Users className="h-4 w-4 mr-2" />
           Account Mapping
         </Button>

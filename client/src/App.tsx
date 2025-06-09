@@ -31,7 +31,6 @@ import DeveloperPage from "@/pages/Settings/DeveloperPage";
 import DatabaseAdmin from "@/pages/Settings/DatabaseAdmin";
 import NotificationsPage from "@/pages/smart-updates/NotificationsPage";
 import SmartUpdatesPage from "@/pages/smart-updates/SmartUpdatesPage";
-import AccountMappingHub from "@/pages/AccountMapping/AccountMappingHub";
 
 import NotFound from "@/pages/not-found";
 import EnvironmentRouteGuard from "@/components/EnvironmentRouteGuard";
@@ -122,9 +121,6 @@ function Router() {
         {/* Smart Updates routes */}
         <Route path="/smart-updates/notifications" component={NotificationsPage} />
         <Route path="/smart-updates/automated" component={SmartUpdatesPage} />
-        
-        {/* Account Mapping routes */}
-        <Route path="/account-mapping" component={AccountMappingHub} />
         
         {/* Settings routes */}
         <Route path="/settings/users" component={UserManagement} />
