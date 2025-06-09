@@ -85,18 +85,28 @@ export function ShareModal({
 
   const fetchCollaborators = async () => {
     try {
+      console.log(`Fetching collaborators for envId: ${envId}, listId: ${listId}`);
       const response = await apiRequest('GET', `/api/${envId}/saved-lists/${listId}/collaborators`);
-      const apiCollaborators = response.map((collab: any) => ({
-        id: collab.id.toString(),
-        name: collab.name || collab.user_name || collab.email.split('@')[0],
-        email: collab.email || collab.user_email,
-        accessLevel: collab.access_level,
-        avatar: (collab.name || collab.user_name || collab.email).charAt(0).toUpperCase(),
-        isOwner: false
-      }));
-      setLocalCollaborators(apiCollaborators);
+      console.log('Collaborators response:', response);
+      
+      if (Array.isArray(response)) {
+        const apiCollaborators = response.map((collab: any) => ({
+          id: collab.id.toString(),
+          name: collab.name || collab.user_name || collab.email.split('@')[0],
+          email: collab.email || collab.user_email,
+          accessLevel: collab.access_level,
+          avatar: (collab.name || collab.user_name || collab.email).charAt(0).toUpperCase(),
+          isOwner: false
+        }));
+        console.log('Processed collaborators:', apiCollaborators);
+        setLocalCollaborators(apiCollaborators);
+      } else {
+        console.log('Response is not an array:', response);
+        setLocalCollaborators([]);
+      }
     } catch (error) {
       console.error('Error fetching collaborators:', error);
+      setLocalCollaborators([]);
     }
   };
   
