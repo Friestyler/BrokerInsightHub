@@ -1472,6 +1472,8 @@ function OpportunitiesTable() {
         isOpen={showShareListModal}
         onClose={() => setShowShareListModal(false)}
         itemName={activeList?.name || 'Selected Items'}
+        listId={activeList?.id || 0}
+        envId={environment.id}
         currentSharedLink={currentSharedLink}
         existingSharedLinks={existingSharedLinks}
         onCopyLink={() => {

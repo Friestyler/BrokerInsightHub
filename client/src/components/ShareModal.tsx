@@ -159,20 +159,26 @@ export function ShareModal({
   };
 
   const handleUpdateAccessLevel = async (collaboratorId: string, newAccessLevel: string) => {
-    if (!onUpdateAccessLevel) return;
-    
     setUpdatingAccessId(collaboratorId);
     
     try {
-      const success = await onUpdateAccessLevel(collaboratorId, newAccessLevel);
-      if (success) {
-        toast({
-          title: "Access updated",
-          description: "Collaborator access level has been updated.",
-        });
-      } else {
-        throw new Error("Failed to update access");
-      }
+      await apiRequest('PATCH', `/api/${envId}/saved-lists/${listId}/collaborators/${collaboratorId}`, {
+        accessLevel: newAccessLevel
+      });
+      
+      toast({
+        title: "Access updated",
+        description: "Collaborator access level has been updated.",
+      });
+      
+      // Update local state
+      setLocalCollaborators(prev => 
+        prev.map(collab => 
+          collab.id === collaboratorId 
+            ? { ...collab, accessLevel: newAccessLevel as 'viewer' | 'commenter' | 'editor' }
+            : collab
+        )
+      );
     } catch (error) {
       toast({
         title: "Error updating access",
@@ -197,37 +203,33 @@ export function ShareModal({
     setIsSending(true);
     
     try {
-      if (onSendEmailInvite) {
-        const success = await onSendEmailInvite(selectedEmail, selectedAccessLevel, emailMessage);
-        if (success) {
-          toast({
-            title: "Invitation sent",
-            description: `${selectedEmail} has been invited to view "${itemName}".`,
-          });
-          // Reset form
-          setSelectedEmail('');
-          setEmailInput('');
-          setEmailMessage('');
-          setCurrentView('main');
-        } else {
-          toast({
-            title: "Failed to send invitation",
-            description: "Please try again or contact support.",
-            variant: "destructive"
-          });
-        }
-      } else {
-        // Fallback if no email function provided
-        toast({
-          title: "Email functionality not available",
-          description: "Please contact your administrator to enable email invitations.",
-          variant: "destructive"
-        });
+      await apiRequest('POST', `/api/${envId}/saved-lists/${listId}/collaborators`, {
+        email: selectedEmail,
+        name: selectedEmail.split('@')[0].replace(/[._]/g, ' ').replace(/\b\w/g, l => l.toUpperCase()),
+        accessLevel: selectedAccessLevel,
+        message: emailMessage
+      });
+      
+      toast({
+        title: "Invitation sent",
+        description: `${selectedEmail} has been invited to collaborate.`,
+      });
+      
+      // Refresh collaborators and list
+      await fetchCollaborators();
+      if (onRefreshList) {
+        onRefreshList();
       }
+      
+      // Reset form and go back to main view
+      setCurrentView('main');
+      setSelectedEmail('');
+      setEmailInput('');
+      setEmailMessage('');
     } catch (error) {
       toast({
         title: "Failed to send invitation",
-        description: "An error occurred while sending the invitation.",
+        description: "Please try again later.",
         variant: "destructive"
       });
     } finally {
@@ -348,7 +350,7 @@ export function ShareModal({
               </div>
               
               {/* Dynamic collaborators list */}
-              {collaborators.map((collaborator) => (
+              {localCollaborators.map((collaborator) => (
                 <div key={collaborator.id} className="flex items-center space-x-3 py-2 group">
                   <div className={`w-8 h-8 ${collaborator.isOwner ? 'bg-blue-600' : 'bg-green-600'} rounded-full flex items-center justify-center text-white text-sm font-medium`}>
                     {collaborator.avatar || collaborator.name.charAt(0).toUpperCase()}
