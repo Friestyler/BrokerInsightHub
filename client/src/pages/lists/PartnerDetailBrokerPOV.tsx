@@ -211,11 +211,19 @@ export default function PartnerDetailBrokerPOV() {
   useEffect(() => {
     if (activeOpportunitiesList && savedListsData) {
       const updatedList = savedListsData.find((list: any) => list.id === activeOpportunitiesList.id);
-      if (updatedList && JSON.stringify(updatedList) !== JSON.stringify(activeOpportunitiesList)) {
-        setActiveOpportunitiesList(updatedList);
+      if (updatedList) {
+        // Compare members arrays directly to detect changes
+        const currentMembers = activeOpportunitiesList.members || [];
+        const updatedMembers = updatedList.members || [];
+        
+        if (currentMembers.length !== updatedMembers.length || 
+            !currentMembers.every((id: number) => updatedMembers.includes(id))) {
+          console.log('Updating active list with new members:', updatedMembers);
+          setActiveOpportunitiesList(updatedList);
+        }
       }
     }
-  }, [savedListsData, activeOpportunitiesList]);
+  }, [savedListsData]);
 
   // Edit list mutation
   const editListMutation = useMutation({
