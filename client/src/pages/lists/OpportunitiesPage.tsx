@@ -909,9 +909,9 @@ function OpportunitiesTable() {
                             >
                               <div className="flex flex-1 items-center">
                                 <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>{list.name}</span>
-                                {/* Show share icon if list has shared links */}
-                                {existingSharedLinks.length > 0 && activeList?.id === list.id && (
-                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2 text-green-500" title="Shared publicly">
+                                {/* Show share icon if list is shared */}
+                                {list.is_shared && (
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2 text-green-500" title="Shared">
                                     <circle cx="18" cy="5" r="3"></circle>
                                     <circle cx="6" cy="12" r="3"></circle>
                                     <circle cx="18" cy="19" r="3"></circle>
