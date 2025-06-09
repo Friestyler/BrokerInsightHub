@@ -1572,76 +1572,11 @@ function OpportunitiesTable() {
           }
         }}
         isCreating={createSharedListMutation.isPending}
-        onSendEmailInvite={async (email: string, accessLevel: string, message: string) => {
-          try {
-            // First, ensure we have a shareable link
-            let shareUrl = currentSharedLink;
-            
-            if (!shareUrl) {
-              // Create a shared list first if it doesn't exist
-              const isListShare = selectedOpportunities.length === 0;
-              const isBulkOpportunityShare = selectedOpportunities.length > 0;
-
-              let shareData;
-              
-              if (isListShare && activeList) {
-                shareData = {
-                  list_name: activeList.name,
-                  list_description: activeList.description || null,
-                  entity_type: 'opportunities',
-                  data: opportunities,
-                  message: '',
-                  list_id: activeList.id
-                };
-              } else if (isBulkOpportunityShare) {
-                const selectedOpportunitiesData = selectedOpportunities
-                  .map(id => opportunities.find(o => o.id === id))
-                  .filter(Boolean);
-                
-                shareData = {
-                  list_name: `${selectedOpportunities.length} Selected Opportunities`,
-                  list_description: `Shared opportunities: ${selectedOpportunitiesData.filter(o => o).map(o => o?.title).slice(0, 3).join(', ')}${selectedOpportunities.length > 3 ? '...' : ''}`,
-                  entity_type: 'opportunities',
-                  data: selectedOpportunitiesData,
-                  message: ''
-                };
-              } else {
-                throw new Error('Nothing to share');
-              }
-
-              const result = await createSharedListMutation.mutateAsync(shareData);
-              const baseUrl = window.location.origin;
-              shareUrl = `${baseUrl}/share/list/${result.share_token}`;
-              setCurrentSharedLink(shareUrl);
-            }
-
-            // For now, show a confirmation dialog instead of sending actual emails
-            const confirmed = window.confirm(
-              `Share invitation ready!\n\n` +
-              `To: ${email}\n` +
-              `Access Level: ${accessLevel}\n` +
-              `List: ${activeList?.name || 'Selected Opportunities'}\n` +
-              `Share URL: ${shareUrl}\n\n` +
-              `${message ? `Message: ${message}\n\n` : ''}` +
-              `Click OK to simulate sending the invitation.`
-            );
-
-            if (confirmed) {
-              // Simulate email sending success
-              setTimeout(() => {
-                toast({
-                  title: "Invitation sent",
-                  description: `${email} has been invited to view "${activeList?.name || 'Selected Opportunities'}".`,
-                });
-              }, 500);
-              return true;
-            }
-            
-            return false;
-          } catch (error) {
-            console.error('Error preparing invitation:', error);
-            return false;
-          }
+        onRefreshList={() => {
+          // Refresh the saved lists to update is_shared flags
+          queryClient.invalidateQueries({
+            queryKey: [`/api/${environment.id}/saved-lists`]
+          });
         }}
       />
       
