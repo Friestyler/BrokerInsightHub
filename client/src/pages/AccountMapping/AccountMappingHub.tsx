@@ -26,6 +26,7 @@ import {
   ArrowRight,
   Building2,
   UserCheck,
+  UserPlus,
   Mail,
   Phone,
   MapPin,
@@ -33,9 +34,10 @@ import {
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
-import UploadMappingWizard from "./UploadMappingWizard";
-import CollaborationManager from "./CollaborationManager";
-import OverlapAnalysis from "./OverlapAnalysis";
+// Components will be implemented inline for now
+// import UploadMappingWizard from "./UploadMappingWizard";
+// import CollaborationManager from "./CollaborationManager";
+// import OverlapAnalysis from "./OverlapAnalysis";
 
 interface MappingProject {
   id: number;
@@ -525,15 +527,102 @@ export default function AccountMappingHub() {
         </TabsContent>
 
         <TabsContent value="upload" className="space-y-6">
-          <UploadMappingWizard />
+          <Card>
+            <CardHeader>
+              <CardTitle>Upload & Mapping Wizard</CardTitle>
+              <CardDescription>Upload entity data from both organizations and configure mapping parameters</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-12">
+                <Upload className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Upload Entity Data</h3>
+                <p className="text-gray-600 mb-6">Upload Excel or CSV files from both organizations to identify overlaps</p>
+                <Button className="bg-indigo-600 hover:bg-indigo-700">
+                  <Upload className="h-4 w-4 mr-2" />
+                  Start Upload Wizard
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="analysis" className="space-y-6">
-          <OverlapAnalysis matches={sampleMatches} />
+          <Card>
+            <CardHeader>
+              <CardTitle>Overlap Analysis</CardTitle>
+              <CardDescription>Review and validate entity matches between organizations</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                {sampleMatches.map((match) => (
+                  <div key={match.id} className="border rounded-lg p-4">
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div className="space-y-2">
+                          <div className="flex items-center space-x-2">
+                            <Building2 className="h-4 w-4 text-gray-400" />
+                            <span className="font-medium">{match.party1_entity.name}</span>
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            <div className="flex items-center space-x-2">
+                              <Mail className="h-3 w-3" />
+                              <span>{match.party1_entity.email}</span>
+                            </div>
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <div className="flex items-center space-x-2">
+                            <Building2 className="h-4 w-4 text-gray-400" />
+                            <span className="font-medium">{match.party2_entity.name}</span>
+                          </div>
+                          <div className="text-sm text-gray-600">
+                            <div className="flex items-center space-x-2">
+                              <Mail className="h-3 w-3" />
+                              <span>{match.party2_entity.email}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end space-y-2">
+                        <Badge className="bg-green-100 text-green-800">
+                          {Math.round(match.match_confidence * 100)}% Match
+                        </Badge>
+                        <Badge className="bg-blue-100 text-blue-800">
+                          {match.status}
+                        </Badge>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="collaboration" className="space-y-6">
-          <CollaborationManager projects={filteredProjects} />
+          <Card>
+            <CardHeader>
+              <CardTitle>Collaboration Management</CardTitle>
+              <CardDescription>Share mapping projects and manage collaborative lists</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center py-12">
+                <Share2 className="h-16 w-16 mx-auto text-gray-400 mb-4" />
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Collaborative Features</h3>
+                <p className="text-gray-600 mb-6">Share projects with partners and create collaborative entity lists</p>
+                <div className="flex justify-center space-x-4">
+                  <Button variant="outline">
+                    <UserPlus className="h-4 w-4 mr-2" />
+                    Share Project
+                  </Button>
+                  <Button variant="outline">
+                    <Users className="h-4 w-4 mr-2" />
+                    Create Shared List
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
     </div>
