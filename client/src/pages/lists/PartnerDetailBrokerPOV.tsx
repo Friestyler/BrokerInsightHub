@@ -738,6 +738,12 @@ export default function PartnerDetailBrokerPOV() {
                                 onClick={() => {
                                   setActiveOpportunitiesList(null);
                                   setShowListsDropdown(false);
+                                  // Remove list parameter from URL
+                                  const newUrl = new URL(window.location.href);
+                                  newUrl.searchParams.delete('list');
+                                  window.history.pushState({}, '', newUrl.toString());
+                                  // Force a re-render by updating the render key
+                                  setRenderKey(prev => prev + 1);
                                 }}
                               >
                                 <div className="flex items-center space-x-2">
@@ -761,6 +767,12 @@ export default function PartnerDetailBrokerPOV() {
                                       onClick={() => {
                                         setActiveOpportunitiesList(list);
                                         setShowListsDropdown(false);
+                                        // Update URL to reflect the selected list
+                                        const newUrl = new URL(window.location.href);
+                                        newUrl.searchParams.set('list', list.id.toString());
+                                        window.history.pushState({}, '', newUrl.toString());
+                                        // Force a re-render by updating the render key
+                                        setRenderKey(prev => prev + 1);
                                       }}
                                     >
                                       <div className="flex items-center space-x-2">
