@@ -1562,6 +1562,8 @@ export default function PartnerDetail() {
         isOpen={showShareListModal}
         onClose={() => setShowShareListModal(false)}
         itemName={activeList ? `${activeList.name} (List #${activeList.id})` : 'Opportunities'}
+        listId={activeList?.id || 0}
+        envId="degoudse"
         currentSharedLink={currentSharedLink || ''}
         existingSharedLinks={existingSharedLinks}
         collaborators={activeList ? (() => {
