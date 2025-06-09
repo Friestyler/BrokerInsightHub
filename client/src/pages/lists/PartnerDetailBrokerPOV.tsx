@@ -176,80 +176,72 @@ export default function PartnerDetailBrokerPOV() {
     staleTime: 2 * 60 * 1000,
   });
 
-  // Get the saved list ID from URL parameter or session storage to filter opportunities
-  const getSharedListId = () => {
-    if (listParam) {
-      return parseInt(listParam);
-    }
-    const savedListId = sessionStorage.getItem('partnerViewListId');
-    return savedListId ? parseInt(savedListId) : 2; // Default to list 2 if not found
-  };
 
-  // Fetch the shared list details
-  const { data: listData } = useQuery({
-    queryKey: ['/api/degoudse/saved-lists', getSharedListId()],
-    queryFn: async () => {
-      const response = await apiRequest('GET', `/api/degoudse/saved-lists`);
-      return response.find((list: any) => list.id === getSharedListId());
-    }
-  });
 
-  // Fetch all saved lists to find the one referenced in URL
-  const { data: allSavedLists = [] } = useQuery({
-    queryKey: ['/api/degoudse/saved-lists'],
-    queryFn: () => apiRequest('GET', '/api/degoudse/saved-lists'),
-    staleTime: 2 * 60 * 1000,
-  });
-
-  // Set active list based on URL parameter
-  useEffect(() => {
-    if (listParam && allSavedLists.length > 0) {
-      const targetList = allSavedLists.find((list: any) => list.id === parseInt(listParam));
-      if (targetList) {
-        setActiveOpportunitiesList(targetList);
-      }
-    }
-  }, [listParam, allSavedLists]);
-
-  // Fetch saved lists for opportunities that include this partner
+  // Fetch saved lists for opportunities including partner-specific ones
   const { data: savedListsData } = useQuery({
-    queryKey: ['/api/saved-lists', 'opportunities'],
-    queryFn: () => fetch(`/api/saved-lists?entity_type=opportunities`).then(res => res.json()),
+    queryKey: ['/api/degoudse/saved-lists', 'opportunities', 'partner', '4'],
+    queryFn: () => apiRequest('GET', '/api/degoudse/saved-lists?entity_type=opportunities&partner_id=4'),
   });
 
-  // Filter saved lists to show partner-relevant lists (shared with broker)
-  const partnerRelevantLists = (savedListsData || []).filter((list: any) => {
-    // Show lists that are shared with this partner (broker view)
-    if (list.filters?.partner_shared_with && String(list.filters.partner_shared_with) === "4") {
-      return true;
-    }
-    return false;
-  });
+  // All returned lists are relevant for this partner (backend already filters)
+  const partnerRelevantLists = savedListsData || [];
 
-  // Set active list based on URL parameter
+  // Set active list based on URL parameter (only if explicitly provided)
   useEffect(() => {
     if (listParam && savedListsData) {
       const targetList = savedListsData.find((list: any) => list.id === parseInt(listParam));
       if (targetList) {
         setActiveOpportunitiesList(targetList);
       }
+    } else {
+      // If no list parameter, default to showing all opportunities
+      setActiveOpportunitiesList(null);
     }
   }, [listParam, savedListsData]);
 
-  // Filter opportunities based on the active list (either from URL param or listData)
+  // Filter opportunities based on the active list
   const getActiveListForFiltering = () => {
-    if (activeOpportunitiesList) return activeOpportunitiesList;
-    if (listData) return listData;
-    return null;
+    return activeOpportunitiesList;
   };
 
   const activeFilterList = getActiveListForFiltering();
 
   const baseOpportunities = allOpportunities.filter((opp: any) => {
-    if (activeFilterList && activeFilterList.members && activeFilterList.members.length > 0) {
-      return activeFilterList.members.includes(opp.id);
+    if (activeFilterList) {
+      // Check if list has specific members (opportunity IDs)
+      if (activeFilterList.members && activeFilterList.members.length > 0) {
+        return activeFilterList.members.includes(opp.id);
+      }
+      
+      // If no specific members, apply list filters
+      if (activeFilterList.filters) {
+        const filters = typeof activeFilterList.filters === 'string' 
+          ? JSON.parse(activeFilterList.filters) 
+          : activeFilterList.filters;
+          
+        // Apply search text filter
+        if (filters.searchText) {
+          const searchLower = filters.searchText.toLowerCase();
+          const matchesSearch = 
+            opp.title?.toLowerCase().includes(searchLower) ||
+            opp.customer_names?.toLowerCase().includes(searchLower) ||
+            opp.stage?.toLowerCase().includes(searchLower);
+          if (!matchesSearch) return false;
+        }
+        
+        // Apply status filter
+        if (filters.status && opp.stage !== filters.status) {
+          return false;
+        }
+        
+        // Apply type filter
+        if (filters.type && opp.type !== filters.type) {
+          return false;
+        }
+      }
     }
-    // If no specific list members, show all opportunities
+    // If no active list or no filters, show all opportunities
     return true;
   });
 
