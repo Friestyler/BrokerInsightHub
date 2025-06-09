@@ -207,10 +207,20 @@ export default function PartnerDetail() {
   };
 
   const toggleSelectAll = () => {
-    if (selectedOpportunities.length === filteredOpportunities.length && filteredOpportunities.length > 0) {
-      setSelectedOpportunities([]);
+    if (isEditingList) {
+      // In edit mode, toggle all opportunities in/out of the list
+      if (editedListMembers.length === filteredOpportunities.length && filteredOpportunities.length > 0) {
+        setEditedListMembers([]);
+      } else {
+        setEditedListMembers(filteredOpportunities.map(opp => opp.id));
+      }
     } else {
-      setSelectedOpportunities(filteredOpportunities.map(opp => opp.id));
+      // Normal selection mode
+      if (selectedOpportunities.length === filteredOpportunities.length && filteredOpportunities.length > 0) {
+        setSelectedOpportunities([]);
+      } else {
+        setSelectedOpportunities(filteredOpportunities.map(opp => opp.id));
+      }
     }
   };
 
@@ -807,6 +817,71 @@ export default function PartnerDetail() {
                       </>
                     )}
 
+                    {/* Edit list button - only shown for non-default lists */}
+                    {activeList && (
+                      <>
+                        <Button 
+                          variant="outline" 
+                          size="sm" 
+                          className={`text-indigo-600 ${isEditingList ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          onClick={() => {
+                            if (isEditingList) {
+                              // Cancel edit mode
+                              setIsEditingList(false);
+                              setEditedListMembers(activeList.members || []);
+                            } else {
+                              // Enter edit mode
+                              setIsEditingList(true);
+                              setEditedListMembers(activeList.members || []);
+                            }
+                          }}
+                          disabled={isSavingList}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                          </svg>
+                          {isEditingList ? 'Cancel' : 'Edit list'}
+                        </Button>
+                        
+                        {/* Save button - only visible in edit mode */}
+                        {isEditingList && (
+                          <Button 
+                            variant="default" 
+                            size="sm" 
+                            className="bg-indigo-600 hover:bg-indigo-700"
+                            onClick={() => {
+                              setIsSavingList(true);
+                              editListMutation.mutate({
+                                listId: activeList.id,
+                                members: editedListMembers
+                              });
+                            }}
+                            disabled={isSavingList}
+                          >
+                            {isSavingList ? (
+                              <>
+                                <svg className="animate-spin -ml-1 mr-2 h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Saving...
+                              </>
+                            ) : (
+                              <>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                                  <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                                  <polyline points="7 3 7 8 15 8"></polyline>
+                                </svg>
+                                Save changes
+                              </>
+                            )}
+                          </Button>
+                        )}
+                      </>
+                    )}
+
                     <Button variant="outline" size="sm" className="hidden md:flex items-center">
                       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
                         <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
@@ -905,40 +980,57 @@ export default function PartnerDetail() {
               </div>
             </div>
 
-            {/* Selection actions bar - visible when items are selected */}
-            {selectedOpportunities.length > 0 && (
+            {/* Selection actions bar - visible when items are selected or in edit mode */}
+            {(selectedOpportunities.length > 0 || (isEditingList && editedListMembers.length > 0)) && (
               <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between mb-4">
                 <div className="flex items-center">
-                  <span className="text-indigo-700 font-medium mr-2">{selectedOpportunities.length} {selectedOpportunities.length === 1 ? 'opportunity' : 'opportunities'} selected</span>
+                  {isEditingList ? (
+                    <span className="text-indigo-700 font-medium mr-2">
+                      {editedListMembers.length} {editedListMembers.length === 1 ? 'opportunity' : 'opportunities'} in list
+                    </span>
+                  ) : (
+                    <span className="text-indigo-700 font-medium mr-2">
+                      {selectedOpportunities.length} {selectedOpportunities.length === 1 ? 'opportunity' : 'opportunities'} selected
+                    </span>
+                  )}
                   <Button 
                     variant="ghost" 
                     size="sm"
                     className="text-gray-600"
-                    onClick={() => setSelectedOpportunities([])}
+                    onClick={() => {
+                      if (isEditingList) {
+                        setEditedListMembers([]);
+                      } else {
+                        setSelectedOpportunities([]);
+                      }
+                    }}
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
                       <path d="M18 6 6 18"></path>
                       <path d="m6 6 12 12"></path>
                     </svg>
-                    Clear selection
+                    {isEditingList ? 'Clear list' : 'Clear selection'}
                   </Button>
                 </div>
                 
-                <div className="flex items-center gap-2 flex-wrap">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    className="text-indigo-600"
-                    onClick={() => setShowSaveListModal(true)}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                      <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                      <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                      <polyline points="7 3 7 8 15 8"></polyline>
-                    </svg>
-                    Create List
-                  </Button>
-                </div>
+                {/* Show regular actions only when not in edit mode */}
+                {!isEditingList && (
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      className="text-indigo-600"
+                      onClick={() => setShowSaveListModal(true)}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                        <polyline points="7 3 7 8 15 8"></polyline>
+                      </svg>
+                      Create List
+                    </Button>
+                  </div>
+                )}
               </div>
             )}
 
@@ -949,7 +1041,11 @@ export default function PartnerDetail() {
                   <TableRow>
                     <TableHead className="w-12">
                       <Checkbox 
-                        checked={selectedOpportunities.length === filteredOpportunities.length && filteredOpportunities.length > 0}
+                        checked={
+                          isEditingList 
+                            ? editedListMembers.length === filteredOpportunities.length && filteredOpportunities.length > 0
+                            : selectedOpportunities.length === filteredOpportunities.length && filteredOpportunities.length > 0
+                        }
                         onCheckedChange={toggleSelectAll}
                       />
                     </TableHead>
@@ -965,7 +1061,7 @@ export default function PartnerDetail() {
                     <TableRow key={opportunity.id}>
                       <TableCell>
                         <Checkbox 
-                          checked={selectedOpportunities.includes(opportunity.id)}
+                          checked={isOpportunitySelected(opportunity.id)}
                           onCheckedChange={() => toggleSelectOpportunity(opportunity.id)}
                         />
                       </TableCell>
