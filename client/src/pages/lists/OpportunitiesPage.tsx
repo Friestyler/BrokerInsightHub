@@ -911,29 +911,9 @@ function OpportunitiesTable() {
                             >
                               <div className="flex flex-1 items-center">
                                 <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>{list.name}</span>
-                                {/* Show share icon if list is shared - make it clickable */}
+                                {/* Show share icon if list is shared */}
                                 {list.is_shared && (
-                                  <svg 
-                                    xmlns="http://www.w3.org/2000/svg" 
-                                    width="14" 
-                                    height="14" 
-                                    viewBox="0 0 24 24" 
-                                    fill="none" 
-                                    stroke="currentColor" 
-                                    strokeWidth="2" 
-                                    strokeLinecap="round" 
-                                    strokeLinejoin="round" 
-                                    className="ml-2 text-green-500 cursor-pointer hover:text-green-600" 
-                                    title="Click to manage sharing" 
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      console.log('Share icon clicked for list:', list);
-                                      // Store the specific list data for sharing
-                                      setShareListData(list);
-                                      setShowShareListModal(true);
-                                      setShowListsDropdown(false);
-                                    }}
-                                  >
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2 text-green-500">
                                     <circle cx="18" cy="5" r="3"></circle>
                                     <circle cx="6" cy="12" r="3"></circle>
                                     <circle cx="18" cy="19" r="3"></circle>
@@ -1048,6 +1028,25 @@ function OpportunitiesTable() {
             
             {/* Right-side action buttons */}
             <div className="flex items-center gap-2">
+              {/* Show Share button only for active lists */}
+              {activeList && (
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-indigo-600"
+                  onClick={() => setShowShareListModal(true)}
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                    <circle cx="18" cy="5" r="3"></circle>
+                    <circle cx="6" cy="12" r="3"></circle>
+                    <circle cx="18" cy="19" r="3"></circle>
+                    <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                    <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                  </svg>
+                  Share
+                </Button>
+              )}
+              
               {/* Save button - only shown when filters are applied */}
               {(filterText || selectedStatus || selectedType) && (
                 <Button 
