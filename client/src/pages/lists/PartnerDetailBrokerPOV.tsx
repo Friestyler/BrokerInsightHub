@@ -169,10 +169,10 @@ export default function PartnerDetailBrokerPOV() {
     phone: '+31 20 123 4567'
   };
 
-  // For De Goudse partner in broker view, show the shared opportunities from the list
+  // For Regional Insurance Partners in broker view, show opportunities associated with this partner
   const { data: allOpportunities = [], isLoading: opportunitiesLoading } = useQuery({
-    queryKey: ['/api/degoudse/opportunities'],
-    queryFn: () => apiRequest('GET', '/api/degoudse/opportunities'),
+    queryKey: ['/api/degoudse/partners/4/opportunities'],
+    queryFn: () => apiRequest('GET', '/api/degoudse/partners/4/opportunities'),
     staleTime: 2 * 60 * 1000,
   });
 
@@ -743,7 +743,7 @@ export default function PartnerDetailBrokerPOV() {
                           </TableCell>
                           <TableCell>
                             <span className="text-gray-900">
-                              {opportunity.customer_names || opportunity.customerName || opportunity.clientName || 'Unknown Customer'}
+                              {opportunity.clientName || opportunity.customer_names || opportunity.customerName || 'Unknown Customer'}
                             </span>
                           </TableCell>
                           <TableCell>
