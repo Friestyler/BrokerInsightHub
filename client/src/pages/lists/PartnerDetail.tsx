@@ -86,15 +86,45 @@ export default function PartnerDetail() {
   // Mutation for updating list members (edit list functionality)
   const editListMutation = useMutation({
     mutationFn: async ({ listId, members }: { listId: number, members: number[] }) => {
-      // Include the existing list data to preserve other fields
-      const updateData = {
-        name: activeList?.name,
-        description: activeList?.description,
-        members,
-        filters: activeList?.filters || {},
-        is_shared: activeList?.is_shared || false
-      };
-      return await apiRequest('PUT', `/api/saved-lists/${listId}`, updateData);
+      try {
+        // Include the existing list data to preserve other fields
+        const updateData = {
+          name: activeList?.name,
+          description: activeList?.description,
+          members,
+          filters: activeList?.filters || {},
+          is_shared: activeList?.is_shared || false
+        };
+        console.log('Sending edit list request:', { listId, updateData });
+        
+        // Make the API request with environment header
+        const envUrl = `/api/saved-lists/${listId}`;
+        const currentEnv = window.__APP_ENV__ || localStorage.getItem('selectedEnvironment') || 'myqollabi';
+        const finalUrl = currentEnv !== 'myqollabi' ? envUrl.replace('/api/', `/api/${currentEnv}/`) : envUrl;
+        
+        const response = await fetch(finalUrl, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Environment': currentEnv,
+            'x-environment-id': currentEnv
+          },
+          body: JSON.stringify(updateData),
+          credentials: 'include'
+        });
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`${response.status}: ${errorText}`);
+        }
+        
+        const result = await response.json();
+        console.log('Edit list response:', result);
+        return result;
+      } catch (error) {
+        console.error('Edit list request failed:', error);
+        throw error;
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/saved-lists'] });
@@ -107,9 +137,10 @@ export default function PartnerDetail() {
       setIsSavingList(false);
     },
     onError: (error) => {
+      console.error('Edit list mutation error:', error);
       toast({
         title: "Error updating list",
-        description: "Failed to update the list. Please try again.",
+        description: `Failed to update the list: ${error.message || 'Unknown error'}`,
         variant: "destructive"
       });
       setIsSavingList(false);
