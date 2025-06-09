@@ -158,6 +158,7 @@ export default function PartnerDetailBrokerPOV() {
   const [filterText, setFilterText] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedOpportunityType, setSelectedOpportunityType] = useState('');
+  const [renderKey, setRenderKey] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   // Edit list state management
@@ -316,8 +317,9 @@ export default function PartnerDetailBrokerPOV() {
       setIsEditingList(false);
       setIsSavingList(false);
       
-      // Force a re-render by updating the edited members state too
+      // Force a complete re-render by updating multiple states
       setEditedListMembers(data.members || []);
+      setRenderKey(prev => prev + 1);
       console.log('=== MUTATION SUCCESS COMPLETE ===');
     },
     onError: (error) => {
@@ -927,7 +929,7 @@ export default function PartnerDetailBrokerPOV() {
                   <p className="text-gray-500">No opportunities found for this partner</p>
                 </div>
               ) : (
-                <div className="bg-white rounded-lg shadow-sm">
+                <div className="bg-white rounded-lg shadow-sm" key={`opportunities-table-${renderKey}-${activeOpportunitiesList?.id}-${activeOpportunitiesList?.members?.length || 0}`}>
                   <Table>
                     <TableHeader>
                       <TableRow>
