@@ -333,17 +333,37 @@ export default function CustomersPageClean() {
                         
                         {/* Saved lists from database (filtered for customers only) */}
                         {customerSavedListsData.map((list: any) => (
-                          <button
-                            key={list.id}
-                            className={`w-full text-left px-3 py-2 rounded text-sm hover:bg-gray-100 flex items-center justify-between ${activeList?.id === list.id ? 'bg-blue-50 text-blue-600' : ''}`}
-                            onClick={() => {
-                              setActiveList(list);
-                              setShowListsDropdown(false);
-                            }}
-                          >
-                            <span>{list.name}</span>
-                            <span className="text-gray-500">({list.members?.length || 0})</span>
-                          </button>
+                          <div key={list.id}>
+                            <button
+                              className={`w-full text-left px-3 py-2 rounded text-sm hover:bg-gray-100 flex items-center justify-between ${activeList?.id === list.id ? 'bg-blue-50 text-blue-600' : ''}`}
+                              onClick={() => {
+                                setActiveList(list);
+                                setShowListsDropdown(false);
+                              }}
+                            >
+                              <span>{list.name}</span>
+                              <span className="text-gray-500">({list.members?.length || 0})</span>
+                            </button>
+                            {activeList?.id === list.id && (
+                              <div className="px-3 py-2 border-t border-gray-100 bg-gray-50">
+                                <button
+                                  className="flex items-center text-sm text-indigo-600 hover:text-indigo-800"
+                                  onClick={() => {
+                                    setShowListsDropdown(false);
+                                    alert(`Account Mapping for list "${list.name}" will be available soon`);
+                                  }}
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                                    <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
+                                    <circle cx="9" cy="7" r="4"></circle>
+                                    <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
+                                    <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+                                  </svg>
+                                  Account Mapping
+                                </button>
+                              </div>
+                            )}
+                          </div>
                         ))}
                         
                         {savedListsData.length === 0 && (
@@ -689,24 +709,6 @@ export default function CustomersPageClean() {
                   <polyline points="22 4 12 14.01 9 11.01"></polyline>
                 </svg>
                 Assign Template
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                size="sm"
-                className="text-indigo-600"
-                onClick={() => {
-                  // TODO: Implement account mapping functionality
-                  alert(`Account Mapping for ${selectedCustomers.length} selected customers will be available soon`);
-                }}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
-                  <circle cx="9" cy="7" r="4"></circle>
-                  <path d="M22 21v-2a4 4 0 0 0-3-3.87"></path>
-                  <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
-                </svg>
-                Account Mapping
               </Button>
             </div>
           </div>
