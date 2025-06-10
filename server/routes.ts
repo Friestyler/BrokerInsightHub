@@ -1878,26 +1878,65 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/degoudse/opportunities', async (req, res) => {
     try {
       const envPool = getEnvironmentPool('degoudse');
-      const result = await envPool.query(`
-        SELECT o.*, 
-               STRING_AGG(DISTINCT c.name, ', ') as customer_names,
-               STRING_AGG(DISTINCT p.name, ', ') as partner_names,
-               STRING_AGG(DISTINCT pr.name, ', ') as product_names,
-               COUNT(DISTINCT co.customer_id) as customer_count,
-               COUNT(DISTINCT po.partner_id) as partner_count,
-               COUNT(DISTINCT op.product_id) as product_count
-        FROM degoudse.opportunities o
-        LEFT JOIN degoudse.customer_opportunities co ON o.id = co.opportunity_id
-        LEFT JOIN degoudse.customers c ON c.id = co.customer_id
-        LEFT JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
-        LEFT JOIN degoudse.partners p ON p.id = po.partner_id
-        LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
-        LEFT JOIN degoudse.products pr ON pr.id = op.product_id
-        GROUP BY o.id, o.title, o.description, o.status, o.stage, o."estimatedValue", 
-                 o."expectedCloseDate", o."clientId", o."partnerId", o."productId", 
-                 o."ownerId", o.probability, o.type, o."createdAt", o."updatedAt"
-        ORDER BY o.id
-      `);
+      
+      // Check if this is a broker request by looking for broker-partner mappings
+      // For now, we'll assume user ID 1 (John Smith) has broker restrictions
+      const brokerMappingResult = await envPool.query(`
+        SELECT partner_id FROM degoudse.broker_partner_mappings 
+        WHERE broker_user_id = $1 AND environment_id = $2 AND is_active = true
+      `, [1, 'degoudse']);
+      
+      let result;
+      
+      if (brokerMappingResult.rows.length > 0) {
+        // This is a broker with restricted access - only show opportunities for their assigned partner
+        const assignedPartnerId = brokerMappingResult.rows[0].partner_id;
+        console.log(`Broker access detected - filtering opportunities for partner ID ${assignedPartnerId}`);
+        
+        result = await envPool.query(`
+          SELECT o.*, 
+                 STRING_AGG(DISTINCT c.name, ', ') as customer_names,
+                 STRING_AGG(DISTINCT p.name, ', ') as partner_names,
+                 STRING_AGG(DISTINCT pr.name, ', ') as product_names,
+                 COUNT(DISTINCT co.customer_id) as customer_count,
+                 COUNT(DISTINCT po.partner_id) as partner_count,
+                 COUNT(DISTINCT op.product_id) as product_count
+          FROM degoudse.opportunities o
+          INNER JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
+          LEFT JOIN degoudse.customer_opportunities co ON o.id = co.opportunity_id
+          LEFT JOIN degoudse.customers c ON c.id = co.customer_id
+          LEFT JOIN degoudse.partners p ON p.id = po.partner_id
+          LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
+          LEFT JOIN degoudse.products pr ON pr.id = op.product_id
+          WHERE po.partner_id = $1
+          GROUP BY o.id, o.title, o.description, o.status, o.stage, o."estimatedValue", 
+                   o."expectedCloseDate", o."clientId", o."partnerId", o."productId", 
+                   o."ownerId", o.probability, o.type, o."createdAt", o."updatedAt"
+          ORDER BY o.id
+        `, [assignedPartnerId]);
+      } else {
+        // Regular access - show all opportunities
+        result = await envPool.query(`
+          SELECT o.*, 
+                 STRING_AGG(DISTINCT c.name, ', ') as customer_names,
+                 STRING_AGG(DISTINCT p.name, ', ') as partner_names,
+                 STRING_AGG(DISTINCT pr.name, ', ') as product_names,
+                 COUNT(DISTINCT co.customer_id) as customer_count,
+                 COUNT(DISTINCT po.partner_id) as partner_count,
+                 COUNT(DISTINCT op.product_id) as product_count
+          FROM degoudse.opportunities o
+          LEFT JOIN degoudse.customer_opportunities co ON o.id = co.opportunity_id
+          LEFT JOIN degoudse.customers c ON c.id = co.customer_id
+          LEFT JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
+          LEFT JOIN degoudse.partners p ON p.id = po.partner_id
+          LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
+          LEFT JOIN degoudse.products pr ON pr.id = op.product_id
+          GROUP BY o.id, o.title, o.description, o.status, o.stage, o."estimatedValue", 
+                   o."expectedCloseDate", o."clientId", o."partnerId", o."productId", 
+                   o."ownerId", o.probability, o.type, o."createdAt", o."updatedAt"
+          ORDER BY o.id
+        `);
+      }
       
       const opportunities = result.rows.map((opp: any) => ({
         id: opp.id,
