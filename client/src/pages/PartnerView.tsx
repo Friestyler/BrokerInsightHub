@@ -159,8 +159,9 @@ export default function PartnerView() {
   const [location] = useLocation();
   const [opportunities, setOpportunities] = useState<any[]>([]);
   
-  // Check if we're on the partners page
+  // Check if we're on the partners page or all opportunities page
   const isPartnersPage = location === '/broker-view/partners';
+  const isAllOpportunitiesPage = location === '/broker-view/opportunities';
   
   // State for Lists dropdown and filters
   const [showListsDropdown, setShowListsDropdown] = useState(false);
@@ -205,28 +206,31 @@ export default function PartnerView() {
     if (allOpportunities.length > 0) {
       let filtered = allOpportunities;
       
-      // First, filter by list members if we have a specific list
-      if (listData && listData.members && listData.members.length > 0) {
-        filtered = filtered.filter((opp: any) => 
-          listData.members.includes(opp.id)
-        );
-      } else if (listData && listData.filters) {
-        // Apply saved list filters
-        const filters = typeof listData.filters === 'string' ? JSON.parse(listData.filters) : listData.filters;
-        
-        if (filters.searchText) {
-          filtered = filtered.filter((opp: any) =>
-            opp.title?.toLowerCase().includes(filters.searchText.toLowerCase()) ||
-            opp.description?.toLowerCase().includes(filters.searchText.toLowerCase())
+      // Skip list-based filtering if we're on the "All Opportunities" page
+      if (!isAllOpportunitiesPage) {
+        // First, filter by list members if we have a specific list
+        if (listData && listData.members && listData.members.length > 0) {
+          filtered = filtered.filter((opp: any) => 
+            listData.members.includes(opp.id)
           );
-        }
-        
-        if (filters.status) {
-          filtered = filtered.filter((opp: any) => opp.status === filters.status);
-        }
-        
-        if (filters.type) {
-          filtered = filtered.filter((opp: any) => opp.type === filters.type);
+        } else if (listData && listData.filters) {
+          // Apply saved list filters
+          const filters = typeof listData.filters === 'string' ? JSON.parse(listData.filters) : listData.filters;
+          
+          if (filters.searchText) {
+            filtered = filtered.filter((opp: any) =>
+              opp.title?.toLowerCase().includes(filters.searchText.toLowerCase()) ||
+              opp.description?.toLowerCase().includes(filters.searchText.toLowerCase())
+            );
+          }
+          
+          if (filters.status) {
+            filtered = filtered.filter((opp: any) => opp.status === filters.status);
+          }
+          
+          if (filters.type) {
+            filtered = filtered.filter((opp: any) => opp.type === filters.type);
+          }
         }
       }
       
@@ -248,7 +252,7 @@ export default function PartnerView() {
       
       setOpportunities(filtered);
     }
-  }, [listData, allOpportunities, filterText, selectedStatus, selectedType]);
+  }, [listData, allOpportunities, filterText, selectedStatus, selectedType, isAllOpportunitiesPage]);
 
   // Status color mapping
   const getStatusColor = (status: string) => {
@@ -358,6 +362,33 @@ export default function PartnerView() {
                     {showListsDropdown && (
                       <div className="absolute z-50 mt-1.5 w-80 rounded-md border border-slate-200 bg-white text-slate-950 shadow-md animate-in fade-in-80">
                         <div className="max-h-[300px] overflow-y-auto p-1">
+                          {/* All Opportunities option */}
+                          <div className="relative">
+                            <div
+                              className={`flex flex-1 cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 ${!listData ? 'bg-indigo-50 text-indigo-900' : 'text-slate-700'}`}
+                              onClick={() => {
+                                // Navigate to all opportunities view
+                                window.location.href = `/broker-view/opportunities`;
+                                setShowListsDropdown(false);
+                              }}
+                            >
+                              <div className="flex flex-col flex-1">
+                                <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>All Opportunities</span>
+                                <span className="text-xs text-gray-500" style={{ fontFamily: 'Poppins, sans-serif' }}>
+                                  All opportunities you have access to
+                                </span>
+                              </div>
+                              <div className="ml-auto">
+                                <span className="text-xs text-[#282A3F] italic" style={{ fontFamily: 'Poppins, sans-serif' }}>Default</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Separator if there are shared lists */}
+                          {sharedLists.length > 0 && (
+                            <div className="mx-2 my-1 border-t border-gray-200"></div>
+                          )}
+
                           {/* Show shared lists that partner has access to */}
                           {sharedLists.map((list: any) => (
                             <div key={list.id} className="relative">
@@ -385,7 +416,7 @@ export default function PartnerView() {
                           {/* Show message if no shared lists */}
                           {sharedLists.length === 0 && (
                             <div className="px-2 py-3 text-sm text-gray-500 text-center">
-                              No shared lists available
+                              No additional shared lists available
                             </div>
                           )}
                         </div>

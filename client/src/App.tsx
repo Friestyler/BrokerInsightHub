@@ -57,6 +57,7 @@ function Router() {
       
       <Route path="/broker-view/list/:listId" component={PartnerView} />
       <Route path="/broker-view/partners" component={PartnerView} />
+      <Route path="/broker-view/opportunities" component={PartnerView} />
       <Route path="/broker-view/opportunity/:opportunityId" component={OpportunityDetailBrokerPOV} />
       <Route path="/broker-view/partner/:partnerId" component={PartnerDetailBrokerPOV} />
       
