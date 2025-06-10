@@ -7,6 +7,45 @@ import { Badge } from '@/components/ui/badge';
 import { SortableTableHead } from "@/components/ui/sortable-table-head";
 import { Building2, Mail, Phone, MapPin } from 'lucide-react';
 
+// Format currency for European format
+function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat('nl-NL', {
+    style: 'currency',
+    currency: 'EUR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(amount);
+}
+
+// Calculate partner statistics
+function calculatePartnerStats(partners: any[]) {
+  const totalPartners = partners.length;
+  const totalCustomers = partners.reduce((sum, partner) => {
+    const customerCount = parseInt(partner.customers) || 0;
+    return sum + customerCount;
+  }, 0);
+  const totalOpportunities = partners.reduce((sum, partner) => {
+    const opportunityCount = parseInt(partner.opportunities) || 0;
+    return sum + opportunityCount;
+  }, 0);
+  const totalValue = partners.reduce((sum, partner) => {
+    const value = parseFloat(partner.opportunity_value) || 0;
+    return sum + value;
+  }, 0);
+  const weightedValue = partners.reduce((sum, partner) => {
+    const value = parseFloat(partner.weighted_opportunity_value) || 0;
+    return sum + value;
+  }, 0);
+  
+  return {
+    totalPartners,
+    totalCustomers,
+    totalOpportunities,
+    totalValue,
+    weightedValue
+  };
+}
+
 // Partner Table Component for Partner View
 function PartnerTable() {
   const [searchTerm, setSearchTerm] = useState('');
@@ -16,26 +55,12 @@ function PartnerTable() {
     direction: 'asc' as 'asc' | 'desc'
   });
 
-  // Show only De Goudse as the partner since they shared the list
-  const deGoudsePartner = {
-    id: 'degoudse',
-    name: 'De Goudse',
-    primary_contact: 'Partner Representative',
-    contact_email: 'partner@degoudse.nl',
-    location: 'Netherlands',
-    phone: '+31 20 123 4567',
-    description: 'Insurance company that shared this list',
-    industry: 'Insurance',
-    type: 'Insurance Provider',
-    status: 'Active',
-    size: 'Large',
-    region: 'Netherlands',
-    relationship_count: 1
-  };
-
-  // Only show De Goudse in broker view
-  const allPartners = [deGoudsePartner];
-  const partnersLoading = false;
+  // Fetch actual partner data from De Goudse environment
+  const { data: allPartners = [], isLoading: partnersLoading } = useQuery({
+    queryKey: ['/api/degoudse/partners'],
+    queryFn: () => apiRequest('GET', '/api/degoudse/partners'),
+    staleTime: 2 * 60 * 1000,
+  });
 
   // Handle table sorting
   const handleSort = (key: string) => {
@@ -276,6 +301,16 @@ function PartnerTable() {
 }
 
 export default function PartnersViewforPartner() {
+  // Fetch actual partner data from De Goudse environment for statistics
+  const { data: partnersData = [], isLoading: partnersLoading } = useQuery({
+    queryKey: ['/api/degoudse/partners'],
+    queryFn: () => apiRequest('GET', '/api/degoudse/partners'),
+    staleTime: 2 * 60 * 1000,
+  });
+
+  // Calculate statistics
+  const stats = calculatePartnerStats(partnersData);
+
   return (
     <div className="p-6">
       <div className="space-y-6">
@@ -284,6 +319,34 @@ export default function PartnersViewforPartner() {
           <div>
             <h1 className="text-2xl font-bold text-gray-900">Partners</h1>
             <p className="text-gray-600 mt-1">View partner information and contact details</p>
+          </div>
+        </div>
+
+        {/* Statistics Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6">
+          <div className="bg-white p-4 rounded-md border border-gray-200">
+            <div className="text-xl font-semibold">{stats.totalPartners}</div>
+            <div className="text-sm text-gray-500">Total Partners</div>
+          </div>
+          
+          <div className="bg-white p-4 rounded-md border border-gray-200">
+            <div className="text-xl font-semibold">{stats.totalOpportunities}</div>
+            <div className="text-sm text-gray-500">Total Opportunities</div>
+          </div>
+          
+          <div className="bg-white p-4 rounded-md border border-gray-200">
+            <div className="text-xl font-semibold">{stats.totalCustomers}</div>
+            <div className="text-sm text-gray-500">Total Customers</div>
+          </div>
+          
+          <div className="bg-white p-4 rounded-md border border-gray-200">
+            <div className="text-xl font-semibold">{formatCurrency(stats.totalValue)}</div>
+            <div className="text-sm text-gray-500">Total Value Opportunities</div>
+          </div>
+          
+          <div className="bg-white p-4 rounded-md border border-gray-200">
+            <div className="text-xl font-semibold">{formatCurrency(Math.round(stats.weightedValue))}</div>
+            <div className="text-sm text-gray-500">Weighted Value Opportunities</div>
           </div>
         </div>
 
