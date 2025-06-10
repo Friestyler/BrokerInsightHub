@@ -225,9 +225,6 @@ function PartnerTable() {
                         <Link href={`/broker-view/partner/${partner.id}`}>
                           <div className="font-medium text-gray-900 hover:text-indigo-600 cursor-pointer">{partner.name}</div>
                         </Link>
-                        {partner.id === 'degoudse' && (
-                          <div className="text-xs text-indigo-600 font-medium">List Shared By</div>
-                        )}
                       </div>
                     </div>
                   </td>
