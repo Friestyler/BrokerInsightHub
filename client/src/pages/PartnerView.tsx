@@ -385,41 +385,7 @@ export default function PartnerView() {
                             </div>
                           </div>
 
-                          {/* Separator if there are shared lists */}
-                          {sharedLists.length > 0 && (
-                            <div className="mx-2 my-1 border-t border-gray-200"></div>
-                          )}
-
-                          {/* Show shared lists that partner has access to */}
-                          {sharedLists.map((list: any) => (
-                            <div key={list.id} className="relative">
-                              <div
-                                className={`flex flex-1 cursor-pointer select-none items-center rounded-sm px-2 py-1.5 text-sm outline-none transition-colors hover:bg-slate-100 focus:bg-slate-100 ${listData?.id === list.id ? 'bg-indigo-50 text-indigo-900' : 'text-slate-700'}`}
-                                onClick={() => {
-                                  // Navigate to the selected shared list
-                                  window.location.href = `/broker-view/list/${list.id}`;
-                                  setShowListsDropdown(false);
-                                }}
-                              >
-                                <div className="flex flex-col flex-1">
-                                  <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>{list.name}</span>
-                                  <span className="text-xs text-gray-500" style={{ fontFamily: 'Poppins, sans-serif' }}>
-                                    Shared by {list.sharedBy || 'De Goudse'}
-                                  </span>
-                                </div>
-                                <div className="ml-auto">
-                                  <span className="text-xs text-[#282A3F] italic" style={{ fontFamily: 'Poppins, sans-serif' }}>Shared</span>
-                                </div>
-                              </div>
-                            </div>
-                          ))}
-                          
-                          {/* Show message if no shared lists */}
-                          {sharedLists.length === 0 && (
-                            <div className="px-2 py-3 text-sm text-gray-500 text-center">
-                              No additional shared lists available
-                            </div>
-                          )}
+                          {/* Note: Broker view only shows default "All Opportunities" - no shared lists */}
                         </div>
                       </div>
                     )}
