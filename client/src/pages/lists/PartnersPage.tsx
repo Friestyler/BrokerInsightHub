@@ -131,6 +131,11 @@ function calculatePartnerStats(partners: any[]) {
     const value = parseFloat(partner.opportunity_value) || 0;
     return sum + value;
   }, 0);
+  // Weighted Value calculates probability-adjusted sum of opportunity values
+  const weightedValue = partners.reduce((sum, partner) => {
+    const value = parseFloat(partner.weighted_opportunity_value) || 0;
+    return sum + value;
+  }, 0);
   const activePartners = partners.filter(p => p.status === 'active').length;
   
   return {
@@ -138,6 +143,7 @@ function calculatePartnerStats(partners: any[]) {
     totalCustomers,
     totalOpportunities,
     totalValue,
+    weightedValue,
     activePartners
   };
 }
@@ -1331,6 +1337,11 @@ function PartnersTable() {
         <div className="bg-white p-4 rounded-md border border-gray-200">
           <div className="text-xl font-semibold">{formatCurrency(stats.totalValue)}</div>
           <div className="text-sm text-gray-500">Total Value Opportunities</div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-md border border-gray-200">
+          <div className="text-xl font-semibold">{formatCurrency(Math.round(stats.weightedValue))}</div>
+          <div className="text-sm text-gray-500">Weighted Value Opportunities</div>
         </div>
       </div>
       {/* Add to List Modal */}
