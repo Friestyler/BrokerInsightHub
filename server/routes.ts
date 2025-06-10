@@ -1878,6 +1878,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/degoudse/opportunities', async (req, res) => {
     try {
       const envPool = getEnvironmentPool('degoudse');
+      // Filter for opportunities only attached to "De Goudse" partner (ID 6)
       const result = await envPool.query(`
         SELECT o.*, 
                STRING_AGG(DISTINCT c.name, ', ') as customer_names,
@@ -1887,12 +1888,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
                COUNT(DISTINCT po.partner_id) as partner_count,
                COUNT(DISTINCT op.product_id) as product_count
         FROM degoudse.opportunities o
+        INNER JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
         LEFT JOIN degoudse.customer_opportunities co ON o.id = co.opportunity_id
         LEFT JOIN degoudse.customers c ON c.id = co.customer_id
-        LEFT JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
         LEFT JOIN degoudse.partners p ON p.id = po.partner_id
         LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
         LEFT JOIN degoudse.products pr ON pr.id = op.product_id
+        WHERE po.partner_id = 6
         GROUP BY o.id, o.title, o.description, o.status, o.stage, o."estimatedValue", 
                  o."expectedCloseDate", o."clientId", o."partnerId", o."productId", 
                  o."ownerId", o.probability, o.type, o."createdAt", o."updatedAt"
