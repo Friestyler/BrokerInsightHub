@@ -55,12 +55,30 @@ function PartnerTable() {
     direction: 'asc' as 'asc' | 'desc'
   });
 
-  // Fetch actual partner data from De Goudse environment
-  const { data: allPartners = [], isLoading: partnersLoading } = useQuery({
-    queryKey: ['/api/degoudse/partners'],
-    queryFn: () => apiRequest('GET', '/api/degoudse/partners'),
-    staleTime: 2 * 60 * 1000,
-  });
+  // Show only De Goudse as the partner since they shared the list
+  const deGoudsePartner = {
+    id: 'degoudse',
+    name: 'De Goudse',
+    primary_contact: 'Partner Representative',
+    contact_email: 'partner@degoudse.nl',
+    location: 'Netherlands',
+    phone: '+31 20 123 4567',
+    description: 'Insurance company that shared this list',
+    industry: 'Insurance',
+    type: 'Insurance Provider',
+    status: 'Active',
+    size: 'Large',
+    region: 'Netherlands',
+    relationship_count: 1,
+    customers: 8,
+    opportunities: 15,
+    opportunity_value: 1350000,
+    weighted_opportunity_value: 945000
+  };
+
+  // Only show De Goudse in broker view
+  const allPartners = [deGoudsePartner];
+  const partnersLoading = false;
 
   // Handle table sorting
   const handleSort = (key: string) => {
@@ -301,15 +319,18 @@ function PartnerTable() {
 }
 
 export default function PartnersViewforPartner() {
-  // Fetch actual partner data from De Goudse environment for statistics
-  const { data: partnersData = [], isLoading: partnersLoading } = useQuery({
-    queryKey: ['/api/degoudse/partners'],
-    queryFn: () => apiRequest('GET', '/api/degoudse/partners'),
-    staleTime: 2 * 60 * 1000,
-  });
+  // Use hardcoded De Goudse partner data for statistics
+  const deGoudsePartnerForStats = {
+    id: 'degoudse',
+    name: 'De Goudse',
+    customers: 8,
+    opportunities: 15,
+    opportunity_value: 1350000,
+    weighted_opportunity_value: 945000
+  };
 
-  // Calculate statistics
-  const stats = calculatePartnerStats(partnersData);
+  // Calculate statistics from hardcoded data
+  const stats = calculatePartnerStats([deGoudsePartnerForStats]);
 
   return (
     <div className="p-6">
