@@ -110,6 +110,7 @@ function calculatePartnerStats(partners: any[]) {
     const customerCount = parseInt(partner.customers) || 0;
     return sum + customerCount;
   }, 0);
+  // Total Opportunities counts all opportunity records attached to the displayed partners
   const totalOpportunities = partners.reduce((sum, partner) => {
     const opportunityCount = parseInt(partner.opportunities) || 0;
     return sum + opportunityCount;
@@ -1301,13 +1302,13 @@ function PartnersTable() {
         </div>
         
         <div className="bg-white p-4 rounded-md border border-gray-200">
-          <div className="text-xl font-semibold">{stats.totalCustomers}</div>
-          <div className="text-sm text-gray-500">Total Customers</div>
+          <div className="text-xl font-semibold">{stats.totalOpportunities}</div>
+          <div className="text-sm text-gray-500">Total Opportunities</div>
         </div>
         
         <div className="bg-white p-4 rounded-md border border-gray-200">
-          <div className="text-xl font-semibold">{stats.totalOpportunities}</div>
-          <div className="text-sm text-gray-500">Total Opportunities</div>
+          <div className="text-xl font-semibold">{stats.totalCustomers}</div>
+          <div className="text-sm text-gray-500">Total Customers</div>
         </div>
       </div>
       {/* Add to List Modal */}
