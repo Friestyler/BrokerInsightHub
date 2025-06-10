@@ -584,6 +584,18 @@ export const insertProductSchema = createInsertSchema(products).pick({
   vendorId: true,
 });
 
+// Broker-Partner mapping table - links broker users to specific partners in environments
+export const brokerPartnerMappings = pgTable("broker_partner_mappings", {
+  id: serial("id").primaryKey(),
+  brokerUserId: integer("broker_user_id").notNull().references(() => users.id),
+  environmentId: text("environment_id").notNull(), // e.g., "degoudse", "myqollabi"
+  partnerId: integer("partner_id").notNull(), // Partner ID in the specific environment
+  brokerPartnerName: text("broker_partner_name").notNull(), // Display name in broker view
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
 // For compatibility - new UI using mock data doesn't need these in the database yet
 export { customers as partners };
 export type Partner = Customer;
@@ -978,3 +990,14 @@ export type InsertActivityAttachment = z.infer<typeof insertActivityAttachmentSc
 
 export type NextBestAction = typeof nextBestActions.$inferSelect;
 export type InsertNextBestAction = z.infer<typeof insertNextBestActionSchema>;
+
+export const insertBrokerPartnerMappingSchema = createInsertSchema(brokerPartnerMappings).pick({
+  brokerUserId: true,
+  environmentId: true,
+  partnerId: true,
+  brokerPartnerName: true,
+  isActive: true,
+});
+
+export type BrokerPartnerMapping = typeof brokerPartnerMappings.$inferSelect;
+export type InsertBrokerPartnerMapping = z.infer<typeof insertBrokerPartnerMappingSchema>;
