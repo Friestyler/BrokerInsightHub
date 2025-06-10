@@ -104,6 +104,7 @@ const useCreateSavedView = () => {
 
 // Calculate partner statistics
 function calculatePartnerStats(partners: any[]) {
+  // Total Partners now shows count of partners currently displayed in the active list/view
   const totalPartners = partners.length;
   const totalCustomers = partners.reduce((sum, partner) => {
     const customerCount = parseInt(partner.customers) || 0;
@@ -1291,7 +1292,7 @@ function PartnersTable() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         <div className="bg-white p-4 rounded-md border border-gray-200">
           <div className="text-xl font-semibold">{stats.totalPartners}</div>
-          <div className="text-sm text-gray-500">Total Partners</div>
+          <div className="text-sm text-gray-500">Partners in View</div>
         </div>
         
         <div className="bg-white p-4 rounded-md border border-gray-200">
