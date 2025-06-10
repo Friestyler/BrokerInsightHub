@@ -106,6 +106,7 @@ const useCreateSavedView = () => {
 function calculatePartnerStats(partners: any[]) {
   // Total Partners now shows count of partners currently displayed in the active list/view
   const totalPartners = partners.length;
+  // Total Customers counts all customer records linked to the displayed partners
   const totalCustomers = partners.reduce((sum, partner) => {
     const customerCount = parseInt(partner.customers) || 0;
     return sum + customerCount;
