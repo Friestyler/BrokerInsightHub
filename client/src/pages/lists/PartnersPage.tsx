@@ -102,6 +102,16 @@ const useCreateSavedView = () => {
   });
 };
 
+// Format currency in European format
+function formatCurrency(amount: number): string {
+  return new Intl.NumberFormat('nl-NL', {
+    style: 'currency',
+    currency: 'EUR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0
+  }).format(amount);
+}
+
 // Calculate partner statistics
 function calculatePartnerStats(partners: any[]) {
   // Total Partners now shows count of partners currently displayed in the active list/view
@@ -116,12 +126,18 @@ function calculatePartnerStats(partners: any[]) {
     const opportunityCount = parseInt(partner.opportunities) || 0;
     return sum + opportunityCount;
   }, 0);
+  // Total Value sums all opportunity amounts attached to the displayed partners
+  const totalValue = partners.reduce((sum, partner) => {
+    const value = parseFloat(partner.opportunity_value) || 0;
+    return sum + value;
+  }, 0);
   const activePartners = partners.filter(p => p.status === 'active').length;
   
   return {
     totalPartners,
     totalCustomers,
     totalOpportunities,
+    totalValue,
     activePartners
   };
 }
@@ -1291,7 +1307,7 @@ function PartnersTable() {
         </div>
       )}
       {/* Statistics overview */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <div className="bg-white p-4 rounded-md border border-gray-200">
           <div className="text-xl font-semibold">{stats.totalPartners}</div>
           <div className="text-sm text-gray-500">Total Partners</div>
@@ -1305,6 +1321,11 @@ function PartnersTable() {
         <div className="bg-white p-4 rounded-md border border-gray-200">
           <div className="text-xl font-semibold">{stats.totalOpportunities}</div>
           <div className="text-sm text-gray-500">Total Opportunities</div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-md border border-gray-200">
+          <div className="text-xl font-semibold">{formatCurrency(stats.totalValue)}</div>
+          <div className="text-sm text-gray-500">Total Value Opportunities</div>
         </div>
         
         <div className="bg-white p-4 rounded-md border border-gray-200">
