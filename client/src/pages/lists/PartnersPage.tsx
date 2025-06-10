@@ -1324,13 +1324,13 @@ function PartnersTable() {
         </div>
         
         <div className="bg-white p-4 rounded-md border border-gray-200">
-          <div className="text-xl font-semibold">{formatCurrency(stats.totalValue)}</div>
-          <div className="text-sm text-gray-500">Total Value Opportunities</div>
+          <div className="text-xl font-semibold">{stats.totalCustomers}</div>
+          <div className="text-sm text-gray-500">Total Customers</div>
         </div>
         
         <div className="bg-white p-4 rounded-md border border-gray-200">
-          <div className="text-xl font-semibold">{stats.totalCustomers}</div>
-          <div className="text-sm text-gray-500">Total Customers</div>
+          <div className="text-xl font-semibold">{formatCurrency(stats.totalValue)}</div>
+          <div className="text-sm text-gray-500">Total Value Opportunities</div>
         </div>
       </div>
       {/* Add to List Modal */}
