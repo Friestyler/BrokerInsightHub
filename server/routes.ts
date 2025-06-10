@@ -1390,10 +1390,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         SELECT p.*, 
                COUNT(DISTINCT pc.customer_id) as customer_count,
                COUNT(DISTINCT po.opportunity_id) as opportunity_count,
+               COALESCE(SUM(DISTINCT o.estimated_value), 0) as opportunity_value,
                STRING_AGG(DISTINCT c.name, ', ') as customer_names
         FROM degoudse.partners p
         LEFT JOIN degoudse.partner_customers pc ON p.id = pc.partner_id
         LEFT JOIN degoudse.partner_opportunities po ON p.id = po.partner_id
+        LEFT JOIN degoudse.opportunities o ON o.id = po.opportunity_id
         LEFT JOIN degoudse.customers c ON c.id = pc.customer_id
         GROUP BY p.id, p.name, p.description, p.status, p.location, p.contact_email, 
                  p.primary_contact, p.partner_type, p.region, p.assigned_user_ids, 
@@ -1412,6 +1414,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         status: partner.status,
         customers: partner.customer_count || 0,
         opportunities: partner.opportunity_count || 0,
+        opportunity_value: partner.opportunity_value || 0,
         location: partner.location,
         contactEmail: partner.contact_email,
         primaryContact: partner.primary_contact,
