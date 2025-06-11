@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { Button } from '@/components/ui/button';
 import { Upload, X, Image as ImageIcon } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useEnvironment } from '@/contexts/EnvironmentContext';
 
 interface LogoUploadModalProps {
   isOpen: boolean;
@@ -10,6 +11,7 @@ interface LogoUploadModalProps {
   onUpload: (logoUrl: string) => void;
   entityName: string;
   entityType: 'partner' | 'customer';
+  entityId: number;
 }
 
 export default function LogoUploadModal({ 
@@ -17,13 +19,15 @@ export default function LogoUploadModal({
   onClose, 
   onUpload, 
   entityName, 
-  entityType 
+  entityType,
+  entityId
 }: LogoUploadModalProps) {
   const [dragActive, setDragActive] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [preview, setPreview] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { environment } = useEnvironment();
 
   const ACCEPTED_FORMATS = ['image/png', 'image/jpg', 'image/jpeg', 'image/webp', 'image/svg+xml'];
   const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
@@ -111,18 +115,38 @@ export default function LogoUploadModal({
       // Compress image
       const compressedImage = await compressImage(file);
       
-      // Here you would normally upload to your server
-      // For now, we'll simulate an upload and store locally
-      const logoUrl = compressedImage;
-      
-      // Simulate upload delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Save logo to database
+      const logoData = {
+        entityType: entityType,
+        entityId: entityId,
+        environmentId: environment || 'myqollabi',
+        logoData: compressedImage,
+        mimeType: file.type,
+        originalFilename: file.name,
+        fileSize: file.size,
+        uploadedBy: 1 // Default user ID
+      };
 
-      onUpload(logoUrl);
+      const response = await fetch('/api/entity-logos', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(logoData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to save logo to database');
+      }
+
+      const savedLogo = await response.json();
+      
+      // Pass the compressed image data to the parent component
+      onUpload(compressedImage);
       
       toast({
         title: "Logo uploaded successfully",
-        description: `${entityName} logo has been updated.`,
+        description: `${entityName} logo has been saved to database.`,
       });
 
       handleClose();
@@ -130,7 +154,7 @@ export default function LogoUploadModal({
       console.error('Error processing image:', error);
       toast({
         title: "Upload failed",
-        description: "There was an error processing your image. Please try again.",
+        description: "There was an error saving your logo. Please try again.",
         variant: "destructive",
       });
     } finally {

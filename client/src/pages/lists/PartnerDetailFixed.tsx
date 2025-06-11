@@ -909,6 +909,7 @@ export default function PartnerDetail() {
         }}
         entityName={partner?.name || 'Partner'}
         entityType="partner"
+        entityId={partner?.id || 0}
       />
     </div>
   );

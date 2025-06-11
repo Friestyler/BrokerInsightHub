@@ -523,6 +523,7 @@ export default function CustomerDetailNew() {
         }}
         entityName={customer?.name || 'Customer'}
         entityType="customer"
+        entityId={customer?.id || 0}
       />
     </div>
   );
