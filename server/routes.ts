@@ -4657,6 +4657,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Table counts endpoint for Developer Dashboard
+  app.get('/api/:environment/table-counts', async (req, res) => {
+    try {
+      const environment = req.params.environment;
+      const { pool } = await import('./db.js');
+      const client = await pool.connect();
+      
+      try {
+        // Get all tables in the environment schema
+        const tablesResult = await client.query(`
+          SELECT table_name 
+          FROM information_schema.tables 
+          WHERE table_schema = $1 
+          AND table_type = 'BASE TABLE'
+          ORDER BY table_name
+        `, [environment]);
+        
+        const tableCounts: Record<string, number> = {};
+        
+        // Get count for each table
+        for (const row of tablesResult.rows) {
+          const tableName = row.table_name;
+          try {
+            const countResult = await client.query(`SELECT COUNT(*) as count FROM "${environment}"."${tableName}"`);
+            tableCounts[tableName] = parseInt(countResult.rows[0].count);
+          } catch (countError) {
+            console.error(`Error counting rows in ${tableName}:`, countError);
+            tableCounts[tableName] = 0;
+          }
+        }
+        
+        console.log(`Table counts for ${environment}:`, tableCounts);
+        res.json(tableCounts);
+      } finally {
+        client.release();
+      }
+    } catch (error) {
+      console.error('Error fetching table counts:', error);
+      res.status(500).json({ error: 'Failed to fetch table counts' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }

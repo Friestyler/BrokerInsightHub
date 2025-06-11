@@ -239,6 +239,8 @@ function DeveloperPage() {
       customerOpportunityLinks: number; opportunityProductLinks: number;
     };
   }>({});
+  
+  const [tableCounts, setTableCounts] = useState<Record<string, number>>({});
   const queryClient = useQueryClient();
 
   // Function to refresh database status
@@ -258,9 +260,33 @@ function DeveloperPage() {
     }
   };
 
-  // Load database status on component mount
+  // Function to fetch table counts
+  const fetchTableCounts = async () => {
+    setIsRefreshing(true);
+    try {
+      const response = await fetch('/api/degoudse/table-counts');
+      if (response.ok) {
+        const data = await response.json();
+        setTableCounts(data);
+      }
+    } catch (error) {
+      console.error('Failed to fetch table counts:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  // Function to refresh all dashboard data
+  const refreshDashboard = async () => {
+    await Promise.all([
+      refreshDatabaseStatus(),
+      fetchTableCounts()
+    ]);
+  };
+
+  // Load database status and table counts on component mount
   useEffect(() => {
-    refreshDatabaseStatus();
+    refreshDashboard();
   }, []);
 
   // Simulate console output updates
@@ -314,12 +340,12 @@ function DeveloperPage() {
           <Button 
             variant="outline" 
             size="sm" 
-            onClick={handleRefresh}
-            disabled={isRefreshing}
+            onClick={refreshDashboard}
+            disabled={isRefreshing || isLoading}
             className="flex items-center gap-2"
           >
-            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
-            {isRefreshing ? 'Refreshing...' : 'Refresh Data'}
+            <RefreshCw className={`h-4 w-4 ${isRefreshing || isLoading ? 'animate-spin' : ''}`} />
+            {isRefreshing || isLoading ? 'Refreshing...' : 'Refresh Dashboard'}
           </Button>
           <Badge variant="outline" className="text-sm">
             Environment: {environment.name}
