@@ -8,6 +8,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useEnvironment } from "../contexts/EnvironmentContext";
+import deGoudseLogo from "../assets/de-goudse-logo.png";
 
 interface EnvironmentSelectorProps {
   collapsed?: boolean;
@@ -54,7 +55,9 @@ export default function EnvironmentSelector({ collapsed = false }: EnvironmentSe
                 }}
               >
                 <div className="flex items-center justify-center w-7 h-7 mr-2 text-xs">
-                  {env.logo ? (
+                  {env.id === 'degoudse' ? (
+                    <img src={deGoudseLogo} alt={env.name} className="w-6 h-6 object-contain" />
+                  ) : env.logo ? (
                     <img src={env.logo} alt={env.name} className="w-6 h-6 object-contain" />
                   ) : (
                     <div className="w-6 h-6 rounded-sm flex items-center justify-center text-gray-700 uppercase">
@@ -79,7 +82,13 @@ export default function EnvironmentSelector({ collapsed = false }: EnvironmentSe
           <SelectTrigger className="environment-selector-bg w-full flex items-center justify-between py-3 px-4 rounded-md border border-gray-200 focus:outline-none hover:bg-indigo-50 hover:text-indigo-600 focus:text-indigo-600 focus:bg-indigo-50">
             <div className="flex items-center">
               <div className="flex items-center justify-center w-7 h-7 mr-3 text-xs">
-                {environment.logo ? (
+                {environment.id === 'degoudse' ? (
+                  <img 
+                    src={deGoudseLogo} 
+                    alt={environment.name} 
+                    className="w-6 h-6"
+                  />
+                ) : environment.logo ? (
                   <img 
                     src={environment.logo} 
                     alt={environment.name} 
