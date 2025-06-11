@@ -570,9 +570,6 @@ export default function CustomerDetailNew() {
                         <div className="font-medium text-gray-900">
                           {contact.fullName || `${contact.firstName || ''} ${contact.lastName || ''}`}
                         </div>
-                        {contact.company && (
-                          <div className="text-sm text-gray-500">{contact.company}</div>
-                        )}
                       </div>
                     </TableCell>
                     <TableCell>
