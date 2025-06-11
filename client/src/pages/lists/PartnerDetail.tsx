@@ -36,6 +36,10 @@ export default function PartnerDetail() {
 
   // Opportunities-specific state
   const [filterText, setFilterText] = useState("");
+  const [selectedStatus, setSelectedStatus] = useState("");
+  const [selectedType, setSelectedType] = useState("");
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  const [showTypeDropdown, setShowTypeDropdown] = useState(false);
   const [activeList, setActiveList] = useState<any>(null);
   const [showListsDropdown, setShowListsDropdown] = useState(false);
   const [activeDropdownId, setActiveDropdownId] = useState<number | null>(null);
@@ -91,6 +95,8 @@ export default function PartnerDetail() {
   const [editingListId, setEditingListId] = useState<number | null>(null);
   const [renderKey, setRenderKey] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const statusDropdownRef = useRef<HTMLDivElement>(null);
+  const typeDropdownRef = useRef<HTMLDivElement>(null);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -271,7 +277,28 @@ export default function PartnerDetail() {
     }
   }, [activeFilterList, isEditingList]);
 
-  // Filter opportunities based on search and active list
+  // Handle click outside to close filter dropdowns
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (statusDropdownRef.current && !statusDropdownRef.current.contains(event.target as Node)) {
+        setShowStatusDropdown(false);
+      }
+      if (typeDropdownRef.current && !typeDropdownRef.current.contains(event.target as Node)) {
+        setShowTypeDropdown(false);
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
+  // Extract unique filter values from opportunities data
+  const uniqueStatuses = Array.from(new Set((relatedOpportunities as any[] || []).map((opp: any) => opp.stage).filter(Boolean)));
+  const uniqueTypes = Array.from(new Set((relatedOpportunities as any[] || []).map((opp: any) => opp.type || opp.opportunity_type).filter(Boolean)));
+
+  // Filter opportunities based on search, filters, and active list
   const filteredOpportunities = (relatedOpportunities as any[] || []).filter((opportunity: any) => {
     // Filter by search text
     if (filterText) {
@@ -281,6 +308,16 @@ export default function PartnerDetail() {
         opportunity.clientName?.toLowerCase().includes(searchLower) ||
         opportunity.stage?.toLowerCase().includes(searchLower);
       if (!matchesSearch) return false;
+    }
+    
+    // Filter by Status (stage)
+    if (selectedStatus && opportunity.stage !== selectedStatus) {
+      return false;
+    }
+    
+    // Filter by Type
+    if (selectedType && (opportunity.type || opportunity.opportunity_type) !== selectedType) {
+      return false;
     }
     
     // If a specific list is selected, filter by its members
@@ -1113,25 +1150,113 @@ export default function PartnerDetail() {
                     
                     {/* Filter buttons next to the views dropdown */}
                     <div className="flex items-center gap-2 ml-3">
-                      <button 
-                        className="flex items-center px-3 py-2 border rounded-md text-sm font-medium border-gray-300 text-gray-700"
-                        onClick={() => {/* Handle status filter */}}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                        </svg>
-                        <span>Status</span>
-                      </button>
+                      {/* Status Filter Dropdown */}
+                      <div className="relative">
+                        <button 
+                          className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${
+                            selectedStatus 
+                              ? 'border-indigo-300 bg-indigo-50 text-indigo-700' 
+                              : 'border-gray-300 text-gray-700 hover:border-gray-400'
+                          }`}
+                          onClick={() => setShowStatusDropdown(!showStatusDropdown)}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                          </svg>
+                          <span>{selectedStatus || 'Status'}</span>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                            <polyline points="6 9 12 15 18 9" />
+                          </svg>
+                        </button>
+                        
+                        {showStatusDropdown && (
+                          <div className="absolute z-50 mt-1 w-48 rounded-md border border-gray-200 bg-white shadow-lg">
+                            <div className="p-1">
+                              {selectedStatus && (
+                                <button
+                                  className="w-full text-left px-3 py-2 text-sm text-gray-500 hover:bg-gray-50 rounded-md"
+                                  onClick={() => {
+                                    setSelectedStatus("");
+                                    setShowStatusDropdown(false);
+                                  }}
+                                >
+                                  Clear filter
+                                </button>
+                              )}
+                              {uniqueStatuses.map((status) => (
+                                <button
+                                  key={status}
+                                  className={`w-full text-left px-3 py-2 text-sm rounded-md ${
+                                    selectedStatus === status 
+                                      ? 'bg-indigo-50 text-indigo-700' 
+                                      : 'text-gray-700 hover:bg-gray-50'
+                                  }`}
+                                  onClick={() => {
+                                    setSelectedStatus(status);
+                                    setShowStatusDropdown(false);
+                                  }}
+                                >
+                                  {status}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
                       
-                      <button 
-                        className="flex items-center px-3 py-2 border rounded-md text-sm font-medium border-gray-300 text-gray-700"
-                        onClick={() => {/* Handle type filter */}}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                          <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                        </svg>
-                        <span>Type</span>
-                      </button>
+                      {/* Type Filter Dropdown */}
+                      <div className="relative">
+                        <button 
+                          className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${
+                            selectedType 
+                              ? 'border-indigo-300 bg-indigo-50 text-indigo-700' 
+                              : 'border-gray-300 text-gray-700 hover:border-gray-400'
+                          }`}
+                          onClick={() => setShowTypeDropdown(!showTypeDropdown)}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                          </svg>
+                          <span>{selectedType || 'Type'}</span>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                            <polyline points="6 9 12 15 18 9" />
+                          </svg>
+                        </button>
+                        
+                        {showTypeDropdown && (
+                          <div className="absolute z-50 mt-1 w-48 rounded-md border border-gray-200 bg-white shadow-lg">
+                            <div className="p-1">
+                              {selectedType && (
+                                <button
+                                  className="w-full text-left px-3 py-2 text-sm text-gray-500 hover:bg-gray-50 rounded-md"
+                                  onClick={() => {
+                                    setSelectedType("");
+                                    setShowTypeDropdown(false);
+                                  }}
+                                >
+                                  Clear filter
+                                </button>
+                              )}
+                              {uniqueTypes.map((type) => (
+                                <button
+                                  key={type}
+                                  className={`w-full text-left px-3 py-2 text-sm rounded-md ${
+                                    selectedType === type 
+                                      ? 'bg-indigo-50 text-indigo-700' 
+                                      : 'text-gray-700 hover:bg-gray-50'
+                                  }`}
+                                  onClick={() => {
+                                    setSelectedType(type);
+                                    setShowTypeDropdown(false);
+                                  }}
+                                >
+                                  {type}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>
