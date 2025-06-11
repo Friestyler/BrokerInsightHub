@@ -116,10 +116,15 @@ export default function LogoUploadModal({
       const compressedImage = await compressImage(file);
       
       // Save logo to database
+      // Get environment ID as string - handle both string and object cases
+      const envFromWindow = (window as any).currentEnvironment;
+      const envFromStorage = localStorage.getItem('currentEnvironment');
+      const environmentId = envFromWindow || envFromStorage || 'myqollabi';
+      
       const logoData = {
         entityType: entityType,
         entityId: entityId,
-        environmentId: environment || 'myqollabi',
+        environmentId: environmentId,
         logoData: compressedImage,
         mimeType: file.type,
         originalFilename: file.name,
