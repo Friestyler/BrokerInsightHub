@@ -34,6 +34,27 @@ export default function PartnerDetail() {
   const [showLogoUploadModal, setShowLogoUploadModal] = useState(false);
   const [partnerLogo, setPartnerLogo] = useState<string | null>(null);
 
+  // Load existing logo on component mount
+  useEffect(() => {
+    const loadExistingLogo = async () => {
+      if (id) {
+        try {
+          const response = await fetch(`/api/entity-logos?entityType=partner&entityId=${id}&environmentId=${environment || 'myqollabi'}`);
+          if (response.ok) {
+            const logoData = await response.json();
+            if (logoData?.logoData) {
+              setPartnerLogo(logoData.logoData);
+            }
+          }
+        } catch (error) {
+          console.error('Error loading existing logo:', error);
+        }
+      }
+    };
+    
+    loadExistingLogo();
+  }, [id, environment]);
+
   // Opportunities-specific state
   const [filterText, setFilterText] = useState("");
   const [activeList, setActiveList] = useState<any>(null);
