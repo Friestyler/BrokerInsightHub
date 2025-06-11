@@ -1756,6 +1756,9 @@ function PartnersTable() {
                       createdAt: new Date(createdView.created_at)
                     };
                     setActiveView(newView);
+                    
+                    // Invalidate the saved views cache to refresh the dropdown
+                    queryClient.invalidateQueries({ queryKey: ['/api/saved-views', 'partners'] });
                   }
                 });
                 
