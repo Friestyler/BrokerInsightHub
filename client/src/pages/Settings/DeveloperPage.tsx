@@ -75,27 +75,6 @@ const databaseSchemas = {
         shadowRisk: 'Low - Environment isolated'
       }
     }
-  },
-  detected_shadow_schemas: {
-    description: "Monitoring for unauthorized database schemas",
-    connection: "Real-time schema detection",
-    tables: {
-      acme: {
-        columns: ['Detection attempted - Access blocked'],
-        relationships: ['BLOCKED - Unauthorized schema access'],
-        shadowRisk: 'HIGH - Potential shadow database'
-      },
-      globex: {
-        columns: ['Detection attempted - Access blocked'],
-        relationships: ['BLOCKED - Unauthorized schema access'],
-        shadowRisk: 'HIGH - Potential shadow database'
-      },
-      oceanic: {
-        columns: ['Detection attempted - Access blocked'],
-        relationships: ['BLOCKED - Unauthorized schema access'],
-        shadowRisk: 'HIGH - Potential shadow database'
-      }
-    }
   }
 };
 

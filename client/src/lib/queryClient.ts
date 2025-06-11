@@ -28,7 +28,7 @@ export function getEnvironmentUrl(url: string): string {
   }
   
   // Don't modify URLs that already include environment information
-  if (url.includes('/degoudse') || url.includes('/acme') || url.includes('/globex') || url.includes('/oceanic')) {
+  if (url.includes('/degoudse')) {
     console.log('URL already has environment prefix, returning as-is');
     return url;
   }
