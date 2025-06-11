@@ -14,7 +14,7 @@ import { useEnvironment } from "@/contexts/EnvironmentContext";
 
 // Broker View Layout Component
 function BrokerLayout({ children }: { children: React.ReactNode }) {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [dataMenuOpen, setDataMenuOpen] = useState(true);
 
   const toggleSidebar = () => {

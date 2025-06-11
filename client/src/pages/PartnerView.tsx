@@ -9,7 +9,7 @@ import PartnersViewforPartner from './PartnersViewforPartner';
 
 // Partner View Layout Component with same structure as main Layout
 function PartnerLayout({ children }: { children: React.ReactNode }) {
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(true);
   const [dataMenuOpen, setDataMenuOpen] = useState(true); // Start with collaborate menu open
   const [location] = useLocation();
 
