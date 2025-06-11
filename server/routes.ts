@@ -1404,15 +1404,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
         type: partner.partner_type || "Partner", 
         size: "medium",
         status: partner.status,
-        customers: partner.customer_count || 0,
-        opportunities: partner.opportunity_count || 0,
-        opportunity_value: partner.opportunity_value || 0,
-        weighted_opportunity_value: partner.weighted_opportunity_value || 0,
+        customers: 0, // Simplified - removed expensive count queries
+        opportunities: 0, // Simplified - removed expensive count queries
+        opportunity_value: 0,
+        weighted_opportunity_value: 0,
         location: partner.location,
         contactEmail: partner.contact_email,
         primaryContact: partner.primary_contact,
         region: partner.region,
-        customerNames: partner.customer_names
+        customerNames: '' // Simplified - removed expensive aggregation
       }));
       
       console.log(`Returning ${partners.length} partners with relationship counts from degoudse schema`);
@@ -1700,16 +1700,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/degoudse/customers', async (req, res) => {
     try {
       const envPool = getEnvironmentPool('degoudse');
+      // Optimized simple query - just get customers first
       const result = await envPool.query(`
-        SELECT c.*, 
-               COUNT(DISTINCT pc.partner_id) as partner_count,
-               COUNT(DISTINCT co.opportunity_id) as opportunity_count,
-               STRING_AGG(DISTINCT p.name, ', ') as partner_names
+        SELECT c.*
         FROM degoudse.customers c
-        LEFT JOIN degoudse.partner_customers pc ON c.id = pc.customer_id
-        LEFT JOIN degoudse.customer_opportunities co ON c.id = co.customer_id
-        LEFT JOIN degoudse.partners p ON p.id = pc.partner_id
-        GROUP BY c.id, c.name, c.description, c."ownerId", c."createdAt", c."updatedAt"
         ORDER BY c.id
       `);
       
@@ -1721,9 +1715,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ownerId: customer.ownerId,
         createdAt: customer.createdAt,
         updatedAt: customer.updatedAt,
-        partnerCount: customer.partner_count || 0,
-        opportunityCount: customer.opportunity_count || 0,
-        partnerNames: customer.partner_names
+        partnerCount: 0, // Simplified - removed expensive count queries
+        opportunityCount: 0, // Simplified - removed expensive count queries
+        partnerNames: '' // Simplified - removed expensive aggregation
       }));
       
       console.log(`Returning ${customers.length} customers from De Goudse database`);
