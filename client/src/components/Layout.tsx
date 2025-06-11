@@ -6,6 +6,7 @@ import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { useLocation } from "wouter";
 import { Menu } from "lucide-react";
 import PartnerCopilotSlider from "./PartnerCopilotSlider";
+import userAvatar from "@/assets/user-avatar.png";
 
 interface LayoutProps {
   children: ReactNode;
@@ -73,10 +74,12 @@ export default function Layout({ children }: LayoutProps) {
               </svg>
             </button>
             <div className="flex items-center space-x-2">
-              <div className="w-8 h-8 rounded-full bg-indigo-500 flex items-center justify-center text-white font-medium text-sm cursor-pointer hover:bg-indigo-600">
-
-                FP
-
+              <div className="w-8 h-8 rounded-full overflow-hidden cursor-pointer hover:ring-2 hover:ring-indigo-300 transition-all">
+                <img 
+                  src={userAvatar} 
+                  alt="User Avatar" 
+                  className="w-full h-full object-cover"
+                />
               </div>
             </div>
           </div>
