@@ -74,6 +74,12 @@ export default function CustomerDetailNew() {
     enabled: !!id,
   });
 
+  // Fetch related contacts for this customer
+  const { data: relatedContacts, isLoading: contactsLoading } = useQuery({
+    queryKey: [`/api/customers/${id}/contacts`],
+    enabled: !!id,
+  });
+
   // Fetch template assignments for this customer
   const { data: templateAssignments } = useQuery({
     queryKey: [`/api/template-assignments/customer/${id}`],
@@ -237,6 +243,16 @@ export default function CustomerDetailNew() {
               }`}
             >
               Products ({relatedProducts?.length || 0})
+            </button>
+            <button 
+              onClick={() => setActiveTab("contacts")}
+              className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
+                activeTab === "contacts" 
+                  ? "bg-[#E1E4FB] text-[#3E4DC4]" 
+                  : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+              }`}
+            >
+              Contacts ({relatedContacts?.length || 0})
             </button>
           </nav>
         </div>
@@ -526,6 +542,83 @@ export default function CustomerDetailNew() {
             {(!relatedProducts || relatedProducts.length === 0) && (
               <div className="text-center py-12">
                 <p className="text-gray-500">No products associated with this customer</p>
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === "contacts" && (
+          <div>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead className="w-12"><Checkbox /></TableHead>
+                  <TableHead>Contact</TableHead>
+                  <TableHead>Job Title</TableHead>
+                  <TableHead>Department</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead>Phone</TableHead>
+                  <TableHead>Status</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {relatedContacts?.map((contact: any) => (
+                  <TableRow key={contact.id}>
+                    <TableCell><Checkbox /></TableCell>
+                    <TableCell>
+                      <div>
+                        <div className="font-medium text-gray-900">
+                          {contact.fullName || `${contact.firstName || ''} ${contact.lastName || ''}`}
+                        </div>
+                        {contact.company && (
+                          <div className="text-sm text-gray-500">{contact.company}</div>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-gray-900">
+                        {contact.jobTitle || 'Not specified'}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-gray-900">
+                        {contact.department || 'Not specified'}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      {contact.email ? (
+                        <a href={`mailto:${contact.email}`} className="text-indigo-600 hover:underline">
+                          {contact.email}
+                        </a>
+                      ) : (
+                        <span className="text-gray-500">No email</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {contact.phone ? (
+                        <a href={`tel:${contact.phone}`} className="text-indigo-600 hover:underline">
+                          {contact.phone}
+                        </a>
+                      ) : (
+                        <span className="text-gray-500">No phone</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      <span className={`px-2 py-1 rounded-full text-xs ${
+                        contact.isActive 
+                          ? 'bg-green-100 text-green-800' 
+                          : 'bg-gray-100 text-gray-800'
+                      }`}>
+                        {contact.isActive ? 'Active' : 'Inactive'}
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+            {(!relatedContacts || relatedContacts.length === 0) && (
+              <div className="text-center py-12">
+                <p className="text-gray-500">No contacts associated with this customer</p>
               </div>
             )}
           </div>

@@ -1598,6 +1598,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get contacts for a specific customer in De Goudse environment
+  app.get('/api/degoudse/customers/:id/contacts', async (req, res) => {
+    try {
+      const customerId = parseInt(req.params.id);
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query(`
+        SELECT *
+        FROM degoudse.contacts
+        WHERE linked_entity_type = 'customer' AND linked_entity_id = $1
+        ORDER BY is_primary DESC, full_name ASC
+      `, [customerId]);
+      
+      const contacts = result.rows.map((contact: any) => ({
+        id: contact.id,
+        firstName: contact.first_name,
+        lastName: contact.last_name,
+        fullName: contact.full_name,
+        email: contact.email,
+        phone: contact.phone,
+        jobTitle: contact.job_title,
+        department: contact.department,
+        company: contact.company,
+        isPrimary: contact.is_primary,
+        isActive: contact.is_active,
+        notes: contact.notes,
+        tags: contact.tags,
+        createdAt: contact.created_at,
+        updatedAt: contact.updated_at
+      }));
+      
+      res.json(contacts);
+    } catch (error) {
+      console.error('Error fetching De Goudse customer contacts:', error);
+      res.status(500).json({ error: 'Failed to fetch customer contacts' });
+    }
+  });
+
   app.get('/api/degoudse/opportunities/:id/products', async (req, res) => {
     try {
       const opportunityId = parseInt(req.params.id);
