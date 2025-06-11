@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, Link } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
@@ -28,6 +28,27 @@ export default function CustomerDetailNew() {
   const [customerLogo, setCustomerLogo] = useState<string | null>(null);
   const [selectedTimeframe, setSelectedTimeframe] = useState("all");
   const [groupBy, setGroupBy] = useState("tag");
+
+  // Load existing logo on component mount
+  useEffect(() => {
+    const loadExistingLogo = async () => {
+      if (id) {
+        try {
+          const response = await fetch(`/api/entity-logos?entityType=customer&entityId=${id}&environmentId=${environment || 'myqollabi'}`);
+          if (response.ok) {
+            const logoData = await response.json();
+            if (logoData?.logoData) {
+              setCustomerLogo(logoData.logoData);
+            }
+          }
+        } catch (error) {
+          console.error('Error loading existing logo:', error);
+        }
+      }
+    };
+    
+    loadExistingLogo();
+  }, [id, environment]);
 
   // Fetch customer data from database
   const { data: customers, isLoading: customersLoading } = useQuery({
