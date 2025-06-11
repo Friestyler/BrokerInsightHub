@@ -337,44 +337,127 @@ export default function PartnerView() {
             </div>
           </div>
           
+          {/* Bulk actions bar - always visible */}
+          <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between mb-4" style={{ minHeight: '64px' }}>
+            {selectedOpportunities.length > 0 ? (
+              <>
+                <div className="flex items-center">
+                  <span className="text-indigo-700 font-medium mr-2">
+                    {selectedOpportunities.length} {selectedOpportunities.length === 1 ? 'opportunity' : 'opportunities'} selected
+                  </span>
+                  <Button 
+                    variant="ghost" 
+                    size="sm"
+                    className="text-gray-600"
+                    onClick={() => setSelectedOpportunities([])}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                      <path d="M18 6 6 18"></path>
+                      <path d="m6 6 12 12"></path>
+                    </svg>
+                    Clear selection
+                  </Button>
+                </div>
+                
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Button 
+                    variant="outline" 
+                    size="sm"
+                    className="text-indigo-600"
+                    onClick={() => {/* Add export functionality */}}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                      <polyline points="7,10 12,15 17,10"></polyline>
+                      <line x1="12" y1="15" x2="12" y2="3"></line>
+                    </svg>
+                    Export Selected
+                  </Button>
+                </div>
+              </>
+            ) : (
+              <div className="flex items-center justify-center w-full min-h-[32px]">
+                <div className="flex items-center text-gray-500">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                    <path d="M9 12l2 2 4-4"></path>
+                    <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                  </svg>
+                  <span className="text-sm">Select at least one opportunity from the list to perform bulk actions</span>
+                </div>
+              </div>
+            )}
+          </div>
+          
           {/* Opportunities table */}
           <div className="bg-white shadow rounded-lg overflow-hidden">
             <div className="overflow-x-auto">
               <table className="min-w-full divide-y divide-gray-200">
                 <thead className="bg-white">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="w-12 group relative px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '13px' }}>
+                      <div className={`transition-opacity ${
+                        selectedOpportunities.length > 0 ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                      }`}>
+                        <Checkbox 
+                          checked={selectedOpportunities.length === opportunities.length && opportunities.length > 0}
+                          onCheckedChange={(checked) => {
+                            if (checked) {
+                              setSelectedOpportunities(opportunities.map((o: any) => o.id));
+                            } else {
+                              setSelectedOpportunities([]);
+                            }
+                          }}
+                        />
+                      </div>
+                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '13px' }}>
                       Title
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '13px' }}>
                       Customer
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '13px' }}>
                       Partner
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '13px' }}>
                       Product
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '13px' }}>
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '13px' }}>
                       Value
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '13px' }}>
                       Probability
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '13px' }}>
                       Type
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '13px' }}>
                       Close Date
                     </th>
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
                   {opportunities.map((opportunity) => (
-                    <tr key={opportunity.id} className="hover:bg-gray-50">
+                    <tr key={opportunity.id} className="group hover:bg-gray-50">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div className={`transition-opacity ${
+                          selectedOpportunities.includes(opportunity.id) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                        }`}>
+                          <Checkbox 
+                            checked={selectedOpportunities.includes(opportunity.id)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setSelectedOpportunities([...selectedOpportunities, opportunity.id]);
+                              } else {
+                                setSelectedOpportunities(selectedOpportunities.filter(id => id !== opportunity.id));
+                              }
+                            }}
+                          />
+                        </div>
+                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
                           <Link href={`/broker-view/opportunity/${opportunity.id}`}>
