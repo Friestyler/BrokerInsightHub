@@ -2227,11 +2227,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // De Goudse Vendors endpoints
   app.get('/api/degoudse/vendors', async (req, res) => {
+    const cacheKey = 'degoudse_vendors';
+    const cached = getCached(cacheKey);
+    
+    if (cached) {
+      return res.json(cached);
+    }
+    
     try {
       const envPool = getEnvironmentPool('degoudse');
       const result = await envPool.query(`
         SELECT id, name, description, initials, contact_name, contact_email, 
-               contact_phone, "ownerId", "createdAt", "updatedAt"
+               contact_phone, owner_id, created_at, updated_at
         FROM degoudse.vendors 
         ORDER BY name ASC
       `);
@@ -2242,6 +2249,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }));
       
       console.log(`Returning ${vendors.length} vendors from De Goudse database`);
+      setCache(cacheKey, vendors);
       res.json(vendors);
     } catch (error) {
       console.error('Error fetching De Goudse vendors:', error);
@@ -3200,11 +3208,91 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Batch endpoint for common page data - major performance optimization
+  app.get('/api/degoudse/page-data/:pageType', async (req, res) => {
+    const { pageType } = req.params;
+    const cacheKey = `degoudse_page_data_${pageType}`;
+    const cached = getCached(cacheKey);
+    
+    if (cached) {
+      return res.json(cached);
+    }
+    
+    try {
+      const envPool = getEnvironmentPool('degoudse');
+      let result: any = {};
+      
+      if (pageType === 'partners') {
+        // Fetch all partners page data in one optimized query
+        const [partners, savedLists, savedViews, okrMetrics, okrTags] = await Promise.all([
+          envPool.query(`
+            SELECT p.*, 
+                   COUNT(DISTINCT pc.customer_id) as customer_count,
+                   COUNT(DISTINCT po.opportunity_id) as opportunity_count,
+                   STRING_AGG(DISTINCT c.name, ', ') as customer_names
+            FROM degoudse.partners p
+            LEFT JOIN degoudse.partner_customers pc ON p.id = pc.partner_id
+            LEFT JOIN degoudse.partner_opportunities po ON p.id = po.partner_id  
+            LEFT JOIN degoudse.customers c ON c.id = pc.customer_id
+            GROUP BY p.id, p.name, p.description, p.status, p.location, p.contact_email, 
+                     p.primary_contact, p.partner_type, p.region, p.assigned_user_ids, 
+                     p.linked_opportunity_ids, p.created_at, p.updated_at
+            ORDER BY p.id
+          `),
+          envPool.query('SELECT * FROM degoudse.saved_lists WHERE entity_type = $1 AND partner_id IS NULL ORDER BY created_at DESC', ['partners']),
+          envPool.query('SELECT * FROM degoudse.saved_views WHERE entity_type = $1 ORDER BY created_at DESC', ['partners']),
+          envPool.query('SELECT * FROM degoudse.okr_metrics ORDER BY id'),
+          envPool.query('SELECT * FROM degoudse.okr_tags ORDER BY name ASC')
+        ]);
+        
+        result = {
+          partners: partners.rows.map((partner: any) => ({
+            id: partner.id,
+            name: partner.name,
+            description: partner.description,
+            initials: partner.name.split(' ').map((word: string) => word[0]).join('').toUpperCase().slice(0, 2),
+            industry: getIndustryFromDescription(partner.description || ''),
+            type: getTypeFromDescription(partner.description || ''),
+            size: getSizeFromDescription(partner.description || ''),
+            status: partner.status,
+            customers: partner.customer_count || 0,
+            opportunities: partner.opportunity_count || 0,
+            location: partner.location,
+            contactEmail: partner.contact_email,
+            primaryContact: partner.primary_contact,
+            partner_type: partner.partner_type,
+            region: partner.region,
+            assigned_user_ids: partner.assigned_user_ids,
+            linked_opportunity_ids: partner.linked_opportunity_ids,
+            createdAt: partner.created_at,
+            updatedAt: partner.updated_at,
+            customerNames: partner.customer_names || ''
+          })),
+          savedLists: savedLists.rows,
+          savedViews: savedViews.rows,
+          okrMetrics: okrMetrics.rows,
+          okrTags: okrTags.rows
+        };
+      }
+      
+      setCache(cacheKey, result);
+      res.json(result);
+    } catch (error) {
+      console.error('Error fetching batch page data:', error);
+      res.status(500).json({ error: 'Failed to fetch page data' });
+    }
+  });
+
   // Database Administration Endpoints
   // These endpoints should not be environment-specific as they manage all environments
 
   // Get all available environments - only De Goudse
   app.get('/api/admin/environments', async (req, res) => {
+    const cached = getCached('admin_environments');
+    if (cached) {
+      return res.json(cached);
+    }
+    
     try {
       // Return only De Goudse environment
       const environments = [{
@@ -3215,6 +3303,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         logo: '/api/static/de-goudse-logo.png'
       }];
 
+      setCache('admin_environments', environments);
       res.json(environments);
     } catch (error) {
       console.error('Error fetching environments:', error);
@@ -4587,13 +4676,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Get entity logo (query parameters version for useEntityLogo hook)
   app.get('/api/entity-logos', async (req, res) => {
+    const { entityType, entityId, environmentId } = req.query;
+    
+    if (!entityType || !entityId || !environmentId) {
+      return res.status(400).json({ error: 'Missing required parameters: entityType, entityId, environmentId' });
+    }
+    
+    const cacheKey = `entity_logo_${entityType}_${entityId}_${environmentId}`;
+    const cached = getCached(cacheKey);
+    
+    if (cached) {
+      return res.json(cached);
+    }
+    
     try {
-      const { entityType, entityId, environmentId } = req.query;
-      
-      if (!entityType || !entityId || !environmentId) {
-        return res.status(400).json({ error: 'Missing required parameters: entityType, entityId, environmentId' });
-      }
-      
       const logo = await db
         .select()
         .from(entityLogos)
@@ -4608,6 +4704,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(404).json({ error: 'Logo not found' });
       }
 
+      setCache(cacheKey, logo[0]);
       res.json(logo[0]);
     } catch (error) {
       console.error('Error fetching entity logo:', error);
