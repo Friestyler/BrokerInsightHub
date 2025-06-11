@@ -1294,60 +1294,62 @@ function PartnersTable() {
           </div>
         </div>
       </div>
-      {/* Selection actions bar - visible when items are selected */}
-      {selectedPartners.length > 0 && (
-        <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between mb-4">
-          <div className="flex items-center">
-            <span className="text-indigo-700 font-medium mr-2 text-[14px]">{selectedPartners.length} partners selected</span>
-            <Button 
-              variant="ghost" 
-              size="sm"
-              className="text-gray-600"
-              onClick={() => setSelectedPartners([])}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                <path d="M18 6 6 18"></path>
-                <path d="m6 6 12 12"></path>
-              </svg>
-              Clear selection
-            </Button>
-          </div>
-          
-          <div className="flex items-center gap-2 flex-wrap">
-            <Button 
-              variant="outline" 
-              size="sm"
-              className="text-indigo-600"
-              onClick={() => setShowSaveListModal(true)}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                <polyline points="7 3 7 8 15 8"></polyline>
-              </svg>
-              Add to List
-            </Button>
+      {/* Bulk actions bar - always visible */}
+      <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between mb-4">
+        {selectedPartners.length > 0 ? (
+          <>
+            <div className="flex items-center">
+              <span className="text-indigo-700 font-medium mr-2 text-[14px]">{selectedPartners.length} partners selected</span>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className="text-gray-600"
+                onClick={() => setSelectedPartners([])}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                  <path d="M18 6 6 18"></path>
+                  <path d="m6 6 12 12"></path>
+                </svg>
+                Clear selection
+              </Button>
+            </div>
             
-            <Button 
-              variant="outline" 
-              size="sm"
-              className="text-indigo-600"
-              onClick={() => {
-                alert('Selected partners can be added to a campaign. This will be available in the Campaigns section');
-              }}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                <path d="M22 2 11 13" />
-                <path d="M22 2 15 22 11 13 2 9 22 2z" />
-              </svg>
-              Add to Campaign
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => {
-                // Reload templates when opening the modal
+            <div className="flex items-center gap-2 flex-wrap">
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="text-indigo-600"
+                onClick={() => setShowSaveListModal(true)}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                  <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                  <polyline points="7 3 7 8 15 8"></polyline>
+                </svg>
+                Add to List
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="text-indigo-600"
+                onClick={() => {
+                  alert('Selected partners can be added to a campaign. This will be available in the Campaigns section');
+                }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                  <path d="M22 2 11 13" />
+                  <path d="M22 2 15 22 11 13 2 9 22 2z" />
+                </svg>
+                Add to Campaign
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="text-indigo-600"
+                onClick={() => {
+                  // Reload templates when opening the modal
                 const storedTemplates = localStorage.getItem('okrTemplates');
                 if (storedTemplates) {
                   try {
@@ -1366,9 +1368,21 @@ function PartnersTable() {
               </svg>
               Assign Template
             </Button>
+            </div>
+          </>
+        ) : (
+          /* Empty state when no partners are selected */
+          <div className="flex items-center justify-center w-full min-h-[32px]">
+            <div className="flex items-center text-gray-500">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                <path d="M9 12l2 2 4-4"></path>
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              </svg>
+              <span className="text-sm">Select at least one partner from the list to perform bulk actions</span>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
       {/* Statistics overview */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <div className="bg-white p-4 rounded-md border border-gray-200">
@@ -2603,79 +2617,6 @@ function PartnersTable() {
     </div>
   );
 }
-
-export default function PartnersPage() {
-  const [isEditingList, setIsEditingList] = useState(false);
-  const [showCreateModal, setShowCreateModal] = useState(false);
-  const [isCreating, setIsCreating] = useState(false);
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  
-  // Form data for creating new partner with all available fields
-  const [formData, setFormData] = useState({
-    name: '',
-    description: '',
-    location: '',
-    contactEmail: '',
-    primaryContact: '',
-    partnerType: 'partner',
-    region: '',
-    status: 'active',
-    industry: 'Insurance',
-    size: 'medium'
-  });
-
-  const handleCreatePartner = async () => {
-    if (!formData.name.trim() || !formData.description.trim()) {
-      toast({
-        title: "Validation Error",
-        description: "Name and description are required fields.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    setIsCreating(true);
-    try {
-      const response = await fetch('/api/partners', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to create partner');
-      }
-
-      const newPartner = await response.json();
-      
-      // Invalidate and refetch partners data
-      queryClient.invalidateQueries({ queryKey: ['/api/partners'] });
-      
-      toast({
-        title: "Partner Created",
-        description: `"${formData.name}" has been created successfully.`
-      });
-
-      // Reset form and close modal
-      setFormData({
-        name: '',
-        description: '',
-        location: '',
-        contactEmail: '',
-        primaryContact: '',
-        partnerType: 'partner',
-        region: '',
-        status: 'active',
-        industry: 'Insurance',
-        size: 'medium'
-      });
-      setShowCreateModal(false);
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to create partner. Please try again.",
-        variant: "destructive"
       });
     } finally {
       setIsCreating(false);
