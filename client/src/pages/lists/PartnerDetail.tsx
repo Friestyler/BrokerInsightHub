@@ -1239,6 +1239,27 @@ export default function PartnerDetail() {
                             <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
                           </svg>
                           <span>{selectedStatus ? `Stage: ${selectedStatus}` : 'Stage'}</span>
+                          {selectedStatus && (
+                            <svg 
+                              xmlns="http://www.w3.org/2000/svg" 
+                              width="14" 
+                              height="14" 
+                              viewBox="0 0 24 24" 
+                              fill="none" 
+                              stroke="currentColor" 
+                              strokeWidth="2" 
+                              strokeLinecap="round" 
+                              strokeLinejoin="round" 
+                              className="ml-2 hover:bg-indigo-100 rounded-full p-0.5 cursor-pointer"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedStatus("");
+                              }}
+                            >
+                              <path d="M18 6L6 18"></path>
+                              <path d="M6 6l12 12"></path>
+                            </svg>
+                          )}
                         </button>
                         
                         {showStatusDropdown && (
@@ -1290,6 +1311,27 @@ export default function PartnerDetail() {
                             <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
                           </svg>
                           <span>{selectedCustomer ? `Customer: ${selectedCustomer}` : 'Customer'}</span>
+                          {selectedCustomer && (
+                            <svg 
+                              xmlns="http://www.w3.org/2000/svg" 
+                              width="14" 
+                              height="14" 
+                              viewBox="0 0 24 24" 
+                              fill="none" 
+                              stroke="currentColor" 
+                              strokeWidth="2" 
+                              strokeLinecap="round" 
+                              strokeLinejoin="round" 
+                              className="ml-2 hover:bg-indigo-100 rounded-full p-0.5 cursor-pointer"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setSelectedCustomer("");
+                              }}
+                            >
+                              <path d="M18 6L6 18"></path>
+                              <path d="M6 6l12 12"></path>
+                            </svg>
+                          )}
                         </button>
                         
                         {showCustomerDropdown && (
