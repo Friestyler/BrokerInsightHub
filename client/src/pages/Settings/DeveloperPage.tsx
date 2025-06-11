@@ -509,7 +509,12 @@ function DeveloperPage() {
                   <Card key={`${schemaName}-${tableName}`}>
                     <CardHeader>
                       <CardTitle className="text-lg capitalize flex items-center justify-between">
-                        {tableName}
+                        <div className="flex items-center gap-2">
+                          {tableName}
+                          <Badge variant="outline" className="text-xs bg-blue-50 text-blue-700">
+                            {tableCounts[tableName] !== undefined ? `${tableCounts[tableName]} records` : 'Loading...'}
+                          </Badge>
+                        </div>
                         <Badge 
                           variant={
                             tableInfo.shadowRisk === 'None - Primary schema' ? 'default' :

@@ -4661,7 +4661,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/:environment/table-counts', async (req, res) => {
     try {
       const environment = req.params.environment;
-      const { pool } = await import('./db.js');
+      const { pool } = await import('./db');
       const client = await pool.connect();
       
       try {
