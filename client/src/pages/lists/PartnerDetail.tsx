@@ -99,38 +99,7 @@ export default function PartnerDetail() {
   const customerDropdownRef = useRef<HTMLDivElement>(null);
   
   // Views functionality state
-  const [savedViews, setSavedViews] = useState<any[]>([
-    {
-      id: 1,
-      name: "High Value Opportunities",
-      filters: {
-        searchText: "",
-        stage: "Proposal",
-        customer: ""
-      },
-      createdAt: new Date('2024-01-15')
-    },
-    {
-      id: 2,
-      name: "Active Negotiations",
-      filters: {
-        searchText: "",
-        stage: "Negotiation",
-        customer: ""
-      },
-      createdAt: new Date('2024-02-01')
-    },
-    {
-      id: 3,
-      name: "New Prospects",
-      filters: {
-        searchText: "",
-        stage: "Initial Contact",
-        customer: ""
-      },
-      createdAt: new Date('2024-02-10')
-    }
-  ]);
+  const [savedViews, setSavedViews] = useState<any[]>([]);
   const [activeView, setActiveView] = useState<any>(null);
   const [showViewsDropdown, setShowViewsDropdown] = useState(false);
   const viewsButtonRef = useRef<HTMLButtonElement>(null);
