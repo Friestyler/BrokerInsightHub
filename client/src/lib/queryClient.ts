@@ -7,6 +7,10 @@ declare global {
   }
 }
 
+// Aggressive caching for instant navigation
+const CACHE_TIME = 10 * 60 * 1000; // 10 minutes
+const STALE_TIME = 5 * 60 * 1000; // 5 minutes - data considered fresh
+
 // Get the current environment ID from window
 function getCurrentEnvironmentId(): string {
   const envFromWindow = window.__APP_ENV__;
@@ -120,8 +124,12 @@ export const queryClient = new QueryClient({
       queryFn: getQueryFn({ on401: "throw" }),
       refetchInterval: false,
       refetchOnWindowFocus: false,
-      staleTime: Infinity,
-      retry: false,
+      staleTime: STALE_TIME, // 5 minutes - data considered fresh
+      gcTime: CACHE_TIME, // 10 minutes - keep in cache
+      retry: 1,
+      retryDelay: 500,
+      // Network mode for instant navigation
+      networkMode: 'online',
     },
     mutations: {
       retry: false,

@@ -2,6 +2,7 @@ import { useLocation, Link } from "wouter";
 import { useState, useEffect, useRef } from "react";
 import EnvironmentSelector from "./EnvironmentSelector";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
+import { queryClient } from "@/lib/queryClient";
 import qollabiLogo from "@assets/logo_qollabi_O_dark.png";
 
 interface SidebarProps {
@@ -18,6 +19,40 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
   const [settingsMenuOpen, setSettingsMenuOpen] = useState(false);
   const dataMenuRef = useRef<HTMLDivElement>(null);
   const { environment } = useEnvironment();
+  
+  // Prefetch all critical data for instant navigation
+  useEffect(() => {
+    const prefetchData = async () => {
+      const criticalQueries = [
+        '/api/partners',
+        '/api/customers', 
+        '/api/opportunities',
+        '/api/products',
+        '/api/saved-lists?entity_type=partners',
+        '/api/saved-lists?entity_type=customers',
+        '/api/saved-lists?entity_type=opportunities',
+        '/api/saved-views?entity_type=partners',
+        '/api/saved-views?entity_type=customers',
+        '/api/saved-views?entity_type=opportunities',
+        '/api/okr-metrics',
+        '/api/okr-tags',
+        '/api/template-assignments/partner',
+        '/api/template-assignments/customer',
+        '/api/template-assignments/opportunity'
+      ];
+
+      // Prefetch all queries in parallel
+      criticalQueries.forEach(queryKey => {
+        queryClient.prefetchQuery({
+          queryKey: [queryKey],
+          staleTime: 5 * 60 * 1000 // 5 minutes
+        });
+      });
+    };
+
+    // Prefetch after a short delay to not block initial render
+    setTimeout(prefetchData, 100);
+  }, [environment]);
   
   // Auto-open the appropriate menu when on relevant pages
   useEffect(() => {
