@@ -40,6 +40,22 @@ export default function PartnerDetailBrokerPOV() {
   const [selectedOpportunityType, setSelectedOpportunityType] = useState('');
   const [renderKey, setRenderKey] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  
+  // Close stage dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (stageDropdownRef && !stageDropdownRef.contains(event.target as Node)) {
+        setEditingStageId(null);
+      }
+    }
+
+    if (editingStageId) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [editingStageId, stageDropdownRef]);
 
   // Edit list state management
   const [isEditingList, setIsEditingList] = useState(false);
@@ -49,6 +65,13 @@ export default function PartnerDetailBrokerPOV() {
   
   // Selection state for opportunities
   const [selectedOpportunities, setSelectedOpportunities] = useState<number[]>([]);
+
+  // Stage editing state
+  const [editingStageId, setEditingStageId] = useState<number | null>(null);
+  const [stageDropdownRef, setStageDropdownRef] = useState<HTMLDivElement | null>(null);
+
+  // Define stage options
+  const OPPORTUNITY_STAGES = ['discovery', 'qualification', 'proposal', 'negotiation', 'closed_won', 'closed_lost'];
 
   // For broker view, show De Goudse as the sharing partner
   const partner = {
@@ -144,6 +167,44 @@ export default function PartnerDetailBrokerPOV() {
       timestamp: new Date().toISOString()
     });
   }, [activeOpportunitiesList]);
+
+  // Mutation for updating opportunity stage
+  const updateOpportunityStage = useMutation({
+    mutationFn: async ({ opportunityId, stage }: { opportunityId: number, stage: string }) => {
+      return await apiRequest('PATCH', `/api/opportunities/${opportunityId}`, { stage });
+    },
+    onSuccess: (data, variables) => {
+      // Invalidate multiple related queries to ensure UI updates
+      queryClient.invalidateQueries({ queryKey: ['/api/degoudse/partners/4/opportunities'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/opportunities'] });
+      
+      // Optimistically update the cached data
+      queryClient.setQueryData(['/api/degoudse/partners/4/opportunities'], (oldData: any) => {
+        if (oldData) {
+          return oldData.map((opp: any) => 
+            opp.id === variables.opportunityId 
+              ? { ...opp, stage: variables.stage }
+              : opp
+          );
+        }
+        return oldData;
+      });
+      
+      setEditingStageId(null);
+      toast({
+        title: "Stage updated",
+        description: "Opportunity stage has been updated successfully.",
+      });
+    },
+    onError: (error) => {
+      console.error('Error updating stage:', error);
+      toast({
+        title: "Error updating stage",
+        description: "Failed to update opportunity stage. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
 
   // Edit list mutation
   const editListMutation = useMutation({
@@ -965,9 +1026,44 @@ export default function PartnerDetailBrokerPOV() {
                             </span>
                           </TableCell>
                           <TableCell>
-                            <span className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800">
-                              {opportunity.stage}
-                            </span>
+                            <div className="relative">
+                              {editingStageId === opportunity.id ? (
+                                <div 
+                                  ref={(el) => setStageDropdownRef(el)}
+                                  className="relative"
+                                >
+                                  <div className="absolute top-0 left-0 z-50 bg-white border border-gray-300 rounded-md shadow-lg min-w-[150px]">
+                                    {OPPORTUNITY_STAGES.map((stage) => (
+                                      <button
+                                        key={stage}
+                                        className={`w-full text-left px-3 py-2 text-sm hover:bg-gray-100 first:rounded-t-md last:rounded-b-md ${
+                                          stage === opportunity.stage ? 'bg-blue-50 text-blue-700 font-medium' : 'text-gray-700'
+                                        }`}
+                                        onClick={() => {
+                                          if (stage !== opportunity.stage) {
+                                            updateOpportunityStage.mutate({
+                                              opportunityId: opportunity.id,
+                                              stage: stage
+                                            });
+                                          } else {
+                                            setEditingStageId(null);
+                                          }
+                                        }}
+                                      >
+                                        {stage}
+                                      </button>
+                                    ))}
+                                  </div>
+                                </div>
+                              ) : (
+                                <button
+                                  className="px-2 py-1 rounded-full text-xs bg-blue-100 text-blue-800 hover:bg-blue-200 transition-colors cursor-pointer"
+                                  onClick={() => setEditingStageId(opportunity.id)}
+                                >
+                                  {opportunity.stage}
+                                </button>
+                              )}
+                            </div>
                           </TableCell>
                           <TableCell>
                             €{opportunity.estimated_value ? Number(opportunity.estimated_value).toLocaleString() : '0'}
