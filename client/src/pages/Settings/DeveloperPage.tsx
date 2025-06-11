@@ -73,6 +73,26 @@ const databaseSchemas = {
         columns: ['id', 'name', 'color', 'created_at', 'updated_at'],
         relationships: ['degoudse.okr_metrics'],
         shadowRisk: 'Low - Environment isolated'
+      },
+      saved_lists: {
+        columns: ['id', 'name', 'description', 'type', 'entity_type', 'members', 'filters', 'is_shared', 'is_default', 'created_by', 'created_at', 'updated_at', 'partner_id'],
+        relationships: ['degoudse.users (created_by)', 'degoudse.partners (partner_id)', 'degoudse.shared_lists'],
+        shadowRisk: 'Low - Environment isolated'
+      },
+      shared_lists: {
+        columns: ['id', 'list_id', 'shared_with_partner_id', 'shared_by_user_id', 'permissions', 'shared_at'],
+        relationships: ['degoudse.saved_lists', 'degoudse.partners', 'degoudse.users'],
+        shadowRisk: 'Low - Environment isolated'
+      },
+      list_collaborators: {
+        columns: ['id', 'list_id', 'user_id', 'permissions', 'added_by', 'added_at'],
+        relationships: ['degoudse.saved_lists', 'degoudse.users'],
+        shadowRisk: 'Low - Environment isolated'
+      },
+      saved_views: {
+        columns: ['id', 'name', 'description', 'entity_type', 'view_config', 'filters', 'sort_config', 'column_config', 'is_default', 'created_by', 'created_at', 'updated_at'],
+        relationships: ['degoudse.users (created_by)'],
+        shadowRisk: 'Low - Environment isolated'
       }
     }
   }
