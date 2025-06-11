@@ -5,7 +5,8 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
@@ -99,12 +100,30 @@ export default function PartnerDetail() {
   const customerDropdownRef = useRef<HTMLDivElement>(null);
   
   // Views functionality state
-  const [savedViews, setSavedViews] = useState<any[]>([]);
   const [activeView, setActiveView] = useState<any>(null);
   const [showViewsDropdown, setShowViewsDropdown] = useState(false);
   const viewsButtonRef = useRef<HTMLButtonElement>(null);
   const viewsDropdownRef = useRef<HTMLDivElement>(null);
   const [originalViewFilters, setOriginalViewFilters] = useState<any>(null);
+  const [showSaveViewModal, setShowSaveViewModal] = useState(false);
+  const [viewNameInput, setViewNameInput] = useState('');
+
+  // Fetch saved views from database
+  const { data: savedViewsData = [] } = useQuery({
+    queryKey: ['/api/saved-views'],
+    queryFn: () => apiRequest('GET', '/api/saved-views?entity_type=opportunities'),
+    staleTime: 2 * 60 * 1000, // 2 minutes
+  });
+
+  // Convert database records to local interface format
+  const savedViews = savedViewsData.map((view: any) => ({
+    id: view.id.toString(),
+    name: view.name,
+    description: view.description,
+    filters: view.filters || {},
+    createdBy: view.created_by,
+    createdAt: new Date(view.created_at)
+  }));
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -129,6 +148,29 @@ export default function PartnerDetail() {
       }
     }
   }, [selectedStatus, selectedCustomer, activeView, originalViewFilters]);
+
+  // Mutation for creating saved views
+  const createSavedViewMutation = useMutation({
+    mutationFn: async (viewData: any) => {
+      return await apiRequest('POST', '/api/saved-views', viewData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-views'] });
+      toast({
+        title: "View Saved",
+        description: "Your view has been saved successfully"
+      });
+      setShowSaveViewModal(false);
+      setViewNameInput('');
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to save view. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
 
   // Mutation for creating new lists
   const createListMutation = useMutation({
@@ -1223,10 +1265,22 @@ export default function PartnerDetail() {
                               </div>
                             ))}
                           </div>
-                          {activeView && (
-                            <div className="p-2">
+                          <div className="p-2 border-t">
+                            <button 
+                              className="flex w-full items-center p-2 text-sm rounded-md text-indigo-600 hover:bg-indigo-50"
+                              onClick={() => {
+                                setShowViewsDropdown(false);
+                                setShowSaveViewModal(true);
+                              }}
+                            >
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                                <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                              </svg>
+                              Save current view
+                            </button>
+                            {activeView && (
                               <button 
-                                className="flex w-full items-center p-2 text-sm rounded-md text-indigo-600 hover:bg-indigo-50"
+                                className="flex w-full items-center p-2 text-sm rounded-md text-indigo-600 hover:bg-indigo-50 mt-1"
                                 onClick={() => {
                                   setShowViewsDropdown(false);
                                   // Clear active view
@@ -1244,8 +1298,8 @@ export default function PartnerDetail() {
                                 </svg>
                                 Clear view
                               </button>
-                            </div>
-                          )}
+                            )}
+                          </div>
                         </div>
                       )}
                     </div>
@@ -1968,6 +2022,81 @@ export default function PartnerDetail() {
         entityType="partner"
         entityId={partner?.id || 0}
       />
+
+      {/* Save View Modal */}
+      <Dialog open={showSaveViewModal} onOpenChange={setShowSaveViewModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Save Current View</DialogTitle>
+            <DialogDescription>
+              Save your current filter combination as a reusable view.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="viewName" className="text-right">
+                Name
+              </Label>
+              <Input
+                id="viewName"
+                value={viewNameInput}
+                onChange={(e) => setViewNameInput(e.target.value)}
+                className="col-span-3"
+                placeholder="Enter view name..."
+              />
+            </div>
+            <div className="text-sm text-gray-600">
+              <p>Current filters:</p>
+              <ul className="mt-1 space-y-1">
+                {selectedStatus && <li>• Stage: {selectedStatus}</li>}
+                {selectedCustomer && <li>• Customer: {selectedCustomer}</li>}
+                {!selectedStatus && !selectedCustomer && <li>• No filters applied</li>}
+              </ul>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => {
+                setShowSaveViewModal(false);
+                setViewNameInput('');
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={() => {
+                if (!viewNameInput.trim()) {
+                  toast({
+                    title: "Error",
+                    description: "Please enter a name for the view.",
+                    variant: "destructive"
+                  });
+                  return;
+                }
+
+                const viewData = {
+                  name: viewNameInput.trim(),
+                  description: '',
+                  filters: {
+                    stage: selectedStatus || undefined,
+                    customer: selectedCustomer || undefined,
+                  },
+                  entity_type: 'opportunities',
+                  created_by: 1 // Default user ID
+                };
+
+                createSavedViewMutation.mutate(viewData);
+              }}
+              disabled={createSavedViewMutation.isPending}
+            >
+              {createSavedViewMutation.isPending ? 'Saving...' : 'Save View'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
