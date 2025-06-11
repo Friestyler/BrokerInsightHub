@@ -63,6 +63,7 @@
 
 .nav-item-inactive:hover {
   color: #282A3F !important;
+  background-color: #E6E7F1 !important;
 }
 
 .nav-item-active {
@@ -73,6 +74,11 @@
 /* Override any remaining font-medium classes in active navigation items */
 .nav-item-active.font-medium {
   font-weight: normal !important;
+}
+
+/* Override hover background for all navigation items */
+.hover\:bg-indigo-50:hover {
+  background-color: #E6E7F1 !important;
 }
 
 
