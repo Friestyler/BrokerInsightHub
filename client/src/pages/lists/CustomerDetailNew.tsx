@@ -10,6 +10,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSepara
 import { ArrowLeft, Search, Users, Copy, Trash2, MoreHorizontal } from "lucide-react";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import LogoUploadModal from "@/components/LogoUploadModal";
+import EntityAvatar from "@/components/EntityAvatar";
 
 export default function CustomerDetailNew() {
   const { id } = useParams();
@@ -156,28 +157,25 @@ export default function CustomerDetailNew() {
               <ArrowLeft className="w-4 h-4 group-hover:text-[#5567E5]" />
             </Button>
           </Link>
-          {/* Company Logo Placeholder */}
+          {/* Customer Logo */}
           <div className="flex-shrink-0 mr-4">
             <button
               onClick={() => setShowLogoUploadModal(true)}
-              className={`w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center transition-colors group ${
-                customerLogo 
-                  ? "border-0 hover:bg-gray-50" 
-                  : "border-2 border-dashed border-gray-300 hover:border-gray-400 hover:bg-gray-50"
-              }`}
+              className="relative group"
               title="Click to upload logo"
             >
-              {customerLogo ? (
-                <img
-                  src={customerLogo}
-                  alt={`${customer?.name} logo`}
-                  className="w-full h-full object-cover rounded-md"
-                />
-              ) : (
-                <svg className="w-6 h-6 text-gray-400 group-hover:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+              <EntityAvatar
+                entityType="customer"
+                entityId={parseInt(id || '0')}
+                fallbackText={customer?.name?.substring(0, 2).toUpperCase() || 'CU'}
+                size="lg"
+                className="w-16 h-16 border-2 border-dashed border-gray-300 group-hover:border-gray-400"
+              />
+              <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 rounded-full transition-all duration-200 flex items-center justify-center">
+                <svg className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                 </svg>
-              )}
+              </div>
             </button>
           </div>
           <div className="flex-1">
