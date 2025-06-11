@@ -40,22 +40,6 @@ export default function PartnerDetailBrokerPOV() {
   const [selectedOpportunityType, setSelectedOpportunityType] = useState('');
   const [renderKey, setRenderKey] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
-  
-  // Close stage dropdown when clicking outside
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (stageDropdownRef && !stageDropdownRef.contains(event.target as Node)) {
-        setEditingStageId(null);
-      }
-    }
-
-    if (editingStageId) {
-      document.addEventListener('mousedown', handleClickOutside);
-      return () => {
-        document.removeEventListener('mousedown', handleClickOutside);
-      };
-    }
-  }, [editingStageId, stageDropdownRef]);
 
   // Edit list state management
   const [isEditingList, setIsEditingList] = useState(false);
@@ -72,6 +56,22 @@ export default function PartnerDetailBrokerPOV() {
 
   // Define stage options
   const OPPORTUNITY_STAGES = ['discovery', 'qualification', 'proposal', 'negotiation', 'closed_won', 'closed_lost'];
+  
+  // Close stage dropdown when clicking outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (stageDropdownRef && !stageDropdownRef.contains(event.target as Node)) {
+        setEditingStageId(null);
+      }
+    }
+
+    if (editingStageId) {
+      document.addEventListener('mousedown', handleClickOutside);
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }
+  }, [editingStageId, stageDropdownRef]);
 
   // For broker view, show De Goudse as the sharing partner
   const partner = {
