@@ -26,13 +26,15 @@ import { promises as fsPromises } from 'fs';
 import { v4 as uuidv4 } from 'uuid';
 import { comparePdfDocuments, extractTextFromPdf } from './services/pdfComparison';
 
-// Simple in-memory cache for fast responses
+// Aggressive in-memory cache for fast responses
 const cache = new Map();
-const CACHE_TTL = 30000; // 30 seconds
+const CACHE_TTL = 300000; // 5 minutes for critical endpoints
+const CRITICAL_CACHE_TTL = 600000; // 10 minutes for partners/customers
 
 function getCached(key: string) {
   const cached = cache.get(key);
-  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+  const ttl = key.includes('partners') || key.includes('customers') ? CRITICAL_CACHE_TTL : CACHE_TTL;
+  if (cached && Date.now() - cached.timestamp < ttl) {
     return cached.data;
   }
   return null;
@@ -40,6 +42,18 @@ function getCached(key: string) {
 
 function setCache(key: string, data: any) {
   cache.set(key, { data, timestamp: Date.now() });
+  
+  // Clear old cache entries periodically
+  if (cache.size > 100) {
+    const now = Date.now();
+    const keysToDelete = [];
+    cache.forEach((v, k) => {
+      if (now - v.timestamp > CRITICAL_CACHE_TTL) {
+        keysToDelete.push(k);
+      }
+    });
+    keysToDelete.forEach(k => cache.delete(k));
+  }
 }
 
 // Setup multer storage for file uploads
@@ -1400,6 +1414,33 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Emergency fast partners endpoint - serves immediate response
+  app.get('/api/degoudse/partners-fast', async (req, res) => {
+    try {
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query(`SELECT id, name, description, status, location, contact_email FROM degoudse.partners ORDER BY id LIMIT 10`);
+      
+      const partners = result.rows.map((partner: any) => ({
+        id: partner.id,
+        name: partner.name,
+        description: partner.description,
+        initials: partner.name.split(' ').map((word: string) => word[0]).join('').toUpperCase().slice(0, 2),
+        industry: "Insurance",
+        type: "Partner",
+        size: "medium",
+        status: partner.status,
+        customers: 0,
+        opportunities: 0,
+        location: partner.location,
+        contactEmail: partner.contact_email
+      }));
+      
+      res.json(partners);
+    } catch (error) {
+      res.status(500).json({ error: 'Failed to fetch partners' });
+    }
+  });
+
   // De Goudse environment API routes (using proper database isolation)
   app.get('/api/degoudse/partners', async (req, res) => {
     const cacheKey = 'degoudse_partners';
@@ -1410,37 +1451,66 @@ export async function registerRoutes(app: Express): Promise<Server> {
       return res.json(cached);
     }
     
-    // Add aggressive caching headers
-    res.set('Cache-Control', 'public, max-age=60');
-    
     try {
       const envPool = getEnvironmentPool('degoudse');
-      // Optimized simple query with LIMIT for faster response
+      
+      // Simple optimized query without expensive JOINs
       const result = await envPool.query(`
-        SELECT p.*
+        SELECT p.id, p.name, p.description, p.status, p.location, p.contact_email, 
+               p.primary_contact, p.partner_type, p.region, p.assigned_user_ids, 
+               p.linked_opportunity_ids, p.created_at, p.updated_at
         FROM degoudse.partners p
         ORDER BY p.id
-        LIMIT 100
       `);
+      
+      // Get relationship counts in separate optimized queries
+      const relationshipCounts = await Promise.all([
+        envPool.query(`
+          SELECT partner_id, COUNT(*) as customer_count 
+          FROM degoudse.partner_customers 
+          GROUP BY partner_id
+        `),
+        envPool.query(`
+          SELECT partner_id, COUNT(*) as opportunity_count 
+          FROM degoudse.partner_opportunities 
+          GROUP BY partner_id
+        `)
+      ]);
+      
+      const customerCountMap = new Map();
+      const opportunityCountMap = new Map();
+      
+      relationshipCounts[0].rows.forEach((row: any) => {
+        customerCountMap.set(row.partner_id, row.customer_count);
+      });
+      
+      relationshipCounts[1].rows.forEach((row: any) => {
+        opportunityCountMap.set(row.partner_id, row.opportunity_count);
+      });
       
       const partners = result.rows.map((partner: any) => ({
         id: partner.id,
         name: partner.name,
         description: partner.description,
         initials: partner.name.split(' ').map((word: string) => word[0]).join('').toUpperCase().slice(0, 2),
-        industry: "Insurance",
-        type: partner.partner_type || "Partner", 
-        size: "medium",
+        industry: getIndustryFromDescription(partner.description || ''),
+        type: getTypeFromDescription(partner.description || ''),
+        size: getSizeFromDescription(partner.description || ''),
         status: partner.status,
-        customers: 0, // Simplified - removed expensive count queries
-        opportunities: 0, // Simplified - removed expensive count queries
+        customers: customerCountMap.get(partner.id) || 0,
+        opportunities: opportunityCountMap.get(partner.id) || 0,
         opportunity_value: 0,
         weighted_opportunity_value: 0,
         location: partner.location,
         contactEmail: partner.contact_email,
         primaryContact: partner.primary_contact,
+        partner_type: partner.partner_type,
         region: partner.region,
-        customerNames: '' // Simplified - removed expensive aggregation
+        assigned_user_ids: partner.assigned_user_ids,
+        linked_opportunity_ids: partner.linked_opportunity_ids,
+        createdAt: partner.created_at,
+        updatedAt: partner.updated_at,
+        customerNames: ''
       }));
       
       // Cache the result for fast subsequent requests
