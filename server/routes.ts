@@ -1947,6 +1947,39 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update a saved view in degoudse
+  app.put('/api/degoudse/saved-views/:id', async (req, res) => {
+    try {
+      const { id } = req.params;
+      const { name, description, filters, is_shared } = req.body;
+      const envPool = getEnvironmentPool('degoudse');
+      
+      console.log(`FIXED: Updating saved view ${id} in degoudse:`, { name, filters });
+      
+      const result = await envPool.query(`
+        UPDATE degoudse.saved_views 
+        SET name = $1, description = $2, filters = $3, is_shared = $4, updated_at = NOW()
+        WHERE id = $5
+        RETURNING *
+      `, [name, description || '', JSON.stringify(filters || {}), is_shared || false, parseInt(id)]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Saved view not found' });
+      }
+      
+      console.log(`FIXED: Updated saved view:`, result.rows[0]);
+      
+      // Clear cache for this entity type
+      cache.delete(`degoudse_saved_views_partners`);
+      cache.delete(`degoudse_saved_views_all`);
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error updating De Goudse saved view:', error);
+      res.status(500).json({ error: 'Failed to update saved view' });
+    }
+  });
+
   // NEW ROUTE: Fixed entity filtering for De Goudse saved lists
   app.get('/api/degoudse/saved-lists-filtered', async (req, res) => {
     const entityType = req.query.entity_type as string;

@@ -105,6 +105,18 @@ const useCreateSavedView = () => {
   });
 };
 
+const useUpdateSavedView = () => {
+  return useMutation({
+    mutationFn: async ({ id, data }: { id: string, data: any }) => {
+      return apiRequest('PUT', `/api/saved-views/${id}`, data);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-views'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-views', 'partners'] });
+    }
+  });
+};
+
 // Format currency in European format
 function formatCurrency(amount: number): string {
   return new Intl.NumberFormat('nl-NL', {
@@ -349,6 +361,7 @@ function PartnersTable() {
   // Fetch saved views from database
   const { data: savedViewsData = [], isLoading: savedViewsLoading } = useSavedViews();
   const createSavedViewMutation = useCreateSavedView();
+  const updateSavedViewMutation = useUpdateSavedView();
   
   // Convert database records to local interface format
   const savedViews: SavedView[] = savedViewsData.map((view: any) => ({
