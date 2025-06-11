@@ -405,6 +405,14 @@ export default function PartnerDetailBrokerPOV() {
   // Get saved list ID from session storage for back navigation
   const getBackUrl = () => {
     const savedListId = sessionStorage.getItem('partnerViewListId');
+    const source = sessionStorage.getItem('partnerViewSource');
+    
+    // If we came from the partners page, always go back to partners
+    if (source === 'partners') {
+      return '/broker-view/partners';
+    }
+    
+    // Otherwise, use the saved list ID if available
     return savedListId ? `/broker-view/list/${savedListId}` : '/broker-view/partners';
   };
 

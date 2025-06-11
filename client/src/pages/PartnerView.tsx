@@ -54,8 +54,17 @@ export default function PartnerView() {
   useEffect(() => {
     if (listId) {
       sessionStorage.setItem('partnerViewListId', listId);
+      sessionStorage.setItem('partnerViewSource', 'list');
+    } else if (isPartnersPage) {
+      // Clear the stored list ID when on the partners page
+      sessionStorage.removeItem('partnerViewListId');
+      sessionStorage.removeItem('partnerViewSource');
+    } else if (isAllOpportunitiesPage) {
+      // Set source as opportunities page
+      sessionStorage.removeItem('partnerViewListId');
+      sessionStorage.setItem('partnerViewSource', 'opportunities');
     }
-  }, [listId]);
+  }, [listId, isPartnersPage, isAllOpportunitiesPage]);
 
   // Filter opportunities based on list members and current filters
   useEffect(() => {

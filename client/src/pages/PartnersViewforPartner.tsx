@@ -266,7 +266,16 @@ function PartnerTable() {
                       </div>
                       <div className="ml-4">
                         <Link href={`/broker-view/partner/${partner.id}`}>
-                          <div className="font-medium text-gray-900 hover:text-indigo-600 cursor-pointer">{partner.name}</div>
+                          <div 
+                            className="font-medium text-gray-900 hover:text-indigo-600 cursor-pointer"
+                            onClick={() => {
+                              // Clear any stored list ID and set the source as partners page
+                              sessionStorage.removeItem('partnerViewListId');
+                              sessionStorage.setItem('partnerViewSource', 'partners');
+                            }}
+                          >
+                            {partner.name}
+                          </div>
                         </Link>
                       </div>
                     </div>
