@@ -5,7 +5,7 @@ import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -2039,76 +2039,125 @@ export default function PartnerDetail() {
         entityId={partner?.id || 0}
       />
 
-      {/* Save View Modal */}
-      <Dialog open={showSaveViewModal} onOpenChange={setShowSaveViewModal}>
-        <DialogContent className="sm:max-w-md">
+      {/* Save as new View Modal */}
+      <Dialog 
+        open={showSaveViewModal} 
+        onOpenChange={(open) => {
+          if (open) {
+            // Always start with empty input for "Save as new view"
+            setViewNameInput('');
+          }
+          setShowSaveViewModal(open);
+        }}>
+        <DialogContent className="sm:max-w-md bg-[#ffffff] text-[#282A3F] p-[32px]">
           <DialogHeader>
-            <DialogTitle>Save Current View</DialogTitle>
-            <DialogDescription>
-              Save your current filter combination as a reusable view.
+            <DialogTitle>Save as new view</DialogTitle>
+            <DialogDescription className="text-sm text-[#282A3F]">
+              Save your current filter settings as a new view that you can easily access later. Views store filter combinations but not specific opportunity selections.
             </DialogDescription>
           </DialogHeader>
+          
           <div className="grid gap-4 py-4">
-            <div className="grid grid-cols-4 items-center gap-4">
-              <Label htmlFor="viewName" className="text-right">
-                Name
-              </Label>
-              <Input
-                id="viewName"
+            <div className="grid gap-2">
+              <Label htmlFor="viewName">View Name<span className="text-red-500">*</span></Label>
+              <Input 
+                id="viewName" 
+                placeholder="Enter a name for this view"
+                maxLength={50}
                 value={viewNameInput}
                 onChange={(e) => setViewNameInput(e.target.value)}
-                className="col-span-3"
-                placeholder="Enter view name..."
               />
+              <p className="text-xs text-gray-500">Maximum 50 characters</p>
             </div>
-            <div className="text-sm text-gray-600">
-              <p>Current filters:</p>
-              <ul className="mt-1 space-y-1">
-                {selectedStatus && <li>• Stage: {selectedStatus}</li>}
-                {selectedCustomer && <li>• Customer: {selectedCustomer}</li>}
-                {!selectedStatus && !selectedCustomer && <li>• No filters applied</li>}
-              </ul>
+            
+            <div className="bg-[#EBEEFB] p-4 rounded-md border border-[#D4D9F3]">
+              <div className="text-sm font-medium mb-2 text-[#282A3F]">Filters saved in this view</div>
+              <div className="space-y-2">
+                {selectedStatus && (
+                  <div className="flex items-center text-sm">
+                    <span className="font-medium w-24 text-[#3E4DC4]">Stage:</span>
+                    <span className="text-[#282A3F]">{selectedStatus}</span>
+                  </div>
+                )}
+                {selectedCustomer && (
+                  <div className="flex items-center text-sm">
+                    <span className="font-medium w-24 text-[#3E4DC4]">Customer:</span>
+                    <span className="text-[#282A3F]">{selectedCustomer}</span>
+                  </div>
+                )}
+                {!selectedStatus && !selectedCustomer && (
+                  <div className="text-sm text-[#5F6585] italic">No filters currently applied</div>
+                )}
+              </div>
             </div>
           </div>
-          <DialogFooter>
+          
+          <DialogFooter className="sm:justify-end">
+            <DialogClose asChild>
+              <Button variant="outline">Cancel</Button>
+            </DialogClose>
             <Button
-              type="button"
-              variant="outline"
+              disabled={!viewNameInput.trim()}
               onClick={() => {
-                setShowSaveViewModal(false);
-                setViewNameInput('');
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              type="button"
-              onClick={() => {
-                if (!viewNameInput.trim()) {
+                // Always create a new view
+                const viewName = viewNameInput.trim();
+                
+                if (!viewName) {
                   toast({
-                    title: "Error",
-                    description: "Please enter a name for the view.",
+                    title: "Name Required",
+                    description: "Please provide a name for this view",
                     variant: "destructive"
                   });
                   return;
                 }
-
-                const viewData = {
-                  name: viewNameInput.trim(),
-                  description: '',
+                
+                // Check for duplicate view names
+                const isDuplicate = savedViews.some(view => 
+                  view.name.toLowerCase() === viewName.toLowerCase()
+                );
+                
+                if (isDuplicate) {
+                  toast({
+                    title: "Duplicate Name",
+                    description: "A view with this name already exists. Please choose a different name.",
+                    variant: "destructive"
+                  });
+                  return;
+                }
+                
+                // Create the new view in database
+                createSavedViewMutation.mutate({
+                  name: viewName,
+                  entity_type: 'opportunities',
                   filters: {
                     stage: selectedStatus || undefined,
                     customer: selectedCustomer || undefined,
                   },
-                  entity_type: 'opportunities',
-                  created_by: 1 // Default user ID
-                };
-
-                createSavedViewMutation.mutate(viewData);
+                  is_shared: false
+                }, {
+                  onSuccess: (createdView) => {
+                    const newView = {
+                      id: createdView.id.toString(),
+                      name: createdView.name,
+                      description: createdView.description,
+                      filters: createdView.filters || {},
+                      createdBy: 1,
+                      createdAt: new Date(createdView.created_at)
+                    };
+                    setActiveView(newView);
+                    // Cache invalidation is handled automatically by the mutation hook
+                  }
+                });
+                
+                toast({
+                  title: "View Saved",
+                  description: "Your new view has been saved successfully"
+                });
+                
+                setShowSaveViewModal(false);
               }}
-              disabled={createSavedViewMutation.isPending}
             >
-              {createSavedViewMutation.isPending ? 'Saving...' : 'Save View'}
+              Save View
             </Button>
           </DialogFooter>
         </DialogContent>
