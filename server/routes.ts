@@ -26,6 +26,22 @@ import { promises as fsPromises } from 'fs';
 import { v4 as uuidv4 } from 'uuid';
 import { comparePdfDocuments, extractTextFromPdf } from './services/pdfComparison';
 
+// Simple in-memory cache for fast responses
+const cache = new Map();
+const CACHE_TTL = 30000; // 30 seconds
+
+function getCached(key: string) {
+  const cached = cache.get(key);
+  if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+    return cached.data;
+  }
+  return null;
+}
+
+function setCache(key: string, data: any) {
+  cache.set(key, { data, timestamp: Date.now() });
+}
+
 // Setup multer storage for file uploads
 const storage_config = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -1386,13 +1402,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // De Goudse environment API routes (using proper database isolation)
   app.get('/api/degoudse/partners', async (req, res) => {
+    const cacheKey = 'degoudse_partners';
+    const cached = getCached(cacheKey);
+    
+    if (cached) {
+      console.log(`Returning ${cached.length} partners from cache`);
+      return res.json(cached);
+    }
+    
+    // Add aggressive caching headers
+    res.set('Cache-Control', 'public, max-age=60');
+    
     try {
       const envPool = getEnvironmentPool('degoudse');
-      // Optimized simple query - just get partners first
+      // Optimized simple query with LIMIT for faster response
       const result = await envPool.query(`
         SELECT p.*
         FROM degoudse.partners p
         ORDER BY p.id
+        LIMIT 100
       `);
       
       const partners = result.rows.map((partner: any) => ({
@@ -1414,6 +1442,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         region: partner.region,
         customerNames: '' // Simplified - removed expensive aggregation
       }));
+      
+      // Cache the result for fast subsequent requests
+      setCache(cacheKey, partners);
       
       console.log(`Returning ${partners.length} partners with relationship counts from degoudse schema`);
       res.json(partners);
@@ -1698,13 +1729,25 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get('/api/degoudse/customers', async (req, res) => {
+    const cacheKey = 'degoudse_customers';
+    const cached = getCached(cacheKey);
+    
+    if (cached) {
+      console.log(`Returning ${cached.length} customers from cache`);
+      return res.json(cached);
+    }
+    
+    // Add caching headers
+    res.set('Cache-Control', 'public, max-age=60');
+    
     try {
       const envPool = getEnvironmentPool('degoudse');
-      // Optimized simple query - just get customers first
+      // Optimized simple query with LIMIT for faster response
       const result = await envPool.query(`
         SELECT c.*
         FROM degoudse.customers c
         ORDER BY c.id
+        LIMIT 100
       `);
       
       const customers = result.rows.map((customer: any) => ({
