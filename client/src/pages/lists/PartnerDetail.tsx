@@ -16,6 +16,7 @@ import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
 import { ShareModal } from "@/components/ShareModal";
 import { apiRequest } from "@/lib/queryClient";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
+import LogoUploadModal from "@/components/LogoUploadModal";
 
 export default function PartnerDetail() {
   const { id } = useParams();
@@ -46,6 +47,10 @@ export default function PartnerDetail() {
   const [existingSharedLinks, setExistingSharedLinks] = useState<any[]>([]);
   // State to track collaborators for each list
   const [listCollaborators, setListCollaborators] = useState<Record<number, any[]>>({});
+
+  // Logo upload state
+  const [showLogoUploadModal, setShowLogoUploadModal] = useState(false);
+  const [partnerLogo, setPartnerLogo] = useState<string | null>(null);
 
   // Get collaborators for the currently active list
   const getCollaboratorsForList = (listId: number) => {
@@ -510,11 +515,23 @@ export default function PartnerDetail() {
               </Link>
               {/* Company Logo Placeholder */}
               <div className="flex-shrink-0">
-                <div className="w-16 h-16 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center">
-                  <svg className="w-6 h-6 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                  </svg>
-                </div>
+                <button
+                  onClick={() => setShowLogoUploadModal(true)}
+                  className="w-16 h-16 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center hover:border-gray-400 hover:bg-gray-50 transition-colors group"
+                  title="Click to upload logo"
+                >
+                  {partnerLogo ? (
+                    <img
+                      src={partnerLogo}
+                      alt={`${partner?.name} logo`}
+                      className="w-full h-full object-cover rounded-md"
+                    />
+                  ) : (
+                    <svg className="w-6 h-6 text-gray-400 group-hover:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                  )}
+                </button>
               </div>
               <div className="flex-1">
                 <div className="flex items-center space-x-4 mb-1">
@@ -1671,6 +1688,18 @@ export default function PartnerDetail() {
           
           return true; // Return success
         }}
+      />
+
+      {/* Logo Upload Modal */}
+      <LogoUploadModal
+        isOpen={showLogoUploadModal}
+        onClose={() => setShowLogoUploadModal(false)}
+        onUpload={(logoUrl) => {
+          setPartnerLogo(logoUrl);
+          setShowLogoUploadModal(false);
+        }}
+        entityName={partner?.name || 'Partner'}
+        entityType="partner"
       />
     </div>
   );

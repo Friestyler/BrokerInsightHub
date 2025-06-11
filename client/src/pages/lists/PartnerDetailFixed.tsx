@@ -13,6 +13,7 @@ import { Search, Copy, Users, Trash2, MoreHorizontal, MessageSquare } from "luci
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
+import LogoUploadModal from "@/components/LogoUploadModal";
 
 export default function PartnerDetail() {
   const { id } = useParams();
