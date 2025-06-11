@@ -596,6 +596,36 @@ export const brokerPartnerMappings = pgTable("broker_partner_mappings", {
   updatedAt: timestamp("updated_at").notNull().defaultNow(),
 });
 
+// Entity logos table - stores uploaded logos for partners, customers, etc.
+export const entityLogos = pgTable("entity_logos", {
+  id: serial("id").primaryKey(),
+  entityType: text("entity_type").notNull(), // "partner", "customer", "vendor", "opportunity"
+  entityId: integer("entity_id").notNull(), // ID of the entity in its respective table
+  environmentId: text("environment_id").notNull(), // e.g., "degoudse", "myqollabi"
+  logoData: text("logo_data").notNull(), // Base64 encoded image data
+  mimeType: text("mime_type").notNull(), // image/png, image/jpeg, etc.
+  originalFilename: text("original_filename"),
+  fileSize: integer("file_size"), // in bytes
+  uploadedBy: integer("uploaded_by").references(() => users.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Insert schemas for entity logos
+export const insertEntityLogoSchema = createInsertSchema(entityLogos).pick({
+  entityType: true,
+  entityId: true,
+  environmentId: true,
+  logoData: true,
+  mimeType: true,
+  originalFilename: true,
+  fileSize: true,
+  uploadedBy: true,
+});
+
+export type InsertEntityLogo = z.infer<typeof insertEntityLogoSchema>;
+export type EntityLogo = typeof entityLogos.$inferSelect;
+
 // For compatibility - new UI using mock data doesn't need these in the database yet
 export { customers as partners };
 export type Partner = Customer;

@@ -12,7 +12,9 @@ import {
   savedLists,
   savedViews,
   okrTemplateAssignments,
-  contacts
+  contacts,
+  entityLogos,
+  insertEntityLogoSchema
 } from '@shared/schema';
 import { eq, sql } from 'drizzle-orm';
 import { db, getEnvironmentPool, getEnvironmentDb } from './db';
@@ -4442,6 +4444,106 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching entity contacts:', error);
       res.status(500).json({ error: 'Failed to fetch entity contacts' });
+    }
+  });
+
+  // Entity Logos API Endpoints
+  
+  // Save entity logo
+  app.post('/api/entity-logos', async (req, res) => {
+    try {
+      const logoData = insertEntityLogoSchema.parse(req.body);
+      
+      // Check if logo already exists for this entity
+      const existingLogo = await db
+        .select()
+        .from(entityLogos)
+        .where(
+          sql`${entityLogos.entityType} = ${logoData.entityType} 
+              AND ${entityLogos.entityId} = ${logoData.entityId} 
+              AND ${entityLogos.environmentId} = ${logoData.environmentId}`
+        )
+        .limit(1);
+
+      if (existingLogo.length > 0) {
+        // Update existing logo
+        const [updatedLogo] = await db
+          .update(entityLogos)
+          .set({
+            logoData: logoData.logoData,
+            mimeType: logoData.mimeType,
+            originalFilename: logoData.originalFilename,
+            fileSize: logoData.fileSize,
+            uploadedBy: logoData.uploadedBy,
+            updatedAt: new Date(),
+          })
+          .where(eq(entityLogos.id, existingLogo[0].id))
+          .returning();
+        
+        res.json(updatedLogo);
+      } else {
+        // Create new logo
+        const [newLogo] = await db
+          .insert(entityLogos)
+          .values(logoData)
+          .returning();
+        
+        res.status(201).json(newLogo);
+      }
+    } catch (error) {
+      console.error('Error saving entity logo:', error);
+      res.status(500).json({ error: 'Failed to save entity logo' });
+    }
+  });
+
+  // Get entity logo
+  app.get('/api/entity-logos/:entityType/:entityId/:environmentId', async (req, res) => {
+    try {
+      const { entityType, entityId, environmentId } = req.params;
+      
+      const logo = await db
+        .select()
+        .from(entityLogos)
+        .where(
+          sql`${entityLogos.entityType} = ${entityType} 
+              AND ${entityLogos.entityId} = ${parseInt(entityId)} 
+              AND ${entityLogos.environmentId} = ${environmentId}`
+        )
+        .limit(1);
+
+      if (logo.length === 0) {
+        return res.status(404).json({ error: 'Logo not found' });
+      }
+
+      res.json(logo[0]);
+    } catch (error) {
+      console.error('Error fetching entity logo:', error);
+      res.status(500).json({ error: 'Failed to fetch entity logo' });
+    }
+  });
+
+  // Delete entity logo
+  app.delete('/api/entity-logos/:entityType/:entityId/:environmentId', async (req, res) => {
+    try {
+      const { entityType, entityId, environmentId } = req.params;
+      
+      const result = await db
+        .delete(entityLogos)
+        .where(
+          sql`${entityLogos.entityType} = ${entityType} 
+              AND ${entityLogos.entityId} = ${parseInt(entityId)} 
+              AND ${entityLogos.environmentId} = ${environmentId}`
+        )
+        .returning();
+
+      if (result.length === 0) {
+        return res.status(404).json({ error: 'Logo not found' });
+      }
+
+      res.json({ message: 'Logo deleted successfully' });
+    } catch (error) {
+      console.error('Error deleting entity logo:', error);
+      res.status(500).json({ error: 'Failed to delete entity logo' });
     }
   });
 
