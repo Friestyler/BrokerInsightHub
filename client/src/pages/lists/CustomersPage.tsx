@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import EntityAvatar from "@/components/EntityAvatar";
 import { Badge } from "@/components/ui/badge";
 import { Link, useLocation } from "wouter";
 import { 
@@ -812,11 +813,12 @@ export default function CustomersPageClean() {
                   <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm font-medium w-[250px]">
                     <div className="flex items-center">
                       <div className="flex-shrink-0 h-10 w-10">
-                        <Avatar className="h-10 w-10">
-                          <AvatarFallback className="bg-indigo-100 text-indigo-700 text-sm font-medium">
-                            {customer.name.substring(0, 2).toUpperCase()}
-                          </AvatarFallback>
-                        </Avatar>
+                        <EntityAvatar
+                          entityType="customer"
+                          entityId={customer.id}
+                          fallbackText={customer.name.substring(0, 2).toUpperCase()}
+                          size="lg"
+                        />
                       </div>
                       <div className="ml-3">
                         <Link href={`/lists/customers/${customer.id}`}>
