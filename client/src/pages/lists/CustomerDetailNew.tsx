@@ -167,9 +167,9 @@ export default function CustomerDetailNew() {
               <EntityAvatar
                 entityType="customer"
                 entityId={parseInt(id || '0')}
-                fallbackText={customer?.name?.substring(0, 2).toUpperCase() || 'CU'}
+                fallbackText={customer?.name?.substring(0, 2) || 'CU'}
                 size="lg"
-                className="w-16 h-16 border-2 border-dashed border-gray-300 group-hover:border-gray-400"
+                className="w-16 h-16"
               />
               <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-10 rounded-full transition-all duration-200 flex items-center justify-center">
                 <svg className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
