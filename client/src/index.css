@@ -81,6 +81,11 @@
   background-color: #E6E7F1 !important;
 }
 
+/* Override active background for all navigation items */
+.bg-indigo-50 {
+  background-color: #E1E4FB !important;
+}
+
 
 
 .dark {
