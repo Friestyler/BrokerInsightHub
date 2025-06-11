@@ -7,6 +7,10 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { useEnvironment } from '@/contexts/EnvironmentContext';
 import { 
   MessageSquare, 
@@ -28,7 +32,9 @@ import {
   Target,
   Calendar,
   DollarSign,
-  Clock
+  Clock,
+  Plus,
+  Sparkles
 } from 'lucide-react';
 
 type ActivityItem = {
@@ -52,6 +58,15 @@ export default function PartnerPilot() {
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
+  const [customActions, setCustomActions] = useState<any[]>([]);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [newActionForm, setNewActionForm] = useState({
+    title: '',
+    description: '',
+    priority: 'medium',
+    category: 'general',
+    targetPage: '/dashboard'
+  });
   const { environment } = useEnvironment();
 
   // Fetch real data from the system
@@ -232,7 +247,50 @@ export default function PartnerPilot() {
     return actions.slice(0, 6); // Limit to 6 actions
   };
 
-  const nextBestActions = generateNextBestActions();
+  // Handle creating new custom actions
+  const handleCreateAction = () => {
+    if (!newActionForm.title.trim() || !newActionForm.description.trim()) return;
+
+    const iconMap = {
+      partners: <Users className="h-5 w-5 text-blue-600" />,
+      opportunities: <DollarSign className="h-5 w-5 text-green-600" />,
+      customers: <TrendingUp className="h-5 w-5 text-purple-600" />,
+      campaigns: <Target className="h-5 w-5 text-red-600" />,
+      reports: <BarChart2 className="h-5 w-5 text-indigo-600" />,
+      tasks: <CheckSquare className="h-5 w-5 text-orange-600" />,
+      general: <Sparkles className="h-5 w-5 text-gray-600" />
+    };
+
+    const newAction = {
+      id: Date.now().toString(),
+      title: newActionForm.title,
+      description: newActionForm.description,
+      action: () => setLocation(newActionForm.targetPage),
+      icon: iconMap[newActionForm.category as keyof typeof iconMap] || iconMap.general,
+      priority: newActionForm.priority as 'high' | 'medium' | 'low',
+      data: `Custom action created ${new Date().toLocaleDateString()}`,
+      isCustom: true
+    };
+
+    setCustomActions(prev => [newAction, ...prev]);
+    setNewActionForm({
+      title: '',
+      description: '',
+      priority: 'medium',
+      category: 'general',
+      targetPage: '/dashboard'
+    });
+    setIsDialogOpen(false);
+  };
+
+  const handleDeleteCustomAction = (actionId: string) => {
+    setCustomActions(prev => prev.filter(action => action.id !== actionId));
+  };
+
+  // Combine system-generated and custom actions
+  const systemActions = generateNextBestActions();
+  const allActions = [...customActions, ...systemActions];
+  
   const filteredActivities = activeTab === 'all' ? sampleActivities : sampleActivities.filter(activity => activity.type === activeTab);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -295,13 +353,129 @@ export default function PartnerPilot() {
               <div className="w-2 h-2 bg-white rounded-full"></div>
             </div>
           </div>
-          <h2 className="text-2xl font-semibold text-gray-900 mb-2">Next Best Actions</h2>
+          <div className="flex items-center justify-center gap-4 mb-4">
+            <h2 className="text-2xl font-semibold text-gray-900">Next Best Actions</h2>
+            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+              <DialogTrigger asChild>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  className="inline-flex items-center gap-2 hover:bg-blue-50 hover:border-blue-300 transition-colors"
+                >
+                  <Plus className="h-4 w-4" />
+                  Create Action
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                  <DialogTitle className="flex items-center gap-2">
+                    <Sparkles className="h-5 w-5 text-blue-600" />
+                    Create Custom Action
+                  </DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="title">Action Title</Label>
+                    <Input
+                      id="title"
+                      placeholder="e.g., Review Q3 Partner Performance"
+                      value={newActionForm.title}
+                      onChange={(e) => setNewActionForm(prev => ({ ...prev, title: e.target.value }))}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="description">Description</Label>
+                    <Textarea
+                      id="description"
+                      placeholder="Describe what this action involves..."
+                      value={newActionForm.description}
+                      onChange={(e) => setNewActionForm(prev => ({ ...prev, description: e.target.value }))}
+                      rows={3}
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="priority">Priority</Label>
+                      <Select 
+                        value={newActionForm.priority} 
+                        onValueChange={(value) => setNewActionForm(prev => ({ ...prev, priority: value }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="high">High - Urgent</SelectItem>
+                          <SelectItem value="medium">Medium - Important</SelectItem>
+                          <SelectItem value="low">Low - Later</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="category">Category</Label>
+                      <Select 
+                        value={newActionForm.category} 
+                        onValueChange={(value) => setNewActionForm(prev => ({ ...prev, category: value }))}
+                      >
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="partners">Partners</SelectItem>
+                          <SelectItem value="opportunities">Opportunities</SelectItem>
+                          <SelectItem value="customers">Customers</SelectItem>
+                          <SelectItem value="campaigns">Campaigns</SelectItem>
+                          <SelectItem value="reports">Reports</SelectItem>
+                          <SelectItem value="tasks">Tasks</SelectItem>
+                          <SelectItem value="general">General</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="targetPage">Target Page</Label>
+                    <Select 
+                      value={newActionForm.targetPage} 
+                      onValueChange={(value) => setNewActionForm(prev => ({ ...prev, targetPage: value }))}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="/dashboard">Dashboard</SelectItem>
+                        <SelectItem value="/partners">Partners</SelectItem>
+                        <SelectItem value="/opportunities">Opportunities</SelectItem>
+                        <SelectItem value="/customers">Customers</SelectItem>
+                        <SelectItem value="/campaigns">Campaigns</SelectItem>
+                        <SelectItem value="/reports">Reports</SelectItem>
+                        <SelectItem value="/settings">Settings</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex justify-end gap-3 pt-4">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setIsDialogOpen(false)}
+                    >
+                      Cancel
+                    </Button>
+                    <Button 
+                      onClick={handleCreateAction}
+                      disabled={!newActionForm.title.trim() || !newActionForm.description.trim()}
+                      className="bg-blue-600 hover:bg-blue-700"
+                    >
+                      Create Action
+                    </Button>
+                  </div>
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
           <p className="text-gray-600 text-sm">Smart recommendations based on your current activities and priorities</p>
         </div>
 
         {/* Smart Actions Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
-          {nextBestActions.map((action, index) => (
+          {allActions.map((action, index) => (
             <Card 
               key={index} 
               className="group hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300 cursor-pointer border-0 bg-white hover:bg-gradient-to-br hover:from-white hover:to-blue-50/30 relative overflow-hidden"
@@ -313,15 +487,31 @@ export default function PartnerPilot() {
                   <div className="p-2 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 group-hover:from-blue-50 group-hover:to-indigo-100 transition-colors duration-300">
                     {(action as any).icon || <ArrowUpRight className="h-5 w-5 text-gray-600 group-hover:text-blue-600" />}
                   </div>
-                  {(action as any).priority && (
-                    <div className={`px-2 py-1 rounded-full text-xs font-medium ${
-                      (action as any).priority === 'high' ? 'bg-red-100 text-red-700' :
-                      (action as any).priority === 'medium' ? 'bg-amber-100 text-amber-700' :
-                      'bg-green-100 text-green-700'
-                    }`}>
-                      {(action as any).priority === 'high' ? 'Urgent' : (action as any).priority === 'medium' ? 'Important' : 'Later'}
-                    </div>
-                  )}
+                  <div className="flex items-center gap-2">
+                    {(action as any).priority && (
+                      <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                        (action as any).priority === 'high' ? 'bg-red-100 text-red-700' :
+                        (action as any).priority === 'medium' ? 'bg-amber-100 text-amber-700' :
+                        'bg-green-100 text-green-700'
+                      }`}>
+                        {(action as any).priority === 'high' ? 'Urgent' : (action as any).priority === 'medium' ? 'Important' : 'Later'}
+                      </div>
+                    )}
+                    {(action as any).isCustom && (
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteCustomAction((action as any).id);
+                        }}
+                        className="opacity-0 group-hover:opacity-100 p-1 rounded-full hover:bg-red-100 text-gray-400 hover:text-red-600 transition-all duration-200"
+                        title="Delete custom action"
+                      >
+                        <svg className="h-3 w-3" fill="currentColor" viewBox="0 0 20 20">
+                          <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
                 </div>
                 <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-blue-900 transition-colors">
                   {action.title}
