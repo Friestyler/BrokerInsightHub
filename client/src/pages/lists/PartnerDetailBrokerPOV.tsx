@@ -767,7 +767,6 @@ export default function PartnerDetailBrokerPOV() {
                                 }}
                               >
                                 <div className="flex items-center space-x-2">
-                                  <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
                                   <span>All opportunities</span>
                                 </div>
                               </button>
@@ -793,7 +792,6 @@ export default function PartnerDetailBrokerPOV() {
                                       }}
                                     >
                                       <div className="flex items-center space-x-2">
-                                        <div className="w-2 h-2 bg-indigo-600 rounded-full"></div>
                                         <span>{list.name}</span>
                                         {/* Show share icon if list is shared */}
                                         {list.is_shared && (
