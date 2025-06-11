@@ -66,7 +66,7 @@ function SidebarComponent({ collapsed = false, setCollapsed }: SidebarProps) {
   
   // Auto-open the appropriate menu when on relevant pages
   useEffect(() => {
-    if (location.startsWith('/partners') || location.startsWith('/customers') || location.startsWith('/opportunities') || location.startsWith('/vendors') || location.startsWith('/products') || location.startsWith('/projects') || location.startsWith('/contacts')) {
+    if (location.startsWith('/partners') || location.startsWith('/lists/partners') || location.startsWith('/customers') || location.startsWith('/lists/customers') || location.startsWith('/opportunities') || location.startsWith('/lists/opportunities') || location.startsWith('/vendors') || location.startsWith('/products') || location.startsWith('/projects') || location.startsWith('/contacts')) {
       setDataMenuOpen(true);
       setTemplatesMenuOpen(false);
       setSmartUpdatesMenuOpen(false);
@@ -168,7 +168,7 @@ function SidebarComponent({ collapsed = false, setCollapsed }: SidebarProps) {
         </Link>
         <div ref={dataMenuRef} className="relative">
           <button 
-            className={`nav-container w-full text-left ${(collapsed && (location.startsWith('/partners') || location.startsWith('/customers') || location.startsWith('/opportunities') || location.startsWith('/vendors') || location.startsWith('/products') || location.startsWith('/projects') || location.startsWith('/contacts'))) ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
+            className={`nav-container w-full text-left ${(collapsed && (location.startsWith('/partners') || location.startsWith('/lists/partners') || location.startsWith('/customers') || location.startsWith('/lists/customers') || location.startsWith('/opportunities') || location.startsWith('/lists/opportunities') || location.startsWith('/vendors') || location.startsWith('/products') || location.startsWith('/projects') || location.startsWith('/contacts'))) ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
             onClick={() => setDataMenuOpen(!dataMenuOpen)}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-center" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -202,7 +202,7 @@ function SidebarComponent({ collapsed = false, setCollapsed }: SidebarProps) {
           </button>
           
           {/* Always show a tiny indicator on the sidebar if a list section is active */}
-          {collapsed && !dataMenuOpen && (location.startsWith('/partners') || location.startsWith('/customers') || location.startsWith('/opportunities') || location.startsWith('/vendors') || location.startsWith('/products') || location.startsWith('/projects') || location.startsWith('/contacts')) && (
+          {collapsed && !dataMenuOpen && (location.startsWith('/partners') || location.startsWith('/lists/partners') || location.startsWith('/customers') || location.startsWith('/lists/customers') || location.startsWith('/opportunities') || location.startsWith('/lists/opportunities') || location.startsWith('/vendors') || location.startsWith('/products') || location.startsWith('/projects') || location.startsWith('/contacts')) && (
             <div className="absolute top-[93px] right-0 w-1 h-7 bg-indigo-500 rounded-l-md"></div>
           )}
           
@@ -211,7 +211,7 @@ function SidebarComponent({ collapsed = false, setCollapsed }: SidebarProps) {
             <div className={`${collapsed ? "absolute left-16 top-0 bg-white border border-gray-200 rounded-md shadow-md py-1 z-50 w-48" : "mt-0.5"}`}>
               <button
                 onClick={() => navigateTo('/partners')}
-                className={`submenu-nav-container ${location.startsWith("/partners") ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
+                className={`submenu-nav-container ${(location.startsWith("/partners") || location.startsWith("/lists/partners")) ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
@@ -223,7 +223,7 @@ function SidebarComponent({ collapsed = false, setCollapsed }: SidebarProps) {
               </button>
               <button
                 onClick={() => navigateTo('/customers')}
-                className={`submenu-nav-container ${location.startsWith("/customers") ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
+                className={`submenu-nav-container ${(location.startsWith("/customers") || location.startsWith("/lists/customers")) ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
@@ -233,7 +233,7 @@ function SidebarComponent({ collapsed = false, setCollapsed }: SidebarProps) {
               </button>
               <button
                 onClick={() => navigateTo('/opportunities')}
-                className={`submenu-nav-container ${location.startsWith("/opportunities") ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
+                className={`submenu-nav-container ${(location.startsWith("/opportunities") || location.startsWith("/lists/opportunities")) ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M22 12h-4l-3 9L9 3l-3 9H2"></path>
