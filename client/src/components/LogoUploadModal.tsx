@@ -116,10 +116,13 @@ export default function LogoUploadModal({
       const compressedImage = await compressImage(file);
       
       // Save logo to database
-      // Get environment ID as string - handle both string and object cases
-      const envFromWindow = (window as any).currentEnvironment;
-      const envFromStorage = localStorage.getItem('currentEnvironment');
-      const environmentId = envFromWindow || envFromStorage || 'myqollabi';
+      // Get current environment ID from URL path or environment context
+      const currentPath = window.location.pathname;
+      const pathEnvMatch = currentPath.match(/^\/([^\/]+)/);
+      const urlEnvironmentId = pathEnvMatch ? pathEnvMatch[1] : null;
+      
+      // Use URL-based environment ID first, then fallback to context
+      const environmentId = urlEnvironmentId || environment?.id || 'myqollabi';
       
       const logoData = {
         entityType: entityType,
