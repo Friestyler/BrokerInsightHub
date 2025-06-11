@@ -6,9 +6,13 @@ interface UseEntityLogoResult {
   error: string | null;
 }
 
+// In-memory cache for logos to prevent repeated requests
+const logoCache = new Map<string, { url: string | null; timestamp: number }>();
+const LOGO_CACHE_TTL = 300000; // 5 minutes
+
 export function useEntityLogo(entityType: 'partner' | 'customer', entityId: number): UseEntityLogoResult {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -18,32 +22,51 @@ export function useEntityLogo(entityType: 'partner' | 'customer', entityId: numb
         return;
       }
 
+      const cacheKey = `${entityType}-${entityId}`;
+      const cached = logoCache.get(cacheKey);
+      
+      // Check cache first
+      if (cached && Date.now() - cached.timestamp < LOGO_CACHE_TTL) {
+        setLogoUrl(cached.url);
+        setIsLoading(false);
+        return;
+      }
+
       try {
         setIsLoading(true);
         setError(null);
         
-        // Get current environment ID - use the window.currentEnvironment which is set by the app
-        const envFromWindow = (window as any).currentEnvironment;
-        const environment = envFromWindow || 'degoudse';
+        const environment = 'degoudse';
         
-
+        // Add timeout to prevent hanging requests
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 2000);
         
-        const response = await fetch(`/api/entity-logos?entityType=${entityType}&entityId=${entityId}&environmentId=${environment}`);
+        const response = await fetch(
+          `/api/entity-logos?entityType=${entityType}&entityId=${entityId}&environmentId=${environment}`,
+          { signal: controller.signal }
+        );
         
+        clearTimeout(timeoutId);
+        
+        let logoData = null;
         if (response.ok) {
-          const logoData = await response.json();
-          if (logoData?.logoData) {
-            setLogoUrl(logoData.logoData);
-          } else {
-            setLogoUrl(null);
-          }
-        } else {
-          setLogoUrl(null);
+          logoData = await response.json();
         }
+        
+        const url = logoData?.logoData || null;
+        setLogoUrl(url);
+        
+        // Cache the result (even if null)
+        logoCache.set(cacheKey, { url, timestamp: Date.now() });
+        
       } catch (err) {
-        console.error('Error fetching entity logo:', err);
-        setError('Failed to load logo');
+        if (err.name === 'AbortError') {
+          // Timeout - fail silently and cache null result
+          logoCache.set(cacheKey, { url: null, timestamp: Date.now() });
+        }
         setLogoUrl(null);
+        setError(null); // Don't show errors to user
       } finally {
         setIsLoading(false);
       }
