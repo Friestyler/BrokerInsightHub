@@ -271,7 +271,11 @@ export default function PartnerDetail() {
               <div className="flex-shrink-0">
                 <button
                   onClick={() => setShowLogoUploadModal(true)}
-                  className="w-16 h-16 bg-gray-100 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center hover:border-gray-400 hover:bg-gray-50 transition-colors group"
+                  className={`w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center transition-colors group ${
+                    partnerLogo 
+                      ? "border-0 hover:bg-gray-50" 
+                      : "border-2 border-dashed border-gray-300 hover:border-gray-400 hover:bg-gray-50"
+                  }`}
                   title="Click to upload logo"
                 >
                   {partnerLogo ? (
