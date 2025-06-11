@@ -145,9 +145,13 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
                 strokeWidth="2" 
                 strokeLinecap="round" 
                 strokeLinejoin="round"
-                className={`ml-auto transition-transform ${dataMenuOpen ? 'rotate-180' : ''} ${collapsed ? "hidden" : "hidden md:inline-block"}`}
+                className={`ml-auto transition-transform ${collapsed ? "hidden" : "hidden md:inline-block"}`}
               >
-                <polyline points="6 9 12 15 18 9" />
+                {dataMenuOpen ? (
+                  <polyline points="6 9 12 15 18 9" />
+                ) : (
+                  <polyline points="9 18 15 12 9 6" />
+                )}
               </svg>
             )}
           </button>
@@ -300,9 +304,13 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
                 strokeWidth="2" 
                 strokeLinecap="round" 
                 strokeLinejoin="round"
-                className={`ml-auto transition-transform ${templatesMenuOpen ? 'rotate-180' : ''} ${collapsed ? "hidden" : "hidden md:inline-block"}`}
+                className={`ml-auto transition-transform ${collapsed ? "hidden" : "hidden md:inline-block"}`}
               >
-                <polyline points="6 9 12 15 18 9" />
+                {templatesMenuOpen ? (
+                  <polyline points="6 9 12 15 18 9" />
+                ) : (
+                  <polyline points="9 18 15 12 9 6" />
+                )}
               </svg>
             )}
           </button>
@@ -365,9 +373,13 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
                 strokeWidth="2" 
                 strokeLinecap="round" 
                 strokeLinejoin="round"
-                className={`ml-auto transition-transform ${smartUpdatesMenuOpen ? 'rotate-180' : ''} ${collapsed ? "hidden" : "hidden md:inline-block"}`}
+                className={`ml-auto transition-transform ${collapsed ? "hidden" : "hidden md:inline-block"}`}
               >
-                <polyline points="6 9 12 15 18 9" />
+                {smartUpdatesMenuOpen ? (
+                  <polyline points="6 9 12 15 18 9" />
+                ) : (
+                  <polyline points="9 18 15 12 9 6" />
+                )}
               </svg>
             )}
           </button>
@@ -428,9 +440,13 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
               strokeWidth="2" 
               strokeLinecap="round" 
               strokeLinejoin="round"
-              className={`ml-auto transition-transform ${settingsMenuOpen ? 'rotate-180' : ''} ${collapsed ? "hidden" : "hidden md:inline-block"}`}
+              className={`ml-auto transition-transform ${collapsed ? "hidden" : "hidden md:inline-block"}`}
             >
-              <polyline points="6 9 12 15 18 9" />
+              {settingsMenuOpen ? (
+                <polyline points="6 9 12 15 18 9" />
+              ) : (
+                <polyline points="9 18 15 12 9 6" />
+              )}
             </svg>
           )}
         </button>
