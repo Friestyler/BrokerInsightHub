@@ -365,11 +365,13 @@ function PartnersTable() {
   
   // Ref for views dropdown to handle outside clicks
   const viewsDropdownRef = useRef<HTMLDivElement>(null);
+  const viewsButtonRef = useRef<HTMLButtonElement>(null);
   
   // Handle outside clicks for views dropdown
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (viewsDropdownRef.current && !viewsDropdownRef.current.contains(event.target as Node)) {
+      if (viewsDropdownRef.current && !viewsDropdownRef.current.contains(event.target as Node) &&
+          viewsButtonRef.current && !viewsButtonRef.current.contains(event.target as Node)) {
         setShowViewsDropdown(false);
       }
     };
@@ -962,6 +964,7 @@ function PartnersTable() {
               {/* Saved Views Dropdown */}
               <div className="relative">
                 <button 
+                  ref={viewsButtonRef}
                   className={`flex items-center space-x-2 px-3 py-2 border rounded-md text-sm font-medium bg-white ${isEditingList ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
                   onClick={() => {
                     if (!isEditingList) {
