@@ -56,7 +56,7 @@ export default function EnvironmentSelector({ collapsed = false }: EnvironmentSe
               >
                 <div className="flex items-center justify-center w-7 h-7 mr-2 text-xs">
                   {env.id === 'degoudse' ? (
-                    <img src={deGoudseLogo} alt={env.name} className="w-6 h-6 object-contain" />
+                    <img src={deGoudseLogo} alt={env.name} className="w-6 h-4 object-contain" />
                   ) : env.logo ? (
                     <img src={env.logo} alt={env.name} className="w-6 h-6 object-contain" />
                   ) : (
@@ -86,7 +86,7 @@ export default function EnvironmentSelector({ collapsed = false }: EnvironmentSe
                   <img 
                     src={deGoudseLogo} 
                     alt={environment.name} 
-                    className="w-6 h-6"
+                    className="w-6 h-4 object-contain"
                   />
                 ) : environment.logo ? (
                   <img 
@@ -109,7 +109,7 @@ export default function EnvironmentSelector({ collapsed = false }: EnvironmentSe
                 <div className="flex items-center">
                   <div className="flex items-center justify-center w-7 h-7 mr-2 text-xs">
                     {env.id === 'degoudse' ? (
-                      <img src={deGoudseLogo} alt={env.name} className="w-6 h-6" />
+                      <img src={deGoudseLogo} alt={env.name} className="w-6 h-4 object-contain" />
                     ) : env.logo ? (
                       <img src={env.logo} alt={env.name} className="w-6 h-6" />
                     ) : (
