@@ -1459,59 +1459,73 @@ export default function PartnerDetail() {
               </div>
             </div>
 
-            {/* Selection actions bar - visible when items are selected or in edit mode */}
-            {(selectedOpportunities.length > 0 || (isEditingList && editedListMembers.length > 0)) && (
-              <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between mb-4">
-                <div className="flex items-center">
-                  {isEditingList ? (
-                    <span className="text-indigo-700 font-medium mr-2">
-                      {editedListMembers.length} {editedListMembers.length === 1 ? 'opportunity' : 'opportunities'} in list
-                    </span>
-                  ) : (
-                    <span className="text-indigo-700 font-medium mr-2">
-                      {selectedOpportunities.length} {selectedOpportunities.length === 1 ? 'opportunity' : 'opportunities'} selected
-                    </span>
-                  )}
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    className="text-gray-600"
-                    onClick={() => {
-                      if (isEditingList) {
-                        setEditedListMembers([]);
-                      } else {
-                        setSelectedOpportunities([]);
-                      }
-                    }}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                      <path d="M18 6 6 18"></path>
-                      <path d="m6 6 12 12"></path>
-                    </svg>
-                    {isEditingList ? 'Clear list' : 'Clear selection'}
-                  </Button>
-                </div>
-                
-                {/* Show regular actions only when not in edit mode */}
-                {!isEditingList && (
-                  <div className="flex items-center gap-2 flex-wrap">
+            {/* Bulk actions bar - always visible */}
+            <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between mb-4">
+              {/* Show content based on selection state */}
+              {(selectedOpportunities.length > 0 || (isEditingList && editedListMembers.length > 0)) ? (
+                <>
+                  <div className="flex items-center">
+                    {isEditingList ? (
+                      <span className="text-indigo-700 font-medium mr-2">
+                        {editedListMembers.length} {editedListMembers.length === 1 ? 'opportunity' : 'opportunities'} in list
+                      </span>
+                    ) : (
+                      <span className="text-indigo-700 font-medium mr-2">
+                        {selectedOpportunities.length} {selectedOpportunities.length === 1 ? 'opportunity' : 'opportunities'} selected
+                      </span>
+                    )}
                     <Button 
-                      variant="outline" 
+                      variant="ghost" 
                       size="sm"
-                      className="text-indigo-600"
-                      onClick={() => setShowSaveListModal(true)}
+                      className="text-gray-600"
+                      onClick={() => {
+                        if (isEditingList) {
+                          setEditedListMembers([]);
+                        } else {
+                          setSelectedOpportunities([]);
+                        }
+                      }}
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                        <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                        <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                        <polyline points="7 3 7 8 15 8"></polyline>
+                        <path d="M18 6 6 18"></path>
+                        <path d="m6 6 12 12"></path>
                       </svg>
-                      Create List
+                      {isEditingList ? 'Clear list' : 'Clear selection'}
                     </Button>
                   </div>
-                )}
-              </div>
-            )}
+                  
+                  {/* Show regular actions only when not in edit mode */}
+                  {!isEditingList && (
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="text-indigo-600"
+                        onClick={() => setShowSaveListModal(true)}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                          <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                          <polyline points="7 3 7 8 15 8"></polyline>
+                        </svg>
+                        Create List
+                      </Button>
+                    </div>
+                  )}
+                </>
+              ) : (
+                /* Empty state when no opportunities are selected */
+                <div className="flex items-center justify-center w-full py-2">
+                  <div className="flex items-center text-gray-500">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                      <path d="M9 12l2 2 4-4"></path>
+                      <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                    </svg>
+                    <span className="text-sm">Select at least one opportunity from the list to perform bulk actions</span>
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Opportunities Table */}
             <div className="bg-white rounded-lg shadow-sm">
