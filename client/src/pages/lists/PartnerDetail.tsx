@@ -518,7 +518,7 @@ export default function PartnerDetail() {
                   </div>
                 </div>
                 <div className="mt-1">
-                  <span className="text-gray-600">{partner.description || 'Partner created from zonnepanelen'}</span>
+                  <span className="text-gray-600 text-[14px]">{partner.description || 'Partner created from zonnepanelen'}</span>
                 </div>
               </div>
             </div>
@@ -566,7 +566,6 @@ export default function PartnerDetail() {
           </div>
         </div>
       </div>
-
       {/* Content area */}
       <div className="px-6 py-6 bg-white">
         {activeTab === "okr-plans" && (
@@ -1270,7 +1269,6 @@ export default function PartnerDetail() {
           </div>
         )}
       </div>
-
       {/* Comment Dialog */}
       <Dialog open={isCommentDialogOpen} onOpenChange={setIsCommentDialogOpen}>
         <DialogContent className="sm:max-w-md">
@@ -1343,7 +1341,6 @@ export default function PartnerDetail() {
           </div>
         </DialogContent>
       </Dialog>
-
       {/* Save List Modal */}
       <Dialog open={showSaveListModal} onOpenChange={setShowSaveListModal}>
         <DialogContent className="sm:max-w-lg">
@@ -1563,7 +1560,6 @@ export default function PartnerDetail() {
           </div>
         </DialogContent>
       </Dialog>
-
       {/* Share Modal */}
       <ShareModal
         isOpen={showShareListModal}
