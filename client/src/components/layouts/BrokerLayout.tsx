@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { Menu } from 'lucide-react';
+import qollabiLogo from "@assets/logo_qollabi_O_dark.png";
 
 // Shared Broker Layout Component
 export function BrokerLayout({ children }: { children: React.ReactNode }) {
@@ -23,15 +24,12 @@ export function BrokerLayout({ children }: { children: React.ReactNode }) {
         {/* Qollabi Logo */}
         <div className="pt-4 px-4 pb-1 flex justify-center md:justify-start flex-shrink-0">
           <div className={`${sidebarCollapsed ? "w-10 h-10" : "w-12 h-12"} flex items-center justify-center`}>
-            <div className="w-10 h-10 rounded bg-indigo-600 flex items-center justify-center">
-              <span className="text-white font-bold text-sm">Q</span>
-            </div>
+            <img 
+              src={qollabiLogo} 
+              alt="Qollabi Logo" 
+              className="max-w-full max-h-full object-contain"
+            />
           </div>
-          {!sidebarCollapsed && (
-            <div className="ml-3 hidden md:flex items-center">
-              <span className="text-lg font-semibold text-gray-900">Qollabi</span>
-            </div>
-          )}
         </div>
         
         {/* Navigation Links */}
