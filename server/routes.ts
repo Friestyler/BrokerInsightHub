@@ -1815,13 +1815,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   app.get('/api/degoudse/saved-views', async (req, res) => {
-    // Disable all caching
-    res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
-    res.set('Pragma', 'no-cache');
-    res.set('Expires', '0');
+    const entityType = req.query.entity_type as string;
+    
+    // Create cache key based on entity type
+    const cacheKey = `degoudse_saved_views_${entityType || 'all'}`;
+    const cached = getCached(cacheKey);
+    
+    if (cached) {
+      return res.json(cached);
+    }
     
     try {
-      const entityType = req.query.entity_type as string;
       const envPool = getEnvironmentPool('degoudse');
       
       console.log(`FIXED: De Goudse saved views: entityType='${entityType}'`);
@@ -1836,6 +1840,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const result = await envPool.query(query, params);
       console.log(`FIXED: Query returned ${result.rows.length} rows`);
       
+      setCache(cacheKey, result.rows);
       res.json(result.rows);
     } catch (error) {
       console.error('Error fetching De Goudse saved views:', error);
@@ -1878,29 +1883,34 @@ export async function registerRoutes(app: Express): Promise<Server> {
     const entityType = req.query.entity_type as string;
     const partnerId = req.query.partner_id as string;
     
-    res.set('Cache-Control', 'no-cache, no-store, must-revalidate');
-    res.set('Pragma', 'no-cache'); 
-    res.set('Expires', '0');
+    // Create cache key based on query parameters
+    const cacheKey = `degoudse_saved_lists_${entityType || 'all'}_${partnerId || 'none'}`;
+    const cached = getCached(cacheKey);
+    
+    if (cached) {
+      return res.json(cached);
+    }
     
     try {
       const envPool = getEnvironmentPool('degoudse');
+      let result;
       
       if (entityType && partnerId) {
         // Filter by entity type and partner context (include both partner-specific lists and general lists)
-        const result = await envPool.query(
+        result = await envPool.query(
           'SELECT * FROM degoudse.saved_lists WHERE entity_type = $1 AND (partner_id = $2 OR partner_id IS NULL) ORDER BY created_at DESC', 
           [entityType, parseInt(partnerId)]
         );
-        return res.json(result.rows);
       } else if (entityType) {
         // Filter by entity type only, exclude partner-specific lists (partner_id IS NULL for general lists)
-        const result = await envPool.query('SELECT * FROM degoudse.saved_lists WHERE entity_type = $1 AND partner_id IS NULL ORDER BY created_at DESC', [entityType]);
-        return res.json(result.rows);
+        result = await envPool.query('SELECT * FROM degoudse.saved_lists WHERE entity_type = $1 AND partner_id IS NULL ORDER BY created_at DESC', [entityType]);
       } else {
         // Return all lists
-        const result = await envPool.query('SELECT * FROM degoudse.saved_lists ORDER BY created_at DESC');
-        return res.json(result.rows);
+        result = await envPool.query('SELECT * FROM degoudse.saved_lists ORDER BY created_at DESC');
       }
+      
+      setCache(cacheKey, result.rows);
+      return res.json(result.rows);
     } catch (error) {
       console.error('De Goudse saved lists error:', error);
       res.status(500).json({ error: 'Database error' });
@@ -2101,9 +2111,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // De Goudse OKR Metrics endpoints
   app.get('/api/degoudse/okr-metrics', async (req, res) => {
+    const cacheKey = 'degoudse_okr_metrics';
+    const cached = getCached(cacheKey);
+    
+    if (cached) {
+      return res.json(cached);
+    }
+    
     try {
       const envPool = getEnvironmentPool('degoudse');
       const result = await envPool.query('SELECT * FROM degoudse.okr_metrics ORDER BY id');
+      setCache(cacheKey, result.rows);
       res.json(result.rows);
     } catch (error) {
       console.error('De Goudse OKR metrics API error:', error);
@@ -2113,9 +2131,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // De Goudse OKR Tags endpoints
   app.get('/api/degoudse/okr-tags', async (req, res) => {
+    const cacheKey = 'degoudse_okr_tags';
+    const cached = getCached(cacheKey);
+    
+    if (cached) {
+      return res.json(cached);
+    }
+    
     try {
       const envPool = getEnvironmentPool('degoudse');
       const result = await envPool.query('SELECT * FROM degoudse.okr_tags ORDER BY name ASC');
+      setCache(cacheKey, result.rows);
       res.json(result.rows);
     } catch (error) {
       console.error('De Goudse OKR tags API error:', error);
@@ -2371,8 +2397,15 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   // Template assignments API endpoints for De Goudse
   app.get('/api/degoudse/template-assignments/:entityType', async (req, res) => {
+    const { entityType } = req.params;
+    const cacheKey = `degoudse_template_assignments_${entityType}`;
+    const cached = getCached(cacheKey);
+    
+    if (cached) {
+      return res.json(cached);
+    }
+    
     try {
-      const { entityType } = req.params;
       const envPool = getEnvironmentPool('degoudse');
       
       const result = await envPool.query(`
@@ -2387,6 +2420,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         ORDER BY ta.assigned_at DESC
       `, [entityType]);
       
+      setCache(cacheKey, result.rows);
       res.json(result.rows);
     } catch (error) {
       console.error('Error fetching De Goudse template assignments:', error);
