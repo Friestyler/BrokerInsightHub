@@ -558,7 +558,7 @@ export default function PartnerDetail() {
                       
                       {/* Dropdown menu */}
                       {showListsDropdown && (
-                        <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                        <div className="absolute top-full left-0 mt-1 w-80 bg-white border border-gray-200 rounded-md shadow-lg z-50">
                           <div className="p-2">
                             {/* Default "All opportunities" option */}
                             <button

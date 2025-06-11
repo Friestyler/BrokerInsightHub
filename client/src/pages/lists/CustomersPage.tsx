@@ -419,7 +419,7 @@ export default function CustomersPageClean() {
                   </button>
                   
                   {showViewsDropdown && (
-                    <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                    <div className="absolute top-full left-0 mt-1 w-80 bg-white border border-gray-200 rounded-md shadow-lg z-50">
                       <div className="py-1 max-h-64 overflow-y-auto">
                         {savedViewsData.map((view: any) => (
                           <button
@@ -470,7 +470,7 @@ export default function CustomersPageClean() {
                     </button>
                     
                     {showStatusFilter && (
-                      <div className="absolute top-full left-0 mt-1 w-48 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                      <div className="absolute top-full left-0 mt-1 w-64 bg-white border border-gray-200 rounded-md shadow-lg z-50">
                         <div className="py-1">
                           {['active', 'inactive', 'pending'].map((status) => (
                             <label key={status} className="flex items-center px-3 py-2 hover:bg-gray-50 cursor-pointer">
