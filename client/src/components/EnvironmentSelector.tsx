@@ -108,7 +108,9 @@ export default function EnvironmentSelector({ collapsed = false }: EnvironmentSe
               <SelectItem key={env.id} value={env.id} className="py-2 px-2 focus:bg-indigo-50 focus:text-indigo-600 data-[highlighted]:bg-indigo-50 data-[highlighted]:text-indigo-600 hover:bg-indigo-50 hover:text-indigo-600 rounded-md mx-1 my-0.5">
                 <div className="flex items-center">
                   <div className="flex items-center justify-center w-7 h-7 mr-2 text-xs">
-                    {env.logo ? (
+                    {env.id === 'degoudse' ? (
+                      <img src={deGoudseLogo} alt={env.name} className="w-6 h-6" />
+                    ) : env.logo ? (
                       <img src={env.logo} alt={env.name} className="w-6 h-6" />
                     ) : (
                       <div className="w-6 h-6 rounded-sm flex items-center justify-center text-gray-700 uppercase">
