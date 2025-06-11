@@ -60,6 +60,12 @@ const upload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Static route to serve logo files
+  app.get('/api/static/de-goudse-logo.png', (req, res) => {
+    const logoPath = path.join(__dirname, '../client/src/assets/de-goudse-logo.png');
+    res.sendFile(logoPath);
+  });
+
   // All API redirects to De Goudse environment - clean routing
   app.get('/api/contacts', (req, res) => res.redirect('/api/degoudse/contacts'));
   app.post('/api/contacts', (req, res) => res.redirect(307, '/api/degoudse/contacts'));
@@ -3160,7 +3166,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         id: 'degoudse',
         name: 'De Goudse',
         apiBaseUrl: '/api/degoudse',
-        databaseId: 'degoudse_db'
+        databaseId: 'degoudse_db',
+        logo: '/api/static/de-goudse-logo.png'
       }];
 
       res.json(environments);
