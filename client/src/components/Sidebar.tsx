@@ -108,7 +108,7 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
       <div className="flex flex-col flex-shrink-0 overflow-y-auto">
         <Link 
           href="/"
-          className={`flex items-center py-2.5 px-4 rounded-md ${isActive("/") ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
+          className={`nav-container ${isActive("/") ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-center" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
@@ -123,7 +123,7 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
         </Link>
         <div ref={dataMenuRef} className="relative">
           <button 
-            className={`flex items-center py-2.5 px-4 rounded-md w-full text-left ${dataMenuOpen ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
+            className={`nav-container w-full text-left ${dataMenuOpen ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
             onClick={() => setDataMenuOpen(!dataMenuOpen)}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-center" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -274,7 +274,7 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
         ) : (
           <button 
             onClick={() => navigateTo('/campaigns')}
-            className={`flex items-center py-2.5 px-4 rounded-md w-full text-left ${location === "/campaigns" ? "bg-indigo-50 font-medium nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
+            className={`nav-container w-full text-left ${location === "/campaigns" ? "bg-indigo-50 font-medium nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-center" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M22 2 11 13" />
@@ -285,7 +285,7 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
         )}
         <div className="relative">
           <button 
-            className={`flex items-center py-2.5 px-4 rounded-md w-full text-left ${location.startsWith("/templates") ? "bg-indigo-50 font-medium nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
+            className={`nav-container w-full text-left ${location.startsWith("/templates") ? "bg-indigo-50 font-medium nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
             onClick={() => {
               // Toggle the templates submenu when templates is clicked
               const newValue = !templatesMenuOpen;
@@ -344,7 +344,7 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
         {/* Smart Updates Section */}
         <div className="relative">
           <button 
-            className={`flex items-center py-2.5 px-4 rounded-md w-full text-left ${location.startsWith("/smart-updates") ? "bg-indigo-50 font-medium nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
+            className={`nav-container w-full text-left ${location.startsWith("/smart-updates") ? "bg-indigo-50 font-medium nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
             onClick={() => {
               const newValue = !smartUpdatesMenuOpen;
               setSmartUpdatesMenuOpen(newValue);
@@ -420,7 +420,7 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
       </div>
       <div className="mt-auto mb-4 flex-shrink-0 relative">
         <button 
-          className={`flex items-center py-2.5 px-4 rounded-md w-full text-left ${settingsMenuOpen ? "bg-indigo-50 font-medium nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
+          className={`nav-container w-full text-left ${settingsMenuOpen ? "bg-indigo-50 font-medium nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
           onClick={() => setSettingsMenuOpen(!settingsMenuOpen)}
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-center" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

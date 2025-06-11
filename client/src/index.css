@@ -91,10 +91,26 @@
   line-height: 16px !important;
 }
 
-/* Navigation container spacing */
+/* Navigation container styling */
+.nav-container {
+  height: 32px !important;
+  width: 224px !important;
+  border-radius: 6px !important;
+  padding: 8px !important;
+  margin: 0 16px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
+/* Override default padding classes */
 .py-2\.5 {
   padding-top: 8px !important;  
   padding-bottom: 8px !important;
+}
+
+.px-4 {
+  padding-left: 8px !important;
+  padding-right: 8px !important;
 }
 
 
