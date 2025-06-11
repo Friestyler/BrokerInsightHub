@@ -15,6 +15,7 @@ export function BrokerLayout({ children }: { children: React.ReactNode }) {
 
   const isPartnersPage = location === '/broker-view/partners';
   const isOpportunitiesPage = location.startsWith('/broker-view/list/');
+  const isCollaborateActive = isPartnersPage || isOpportunitiesPage;
 
   return (
     <div className="h-screen flex overflow-hidden">
@@ -51,7 +52,7 @@ export function BrokerLayout({ children }: { children: React.ReactNode }) {
           {/* Collaborate section */}
           <div className="relative">
             <button 
-              className={`nav-container ${dataMenuOpen ? "nav-item-active" : "nav-item-inactive"}`}
+              className={`nav-container ${(sidebarCollapsed && isCollaborateActive) || dataMenuOpen ? "nav-item-active" : "nav-item-inactive"}`}
               onClick={() => setDataMenuOpen(!dataMenuOpen)}
             >
               <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-center" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
