@@ -1644,7 +1644,13 @@ export default function PartnerDetail() {
                         </div>
                       </TableCell>
                       <TableCell>
-                        <Link href={`/lists/opportunities/${opportunity.id}`}>
+                        <Link 
+                          href={`/lists/opportunities/${opportunity.id}`}
+                          onClick={() => {
+                            // Store the current partner detail page as the referrer for smart back navigation
+                            sessionStorage.setItem('opportunityReferrer', window.location.pathname);
+                          }}
+                        >
                           <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
                             {opportunity.title}
                           </span>

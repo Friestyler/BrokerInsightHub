@@ -61,10 +61,11 @@ export default function OpportunityDetail() {
 
   // Detect navigation context and set appropriate back URL
   useEffect(() => {
+    // Try multiple methods to detect the source page
     const referrer = document.referrer;
     const currentOrigin = window.location.origin;
     
-    // Check if user came from a partner detail page
+    // Method 1: Check document.referrer
     if (referrer && referrer.startsWith(currentOrigin)) {
       const referrerPath = new URL(referrer).pathname;
       const partnerDetailMatch = referrerPath.match(/\/lists\/partners\/(\d+)/);
@@ -73,7 +74,28 @@ export default function OpportunityDetail() {
         const partnerId = partnerDetailMatch[1];
         setBackUrl(`/lists/partners/${partnerId}`);
         setBackLabel("Back to Partner");
+        return;
       }
+    }
+    
+    // Method 2: Check for partner context in URL or session storage
+    const sessionReferrer = sessionStorage.getItem('opportunityReferrer');
+    if (sessionReferrer) {
+      const partnerDetailMatch = sessionReferrer.match(/\/lists\/partners\/(\d+)/);
+      if (partnerDetailMatch) {
+        const partnerId = partnerDetailMatch[1];
+        setBackUrl(`/lists/partners/${partnerId}`);
+        setBackLabel("Back to Partner");
+        // Clear the session storage after use
+        sessionStorage.removeItem('opportunityReferrer');
+        return;
+      }
+    }
+    
+    // Method 3: Check browser history if available
+    if (window.history && window.history.length > 1) {
+      // For SPAs, we can use the browser back functionality
+      // But we'll still default to opportunities list for safety
     }
   }, []);
 

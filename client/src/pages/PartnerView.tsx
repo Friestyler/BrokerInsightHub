@@ -460,7 +460,13 @@ export default function PartnerView() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
-                          <Link href={`/broker-view/opportunity/${opportunity.id}`}>
+                          <Link 
+                            href={`/broker-view/opportunity/${opportunity.id}`}
+                            onClick={() => {
+                              // Store the current page as the referrer for smart back navigation
+                              sessionStorage.setItem('opportunityReferrer', window.location.pathname);
+                            }}
+                          >
                             <div className="text-sm font-medium text-indigo-600 hover:text-indigo-800 hover:underline cursor-pointer">
                               {opportunity.title}
                             </div>
