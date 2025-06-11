@@ -46,6 +46,9 @@ export default function PartnerDetailBrokerPOV() {
   const [editingListId, setEditingListId] = useState<number | null>(null);
   const [editedListMembers, setEditedListMembers] = useState<number[]>([]);
   const [isSavingList, setIsSavingList] = useState(false);
+  
+  // Selection state for opportunities
+  const [selectedOpportunities, setSelectedOpportunities] = useState<number[]>([]);
 
   // For broker view, show De Goudse as the sharing partner
   const partner = {
@@ -815,6 +818,57 @@ export default function PartnerDetailBrokerPOV() {
                 </div>
               </div>
 
+              {/* Bulk actions bar - always visible */}
+              <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between mb-4" style={{ minHeight: '64px' }}>
+                {selectedOpportunities.length > 0 ? (
+                  <>
+                    <div className="flex items-center">
+                      <span className="text-indigo-700 font-medium mr-2">
+                        {selectedOpportunities.length} {selectedOpportunities.length === 1 ? 'opportunity' : 'opportunities'} selected
+                      </span>
+                      <Button 
+                        variant="ghost" 
+                        size="sm"
+                        className="text-gray-600"
+                        onClick={() => setSelectedOpportunities([])}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                          <path d="M18 6 6 18"></path>
+                          <path d="m6 6 12 12"></path>
+                        </svg>
+                        Clear selection
+                      </Button>
+                    </div>
+                    
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        className="text-indigo-600"
+                        onClick={() => {/* Add export functionality */}}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                          <polyline points="7,10 12,15 17,10"></polyline>
+                          <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        Export Selected
+                      </Button>
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex items-center justify-center w-full min-h-[32px]">
+                    <div className="flex items-center text-gray-500">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                        <path d="M9 12l2 2 4-4"></path>
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                      </svg>
+                      <span className="text-sm">Select at least one opportunity from the list to perform bulk actions</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
               {/* Opportunities Table */}
               {opportunitiesLoading ? (
                 <div className="text-center py-12">
@@ -830,46 +884,74 @@ export default function PartnerDetailBrokerPOV() {
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        {isEditingList && (
-                          <TableHead className="w-12">
+                        <TableHead className="w-12 group">
+                          <div className={`transition-opacity ${
+                            (isEditingList ? editedListMembers.length > 0 : selectedOpportunities.length > 0) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                          }`}>
                             <Checkbox 
-                              checked={filteredOpportunities.length > 0 && filteredOpportunities.every((opp: any) => editedListMembers.includes(opp.id))}
+                              checked={
+                                isEditingList 
+                                  ? filteredOpportunities.length > 0 && filteredOpportunities.every((opp: any) => editedListMembers.includes(opp.id))
+                                  : filteredOpportunities.length > 0 && filteredOpportunities.every((opp: any) => selectedOpportunities.includes(opp.id))
+                              }
                               onCheckedChange={(checked) => {
-                                if (checked) {
-                                  const oppIds = filteredOpportunities.map((opp: any) => opp.id);
-                                  setEditedListMembers(Array.from(new Set([...editedListMembers, ...oppIds])));
+                                if (isEditingList) {
+                                  if (checked) {
+                                    const oppIds = filteredOpportunities.map((opp: any) => opp.id);
+                                    setEditedListMembers(Array.from(new Set([...editedListMembers, ...oppIds])));
+                                  } else {
+                                    const oppIds = filteredOpportunities.map((opp: any) => opp.id);
+                                    setEditedListMembers(editedListMembers.filter(id => !oppIds.includes(id)));
+                                  }
                                 } else {
-                                  const oppIds = filteredOpportunities.map((opp: any) => opp.id);
-                                  setEditedListMembers(editedListMembers.filter(id => !oppIds.includes(id)));
+                                  if (checked) {
+                                    setSelectedOpportunities(filteredOpportunities.map((opp: any) => opp.id));
+                                  } else {
+                                    setSelectedOpportunities([]);
+                                  }
                                 }
                               }}
                             />
-                          </TableHead>
-                        )}
-                        <TableHead>Opportunity</TableHead>
-                        <TableHead>Customer</TableHead>
-                        <TableHead>Stage</TableHead>
-                        <TableHead>Value</TableHead>
-                        <TableHead>Close Date</TableHead>
+                          </div>
+                        </TableHead>
+                        <TableHead className="text-[#696C8C]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '13px' }}>Opportunity</TableHead>
+                        <TableHead className="text-[#696C8C]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '13px' }}>Customer</TableHead>
+                        <TableHead className="text-[#696C8C]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '13px' }}>Stage</TableHead>
+                        <TableHead className="text-[#696C8C]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '13px' }}>Value</TableHead>
+                        <TableHead className="text-[#696C8C]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '13px' }}>Close Date</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
                       {filteredOpportunities.map((opportunity: any) => (
-                        <TableRow key={opportunity.id}>
-                          {isEditingList && (
-                            <TableCell>
+                        <TableRow key={opportunity.id} className="group hover:bg-gray-50">
+                          <TableCell>
+                            <div className={`transition-opacity ${
+                              (isEditingList ? editedListMembers.includes(opportunity.id) : selectedOpportunities.includes(opportunity.id)) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                            }`}>
                               <Checkbox 
-                                checked={editedListMembers.includes(opportunity.id)}
+                                checked={
+                                  isEditingList 
+                                    ? editedListMembers.includes(opportunity.id)
+                                    : selectedOpportunities.includes(opportunity.id)
+                                }
                                 onCheckedChange={(checked) => {
-                                  if (checked) {
-                                    setEditedListMembers([...editedListMembers, opportunity.id]);
+                                  if (isEditingList) {
+                                    if (checked) {
+                                      setEditedListMembers([...editedListMembers, opportunity.id]);
+                                    } else {
+                                      setEditedListMembers(editedListMembers.filter(id => id !== opportunity.id));
+                                    }
                                   } else {
-                                    setEditedListMembers(editedListMembers.filter(id => id !== opportunity.id));
+                                    if (checked) {
+                                      setSelectedOpportunities([...selectedOpportunities, opportunity.id]);
+                                    } else {
+                                      setSelectedOpportunities(selectedOpportunities.filter(id => id !== opportunity.id));
+                                    }
                                   }
                                 }}
                               />
-                            </TableCell>
-                          )}
+                            </div>
+                          </TableCell>
                           <TableCell>
                             <Link href={`/broker-view/opportunity/${opportunity.id}`}>
                               <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
