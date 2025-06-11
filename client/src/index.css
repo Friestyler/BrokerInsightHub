@@ -91,6 +91,12 @@
   line-height: 16px !important;
 }
 
+/* Navigation container spacing */
+.py-2\.5 {
+  padding-top: 8px !important;  
+  padding-bottom: 8px !important;
+}
+
 
 
 .dark {
