@@ -1388,33 +1388,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/degoudse/partners', async (req, res) => {
     try {
       const envPool = getEnvironmentPool('degoudse');
+      // Optimized simple query - just get partners first
       const result = await envPool.query(`
-        SELECT p.*, 
-               pc_stats.customer_count,
-               COALESCE(opp_stats.opportunity_count, 0) as opportunity_count,
-               COALESCE(opp_stats.opportunity_value, 0) as opportunity_value,
-               COALESCE(opp_stats.weighted_opportunity_value, 0) as weighted_opportunity_value,
-               pc_stats.customer_names
+        SELECT p.*
         FROM degoudse.partners p
-        LEFT JOIN (
-          SELECT 
-            pc.partner_id,
-            COUNT(DISTINCT pc.customer_id) as customer_count,
-            STRING_AGG(DISTINCT c.name, ', ') as customer_names
-          FROM degoudse.partner_customers pc
-          LEFT JOIN degoudse.customers c ON c.id = pc.customer_id
-          GROUP BY pc.partner_id
-        ) pc_stats ON p.id = pc_stats.partner_id
-        LEFT JOIN (
-          SELECT 
-            po.partner_id,
-            COUNT(DISTINCT po.opportunity_id) as opportunity_count,
-            SUM(o.estimated_value) as opportunity_value,
-            SUM(o.estimated_value * (COALESCE(o.probability, 0) / 100.0)) as weighted_opportunity_value
-          FROM degoudse.partner_opportunities po
-          LEFT JOIN degoudse.opportunities o ON o.id = po.opportunity_id
-          GROUP BY po.partner_id
-        ) opp_stats ON p.id = opp_stats.partner_id
         ORDER BY p.id
       `);
       
