@@ -1515,7 +1515,7 @@ export default function PartnerDetail() {
                 </>
               ) : (
                 /* Empty state when no opportunities are selected */
-                <div className="flex items-center justify-center w-full py-2">
+                <div className="flex items-center justify-center w-full">
                   <div className="flex items-center text-gray-500">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
                       <path d="M9 12l2 2 4-4"></path>
