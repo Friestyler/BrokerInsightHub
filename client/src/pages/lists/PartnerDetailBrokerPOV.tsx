@@ -977,6 +977,7 @@ export default function PartnerDetailBrokerPOV() {
                         </TableHead>
                         <TableHead className="text-[#696C8C]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '13px' }}>Opportunity</TableHead>
                         <TableHead className="text-[#696C8C]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '13px' }}>Customer</TableHead>
+                        <TableHead className="text-[#696C8C]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '13px' }}>Related contacts</TableHead>
                         <TableHead className="text-[#696C8C]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '13px' }}>Stage</TableHead>
                         <TableHead className="text-[#696C8C]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '13px' }}>Value</TableHead>
                         <TableHead className="text-[#696C8C]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '13px' }}>Close Date</TableHead>
@@ -1023,6 +1024,11 @@ export default function PartnerDetailBrokerPOV() {
                           <TableCell>
                             <span className="text-gray-900">
                               {opportunity.clientName || 'Unknown Customer'}
+                            </span>
+                          </TableCell>
+                          <TableCell>
+                            <span className="text-gray-600">
+                              {opportunity.contactCount || 0}
                             </span>
                           </TableCell>
                           <TableCell>
