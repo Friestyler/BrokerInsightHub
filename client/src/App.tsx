@@ -75,6 +75,7 @@ function Router() {
               <Route path="/lists/customers/:id" component={CustomerDetail} />
               <Route path="/opportunities" component={OpportunitiesPage} />
               <Route path="/opportunities/:id" component={OpportunityDetail} />
+              <Route path="/lists/opportunities/:id" component={OpportunityDetail} />
               <Route path="/vendors" component={VendorsPage} />
               <Route path="/products" component={ProductsPage} />
               <Route path="/lists/products/:id" component={ProductDetail} />
