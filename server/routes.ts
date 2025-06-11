@@ -1798,6 +1798,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update opportunity stage
+  app.patch('/api/:envId/opportunities/:id', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const opportunityId = parseInt(req.params.id);
+      const { stage } = req.body;
+
+      if (!stage) {
+        return res.status(400).json({ error: 'Stage is required' });
+      }
+
+      const envPool = getEnvironmentPool(envId);
+      const result = await envPool.query(
+        `UPDATE ${envId}.opportunities 
+         SET stage = $1, updated_at = NOW() 
+         WHERE id = $2 
+         RETURNING *`,
+        [stage, opportunityId]
+      );
+
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Opportunity not found' });
+      }
+
+      const updatedOpportunity = result.rows[0];
+      res.json({
+        id: updatedOpportunity.id,
+        title: updatedOpportunity.title,
+        stage: updatedOpportunity.stage,
+        status: updatedOpportunity.status,
+        estimatedValue: updatedOpportunity.estimated_value,
+        expectedCloseDate: updatedOpportunity.expected_close_date,
+        updatedAt: updatedOpportunity.updated_at
+      });
+    } catch (error) {
+      console.error('Error updating opportunity stage:', error);
+      res.status(500).json({ error: 'Failed to update opportunity stage' });
+    }
+  });
+
   app.get('/api/degoudse/customers', async (req, res) => {
     const cacheKey = 'degoudse_customers';
     const cached = getCached(cacheKey);
