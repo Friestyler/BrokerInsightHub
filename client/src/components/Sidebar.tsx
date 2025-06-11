@@ -108,7 +108,7 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
       <div className="flex flex-col flex-shrink-0 overflow-y-auto">
         <Link 
           href="/"
-          className={`flex items-center py-2.5 px-4 rounded-md ${isActive("/") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
+          className={`flex items-center py-2.5 px-4 rounded-md ${isActive("/") ? "bg-indigo-50 font-medium nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
         >
           <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-center" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
@@ -123,7 +123,8 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
         </Link>
         <div ref={dataMenuRef} className="relative">
           <button 
-            className={`flex items-center py-2.5 px-4 rounded-md w-full text-left ${dataMenuOpen ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
+            className={`flex items-center py-2.5 px-4 rounded-md w-full text-left ${dataMenuOpen ? "bg-indigo-50 font-medium" : "hover:bg-indigo-50"}`}
+            style={{ color: dataMenuOpen ? "#3E4DC4" : "#282A3F" }}
             onClick={() => setDataMenuOpen(!dataMenuOpen)}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-center" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -162,7 +163,8 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
             <div className={`${collapsed ? "absolute left-16 top-0 bg-white border border-gray-200 rounded-md shadow-md py-1 z-50 w-48" : "mt-0.5"}`}>
               <button
                 onClick={() => navigateTo('/partners')}
-                className={`flex py-2 text-sm ${collapsed ? "px-4" : "pl-12"} w-full text-left ${location.startsWith("/partners") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
+                className={`flex py-2 text-sm ${collapsed ? "px-4" : "pl-12"} w-full text-left ${location.startsWith("/partners") ? "bg-indigo-50 font-medium" : "hover:bg-indigo-50"}`}
+                style={{ color: location.startsWith("/partners") ? "#3E4DC4" : "#282A3F" }}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path>
@@ -174,7 +176,8 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
               </button>
               <button
                 onClick={() => navigateTo('/customers')}
-                className={`flex py-2 text-sm ${collapsed ? "px-4" : "pl-12"} w-full text-left ${location.startsWith("/customers") ? "bg-indigo-50 text-indigo-600 font-medium" : "text-gray-700 hover:bg-indigo-50 hover:text-indigo-600"}`}
+                className={`flex py-2 text-sm ${collapsed ? "px-4" : "pl-12"} w-full text-left ${location.startsWith("/customers") ? "bg-indigo-50 font-medium" : "hover:bg-indigo-50"}`}
+                style={{ color: location.startsWith("/customers") ? "#3E4DC4" : "#282A3F" }}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>

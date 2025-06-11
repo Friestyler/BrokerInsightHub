@@ -56,6 +56,19 @@
   background-color: #F5F6FA !important;
 }
 
+/* Custom sidebar navigation colors */
+.nav-item-inactive {
+  color: #282A3F !important;
+}
+
+.nav-item-inactive:hover {
+  color: #282A3F !important;
+}
+
+.nav-item-active {
+  color: #3E4DC4 !important;
+}
+
 .dark {
   --background: 229 15% 15%;
   --foreground: 210 10% 98%;
