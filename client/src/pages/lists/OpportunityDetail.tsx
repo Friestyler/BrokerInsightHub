@@ -109,10 +109,17 @@ export default function OpportunityDetail() {
                 </Button>
               </Link>
               <div>
-                <h1 className="text-2xl font-bold text-gray-900">{opportunity.title}</h1>
-                <p className="text-sm text-gray-500">
-                  {opportunity.status} • {opportunity.stage}
-                </p>
+                <div className="flex items-center space-x-4 mb-1">
+                  <h1 className="text-2xl font-bold text-gray-900">{opportunity.title}</h1>
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm bg-gray-100 text-gray-700 px-2 py-1 rounded">Details</span>
+                    <span className="text-sm bg-gray-100 text-gray-700 px-2 py-1 rounded">Opportunity</span>
+                    <span className="text-sm text-gray-500">Stage: <span className="text-blue-600">{opportunity.stage}</span></span>
+                  </div>
+                </div>
+                <div className="mt-1">
+                  <p className="text-sm text-gray-500">{opportunity.status}</p>
+                </div>
               </div>
             </div>
             <div className="flex items-center space-x-3">

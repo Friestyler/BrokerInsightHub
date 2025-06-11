@@ -129,14 +129,16 @@ export default function CustomerDetailNew() {
             </Button>
           </Link>
           <div className="flex-1">
-            <h1 className="text-2xl font-bold text-gray-900">{customer.name}</h1>
-            <div className="flex items-center space-x-4 mt-1">
-              <span className="text-gray-600">{customer.description}</span>
+            <div className="flex items-center space-x-4 mb-1">
+              <h1 className="text-2xl font-bold text-gray-900">{customer.name}</h1>
               <div className="flex items-center space-x-2">
                 <span className="text-sm bg-gray-100 text-gray-700 px-2 py-1 rounded">Details</span>
                 <span className="text-sm bg-gray-100 text-gray-700 px-2 py-1 rounded">Customer</span>
                 <span className="text-sm text-gray-500">Type: <span className="text-blue-600">Customer</span></span>
               </div>
+            </div>
+            <div className="mt-1">
+              <span className="text-gray-600">{customer.description}</span>
             </div>
           </div>
         </div>
