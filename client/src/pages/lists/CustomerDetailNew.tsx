@@ -8,9 +8,11 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ArrowLeft, Search, Users, Copy, Trash2, MoreHorizontal } from "lucide-react";
+import { useEnvironment } from "@/contexts/EnvironmentContext";
 
 export default function CustomerDetailNew() {
   const { id } = useParams();
+  const { environment } = useEnvironment();
   const [activeTab, setActiveTab] = useState("okr-plans");
   
   // OKR metrics state management
