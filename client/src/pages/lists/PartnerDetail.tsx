@@ -104,9 +104,31 @@ export default function PartnerDetail() {
   const [showViewsDropdown, setShowViewsDropdown] = useState(false);
   const viewsButtonRef = useRef<HTMLButtonElement>(null);
   const viewsDropdownRef = useRef<HTMLDivElement>(null);
+  const [originalViewFilters, setOriginalViewFilters] = useState<any>(null);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Effect to clear active view when filters are manually changed
+  useEffect(() => {
+    if (activeView && originalViewFilters) {
+      const currentFilters = {
+        status: selectedStatus || undefined,
+        customer: selectedCustomer || undefined,
+      };
+      
+      // Compare current filters with original view filters
+      const hasChanges = 
+        currentFilters.status !== originalViewFilters.status ||
+        currentFilters.customer !== originalViewFilters.customer;
+      
+      // If filters have changed from the original view, clear the active view
+      if (hasChanges) {
+        setActiveView(null);
+        setOriginalViewFilters(null);
+      }
+    }
+  }, [selectedStatus, selectedCustomer, activeView, originalViewFilters]);
 
   // Mutation for creating new lists
   const createListMutation = useMutation({
@@ -1180,6 +1202,10 @@ export default function PartnerDetail() {
                                 className={`flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 ${activeView?.id === view.id ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700'}`}
                                 onClick={() => {
                                   setActiveView(view);
+                                  setOriginalViewFilters({
+                                    status: view.filters.stage || undefined,
+                                    customer: view.filters.customer || undefined,
+                                  });
                                   setFilterText(view.filters.searchText || '');
                                   setSelectedStatus(view.filters.stage || '');
                                   setSelectedCustomer(view.filters.customer || '');
@@ -1205,6 +1231,7 @@ export default function PartnerDetail() {
                                   setShowViewsDropdown(false);
                                   // Clear active view
                                   setActiveView(null);
+                                  setOriginalViewFilters(null);
                                   // Reset filters if needed
                                   setFilterText('');
                                   setSelectedStatus('');
