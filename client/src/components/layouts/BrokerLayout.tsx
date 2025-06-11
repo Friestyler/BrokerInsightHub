@@ -20,16 +20,16 @@ export function BrokerLayout({ children }: { children: React.ReactNode }) {
       {/* Sidebar - using same structure as main sidebar */}
       <div className={`${sidebarCollapsed ? "w-16" : "w-16 md:w-64"} bg-gray-50 flex flex-col h-full overflow-hidden transition-all duration-300 relative`}>
         
-        {/* De Goudse Logo */}
+        {/* Qollabi Logo */}
         <div className="pt-4 px-4 pb-1 flex justify-center md:justify-start flex-shrink-0">
           <div className={`${sidebarCollapsed ? "w-10 h-10" : "w-12 h-12"} flex items-center justify-center`}>
-            <div className="w-10 h-10 rounded bg-blue-600 flex items-center justify-center">
-              <span className="text-white font-bold text-sm">DG</span>
+            <div className="w-10 h-10 rounded bg-indigo-600 flex items-center justify-center">
+              <span className="text-white font-bold text-sm">Q</span>
             </div>
           </div>
           {!sidebarCollapsed && (
             <div className="ml-3 hidden md:flex items-center">
-              <span className="text-lg font-semibold text-gray-900">De Goudse</span>
+              <span className="text-lg font-semibold text-gray-900">Qollabi</span>
             </div>
           )}
         </div>
