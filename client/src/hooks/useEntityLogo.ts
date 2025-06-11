@@ -23,6 +23,10 @@ export function useEntityLogo(entityType: 'partner' | 'customer', entityId: numb
       }
 
       const cacheKey = `degoudse-${entityType}-${entityId}`;
+      
+      // Clear cache for testing - remove this line after logos are working
+      logoCache.clear();
+      
       const cached = logoCache.get(cacheKey);
       
       // Check cache first
