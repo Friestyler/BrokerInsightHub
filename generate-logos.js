@@ -1,5 +1,5 @@
 // Script to generate and insert logos for partners and customers
-const fs = require('fs');
+import fs from 'fs';
 
 // Function to create SVG logo and convert to base64
 function createSVGLogo(companyName, primaryColor, secondaryColor, logoType = 'text') {
