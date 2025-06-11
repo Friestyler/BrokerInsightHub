@@ -1260,112 +1260,125 @@ function OpportunitiesTable() {
         </div>
       </div>
       
-      {/* Selection actions bar - visible when items are selected */}
-      {selectedOpportunities.length > 0 && (
-        <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between mb-4">
-          <div className="flex items-center">
-            <span className="text-indigo-700 font-medium mr-2">{selectedOpportunities.length} {selectedOpportunities.length === 1 ? 'opportunity' : 'opportunities'} selected</span>
-            <Button 
-              variant="ghost" 
-              size="sm"
-              className="text-gray-600"
-              onClick={() => setSelectedOpportunities([])}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                <path d="M18 6 6 18"></path>
-                <path d="m6 6 12 12"></path>
-              </svg>
-              Clear selection
-            </Button>
-          </div>
-          
-          <div className="flex items-center gap-2 flex-wrap">
-            {/* New Bulk Status Change dropdown */}
-            <div className="flex items-center gap-1">
-              <Select
-                value={bulkStatusValue}
-                onValueChange={(value) => {
-                  setBulkStatusValue(value);
-                  handleBulkStatusChange(value);
-                }}
+      {/* Bulk actions bar - always visible */}
+      <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between mb-4">
+        {selectedOpportunities.length > 0 ? (
+          <>
+            <div className="flex items-center">
+              <span className="text-indigo-700 font-medium mr-2">{selectedOpportunities.length} {selectedOpportunities.length === 1 ? 'opportunity' : 'opportunities'} selected</span>
+              <Button 
+                variant="ghost" 
+                size="sm"
+                className="text-gray-600"
+                onClick={() => setSelectedOpportunities([])}
               >
-                <SelectTrigger className="h-9 border-indigo-200 bg-white text-sm w-[180px]">
-                  <SelectValue placeholder="Change Status..." />
-                </SelectTrigger>
-                <SelectContent>
-                  {opportunityStatuses.map((status) => (
-                    <SelectItem key={status} value={status}>
-                      <div className="flex items-center">
-                        <span className={`w-2 h-2 rounded-full mr-2 ${getStatusBadgeVariant(status)}`}></span>
-                        {status}
-                      </div>
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                  <path d="M18 6 6 18"></path>
+                  <path d="m6 6 12 12"></path>
+                </svg>
+                Clear selection
+              </Button>
             </div>
             
-            <Button 
-              variant="outline" 
-              size="sm"
-              className="text-indigo-600"
-              onClick={() => setShowSaveListModal(true)}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
-                <polyline points="17 21 17 13 7 13 7 21"></polyline>
-                <polyline points="7 3 7 8 15 8"></polyline>
-              </svg>
-              Create List
-            </Button>
-            
-
-            <Button 
-              variant="outline" 
-              size="sm"
-              className="text-indigo-600"
-              onClick={() => {
-                // TODO: Implement campaign creation
-                alert('Selected opportunities can be added to a campaign. This will be available in the Campaigns section');
-              }}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                <path d="M22 2 11 13" />
-                <path d="M22 2 15 22 11 13 2 9 22 2z" />
-              </svg>
-              Add to Campaign
-            </Button>
-            
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => {
-                // Load OKR templates when opening the modal
-                try {
-                  console.log('Available OKR templates:', okrMetricsFromAPI);
-                  if (okrMetricsFromAPI.length === 0) {
-                    toast({
-                      title: "No templates available",
-                      description: "Please create OKR templates first in the Templates section",
-                      variant: "destructive"
-                    });
-                    return;
+            <div className="flex items-center gap-2 flex-wrap">
+              {/* New Bulk Status Change dropdown */}
+              <div className="flex items-center gap-1">
+                <Select
+                  value={bulkStatusValue}
+                  onValueChange={(value) => {
+                    setBulkStatusValue(value);
+                    handleBulkStatusChange(value);
+                  }}
+                >
+                  <SelectTrigger className="h-9 border-indigo-200 bg-white text-sm w-[180px]">
+                    <SelectValue placeholder="Change Status..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {opportunityStatuses.map((status) => (
+                      <SelectItem key={status} value={status}>
+                        <div className="flex items-center">
+                          <span className={`w-2 h-2 rounded-full mr-2 ${getStatusBadgeVariant(status)}`}></span>
+                          {status}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="text-indigo-600"
+                onClick={() => setShowSaveListModal(true)}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                  <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"></path>
+                  <polyline points="17 21 17 13 7 13 7 21"></polyline>
+                  <polyline points="7 3 7 8 15 8"></polyline>
+                </svg>
+                Create List
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="text-indigo-600"
+                onClick={() => {
+                  // TODO: Implement campaign creation
+                  alert('Selected opportunities can be added to a campaign. This will be available in the Campaigns section');
+                }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                  <path d="M22 2 11 13" />
+                  <path d="M22 2 15 22 11 13 2 9 22 2z" />
+                </svg>
+                Add to Campaign
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="text-indigo-600"
+                onClick={() => {
+                  // Load OKR templates when opening the modal
+                  try {
+                    console.log('Available OKR templates:', okrMetricsFromAPI);
+                    if (okrMetricsFromAPI.length === 0) {
+                      toast({
+                        title: "No templates available",
+                        description: "Please create OKR templates first in the Templates section",
+                        variant: "destructive"
+                      });
+                      return;
+                    }
+                  } catch (error) {
+                    console.error('Error loading templates:', error);
                   }
-                } catch (error) {
-                  console.error('Error loading templates:', error);
-                }
-                setShowAssignTemplateModal(true);
-              }}
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                  setShowAssignTemplateModal(true);
+                }}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                  <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                  <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+                Assign Template
+              </Button>
+            </div>
+          </>
+        ) : (
+          /* Empty state when no opportunities are selected */
+          <div className="flex items-center justify-center w-full min-h-[32px]">
+            <div className="flex items-center text-gray-500">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                <path d="M9 12l2 2 4-4"></path>
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
               </svg>
-              Assign Template
-            </Button>
+              <span className="text-sm">Select at least one opportunity from the list to perform bulk actions</span>
+            </div>
           </div>
-        </div>
-      )}
+        )}
+      </div>
 
       {/* Statistics overview */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
