@@ -45,6 +45,7 @@ export default function PartnerDetail() {
   const [showListsDropdown, setShowListsDropdown] = useState(false);
   const [activeDropdownId, setActiveDropdownId] = useState<number | null>(null);
   const [selectedOpportunities, setSelectedOpportunities] = useState<number[]>([]);
+  const [selectedCustomers, setSelectedCustomers] = useState<number[]>([]);
   const [showSaveListModal, setShowSaveListModal] = useState(false);
   const [saveListMode, setSaveListMode] = useState<'new' | 'existing'>('new');
   const [selectedExistingList, setSelectedExistingList] = useState<number | null>(null);
@@ -1536,15 +1537,19 @@ export default function PartnerDetail() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-12">
-                      <Checkbox 
-                        checked={
-                          isEditingList 
-                            ? editedListMembers.length === filteredOpportunities.length && filteredOpportunities.length > 0
-                            : selectedOpportunities.length === filteredOpportunities.length && filteredOpportunities.length > 0
-                        }
-                        onCheckedChange={toggleSelectAll}
-                      />
+                    <TableHead className="w-12 group">
+                      <div className={`transition-opacity ${
+                        (isEditingList ? editedListMembers.length > 0 : selectedOpportunities.length > 0) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                      }`}>
+                        <Checkbox 
+                          checked={
+                            isEditingList 
+                              ? editedListMembers.length === filteredOpportunities.length && filteredOpportunities.length > 0
+                              : selectedOpportunities.length === filteredOpportunities.length && filteredOpportunities.length > 0
+                          }
+                          onCheckedChange={toggleSelectAll}
+                        />
+                      </div>
                     </TableHead>
                     <TableHead>Opportunity</TableHead>
                     <TableHead>Customer</TableHead>
@@ -1555,12 +1560,16 @@ export default function PartnerDetail() {
                 </TableHeader>
                 <TableBody>
                   {filteredOpportunities.map((opportunity: any) => (
-                    <TableRow key={opportunity.id}>
+                    <TableRow key={opportunity.id} className="group hover:bg-gray-50">
                       <TableCell>
-                        <Checkbox 
-                          checked={isOpportunitySelected(opportunity.id)}
-                          onCheckedChange={() => toggleSelectOpportunity(opportunity.id)}
-                        />
+                        <div className={`transition-opacity ${
+                          isOpportunitySelected(opportunity.id) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                        }`}>
+                          <Checkbox 
+                            checked={isOpportunitySelected(opportunity.id)}
+                            onCheckedChange={() => toggleSelectOpportunity(opportunity.id)}
+                          />
+                        </div>
                       </TableCell>
                       <TableCell>
                         <Link href={`/lists/opportunities/${opportunity.id}`}>
@@ -1598,7 +1607,22 @@ export default function PartnerDetail() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead className="w-12"><Checkbox /></TableHead>
+                  <TableHead className="w-12 group">
+                    <div className={`transition-opacity ${
+                      selectedCustomers.length > 0 ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                    }`}>
+                      <Checkbox 
+                        checked={selectedCustomers.length === (relatedCustomers as any[] || []).length && (relatedCustomers as any[] || []).length > 0}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedCustomers((relatedCustomers as any[] || []).map((c: any) => c.id));
+                          } else {
+                            setSelectedCustomers([]);
+                          }
+                        }}
+                      />
+                    </div>
+                  </TableHead>
                   <TableHead>Customer Name</TableHead>
                   <TableHead>Contact</TableHead>
                   <TableHead>Email</TableHead>
@@ -1610,8 +1634,23 @@ export default function PartnerDetail() {
                 {(relatedCustomers as any[] || []).map((customer: any) => {
                   const customerOpportunities = (relatedOpportunities as any[] || []).filter((o: any) => o.clientName === customer.name);
                   return (
-                    <TableRow key={customer.id}>
-                      <TableCell><Checkbox /></TableCell>
+                    <TableRow key={customer.id} className="group hover:bg-gray-50">
+                      <TableCell>
+                        <div className={`transition-opacity ${
+                          selectedCustomers.includes(customer.id) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                        }`}>
+                          <Checkbox 
+                            checked={selectedCustomers.includes(customer.id)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setSelectedCustomers([...selectedCustomers, customer.id]);
+                              } else {
+                                setSelectedCustomers(selectedCustomers.filter(id => id !== customer.id));
+                              }
+                            }}
+                          />
+                        </div>
+                      </TableCell>
                       <TableCell>
                         <Link href={`/lists/customers/${customer.id}`}>
                           <span className="font-medium text-indigo-600 hover:underline cursor-pointer">
