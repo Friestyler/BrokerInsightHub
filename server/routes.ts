@@ -4814,42 +4814,48 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.post('/api/entity-logos', async (req, res) => {
     try {
       const logoData = insertEntityLogoSchema.parse(req.body);
+      const envId = logoData.environmentId || 'degoudse';
+      
+      // Use environment-specific pool for logo operations
+      const envPool = getEnvironmentPool(envId);
       
       // Check if logo already exists for this entity
-      const existingLogo = await db
-        .select()
-        .from(entityLogos)
-        .where(
-          sql`${entityLogos.entityType} = ${logoData.entityType} 
-              AND ${entityLogos.entityId} = ${logoData.entityId} 
-              AND ${entityLogos.environmentId} = ${logoData.environmentId}`
-        )
-        .limit(1);
+      const existingResult = await envPool.query(`
+        SELECT * FROM ${envId}.entity_logos 
+        WHERE entity_type = $1 AND entity_id = $2 AND environment_id = $3
+        LIMIT 1
+      `, [logoData.entityType, logoData.entityId, envId]);
 
-      if (existingLogo.length > 0) {
+      if (existingResult.rows.length > 0) {
         // Update existing logo
-        const [updatedLogo] = await db
-          .update(entityLogos)
-          .set({
-            logoData: logoData.logoData,
-            mimeType: logoData.mimeType,
-            originalFilename: logoData.originalFilename,
-            fileSize: logoData.fileSize,
-            uploadedBy: logoData.uploadedBy,
-            updatedAt: new Date(),
-          })
-          .where(eq(entityLogos.id, existingLogo[0].id))
-          .returning();
+        const updateResult = await envPool.query(`
+          UPDATE ${envId}.entity_logos 
+          SET logo_data = $1, mime_type = $2, original_filename = $3, 
+              file_size = $4, uploaded_by = $5, updated_at = NOW()
+          WHERE entity_type = $6 AND entity_id = $7 AND environment_id = $8
+          RETURNING *
+        `, [
+          logoData.logoData, logoData.mimeType, logoData.originalFilename,
+          logoData.fileSize, logoData.uploadedBy, logoData.entityType,
+          logoData.entityId, envId
+        ]);
         
-        res.json(updatedLogo);
+        res.json(updateResult.rows[0]);
       } else {
         // Create new logo
-        const [newLogo] = await db
-          .insert(entityLogos)
-          .values(logoData)
-          .returning();
+        const insertResult = await envPool.query(`
+          INSERT INTO ${envId}.entity_logos 
+          (entity_type, entity_id, environment_id, logo_data, mime_type, 
+           original_filename, file_size, uploaded_by)
+          VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+          RETURNING *
+        `, [
+          logoData.entityType, logoData.entityId, envId, logoData.logoData,
+          logoData.mimeType, logoData.originalFilename, logoData.fileSize,
+          logoData.uploadedBy
+        ]);
         
-        res.status(201).json(newLogo);
+        res.status(201).json(insertResult.rows[0]);
       }
     } catch (error) {
       console.error('Error saving entity logo:', error);
@@ -4873,22 +4879,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     
     try {
-      const logo = await db
-        .select()
-        .from(entityLogos)
-        .where(
-          sql`${entityLogos.entityType} = ${entityType} 
-              AND ${entityLogos.entityId} = ${parseInt(entityId as string)} 
-              AND ${entityLogos.environmentId} = ${environmentId}`
-        )
-        .limit(1);
+      const envId = environmentId as string;
+      const envPool = getEnvironmentPool(envId);
+      
+      const result = await envPool.query(`
+        SELECT * FROM ${envId}.entity_logos 
+        WHERE entity_type = $1 AND entity_id = $2 AND environment_id = $3
+        LIMIT 1
+      `, [entityType, parseInt(entityId as string), envId]);
 
-      if (logo.length === 0) {
+      if (result.rows.length === 0) {
         return res.status(404).json({ error: 'Logo not found' });
       }
 
-      setCache(cacheKey, logo[0]);
-      res.json(logo[0]);
+      setCache(cacheKey, result.rows[0]);
+      res.json(result.rows[0]);
     } catch (error) {
       console.error('Error fetching entity logo:', error);
       res.status(500).json({ error: 'Failed to fetch entity logo' });
@@ -4900,21 +4905,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { entityType, entityId, environmentId } = req.params;
       
-      const logo = await db
-        .select()
-        .from(entityLogos)
-        .where(
-          sql`${entityLogos.entityType} = ${entityType} 
-              AND ${entityLogos.entityId} = ${parseInt(entityId)} 
-              AND ${entityLogos.environmentId} = ${environmentId}`
-        )
-        .limit(1);
+      const envPool = getEnvironmentPool(environmentId);
+      const result = await envPool.query(`
+        SELECT * FROM ${environmentId}.entity_logos 
+        WHERE entity_type = $1 AND entity_id = $2 AND environment_id = $3
+        LIMIT 1
+      `, [entityType, parseInt(entityId), environmentId]);
 
-      if (logo.length === 0) {
+      if (result.rows.length === 0) {
         return res.status(404).json({ error: 'Logo not found' });
       }
 
-      res.json(logo[0]);
+      res.json(result.rows[0]);
     } catch (error) {
       console.error('Error fetching entity logo:', error);
       res.status(500).json({ error: 'Failed to fetch entity logo' });
@@ -4926,16 +4928,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { entityType, entityId, environmentId } = req.params;
       
-      const result = await db
-        .delete(entityLogos)
-        .where(
-          sql`${entityLogos.entityType} = ${entityType} 
-              AND ${entityLogos.entityId} = ${parseInt(entityId)} 
-              AND ${entityLogos.environmentId} = ${environmentId}`
-        )
-        .returning();
+      const envPool = getEnvironmentPool(environmentId);
+      const result = await envPool.query(`
+        DELETE FROM ${environmentId}.entity_logos 
+        WHERE entity_type = $1 AND entity_id = $2 AND environment_id = $3
+        RETURNING *
+      `, [entityType, parseInt(entityId), environmentId]);
 
-      if (result.length === 0) {
+      if (result.rows.length === 0) {
         return res.status(404).json({ error: 'Logo not found' });
       }
 
