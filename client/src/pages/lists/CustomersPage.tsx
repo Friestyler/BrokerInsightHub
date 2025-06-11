@@ -722,7 +722,7 @@ export default function CustomersPageClean() {
         {/* Customers table - exact match to Opportunities */}
         <div className="overflow-hidden bg-white sm:rounded-lg">
           <table className="min-w-full">
-            <thead className="bg-gray-50">
+            <thead className="bg-white">
               <tr>
                 <th scope="col" className="relative px-3 py-3.5 w-10 pt-[12px] pb-[12px]">
                   <div className="flex items-center justify-center">

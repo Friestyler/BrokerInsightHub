@@ -1610,9 +1610,9 @@ function OpportunitiesTable() {
       {/* Table section without a border */}
       <div className="bg-white overflow-x-auto rounded-lg">
         <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+          <thead className="bg-white">
             <tr>
-              <th scope="col" className="relative px-3 py-3.5 w-10">
+              <th scope="col" className="relative px-3 py-3.5 w-10 bg-white">
                 <input
                   type="checkbox"
                   className="absolute h-4 w-4 rounded border-gray-300"
@@ -1647,7 +1647,7 @@ function OpportunitiesTable() {
               >
                 Type
               </SortableTableHead>
-              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[120px]">
+              <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[120px] bg-white">
                 <div className="flex items-center text-[#696C8C] text-[13px] font-medium">
                   Template
                 </div>

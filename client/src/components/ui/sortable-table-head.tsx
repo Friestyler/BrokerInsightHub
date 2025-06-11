@@ -39,7 +39,7 @@ export function SortableTableHead({
 
   return (
     <TableHead 
-      className={`cursor-pointer select-none hover:bg-gray-50 ${className}`}
+      className={`cursor-pointer select-none bg-white hover:bg-gray-50 ${className}`}
       onClick={() => onSort(sortKey)}
     >
       <div className="flex items-center justify-between">
