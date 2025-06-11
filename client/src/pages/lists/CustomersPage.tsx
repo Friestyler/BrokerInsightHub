@@ -810,23 +810,16 @@ export default function CustomersPageClean() {
                       onChange={() => handleCustomerSelect(customer.id)}
                     />
                   </td>
-                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm font-medium w-[250px]">
+                  <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm font-medium">
                     <div className="flex items-center">
-                      <div className="flex-shrink-0 h-10 w-10">
-                        <EntityAvatar
-                          entityType="customer"
-                          entityId={customer.id}
-                          fallbackText={customer.name.substring(0, 2).toUpperCase()}
-                          size="lg"
-                        />
-                      </div>
-                      <div className="ml-3">
-                        <Link href={`/lists/customers/${customer.id}`}>
-                          <div className="font-medium text-indigo-600 hover:text-indigo-800 hover:underline cursor-pointer">
-                            {customer.name}
-                          </div>
-                        </Link>
-                      </div>
+                      <EntityAvatar
+                        entityType="customer"
+                        entityId={customer.id}
+                        fallbackText={customer.name.substring(0, 2).toUpperCase()}
+                        className="mr-3"
+                        size="md"
+                      />
+                      <Link href={`/lists/customers/${customer.id}`} className="font-medium text-gray-900 hover:text-indigo-700">{customer.name}</Link>
                     </div>
                   </td>
                   <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm">
