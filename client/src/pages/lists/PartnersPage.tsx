@@ -18,7 +18,8 @@ import {
   CardContent,
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import EntityAvatar from "@/components/EntityAvatar";
 import { Badge } from "@/components/ui/badge";
 import { Link, useLocation } from "wouter";
 import { 
@@ -2209,9 +2210,13 @@ function PartnersTable() {
                 </td>
                 <td className="whitespace-nowrap py-4 pl-3 pr-3 text-sm font-medium">
                   <div className="flex items-center">
-                    <Avatar className="h-9 w-9 mr-3 bg-indigo-100 text-indigo-600">
-                      <AvatarFallback>{partner.initials}</AvatarFallback>
-                    </Avatar>
+                    <EntityAvatar
+                      entityType="partner"
+                      entityId={partner.id}
+                      fallbackText={partner.initials}
+                      className="mr-3"
+                      size="md"
+                    />
                     <Link href={`/lists/partners/${partner.id}`} className="font-medium text-gray-900 hover:text-indigo-700">{partner.name}</Link>
                   </div>
                 </td>
