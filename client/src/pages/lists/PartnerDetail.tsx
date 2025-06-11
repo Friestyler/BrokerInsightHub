@@ -821,18 +821,22 @@ export default function PartnerDetail() {
                     <Table>
                       <TableHeader>
                         <TableRow className="border-b border-gray-200">
-                          <TableHead className="w-12">
-                            <Checkbox
-                              checked={tagMetrics.every((metric: any) => selectedMetrics.includes(metric.id))}
-                              onCheckedChange={(checked) => {
-                                const tagMetricIds = tagMetrics.map((metric: any) => metric.id);
-                                if (checked) {
-                                  setSelectedMetrics([...selectedMetrics, ...tagMetricIds.filter((id: number) => !selectedMetrics.includes(id))]);
-                                } else {
-                                  setSelectedMetrics(selectedMetrics.filter((id: number) => !tagMetricIds.includes(id)));
-                                }
-                              }}
-                            />
+                          <TableHead className="w-12 group">
+                            <div className={`transition-opacity ${
+                              tagMetrics.some((metric: any) => selectedMetrics.includes(metric.id)) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
+                            }`}>
+                              <Checkbox
+                                checked={tagMetrics.every((metric: any) => selectedMetrics.includes(metric.id))}
+                                onCheckedChange={(checked) => {
+                                  const tagMetricIds = tagMetrics.map((metric: any) => metric.id);
+                                  if (checked) {
+                                    setSelectedMetrics([...selectedMetrics, ...tagMetricIds.filter((id: number) => !selectedMetrics.includes(id))]);
+                                  } else {
+                                    setSelectedMetrics(selectedMetrics.filter((id: number) => !tagMetricIds.includes(id)));
+                                  }
+                                }}
+                              />
+                            </div>
                           </TableHead>
                           <TableHead className="text-left font-medium text-gray-900">Name</TableHead>
                           <TableHead className="text-left font-medium text-gray-900">Timeframe</TableHead>
