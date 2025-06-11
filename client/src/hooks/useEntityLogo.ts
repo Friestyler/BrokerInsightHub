@@ -36,6 +36,8 @@ export function useEntityLogo(entityType: 'partner' | 'customer', entityId: numb
         // Use URL-based environment ID first, then fallback
         const environment = urlEnvironmentId || 'degoudse';
         
+        console.log('useEntityLogo debug:', { entityType, entityId, environment, currentPath, urlEnvironmentId });
+        
         const response = await fetch(`/api/entity-logos?entityType=${entityType}&entityId=${entityId}&environmentId=${environment}`);
         
         if (response.ok) {
