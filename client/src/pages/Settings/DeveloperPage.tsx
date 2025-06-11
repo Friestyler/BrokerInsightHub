@@ -8,69 +8,8 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { RefreshCw, Terminal } from "lucide-react";
 
-// Complete database schema information across all environments
+// Database schema information for degoudse environment only
 const databaseSchemas = {
-  myqollabi: {
-    description: "Main Qollabi environment schema",
-    connection: "PostgreSQL via Neon Database",
-    tables: {
-      partners: {
-        columns: ['id', 'name', 'description', 'initials', 'industry', 'type', 'size', 'status', 'location', 'contact_email', 'primary_contact', 'partner_type', 'region', 'assigned_user_ids', 'linked_opportunity_ids', 'created_at', 'updated_at'],
-        relationships: ['partner_customers (many-to-many)', 'partner_opportunities (many-to-many)', 'users (via assigned_user_ids)'],
-        shadowRisk: 'None - Primary schema'
-      },
-      customers: {
-        columns: ['id', 'name', 'description', 'initials', 'owner_id', 'contact_name', 'contact_email', 'contact_phone', 'assigned_partner_id', 'created_at', 'updated_at'],
-        relationships: ['partner_customers (many-to-many)', 'opportunities (via client_id)', 'users (via owner_id)'],
-        shadowRisk: 'None - Primary schema'
-      },
-      opportunities: {
-        columns: ['id', 'title', 'description', 'client_id', 'status', 'stage', 'type', 'estimated_value', 'probability', 'location', 'partner_name', 'last_activity_date', 'linked_contact_ids', 'created_by', 'created_at', 'updated_at'],
-        relationships: ['partner_opportunities (many-to-many)', 'customers (via client_id)', 'users (via created_by)', 'opportunity_products (many-to-many)'],
-        shadowRisk: 'None - Primary schema'
-      },
-      partner_customers: {
-        columns: ['id', 'partner_id', 'customer_id', 'created_at'],
-        relationships: ['Junction table: partners ↔ customers'],
-        shadowRisk: 'None - Primary schema'
-      },
-      partner_opportunities: {
-        columns: ['id', 'partner_id', 'opportunity_id', 'created_at'],
-        relationships: ['Junction table: partners ↔ opportunities'],
-        shadowRisk: 'None - Primary schema'
-      },
-      users: {
-        columns: ['id', 'username', 'email', 'password_hash', 'full_name', 'first_name', 'last_name', 'avatar_initials', 'role', 'department', 'is_active', 'last_login_at', 'created_at', 'updated_at'],
-        relationships: ['okr_metrics (via responsible_user_id, created_by)', 'partners (via assigned_user_ids)', 'customers (via owner_id)'],
-        shadowRisk: 'None - Primary schema'
-      },
-      okr_metrics: {
-        columns: ['id', 'name', 'description', 'realized_value', 'target_value', 'measure_unit', 'currency_type', 'traffic_light_thresholds', 'progress_bar_thresholds', 'picklist_options', 'responsible_user_id', 'responsible_contact_id', 'timeframe', 'frequency', 'attachment_url', 'due_date', 'is_muted', 'is_archived', 'is_shared', 'hierarchy', 'tags', 'created_by', 'created_at', 'updated_at'],
-        relationships: ['users (via responsible_user_id, created_by)', 'contacts (via responsible_contact_id)', 'okr_tags (via tags JSON array)'],
-        shadowRisk: 'None - Primary schema'
-      },
-      okr_tags: {
-        columns: ['id', 'name', 'color', 'created_at', 'updated_at'],
-        relationships: ['okr_metrics (referenced in tags JSON array)'],
-        shadowRisk: 'None - Primary schema'
-      },
-      contacts: {
-        columns: ['id', 'first_name', 'last_name', 'full_name', 'email', 'phone', 'job_title', 'department', 'company', 'linked_entity_type', 'linked_entity_id', 'is_primary', 'notes', 'tags', 'is_active', 'created_at', 'updated_at'],
-        relationships: ['Polymorphic: any entity via linked_entity_type/linked_entity_id', 'okr_metrics (via responsible_contact_id)'],
-        shadowRisk: 'None - Primary schema'
-      },
-      products: {
-        columns: ['id', 'name', 'description', 'type', 'category', 'price', 'vendor_id', 'status', 'created_at', 'updated_at'],
-        relationships: ['vendors (via vendor_id)', 'opportunity_products (many-to-many)'],
-        shadowRisk: 'None - Primary schema'
-      },
-      vendors: {
-        columns: ['id', 'name', 'description', 'contact_email', 'contact_phone', 'website', 'industry', 'status', 'created_at', 'updated_at'],
-        relationships: ['products (one-to-many via vendor_id)'],
-        shadowRisk: 'None - Primary schema'
-      }
-    }
-  },
   degoudse: {
     description: "De Goudse insurance partner environment",
     connection: "PostgreSQL via Neon Database (isolated schema)",
@@ -160,30 +99,28 @@ const databaseSchemas = {
   }
 };
 
-// Legacy schema info for backward compatibility
-const schemaInfo = databaseSchemas.myqollabi.tables;
+// Schema info for degoudse environment
+const schemaInfo = databaseSchemas.degoudse.tables;
 
 // Complete API endpoints mapping - updated from actual routes audit
 const apiEndpoints = {
-  core: [
-    { method: 'GET', path: '/api/partners', description: 'Get all partners with aggregate data from myqollabi schema' },
-    { method: 'GET', path: '/api/customers', description: 'Get all customers with partner relationships' },
-    { method: 'GET', path: '/api/opportunities', description: 'Get all opportunities with client information' },
-    { method: 'GET', path: '/api/clients', description: 'Legacy clients endpoint (being phased out)' },
-    { method: 'GET', path: '/api/vendors', description: 'Get all vendors in the system' },
-    { method: 'GET', path: '/api/products', description: 'Get all products in the system' },
-    { method: 'GET', path: '/api/insurance-products', description: 'Get insurance-specific products' },
-    { method: 'GET', path: '/api/news', description: 'Get insurance news and updates' },
-    { method: 'GET', path: '/api/documents', description: 'Get uploaded documents and files' }
+  degoudse_core: [
+    { method: 'GET', path: '/api/degoudse/partners', description: 'Get all partners from degoudse schema with relationship counts' },
+    { method: 'GET', path: '/api/degoudse/customers', description: 'Get all customers from degoudse environment' },
+    { method: 'GET', path: '/api/degoudse/opportunities', description: 'Get all opportunities from degoudse environment' },
+    { method: 'GET', path: '/api/degoudse/products', description: 'Get products from degoudse environment' },
+    { method: 'GET', path: '/api/degoudse/vendors', description: 'Get vendors from degoudse environment' },
+    { method: 'GET', path: '/api/degoudse/saved-lists', description: 'Get saved lists from degoudse environment' },
+    { method: 'GET', path: '/api/degoudse/saved-views', description: 'Get saved views from degoudse environment' }
   ],
-  okr: [
-    { method: 'GET', path: '/api/okr-metrics', description: 'Get all OKR metrics with tags and properties' },
-    { method: 'POST', path: '/api/okr-metrics', description: 'Create new OKR metric with tags' },
-    { method: 'PUT', path: '/api/okr-metrics/:id', description: 'Update existing OKR metric' },
-    { method: 'GET', path: '/api/okr-tags', description: 'Get all OKR tags with colors' },
-    { method: 'POST', path: '/api/okr-tags', description: 'Create new OKR tag with color' },
-    { method: 'PUT', path: '/api/okr-tags/:id', description: 'Update OKR tag name and color' },
-    { method: 'DELETE', path: '/api/okr-tags/:id', description: 'Delete OKR tag' }
+  degoudse_okr: [
+    { method: 'GET', path: '/api/degoudse/okr-metrics', description: 'Get OKR metrics from degoudse environment' },
+    { method: 'POST', path: '/api/degoudse/okr-metrics', description: 'Create new OKR metric in degoudse environment' },
+    { method: 'PUT', path: '/api/degoudse/okr-metrics/:id', description: 'Update OKR metric in degoudse environment' },
+    { method: 'GET', path: '/api/degoudse/okr-tags', description: 'Get OKR tags from degoudse environment' },
+    { method: 'POST', path: '/api/degoudse/okr-tags', description: 'Create new OKR tag in degoudse environment' },
+    { method: 'PUT', path: '/api/degoudse/okr-tags/:id', description: 'Update OKR tag in degoudse environment' },
+    { method: 'DELETE', path: '/api/degoudse/okr-tags/:id', description: 'Delete OKR tag from degoudse environment' }
   ],
   relationships: [
     { method: 'GET', path: '/api/partners/:id/customers', description: 'Get customers for specific partner' },

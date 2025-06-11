@@ -12,7 +12,7 @@ function getCurrentEnvironmentId(): string {
   const envFromWindow = window.__APP_ENV__;
   const envFromStorage = localStorage.getItem('selectedEnvironment');
   console.log('Environment detection:', { envFromWindow, envFromStorage });
-  return envFromWindow || envFromStorage || 'myqollabi';
+  return envFromWindow || envFromStorage || 'degoudse';
 }
 
 // Function to add environment to API URL
@@ -33,10 +33,14 @@ export function getEnvironmentUrl(url: string): string {
     return url;
   }
   
-  // If we're in the default environment (myqollabi), use the standard API URLs
-  if (envId === 'myqollabi') {
-    console.log('MyQollabi environment, using standard API URLs');
-    return url;
+  // For degoudse environment, always prefix the URL with the environment path
+  if (envId === 'degoudse') {
+    // For degoudse environment, prefix the URL with the environment path
+    if (url.startsWith('/api/')) {
+      const newUrl = url.replace('/api/', `/api/${envId}/`);
+      console.log('Environment URL transformed:', { from: url, to: newUrl });
+      return newUrl;
+    }
   }
   
   // For other environments, prefix the URL with the environment path
