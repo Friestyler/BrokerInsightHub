@@ -173,7 +173,7 @@ export default function PartnerView() {
   }
 
   return (
-    <PartnerLayout>
+    <BrokerLayout>
       <div className="p-6">
         <div className="space-y-4">
           {/* Enhanced unified toolbar */}
@@ -421,6 +421,6 @@ export default function PartnerView() {
           )}
         </div>
       </div>
-    </PartnerLayout>
+    </BrokerLayout>
   );
 }
