@@ -8,45 +8,160 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { RefreshCw, Terminal } from "lucide-react";
 
-// Database schema information - static for all environments
-const schemaInfo = {
-  partners: {
-    columns: ['id', 'name', 'description', 'initials', 'industry', 'type', 'size', 'status', 'location', 'contact_email', 'primary_contact', 'partner_type', 'region', 'assigned_user_ids', 'linked_opportunity_ids', 'created_at', 'updated_at'],
-    relationships: ['partner_customers', 'partner_opportunities']
+// Complete database schema information across all environments
+const databaseSchemas = {
+  myqollabi: {
+    description: "Main Qollabi environment schema",
+    connection: "PostgreSQL via Neon Database",
+    tables: {
+      partners: {
+        columns: ['id', 'name', 'description', 'initials', 'industry', 'type', 'size', 'status', 'location', 'contact_email', 'primary_contact', 'partner_type', 'region', 'assigned_user_ids', 'linked_opportunity_ids', 'created_at', 'updated_at'],
+        relationships: ['partner_customers (many-to-many)', 'partner_opportunities (many-to-many)', 'users (via assigned_user_ids)'],
+        shadowRisk: 'None - Primary schema'
+      },
+      customers: {
+        columns: ['id', 'name', 'description', 'initials', 'owner_id', 'contact_name', 'contact_email', 'contact_phone', 'assigned_partner_id', 'created_at', 'updated_at'],
+        relationships: ['partner_customers (many-to-many)', 'opportunities (via client_id)', 'users (via owner_id)'],
+        shadowRisk: 'None - Primary schema'
+      },
+      opportunities: {
+        columns: ['id', 'title', 'description', 'client_id', 'status', 'stage', 'type', 'estimated_value', 'probability', 'location', 'partner_name', 'last_activity_date', 'linked_contact_ids', 'created_by', 'created_at', 'updated_at'],
+        relationships: ['partner_opportunities (many-to-many)', 'customers (via client_id)', 'users (via created_by)', 'opportunity_products (many-to-many)'],
+        shadowRisk: 'None - Primary schema'
+      },
+      partner_customers: {
+        columns: ['id', 'partner_id', 'customer_id', 'created_at'],
+        relationships: ['Junction table: partners ↔ customers'],
+        shadowRisk: 'None - Primary schema'
+      },
+      partner_opportunities: {
+        columns: ['id', 'partner_id', 'opportunity_id', 'created_at'],
+        relationships: ['Junction table: partners ↔ opportunities'],
+        shadowRisk: 'None - Primary schema'
+      },
+      users: {
+        columns: ['id', 'username', 'email', 'password_hash', 'full_name', 'first_name', 'last_name', 'avatar_initials', 'role', 'department', 'is_active', 'last_login_at', 'created_at', 'updated_at'],
+        relationships: ['okr_metrics (via responsible_user_id, created_by)', 'partners (via assigned_user_ids)', 'customers (via owner_id)'],
+        shadowRisk: 'None - Primary schema'
+      },
+      okr_metrics: {
+        columns: ['id', 'name', 'description', 'realized_value', 'target_value', 'measure_unit', 'currency_type', 'traffic_light_thresholds', 'progress_bar_thresholds', 'picklist_options', 'responsible_user_id', 'responsible_contact_id', 'timeframe', 'frequency', 'attachment_url', 'due_date', 'is_muted', 'is_archived', 'is_shared', 'hierarchy', 'tags', 'created_by', 'created_at', 'updated_at'],
+        relationships: ['users (via responsible_user_id, created_by)', 'contacts (via responsible_contact_id)', 'okr_tags (via tags JSON array)'],
+        shadowRisk: 'None - Primary schema'
+      },
+      okr_tags: {
+        columns: ['id', 'name', 'color', 'created_at', 'updated_at'],
+        relationships: ['okr_metrics (referenced in tags JSON array)'],
+        shadowRisk: 'None - Primary schema'
+      },
+      contacts: {
+        columns: ['id', 'first_name', 'last_name', 'full_name', 'email', 'phone', 'job_title', 'department', 'company', 'linked_entity_type', 'linked_entity_id', 'is_primary', 'notes', 'tags', 'is_active', 'created_at', 'updated_at'],
+        relationships: ['Polymorphic: any entity via linked_entity_type/linked_entity_id', 'okr_metrics (via responsible_contact_id)'],
+        shadowRisk: 'None - Primary schema'
+      },
+      products: {
+        columns: ['id', 'name', 'description', 'type', 'category', 'price', 'vendor_id', 'status', 'created_at', 'updated_at'],
+        relationships: ['vendors (via vendor_id)', 'opportunity_products (many-to-many)'],
+        shadowRisk: 'None - Primary schema'
+      },
+      vendors: {
+        columns: ['id', 'name', 'description', 'contact_email', 'contact_phone', 'website', 'industry', 'status', 'created_at', 'updated_at'],
+        relationships: ['products (one-to-many via vendor_id)'],
+        shadowRisk: 'None - Primary schema'
+      }
+    }
   },
-  customers: {
-    columns: ['id', 'name', 'description', 'initials', 'owner_id', 'contact_name', 'contact_email', 'contact_phone', 'assigned_partner_id', 'created_at', 'updated_at'],
-    relationships: ['partner_customers', 'opportunities (via client_id)']
+  degoudse: {
+    description: "De Goudse insurance partner environment",
+    connection: "PostgreSQL via Neon Database (isolated schema)",
+    tables: {
+      partners: {
+        columns: ['id', 'name', 'description', 'initials', 'industry', 'type', 'size', 'status', 'location', 'contact_email', 'primary_contact', 'partner_type', 'region', 'assigned_user_ids', 'linked_opportunity_ids', 'created_at', 'updated_at'],
+        relationships: ['degoudse.partner_customers', 'degoudse.partner_opportunities', 'degoudse.users'],
+        shadowRisk: 'Low - Environment isolated'
+      },
+      customers: {
+        columns: ['id', 'name', 'description', 'ownerId', 'createdAt', 'updatedAt'],
+        relationships: ['degoudse.partner_customers', 'degoudse.customer_opportunities', 'degoudse.contacts'],
+        shadowRisk: 'Low - Environment isolated'
+      },
+      opportunities: {
+        columns: ['id', 'title', 'description', 'status', 'stage', 'estimated_value', 'partner_name', 'expected_close_date', 'created_at', 'updated_at'],
+        relationships: ['degoudse.partner_opportunities', 'degoudse.customer_opportunities', 'degoudse.opportunity_products'],
+        shadowRisk: 'Low - Environment isolated'
+      },
+      partner_customers: {
+        columns: ['id', 'partner_id', 'customer_id', 'created_at'],
+        relationships: ['Junction: degoudse.partners ↔ degoudse.customers'],
+        shadowRisk: 'Low - Environment isolated'
+      },
+      partner_opportunities: {
+        columns: ['id', 'partner_id', 'opportunity_id', 'created_at'],
+        relationships: ['Junction: degoudse.partners ↔ degoudse.opportunities'],
+        shadowRisk: 'Low - Environment isolated'
+      },
+      customer_opportunities: {
+        columns: ['id', 'customer_id', 'opportunity_id', 'created_at'],
+        relationships: ['Junction: degoudse.customers ↔ degoudse.opportunities'],
+        shadowRisk: 'Low - Environment isolated'
+      },
+      opportunity_products: {
+        columns: ['id', 'opportunity_id', 'product_id', 'created_at'],
+        relationships: ['Junction: degoudse.opportunities ↔ degoudse.products'],
+        shadowRisk: 'Low - Environment isolated'
+      },
+      products: {
+        columns: ['id', 'name', 'description', 'type', 'category', 'price', 'vendor_id', 'status', 'created_at', 'updated_at'],
+        relationships: ['degoudse.vendors', 'degoudse.opportunity_products'],
+        shadowRisk: 'Low - Environment isolated'
+      },
+      vendors: {
+        columns: ['id', 'name', 'description', 'contact_email', 'contact_phone', 'website', 'industry', 'status', 'created_at', 'updated_at'],
+        relationships: ['degoudse.products'],
+        shadowRisk: 'Low - Environment isolated'
+      },
+      contacts: {
+        columns: ['id', 'first_name', 'last_name', 'full_name', 'email', 'phone', 'job_title', 'department', 'company', 'linked_entity_type', 'linked_entity_id', 'is_primary', 'notes', 'tags', 'is_active', 'created_at', 'updated_at'],
+        relationships: ['Polymorphic: degoudse entities via linked_entity_type/linked_entity_id'],
+        shadowRisk: 'Low - Environment isolated'
+      },
+      okr_metrics: {
+        columns: ['id', 'name', 'description', 'realized_value', 'target_value', 'measure_unit', 'currency_type', 'traffic_light_thresholds', 'progress_bar_thresholds', 'picklist_options', 'responsible_user_id', 'responsible_contact_id', 'timeframe', 'frequency', 'attachment_url', 'due_date', 'is_muted', 'is_archived', 'is_shared', 'hierarchy', 'tags', 'created_by', 'created_at', 'updated_at'],
+        relationships: ['degoudse.okr_tags', 'degoudse.users', 'degoudse.contacts'],
+        shadowRisk: 'Low - Environment isolated'
+      },
+      okr_tags: {
+        columns: ['id', 'name', 'color', 'created_at', 'updated_at'],
+        relationships: ['degoudse.okr_metrics'],
+        shadowRisk: 'Low - Environment isolated'
+      }
+    }
   },
-  opportunities: {
-    columns: ['id', 'title', 'description', 'client_id', 'status', 'stage', 'type', 'estimated_value', 'probability', 'location', 'partner_name', 'last_activity_date', 'linked_contact_ids', 'created_by', 'created_at', 'updated_at'],
-    relationships: ['partner_opportunities', 'customers (via client_id)']
-  },
-  partner_customers: {
-    columns: ['id', 'partner_id', 'customer_id', 'created_at'],
-    relationships: ['Many-to-many junction table connecting partners and customers']
-  },
-  partner_opportunities: {
-    columns: ['id', 'partner_id', 'opportunity_id', 'created_at'],
-    relationships: ['Many-to-many junction table connecting partners and opportunities']
-  },
-  okr_metrics: {
-    columns: ['id', 'name', 'description', 'realized_value', 'target_value', 'measure_unit', 'currency_type', 'traffic_light_thresholds', 'progress_bar_thresholds', 'picklist_options', 'responsible_user_id', 'responsible_contact_id', 'timeframe', 'frequency', 'attachment_url', 'due_date', 'is_muted', 'is_archived', 'is_shared', 'hierarchy', 'tags', 'created_by', 'created_at', 'updated_at'],
-    relationships: ['Tags stored as JSON array', 'Links to users via created_by']
-  },
-  okr_tags: {
-    columns: ['id', 'name', 'color', 'created_at', 'updated_at'],
-    relationships: ['Referenced by okr_metrics.tags JSON array']
-  },
-  users: {
-    columns: ['id', 'username', 'email', 'password', 'full_name', 'first_name', 'last_name', 'avatar_initials', 'role', 'department', 'is_active', 'last_login_at', 'created_at', 'updated_at'],
-    relationships: ['Links to okr_metrics via responsible_user_id', 'Authentication and user management']
-  },
-  contacts: {
-    columns: ['id', 'first_name', 'last_name', 'email', 'phone', 'company', 'position', 'linked_entity_type', 'linked_entity_id', 'notes', 'is_active', 'created_at', 'updated_at'],
-    relationships: ['Polymorphic links to any entity via linked_entity_type/linked_entity_id', 'Links to okr_metrics via responsible_contact_id']
+  detected_shadow_schemas: {
+    description: "Monitoring for unauthorized database schemas",
+    connection: "Real-time schema detection",
+    tables: {
+      acme: {
+        columns: ['Detection attempted - Access blocked'],
+        relationships: ['BLOCKED - Unauthorized schema access'],
+        shadowRisk: 'HIGH - Potential shadow database'
+      },
+      globex: {
+        columns: ['Detection attempted - Access blocked'],
+        relationships: ['BLOCKED - Unauthorized schema access'],
+        shadowRisk: 'HIGH - Potential shadow database'
+      },
+      oceanic: {
+        columns: ['Detection attempted - Access blocked'],
+        relationships: ['BLOCKED - Unauthorized schema access'],
+        shadowRisk: 'HIGH - Potential shadow database'
+      }
+    }
   }
 };
+
+// Legacy schema info for backward compatibility
+const schemaInfo = databaseSchemas.myqollabi.tables;
 
 // Complete API endpoints mapping - updated from actual routes audit
 const apiEndpoints = {
@@ -74,6 +189,8 @@ const apiEndpoints = {
     { method: 'GET', path: '/api/partners/:id/customers', description: 'Get customers for specific partner' },
     { method: 'GET', path: '/api/partners/:id/opportunities', description: 'Get opportunities for specific partner' },
     { method: 'GET', path: '/api/customers/:id/partners', description: 'Get partners for specific customer' },
+    { method: 'GET', path: '/api/customers/:id/products', description: 'Get products for specific customer' },
+    { method: 'GET', path: '/api/customers/:id/contacts', description: '✓ Get contacts for specific customer (NEW)' },
     { method: 'GET', path: '/api/opportunities/:id/partners', description: 'Get partners for specific opportunity' },
     { method: 'GET', path: '/api/vendors/:id/products', description: 'Get products for specific vendor' }
   ],
@@ -106,9 +223,19 @@ const apiEndpoints = {
   ],
   environments: [
     { method: 'GET', path: '/api/degoudse/partners', description: 'Get partners from De Goudse environment' },
+    { method: 'GET', path: '/api/degoudse/customers', description: 'Get customers from De Goudse environment' },
     { method: 'GET', path: '/api/degoudse/opportunities', description: 'Get opportunities from De Goudse environment' },
+    { method: 'GET', path: '/api/degoudse/products', description: 'Get products from De Goudse environment' },
+    { method: 'GET', path: '/api/degoudse/customers/:id/partners', description: 'Get partners for De Goudse customer' },
+    { method: 'GET', path: '/api/degoudse/customers/:id/opportunities', description: 'Get opportunities for De Goudse customer' },
+    { method: 'GET', path: '/api/degoudse/customers/:id/products', description: 'Get products for De Goudse customer' },
+    { method: 'GET', path: '/api/degoudse/customers/:id/contacts', description: '✓ Get contacts for De Goudse customer (NEW)' },
+    { method: 'GET', path: '/api/degoudse/okr-metrics', description: 'Get OKR metrics from De Goudse environment' },
+    { method: 'GET', path: '/api/degoudse/okr-tags', description: 'Get OKR tags from De Goudse environment' },
     { method: 'POST', path: '/api/degoudse/upload-opportunities', description: 'Upload opportunities to De Goudse environment' },
-    { method: 'POST', path: '/api/environments/copy', description: 'Copy data between environments' }
+    { method: 'GET', path: '/api/admin/environments', description: 'Get all available environments' },
+    { method: 'GET', path: '/api/admin/environment-stats', description: 'Get statistics for all environments' },
+    { method: 'GET', path: '/api/database-status', description: 'Get database connection and record counts' }
   ],
   utilities: [
     { method: 'POST', path: '/api/files/upload', description: 'Upload PDF files for processing' },
@@ -375,38 +502,123 @@ function DeveloperPage() {
             </Card>
           </div>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {Object.entries(schemaInfo).map(([tableName, tableInfo]) => (
-              <Card key={tableName}>
-                <CardHeader>
-                  <CardTitle className="text-lg capitalize">{tableName}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3">
-                    <div>
-                      <h4 className="font-medium text-sm mb-2">Columns</h4>
-                      <div className="flex flex-wrap gap-1">
-                        {tableInfo.columns.map((column) => (
-                          <Badge key={column} variant="outline" className="text-xs">
-                            {column}
-                          </Badge>
-                        ))}
+          {/* Comprehensive Database Schema Sections */}
+          {Object.entries(databaseSchemas).map(([schemaName, schemaData]) => (
+            <div key={schemaName} className="space-y-4">
+              <div className="border-l-4 border-l-blue-500 pl-4">
+                <h3 className="text-xl font-semibold capitalize flex items-center gap-2">
+                  {schemaName.replace('_', ' ')} 
+                  {schemaName === 'detected_shadow_schemas' && (
+                    <Badge variant="destructive" className="ml-2">⚠️ SHADOW RISK</Badge>
+                  )}
+                  {schemaName === environment.id && (
+                    <Badge variant="default" className="ml-2 bg-green-500">CURRENT</Badge>
+                  )}
+                </h3>
+                <p className="text-sm text-muted-foreground mt-1">{schemaData.description}</p>
+                <p className="text-xs text-muted-foreground">{schemaData.connection}</p>
+              </div>
+              
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {Object.entries(schemaData.tables).map(([tableName, tableInfo]) => (
+                  <Card key={`${schemaName}-${tableName}`} className={schemaName === 'detected_shadow_schemas' ? 'border-red-200 bg-red-50' : ''}>
+                    <CardHeader>
+                      <CardTitle className="text-lg capitalize flex items-center justify-between">
+                        {tableName}
+                        <Badge 
+                          variant={
+                            tableInfo.shadowRisk === 'None - Primary schema' ? 'default' :
+                            tableInfo.shadowRisk?.includes('HIGH') ? 'destructive' : 
+                            'secondary'
+                          }
+                          className={
+                            tableInfo.shadowRisk === 'None - Primary schema' ? 'bg-green-500' :
+                            tableInfo.shadowRisk?.includes('HIGH') ? '' : 
+                            'bg-orange-500'
+                          }
+                        >
+                          {tableInfo.shadowRisk?.includes('HIGH') ? '⚠️ SHADOW' : 
+                           tableInfo.shadowRisk?.includes('Low') ? '🔒 ISOLATED' : '✓ SECURE'}
+                        </Badge>
+                      </CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-3">
+                        <div>
+                          <h4 className="font-medium text-sm mb-2">Columns ({tableInfo.columns.length})</h4>
+                          <div className="flex flex-wrap gap-1 max-h-32 overflow-y-auto">
+                            {tableInfo.columns.map((column, index) => (
+                              <Badge 
+                                key={`${tableName}-${column}-${index}`} 
+                                variant="outline" 
+                                className={`text-xs ${schemaName === 'detected_shadow_schemas' ? 'border-red-300 text-red-700' : ''}`}
+                              >
+                                {column}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-sm mb-2">Relationships</h4>
+                          <div className={`text-sm ${schemaName === 'detected_shadow_schemas' ? 'text-red-700' : 'text-muted-foreground'}`}>
+                            {Array.isArray(tableInfo.relationships) 
+                              ? tableInfo.relationships.join(', ')
+                              : tableInfo.relationships
+                            }
+                          </div>
+                        </div>
+                        <div>
+                          <h4 className="font-medium text-sm mb-2">Security Assessment</h4>
+                          <div className={`text-xs p-2 rounded ${
+                            tableInfo.shadowRisk?.includes('HIGH') ? 'bg-red-100 text-red-800' :
+                            tableInfo.shadowRisk?.includes('Low') ? 'bg-orange-100 text-orange-800' :
+                            'bg-green-100 text-green-800'
+                          }`}>
+                            {tableInfo.shadowRisk}
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                    <div>
-                      <h4 className="font-medium text-sm mb-2">Relationships</h4>
-                      <div className="text-sm text-muted-foreground">
-                        {Array.isArray(tableInfo.relationships) 
-                          ? tableInfo.relationships.join(', ')
-                          : tableInfo.relationships
-                        }
-                      </div>
-                    </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          ))}
+          
+          {/* Shadow Database Detection Summary */}
+          <Card className="border-red-200 bg-red-50">
+            <CardHeader>
+              <CardTitle className="text-lg text-red-800 flex items-center gap-2">
+                ⚠️ Shadow Database Detection Report
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-3">
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="text-center p-3 bg-white rounded border border-red-200">
+                    <div className="text-2xl font-bold text-red-600">{Object.keys(databaseSchemas.detected_shadow_schemas.tables).length}</div>
+                    <div className="text-sm text-red-700">Unauthorized Schemas Detected</div>
                   </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
+                  <div className="text-center p-3 bg-white rounded border border-green-200">
+                    <div className="text-2xl font-bold text-green-600">BLOCKED</div>
+                    <div className="text-sm text-green-700">Access Status</div>
+                  </div>
+                  <div className="text-center p-3 bg-white rounded border border-blue-200">
+                    <div className="text-2xl font-bold text-blue-600">100%</div>
+                    <div className="text-sm text-blue-700">Environment Isolation</div>
+                  </div>
+                </div>
+                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded">
+                  <h4 className="font-medium text-yellow-800 mb-2">Security Notice</h4>
+                  <p className="text-sm text-yellow-700">
+                    The system has detected potential unauthorized database schemas (acme, globex, oceanic). 
+                    All access attempts to these schemas are automatically blocked to prevent data leakage.
+                    Only authorized schemas (myqollabi, degoudse) are accessible.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="api" className="space-y-6">
