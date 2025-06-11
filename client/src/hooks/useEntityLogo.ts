@@ -37,6 +37,7 @@ export function useEntityLogo(entityType: 'partner' | 'customer', entityId: numb
         const environment = urlEnvironmentId || 'degoudse';
         
         console.log('useEntityLogo debug:', { entityType, entityId, environment, currentPath, urlEnvironmentId });
+        console.log('About to fetch:', `/api/entity-logos?entityType=${entityType}&entityId=${entityId}&environmentId=${environment}`);
         
         const response = await fetch(`/api/entity-logos?entityType=${entityType}&entityId=${entityId}&environmentId=${environment}`);
         
