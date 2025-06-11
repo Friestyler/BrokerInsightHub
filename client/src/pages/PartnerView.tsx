@@ -4,6 +4,7 @@ import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Checkbox } from '@/components/ui/checkbox';
 import { BrokerLayout } from '@/components/layouts/BrokerLayout';
 import PartnersViewforPartner from './PartnersViewforPartner';
 
@@ -25,6 +26,7 @@ export default function PartnerView() {
   const [filterText, setFilterText] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
   const [selectedType, setSelectedType] = useState('');
+  const [selectedOpportunities, setSelectedOpportunities] = useState<number[]>([]);
 
   // Fetch all shared lists that a partner can see
   const { data: sharedLists = [], isLoading: sharedListsLoading } = useQuery({
