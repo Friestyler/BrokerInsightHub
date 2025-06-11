@@ -2617,21 +2617,6 @@ function PartnersTable() {
     </div>
   );
 }
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData(prev => ({ ...prev, name: e.target.value }))}
-                    placeholder="Enter partner name"
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="primaryContact">Primary Contact</Label>
-                  <Input
-                    id="primaryContact"
-                    value={formData.primaryContact}
-                    onChange={(e) => setFormData(prev => ({ ...prev, primaryContact: e.target.value }))}
-                    placeholder="Contact person name"
-                  />
                 </div>
               </div>
               <div className="space-y-2">
