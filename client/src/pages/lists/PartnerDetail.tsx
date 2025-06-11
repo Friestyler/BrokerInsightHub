@@ -232,8 +232,24 @@ export default function PartnerDetail() {
     mutationFn: async ({ opportunityId, stage }: { opportunityId: number, stage: string }) => {
       return await apiRequest('PATCH', `/api/opportunities/${opportunityId}`, { stage });
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/partners', id, 'opportunities'] });
+    onSuccess: (data, variables) => {
+      // Invalidate multiple related queries to ensure UI updates
+      queryClient.invalidateQueries({ queryKey: [`/api/partners/${id}/opportunities`] });
+      queryClient.invalidateQueries({ queryKey: ['/api/partners', parseInt(id), 'opportunities'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/opportunities'] });
+      
+      // Optimistically update the cached data
+      queryClient.setQueryData([`/api/partners/${id}/opportunities`], (oldData: any) => {
+        if (oldData) {
+          return oldData.map((opp: any) => 
+            opp.id === variables.opportunityId 
+              ? { ...opp, stage: variables.stage }
+              : opp
+          );
+        }
+        return oldData;
+      });
+      
       setEditingStageId(null);
       toast({
         title: "Stage updated",
