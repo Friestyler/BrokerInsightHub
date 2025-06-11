@@ -531,7 +531,7 @@ export default function PartnerDetail() {
 
           {/* Tabs */}
           <div className="border-b border-gray-200 mt-6">
-            <nav className="-mb-px flex space-x-8">
+            <nav className="flex space-x-2 mb-3">
               <button 
                 onClick={() => setActiveTab("okr-plans")}
                 className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
