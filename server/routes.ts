@@ -1763,6 +1763,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
         partnerNames: '' // Simplified - removed expensive aggregation
       }));
       
+      // Cache the result for fast subsequent requests
+      setCache(cacheKey, customers);
+      
       console.log(`Returning ${customers.length} customers from De Goudse database`);
       res.json(customers);
     } catch (error) {
