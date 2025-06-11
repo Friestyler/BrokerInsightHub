@@ -502,8 +502,8 @@ export default function PartnerDetail() {
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center space-x-4">
               <Link href="/partners">
-                <Button variant="ghost" size="sm" className="p-2">
-                  <ArrowLeft className="w-4 h-4" />
+                <Button variant="ghost" size="sm" className="p-2 hover:bg-primary-100">
+                  <ArrowLeft className="w-4 h-4 hover:text-primary-500" />
                 </Button>
               </Link>
               <div className="flex-1">

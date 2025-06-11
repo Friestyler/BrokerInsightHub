@@ -103,8 +103,8 @@ export default function OpportunityDetail() {
           <div className="flex items-center justify-between py-6">
             <div className="flex items-center space-x-4">
               <Link href="/opportunities">
-                <Button variant="ghost" size="sm">
-                  <ArrowLeft className="w-4 h-4 mr-2" />
+                <Button variant="ghost" size="sm" className="hover:bg-primary-100">
+                  <ArrowLeft className="w-4 h-4 mr-2 hover:text-primary-500" />
                   Back to Opportunities
                 </Button>
               </Link>
