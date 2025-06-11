@@ -104,12 +104,29 @@ const getStatusColor = (status: string) => {
 // Broker POV Opportunity Detail Page Component
 export default function OpportunityDetailBrokerPOV() {
   const { opportunityId } = useParams<{ opportunityId: string }>();
+  const [backUrl, setBackUrl] = useState("/broker-view");
+  const [backLabel, setBackLabel] = useState("Back to Opportunities");
   
   // Get the shared list ID from session storage or default to the first available list
   const getSharedListId = () => {
     const savedListId = sessionStorage.getItem('partnerViewListId');
     return savedListId || '2'; // Default to list ID 2 if none saved
   };
+
+  // Detect navigation context and set appropriate back URL
+  useEffect(() => {
+    // Check for broker view referrer context
+    const sessionReferrer = sessionStorage.getItem('opportunityReferrer');
+    if (sessionReferrer) {
+      // Check if it's from broker view main page
+      if (sessionReferrer === '/broker-view') {
+        setBackUrl('/broker-view');
+        setBackLabel('Back to Opportunities');
+      }
+      // Clear the session storage after use
+      sessionStorage.removeItem('opportunityReferrer');
+    }
+  }, []);
   
   // Fetch opportunity details
   const { data: opportunity, isLoading: opportunityLoading } = useQuery({
@@ -179,10 +196,10 @@ export default function OpportunityDetailBrokerPOV() {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-between py-6">
               <div className="flex items-center space-x-4">
-                <Link href={`/broker-view/list/${getSharedListId()}`}>
+                <Link href={backUrl}>
                   <Button variant="ghost" size="sm">
                     <ArrowLeft className="w-4 h-4 mr-2" />
-                    Back to Opportunities
+                    {backLabel}
                   </Button>
                 </Link>
                 <div>
