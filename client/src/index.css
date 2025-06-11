@@ -86,6 +86,11 @@
   background-color: #E1E4FB !important;
 }
 
+/* Override line height for navigation text */
+.text-sm {
+  line-height: 16px !important;
+}
+
 
 
 .dark {
