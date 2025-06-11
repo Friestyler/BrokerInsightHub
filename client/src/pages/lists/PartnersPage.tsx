@@ -1153,28 +1153,45 @@ function PartnersTable() {
                         <button 
                           className="flex items-center rounded-md bg-[#EBEEFB] px-4 py-2 hover:bg-[#E3E6F7]"
                           onClick={() => {
-                            // Update the current view
-                            const updatedViews = savedViews.map(view => {
-                              if (view.id === activeView.id) {
-                                return {
-                                  ...view,
-                                  filters: {
-                                    searchText: filterText || undefined,
-                                    status: selectedStatus || undefined,
-                                    industry: selectedIndustry || undefined,
-                                    type: selectedType || undefined
-                                  }
-                                };
-                              }
-                              return view;
-                            });
-                            setSavedViews(updatedViews);
-                            setActiveView(updatedViews.find(view => view.id === activeView.id) || null);
-                            
-                            toast({
-                              title: "View Updated",
-                              description: "Your changes have been saved to the current view"
-                            });
+                            if (activeView) {
+                              const updatedFilters = {
+                                searchText: filterText || undefined,
+                                status: selectedStatus || undefined,
+                                industry: selectedIndustry || undefined,
+                                type: selectedType || undefined
+                              };
+                              
+                              updateSavedViewMutation.mutate({
+                                id: activeView.id,
+                                data: {
+                                  name: activeView.name,
+                                  description: activeView.description,
+                                  filters: updatedFilters,
+                                  entity_type: 'partners',
+                                  is_shared: false
+                                }
+                              }, {
+                                onSuccess: () => {
+                                  // Update local active view state with new filters
+                                  setActiveView({
+                                    ...activeView,
+                                    filters: updatedFilters
+                                  });
+                                  
+                                  toast({
+                                    title: "View Updated",
+                                    description: "Your changes have been saved to the current view"
+                                  });
+                                },
+                                onError: () => {
+                                  toast({
+                                    title: "Error",
+                                    description: "Failed to update view. Please try again.",
+                                    variant: "destructive"
+                                  });
+                                }
+                              });
+                            }
                           }}
                           style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
                         >
