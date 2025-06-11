@@ -754,8 +754,8 @@ export default function PartnerDetailBrokerPOV() {
                             <div className="p-2">
                               {/* Default "All opportunities" option */}
                               <button
-                                className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 ${
-                                  !activeOpportunitiesList ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+                                className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-[#F5F6FA] ${
+                                  !activeOpportunitiesList ? 'bg-[#E1E4FB] text-[#3E4DC4]' : 'text-gray-700'
                                 }`}
                                 onClick={() => {
                                   setActiveOpportunitiesList(null);
@@ -779,8 +779,8 @@ export default function PartnerDetailBrokerPOV() {
                                   {partnerRelevantLists.map((list: any) => (
                                     <button
                                       key={list.id}
-                                      className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 ${
-                                        activeOpportunitiesList?.id === list.id ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+                                      className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-[#F5F6FA] ${
+                                        activeOpportunitiesList?.id === list.id ? 'bg-[#E1E4FB] text-[#3E4DC4]' : 'text-gray-700'
                                       }`}
                                       onClick={() => {
                                         setActiveOpportunitiesList(list);

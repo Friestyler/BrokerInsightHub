@@ -321,7 +321,7 @@ export default function CustomersPageClean() {
                       <div className="p-2">
                         {/* Default "All Customers" option */}
                         <button
-                          className={`w-full text-left px-3 py-2 rounded text-sm hover:bg-gray-100 flex items-center justify-between ${!activeList ? 'bg-blue-50 text-blue-600' : ''}`}
+                          className={`w-full text-left px-3 py-2 rounded text-sm hover:bg-[#F5F6FA] flex items-center justify-between ${!activeList ? 'bg-[#E1E4FB] text-[#3E4DC4]' : ''}`}
                           onClick={() => {
                             setActiveList(null);
                             setShowListsDropdown(false);
@@ -335,7 +335,7 @@ export default function CustomersPageClean() {
                         {customerSavedListsData.map((list: any) => (
                           <button
                             key={list.id}
-                            className={`w-full text-left px-3 py-2 rounded text-sm hover:bg-gray-100 flex items-center justify-between ${activeList?.id === list.id ? 'bg-blue-50 text-blue-600' : ''}`}
+                            className={`w-full text-left px-3 py-2 rounded text-sm hover:bg-[#F5F6FA] flex items-center justify-between ${activeList?.id === list.id ? 'bg-[#E1E4FB] text-[#3E4DC4]' : ''}`}
                             onClick={() => {
                               setActiveList(list);
                               setShowListsDropdown(false);

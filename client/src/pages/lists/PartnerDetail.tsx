@@ -809,8 +809,8 @@ export default function PartnerDetail() {
                           <div className="p-2">
                             {/* Default "All opportunities" option */}
                             <button
-                              className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-gray-100 ${
-                                !activeList ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+                              className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-[#F5F6FA] ${
+                                !activeList ? 'bg-[#E1E4FB] text-[#3E4DC4]' : 'text-gray-700'
                               }`}
                               onClick={() => {
                                 setActiveList(null);
@@ -828,8 +828,8 @@ export default function PartnerDetail() {
                                 {partnerRelevantLists.map((list: any) => (
                                   <div
                                     key={list.id}
-                                    className={`flex items-center justify-between px-3 py-2 text-sm rounded hover:bg-gray-100 ${
-                                      activeList?.id === list.id ? 'bg-blue-50 text-blue-700' : 'text-gray-700'
+                                    className={`flex items-center justify-between px-3 py-2 text-sm rounded hover:bg-[#F5F6FA] ${
+                                      activeList?.id === list.id ? 'bg-[#E1E4FB] text-[#3E4DC4]' : 'text-gray-700'
                                     }`}
                                   >
                                     <button
