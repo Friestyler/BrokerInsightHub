@@ -98,7 +98,9 @@ const useCreateSavedView = () => {
       return apiRequest('POST', '/api/saved-views', data);
     },
     onSuccess: () => {
+      // Invalidate both the general and specific cache keys to ensure fresh data
       queryClient.invalidateQueries({ queryKey: ['/api/saved-views'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/saved-views', 'partners'] });
     }
   });
 };
@@ -1759,9 +1761,7 @@ function PartnersTable() {
                       createdAt: new Date(createdView.created_at)
                     };
                     setActiveView(newView);
-                    
-                    // Invalidate the saved views cache to refresh the dropdown
-                    queryClient.invalidateQueries({ queryKey: ['/api/saved-views', 'partners'] });
+                    // Cache invalidation is handled automatically by the mutation hook
                   }
                 });
                 
