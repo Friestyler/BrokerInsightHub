@@ -22,10 +22,19 @@ export function useEntityLogo(entityType: 'partner' | 'customer', entityId: numb
         setIsLoading(true);
         setError(null);
         
-        // Get environment from window or localStorage
-        const envFromWindow = (window as any).currentEnvironment;
-        const envFromStorage = localStorage.getItem('currentEnvironment');
-        const environment = envFromWindow || envFromStorage || 'myqollabi';
+        // Get current environment ID from URL path
+        const currentPath = window.location.pathname;
+        // Match pattern like /degoudse/lists/partners or /degoudse/something
+        const pathEnvMatch = currentPath.match(/^\/([^\/]+)(?:\/|$)/);
+        let urlEnvironmentId = pathEnvMatch ? pathEnvMatch[1] : null;
+        
+        // Skip common non-environment paths
+        if (urlEnvironmentId === 'lists' || urlEnvironmentId === 'api') {
+          urlEnvironmentId = null;
+        }
+        
+        // Use URL-based environment ID first, then fallback
+        const environment = urlEnvironmentId || 'degoudse';
         
         const response = await fetch(`/api/entity-logos?entityType=${entityType}&entityId=${entityId}&environmentId=${environment}`);
         

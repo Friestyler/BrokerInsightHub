@@ -116,13 +116,19 @@ export default function LogoUploadModal({
       const compressedImage = await compressImage(file);
       
       // Save logo to database
-      // Get current environment ID from URL path or environment context
+      // Get current environment ID from URL path
       const currentPath = window.location.pathname;
-      const pathEnvMatch = currentPath.match(/^\/([^\/]+)/);
-      const urlEnvironmentId = pathEnvMatch ? pathEnvMatch[1] : null;
+      // Match pattern like /degoudse/lists/partners or /degoudse/something
+      const pathEnvMatch = currentPath.match(/^\/([^\/]+)(?:\/|$)/);
+      let urlEnvironmentId = pathEnvMatch ? pathEnvMatch[1] : null;
+      
+      // Skip common non-environment paths
+      if (urlEnvironmentId === 'lists' || urlEnvironmentId === 'api') {
+        urlEnvironmentId = null;
+      }
       
       // Use URL-based environment ID first, then fallback to context
-      const environmentId = urlEnvironmentId || environment?.id || 'myqollabi';
+      const environmentId = urlEnvironmentId || environment?.id || 'degoudse';
       
       const logoData = {
         entityType: entityType,
