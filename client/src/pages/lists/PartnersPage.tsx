@@ -1319,11 +1319,7 @@ function PartnersTable() {
           <div className="text-sm text-gray-500">Total Partners</div>
         </div>
         
-        <div className="bg-white p-4 rounded-md border border-gray-200">
-          <div className="text-xl font-semibold">{stats.activePartners}</div>
-          <div className="text-sm text-gray-500">Active Partners</div>
-        </div>
-        
+
         <div className="bg-white p-4 rounded-md border border-gray-200">
           <div className="text-xl font-semibold">{stats.totalOpportunities}</div>
           <div className="text-sm text-gray-500">Total Opportunities</div>
