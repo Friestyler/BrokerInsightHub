@@ -97,6 +97,44 @@ export default function PartnerDetail() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const statusDropdownRef = useRef<HTMLDivElement>(null);
   const customerDropdownRef = useRef<HTMLDivElement>(null);
+  
+  // Views functionality state
+  const [savedViews, setSavedViews] = useState<any[]>([
+    {
+      id: 1,
+      name: "High Value Opportunities",
+      filters: {
+        searchText: "",
+        stage: "Proposal",
+        customer: ""
+      },
+      createdAt: new Date('2024-01-15')
+    },
+    {
+      id: 2,
+      name: "Active Negotiations",
+      filters: {
+        searchText: "",
+        stage: "Negotiation",
+        customer: ""
+      },
+      createdAt: new Date('2024-02-01')
+    },
+    {
+      id: 3,
+      name: "New Prospects",
+      filters: {
+        searchText: "",
+        stage: "Initial Contact",
+        customer: ""
+      },
+      createdAt: new Date('2024-02-10')
+    }
+  ]);
+  const [activeView, setActiveView] = useState<any>(null);
+  const [showViewsDropdown, setShowViewsDropdown] = useState(false);
+  const viewsButtonRef = useRef<HTMLButtonElement>(null);
+  const viewsDropdownRef = useRef<HTMLDivElement>(null);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -382,11 +420,20 @@ export default function PartnerDetail() {
     }
   };
 
-  // Click outside handler to close dropdown
+  // Click outside handler to close dropdowns
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setShowListsDropdown(false);
+      }
+      if (statusDropdownRef.current && !statusDropdownRef.current.contains(event.target as Node)) {
+        setShowStatusDropdown(false);
+      }
+      if (customerDropdownRef.current && !customerDropdownRef.current.contains(event.target as Node)) {
+        setShowCustomerDropdown(false);
+      }
+      if (viewsDropdownRef.current && !viewsDropdownRef.current.contains(event.target as Node)) {
+        setShowViewsDropdown(false);
       }
     }
 
@@ -1122,17 +1169,22 @@ export default function PartnerDetail() {
                       </button>
                     </div>
                     
-                    {/* Views dropdown - next to search field */}
+                    {/* Saved Views Dropdown */}
                     <div className="relative">
                       <button 
-                        className="flex items-center space-x-2 px-3 py-2 border rounded-md text-sm font-medium border-gray-300 hover:border-gray-400"
-                        onClick={() => {/* Handle views dropdown */}}
+                        ref={viewsButtonRef}
+                        className={`flex items-center space-x-2 px-3 py-2 border rounded-md text-sm font-medium bg-white ${isEditingList ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-50'}`}
+                        onClick={() => {
+                          if (!isEditingList) {
+                            setShowViewsDropdown(!showViewsDropdown);
+                          }
+                        }}
+                        disabled={isEditingList}
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-500">
-                          <path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path>
-                          <path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path>
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                          <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
                         </svg>
-                        <span className="max-w-[120px] truncate">Views</span>
+                        <span className="text-gray-700">{activeView ? activeView.name : "Select a view"}</span>
                         <svg 
                           xmlns="http://www.w3.org/2000/svg" 
                           width="14" 
@@ -1143,11 +1195,63 @@ export default function PartnerDetail() {
                           strokeWidth="2" 
                           strokeLinecap="round" 
                           strokeLinejoin="round" 
-                          className="transition-transform"
+                          className={`transition-transform ${showViewsDropdown ? 'rotate-180' : ''}`}
                         >
                           <polyline points="6 9 12 15 18 9" />
                         </svg>
                       </button>
+                      
+                      {/* Saved Views dropdown menu */}
+                      {showViewsDropdown && (
+                        <div ref={viewsDropdownRef} className="absolute z-50 mt-1 w-64 rounded-md border border-slate-200 bg-white shadow-md">
+                          <div className="p-2 border-b">
+                            {savedViews.map(view => (
+                              <div 
+                                key={view.id}
+                                className={`flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 ${activeView?.id === view.id ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700'}`}
+                                onClick={() => {
+                                  setActiveView(view);
+                                  setFilterText(view.filters.searchText || '');
+                                  setSelectedStatus(view.filters.stage || '');
+                                  setSelectedCustomer(view.filters.customer || '');
+                                  setShowViewsDropdown(false);
+                                }}
+                              >
+                                <div className="flex items-center">
+                                  {view.name}
+                                </div>
+                                {activeView?.id === view.id && (
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                                    <polyline points="20 6 9 17 4 12"></polyline>
+                                  </svg>
+                                )}
+                              </div>
+                            ))}
+                          </div>
+                          {activeView && (
+                            <div className="p-2">
+                              <button 
+                                className="flex w-full items-center p-2 text-sm rounded-md text-indigo-600 hover:bg-indigo-50"
+                                onClick={() => {
+                                  setShowViewsDropdown(false);
+                                  // Clear active view
+                                  setActiveView(null);
+                                  // Reset filters if needed
+                                  setFilterText('');
+                                  setSelectedStatus('');
+                                  setSelectedCustomer('');
+                                }}
+                              >
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                                  <path d="M18 6L6 18"></path>
+                                  <path d="M6 6l12 12"></path>
+                                </svg>
+                                Clear view
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                     
                     {/* Filter buttons next to the views dropdown */}
