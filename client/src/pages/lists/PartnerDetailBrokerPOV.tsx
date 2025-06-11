@@ -10,6 +10,7 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { ArrowLeft, Search, Menu } from "lucide-react";
 import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
+import { useEnvironment } from "@/contexts/EnvironmentContext";
 
 // Broker View Layout Component
 function BrokerLayout({ children }: { children: React.ReactNode }) {

@@ -15,9 +15,11 @@ import { useToast } from "@/hooks/use-toast";
 import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
 import { ShareModal } from "@/components/ShareModal";
 import { apiRequest } from "@/lib/queryClient";
+import { useEnvironment } from "@/contexts/EnvironmentContext";
 
 export default function PartnerDetail() {
   const { id } = useParams();
+  const { environment } = useEnvironment();
   const [activeTab, setActiveTab] = useState("opportunities");
   const [selectedMetrics, setSelectedMetrics] = useState<number[]>([]);
   const [searchTerm, setSearchTerm] = useState("");
@@ -838,15 +840,18 @@ export default function PartnerDetail() {
                                       }}
                                     >
                                       <span>{list.name}</span>
-                                      {/* Show share icon if list is shared */}
+                                      {/* Show share icon and environment name if list is shared */}
                                       {list.is_shared && (
-                                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-auto text-green-500">
-                                          <circle cx="18" cy="5" r="3"></circle>
-                                          <circle cx="6" cy="12" r="3"></circle>
-                                          <circle cx="18" cy="19" r="3"></circle>
-                                          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
-                                          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
-                                        </svg>
+                                        <div className="ml-auto flex items-center space-x-1">
+                                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500">
+                                            <circle cx="18" cy="5" r="3"></circle>
+                                            <circle cx="6" cy="12" r="3"></circle>
+                                            <circle cx="18" cy="19" r="3"></circle>
+                                            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                                            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                                          </svg>
+                                          <span className="text-xs text-gray-500">Shared by {environment.name}</span>
+                                        </div>
                                       )}
                                     </button>
                                     
