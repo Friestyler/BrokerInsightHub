@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ArrowLeft, Search, Users, Copy, Trash2, MoreHorizontal } from "lucide-react";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
+import LogoUploadModal from "@/components/LogoUploadModal";
 
 export default function CustomerDetailNew() {
   const { id } = useParams();
@@ -21,6 +22,10 @@ export default function CustomerDetailNew() {
   const [selectedTag, setSelectedTag] = useState("all");
   const [selectedUnit, setSelectedUnit] = useState("all");
   const [selectedRange, setSelectedRange] = useState("all");
+
+  // Logo upload state
+  const [showLogoUploadModal, setShowLogoUploadModal] = useState(false);
+  const [customerLogo, setCustomerLogo] = useState<string | null>(null);
   const [selectedTimeframe, setSelectedTimeframe] = useState("all");
   const [groupBy, setGroupBy] = useState("tag");
 
