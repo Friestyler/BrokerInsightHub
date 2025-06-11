@@ -325,7 +325,7 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
             <div className={`${collapsed ? "absolute left-16 top-0 bg-white border border-gray-200 rounded-md shadow-md py-1 z-50 w-48" : "mt-0.5"}`}>
               <button
                 onClick={() => navigateTo('/templates/okr-metrics')}
-                className={`flex py-2 text-sm ${collapsed ? "px-4" : "pl-12"} w-full text-left ${location.startsWith("/templates/okr-metrics") || location.startsWith("/templates/groups") ? "bg-indigo-50 font-medium nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
+                className={`submenu-nav-container ${location.startsWith("/templates/okr-metrics") || location.startsWith("/templates/groups") ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M8 3H5a2 2 0 0 0-2 2v3m18 0V5a2 2 0 0 0-2-2h-3m0 18h3a2 2 0 0 0 2-2v-3M3 16v3a2 2 0 0 0 2 2h3"></path>
@@ -394,7 +394,7 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
             <div className={`${collapsed ? "absolute left-16 top-0 bg-white border border-gray-200 rounded-md shadow-md py-1 z-50 w-48" : "mt-0.5"}`}>
               <button
                 onClick={() => navigateTo('/smart-updates/notifications')}
-                className={`flex py-2 text-sm ${collapsed ? "px-4" : "pl-12"} w-full text-left ${location.startsWith("/smart-updates/notifications") ? "bg-indigo-50 font-medium nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
+                className={`submenu-nav-container ${location.startsWith("/smart-updates/notifications") ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"></path>
@@ -404,7 +404,7 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
               </button>
               <button
                 onClick={() => navigateTo('/smart-updates/automated')}
-                className={`flex py-2 text-sm ${collapsed ? "px-4" : "pl-12"} w-full text-left ${location.startsWith("/smart-updates/automated") ? "bg-indigo-50 font-medium nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
+                className={`submenu-nav-container ${location.startsWith("/smart-updates/automated") ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M12 2v6l3-3 3 3"></path>
