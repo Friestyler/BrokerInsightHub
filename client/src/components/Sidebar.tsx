@@ -86,7 +86,7 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
   };
 
   return (
-    <div className={`${collapsed ? "w-16" : "w-16 md:w-64"} bg-gray-50 flex flex-col h-full overflow-hidden transition-all duration-300 relative`}>
+    <div className={`${collapsed ? "w-16" : "w-16 md:w-64"} flex flex-col h-full overflow-hidden transition-all duration-300 relative`} style={{ backgroundColor: '#F5F6FA' }}>
       
       {/* Logo at the top left */}
       <div className="pt-4 px-4 pb-1 flex justify-center md:justify-start flex-shrink-0">
