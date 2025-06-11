@@ -167,9 +167,9 @@ export default function CampaignsPage() {
   // Start new campaign
   const startNewCampaign = (templateId?: string) => {
     if (templateId) {
-      setLocation(`/campaigns/new?template=${templateId}`);
+      setLocation(`/campaigns/create?template=${templateId}`);
     } else {
-      setLocation("/campaigns/new");
+      setLocation("/campaigns/create");
     }
   };
 
