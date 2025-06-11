@@ -76,7 +76,7 @@ export default function EnvironmentSelector({ collapsed = false }: EnvironmentSe
     <div className="w-full mx-auto">
       <div className="relative">
         <Select value={environment.id} onValueChange={setEnvironment}>
-          <SelectTrigger className="w-full flex items-center justify-between py-3 px-4 rounded-md bg-gray-50 border border-gray-200 focus:outline-none hover:bg-indigo-50 hover:text-indigo-600 focus:text-indigo-600 focus:bg-indigo-50">
+          <SelectTrigger className="w-full flex items-center justify-between py-3 px-4 rounded-md border border-gray-200 focus:outline-none hover:bg-indigo-50 hover:text-indigo-600 focus:text-indigo-600 focus:bg-indigo-50" style={{ backgroundColor: '#F5F6FA' }}>
             <div className="flex items-center">
               <div className="flex items-center justify-center w-7 h-7 mr-3 text-xs">
                 {environment.logo ? (
