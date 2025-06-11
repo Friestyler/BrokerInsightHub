@@ -123,7 +123,7 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
         </Link>
         <div ref={dataMenuRef} className="relative">
           <button 
-            className={`nav-container w-full text-left ${dataMenuOpen ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
+            className={`nav-container w-full text-left ${(collapsed && (location.startsWith('/partners') || location.startsWith('/customers') || location.startsWith('/opportunities') || location.startsWith('/vendors') || location.startsWith('/products') || location.startsWith('/projects') || location.startsWith('/contacts'))) ? "bg-indigo-50 nav-item-active" : "hover:bg-indigo-50 nav-item-inactive"}`}
             onClick={() => setDataMenuOpen(!dataMenuOpen)}
           >
             <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-center" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
