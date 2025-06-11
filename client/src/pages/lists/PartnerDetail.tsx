@@ -1151,7 +1151,7 @@ export default function PartnerDetail() {
                     {/* Filter buttons next to the views dropdown */}
                     <div className="flex items-center gap-2 ml-3">
                       {/* Status Filter Dropdown */}
-                      <div className="relative">
+                      <div className="relative" ref={statusDropdownRef}>
                         <button 
                           className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${
                             selectedStatus 
@@ -1205,7 +1205,7 @@ export default function PartnerDetail() {
                       </div>
                       
                       {/* Type Filter Dropdown */}
-                      <div className="relative">
+                      <div className="relative" ref={typeDropdownRef}>
                         <button 
                           className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${
                             selectedType 
