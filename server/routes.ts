@@ -2142,7 +2142,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                    STRING_AGG(DISTINCT pr.name, ', ') as product_names,
                    COUNT(DISTINCT co.customer_id) as customer_count,
                    COUNT(DISTINCT po.partner_id) as partner_count,
-                   COUNT(DISTINCT op.product_id) as product_count
+                   COUNT(DISTINCT op.product_id) as product_count,
+                   COUNT(DISTINCT contacts.id) as contact_count
             FROM degoudse.opportunities o
             INNER JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
             LEFT JOIN degoudse.customer_opportunities co ON o.id = co.opportunity_id
@@ -2150,6 +2151,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             LEFT JOIN degoudse.partners p ON p.id = po.partner_id
             LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
             LEFT JOIN degoudse.products pr ON pr.id = op.product_id
+            LEFT JOIN degoudse.contacts contacts ON contacts.linked_entity_id = c.id AND contacts.linked_entity_type = 'customer'
             WHERE po.partner_id = $1
             GROUP BY o.id, o.title, o.description, o.status, o.stage, o."estimatedValue", 
                      o."expectedCloseDate", o."clientId", o."partnerId", o."productId", 
@@ -2169,7 +2171,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
                  STRING_AGG(DISTINCT pr.name, ', ') as product_names,
                  COUNT(DISTINCT co.customer_id) as customer_count,
                  COUNT(DISTINCT po.partner_id) as partner_count,
-                 COUNT(DISTINCT op.product_id) as product_count
+                 COUNT(DISTINCT op.product_id) as product_count,
+                 COUNT(DISTINCT contacts.id) as contact_count
           FROM degoudse.opportunities o
           LEFT JOIN degoudse.customer_opportunities co ON o.id = co.opportunity_id
           LEFT JOIN degoudse.customers c ON c.id = co.customer_id
@@ -2177,6 +2180,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
           LEFT JOIN degoudse.partners p ON p.id = po.partner_id
           LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
           LEFT JOIN degoudse.products pr ON pr.id = op.product_id
+          LEFT JOIN degoudse.contacts contacts ON contacts.linked_entity_id = c.id AND contacts.linked_entity_type = 'customer'
           GROUP BY o.id, o.title, o.description, o.status, o.stage, o."estimatedValue", 
                    o."expectedCloseDate", o."clientId", o."partnerId", o."productId", 
                    o."ownerId", o.probability, o.type, o."createdAt", o."updatedAt"
