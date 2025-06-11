@@ -124,8 +124,8 @@ export default function CustomerDetailNew() {
       <div className="px-6 py-4">
         <div className="flex items-center mb-4">
           <Link href="/customers">
-            <Button variant="ghost" size="sm" className="mr-4 p-2 hover:bg-[#F5F6FE]">
-              <ArrowLeft className="w-4 h-4 hover:text-[#5567E5]" />
+            <Button variant="ghost" size="sm" className="mr-4 p-2 group hover:bg-[#F5F6FE]">
+              <ArrowLeft className="w-4 h-4 group-hover:text-[#5567E5]" />
             </Button>
           </Link>
           <div className="flex-1">
