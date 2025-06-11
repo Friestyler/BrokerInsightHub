@@ -520,7 +520,7 @@ export default function PartnerDetail() {
             </div>
           </div>
           
-          <p className="text-gray-600 mb-6">Joint action & business plan to drive growth with insurance business</p>
+
 
           {/* Activity Hub */}
           <PartnerActivityHub partnerId={parseInt(id!)} partnerName={partner?.name || 'Partner'} />

@@ -552,7 +552,7 @@ export default function PartnerDetailBrokerPOV() {
             </div>
           </div>
           
-          <p className="text-gray-600 mb-6">Joint action & business plan to drive growth with insurance business</p>
+
 
           {/* Activity Hub - Show De Goudse's partnership activities with Regional Insurance Partners */}
           <PartnerActivityHub partnerId={4} partnerName={partner.name} />

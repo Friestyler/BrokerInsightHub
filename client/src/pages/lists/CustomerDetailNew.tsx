@@ -141,7 +141,7 @@ export default function CustomerDetailNew() {
           </div>
         </div>
         
-        <p className="text-gray-600 mb-6">Customer relationship and business development tracking</p>
+
 
         {/* Custom tab styling to match design */}
         <div className="border-b border-gray-200">
