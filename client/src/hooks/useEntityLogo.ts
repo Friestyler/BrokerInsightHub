@@ -8,7 +8,7 @@ interface UseEntityLogoResult {
 
 // In-memory cache for logos to prevent repeated requests
 const logoCache = new Map<string, { url: string | null; timestamp: number }>();
-const LOGO_CACHE_TTL = 300000; // 5 minutes
+const LOGO_CACHE_TTL = 30000; // 30 seconds for testing, then increase to 5 minutes
 
 export function useEntityLogo(entityType: 'partner' | 'customer', entityId: number): UseEntityLogoResult {
   const [logoUrl, setLogoUrl] = useState<string | null>(null);
@@ -22,7 +22,7 @@ export function useEntityLogo(entityType: 'partner' | 'customer', entityId: numb
         return;
       }
 
-      const cacheKey = `${entityType}-${entityId}`;
+      const cacheKey = `degoudse-${entityType}-${entityId}`;
       const cached = logoCache.get(cacheKey);
       
       // Check cache first
@@ -54,7 +54,7 @@ export function useEntityLogo(entityType: 'partner' | 'customer', entityId: numb
           logoData = await response.json();
         }
         
-        const url = logoData?.logoData || null;
+        const url = logoData?.logo_data || null;
         setLogoUrl(url);
         
         // Cache the result (even if null)
