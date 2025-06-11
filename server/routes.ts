@@ -1923,7 +1923,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { name, description, entity_type, filters, is_shared } = req.body;
       const envPool = getEnvironmentPool('degoudse');
-      const created_by = 'John Smith'; // Default user for now
+      const created_by = 1; // Default user ID for now
       
       console.log(`FIXED: Creating saved view in degoudse:`, { name, entity_type, filters });
       
@@ -1936,9 +1936,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
       
       console.log(`FIXED: Created saved view:`, result.rows[0]);
       
-      // Clear cache for this entity type
-      clearCache(`degoudse_saved_views_${entity_type}`);
-      clearCache(`degoudse_saved_views_all`);
+      // Clear cache for this entity type by deleting cache entries
+      cache.delete(`degoudse_saved_views_${entity_type}`);
+      cache.delete(`degoudse_saved_views_all`);
       
       res.status(201).json(result.rows[0]);
     } catch (error) {
