@@ -56,7 +56,9 @@ export default function Layout({ children }: LayoutProps) {
               className="text-gray-600 hover:text-indigo-600 p-1.5 rounded-md hover:bg-indigo-50 focus:outline-none"
               onClick={toggleSidebar}
             >
-              <Menu size={18} />
+              <svg width="16" height="14" viewBox="0 0 16 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M7 1.5V12.5H14C14.25 12.5 14.5 12.2812 14.5 12V2C14.5 1.75 14.25 1.5 14 1.5H7ZM0 2C0 0.90625 0.875 0 2 0H14C15.0938 0 16 0.90625 16 2V12C16 13.125 15.0938 14 14 14H2C0.875 14 0 13.125 0 12V2ZM2 2.75C2 3.1875 2.3125 3.5 2.75 3.5H4.25C4.65625 3.5 5 3.1875 5 2.75C5 2.34375 4.65625 2 4.25 2H2.75C2.3125 2 2 2.34375 2 2.75ZM2.75 5C2.3125 5 2 5.34375 2 5.75C2 6.1875 2.3125 6.5 2.75 6.5H4.25C4.65625 6.5 5 6.1875 5 5.75C5 5.34375 4.65625 5 4.25 5H2.75ZM2 8.75C2 9.1875 2.3125 9.5 2.75 9.5H4.25C4.65625 9.5 5 9.1875 5 8.75C5 8.34375 4.65625 8 4.25 8H2.75C2.3125 8 2 8.34375 2 8.75Z" fill="currentColor"/>
+              </svg>
             </button>
 
             <Breadcrumbs />
