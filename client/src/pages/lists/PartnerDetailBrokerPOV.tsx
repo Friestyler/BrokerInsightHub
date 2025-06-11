@@ -793,12 +793,12 @@ export default function PartnerDetailBrokerPOV() {
                                         setRenderKey(prev => prev + 1);
                                       }}
                                     >
-                                      <div className="flex items-center justify-between w-full">
+                                      <div className="flex flex-col space-y-1 w-full">
                                         <span>{list.name}</span>
                                         {/* Show share icon and environment name if list is shared */}
                                         {list.is_shared && (
                                           <div className="flex items-center space-x-1">
-                                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500">
                                               <circle cx="18" cy="5" r="3"></circle>
                                               <circle cx="6" cy="12" r="3"></circle>
                                               <circle cx="18" cy="19" r="3"></circle>
