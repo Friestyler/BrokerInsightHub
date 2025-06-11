@@ -1,11 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
+import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { useEnvironment } from '@/contexts/EnvironmentContext';
 import { 
   MessageSquare, 
   Search, 
@@ -20,7 +22,13 @@ import {
   Send,
   CheckSquare,
   Users,
-  Timer
+  Timer,
+  TrendingUp,
+  AlertTriangle,
+  Target,
+  Calendar,
+  DollarSign,
+  Clock
 } from 'lucide-react';
 
 type ActivityItem = {
@@ -44,9 +52,31 @@ export default function PartnerPilot() {
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
+  const { environment } = useEnvironment();
 
-  // Sample activities data
-  const activities: ActivityItem[] = [
+  // Fetch real data from the system
+  const { data: opportunities } = useQuery({
+    queryKey: ['/api/opportunities'],
+    staleTime: 30000,
+  });
+
+  const { data: partners } = useQuery({
+    queryKey: ['/api/partners'],
+    staleTime: 30000,
+  });
+
+  const { data: customers } = useQuery({
+    queryKey: ['/api/customers'],
+    staleTime: 30000,
+  });
+
+  const { data: unifiedActivities } = useQuery({
+    queryKey: ['/api/unified-activities'],
+    staleTime: 30000,
+  });
+
+  // Sample activities data for display
+  const sampleActivities: ActivityItem[] = [
     {
       id: '1',
       type: 'mention',
@@ -106,25 +136,104 @@ export default function PartnerPilot() {
     }
   ];
 
-  const nextBestActions = [
-    {
-      title: "Review High-Priority Partners",
-      description: "3 partners need immediate attention",
-      action: () => setLocation('/partners')
-    },
-    {
-      title: "Update OKR Progress", 
-      description: "2 metrics approaching deadlines",
-      action: () => setLocation('/okr-metrics')
-    },
-    {
-      title: "Opportunity Follow-up",
-      description: "5 opportunities need updates",
-      action: () => setLocation('/opportunities')
+  // Generate intelligent next best actions based on real data
+  const generateNextBestActions = () => {
+    const actions = [];
+    
+    // High-value opportunities that need attention
+    if (opportunities && Array.isArray(opportunities)) {
+      const highValueOpps = opportunities.filter((opp: any) => 
+        opp.value > 50000 && opp.status === 'In Progress'
+      );
+      if (highValueOpps.length > 0) {
+        actions.push({
+          title: "Review High-Value Opportunities",
+          description: `${highValueOpps.length} opportunities worth €${highValueOpps.reduce((sum: number, opp: any) => sum + opp.value, 0).toLocaleString()}`,
+          action: () => setLocation('/opportunities'),
+          icon: <DollarSign className="h-5 w-5 text-green-600" />,
+          priority: 'high' as const,
+          data: `Total value: €${highValueOpps.reduce((sum: number, opp: any) => sum + opp.value, 0).toLocaleString()}`
+        });
+      }
     }
-  ];
 
-  const filteredActivities = activeTab === 'all' ? activities : activities.filter(activity => activity.type === activeTab);
+    // Partners needing engagement
+    if (partners && Array.isArray(partners)) {
+      const partnersNeedingAttention = partners.filter((partner: any) => 
+        partner.opportunityCount > 0 && partner.customerCount > 2
+      );
+      if (partnersNeedingAttention.length > 0) {
+        actions.push({
+          title: "Engage Top-Performing Partners",
+          description: `${partnersNeedingAttention.length} partners with active opportunities`,
+          action: () => setLocation('/partners'),
+          icon: <Users className="h-5 w-5 text-blue-600" />,
+          priority: 'medium' as const,
+          data: `${partnersNeedingAttention.reduce((sum: number, p: any) => sum + p.opportunityCount, 0)} active opportunities`
+        });
+      }
+    }
+
+    // Customer relationship opportunities
+    if (customers && Array.isArray(customers)) {
+      const customersWithOpportunities = customers.filter((customer: any) => 
+        customer.opportunities && customer.opportunities.length > 0
+      );
+      if (customersWithOpportunities.length > 0) {
+        actions.push({
+          title: "Customer Relationship Review",
+          description: `${customersWithOpportunities.length} customers with pending opportunities`,
+          action: () => setLocation('/customers'),
+          icon: <TrendingUp className="h-5 w-5 text-purple-600" />,
+          priority: 'medium' as const,
+          data: `Active customer relationships`
+        });
+      }
+    }
+
+    // Activity-based recommendations
+    if (unifiedActivities && Array.isArray(unifiedActivities)) {
+      const recentTasks = unifiedActivities.filter((activity: any) => 
+        activity.type === 'task' && activity.status === 'pending'
+      );
+      if (recentTasks.length > 0) {
+        actions.push({
+          title: "Complete Pending Tasks",
+          description: `${recentTasks.length} tasks require attention`,
+          action: () => setLocation('/tasks'),
+          icon: <CheckSquare className="h-5 w-5 text-orange-600" />,
+          priority: 'high' as const,
+          data: `${recentTasks.length} pending tasks`
+        });
+      }
+    }
+
+    // Time-sensitive actions
+    const currentDate = new Date();
+    actions.push({
+      title: "Weekly Performance Review",
+      description: "Review this week's partner and opportunity metrics",
+      action: () => setLocation('/reports'),
+      icon: <BarChart2 className="h-5 w-5 text-indigo-600" />,
+      priority: 'low' as const,
+      data: `Week of ${currentDate.toLocaleDateString()}`
+    });
+
+    // Campaign optimization
+    actions.push({
+      title: "Optimize Active Campaigns",
+      description: "Review campaign performance and adjust targeting",
+      action: () => setLocation('/campaigns'),
+      icon: <Target className="h-5 w-5 text-red-600" />,
+      priority: 'medium' as const,
+      data: "Campaign performance insights"
+    });
+
+    return actions.slice(0, 6); // Limit to 6 actions
+  };
+
+  const nextBestActions = generateNextBestActions();
+  const filteredActivities = activeTab === 'all' ? sampleActivities : sampleActivities.filter(activity => activity.type === activeTab);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setInputValue(e.target.value);
@@ -178,50 +287,80 @@ export default function PartnerPilot() {
         </Button>
       </div>
 
-      {/* ChatGPT-style Assistant Section */}
-      <div className="mb-10 mx-auto text-center max-w-5xl">
-        <div className="flex justify-center mb-6">
-          <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600">
-            <MessageSquare className="h-6 w-6" />
+      {/* Next Best Actions Section */}
+      <div className="mb-10 mx-auto max-w-6xl">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-gradient-to-br from-blue-50 to-indigo-100 mb-4">
+            <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center">
+              <div className="w-2 h-2 bg-white rounded-full"></div>
+            </div>
           </div>
+          <h2 className="text-2xl font-semibold text-gray-900 mb-2">Next Best Actions</h2>
+          <p className="text-gray-600 text-sm">Smart recommendations based on your current activities and priorities</p>
         </div>
-        <h2 className="text-lg font-medium text-gray-900 mb-6">How can I help you?</h2>
-        
-        <form onSubmit={handleSubmit} className="mb-8">
-          <div className="relative">
-            <Input
-              value={inputValue}
-              onChange={handleInputChange}
-              placeholder="Ask me about opportunities, partners, users..."
-              className="pr-10 py-6 text-base"
-            />
-            <Button 
-              type="submit" 
-              size="sm"
-              className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-transparent hover:bg-gray-100 p-1"
-              disabled={isLoading}
-            >
-              {isLoading ? 
-                <div className="h-5 w-5 border-2 border-indigo-600 border-t-transparent rounded-full animate-spin"></div> :
-                <ArrowUpRight className="h-5 w-5 text-gray-500" />
-              }
-            </Button>
-          </div>
-        </form>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        {/* Smart Actions Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-6">
           {nextBestActions.map((action, index) => (
             <Card 
               key={index} 
-              className="hover:shadow-md transition-all cursor-pointer border-gray-200"
+              className="group hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300 cursor-pointer border-0 bg-white hover:bg-gradient-to-br hover:from-white hover:to-blue-50/30 relative overflow-hidden"
               onClick={action.action}
             >
-              <CardContent className="p-4">
-                <h3 className="text-sm font-medium mb-1">{action.title}</h3>
-                <p className="text-xs text-gray-500">{action.description}</p>
+              <div className="absolute inset-0 bg-gradient-to-br from-transparent to-blue-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              <CardContent className="p-6 relative">
+                <div className="flex items-start justify-between mb-3">
+                  <div className="p-2 rounded-xl bg-gradient-to-br from-gray-50 to-gray-100 group-hover:from-blue-50 group-hover:to-indigo-100 transition-colors duration-300">
+                    {(action as any).icon || <ArrowUpRight className="h-5 w-5 text-gray-600 group-hover:text-blue-600" />}
+                  </div>
+                  {(action as any).priority && (
+                    <div className={`px-2 py-1 rounded-full text-xs font-medium ${
+                      (action as any).priority === 'high' ? 'bg-red-100 text-red-700' :
+                      (action as any).priority === 'medium' ? 'bg-amber-100 text-amber-700' :
+                      'bg-green-100 text-green-700'
+                    }`}>
+                      {(action as any).priority === 'high' ? 'Urgent' : (action as any).priority === 'medium' ? 'Important' : 'Later'}
+                    </div>
+                  )}
+                </div>
+                <h3 className="font-semibold text-gray-900 mb-2 group-hover:text-blue-900 transition-colors">
+                  {action.title}
+                </h3>
+                <p className="text-sm text-gray-600 mb-3 leading-relaxed">{action.description}</p>
+                {(action as any).data && (
+                  <div className="flex items-center text-xs text-gray-500">
+                    <div className="w-1.5 h-1.5 bg-blue-400 rounded-full mr-2"></div>
+                    {(action as any).data}
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}
+        </div>
+
+        {/* Quick Access Bar */}
+        <div className="flex flex-wrap gap-2 justify-center">
+          <button 
+            onClick={() => window.location.href = '/opportunities'}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full text-sm text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
+          >
+            <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+            View All Opportunities
+          </button>
+          <button 
+            onClick={() => window.location.href = '/partners'}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full text-sm text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
+          >
+            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+            Partner Overview
+          </button>
+          <button 
+            onClick={() => window.location.href = '/campaigns'}
+            className="inline-flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-full text-sm text-gray-700 hover:bg-gray-50 hover:border-gray-300 transition-all duration-200"
+          >
+            <div className="w-2 h-2 bg-purple-500 rounded-full"></div>
+            Campaign Center
+          </button>
         </div>
       </div>
 
