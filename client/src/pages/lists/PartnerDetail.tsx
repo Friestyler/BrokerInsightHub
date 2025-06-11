@@ -38,8 +38,10 @@ export default function PartnerDetail() {
   const [filterText, setFilterText] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
   const [selectedType, setSelectedType] = useState("");
+  const [selectedCustomer, setSelectedCustomer] = useState("");
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   const [showTypeDropdown, setShowTypeDropdown] = useState(false);
+  const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
   const [activeList, setActiveList] = useState<any>(null);
   const [showListsDropdown, setShowListsDropdown] = useState(false);
   const [activeDropdownId, setActiveDropdownId] = useState<number | null>(null);
@@ -97,6 +99,7 @@ export default function PartnerDetail() {
   const dropdownRef = useRef<HTMLDivElement>(null);
   const statusDropdownRef = useRef<HTMLDivElement>(null);
   const typeDropdownRef = useRef<HTMLDivElement>(null);
+  const customerDropdownRef = useRef<HTMLDivElement>(null);
 
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -286,6 +289,9 @@ export default function PartnerDetail() {
       if (typeDropdownRef.current && !typeDropdownRef.current.contains(event.target as Node)) {
         setShowTypeDropdown(false);
       }
+      if (customerDropdownRef.current && !customerDropdownRef.current.contains(event.target as Node)) {
+        setShowCustomerDropdown(false);
+      }
     }
 
     document.addEventListener('mousedown', handleClickOutside);
@@ -297,6 +303,7 @@ export default function PartnerDetail() {
   // Extract unique filter values from opportunities data
   const uniqueStatuses = Array.from(new Set((relatedOpportunities as any[] || []).map((opp: any) => opp.stage).filter(Boolean)));
   const uniqueTypes = Array.from(new Set((relatedOpportunities as any[] || []).map((opp: any) => opp.type || opp.opportunity_type).filter(Boolean)));
+  const uniqueCustomers = Array.from(new Set((relatedOpportunities as any[] || []).map((opp: any) => opp.clientName).filter(Boolean)));
 
   // Filter opportunities based on search, filters, and active list
   const filteredOpportunities = (relatedOpportunities as any[] || []).filter((opportunity: any) => {
@@ -317,6 +324,11 @@ export default function PartnerDetail() {
     
     // Filter by Type
     if (selectedType && (opportunity.type || opportunity.opportunity_type) !== selectedType) {
+      return false;
+    }
+    
+    // Filter by Customer
+    if (selectedCustomer && opportunity.clientName !== selectedCustomer) {
       return false;
     }
     
@@ -1245,6 +1257,57 @@ export default function PartnerDetail() {
                                   }}
                                 >
                                   {type}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Customer Filter Dropdown */}
+                      <div className="relative" ref={customerDropdownRef}>
+                        <button 
+                          className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${
+                            selectedCustomer 
+                              ? 'border-indigo-300 bg-indigo-50 text-indigo-700' 
+                              : 'border-gray-300 text-gray-700 hover:border-gray-400'
+                          }`}
+                          onClick={() => setShowCustomerDropdown(!showCustomerDropdown)}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                          </svg>
+                          <span>{selectedCustomer || 'Customer'}</span>
+                        </button>
+                        
+                        {showCustomerDropdown && (
+                          <div className="absolute z-50 mt-1 w-48 rounded-md border border-gray-200 bg-white shadow-lg">
+                            <div className="p-1">
+                              {selectedCustomer && (
+                                <button
+                                  className="w-full text-left px-3 py-2 text-sm text-gray-500 hover:bg-gray-50 rounded-md"
+                                  onClick={() => {
+                                    setSelectedCustomer("");
+                                    setShowCustomerDropdown(false);
+                                  }}
+                                >
+                                  Clear filter
+                                </button>
+                              )}
+                              {uniqueCustomers.map((customer) => (
+                                <button
+                                  key={customer}
+                                  className={`w-full text-left px-3 py-2 text-sm rounded-md ${
+                                    selectedCustomer === customer 
+                                      ? 'bg-indigo-50 text-indigo-700' 
+                                      : 'text-gray-700 hover:bg-gray-50'
+                                  }`}
+                                  onClick={() => {
+                                    setSelectedCustomer(customer);
+                                    setShowCustomerDropdown(false);
+                                  }}
+                                >
+                                  {customer}
                                 </button>
                               ))}
                             </div>
