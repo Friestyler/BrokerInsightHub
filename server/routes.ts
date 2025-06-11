@@ -4614,6 +4614,131 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Campaigns API endpoints
+  app.get('/api/campaigns', async (req, res) => {
+    try {
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      
+      // Sample campaign data - in a real implementation, this would come from a campaigns table
+      const campaigns = [
+        {
+          id: 1,
+          name: "Q1 Life Insurance Campaign",
+          type: "cross_sell",
+          category: "Life Insurance",
+          status: "active",
+          createdById: 1,
+          isShared: false,
+          isTemplate: false,
+          tags: ["life", "q1", "active"],
+          sponsorId: null,
+          createdAt: "2024-01-15T10:00:00Z"
+        },
+        {
+          id: 2,
+          name: "Home Insurance Upsell",
+          type: "upsell",
+          category: "Property Insurance",
+          status: "draft",
+          createdById: 1,
+          isShared: true,
+          isTemplate: false,
+          tags: ["home", "property", "upsell"],
+          sponsorId: null,
+          createdAt: "2024-02-01T14:30:00Z"
+        },
+        {
+          id: 3,
+          name: "Shared Auto Insurance Campaign",
+          type: "cross_sell",
+          category: "Auto Insurance",
+          status: "active",
+          createdById: 2,
+          isShared: true,
+          isTemplate: false,
+          tags: ["auto", "shared", "team"],
+          sponsorId: null,
+          createdAt: "2024-01-20T09:15:00Z"
+        }
+      ];
+      
+      console.log(`Returning ${campaigns.length} campaigns from ${envId} environment`);
+      res.json(campaigns);
+    } catch (error) {
+      console.error('Error fetching campaigns:', error);
+      res.status(500).json({ error: 'Failed to fetch campaigns' });
+    }
+  });
+
+  app.get('/api/campaigns/:id', async (req, res) => {
+    try {
+      const id = parseInt(req.params.id);
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      
+      // Sample campaign detail data
+      const campaign = {
+        id: id,
+        name: id === 1 ? "Q1 Life Insurance Campaign" : 
+              id === 2 ? "Home Insurance Upsell" : 
+              "Shared Auto Insurance Campaign",
+        type: id === 2 ? "upsell" : "cross_sell",
+        category: id === 1 ? "Life Insurance" : 
+                  id === 2 ? "Property Insurance" : 
+                  "Auto Insurance",
+        status: id === 2 ? "draft" : "active",
+        description: `Detailed description for campaign ${id}`,
+        createdById: id === 3 ? 2 : 1,
+        isShared: id === 1 ? false : true,
+        isTemplate: false,
+        tags: id === 1 ? ["life", "q1", "active"] : 
+              id === 2 ? ["home", "property", "upsell"] : 
+              ["auto", "shared", "team"],
+        sponsorId: null,
+        createdAt: "2024-01-15T10:00:00Z",
+        settings: {
+          targetAudience: "Existing customers",
+          duration: "3 months",
+          channels: ["email", "phone"]
+        }
+      };
+      
+      console.log(`Returning campaign ${id} details from ${envId} environment`);
+      res.json(campaign);
+    } catch (error) {
+      console.error('Error fetching campaign details:', error);
+      res.status(500).json({ error: 'Failed to fetch campaign details' });
+    }
+  });
+
+  app.post('/api/campaigns', async (req, res) => {
+    try {
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      const { name, type, category, description, tags } = req.body;
+      
+      // Sample response for campaign creation
+      const newCampaign = {
+        id: Date.now(), // Simple ID generation for demo
+        name,
+        type,
+        category,
+        description,
+        status: "draft",
+        createdById: 1,
+        isShared: false,
+        isTemplate: false,
+        tags: tags || [],
+        sponsorId: null,
+        createdAt: new Date().toISOString()
+      };
+      
+      console.log(`Created new campaign in ${envId} environment:`, newCampaign);
+      res.status(201).json(newCampaign);
+    } catch (error) {
+      console.error('Error creating campaign:', error);
+      res.status(500).json({ error: 'Failed to create campaign' });
+    }
+  });
+
   const httpServer = createServer(app);
   return httpServer;
 }
