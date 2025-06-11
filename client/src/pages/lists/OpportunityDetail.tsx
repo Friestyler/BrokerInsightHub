@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useParams, Link } from "wouter";
+import { useState, useEffect } from "react";
+import { useParams, Link, useLocation } from "wouter";
 import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -48,13 +48,34 @@ function formatCurrency(value: number): string {
 export default function OpportunityDetail() {
   const { id } = useParams();
   const { environment } = useEnvironment();
+  const [location] = useLocation();
   const [activeTab, setActiveTab] = useState("okr-plan");
+  const [backUrl, setBackUrl] = useState("/opportunities");
+  const [backLabel, setBackLabel] = useState("Back to Opportunities");
   
   // Filter states for OKR plans
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedTag, setSelectedTag] = useState("all");
   const [selectedUnit, setSelectedUnit] = useState("all");
   const [selectedRange, setSelectedRange] = useState("all");
+
+  // Detect navigation context and set appropriate back URL
+  useEffect(() => {
+    const referrer = document.referrer;
+    const currentOrigin = window.location.origin;
+    
+    // Check if user came from a partner detail page
+    if (referrer && referrer.startsWith(currentOrigin)) {
+      const referrerPath = new URL(referrer).pathname;
+      const partnerDetailMatch = referrerPath.match(/\/lists\/partners\/(\d+)/);
+      
+      if (partnerDetailMatch) {
+        const partnerId = partnerDetailMatch[1];
+        setBackUrl(`/lists/partners/${partnerId}`);
+        setBackLabel("Back to Partner");
+      }
+    }
+  }, []);
 
   // Fetch template assignments for this opportunity
   const { data: templateAssignments = [] } = useQuery({
@@ -102,10 +123,10 @@ export default function OpportunityDetail() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between py-6">
             <div className="flex items-center space-x-4">
-              <Link href="/opportunities">
+              <Link href={backUrl}>
                 <Button variant="ghost" size="sm" className="group hover:bg-[#F5F6FE]">
                   <ArrowLeft className="w-4 h-4 mr-2 group-hover:text-[#5567E5]" />
-                  Back to Opportunities
+                  {backLabel}
                 </Button>
               </Link>
               <div>
