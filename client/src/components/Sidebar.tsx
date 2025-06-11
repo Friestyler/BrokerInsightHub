@@ -86,7 +86,8 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
   };
 
   return (
-    <div className="w-16 md:w-64 flex flex-col h-full overflow-hidden transition-all duration-300 relative bg-[#F5F6FA]">
+    <div className={`${collapsed ? "w-16" : "w-16 md:w-64"} bg-gray-50 flex flex-col h-full overflow-hidden transition-all duration-300 relative`}>
+      
       {/* Logo at the top left */}
       <div className="pt-4 px-4 pb-1 flex justify-center md:justify-start flex-shrink-0">
         <div className={`${collapsed ? "w-10 h-10" : "w-12 h-12"} flex items-center justify-center`}>
@@ -97,10 +98,12 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
           />
         </div>
       </div>
+      
       {/* Environment Selector - moved down */}
       <div className="py-3 px-3 mt-1 mb-1 flex-shrink-0">
         <EnvironmentSelector collapsed={collapsed} />
       </div>
+      
       {/* Navigation Links - closer to environment selector */}
       <div className="flex flex-col flex-shrink-0 overflow-y-auto">
         <Link 
