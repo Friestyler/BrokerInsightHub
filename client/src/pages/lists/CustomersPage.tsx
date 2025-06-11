@@ -739,11 +739,13 @@ export default function CustomersPageClean() {
           <table className="min-w-full">
             <thead className="bg-white">
               <tr>
-                <th scope="col" className="relative px-3 py-3.5 w-10 pt-[12px] pb-[12px]">
+                <th scope="col" className="relative px-3 py-3.5 w-10 pt-[12px] pb-[12px] group">
                   <div className="flex items-center justify-center">
                     <input
                       type="checkbox"
-                      className="h-4 w-4 rounded border-gray-300"
+                      className={`h-4 w-4 rounded border-gray-300 ${
+                        selectedCustomers.length > 0 ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 transition-opacity'
+                      }`}
                       checked={selectedCustomers.length === filteredCustomers.length && filteredCustomers.length > 0}
                       onChange={handleSelectAll}
                     />

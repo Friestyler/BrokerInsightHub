@@ -1625,10 +1625,12 @@ function OpportunitiesTable() {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-white">
             <tr>
-              <th scope="col" className="relative px-3 py-3.5 w-10 bg-white">
+              <th scope="col" className="relative px-3 py-3.5 w-10 bg-white group">
                 <input
                   type="checkbox"
-                  className="absolute h-4 w-4 rounded border-gray-300"
+                  className={`absolute h-4 w-4 rounded border-gray-300 ${
+                    selectedOpportunities.length > 0 ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 transition-opacity'
+                  }`}
                   checked={selectedOpportunities.length === displayedOpportunities.length && displayedOpportunities.length > 0}
                   onChange={toggleSelectAll}
                 />
@@ -1716,7 +1718,7 @@ function OpportunitiesTable() {
             {displayedOpportunities.map((opportunity: any) => (
               <tr 
                 key={opportunity.id}
-                className={`hover:bg-gray-50 cursor-pointer ${
+                className={`hover:bg-gray-50 cursor-pointer group ${
                   selectedOpportunities.includes(opportunity.id) ? 'bg-blue-50' : ''
                 }`}
                 onClick={(e) => {
@@ -1729,7 +1731,9 @@ function OpportunitiesTable() {
                 <td className="relative px-3 py-4 w-10">
                   <input
                     type="checkbox"
-                    className="absolute h-4 w-4 rounded border-gray-300"
+                    className={`absolute h-4 w-4 rounded border-gray-300 ${
+                      selectedOpportunities.includes(opportunity.id) ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 transition-opacity'
+                    }`}
                     checked={selectedOpportunities.includes(opportunity.id)}
                     onChange={() => toggleSelectOpportunity(opportunity.id)}
                   />
