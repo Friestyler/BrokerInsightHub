@@ -4496,7 +4496,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Get entity logo
+  // Get entity logo (query parameters version for useEntityLogo hook)
+  app.get('/api/entity-logos', async (req, res) => {
+    try {
+      const { entityType, entityId, environmentId } = req.query;
+      
+      if (!entityType || !entityId || !environmentId) {
+        return res.status(400).json({ error: 'Missing required parameters: entityType, entityId, environmentId' });
+      }
+      
+      const logo = await db
+        .select()
+        .from(entityLogos)
+        .where(
+          sql`${entityLogos.entityType} = ${entityType} 
+              AND ${entityLogos.entityId} = ${parseInt(entityId as string)} 
+              AND ${entityLogos.environmentId} = ${environmentId}`
+        )
+        .limit(1);
+
+      if (logo.length === 0) {
+        return res.status(404).json({ error: 'Logo not found' });
+      }
+
+      res.json(logo[0]);
+    } catch (error) {
+      console.error('Error fetching entity logo:', error);
+      res.status(500).json({ error: 'Failed to fetch entity logo' });
+    }
+  });
+
+  // Get entity logo (URL parameters version for backward compatibility)
   app.get('/api/entity-logos/:entityType/:entityId/:environmentId', async (req, res) => {
     try {
       const { entityType, entityId, environmentId } = req.params;
