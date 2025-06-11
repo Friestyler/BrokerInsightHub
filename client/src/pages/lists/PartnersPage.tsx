@@ -1,4 +1,4 @@
-import { useState, useEffect, createContext, useContext } from 'react';
+import { useState, useEffect, createContext, useContext, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { queryClient, apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
@@ -362,6 +362,27 @@ function PartnersTable() {
   const [showSaveViewModal, setShowSaveViewModal] = useState(false);
   const [showViewsDropdown, setShowViewsDropdown] = useState(false);
   const [viewNameInput, setViewNameInput] = useState('');
+  
+  // Ref for views dropdown to handle outside clicks
+  const viewsDropdownRef = useRef<HTMLDivElement>(null);
+  
+  // Handle outside clicks for views dropdown
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (viewsDropdownRef.current && !viewsDropdownRef.current.contains(event.target as Node)) {
+        setShowViewsDropdown(false);
+      }
+    };
+
+    if (showViewsDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showViewsDropdown]);
+  
   const [isCreatingNewList, setIsCreatingNewList] = useState(false); // Default to adding to existing list
   const [selectedExistingList, setSelectedExistingList] = useState<string | null>(null);
   
@@ -971,7 +992,7 @@ function PartnersTable() {
                 
                 {/* Saved Views dropdown menu */}
                 {showViewsDropdown && (
-                  <div className="absolute z-50 mt-1 w-64 rounded-md border border-slate-200 bg-white shadow-md">
+                  <div ref={viewsDropdownRef} className="absolute z-50 mt-1 w-64 rounded-md border border-slate-200 bg-white shadow-md">
                     <div className="p-2 border-b">
                       {savedViews.map(view => (
                         <div 
