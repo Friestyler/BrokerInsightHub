@@ -67,6 +67,12 @@
 
 .nav-item-active {
   color: #3E4DC4 !important;
+  font-weight: normal !important;
+}
+
+/* Override any remaining font-medium classes in active navigation items */
+.nav-item-active.font-medium {
+  font-weight: normal !important;
 }
 
 
