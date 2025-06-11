@@ -17,6 +17,7 @@ import { ShareModal } from "@/components/ShareModal";
 import { apiRequest } from "@/lib/queryClient";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import LogoUploadModal from "@/components/LogoUploadModal";
+import EntityAvatar from "@/components/EntityAvatar";
 
 export default function PartnerDetail() {
   const { id } = useParams();
@@ -50,7 +51,6 @@ export default function PartnerDetail() {
 
   // Logo upload state
   const [showLogoUploadModal, setShowLogoUploadModal] = useState(false);
-  const [partnerLogo, setPartnerLogo] = useState<string | null>(null);
 
   // Get collaborators for the currently active list
   const getCollaboratorsForList = (listId: number) => {
@@ -513,28 +513,26 @@ export default function PartnerDetail() {
                   <ArrowLeft className="w-4 h-4 group-hover:text-[#5567E5]" />
                 </Button>
               </Link>
-              {/* Company Logo Placeholder */}
+              {/* Partner Logo */}
               <div className="flex-shrink-0">
                 <button
                   onClick={() => setShowLogoUploadModal(true)}
-                  className={`w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center transition-colors group ${
-                    partnerLogo 
-                      ? "border-0 hover:bg-gray-50" 
-                      : "border-2 border-dashed border-gray-300 hover:border-gray-400 hover:bg-gray-50"
-                  }`}
+                  className="relative w-16 h-16 rounded-lg transition-colors group hover:bg-gray-50"
                   title="Click to upload logo"
                 >
-                  {partnerLogo ? (
-                    <img
-                      src={partnerLogo}
-                      alt={`${partner?.name} logo`}
-                      className="w-full h-full object-cover rounded-md"
-                    />
-                  ) : (
-                    <svg className="w-6 h-6 text-gray-400 group-hover:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <EntityAvatar
+                    entityType="partner"
+                    entityId={partner?.id || 0}
+                    fallbackText={partner?.name?.substring(0, 2) || "P"}
+                    size="lg"
+                    className="w-16 h-16"
+                  />
+                  {/* Upload overlay */}
+                  <div className="absolute inset-0 bg-black bg-opacity-0 hover:bg-opacity-10 rounded-lg flex items-center justify-center transition-all">
+                    <svg className="w-4 h-4 text-white opacity-0 group-hover:opacity-100 transition-opacity" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
-                  )}
+                  </div>
                 </button>
               </div>
               <div className="flex-1">
@@ -1699,7 +1697,8 @@ export default function PartnerDetail() {
         isOpen={showLogoUploadModal}
         onClose={() => setShowLogoUploadModal(false)}
         onUpload={(logoUrl) => {
-          setPartnerLogo(logoUrl);
+          // Invalidate the entity logo cache to refresh the EntityAvatar
+          queryClient.invalidateQueries({ queryKey: [`/api/entity-logos`] });
           setShowLogoUploadModal(false);
         }}
         entityName={partner?.name || 'Partner'}
