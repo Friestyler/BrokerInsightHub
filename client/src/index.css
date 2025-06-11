@@ -69,18 +69,7 @@
   color: #3E4DC4 !important;
 }
 
-/* Override all remaining sidebar text colors */
-[class*="text-gray-700"] {
-  color: #282A3F !important;
-}
 
-[class*="text-indigo-600"] {
-  color: #3E4DC4 !important;
-}
-
-[class*="hover:text-indigo-600"]:hover {
-  color: #282A3F !important;
-}
 
 .dark {
   --background: 229 15% 15%;
