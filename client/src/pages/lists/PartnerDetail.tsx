@@ -1624,6 +1624,7 @@ export default function PartnerDetail() {
                     </TableHead>
                     <TableHead>Opportunity</TableHead>
                     <TableHead>Customer</TableHead>
+                    <TableHead>Related contacts</TableHead>
                     <TableHead>Stage</TableHead>
                     <TableHead>Value</TableHead>
                     <TableHead>Close Date</TableHead>
@@ -1652,6 +1653,11 @@ export default function PartnerDetail() {
                       <TableCell>
                         <span className="text-gray-900">
                           {opportunity.clientName || 'Unknown Customer'}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-gray-600">
+                          {opportunity.contactCount || 0}
                         </span>
                       </TableCell>
                       <TableCell>

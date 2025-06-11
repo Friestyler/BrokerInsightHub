@@ -1555,11 +1555,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const partnerId = parseInt(req.params.id);
       const envPool = getEnvironmentPool('degoudse');
       const result = await envPool.query(`
-        SELECT o.*, c.name as client_name
+        SELECT o.*, c.name as client_name,
+               COUNT(DISTINCT contacts.id) as contact_count
         FROM degoudse.opportunities o
         INNER JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
         LEFT JOIN degoudse.customers c ON o.client_id = c.id
+        LEFT JOIN degoudse.contacts contacts ON contacts.linked_entity_id = c.id AND contacts.linked_entity_type = 'customer'
         WHERE po.partner_id = $1
+        GROUP BY o.id, o.title, o.description, o.status, o.stage, o."estimatedValue", 
+                 o."expectedCloseDate", o."clientId", o."partnerId", o."productId", 
+                 o."ownerId", o.probability, o.type, o."createdAt", o."updatedAt", c.name
         ORDER BY o.id
       `, [partnerId]);
       
@@ -1571,7 +1576,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         stage: opp.stage,
         estimated_value: opp.estimatedValue,
         clientName: opp.client_name,
-        expected_close_date: opp.expectedCloseDate
+        expected_close_date: opp.expectedCloseDate,
+        contactCount: parseInt(opp.contact_count) || 0
       }));
       
       res.json(opportunities);
@@ -2210,7 +2216,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
         updatedAt: opp.updatedAt,
         customerCount: parseInt(opp.customer_count) || 0,
         partnerCount: parseInt(opp.partner_count) || 0,
-        productCount: parseInt(opp.product_count) || 0
+        productCount: parseInt(opp.product_count) || 0,
+        contactCount: parseInt(opp.contact_count) || 0
       }));
       
       console.log(`Returning ${opportunities.length} opportunities from De Goudse database`);
