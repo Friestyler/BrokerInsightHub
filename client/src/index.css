@@ -61,14 +61,26 @@
   color: #282A3F !important;
 }
 
+.nav-item-inactive svg {
+  color: #696C8C !important;
+}
+
 .nav-item-inactive:hover {
   color: #282A3F !important;
   background-color: #E6E7F1 !important;
 }
 
+.nav-item-inactive:hover svg {
+  color: #51536C !important;
+}
+
 .nav-item-active {
   color: #3E4DC4 !important;
   font-weight: normal !important;
+}
+
+.nav-item-active svg {
+  color: #3E4DC4 !important;
 }
 
 /* Override any remaining font-medium classes in active navigation items */
