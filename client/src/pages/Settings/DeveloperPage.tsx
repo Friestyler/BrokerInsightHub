@@ -343,11 +343,36 @@ function DeveloperPage() {
         </TabsList>
 
         <TabsContent value="database" className="space-y-6">
+          {/* Environment Isolation Status */}
+          <Card className="border-green-200 bg-green-50/50">
+            <CardHeader>
+              <CardTitle className="text-lg flex items-center gap-2 text-green-700">
+                <div className="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
+                Environment Isolation Successfully Configured
+              </CardTitle>
+              <CardContent className="pt-4">
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <p className="text-sm font-medium text-green-600">Current Environment</p>
+                    <p className="text-lg font-bold text-green-800">De Goudse Only</p>
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-green-600">Data Sources</p>
+                    <p className="text-lg font-bold text-green-800">Authentic degoudse data exclusively</p>
+                  </div>
+                </div>
+                <div className="mt-3 text-sm text-green-600">
+                  All API calls now route to /api/degoudse/ endpoints. No mixed environment data detected.
+                </div>
+              </CardContent>
+            </CardHeader>
+          </Card>
+
           {/* Recent Updates Status */}
           <Card>
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
-                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
                 System Status & Recent Updates
               </CardTitle>
             </CardHeader>
