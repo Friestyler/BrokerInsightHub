@@ -381,7 +381,7 @@ export default function CampaignDetail() {
               {recipients && recipients.length > 0 ? (
                 <div className="border rounded-md overflow-hidden">
                   <table className="w-full">
-                    <thead className="bg-gray-50 border-b">
+                    <thead className="bg-white border-b">
                       <tr>
                         <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Name</th>
                         <th className="px-4 py-3 text-left text-sm font-medium text-gray-500">Email</th>

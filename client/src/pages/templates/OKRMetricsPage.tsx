@@ -373,7 +373,7 @@ export default function OKRMetricsPage() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 {groupBy === 'none' && (
-                  <thead className="bg-gray-50 border-b">
+                  <thead className="bg-white border-b">
                     <tr>
                       <th className="w-12 px-6 py-3 text-left">
                         <Checkbox
