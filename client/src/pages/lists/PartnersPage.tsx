@@ -2062,11 +2062,15 @@ function PartnersTable() {
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-white">
             <tr>
-              <th scope="col" className="relative px-3 py-3.5 w-10 pt-[12px] pb-[12px]">
+              <th scope="col" className="relative px-3 py-3.5 w-10 pt-[12px] pb-[12px] group">
                 <div className="flex items-center justify-center">
                   <input
                     type="checkbox"
-                    className="h-4 w-4 rounded border-gray-300"
+                    className={`h-4 w-4 rounded border-gray-300 ${
+                      isEditingList 
+                        ? 'visible' 
+                        : (selectedPartners.length > 0 ? 'visible' : 'invisible group-hover:visible')
+                    }`}
                   checked={isEditingList 
                     ? editedListMembers.length === (activeList ? partners.length : displayedPartners.length) && (activeList ? partners.length : displayedPartners.length) > 0
                     : selectedPartners.length === displayedPartners.length && displayedPartners.length > 0
