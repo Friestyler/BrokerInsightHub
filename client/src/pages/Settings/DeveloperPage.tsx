@@ -137,27 +137,7 @@ const databaseSchemas = {
       }
     }
   },
-  detected_shadow_schemas: {
-    description: "Monitoring for unauthorized database schemas",
-    connection: "Real-time schema detection",
-    tables: {
-      acme: {
-        columns: ['Detection attempted - Access blocked'],
-        relationships: ['BLOCKED - Unauthorized schema access'],
-        shadowRisk: 'HIGH - Potential shadow database'
-      },
-      globex: {
-        columns: ['Detection attempted - Access blocked'],
-        relationships: ['BLOCKED - Unauthorized schema access'],
-        shadowRisk: 'HIGH - Potential shadow database'
-      },
-      oceanic: {
-        columns: ['Detection attempted - Access blocked'],
-        relationships: ['BLOCKED - Unauthorized schema access'],
-        shadowRisk: 'HIGH - Potential shadow database'
-      }
-    }
-  }
+
 };
 
 // Legacy schema info for backward compatibility
@@ -508,9 +488,6 @@ function DeveloperPage() {
               <div className="border-l-4 border-l-blue-500 pl-4">
                 <h3 className="text-xl font-semibold capitalize flex items-center gap-2">
                   {schemaName.replace('_', ' ')} 
-                  {schemaName === 'detected_shadow_schemas' && (
-                    <Badge variant="destructive" className="ml-2">⚠️ SHADOW RISK</Badge>
-                  )}
                   {schemaName === environment.id && (
                     <Badge variant="default" className="ml-2 bg-green-500">CURRENT</Badge>
                   )}
@@ -521,24 +498,19 @@ function DeveloperPage() {
               
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {Object.entries(schemaData.tables).map(([tableName, tableInfo]) => (
-                  <Card key={`${schemaName}-${tableName}`} className={schemaName === 'detected_shadow_schemas' ? 'border-red-200 bg-red-50' : ''}>
+                  <Card key={`${schemaName}-${tableName}`}>
                     <CardHeader>
                       <CardTitle className="text-lg capitalize flex items-center justify-between">
                         {tableName}
                         <Badge 
                           variant={
-                            tableInfo.shadowRisk === 'None - Primary schema' ? 'default' :
-                            tableInfo.shadowRisk?.includes('HIGH') ? 'destructive' : 
-                            'secondary'
+                            tableInfo.shadowRisk === 'None - Primary schema' ? 'default' : 'secondary'
                           }
                           className={
-                            tableInfo.shadowRisk === 'None - Primary schema' ? 'bg-green-500' :
-                            tableInfo.shadowRisk?.includes('HIGH') ? '' : 
-                            'bg-orange-500'
+                            tableInfo.shadowRisk === 'None - Primary schema' ? 'bg-green-500' : 'bg-orange-500'
                           }
                         >
-                          {tableInfo.shadowRisk?.includes('HIGH') ? '⚠️ SHADOW' : 
-                           tableInfo.shadowRisk?.includes('Low') ? '🔒 ISOLATED' : '✓ SECURE'}
+                          {tableInfo.shadowRisk?.includes('Low') ? '🔒 ISOLATED' : '✓ SECURE'}
                         </Badge>
                       </CardTitle>
                     </CardHeader>
@@ -551,7 +523,7 @@ function DeveloperPage() {
                               <Badge 
                                 key={`${tableName}-${column}-${index}`} 
                                 variant="outline" 
-                                className={`text-xs ${schemaName === 'detected_shadow_schemas' ? 'border-red-300 text-red-700' : ''}`}
+                                className="text-xs"
                               >
                                 {column}
                               </Badge>
@@ -560,7 +532,7 @@ function DeveloperPage() {
                         </div>
                         <div>
                           <h4 className="font-medium text-sm mb-2">Relationships</h4>
-                          <div className={`text-sm ${schemaName === 'detected_shadow_schemas' ? 'text-red-700' : 'text-muted-foreground'}`}>
+                          <div className="text-sm text-muted-foreground">
                             {Array.isArray(tableInfo.relationships) 
                               ? tableInfo.relationships.join(', ')
                               : tableInfo.relationships
@@ -568,9 +540,8 @@ function DeveloperPage() {
                           </div>
                         </div>
                         <div>
-                          <h4 className="font-medium text-sm mb-2">Security Assessment</h4>
+                          <h4 className="font-medium text-sm mb-2">Security Status</h4>
                           <div className={`text-xs p-2 rounded ${
-                            tableInfo.shadowRisk?.includes('HIGH') ? 'bg-red-100 text-red-800' :
                             tableInfo.shadowRisk?.includes('Low') ? 'bg-orange-100 text-orange-800' :
                             'bg-green-100 text-green-800'
                           }`}>
@@ -584,41 +555,6 @@ function DeveloperPage() {
               </div>
             </div>
           ))}
-          
-          {/* Shadow Database Detection Summary */}
-          <Card className="border-red-200 bg-red-50">
-            <CardHeader>
-              <CardTitle className="text-lg text-red-800 flex items-center gap-2">
-                ⚠️ Shadow Database Detection Report
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="text-center p-3 bg-white rounded border border-red-200">
-                    <div className="text-2xl font-bold text-red-600">{Object.keys(databaseSchemas.detected_shadow_schemas.tables).length}</div>
-                    <div className="text-sm text-red-700">Unauthorized Schemas Detected</div>
-                  </div>
-                  <div className="text-center p-3 bg-white rounded border border-green-200">
-                    <div className="text-2xl font-bold text-green-600">BLOCKED</div>
-                    <div className="text-sm text-green-700">Access Status</div>
-                  </div>
-                  <div className="text-center p-3 bg-white rounded border border-blue-200">
-                    <div className="text-2xl font-bold text-blue-600">100%</div>
-                    <div className="text-sm text-blue-700">Environment Isolation</div>
-                  </div>
-                </div>
-                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded">
-                  <h4 className="font-medium text-yellow-800 mb-2">Security Notice</h4>
-                  <p className="text-sm text-yellow-700">
-                    The system has detected potential unauthorized database schemas (acme, globex, oceanic). 
-                    All access attempts to these schemas are automatically blocked to prevent data leakage.
-                    Only authorized schemas (myqollabi, degoudse) are accessible.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
         </TabsContent>
 
         <TabsContent value="api" className="space-y-6">
