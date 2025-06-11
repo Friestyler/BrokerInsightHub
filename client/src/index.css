@@ -102,6 +102,17 @@
   align-items: center !important;
 }
 
+/* Submenu navigation container styling */
+.submenu-nav-container {
+  height: 32px !important;
+  width: 192px !important;
+  border-radius: 6px !important;
+  padding: 8px !important;
+  margin: 0 32px 8px 32px !important;
+  display: flex !important;
+  align-items: center !important;
+}
+
 /* Override default padding classes */
 .py-2\.5 {
   padding-top: 8px !important;  
