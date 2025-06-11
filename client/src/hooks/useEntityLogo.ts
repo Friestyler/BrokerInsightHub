@@ -22,22 +22,11 @@ export function useEntityLogo(entityType: 'partner' | 'customer', entityId: numb
         setIsLoading(true);
         setError(null);
         
-        // Get current environment ID from URL path
-        const currentPath = window.location.pathname;
-        // Match pattern like /degoudse/lists/partners or /degoudse/something
-        const pathEnvMatch = currentPath.match(/^\/([^\/]+)(?:\/|$)/);
-        let urlEnvironmentId = pathEnvMatch ? pathEnvMatch[1] : null;
+        // Get current environment ID - use the window.currentEnvironment which is set by the app
+        const envFromWindow = (window as any).currentEnvironment;
+        const environment = envFromWindow || 'degoudse';
         
-        // Skip common non-environment paths
-        if (urlEnvironmentId === 'lists' || urlEnvironmentId === 'api') {
-          urlEnvironmentId = null;
-        }
-        
-        // Use URL-based environment ID first, then fallback
-        const environment = urlEnvironmentId || 'degoudse';
-        
-        console.log('useEntityLogo debug:', { entityType, entityId, environment, currentPath, urlEnvironmentId });
-        console.log('About to fetch:', `/api/entity-logos?entityType=${entityType}&entityId=${entityId}&environmentId=${environment}`);
+
         
         const response = await fetch(`/api/entity-logos?entityType=${entityType}&entityId=${entityId}&environmentId=${environment}`);
         
