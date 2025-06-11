@@ -27,7 +27,15 @@ export default function EnvironmentSelector({ collapsed = false }: EnvironmentSe
           className="flex items-center justify-center w-10 h-10 text-xs rounded-md hover:bg-indigo-50 cursor-pointer"
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
         >
-          {environment.logo ? (
+          {environment.id === 'degoudse' ? (
+            <div className="w-7 h-7 flex items-center justify-center">
+              <img 
+                src={deGoudseLogo} 
+                alt={environment.name} 
+                className="w-6 h-4 object-contain"
+              />
+            </div>
+          ) : environment.logo ? (
             <div className="w-7 h-7 flex items-center justify-center">
               <img 
                 src={environment.logo} 
