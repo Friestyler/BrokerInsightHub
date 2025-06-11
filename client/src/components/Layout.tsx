@@ -1,4 +1,4 @@
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode, useEffect, useState, memo, useMemo, useCallback } from "react";
 import Sidebar from "./Sidebar";
 import Breadcrumbs from "./Breadcrumbs";
 import { Button } from "@/components/ui/button";
@@ -12,34 +12,37 @@ interface LayoutProps {
   children: ReactNode;
 }
 
-export default function Layout({ children }: LayoutProps) {
+function LayoutComponent({ children }: LayoutProps) {
   const { environment } = useEnvironment();
   const [location] = useLocation();
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
-  const [currentPageTitle, setCurrentPageTitle] = useState("");
   
-  // Calculate the current page title based on the location
-  useEffect(() => {
+  // Memoize environment-dependent values
+  const environmentId = useMemo(() => environment.id, [environment.id]);
+  
+  // Memoize page title calculation to prevent unnecessary re-renders
+  const currentPageTitle = useMemo(() => {
     if (location === "/") {
-      setCurrentPageTitle(environment.id === 'myqollabi' ? 'Broker Copilot' : 'Partner Copilot');
+      return environmentId === 'myqollabi' ? 'Broker Copilot' : 'Partner Copilot';
     } else if (location === "/opportunities") {
-      setCurrentPageTitle("Opportunities");
+      return "Opportunities";
     } else if (location === "/partners") {
-      setCurrentPageTitle("Partners");
+      return "Partners";
     } else if (location === "/projects") {
-      setCurrentPageTitle("Projects");
+      return "Projects";
     } else if (location === "/customers") {
-      setCurrentPageTitle("Customers");
+      return "Customers";
     } else if (location === "/campaigns") {
-      setCurrentPageTitle("Campaigns");
+      return "Campaigns";
     } else {
-      setCurrentPageTitle(environment.id === 'myqollabi' ? 'Broker Copilot' : 'Partner Copilot');
+      return environmentId === 'myqollabi' ? 'Broker Copilot' : 'Partner Copilot';
     }
-  }, [location, environment]);
+  }, [location, environmentId]);
   
-  const toggleSidebar = () => {
-    setSidebarCollapsed(!sidebarCollapsed);
-  };
+  // Memoize callback to prevent sidebar re-renders
+  const toggleSidebar = useCallback(() => {
+    setSidebarCollapsed(prev => !prev);
+  }, []);
   
   return (
     <div className="h-screen flex overflow-hidden">
@@ -93,3 +96,7 @@ export default function Layout({ children }: LayoutProps) {
     </div>
   );
 }
+
+// Memoize the Layout to prevent unnecessary re-renders during navigation
+const Layout = memo(LayoutComponent);
+export default Layout;

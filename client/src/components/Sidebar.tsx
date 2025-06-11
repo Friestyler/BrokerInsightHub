@@ -1,5 +1,5 @@
 import { useLocation, Link } from "wouter";
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, memo, useMemo } from "react";
 import EnvironmentSelector from "./EnvironmentSelector";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { queryClient } from "@/lib/queryClient";
@@ -10,7 +10,7 @@ interface SidebarProps {
   setCollapsed?: (collapsed: boolean) => void;
 }
 
-export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProps) {
+function SidebarComponent({ collapsed = false, setCollapsed }: SidebarProps) {
   const [location] = useLocation();
   const [isMobile, setIsMobile] = useState(false);
   const [dataMenuOpen, setDataMenuOpen] = useState(false);
@@ -20,9 +20,14 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
   const dataMenuRef = useRef<HTMLDivElement>(null);
   const { environment } = useEnvironment();
   
-  // Prefetch all critical data for instant navigation
+  // Memoize environment-dependent values to prevent unnecessary re-renders
+  const environmentId = useMemo(() => environment.id, [environment.id]);
+  
+  // Prefetch all critical data for instant navigation - only run once per environment
   useEffect(() => {
-    const prefetchData = async () => {
+    let timeoutId: NodeJS.Timeout;
+    
+    const prefetchData = () => {
       const criticalQueries = [
         '/api/partners',
         '/api/customers', 
@@ -41,18 +46,23 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
         '/api/template-assignments/opportunity'
       ];
 
-      // Prefetch all queries in parallel
+      // Prefetch all queries silently in background
       criticalQueries.forEach(queryKey => {
         queryClient.prefetchQuery({
           queryKey: [queryKey],
-          staleTime: 5 * 60 * 1000 // 5 minutes
+          staleTime: 5 * 60 * 1000, // 5 minutes
+          gcTime: 10 * 60 * 1000 // 10 minutes
+        }).catch(() => {
+          // Silently ignore prefetch errors
         });
       });
     };
 
-    // Prefetch after a short delay to not block initial render
-    setTimeout(prefetchData, 100);
-  }, [environment]);
+    // Only prefetch when environment changes, with delay to not block render
+    timeoutId = setTimeout(prefetchData, 50);
+    
+    return () => clearTimeout(timeoutId);
+  }, [environmentId]);
   
   // Auto-open the appropriate menu when on relevant pages
   useEffect(() => {
@@ -528,3 +538,7 @@ export default function Sidebar({ collapsed = false, setCollapsed }: SidebarProp
     </div>
   );
 }
+
+// Memoize the sidebar to prevent unnecessary re-renders during navigation
+const Sidebar = memo(SidebarComponent);
+export default Sidebar;
