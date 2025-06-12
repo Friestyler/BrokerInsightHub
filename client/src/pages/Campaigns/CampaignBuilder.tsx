@@ -240,9 +240,9 @@ export default function CampaignBuilder() {
       
       // Filter contacts that have relationships with these entities
       filteredContacts = contacts.filter((contact: any) => {
-        if (contact.customer_id && relatedEntityIds.has(`customers:${contact.customer_id}`)) return true;
-        if (contact.partner_id && relatedEntityIds.has(`partners:${contact.partner_id}`)) return true;
-        if (contact.opportunity_id && relatedEntityIds.has(`opportunities:${contact.opportunity_id}`)) return true;
+        if (contact.linked_entity_type === 'customer' && contact.linked_entity_id && relatedEntityIds.has(`customers:${contact.linked_entity_id}`)) return true;
+        if (contact.linked_entity_type === 'partner' && contact.linked_entity_id && relatedEntityIds.has(`partners:${contact.linked_entity_id}`)) return true;
+        if (contact.linked_entity_type === 'opportunity' && contact.linked_entity_id && relatedEntityIds.has(`opportunities:${contact.linked_entity_id}`)) return true;
         return false;
       });
     }
@@ -269,23 +269,23 @@ export default function CampaignBuilder() {
       let recordType = '';
       
       // Determine the primary record this contact belongs to
-      if (contact.customer_id) {
+      if (contact.linked_entity_type === 'customer' && contact.linked_entity_id) {
         const customer = Array.isArray(customers) 
-          ? customers.find((c: any) => c.id === contact.customer_id)
+          ? customers.find((c: any) => c.id === contact.linked_entity_id)
           : null;
-        recordName = customer?.name || `Customer ${contact.customer_id}`;
+        recordName = customer?.name || `Customer ${contact.linked_entity_id}`;
         recordType = 'customer';
-      } else if (contact.partner_id) {
+      } else if (contact.linked_entity_type === 'partner' && contact.linked_entity_id) {
         const partner = Array.isArray(partners) 
-          ? partners.find((p: any) => p.id === contact.partner_id)
+          ? partners.find((p: any) => p.id === contact.linked_entity_id)
           : null;
-        recordName = partner?.name || `Partner ${contact.partner_id}`;
+        recordName = partner?.name || `Partner ${contact.linked_entity_id}`;
         recordType = 'partner';
-      } else if (contact.opportunity_id) {
+      } else if (contact.linked_entity_type === 'opportunity' && contact.linked_entity_id) {
         const opportunity = Array.isArray(opportunities) 
-          ? opportunities.find((o: any) => o.id === contact.opportunity_id)
+          ? opportunities.find((o: any) => o.id === contact.linked_entity_id)
           : null;
-        recordName = opportunity?.title || `Opportunity ${contact.opportunity_id}`;
+        recordName = opportunity?.title || `Opportunity ${contact.linked_entity_id}`;
         recordType = 'opportunity';
       } else {
         recordName = 'Unlinked Contacts';
