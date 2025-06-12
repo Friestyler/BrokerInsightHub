@@ -140,17 +140,16 @@ export default function UploadSettingsPage() {
   const selectedSchema = entitySchemas.find(schema => schema.entityType === selectedEntity);
 
   const handleSettingChange = (attributeName: string, isMandatory: boolean) => {
-    const attribute = selectedSchema?.attributes.find(attr => attr.name === attributeName);
-    if (!attribute || !selectedSchema) return;
+    if (!selectedSchema || !selectedEnvironment || !selectedEntity) return;
 
-    const updatedSettings = selectedSchema.attributes.map(attr => ({
-      attributeName: attr.name,
-      isMandatory: attr.name === attributeName ? isMandatory : 
-        uploadSettings.find(setting => setting.attributeName === attr.name)?.isMandatory || false,
-      dataType: attr.dataType
-    }));
+    // Create the single setting update
+    const settingUpdate = {
+      attributeName,
+      isMandatory,
+      dataType: selectedSchema.attributes.find(attr => attr.name === attributeName)?.dataType
+    };
 
-    updateSettingsMutation.mutate(updatedSettings);
+    updateSettingsMutation.mutate([settingUpdate]);
   };
 
   const renderSettingsTab = () => (
@@ -196,11 +195,6 @@ export default function UploadSettingsPage() {
                         <Badge variant="destructive" className="text-xs">Required</Badge>
                       )}
                     </div>
-                    <p className="text-sm text-muted-foreground">
-                      {attribute.maxLength && `Max length: ${attribute.maxLength} • `}
-                      {attribute.defaultValue && `Default: ${attribute.defaultValue} • `}
-                      Nullable: {attribute.isNullable ? 'Yes' : 'No'}
-                    </p>
                   </div>
                   <div className="flex items-center space-x-2">
                     <Label htmlFor={`mandatory-${attribute.name}`} className="text-sm">
