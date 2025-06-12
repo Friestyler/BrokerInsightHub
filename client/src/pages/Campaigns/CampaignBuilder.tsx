@@ -35,6 +35,7 @@ import {
   FormMessage 
 } from "@/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useForm } from "react-hook-form";
 import { 
   ArrowLeft, 
@@ -113,6 +114,19 @@ const campaignFormSchema = selectListSchema
 
 type CampaignFormValues = z.infer<typeof campaignFormSchema>;
 
+// Contact creation schema
+const contactFormSchema = z.object({
+  first_name: z.string().min(1, "First name is required"),
+  last_name: z.string().min(1, "Last name is required"),
+  email: z.string().email("Valid email is required"),
+  phone: z.string().optional(),
+  job_title: z.string().optional(),
+  department: z.string().optional(),
+  company: z.string().optional(),
+});
+
+type ContactFormValues = z.infer<typeof contactFormSchema>;
+
 // Step interface
 interface BuilderStep {
   id: string;
@@ -131,6 +145,10 @@ export default function CampaignBuilder() {
   const [showAiPrompt, setShowAiPrompt] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
+  
+  // New contact dialog state
+  const [showContactDialog, setShowContactDialog] = useState(false);
+  const [selectedRecord, setSelectedRecord] = useState<{ name: string; type: string; id: number } | null>(null);
 
   // Get template from URL if any
   const searchParams = new URLSearchParams(window.location.search);
@@ -214,6 +232,57 @@ export default function CampaignBuilder() {
       status: "draft",
     }
   });
+
+  // Contact form for new contact creation
+  const contactForm = useForm<ContactFormValues>({
+    resolver: zodResolver(contactFormSchema),
+    defaultValues: {
+      first_name: "",
+      last_name: "",
+      email: "",
+      phone: "",
+      job_title: "",
+      department: "",
+      company: "",
+    }
+  });
+
+  // Contact creation mutation
+  const createContactMutation = useMutation({
+    mutationFn: async (contactData: ContactFormValues & { linked_entity_type: string; linked_entity_id: number }) => {
+      return await apiRequest(`/api/contacts`, {
+        method: 'POST',
+        body: JSON.stringify(contactData),
+      });
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/contacts'] });
+      setShowContactDialog(false);
+      contactForm.reset();
+      toast({
+        title: "Success",
+        description: "Contact created successfully",
+      });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to create contact",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Handle contact creation
+  const handleCreateContact = (data: ContactFormValues) => {
+    if (!selectedRecord) return;
+    
+    createContactMutation.mutate({
+      ...data,
+      linked_entity_type: selectedRecord.type,
+      linked_entity_id: selectedRecord.id,
+    });
+  };
 
   // Get contacts filtered by target lists and group by records
   const groupedContacts = React.useMemo(() => {
