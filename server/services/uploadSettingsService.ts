@@ -298,6 +298,12 @@ export class UploadSettingsService {
         if (key === 'columnMappings') {
           setClause.push(`column_mappings = $${paramCount}`);
           values.push(JSON.stringify(value));
+        } else if (key === 'entityType') {
+          setClause.push(`entity_type = $${paramCount}`);
+          values.push(value);
+        } else if (key === 'environmentId' || key === 'createdBy') {
+          // Skip these fields as they shouldn't be updated
+          return;
         } else {
           setClause.push(`${key} = $${paramCount}`);
           values.push(value);
