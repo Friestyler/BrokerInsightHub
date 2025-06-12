@@ -107,7 +107,9 @@ export function MappingStep({ uploadType, uploadedFile, onNext, onPrevious, curr
         const csv = e.target?.result as string;
         const lines = csv.split('\n');
         if (lines.length > 0) {
-          const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+          const headers = lines[0].split(',')
+            .map(h => h.trim().replace(/"/g, ''))
+            .filter(h => h.length > 0); // Remove empty headers
           setCsvHeaders(headers);
         }
       };
@@ -331,7 +333,7 @@ export function MappingStep({ uploadType, uploadedFile, onNext, onPrevious, curr
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="__no_mapping__">No mapping</SelectItem>
-                      {csvHeaders.map(header => (
+                      {csvHeaders.filter(header => header && header.trim().length > 0).map(header => (
                         <SelectItem key={header} value={header}>{header}</SelectItem>
                       ))}
                       <SelectItem value="code">
