@@ -38,6 +38,8 @@ export default function CustomerDetailNew() {
   // Details dialog state
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [editedCustomer, setEditedCustomer] = useState<any>({});
+  const [selectedOpportunityIds, setSelectedOpportunityIds] = useState<number[]>([]);
+  const [selectedProductIds, setSelectedProductIds] = useState<number[]>([]);
 
   // Load existing logo on component mount
   useEffect(() => {
@@ -105,11 +107,47 @@ export default function CustomerDetailNew() {
     queryKey: ['/api/okr-tags'],
   });
 
+  // Fetch all opportunities for multi-select
+  const { data: allOpportunities } = useQuery({
+    queryKey: ['/api/opportunities'],
+  });
+
+  // Fetch all products for multi-select
+  const { data: allProducts } = useQuery({
+    queryKey: ['/api/products'],
+  });
+
   if (customersLoading) {
     return <div className="p-6">Loading...</div>;
   }
 
   const customer = customers?.find((c: any) => c.id === parseInt(id || '0'));
+  
+  // Initialize dialog data when it opens (after customer is declared)
+  useEffect(() => {
+    if (showDetailsDialog && customer) {
+      setEditedCustomer({
+        name: customer.name || '',
+        industry: customer.industry || '',
+        contactEmail: customer.contactEmail || '',
+        contactPhone: customer.contactPhone || '',
+        website: customer.website || '',
+        address: customer.address || '',
+        description: customer.description || ''
+      });
+      
+      // Initialize with existing relationships
+      const opportunityIds = Array.isArray(relatedOpportunities) 
+        ? relatedOpportunities.map((opp: any) => opp.id) 
+        : [];
+      const productIds = Array.isArray(relatedProducts) 
+        ? relatedProducts.map((product: any) => product.id) 
+        : [];
+        
+      setSelectedOpportunityIds(opportunityIds);
+      setSelectedProductIds(productIds);
+    }
+  }, [showDetailsDialog, customer, relatedOpportunities, relatedProducts]);
   
   if (!customer) {
     return <div className="p-6">Customer not found</div>;
@@ -663,10 +701,10 @@ export default function CustomerDetailNew() {
 
       {/* Customer Details Dialog */}
       <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl bg-[#ffffff] text-[#282A3F]" style={{ padding: '32px' }}>
           <DialogHeader>
-            <DialogTitle>Customer Details</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-[#282A3F]">Customer Details</DialogTitle>
+            <DialogDescription className="text-[#666666]">
               Complete information about {customer?.name}
             </DialogDescription>
           </DialogHeader>
@@ -743,12 +781,94 @@ export default function CustomerDetailNew() {
               
               <div>
                 <Label className="text-sm font-medium text-gray-700">Opportunities</Label>
-                <p className="text-sm text-gray-500 mt-1">{(relatedOpportunities as any[] || []).length} active (read-only)</p>
+                <Select 
+                  onValueChange={(value) => {
+                    if (value && !selectedOpportunityIds.includes(parseInt(value))) {
+                      setSelectedOpportunityIds([...selectedOpportunityIds, parseInt(value)]);
+                    }
+                  }}
+                >
+                  <SelectTrigger className="mt-1 min-h-[42px]">
+                    <div className="flex flex-wrap gap-1 py-1">
+                      {selectedOpportunityIds.length === 0 ? (
+                        <span className="text-gray-500">Select opportunities...</span>
+                      ) : (
+                        selectedOpportunityIds.map(oppId => {
+                          const opportunity = allOpportunities?.find((o: any) => o.id === oppId);
+                          return opportunity ? (
+                            <span key={oppId} className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                              {opportunity.title}
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedOpportunityIds(selectedOpportunityIds.filter(id => id !== oppId));
+                                }}
+                                className="ml-1 text-blue-600 hover:text-blue-800"
+                              >
+                                ×
+                              </button>
+                            </span>
+                          ) : null;
+                        })
+                      )}
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {allOpportunities?.filter((opp: any) => !selectedOpportunityIds.includes(opp.id))
+                      .map((opportunity: any) => (
+                        <SelectItem key={opportunity.id} value={opportunity.id.toString()}>
+                          {opportunity.title}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
               </div>
               
               <div>
                 <Label className="text-sm font-medium text-gray-700">Products</Label>
-                <p className="text-sm text-gray-500 mt-1">{(relatedProducts as any[] || []).length} associated (read-only)</p>
+                <Select 
+                  onValueChange={(value) => {
+                    if (value && !selectedProductIds.includes(parseInt(value))) {
+                      setSelectedProductIds([...selectedProductIds, parseInt(value)]);
+                    }
+                  }}
+                >
+                  <SelectTrigger className="mt-1 min-h-[42px]">
+                    <div className="flex flex-wrap gap-1 py-1">
+                      {selectedProductIds.length === 0 ? (
+                        <span className="text-gray-500">Select products...</span>
+                      ) : (
+                        selectedProductIds.map(productId => {
+                          const product = allProducts?.find((p: any) => p.id === productId);
+                          return product ? (
+                            <span key={productId} className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                              {product.name}
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedProductIds(selectedProductIds.filter(id => id !== productId));
+                                }}
+                                className="ml-1 text-green-600 hover:text-green-800"
+                              >
+                                ×
+                              </button>
+                            </span>
+                          ) : null;
+                        })
+                      )}
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {allProducts?.filter((prod: any) => !selectedProductIds.includes(prod.id))
+                      .map((product: any) => (
+                        <SelectItem key={product.id} value={product.id.toString()}>
+                          {product.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
               </div>
               
               <div>
@@ -758,21 +878,32 @@ export default function CustomerDetailNew() {
             </div>
           </div>
           
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDetailsDialog(false)}>
+          <DialogFooter style={{ marginTop: '24px' }}>
+            <Button 
+              variant="outline" 
+              onClick={() => setShowDetailsDialog(false)}
+              className="text-[#282A3F] border-[#282A3F]"
+              style={{ padding: '8px 16px', marginRight: '12px' }}
+            >
               Cancel
             </Button>
-            <Button onClick={() => {
-              // Save the edited customer data
-              console.log('Saving customer data:', editedCustomer);
-              // Here you would typically make an API call to update the customer
-              // For now, we'll just close the dialog
-              setShowDetailsDialog(false);
-              toast({
-                title: "Customer updated",
-                description: "Customer information has been saved successfully.",
-              });
-            }}>
+            <Button 
+              onClick={() => {
+                // Save the edited customer data
+                console.log('Saving customer data:', editedCustomer);
+                console.log('Selected opportunities:', selectedOpportunityIds);
+                console.log('Selected products:', selectedProductIds);
+                // Here you would typically make an API call to update the customer
+                // For now, we'll just close the dialog
+                setShowDetailsDialog(false);
+                toast({
+                  title: "Customer updated",
+                  description: "Customer information has been saved successfully.",
+                });
+              }}
+              className="bg-[#5567E5] text-[#ffffff] hover:bg-[#4556D4]"
+              style={{ padding: '8px 16px' }}
+            >
               Save
             </Button>
           </DialogFooter>
