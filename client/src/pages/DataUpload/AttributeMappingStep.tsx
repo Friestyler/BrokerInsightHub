@@ -325,7 +325,7 @@ export default function AttributeMappingStep({
                       <SelectValue placeholder="Select CSV column or custom code" />
                     </SelectTrigger>
                     <SelectContent>
-                      {csvHeaders.map(header => (
+                      {(extractedHeaders.length > 0 ? extractedHeaders : csvHeaders).map(header => (
                         <SelectItem key={header} value={header}>{header}</SelectItem>
                       ))}
                       <Separator />
@@ -345,14 +345,14 @@ export default function AttributeMappingStep({
                     <Textarea
                       placeholder="# Define custom logic using column references
 # Example: column_first_name + ' ' + column_last_name
-# Available columns: ${csvHeaders.join(', ')}"
+# Available columns: ${(extractedHeaders.length > 0 ? extractedHeaders : csvHeaders).join(', ')}"
                       value={mapping.customCode || ''}
                       onChange={(e) => updateMapping(index, 'customCode', e.target.value)}
                       className="font-mono text-sm"
                       rows={4}
                     />
                     <div className="text-xs text-muted-foreground">
-                      Use column names as variables: {csvHeaders.map(h => `column_${h.replace(/[^a-zA-Z0-9]/g, '_')}`).join(', ')}
+                      Use column names as variables: {(extractedHeaders.length > 0 ? extractedHeaders : csvHeaders).map(h => `column_${h.replace(/[^a-zA-Z0-9]/g, '_')}`).join(', ')}
                     </div>
                   </div>
                 )}

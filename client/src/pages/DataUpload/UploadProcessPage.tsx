@@ -272,7 +272,7 @@ export default function UploadProcessPage() {
           {((currentStep === 3 && isSpecialFormat) || (currentStep === 2 && !isSpecialFormat)) && (
             <AttributeMappingStep 
               uploadedFile={uploadedFile}
-              csvHeaders={csvHeaders}
+              csvHeaders={[]} // Will be extracted from file in the component
               uploadType={uploadType || ''}
               stepName={currentStepData?.name || 'Attribute Mapping'}
               currentStep={currentStep}
