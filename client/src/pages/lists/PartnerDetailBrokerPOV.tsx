@@ -127,6 +127,12 @@ export default function PartnerDetailBrokerPOV() {
   const [selectedCustomers, setSelectedCustomers] = useState<number[]>([]);
   const [activeCustomerList, setActiveCustomerList] = useState<any>(null);
   const [showCustomerListsDropdown, setShowCustomerListsDropdown] = useState(false);
+  
+  // Enhanced toolbar state for customers
+  const [activeCustomerView, setActiveCustomerView] = useState<any>(null);
+  const [showCustomerViewsDropdown, setShowCustomerViewsDropdown] = useState(false);
+  const [showCustomerStatusDropdown, setShowCustomerStatusDropdown] = useState(false);
+  const [showIndustryDropdown, setShowIndustryDropdown] = useState(false);
 
   // Filter customers based on search and filters
   const filteredCustomers = partnerCustomers.filter((customer: any) => {
@@ -1307,110 +1313,398 @@ export default function PartnerDetailBrokerPOV() {
           )}
 
           {activeTab === "customers" && (
-            <div className="space-y-6">
-              {/* Lists and Views Controls */}
-              <div className="flex items-center justify-between">
-                <div className="flex items-center space-x-4">
-                  {/* Lists Dropdown */}
-                  <div className="relative">
-                    <button
-                      onClick={() => setShowCustomerListsDropdown(!showCustomerListsDropdown)}
-                      className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
-                    >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                        <path d="M3 12h18l-9-9-9 9z" />
-                      </svg>
-                      {activeCustomerList ? activeCustomerList.name : 'All Customers'}
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
-                        <path d="M6 9l6 6 6-6" />
-                      </svg>
-                    </button>
-                    
-                    {showCustomerListsDropdown && (
-                      <div className="absolute z-10 mt-1 w-56 bg-white border border-gray-300 rounded-md shadow-lg">
-                        <div className="py-1">
-                          <button
-                            onClick={() => {
-                              setActiveCustomerList(null);
-                              setShowCustomerListsDropdown(false);
-                            }}
-                            className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+            <div className="space-y-4">
+              {/* Enhanced unified toolbar - same as PartnerDetail.tsx */}
+              <div className="bg-white p-4 rounded-lg shadow-sm">
+                <div className="flex flex-col gap-4">
+                  {/* Top row with saved lists and views */}
+                  <div className="flex flex-wrap items-center justify-between">
+                    {/* Left side - Saved Lists with actions */}
+                    <div className="flex items-center gap-3">
+                      {/* Lists heading */}
+                      <div className="flex flex-col mr-2">
+                        <span className="text-base font-semibold text-gray-800 mb-2">Lists</span>
+                      </div>
+                      {/* Saved Lists dropdown - functional implementation */}
+                      <div className="relative">
+                        <button 
+                          className="flex items-center space-x-2 px-4 py-2.5 border rounded-md text-sm font-medium shadow-sm bg-white hover:bg-gray-50"
+                          onClick={() => setShowCustomerListsDropdown(!showCustomerListsDropdown)}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 14 14" fill="none" xmlns="http://www.w3.org/2000/svg" className="text-indigo-600">
+                            <path d="M5.25 1.5V4.25H12.6875V2C12.6875 1.725 12.4906 1.5 12.25 1.5H5.25ZM3.9375 1.5H1.75C1.50937 1.5 1.3125 1.725 1.3125 2V4.25H3.9375V1.5ZM1.3125 5.75V8.25H3.9375V5.75H1.3125ZM1.3125 9.75V12C1.3125 12.275 1.50937 12.5 1.75 12.5H3.9375V9.75H1.3125ZM5.25 12.5H12.25C12.4906 12.5 12.6875 12.275 12.6875 12V9.75H5.25V12.5ZM12.6875 8.25V5.75H5.25V8.25H12.6875ZM0 2C0 0.896875 0.784766 0 1.75 0H12.25C13.2152 0 14 0.896875 14 2V12C14 13.1031 13.2152 14 12.25 14H1.75C0.784766 14 0 13.1031 0 12V2Z" fill="#3E4DC4"/>
+                          </svg>
+                          <span className="font-medium text-[#282A3F]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
+                            {activeCustomerList ? activeCustomerList.name : 'All customers'}
+                          </span>
+                          <svg 
+                            xmlns="http://www.w3.org/2000/svg" 
+                            width="14" 
+                            height="14" 
+                            viewBox="0 0 24 24" 
+                            fill="none" 
+                            stroke="currentColor" 
+                            strokeWidth="2" 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round" 
+                            className={`transition-transform ${showCustomerListsDropdown ? 'rotate-180' : ''}`}
                           >
-                            All Customers ({partnerCustomers.length})
+                            <polyline points="6 9 12 15 18 9" />
+                          </svg>
+                        </button>
+                        
+                        {/* Dropdown menu */}
+                        {showCustomerListsDropdown && (
+                          <div className="absolute top-full left-0 mt-1 w-80 bg-white border border-gray-200 rounded-md shadow-lg z-50">
+                            <div className="p-2">
+                              {/* Default "All customers" option */}
+                              <button
+                                className={`w-full text-left px-3 py-2 text-sm rounded hover:bg-[#F5F6FA] ${
+                                  !activeCustomerList ? 'bg-[#E1E4FB] text-[#3E4DC4]' : 'text-gray-700'
+                                }`}
+                                onClick={() => {
+                                  setActiveCustomerList(null);
+                                  setShowCustomerListsDropdown(false);
+                                }}
+                              >
+                                <div className="flex items-center space-x-2">
+                                  <span>All customers ({partnerCustomers.length})</span>
+                                </div>
+                              </button>
+                              
+                              {/* Partner-relevant saved lists */}
+                              {customerSavedLists.length > 0 && (
+                                <div className="border-t border-gray-100 my-2 pt-2">
+                                  {customerSavedLists.map((list: any) => (
+                                    <div
+                                      key={list.id}
+                                      className={`flex items-center justify-between px-3 py-2 text-sm rounded hover:bg-[#F5F6FA] ${
+                                        activeCustomerList?.id === list.id ? 'bg-[#E1E4FB] text-[#3E4DC4]' : 'text-gray-700'
+                                      }`}
+                                    >
+                                      <button
+                                        className="flex-1 text-left"
+                                        onClick={() => {
+                                          setActiveCustomerList(list);
+                                          setShowCustomerListsDropdown(false);
+                                        }}
+                                      >
+                                        <div className="flex flex-col space-y-1">
+                                          <span>{list.name}</span>
+                                          {/* Show share icon if list is shared */}
+                                          {list.is_shared && (
+                                            <div className="flex items-center space-x-1">
+                                              <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-500">
+                                                <circle cx="18" cy="5" r="3"></circle>
+                                                <circle cx="6" cy="12" r="3"></circle>
+                                                <circle cx="18" cy="19" r="3"></circle>
+                                                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                                                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                                              </svg>
+                                              <span className="text-xs text-gray-500">Shared list</span>
+                                            </div>
+                                          )}
+                                        </div>
+                                      </button>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    
+                    {/* Right-side action buttons */}
+                    <div className="flex items-center gap-2">
+                      {/* Show Share button only for active lists */}
+                      {activeCustomerList && (
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="text-indigo-600"
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                            <circle cx="18" cy="5" r="3"></circle>
+                            <circle cx="6" cy="12" r="3"></circle>
+                            <circle cx="18" cy="19" r="3"></circle>
+                            <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line>
+                            <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line>
+                          </svg>
+                          Share
+                        </Button>
+                      )}
+
+                      <Button variant="outline" size="sm" className="hidden md:flex items-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                          <polyline points="7 10 12 15 17 10"></polyline>
+                          <line x1="12" y1="15" x2="12" y2="3"></line>
+                        </svg>
+                        Export
+                      </Button>
+                      
+                      <Button 
+                        size="sm" 
+                        className="flex items-center bg-indigo-600 hover:bg-indigo-700"
+                        onClick={() => {/* Handle new customer creation */}}
+                      >
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                          <line x1="12" y1="5" x2="12" y2="19"></line>
+                          <line x1="5" y1="12" x2="19" y2="12"></line>
+                        </svg>
+                        New
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  {/* Bottom row with search, views, and filters */}
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex flex-wrap items-center gap-3 flex-grow">
+                      {/* Search field */}
+                      <div className="relative w-60">
+                        <input
+                          type="text"
+                          placeholder="Search customers..."
+                          value={customerSearchText}
+                          onChange={(e) => setCustomerSearchText(e.target.value)}
+                          className="w-full pl-3 pr-10 py-2 border border-gray-300 rounded-md text-sm"
+                        />
+                        <button className="absolute right-3 top-1/2 transform -translate-y-1/2">
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                            <circle cx="11" cy="11" r="8"></circle>
+                            <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                          </svg>
+                        </button>
+                      </div>
+                      
+                      {/* Saved Views Dropdown */}
+                      <div className="relative">
+                        <button 
+                          className="flex items-center space-x-2 px-3 py-2 border rounded-md text-sm font-medium bg-white hover:bg-gray-50"
+                          onClick={() => setShowCustomerViewsDropdown(!showCustomerViewsDropdown)}
+                        >
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path>
+                          </svg>
+                          <span className="text-gray-700">{activeCustomerView ? activeCustomerView.name : "Select a view"}</span>
+                          <svg 
+                            xmlns="http://www.w3.org/2000/svg" 
+                            width="14" 
+                            height="14" 
+                            viewBox="0 0 24 24" 
+                            fill="none" 
+                            stroke="currentColor" 
+                            strokeWidth="2" 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round" 
+                            className={`transition-transform ${showCustomerViewsDropdown ? 'rotate-180' : ''}`}
+                          >
+                            <polyline points="6 9 12 15 18 9" />
+                          </svg>
+                        </button>
+                        
+                        {/* Saved Views dropdown menu */}
+                        {showCustomerViewsDropdown && (
+                          <div className="absolute z-50 mt-1 w-64 rounded-md border border-slate-200 bg-white shadow-md">
+                            <div className="p-2 border-b">
+                              {customerSavedViews.map((view: any) => (
+                                <div 
+                                  key={view.id}
+                                  className={`flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 ${activeCustomerView?.id === view.id ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700'}`}
+                                  onClick={() => {
+                                    setActiveCustomerView(view);
+                                    setCustomerSearchText(view.filters?.searchText || '');
+                                    setSelectedCustomerStatus(view.filters?.status || '');
+                                    setSelectedIndustry(view.filters?.industry || '');
+                                    setShowCustomerViewsDropdown(false);
+                                  }}
+                                >
+                                  <div className="flex items-center">
+                                    {view.name}
+                                  </div>
+                                  {activeCustomerView?.id === view.id && (
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                                      <polyline points="20 6 9 17 4 12"></polyline>
+                                    </svg>
+                                  )}
+                                </div>
+                              ))}
+                            </div>
+                            {activeCustomerView && (
+                              <div className="p-2 border-t">
+                                <button 
+                                  className="flex w-full items-center p-2 text-sm rounded-md text-indigo-600 hover:bg-indigo-50"
+                                  onClick={() => {
+                                    setShowCustomerViewsDropdown(false);
+                                    setActiveCustomerView(null);
+                                    setCustomerSearchText('');
+                                    setSelectedCustomerStatus('');
+                                    setSelectedIndustry('');
+                                  }}
+                                >
+                                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                                    <path d="M18 6L6 18"></path>
+                                    <path d="M6 6l12 12"></path>
+                                  </svg>
+                                  Clear view
+                                </button>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+                      
+                      {/* Filter buttons next to the views dropdown */}
+                      <div className="flex items-center gap-2 ml-3">
+                        {/* Status Filter Dropdown */}
+                        <div className="relative">
+                          <button 
+                            className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${
+                              selectedCustomerStatus 
+                                ? 'border-indigo-300 bg-indigo-50 text-indigo-700' 
+                                : 'border-gray-300 text-gray-700 hover:border-gray-400'
+                            }`}
+                            onClick={() => setShowCustomerStatusDropdown(!showCustomerStatusDropdown)}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                            </svg>
+                            <span>{selectedCustomerStatus ? `Status: ${selectedCustomerStatus}` : 'Status'}</span>
+                            {selectedCustomerStatus && (
+                              <svg 
+                                xmlns="http://www.w3.org/2000/svg" 
+                                width="14" 
+                                height="14" 
+                                viewBox="0 0 24 24" 
+                                fill="none" 
+                                stroke="currentColor" 
+                                strokeWidth="2" 
+                                strokeLinecap="round" 
+                                strokeLinejoin="round" 
+                                className="ml-2 hover:bg-indigo-100 rounded-full p-0.5 cursor-pointer"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedCustomerStatus("");
+                                }}
+                              >
+                                <path d="M18 6L6 18"></path>
+                                <path d="M6 6l12 12"></path>
+                              </svg>
+                            )}
                           </button>
-                          {customerSavedLists.map((list: any) => (
-                            <button
-                              key={list.id}
-                              onClick={() => {
-                                setActiveCustomerList(list);
-                                setShowCustomerListsDropdown(false);
-                              }}
-                              className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
-                            >
-                              {list.name} ({list.item_count || 0})
-                            </button>
-                          ))}
+                          
+                          {showCustomerStatusDropdown && (
+                            <div className="absolute z-50 mt-1 w-48 rounded-md border border-gray-200 bg-white shadow-lg">
+                              <div className="p-1">
+                                {selectedCustomerStatus && (
+                                  <button
+                                    className="w-full text-left px-3 py-2 text-sm text-gray-500 hover:bg-gray-50 rounded-md"
+                                    onClick={() => {
+                                      setSelectedCustomerStatus("");
+                                      setShowCustomerStatusDropdown(false);
+                                    }}
+                                  >
+                                    Clear filter
+                                  </button>
+                                )}
+                                {['Active', 'Inactive', 'Prospect'].map((status) => (
+                                  <button
+                                    key={status}
+                                    className={`w-full text-left px-3 py-2 text-sm rounded-md ${
+                                      selectedCustomerStatus === status 
+                                        ? 'bg-indigo-50 text-indigo-700' 
+                                        : 'text-gray-700 hover:bg-gray-50'
+                                    }`}
+                                    onClick={() => {
+                                      setSelectedCustomerStatus(status);
+                                      setShowCustomerStatusDropdown(false);
+                                    }}
+                                  >
+                                    {status}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                        
+                        {/* Industry Filter Dropdown */}
+                        <div className="relative">
+                          <button 
+                            className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${
+                              selectedIndustry 
+                                ? 'border-indigo-300 bg-indigo-50 text-indigo-700' 
+                                : 'border-gray-300 text-gray-700 hover:border-gray-400'
+                            }`}
+                            onClick={() => setShowIndustryDropdown(!showIndustryDropdown)}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                            </svg>
+                            <span>{selectedIndustry ? `Industry: ${selectedIndustry}` : 'Industry'}</span>
+                            {selectedIndustry && (
+                              <svg 
+                                xmlns="http://www.w3.org/2000/svg" 
+                                width="14" 
+                                height="14" 
+                                viewBox="0 0 24 24" 
+                                fill="none" 
+                                stroke="currentColor" 
+                                strokeWidth="2" 
+                                strokeLinecap="round" 
+                                strokeLinejoin="round" 
+                                className="ml-2 hover:bg-indigo-100 rounded-full p-0.5 cursor-pointer"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedIndustry("");
+                                }}
+                              >
+                                <path d="M18 6L6 18"></path>
+                                <path d="M6 6l12 12"></path>
+                              </svg>
+                            )}
+                          </button>
+                          
+                          {showIndustryDropdown && (
+                            <div className="absolute z-50 mt-1 w-48 rounded-md border border-gray-200 bg-white shadow-lg">
+                              <div className="p-1">
+                                {selectedIndustry && (
+                                  <button
+                                    className="w-full text-left px-3 py-2 text-sm text-gray-500 hover:bg-gray-50 rounded-md"
+                                    onClick={() => {
+                                      setSelectedIndustry("");
+                                      setShowIndustryDropdown(false);
+                                    }}
+                                  >
+                                    Clear filter
+                                  </button>
+                                )}
+                                {['Insurance', 'Finance', 'Real Estate', 'Healthcare'].map((industry) => (
+                                  <button
+                                    key={industry}
+                                    className={`w-full text-left px-3 py-2 text-sm rounded-md ${
+                                      selectedIndustry === industry 
+                                        ? 'bg-indigo-50 text-indigo-700' 
+                                        : 'text-gray-700 hover:bg-gray-50'
+                                    }`}
+                                    onClick={() => {
+                                      setSelectedIndustry(industry);
+                                      setShowIndustryDropdown(false);
+                                    }}
+                                  >
+                                    {industry}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
                         </div>
                       </div>
-                    )}
+                    </div>
                   </div>
-
-                  {/* Views Dropdown */}
-                  <select
-                    className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white"
-                    defaultValue=""
-                  >
-                    <option value="">Select View</option>
-                    {customerSavedViews.map((view: any) => (
-                      <option key={view.id} value={view.id}>
-                        {view.name}
-                      </option>
-                    ))}
-                  </select>
                 </div>
-
-                <div className="flex items-center space-x-2">
-                  <Button variant="outline" className="text-sm">
-                    Export
-                  </Button>
-                  <Button variant="outline" className="text-sm">
-                    Import
-                  </Button>
-                </div>
-              </div>
-
-              {/* Search and Filters */}
-              <div className="flex items-center space-x-4">
-                <div className="flex-1">
-                  <Input
-                    type="text"
-                    placeholder="Search customers..."
-                    value={customerSearchText}
-                    onChange={(e) => setCustomerSearchText(e.target.value)}
-                    className="w-full"
-                  />
-                </div>
-                <select
-                  value={selectedCustomerStatus}
-                  onChange={(e) => setSelectedCustomerStatus(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-md bg-white text-sm"
-                >
-                  <option value="">All Status</option>
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
-                  <option value="Prospect">Prospect</option>
-                </select>
-                <select
-                  value={selectedIndustry}
-                  onChange={(e) => setSelectedIndustry(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-md bg-white text-sm"
-                >
-                  <option value="">All Industries</option>
-                  <option value="Insurance">Insurance</option>
-                  <option value="Finance">Finance</option>
-                  <option value="Real Estate">Real Estate</option>
-                  <option value="Healthcare">Healthcare</option>
-                </select>
               </div>
 
               {/* Bulk Actions Bar */}
