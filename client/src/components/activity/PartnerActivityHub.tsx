@@ -44,7 +44,7 @@ interface NextBestAction {
 }
 
 const activityTypes = [
-  { value: 'timeline', label: 'All', icon: Calendar, color: 'text-gray-600' },
+  { value: 'timeline', label: 'Timeline', icon: Calendar, color: 'text-gray-600' },
   { value: 'task', label: 'Tasks', icon: CheckSquare, color: 'text-green-600' },
   { value: 'comment', label: 'Comments', icon: MessageSquare, color: 'text-blue-600' },
   { value: 'attachment', label: 'Documents', icon: Paperclip, color: 'text-purple-600' },
@@ -121,9 +121,7 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/partners/${partnerId}/activities`] });
-      if (selectedActivityType === 'timeline') {
-        queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/partners/${partnerId}/timeline`] });
-      }
+      queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/partners/${partnerId}/timeline`] });
       resetForm();
       toast({ title: `${selectedActivityType.charAt(0).toUpperCase() + selectedActivityType.slice(1)} created successfully` });
     }
@@ -570,111 +568,90 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
           {/* Timeline View */}
           {selectedActivityType === 'timeline' && (
             <div className="space-y-4 max-h-64 overflow-y-auto">
-              {[...tasks, ...comments, ...attachments]
-                .sort((a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime())
-                .map((item: any, index) => {
-                  const isTask = item.title !== undefined;
-                  const isComment = item.content !== undefined && !item.filename;
-                  const isAttachment = item.filename !== undefined;
+              {timelineData && timelineData.length > 0 ? (
+                timelineData
+                  .sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
+                  .map((item: any, index: number) => {
+                    const isTask = item.activity_type === 'task';
+                    const isComment = item.activity_type === 'comment';
+                    const isAttachment = item.activity_type === 'attachment';
 
-                  return (
-                    <div key={`${isTask ? 'task' : isComment ? (item.is_okr_comment ? 'okr-comment' : 'comment') : 'attachment'}-${item.id}-${item.created_at}`} className="flex items-start gap-3 relative">
-                      {/* Timeline line */}
-                      {index < [...tasks, ...comments, ...attachments].length - 1 && (
-                        <div className="absolute left-4 top-10 w-px h-8 bg-gray-200"></div>
-                      )}
-                      
-                      {/* Avatar/Icon */}
-                      <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center relative z-10">
-                        {isTask && (
-                          <button
-                            onClick={() => toggleTaskMutation.mutate({ taskId: item.id, completed: !item.completed })}
-                            className={`w-6 h-6 border-2 rounded-full flex items-center justify-center transition-colors ${
-                              item.completed 
-                                ? 'bg-green-500 border-green-500 text-white' 
-                                : 'bg-white border-green-300 hover:border-green-400'
-                            }`}
-                          >
-                            {item.completed && <Check className="h-3 w-3" />}
-                          </button>
-                        )}
-                        {isComment && (
-                          <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                            item.is_okr_comment ? 'bg-purple-100' : 'bg-blue-100'
-                          }`}>
-                            {item.is_okr_comment ? (
-                              <Target className="h-4 w-4 text-purple-600" />
-                            ) : (
-                              <span className="text-xs font-medium text-blue-600">
-                                {item.author_name ? item.author_name.charAt(0).toUpperCase() : 'U'}
-                              </span>
-                            )}
-                          </div>
-                        )}
-                        {isAttachment && (
-                          <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                            <Paperclip className="h-4 w-4 text-purple-600" />
-                          </div>
-                        )}
-                      </div>
-                      
-                      <div className="flex-1 min-w-0">
-                        {isComment ? (
-                          <div className={`rounded-lg px-3 py-2 ${
-                            item.is_okr_comment ? 'bg-purple-50 border border-purple-200' : 'bg-gray-50'
-                          }`}>
-                            <p className="text-sm text-gray-900">{item.content}</p>
-                            {item.is_okr_comment && item.okr_metric_name && (
-                              <div className="flex items-center gap-1 mt-1">
-                                <Target className="h-3 w-3 text-purple-600" />
-                                <span className="text-xs text-purple-700 font-medium">{item.okr_metric_name}</span>
-                              </div>
-                            )}
-                          </div>
-                        ) : (
-                          <div className="bg-white">
-                            <span className={`text-sm ${item.completed ? 'line-through text-gray-500' : 'text-gray-900'}`}>
-                              {isTask ? item.title : item.filename}
-                            </span>
-                            {isTask && item.priority && (
-                              <Badge className={`ml-2 ${priorityColors[item.priority as keyof typeof priorityColors]}`}>
-                                {item.priority}
-                              </Badge>
-                            )}
-                          </div>
+                    return (
+                      <div key={`timeline-${item.id}-${item.created_at}`} className="flex items-start gap-3 relative">
+                        {/* Timeline line */}
+                        {index < timelineData.length - 1 && (
+                          <div className="absolute left-4 top-10 w-px h-8 bg-gray-200"></div>
                         )}
                         
-                        <div className="flex items-center gap-2 mt-1">
-                          <span className="text-xs text-gray-500">
-                            {new Date(item.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                          </span>
-                          {(item.assigned_to_name || item.assignedTo) && (
-                            <div className="flex items-center gap-1">
-                              <span className="text-xs text-gray-400">•</span>
-                              <User className="h-3 w-3 text-gray-400" />
-                              <span className="text-xs text-gray-500">
-                                {item.assigned_to_name || item.assignedTo}
-                              </span>
-                            </div>
+                        {/* Avatar/Icon */}
+                        <div className="flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center relative z-10 bg-white border-2 border-gray-200">
+                          {isTask && (
+                            <CheckSquare className="h-4 w-4 text-green-600" />
                           )}
-                          {item.visible_to_partner && (
-                            <div className="flex items-center gap-1">
-                              <span className="text-xs text-gray-400">•</span>
-                              <Eye className="h-3 w-3 text-blue-500" />
-                              <span className="text-xs text-blue-600">visible</span>
-                            </div>
+                          {isComment && (
+                            <MessageSquare className="h-4 w-4 text-blue-600" />
+                          )}
+                          {isAttachment && (
+                            <Paperclip className="h-4 w-4 text-purple-600" />
+                          )}
+                          {!isTask && !isComment && !isAttachment && (
+                            <Clock className="h-4 w-4 text-gray-600" />
                           )}
                         </div>
+                        
+                        <div className="flex-1 min-w-0">
+                          <div className="bg-white rounded-lg p-3 border border-gray-200">
+                            <div className="flex items-center justify-between mb-1">
+                              <span className="text-sm font-medium text-gray-900 capitalize">
+                                {item.activity_type || 'Activity'}
+                              </span>
+                              <span className="text-xs text-gray-500">
+                                {new Date(item.created_at).toLocaleString([], { 
+                                  month: 'short', 
+                                  day: 'numeric', 
+                                  hour: '2-digit', 
+                                  minute: '2-digit' 
+                                })}
+                              </span>
+                            </div>
+                            
+                            <p className="text-sm text-gray-700 mb-2">
+                              {item.title || item.content || item.description || 'No description available'}
+                            </p>
+                            
+                            {item.details && (
+                              <p className="text-xs text-gray-500 mb-2">{item.details}</p>
+                            )}
+                            
+                            <div className="flex items-center gap-2 text-xs text-gray-500">
+                              {item.author_name && (
+                                <div className="flex items-center gap-1">
+                                  <User className="h-3 w-3" />
+                                  <span>{item.author_name}</span>
+                                </div>
+                              )}
+                              {item.priority && (
+                                <Badge className={`${priorityColors[item.priority as keyof typeof priorityColors]} text-xs`}>
+                                  {item.priority}
+                                </Badge>
+                              )}
+                              {item.visible_to_partner && (
+                                <div className="flex items-center gap-1">
+                                  <Eye className="h-3 w-3 text-blue-500" />
+                                  <span className="text-blue-600">visible</span>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  );
-                })}
-              
-              {totalActivities === 0 && (
+                    );
+                  })
+              ) : (
                 <div className="text-center py-8 text-gray-500">
                   <Calendar className="h-8 w-8 mx-auto mb-2 text-gray-400" />
-                  <p className="text-sm">No activity yet</p>
-                  <p className="text-xs text-gray-400 mt-1">Start by adding a task or comment</p>
+                  <p className="text-sm">No timeline activity yet</p>
+                  <p className="text-xs text-gray-400 mt-1">Start by adding a task or comment to see the timeline</p>
                 </div>
               )}
             </div>
