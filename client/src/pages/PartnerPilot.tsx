@@ -8,7 +8,6 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DataUploadOptions from '@/pages/DataUpload/DataUploadOptions';
 import DeGoudseUploadWizard from '@/pages/DataUpload/DeGoudseUploadWizard';
-import UploadSettingsPage from '@/pages/DataUpload/UploadSettingsPage';
 import { 
   MessageSquare, 
   Search, 
@@ -425,31 +424,7 @@ export default function PartnerPilot() {
               </CardFooter>
             </Card>
 
-            <Card 
-              className="hover:shadow-md transition-shadow cursor-pointer border-2 border-blue-100"
-              onClick={() => {
-                setActiveSection('data-upload-2-settings');
-              }}
-            >
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                    <Settings className="h-5 w-5 text-blue-600" />
-                  </div>
-                </div>
-                <CardTitle className="text-lg mt-2">Upload Settings</CardTitle>
-                <CardDescription>
-                  Configure upload settings, transformation scripts, and templates for all environments
-                </CardDescription>
-              </CardHeader>
-              <CardFooter>
-                <Button 
-                  className="w-full bg-blue-600 hover:bg-blue-700"
-                >
-                  Configure Settings
-                </Button>
-              </CardFooter>
-            </Card>
+
           </div>
         </div>
       )}
@@ -469,20 +444,7 @@ export default function PartnerPilot() {
         </div>
       )}
 
-      {activeSection === 'data-upload-2-settings' && (
-        <div className="w-full">
-          <div className="mb-6">
-            <Button 
-              variant="outline" 
-              onClick={() => setActiveSection('data-upload-2')}
-              className="mb-4"
-            >
-              ← Back to Data Upload 2
-            </Button>
-          </div>
-          <UploadSettingsPage />
-        </div>
-      )}
+
     </div>
   );
 }

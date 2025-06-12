@@ -29,6 +29,7 @@ import UserManagement from "@/pages/Settings/UserManagement";
 import ContactsPage from "@/pages/Settings/ContactsPage";
 import DeveloperPage from "@/pages/Settings/DeveloperPage";
 import DatabaseAdmin from "@/pages/Settings/DatabaseAdmin";
+import UploadSettingsPage from "@/pages/DataUpload/UploadSettingsPage";
 import NotificationsPage from "@/pages/smart-updates/NotificationsPage";
 import SmartUpdatesPage from "@/pages/smart-updates/SmartUpdatesPage";
 
@@ -127,6 +128,7 @@ function Router() {
         <Route path="/settings/contacts" component={ContactsPage} />
         <Route path="/settings/developer" component={DeveloperPage} />
         <Route path="/settings/database" component={DatabaseAdmin} />
+        <Route path="/settings/upload" component={UploadSettingsPage} />
         
         {/* Public shared list route - no layout */}
         <Route path="/share/list/:shareToken">
