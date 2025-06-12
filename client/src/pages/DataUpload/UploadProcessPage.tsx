@@ -32,16 +32,15 @@ export default function UploadProcessPage() {
   const entityType = isSpecialFormat ? undefined : uploadType;
   const formatType = isSpecialFormat ? uploadType : undefined;
   
-  const [currentStep, setCurrentStep] = useState(isSpecialFormat ? 1 : 2); // Start at Transformation for special formats, Upload for entities
+  const [currentStep, setCurrentStep] = useState(1); // Always start at step 1
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [dragOver, setDragOver] = useState(false);
 
-  const startStep = isSpecialFormat ? 1 : 2;
-  const totalSteps = 5;
-  
-  const currentStepData = steps[currentStep - 1];
   const visibleSteps = isSpecialFormat ? steps : steps.slice(1); // Skip transformation for regular entities
-  const progressPercentage = ((currentStep - startStep) / (totalSteps - startStep)) * 100;
+  const totalSteps = visibleSteps.length;
+  
+  const currentStepData = isSpecialFormat ? steps[currentStep - 1] : steps[currentStep]; // Adjust for hidden transformation step
+  const progressPercentage = ((currentStep - 1) / (totalSteps - 1)) * 100;
 
   const handleFileUpload = (file: File) => {
     if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
@@ -71,13 +70,13 @@ export default function UploadProcessPage() {
   };
 
   const goToNextStep = () => {
-    if (currentStep < 5) {
+    if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
     }
   };
 
   const goToPreviousStep = () => {
-    if (currentStep > startStep) {
+    if (currentStep > 1) {
       setCurrentStep(currentStep - 1);
     }
   };
@@ -131,7 +130,7 @@ export default function UploadProcessPage() {
           
           <div className="flex justify-between">
             {visibleSteps.map((step, index) => {
-              const stepNumber = isSpecialFormat ? step.id : step.id - 1;
+              const stepNumber = isSpecialFormat ? step.id : index + 1;
               const isActive = stepNumber === currentStep;
               const isCompleted = stepNumber < currentStep;
               
@@ -248,7 +247,7 @@ export default function UploadProcessPage() {
 
               {uploadedFile && (
                 <div className="flex justify-between">
-                  <Button variant="outline" onClick={goToPreviousStep} disabled={currentStep <= (isSpecialFormat ? 1 : 2)}>
+                  <Button variant="outline" onClick={goToPreviousStep} disabled={currentStep <= 1}>
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     Previous
                   </Button>
@@ -262,7 +261,7 @@ export default function UploadProcessPage() {
           )}
 
           {/* Placeholder for other steps */}
-          {currentStep > 2 && (
+          {((currentStep === 3 && isSpecialFormat) || (currentStep === 2 && !isSpecialFormat)) && (
             <div className="text-center py-12">
               <h3 className="text-lg font-medium mb-2">Step {currentStep}: {currentStepData?.name}</h3>
               <p className="text-gray-600 mb-6">This step will be implemented in the next phase.</p>
@@ -272,7 +271,28 @@ export default function UploadProcessPage() {
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Previous
                 </Button>
-                {currentStep < (isSpecialFormat ? 5 : 5) && (
+                {currentStep < totalSteps && (
+                  <Button onClick={goToNextStep}>
+                    Continue
+                    <ArrowRight className="h-4 w-4 ml-2" />
+                  </Button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Additional steps */}
+          {currentStep > (isSpecialFormat ? 3 : 2) && (
+            <div className="text-center py-12">
+              <h3 className="text-lg font-medium mb-2">Step {currentStep}: {currentStepData?.name}</h3>
+              <p className="text-gray-600 mb-6">This step will be implemented in the next phase.</p>
+              
+              <div className="flex justify-between">
+                <Button variant="outline" onClick={goToPreviousStep}>
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Previous
+                </Button>
+                {currentStep < totalSteps && (
                   <Button onClick={goToNextStep}>
                     Continue
                     <ArrowRight className="h-4 w-4 ml-2" />
