@@ -141,7 +141,10 @@ export default function CampaignBuilder() {
   });
 
   // Filter contacts based on search query
-  const filteredContacts = contacts ? contacts.filter((contact: any) => {
+  const contactsArray = Array.isArray(contacts) ? contacts : [];
+  const filteredContacts = contactsArray.filter((contact: any) => {
+    if (!searchQuery) return true;
+    
     const searchLower = searchQuery.toLowerCase();
     const fullName = `${contact.firstName || ''} ${contact.lastName || ''}`.toLowerCase();
     const email = (contact.email || '').toLowerCase();
@@ -150,7 +153,7 @@ export default function CampaignBuilder() {
     return fullName.includes(searchLower) || 
            email.includes(searchLower) || 
            company.includes(searchLower);
-  }) : [];
+  });
 
   // Form definition
   const form = useForm<CampaignFormValues>({
@@ -517,7 +520,7 @@ export default function CampaignBuilder() {
                   />
                 </div>
                 <div className="p-2">
-                  {contacts && contacts.length > 0 ? (
+                  {contacts && Array.isArray(contacts) && contacts.length > 0 ? (
                     filteredContacts.map((contact: any) => (
                       <div key={contact.id} className="flex items-center space-x-2 py-2 border-b last:border-0">
                         <input
