@@ -20,6 +20,12 @@ import {
   SelectTrigger, 
   SelectValue 
 } from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { 
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 import { 
   Form, 
   FormControl, 
@@ -59,7 +65,7 @@ import { useEnvironment } from "@/contexts/EnvironmentContext";
 // Step form schemas
 const selectListSchema = z.object({
   name: z.string().min(2, "Campaign name is required"),
-  listId: z.string().optional(),
+  listIds: z.array(z.string()).min(1, "At least one target list is required"),
   description: z.string().optional(),
   type: z.string().min(1, "Campaign type is required"),
   category: z.string().optional(),
@@ -193,7 +199,7 @@ export default function CampaignBuilder() {
       name: "",
       description: "",
       type: "cross_sell",
-      listId: "",
+      listIds: [],
       emailBody: "",
       emailLogo: "",
       recipientIds: [],
@@ -426,78 +432,83 @@ export default function CampaignBuilder() {
             </div>
             
             <div className="space-y-2">
-              <Label htmlFor="list-id">Target List (Optional)</Label>
-              <Select 
-                onValueChange={(value) => form.setValue("listId", value)}
-                value={form.getValues("listId")}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a target list" />
-                </SelectTrigger>
-                <SelectContent className="max-h-80">
-                  {Object.keys(groupedSavedLists).length === 0 ? (
-                    <SelectItem value="no-lists" disabled>
-                      <span className="text-gray-500">No saved lists available</span>
-                    </SelectItem>
-                  ) : (
-                    Object.entries(groupedSavedLists).flatMap(([entityType, lists], groupIndex) => {
-                      const items = [];
-                      
-                      // Add divider for visual separation (except for first group)
-                      if (groupIndex > 0) {
-                        items.push(
-                          <SelectItem 
-                            key={`divider-${entityType}`} 
-                            value={`divider-${entityType}`} 
-                            disabled 
-                            className="h-px p-0 my-1 bg-gray-100 cursor-default"
-                          >
-                            <span></span>
-                          </SelectItem>
-                        );
-                      }
-                      
-                      // Add category header
-                      items.push(
-                        <SelectItem 
-                          key={`category-${entityType}`} 
-                          value={`category-${entityType}`} 
-                          disabled
-                          className="py-1.5 px-3 text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50/80 cursor-default select-none"
-                        >
-                          {getEntityTypeLabel(entityType)}
-                        </SelectItem>
-                      );
-                      
-                      // Add actual list items
-                      (lists as any[]).forEach((list: any) => {
-                        items.push(
-                          <SelectItem 
-                            key={list.id} 
-                            value={list.id.toString()}
-                            className="pl-4 pr-3 py-2.5 hover:bg-blue-50 focus:bg-blue-50 data-[highlighted]:bg-blue-50"
-                          >
-                            <div className="flex flex-col">
-                              <div className="font-medium text-sm text-gray-900">
-                                {list.name}
-                              </div>
-                              {list.description && (
-                                <div className="text-xs text-gray-500 mt-0.5">
-                                  {list.description}
+              <Label htmlFor="list-ids">Target Lists</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    className="w-full justify-between text-left font-normal"
+                  >
+                    {form.getValues("listIds")?.length > 0 
+                      ? `${form.getValues("listIds").length} list${form.getValues("listIds").length > 1 ? 's' : ''} selected`
+                      : "Select target lists"
+                    }
+                    <ListChecks className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0" align="start">
+                  <div className="max-h-80 overflow-auto">
+                    {Object.keys(groupedSavedLists).length === 0 ? (
+                      <div className="p-4 text-center text-gray-500 text-sm">
+                        No saved lists available
+                      </div>
+                    ) : (
+                      Object.entries(groupedSavedLists).map(([entityType, lists], groupIndex) => (
+                        <div key={entityType}>
+                          {/* Add separator for visual grouping */}
+                          {groupIndex > 0 && (
+                            <div className="border-t border-gray-100 my-1" />
+                          )}
+                          
+                          {/* Category header */}
+                          <div className="py-1.5 px-3 text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50/80 sticky top-0">
+                            {getEntityTypeLabel(entityType)}
+                          </div>
+                          
+                          {/* List items with checkboxes */}
+                          {(lists as any[]).map((list: any) => {
+                            const currentValues = form.getValues("listIds") || [];
+                            const listId = list.id.toString();
+                            const isSelected = currentValues.includes(listId);
+                            
+                            return (
+                              <div 
+                                key={list.id}
+                                className="flex items-start space-x-2 px-3 py-2 hover:bg-gray-50 cursor-pointer"
+                                onClick={() => {
+                                  if (isSelected) {
+                                    form.setValue("listIds", currentValues.filter(id => id !== listId));
+                                  } else {
+                                    form.setValue("listIds", [...currentValues, listId]);
+                                  }
+                                }}
+                              >
+                                <Checkbox
+                                  checked={isSelected}
+                                  className="mt-0.5"
+                                />
+                                <div className="flex-1 min-w-0">
+                                  <div className="font-medium text-sm text-gray-900">
+                                    {list.name}
+                                  </div>
+                                  {list.description && (
+                                    <div className="text-xs text-gray-500 mt-0.5">
+                                      {list.description}
+                                    </div>
+                                  )}
                                 </div>
-                              )}
-                            </div>
-                          </SelectItem>
-                        );
-                      });
-                      
-                      return items;
-                    })
-                  )}
-                </SelectContent>
-              </Select>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </PopoverContent>
+              </Popover>
               <p className="text-xs text-gray-500">
-                This defines the audience segment for your campaign
+                Select one or more audience segments for your campaign
               </p>
             </div>
           </div>
