@@ -578,6 +578,16 @@ export default function PartnerDetailBrokerPOV() {
               >
                 Opportunities ({baseOpportunities?.length || 0})
               </button>
+              <button 
+                onClick={() => setActiveTab("campaigns")}
+                className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md ${
+                  activeTab === "campaigns" 
+                    ? "bg-[#E1E4FB] text-[#3E4DC4]" 
+                    : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+                }`}
+              >
+                Campaigns
+              </button>
             </nav>
           </div>
         </div>
@@ -1225,6 +1235,45 @@ export default function PartnerDetailBrokerPOV() {
                   </Table>
                 </div>
               )}
+            </div>
+          )}
+
+          {activeTab === "campaigns" && (
+            <div className="space-y-6">
+              <div className="text-center py-12">
+                <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                    <path d="M22 2 11 13" />
+                    <path d="M22 2 15 22 11 13 2 9 22 2z" />
+                  </svg>
+                </div>
+                <h3 className="text-lg font-medium text-gray-900 mb-2">Campaigns</h3>
+                <p className="text-gray-500 mb-6">Campaign management functionality will be available here soon.</p>
+                <div className="flex justify-center space-x-3">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => window.open('/campaigns', '_blank')}
+                    className="text-indigo-600"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                      <path d="M22 2 11 13" />
+                      <path d="M22 2 15 22 11 13 2 9 22 2z" />
+                    </svg>
+                    Go to Campaigns
+                  </Button>
+                  <Button 
+                    variant="outline"
+                    onClick={() => window.open('/campaigns/new', '_blank')}
+                    className="text-indigo-600"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                      <path d="M12 5v14" />
+                      <path d="M5 12h14" />
+                    </svg>
+                    Create Campaign
+                  </Button>
+                </div>
+              </div>
             </div>
           )}
         </div>
