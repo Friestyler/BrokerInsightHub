@@ -1,12 +1,13 @@
 import { useState } from 'react';
 import { useLocation } from 'wouter';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import DataUploadTabs from '@/components/DataUploadTabs';
+import DataUploadOptions from '@/pages/DataUpload/DataUploadOptions';
+import DeGoudseUploadWizard from '@/pages/DataUpload/DeGoudseUploadWizard';
 import { 
   MessageSquare, 
   Search, 
@@ -21,7 +22,8 @@ import {
   Send,
   CheckSquare,
   Users,
-  Timer
+  Timer,
+  FileSpreadsheet
 } from 'lucide-react';
 
 type ActivityItem = {
@@ -45,7 +47,7 @@ export default function PartnerPilot() {
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
-  const [activeSection, setActiveSection] = useState<'copilot' | 'reports' | 'data-upload'>('copilot');
+  const [activeSection, setActiveSection] = useState<'copilot' | 'reports' | 'data-upload' | 'data-upload-2' | 'data-upload-2-degoudse'>('copilot');
 
   // Sample activities data
   const activities: ActivityItem[] = [
@@ -171,6 +173,14 @@ export default function PartnerPilot() {
         >
           <Upload className="h-4 w-4 mr-2" />
           Data Upload
+        </Button>
+        <Button 
+          variant="ghost"
+          className={activeSection === 'data-upload-2' ? "bg-indigo-50 text-indigo-700 hover:bg-indigo-100" : ""}
+          onClick={() => setActiveSection('data-upload-2')}
+        >
+          <Upload className="h-4 w-4 mr-2" />
+          Data Upload 2
         </Button>
       </div>
 
@@ -376,7 +386,59 @@ export default function PartnerPilot() {
       )}
 
       {activeSection === 'data-upload' && (
-        <DataUploadTabs />
+        <DataUploadOptions />
+      )}
+
+      {activeSection === 'data-upload-2' && (
+        <div className="w-full">
+          <div className="mb-8">
+            <h1 className="text-2xl font-bold mb-2">Data Upload 2</h1>
+            <p className="text-gray-600">Upload your data using specialized wizards</p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Card 
+              className="hover:shadow-md transition-shadow cursor-pointer border-2 border-orange-100"
+              onClick={() => {
+                setActiveSection('data-upload-2-degoudse');
+              }}
+            >
+              <CardHeader>
+                <div className="flex justify-between items-start">
+                  <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center">
+                    <FileSpreadsheet className="h-5 w-5 text-orange-600" />
+                  </div>
+                </div>
+                <CardTitle className="text-lg mt-2">De Goudse Data Use Case Upload</CardTitle>
+                <CardDescription>
+                  Upload Excel files to create opportunities with intelligent entity mapping
+                </CardDescription>
+              </CardHeader>
+              <CardFooter>
+                <Button 
+                  className="w-full bg-orange-600 hover:bg-orange-700"
+                >
+                  Upload Excel File
+                </Button>
+              </CardFooter>
+            </Card>
+          </div>
+        </div>
+      )}
+
+      {activeSection === 'data-upload-2-degoudse' && (
+        <div className="w-full">
+          <div className="mb-6">
+            <Button 
+              variant="outline" 
+              onClick={() => setActiveSection('data-upload-2')}
+              className="mb-4"
+            >
+              ← Back to Data Upload 2
+            </Button>
+          </div>
+          <DeGoudseUploadWizard />
+        </div>
       )}
     </div>
   );
