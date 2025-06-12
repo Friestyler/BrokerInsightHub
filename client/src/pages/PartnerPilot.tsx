@@ -24,7 +24,15 @@ import {
   Users,
   Timer,
   FileSpreadsheet,
-  Settings
+  Settings,
+  Plus,
+  Target,
+  Building,
+  Package,
+  Truck,
+  Contact,
+  Cloud,
+  Database
 } from 'lucide-react';
 
 type ActivityItem = {
@@ -394,37 +402,255 @@ export default function PartnerPilot() {
         <div className="w-full">
           <div className="mb-8">
             <h1 className="text-2xl font-bold mb-2">Data Upload 2</h1>
-            <p className="text-gray-600">Upload your data using specialized wizards</p>
+            <p className="text-gray-600">Upload your data using intelligent templates and entity mapping</p>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Card 
-              className="hover:shadow-md transition-shadow cursor-pointer border-2 border-orange-100"
-              onClick={() => {
-                setActiveSection('data-upload-2-degoudse');
-              }}
-            >
-              <CardHeader>
-                <div className="flex justify-between items-start">
-                  <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center">
-                    <FileSpreadsheet className="h-5 w-5 text-orange-600" />
+          {/* Top Section: Saved Templates Carousel */}
+          <div className="mb-10">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold">Saved Templates</h2>
+              <Button variant="outline" size="sm">
+                Create New Template
+              </Button>
+            </div>
+            <div className="bg-gray-50 rounded-lg p-6">
+              <div className="flex space-x-4 overflow-x-auto pb-2">
+                {/* Template cards will be dynamically loaded */}
+                <Card className="min-w-[280px] border-2 border-blue-100 hover:border-blue-200 transition-all cursor-pointer">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center space-x-2">
+                      <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+                        <FileSpreadsheet className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-sm">Opportunities Import</CardTitle>
+                        <CardDescription className="text-xs">Created 2 days ago</CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <p className="text-xs text-gray-600 mb-2">Maps Excel columns to opportunity fields with validation</p>
+                    <Badge variant="secondary" className="text-xs">3 entities</Badge>
+                  </CardContent>
+                </Card>
+                
+                <Card className="min-w-[280px] border-2 border-green-100 hover:border-green-200 transition-all cursor-pointer">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center space-x-2">
+                      <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
+                        <Users className="h-4 w-4 text-green-600" />
+                      </div>
+                      <div>
+                        <CardTitle className="text-sm">Partner Onboarding</CardTitle>
+                        <CardDescription className="text-xs">Created 1 week ago</CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <p className="text-xs text-gray-600 mb-2">Complete partner data import with contact mapping</p>
+                    <Badge variant="secondary" className="text-xs">2 entities</Badge>
+                  </CardContent>
+                </Card>
+
+                <Card className="min-w-[280px] border-dashed border-2 border-gray-300 hover:border-gray-400 transition-all cursor-pointer flex items-center justify-center">
+                  <CardContent className="text-center">
+                    <div className="h-8 w-8 text-gray-400 mx-auto mb-2 flex items-center justify-center text-2xl">+</div>
+                    <p className="text-sm text-gray-600">Create New Template</p>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </div>
+
+          {/* Main Section: Entity Upload Options */}
+          <div className="mb-10">
+            <h2 className="text-lg font-semibold mb-4">Upload by Entity Type</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-blue-100">
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                      <FileSpreadsheet className="h-5 w-5 text-blue-600" />
+                    </div>
                   </div>
-                </div>
-                <CardTitle className="text-lg mt-2">De Goudse Data Use Case Upload</CardTitle>
-                <CardDescription>
-                  Upload Excel files to create opportunities with intelligent entity mapping
-                </CardDescription>
-              </CardHeader>
-              <CardFooter>
-                <Button 
-                  className="w-full bg-orange-600 hover:bg-orange-700"
-                >
-                  Upload Excel File
-                </Button>
-              </CardFooter>
-            </Card>
+                  <CardTitle className="text-lg mt-2">Opportunities</CardTitle>
+                  <CardDescription>
+                    Upload opportunity data with automatic field mapping and validation
+                  </CardDescription>
+                </CardHeader>
+                <CardFooter>
+                  <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                    Upload Opportunities
+                  </Button>
+                </CardFooter>
+              </Card>
 
+              <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-green-100">
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
+                      <Users className="h-5 w-5 text-green-600" />
+                    </div>
+                  </div>
+                  <CardTitle className="text-lg mt-2">Partners</CardTitle>
+                  <CardDescription>
+                    Import partner information with contact and relationship mapping
+                  </CardDescription>
+                </CardHeader>
+                <CardFooter>
+                  <Button className="w-full bg-green-600 hover:bg-green-700">
+                    Upload Partners
+                  </Button>
+                </CardFooter>
+              </Card>
 
+              <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-purple-100">
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
+                      <Users className="h-5 w-5 text-purple-600" />
+                    </div>
+                  </div>
+                  <CardTitle className="text-lg mt-2">Customers</CardTitle>
+                  <CardDescription>
+                    Upload customer data with segmentation and preference mapping
+                  </CardDescription>
+                </CardHeader>
+                <CardFooter>
+                  <Button className="w-full bg-purple-600 hover:bg-purple-700">
+                    Upload Customers
+                  </Button>
+                </CardFooter>
+              </Card>
+
+              <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-orange-100">
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center">
+                      <Archive className="h-5 w-5 text-orange-600" />
+                    </div>
+                  </div>
+                  <CardTitle className="text-lg mt-2">Products</CardTitle>
+                  <CardDescription>
+                    Import product catalog with pricing and category organization
+                  </CardDescription>
+                </CardHeader>
+                <CardFooter>
+                  <Button className="w-full bg-orange-600 hover:bg-orange-700">
+                    Upload Products
+                  </Button>
+                </CardFooter>
+              </Card>
+
+              <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-red-100">
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
+                      <Truck className="h-5 w-5 text-red-600" />
+                    </div>
+                  </div>
+                  <CardTitle className="text-lg mt-2">Vendors</CardTitle>
+                  <CardDescription>
+                    Upload vendor information with contract and performance data
+                  </CardDescription>
+                </CardHeader>
+                <CardFooter>
+                  <Button className="w-full bg-red-600 hover:bg-red-700">
+                    Upload Vendors
+                  </Button>
+                </CardFooter>
+              </Card>
+
+              <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-gray-100">
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
+                      <Contact className="h-5 w-5 text-gray-600" />
+                    </div>
+                  </div>
+                  <CardTitle className="text-lg mt-2">Contacts</CardTitle>
+                  <CardDescription>
+                    Import contact information with relationship and communication preferences
+                  </CardDescription>
+                </CardHeader>
+                <CardFooter>
+                  <Button className="w-full bg-gray-600 hover:bg-gray-700">
+                    Upload Contacts
+                  </Button>
+                </CardFooter>
+              </Card>
+            </div>
+          </div>
+
+          {/* Special Formats Section */}
+          <div>
+            <h2 className="text-lg font-semibold mb-4">Specialized Import Formats</h2>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <Card 
+                className="hover:shadow-md transition-shadow cursor-pointer border-2 border-orange-100"
+                onClick={() => {
+                  setActiveSection('data-upload-2-degoudse');
+                }}
+              >
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center">
+                      <FileSpreadsheet className="h-5 w-5 text-orange-600" />
+                    </div>
+                    <Badge variant="outline" className="text-xs">Active</Badge>
+                  </div>
+                  <CardTitle className="text-lg mt-2">De Goudse Format</CardTitle>
+                  <CardDescription>
+                    Specialized Excel import for De Goudse insurance opportunity data
+                  </CardDescription>
+                </CardHeader>
+                <CardFooter>
+                  <Button className="w-full bg-orange-600 hover:bg-orange-700">
+                    Upload De Goudse File
+                  </Button>
+                </CardFooter>
+              </Card>
+
+              <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-blue-100 opacity-75">
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                      <Cloud className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <Badge variant="secondary" className="text-xs">Coming Soon</Badge>
+                  </div>
+                  <CardTitle className="text-lg mt-2">Salesforce Import</CardTitle>
+                  <CardDescription>
+                    Direct integration with Salesforce CRM data export formats
+                  </CardDescription>
+                </CardHeader>
+                <CardFooter>
+                  <Button className="w-full" variant="outline" disabled>
+                    Salesforce Import
+                  </Button>
+                </CardFooter>
+              </Card>
+
+              <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-indigo-100 opacity-75">
+                <CardHeader>
+                  <div className="flex justify-between items-start">
+                    <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                      <Database className="h-5 w-5 text-indigo-600" />
+                    </div>
+                    <Badge variant="secondary" className="text-xs">Coming Soon</Badge>
+                  </div>
+                  <CardTitle className="text-lg mt-2">Brio Format</CardTitle>
+                  <CardDescription>
+                    Import data using Brio business intelligence export formats
+                  </CardDescription>
+                </CardHeader>
+                <CardFooter>
+                  <Button className="w-full" variant="outline" disabled>
+                    Brio Import
+                  </Button>
+                </CardFooter>
+              </Card>
+            </div>
           </div>
         </div>
       )}
