@@ -1051,6 +1051,7 @@ function PartnersTable() {
                             setFilterText(view.filters.searchText || '');
                             setSelectedStatus(view.filters.status || '');
                             setSelectedIndustry(view.filters.industry || '');
+                            setSelectedActualIndustry(view.filters.actualIndustry || '');
                             setSelectedType(view.filters.type || '');
                             setShowViewsDropdown(false);
                           }}
@@ -1078,6 +1079,7 @@ function PartnersTable() {
                             setFilterText('');
                             setSelectedStatus('');
                             setSelectedIndustry('');
+                            setSelectedActualIndustry('');
                             setSelectedType('');
                           }}
                         >
