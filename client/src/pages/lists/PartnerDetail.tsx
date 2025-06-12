@@ -2972,7 +2972,20 @@ export default function PartnerDetail() {
           
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowDetailsDialog(false)}>
-              Close
+              Cancel
+            </Button>
+            <Button onClick={() => {
+              // Save the edited partner data
+              console.log('Saving partner data:', editedPartner);
+              // Here you would typically make an API call to update the partner
+              // For now, we'll just close the dialog
+              setShowDetailsDialog(false);
+              toast({
+                title: "Partner updated",
+                description: "Partner information has been saved successfully.",
+              });
+            }}>
+              Save
             </Button>
           </DialogFooter>
         </DialogContent>

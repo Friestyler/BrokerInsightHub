@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { ArrowLeft, Search, Users, Copy, Trash2, MoreHorizontal } from "lucide-react";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import LogoUploadModal from "@/components/LogoUploadModal";
@@ -34,6 +35,7 @@ export default function CustomerDetailNew() {
   
   // Details dialog state
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
+  const [editedCustomer, setEditedCustomer] = useState<any>({});
 
   // Load existing logo on component mount
   useEffect(() => {
@@ -197,7 +199,18 @@ export default function CustomerDetailNew() {
                   variant="ghost" 
                   size="sm" 
                   className="text-sm bg-gray-100 text-gray-700 px-2 py-1 rounded h-auto"
-                  onClick={() => setShowDetailsDialog(true)}
+                  onClick={() => {
+                    setEditedCustomer({
+                      name: customer.name || '',
+                      industry: customer.industry || '',
+                      contactEmail: customer.contactEmail || '',
+                      contactPhone: customer.contactPhone || '',
+                      website: customer.website || '',
+                      address: customer.address || '',
+                      description: customer.description || ''
+                    });
+                    setShowDetailsDialog(true);
+                  }}
                 >
                   Details
                 </Button>
@@ -660,49 +673,80 @@ export default function CustomerDetailNew() {
             <div className="space-y-4">
               <div>
                 <Label className="text-sm font-medium text-gray-700">Customer Name</Label>
-                <p className="text-sm text-gray-900 mt-1">{customer?.name || 'N/A'}</p>
+                <Input
+                  value={editedCustomer.name || ''}
+                  onChange={(e) => setEditedCustomer({...editedCustomer, name: e.target.value})}
+                  className="mt-1"
+                />
               </div>
               
               <div>
                 <Label className="text-sm font-medium text-gray-700">Description</Label>
-                <p className="text-sm text-gray-900 mt-1">{customer?.description || 'No description available'}</p>
+                <Textarea
+                  value={editedCustomer.description || ''}
+                  onChange={(e) => setEditedCustomer({...editedCustomer, description: e.target.value})}
+                  className="mt-1"
+                  rows={3}
+                />
               </div>
               
               <div>
                 <Label className="text-sm font-medium text-gray-700">Industry</Label>
-                <p className="text-sm text-gray-900 mt-1">{customer?.industry || 'Not specified'}</p>
+                <Input
+                  value={editedCustomer.industry || ''}
+                  onChange={(e) => setEditedCustomer({...editedCustomer, industry: e.target.value})}
+                  className="mt-1"
+                />
               </div>
               
               <div>
                 <Label className="text-sm font-medium text-gray-700">Contact Email</Label>
-                <p className="text-sm text-gray-900 mt-1">{customer?.contact_email || 'contact@customer.com'}</p>
+                <Input
+                  type="email"
+                  value={editedCustomer.contactEmail || ''}
+                  onChange={(e) => setEditedCustomer({...editedCustomer, contactEmail: e.target.value})}
+                  className="mt-1"
+                />
               </div>
               
               <div>
                 <Label className="text-sm font-medium text-gray-700">Contact Phone</Label>
-                <p className="text-sm text-gray-900 mt-1">{customer?.contact_phone || '+31 20 123 4567'}</p>
+                <Input
+                  value={editedCustomer.contactPhone || ''}
+                  onChange={(e) => setEditedCustomer({...editedCustomer, contactPhone: e.target.value})}
+                  className="mt-1"
+                />
               </div>
             </div>
             
             <div className="space-y-4">
               <div>
-                <Label className="text-sm font-medium text-gray-700">Location</Label>
-                <p className="text-sm text-gray-900 mt-1">{customer?.location || 'Netherlands'}</p>
+                <Label className="text-sm font-medium text-gray-700">Website</Label>
+                <Input
+                  value={editedCustomer.website || ''}
+                  onChange={(e) => setEditedCustomer({...editedCustomer, website: e.target.value})}
+                  className="mt-1"
+                />
               </div>
               
               <div>
-                <Label className="text-sm font-medium text-gray-700">Status</Label>
-                <p className="text-sm text-gray-900 mt-1">{customer?.status || 'Active'}</p>
+                <Label className="text-sm font-medium text-gray-700">Address</Label>
+                <Textarea
+                  value={editedCustomer.address || ''}
+                  onChange={(e) => setEditedCustomer({...editedCustomer, address: e.target.value})}
+                  className="mt-1"
+                  rows={3}
+                />
               </div>
               
               <div>
                 <Label className="text-sm font-medium text-gray-700">Opportunities</Label>
-                <p className="text-sm text-gray-900 mt-1">{(relatedOpportunities as any[] || []).length} active</p>
+                <p className="text-sm text-gray-500 mt-1">{(relatedOpportunities as any[] || []).length} active (read-only)</p>
               </div>
               
               <div>
                 <Label className="text-sm font-medium text-gray-700">Products</Label>
-                <p className="text-sm text-gray-900 mt-1">{(relatedProducts as any[] || []).length} associated</p>
+                <p className="text-sm text-gray-500 mt-1">{(relatedProducts as any[] || []).length} associated (read-only)</p>
               </div>
               
               <div>
