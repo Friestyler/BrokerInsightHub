@@ -24,7 +24,8 @@ import {
   CheckSquare,
   Users,
   Timer,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Settings
 } from 'lucide-react';
 
 type ActivityItem = {
@@ -48,7 +49,7 @@ export default function PartnerPilot() {
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
-  const [activeSection, setActiveSection] = useState<'copilot' | 'reports' | 'data-upload' | 'data-upload-2' | 'data-upload-2-degoudse'>('copilot');
+  const [activeSection, setActiveSection] = useState<'copilot' | 'reports' | 'data-upload' | 'data-upload-2' | 'data-upload-2-degoudse' | 'data-upload-2-settings'>('copilot');
 
   // Sample activities data
   const activities: ActivityItem[] = [
@@ -420,6 +421,32 @@ export default function PartnerPilot() {
                   className="w-full bg-orange-600 hover:bg-orange-700"
                 >
                   Upload Excel File
+                </Button>
+              </CardFooter>
+            </Card>
+
+            <Card 
+              className="hover:shadow-md transition-shadow cursor-pointer border-2 border-blue-100"
+              onClick={() => {
+                setActiveSection('data-upload-2-settings');
+              }}
+            >
+              <CardHeader>
+                <div className="flex justify-between items-start">
+                  <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                    <Settings className="h-5 w-5 text-blue-600" />
+                  </div>
+                </div>
+                <CardTitle className="text-lg mt-2">Upload Settings</CardTitle>
+                <CardDescription>
+                  Configure upload settings, transformation scripts, and templates for all environments
+                </CardDescription>
+              </CardHeader>
+              <CardFooter>
+                <Button 
+                  className="w-full bg-blue-600 hover:bg-blue-700"
+                >
+                  Configure Settings
                 </Button>
               </CardFooter>
             </Card>

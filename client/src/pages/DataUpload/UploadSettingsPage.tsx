@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Settings, Database, Code, FileTemplate, Info, Save, Plus, Edit, Trash2 } from 'lucide-react';
+import { Settings, Database, Code, FileText, Info, Save, Plus, Edit, Trash2 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 
@@ -106,10 +106,13 @@ export default function UploadSettingsPage() {
   // Update upload settings mutation
   const updateSettingsMutation = useMutation({
     mutationFn: async (settings: { attributeName: string; isMandatory: boolean; dataType?: string }[]) => {
-      return apiRequest(`/api/${selectedEnvironment}/upload-settings/${selectedEntity}`, {
+      const response = await fetch(`/api/${selectedEnvironment}/upload-settings/${selectedEntity}`, {
         method: 'POST',
-        body: { settings }
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ settings })
       });
+      if (!response.ok) throw new Error('Failed to update settings');
+      return response.json();
     },
     onSuccess: () => {
       toast({ title: 'Success', description: 'Upload settings updated successfully' });
@@ -138,7 +141,7 @@ export default function UploadSettingsPage() {
 
   const handleSettingChange = (attributeName: string, isMandatory: boolean) => {
     const attribute = selectedSchema?.attributes.find(attr => attr.name === attributeName);
-    if (!attribute) return;
+    if (!attribute || !selectedSchema) return;
 
     const updatedSettings = selectedSchema.attributes.map(attr => ({
       attributeName: attr.name,
@@ -379,7 +382,7 @@ export default function UploadSettingsPage() {
           ))
         ) : (
           <Alert>
-            <FileTemplate className="h-4 w-4" />
+            <FileText className="h-4 w-4" />
             <AlertDescription>
               No upload templates found. Create templates to standardize upload configurations.
             </AlertDescription>
@@ -439,7 +442,7 @@ export default function UploadSettingsPage() {
             Scripts
           </TabsTrigger>
           <TabsTrigger value="templates" className="flex items-center gap-2">
-            <FileTemplate className="h-4 w-4" />
+            <FileText className="h-4 w-4" />
             Templates
           </TabsTrigger>
         </TabsList>
