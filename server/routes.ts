@@ -14,7 +14,13 @@ import {
   okrTemplateAssignments,
   contacts,
   entityLogos,
-  insertEntityLogoSchema
+  insertEntityLogoSchema,
+  campaigns,
+  campaignRecipients,
+  campaignFollowUps,
+  insertCampaignSchema,
+  insertCampaignRecipientSchema,
+  insertCampaignFollowUpSchema
 } from '@shared/schema';
 import { eq, sql } from 'drizzle-orm';
 import { db, getEnvironmentPool, getEnvironmentDb } from './db';
@@ -5069,6 +5075,70 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error creating campaign:', error);
       res.status(500).json({ error: 'Failed to create campaign' });
+    }
+  });
+
+  // Campaign Templates API endpoints
+  app.get('/api/:envId/campaign-templates', async (req, res) => {
+    try {
+      const { envId } = req.params;
+      const envDb = getEnvironmentDb(envId);
+      
+      const templates = await envDb
+        .select()
+        .from(campaigns)
+        .where(eq(campaigns.isTemplate, true))
+        .orderBy(sql`${campaigns.createdAt} DESC`);
+      
+      res.json(templates);
+    } catch (error) {
+      console.error('Error fetching campaign templates:', error);
+      res.status(500).json({ error: 'Failed to fetch campaign templates' });
+    }
+  });
+
+  app.post('/api/:envId/campaign-templates', async (req, res) => {
+    try {
+      const { envId } = req.params;
+      const envDb = getEnvironmentDb(envId);
+      
+      const templateData = {
+        ...req.body,
+        isTemplate: true,
+        status: 'template',
+        createdById: 1 // Default user for now
+      };
+      
+      const [template] = await envDb
+        .insert(campaigns)
+        .values(templateData)
+        .returning();
+      
+      res.status(201).json(template);
+    } catch (error) {
+      console.error('Error creating campaign template:', error);
+      res.status(500).json({ error: 'Failed to create campaign template' });
+    }
+  });
+
+  app.get('/api/:envId/campaign-templates/:templateId', async (req, res) => {
+    try {
+      const { envId, templateId } = req.params;
+      const envDb = getEnvironmentDb(envId);
+      
+      const [template] = await envDb
+        .select()
+        .from(campaigns)
+        .where(sql`${campaigns.id} = ${parseInt(templateId)} AND ${campaigns.isTemplate} = true`);
+      
+      if (!template) {
+        return res.status(404).json({ error: 'Template not found' });
+      }
+      
+      res.json(template);
+    } catch (error) {
+      console.error('Error fetching campaign template:', error);
+      res.status(500).json({ error: 'Failed to fetch campaign template' });
     }
   });
 

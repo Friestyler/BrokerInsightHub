@@ -426,41 +426,46 @@ export default function CampaignBuilder() {
     }
   });
 
+  // Template loading query
+  const templateQuery = useQuery({
+    queryKey: ['/api/campaign-templates', templateId],
+    queryFn: () => {
+      if (!templateId || isNaN(parseInt(templateId))) return null;
+      return apiRequest('GET', `/api/campaign-templates/${templateId}`);
+    },
+    enabled: !!templateId && !isNaN(parseInt(templateId))
+  });
+
   // Load template data if template ID is provided
   useEffect(() => {
-    if (templateId) {
-      switch (templateId) {
-        case "life-pension":
-          form.setValue("name", "Life + Pension Campaign");
-          form.setValue("type", "cross_sell");
-          form.setValue("category", "Life + Pension");
-          form.setValue("emailBody", "Dear valued customer,\n\nWe noticed you already have a pension plan with us. Have you considered adding life insurance to complement your financial security?\n\nOur combined Life + Pension packages offer comprehensive protection for you and your loved ones while optimizing your long-term financial planning.\n\nI'm available to discuss how this could benefit your specific situation.\n\nBest regards,");
-          form.setValue("subject", "Enhance Your Financial Security with Life Insurance");
-          break;
-        case "car-legal":
-          form.setValue("name", "Car + Legal Protection Campaign");
-          form.setValue("type", "cross_sell");
-          form.setValue("category", "Car + Legal");
-          form.setValue("emailBody", "Hello,\n\nAs your trusted insurance partner, we want to ensure you have comprehensive protection for all aspects of your driving life.\n\nWe noticed you have auto insurance with us, but without legal protection coverage. Adding legal protection can safeguard you from unexpected legal costs related to your vehicle.\n\nLet's schedule a quick call to discuss how this additional coverage could benefit you.\n\nRegards,");
-          form.setValue("subject", "Complete Your Car Insurance with Legal Protection");
-          break;
-        case "fire-theft":
-          form.setValue("name", "Home Protection Bundle");
-          form.setValue("type", "cross_sell");
-          form.setValue("category", "Fire + Theft");
-          form.setValue("emailBody", "Dear homeowner,\n\nYour home is your sanctuary, and we want to help you protect it fully.\n\nWe noticed you have fire insurance with us. Have you considered adding theft protection to ensure complete peace of mind for your property?\n\nOur combined Fire + Theft package offers comprehensive coverage at a competitive rate that might be more cost-effective than separate policies.\n\nI'd be happy to provide more details on how this could work for your property.\n\nYours sincerely,");
-          form.setValue("subject", "Complete Home Protection: Adding Theft Coverage");
-          break;
-        case "axa-life-pension":
-          form.setValue("name", "AXA Life & Pension Special Offer");
-          form.setValue("type", "custom");
-          form.setValue("category", "Life + Pension");
-          form.setValue("emailBody", "Dear valued client,\n\nAXA is pleased to present an exclusive offer on our Life & Pension combined packages, designed specifically for our premium customers like you.\n\nThese specially curated packages offer enhanced benefits including:\n\n• Higher interest rates on pension contributions\n• Extended life coverage with no medical examination\n• Flexible withdrawal options\n• Tax optimization strategies\n\nAs your broker, I can provide personalized advice on how these AXA packages can be tailored to your specific needs.\n\nBest regards,");
-          form.setValue("subject", "Exclusive AXA Life & Pension Offer for Premium Clients");
-          break;
+    if (templateQuery.data) {
+      const template = templateQuery.data;
+      
+      // Pre-populate all fields from the template
+      form.setValue("name", template.name + " - Copy");
+      form.setValue("type", template.type || "");
+      form.setValue("category", template.category || "");
+      form.setValue("emailBody", template.emailBody || "");
+      form.setValue("subject", template.subject || "");
+      form.setValue("frequency", template.frequency || "one_time");
+      form.setValue("fromName", template.fromName || "");
+      form.setValue("fromEmail", template.fromEmail || "");
+      form.setValue("emailLogo", template.emailLogo || "");
+      
+      // Load follow-up settings if they exist
+      if (template.enableFollowUp) {
+        form.setValue("enableFollowUp", true);
+        if (template.followUpEmails && template.followUpEmails.length > 0) {
+          form.setValue("followUpEmails", template.followUpEmails);
+        }
       }
+      
+      toast({
+        title: "Template loaded",
+        description: `Campaign populated with template: ${template.name}`,
+      });
     }
-  }, [templateId, form]);
+  }, [templateQuery.data, form]);
 
   // Step definitions
   const steps: BuilderStep[] = [
