@@ -7,9 +7,9 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
 import { Search, Copy, Users, Trash2, MoreHorizontal, MessageSquare, ArrowLeft } from "lucide-react";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useToast } from "@/hooks/use-toast";
@@ -87,6 +87,7 @@ export default function PartnerDetail() {
   
   // Details dialog state
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
+  const [editedPartner, setEditedPartner] = useState<any>({});
 
   // Get collaborators for the currently active list
   const getCollaboratorsForList = (listId: number) => {
@@ -760,7 +761,19 @@ export default function PartnerDetail() {
                       variant="ghost" 
                       size="sm" 
                       className="text-sm bg-gray-100 text-gray-700 px-2 py-1 rounded h-auto"
-                      onClick={() => setShowDetailsDialog(true)}
+                      onClick={() => {
+                        setEditedPartner({
+                          name: partner.name || '',
+                          description: partner.description || '',
+                          contactEmail: partner.contact_email || '',
+                          contactPhone: partner.contact_phone || '',
+                          website: partner.website || '',
+                          address: partner.address || '',
+                          type: partner.type || '',
+                          status: partner.status || ''
+                        });
+                        setShowDetailsDialog(true);
+                      }}
                     >
                       Details
                     </Button>
@@ -2870,54 +2883,89 @@ export default function PartnerDetail() {
             <div className="space-y-4">
               <div>
                 <Label className="text-sm font-medium text-gray-700">Partner Name</Label>
-                <p className="text-sm text-gray-900 mt-1">{partner?.name || 'N/A'}</p>
+                <Input
+                  value={editedPartner.name || ''}
+                  onChange={(e) => setEditedPartner({...editedPartner, name: e.target.value})}
+                  className="mt-1"
+                />
               </div>
               
               <div>
                 <Label className="text-sm font-medium text-gray-700">Description</Label>
-                <p className="text-sm text-gray-900 mt-1">{partner?.description || 'Partner created from zonnepanelen'}</p>
+                <Textarea
+                  value={editedPartner.description || ''}
+                  onChange={(e) => setEditedPartner({...editedPartner, description: e.target.value})}
+                  className="mt-1"
+                  rows={3}
+                />
               </div>
               
               <div>
                 <Label className="text-sm font-medium text-gray-700">Type</Label>
-                <p className="text-sm text-gray-900 mt-1">{partner?.type || 'Insurance Partner'}</p>
+                <Input
+                  value={editedPartner.type || ''}
+                  onChange={(e) => setEditedPartner({...editedPartner, type: e.target.value})}
+                  className="mt-1"
+                />
               </div>
               
               <div>
                 <Label className="text-sm font-medium text-gray-700">Contact Email</Label>
-                <p className="text-sm text-gray-900 mt-1">{partner?.contact_email || 'contact@partner.com'}</p>
+                <Input
+                  type="email"
+                  value={editedPartner.contactEmail || ''}
+                  onChange={(e) => setEditedPartner({...editedPartner, contactEmail: e.target.value})}
+                  className="mt-1"
+                />
               </div>
               
               <div>
                 <Label className="text-sm font-medium text-gray-700">Contact Phone</Label>
-                <p className="text-sm text-gray-900 mt-1">{partner?.contact_phone || '+31 20 123 4567'}</p>
+                <Input
+                  value={editedPartner.contactPhone || ''}
+                  onChange={(e) => setEditedPartner({...editedPartner, contactPhone: e.target.value})}
+                  className="mt-1"
+                />
               </div>
             </div>
             
             <div className="space-y-4">
               <div>
-                <Label className="text-sm font-medium text-gray-700">Owner</Label>
-                <p className="text-sm text-gray-900 mt-1">NA</p>
+                <Label className="text-sm font-medium text-gray-700">Website</Label>
+                <Input
+                  value={editedPartner.website || ''}
+                  onChange={(e) => setEditedPartner({...editedPartner, website: e.target.value})}
+                  className="mt-1"
+                />
               </div>
               
               <div>
                 <Label className="text-sm font-medium text-gray-700">Status</Label>
-                <p className="text-sm text-gray-900 mt-1">{partner?.status || 'Active'}</p>
+                <Input
+                  value={editedPartner.status || ''}
+                  onChange={(e) => setEditedPartner({...editedPartner, status: e.target.value})}
+                  className="mt-1"
+                />
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Address</Label>
+                <Textarea
+                  value={editedPartner.address || ''}
+                  onChange={(e) => setEditedPartner({...editedPartner, address: e.target.value})}
+                  className="mt-1"
+                  rows={2}
+                />
               </div>
               
               <div>
                 <Label className="text-sm font-medium text-gray-700">Opportunities</Label>
-                <p className="text-sm text-gray-900 mt-1">{(relatedOpportunities as any[] || []).length} active</p>
+                <p className="text-sm text-gray-500 mt-1">{(relatedOpportunities as any[] || []).length} active (read-only)</p>
               </div>
               
               <div>
                 <Label className="text-sm font-medium text-gray-700">Customers</Label>
-                <p className="text-sm text-gray-900 mt-1">{(relatedCustomers as any[] || []).length} connected</p>
-              </div>
-              
-              <div>
-                <Label className="text-sm font-medium text-gray-700">Created Date</Label>
-                <p className="text-sm text-gray-900 mt-1">{partner?.created_at ? new Date(partner.created_at).toLocaleDateString() : 'N/A'}</p>
+                <p className="text-sm text-gray-500 mt-1">{(relatedCustomers as any[] || []).length} connected (read-only)</p>
               </div>
             </div>
           </div>
