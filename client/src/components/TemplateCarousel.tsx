@@ -22,18 +22,18 @@ interface UploadTemplate {
   updatedAt: string;
 }
 
-export function TemplateCarousel() {
-  const [, setLocation] = useLocation();
-  const environmentId = 'degoudse';
+interface TemplateCarouselProps {
+  templates: any[];
+  onSelectTemplate: (templateId: string) => void;
+  entityType: string;
+  environmentId: string;
+}
 
-  // Fetch all templates
-  const { data: templates = [], isLoading } = useQuery<UploadTemplate[]>({
-    queryKey: ['/api', environmentId, 'upload', 'templates'],
-  });
+export function TemplateCarousel({ templates, onSelectTemplate, entityType, environmentId }: TemplateCarouselProps) {
+  const [, setLocation] = useLocation();
 
   const useTemplate = (template: UploadTemplate) => {
-    // Navigate to upload process with template preloaded
-    setLocation(`/data-upload-2/process/${template.entityType}?templateId=${template.id}`);
+    onSelectTemplate(template.id.toString());
   };
 
   const getEntityIcon = (entityType: string) => {
@@ -62,29 +62,15 @@ export function TemplateCarousel() {
     }
   };
 
-  if (isLoading) {
+  if (!templates || templates.length === 0) {
     return (
-      <div className="mb-10">
-        <h2 className="text-lg font-semibold mb-4">Recent Templates</h2>
-        <div className="flex space-x-4">
-          {[1, 2, 3].map(i => (
-            <div key={i} className="w-80 h-40 bg-gray-200 rounded-lg animate-pulse" />
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (templates.length === 0) {
-    return (
-      <div className="mb-10">
-        <h2 className="text-lg font-semibold mb-4">Recent Templates</h2>
+      <div className="mb-6">
+        <h3 className="text-lg font-medium mb-4">Available Templates</h3>
         <Card className="border-dashed border-2 border-gray-300">
-          <CardContent className="p-8 text-center">
-            <FileSpreadsheet className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">No templates yet</h3>
-            <p className="text-gray-600">
-              Create your first template by uploading data and saving your column mappings
+          <CardContent className="p-6 text-center">
+            <FileSpreadsheet className="mx-auto h-8 w-8 text-gray-400 mb-2" />
+            <p className="text-sm text-gray-600">
+              No templates available for this entity type
             </p>
           </CardContent>
         </Card>
@@ -93,9 +79,9 @@ export function TemplateCarousel() {
   }
 
   return (
-    <div className="mb-10">
+    <div className="mb-6">
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg font-semibold">Recent Templates</h2>
+        <h3 className="text-lg font-medium">Available Templates</h3>
         <Badge variant="secondary">{templates.length} templates</Badge>
       </div>
       
@@ -114,49 +100,55 @@ export function TemplateCarousel() {
                       {getEntityIcon(template.entityType)}
                     </div>
                     <div>
-                      <CardTitle className="text-base font-medium">{template.name}</CardTitle>
-                      <Badge variant="outline" className="text-xs mt-1">
+                      <CardTitle className="text-sm font-medium">{template.name}</CardTitle>
+                      <Badge variant="outline" className="text-xs">
                         {template.entityType}
                       </Badge>
                     </div>
                   </div>
-                  <div className="flex items-center space-x-1 text-gray-500">
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    className="h-8 w-8 p-0"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      useTemplate(template);
+                    }}
+                  >
                     <Eye className="h-4 w-4" />
-                    <span className="text-xs">{template.usageCount}</span>
-                  </div>
+                  </Button>
                 </div>
               </CardHeader>
+              
               <CardContent className="pt-0">
-                <CardDescription className="text-sm mb-3 line-clamp-2">
-                  {template.description || 'No description provided'}
-                </CardDescription>
+                {template.description && (
+                  <CardDescription className="text-sm mb-3 line-clamp-2">
+                    {template.description}
+                  </CardDescription>
+                )}
                 
                 <div className="flex items-center justify-between text-xs text-gray-500">
-                  <div className="flex items-center space-x-1">
-                    <Calendar className="h-3 w-3" />
-                    <span>
-                      {template.lastUsedAt 
-                        ? `Used ${formatDistanceToNow(new Date(template.lastUsedAt))} ago`
-                        : `Created ${formatDistanceToNow(new Date(template.createdAt))} ago`
-                      }
-                    </span>
+                  <div className="flex items-center space-x-4">
+                    <div className="flex items-center space-x-1">
+                      <Users className="h-3 w-3" />
+                      <span>{template.usageCount || 0} uses</span>
+                    </div>
+                    <div className="flex items-center space-x-1">
+                      <Calendar className="h-3 w-3" />
+                      <span>
+                        {template.lastUsedAt 
+                          ? formatDistanceToNow(new Date(template.lastUsedAt), { addSuffix: true })
+                          : 'Never used'
+                        }
+                      </span>
+                    </div>
                   </div>
-                  <div className="flex items-center space-x-1">
-                    <FileSpreadsheet className="h-3 w-3" />
-                    <span>{Object.keys(template.columnMappings || {}).length} mappings</span>
-                  </div>
+                  {template.isShared && (
+                    <Badge variant="secondary" className="text-xs">
+                      Shared
+                    </Badge>
+                  )}
                 </div>
-                
-                <Button 
-                  className="w-full mt-3" 
-                  size="sm"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    useTemplate(template);
-                  }}
-                >
-                  Use Template
-                </Button>
               </CardContent>
             </Card>
           ))}

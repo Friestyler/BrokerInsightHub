@@ -172,7 +172,8 @@ export default function AttributeMappingStep({
 
   // Load template
   const loadTemplate = (templateId: string) => {
-    const template = templates.find(t => t.id.toString() === templateId);
+    if (!Array.isArray(templates)) return;
+    const template = templates.find((t: any) => t.id.toString() === templateId);
     if (template && template.columnMappings) {
       const mappings = Object.entries(template.columnMappings).map(([attr, mapping]: [string, any]) => ({
         attribute: attr,
