@@ -1394,12 +1394,12 @@ function OpportunitiesTable() {
         
         <div className="bg-white p-4 rounded-md border border-gray-200">
           <div className="text-xl font-semibold">{stats.totalValue}</div>
-          <div className="text-sm text-gray-500">Total Value</div>
+          <div className="text-sm text-gray-500">Total Value Opportunities</div>
         </div>
         
         <div className="bg-white p-4 rounded-md border border-gray-200">
           <div className="text-xl font-semibold">{stats.weightedValue}</div>
-          <div className="text-sm text-gray-500">Weighted Value</div>
+          <div className="text-sm text-gray-500">Weighted Value Opportunities</div>
         </div>
       </div>
       
