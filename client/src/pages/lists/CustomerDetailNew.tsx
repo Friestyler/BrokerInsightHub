@@ -14,10 +14,12 @@ import { ArrowLeft, Search, Users, Copy, Trash2, MoreHorizontal } from "lucide-r
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import LogoUploadModal from "@/components/LogoUploadModal";
 import EntityAvatar from "@/components/EntityAvatar";
+import { useToast } from "@/hooks/use-toast";
 
 export default function CustomerDetailNew() {
   const { id } = useParams();
   const { environment } = useEnvironment();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("okr-plans");
   
   // OKR metrics state management
@@ -758,7 +760,20 @@ export default function CustomerDetailNew() {
           
           <DialogFooter>
             <Button variant="outline" onClick={() => setShowDetailsDialog(false)}>
-              Close
+              Cancel
+            </Button>
+            <Button onClick={() => {
+              // Save the edited customer data
+              console.log('Saving customer data:', editedCustomer);
+              // Here you would typically make an API call to update the customer
+              // For now, we'll just close the dialog
+              setShowDetailsDialog(false);
+              toast({
+                title: "Customer updated",
+                description: "Customer information has been saved successfully.",
+              });
+            }}>
+              Save
             </Button>
           </DialogFooter>
         </DialogContent>

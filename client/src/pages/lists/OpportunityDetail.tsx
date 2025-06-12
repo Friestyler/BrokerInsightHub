@@ -8,6 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Building2, Users, Target, Search } from "lucide-react";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 
@@ -63,6 +65,7 @@ export default function OpportunityDetail() {
   
   // Details dialog state
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
+  const [editedOpportunity, setEditedOpportunity] = useState<any>({});
 
   // Detect navigation context and set appropriate back URL
   useEffect(() => {
