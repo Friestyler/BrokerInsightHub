@@ -375,7 +375,7 @@ export default function UploadSettingsPage() {
               </CardHeader>
               <CardContent>
                 <div className="text-sm text-muted-foreground">
-                  {Object.keys(template.templateData).length} configured fields
+                  {template.templateData ? Object.keys(template.templateData).length : 0} configured fields
                 </div>
               </CardContent>
             </Card>

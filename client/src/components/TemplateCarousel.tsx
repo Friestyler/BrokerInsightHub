@@ -37,7 +37,7 @@ export function TemplateCarousel({ templates, onSelectTemplate, entityType, envi
   };
 
   const getEntityIcon = (entityType: string) => {
-    switch (entityType.toLowerCase()) {
+    switch (entityType?.toLowerCase()) {
       case 'opportunities':
         return <FileSpreadsheet className="h-5 w-5 text-blue-600" />;
       case 'partners':
@@ -50,7 +50,7 @@ export function TemplateCarousel({ templates, onSelectTemplate, entityType, envi
   };
 
   const getEntityColor = (entityType: string) => {
-    switch (entityType.toLowerCase()) {
+    switch (entityType?.toLowerCase()) {
       case 'opportunities':
         return 'border-blue-200 bg-blue-50';
       case 'partners':
