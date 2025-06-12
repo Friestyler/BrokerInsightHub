@@ -8,7 +8,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DataUploadOptions from '@/pages/DataUpload/DataUploadOptions';
 import DeGoudseUploadWizard from '@/pages/DataUpload/DeGoudseUploadWizard';
-import { TemplateCarousel } from '@/components/TemplateCarousel';
+
 import { 
   MessageSquare, 
   Search, 
@@ -419,8 +419,7 @@ export default function PartnerPilot() {
             <p className="text-gray-600">Upload your data using intelligent templates and entity mapping</p>
           </div>
           
-          {/* Template Carousel Section */}
-          <TemplateCarousel />
+
 
           {/* Main Section: Entity Upload Options */}
           <div className="mb-10">
