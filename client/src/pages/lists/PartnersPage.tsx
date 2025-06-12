@@ -270,6 +270,16 @@ function PartnersTable() {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(12);
   
+  // Dropdown state for filters
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  const [showIndustryDropdown, setShowIndustryDropdown] = useState(false);
+  const [showTypeDropdown, setShowTypeDropdown] = useState(false);
+  
+  // Refs for dropdown positioning
+  const statusDropdownRef = useRef<HTMLDivElement>(null);
+  const industryDropdownRef = useRef<HTMLDivElement>(null);
+  const typeDropdownRef = useRef<HTMLDivElement>(null);
+  
   // Sorting state
   const [tableSortConfig, setTableSortConfig] = useState({
     key: '',
