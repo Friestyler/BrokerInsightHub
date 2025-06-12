@@ -7,6 +7,8 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { ArrowLeft, Search, Users, Copy, Trash2, MoreHorizontal } from "lucide-react";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import LogoUploadModal from "@/components/LogoUploadModal";
@@ -29,6 +31,9 @@ export default function CustomerDetailNew() {
   const [customerLogo, setCustomerLogo] = useState<string | null>(null);
   const [selectedTimeframe, setSelectedTimeframe] = useState("all");
   const [groupBy, setGroupBy] = useState("tag");
+  
+  // Details dialog state
+  const [showDetailsDialog, setShowDetailsDialog] = useState(false);
 
   // Load existing logo on component mount
   useEffect(() => {

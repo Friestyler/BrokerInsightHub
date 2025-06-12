@@ -84,6 +84,9 @@ export default function PartnerDetail() {
 
   // Logo upload state
   const [showLogoUploadModal, setShowLogoUploadModal] = useState(false);
+  
+  // Details dialog state
+  const [showDetailsDialog, setShowDetailsDialog] = useState(false);
 
   // Get collaborators for the currently active list
   const getCollaboratorsForList = (listId: number) => {
@@ -753,7 +756,12 @@ export default function PartnerDetail() {
                 <div className="flex items-center space-x-4 mb-1">
                   <h1 className="text-2xl font-bold text-gray-900">{partner.name}</h1>
                   <div className="flex items-center space-x-2">
-                    <Button variant="ghost" size="sm" className="text-sm bg-gray-100 text-gray-700 px-2 py-1 rounded h-auto">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-sm bg-gray-100 text-gray-700 px-2 py-1 rounded h-auto"
+                      onClick={() => setShowDetailsDialog(true)}
+                    >
                       Details
                     </Button>
                     <span className="text-sm text-gray-500">Owner: <span className="text-blue-600">NA</span></span>
@@ -2843,6 +2851,80 @@ export default function PartnerDetail() {
               }}
             >
               Save View
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Partner Details Dialog */}
+      <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Partner Details</DialogTitle>
+            <DialogDescription>
+              Complete information about {partner?.name}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid grid-cols-2 gap-4 py-4">
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Partner Name</Label>
+                <p className="text-sm text-gray-900 mt-1">{partner?.name || 'N/A'}</p>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Description</Label>
+                <p className="text-sm text-gray-900 mt-1">{partner?.description || 'Partner created from zonnepanelen'}</p>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Type</Label>
+                <p className="text-sm text-gray-900 mt-1">{partner?.type || 'Insurance Partner'}</p>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Contact Email</Label>
+                <p className="text-sm text-gray-900 mt-1">{partner?.contact_email || 'contact@partner.com'}</p>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Contact Phone</Label>
+                <p className="text-sm text-gray-900 mt-1">{partner?.contact_phone || '+31 20 123 4567'}</p>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Owner</Label>
+                <p className="text-sm text-gray-900 mt-1">NA</p>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Status</Label>
+                <p className="text-sm text-gray-900 mt-1">{partner?.status || 'Active'}</p>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Opportunities</Label>
+                <p className="text-sm text-gray-900 mt-1">{(relatedOpportunities as any[] || []).length} active</p>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Customers</Label>
+                <p className="text-sm text-gray-900 mt-1">{(relatedCustomers as any[] || []).length} connected</p>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Created Date</Label>
+                <p className="text-sm text-gray-900 mt-1">{partner?.created_at ? new Date(partner.created_at).toLocaleDateString() : 'N/A'}</p>
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDetailsDialog(false)}>
+              Close
             </Button>
           </DialogFooter>
         </DialogContent>

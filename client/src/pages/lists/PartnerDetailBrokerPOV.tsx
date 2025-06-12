@@ -10,6 +10,8 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { ArrowLeft, Search } from "lucide-react";
 import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
 import EntityAvatar from "@/components/EntityAvatar";
@@ -60,6 +62,9 @@ export default function PartnerDetailBrokerPOV() {
   
   // Selection state for opportunities
   const [selectedOpportunities, setSelectedOpportunities] = useState<number[]>([]);
+  
+  // Details dialog state
+  const [showDetailsDialog, setShowDetailsDialog] = useState(false);
 
   // Stage editing state
   const [editingStageId, setEditingStageId] = useState<number | null>(null);
@@ -603,7 +608,12 @@ export default function PartnerDetailBrokerPOV() {
               <div className="flex items-center space-x-4 mb-1">
                 <h1 className="text-2xl font-bold text-gray-900">{partner.name}</h1>
                 <div className="flex items-center space-x-2">
-                  <Button variant="ghost" size="sm" className="text-sm bg-gray-100 text-gray-700 px-2 py-1 rounded h-auto">
+                  <Button 
+                    variant="ghost" 
+                    size="sm" 
+                    className="text-sm bg-gray-100 text-gray-700 px-2 py-1 rounded h-auto"
+                    onClick={() => setShowDetailsDialog(true)}
+                  >
                     Details
                   </Button>
                   <span className="text-sm text-gray-500">Owner: <span className="text-blue-600">De Goudse</span></span>
@@ -2003,6 +2013,80 @@ export default function PartnerDetailBrokerPOV() {
           )}
         </div>
       </div>
+
+      {/* Partner Details Dialog */}
+      <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Partner Details</DialogTitle>
+            <DialogDescription>
+              Complete information about {partner.name}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid grid-cols-2 gap-4 py-4">
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Partner Name</Label>
+                <p className="text-sm text-gray-900 mt-1">{partner.name}</p>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Description</Label>
+                <p className="text-sm text-gray-900 mt-1">{partner.description}</p>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Primary Contact</Label>
+                <p className="text-sm text-gray-900 mt-1">{partner.primary_contact}</p>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Contact Email</Label>
+                <p className="text-sm text-gray-900 mt-1">{partner.contact_email}</p>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Phone</Label>
+                <p className="text-sm text-gray-900 mt-1">{partner.phone}</p>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Location</Label>
+                <p className="text-sm text-gray-900 mt-1">{partner.location}</p>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Partnership Type</Label>
+                <p className="text-sm text-gray-900 mt-1">Insurance Broker Partnership</p>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Status</Label>
+                <p className="text-sm text-gray-900 mt-1">Active Partnership</p>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Shared Opportunities</Label>
+                <p className="text-sm text-gray-900 mt-1">{allOpportunities.length} opportunities</p>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Access Level</Label>
+                <p className="text-sm text-gray-900 mt-1">Broker View Access</p>
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDetailsDialog(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </BrokerLayout>
   );
 }
