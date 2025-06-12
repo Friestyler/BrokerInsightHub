@@ -77,6 +77,8 @@ export default function OpportunityDetail() {
     probability: '',
     expectedCloseDate: ''
   });
+  const [selectedCustomerIds, setSelectedCustomerIds] = useState<number[]>([]);
+  const [selectedPartnerIds, setSelectedPartnerIds] = useState<number[]>([]);
 
   // Detect navigation context and set appropriate back URL
   useEffect(() => {
@@ -148,6 +150,44 @@ export default function OpportunityDetail() {
     queryKey: [`/api/${environment.id}/opportunities/${id}/products`],
     enabled: !!id,
   });
+
+  // Fetch all customers for multi-select
+  const { data: allCustomers } = useQuery({
+    queryKey: ['/api/customers'],
+  });
+
+  // Fetch all partners for multi-select
+  const { data: allPartners } = useQuery({
+    queryKey: ['/api/partners'],
+  });
+
+  // Initialize dialog data when it opens
+  useEffect(() => {
+    if (showDetailsDialog && opportunity) {
+      setEditedOpportunity({
+        title: opportunity.title || '',
+        description: opportunity.description || '',
+        stage: opportunity.stage || '',
+        status: opportunity.status || '',
+        type: opportunity.type || '',
+        location: opportunity.location || '',
+        estimatedValue: opportunity.estimatedValue?.toString() || '',
+        probability: opportunity.probability?.toString() || '',
+        expectedCloseDate: opportunity.expectedCloseDate || ''
+      });
+      
+      // Initialize with existing relationships
+      const customerIds = Array.isArray(relatedCustomers) 
+        ? relatedCustomers.map((customer: any) => customer.id) 
+        : [];
+      const partnerIds = Array.isArray(relatedPartners) 
+        ? relatedPartners.map((partner: any) => partner.id) 
+        : [];
+        
+      setSelectedCustomerIds(customerIds);
+      setSelectedPartnerIds(partnerIds);
+    }
+  }, [showDetailsDialog, opportunity, relatedCustomers, relatedPartners]);
 
   if (opportunityLoading || partnersLoading || customersLoading || productsLoading) {
     return <div className="p-4">Loading...</div>;
@@ -567,10 +607,10 @@ export default function OpportunityDetail() {
 
       {/* Opportunity Details Dialog */}
       <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="max-w-2xl bg-[#ffffff] text-[#282A3F]" style={{ padding: '32px' }}>
           <DialogHeader>
-            <DialogTitle>Opportunity Details</DialogTitle>
-            <DialogDescription>
+            <DialogTitle className="text-[#282A3F]">Opportunity Details</DialogTitle>
+            <DialogDescription className="text-[#666666]">
               Complete information about {opportunity.title}
             </DialogDescription>
           </DialogHeader>
@@ -657,13 +697,95 @@ export default function OpportunityDetail() {
               </div>
               
               <div>
-                <Label className="text-sm font-medium text-gray-700">Customer</Label>
-                <p className="text-sm text-gray-500 mt-1">{opportunity.customerName || 'Not assigned'} (read-only)</p>
+                <Label className="text-sm font-medium text-gray-700">Customers</Label>
+                <Select 
+                  onValueChange={(value) => {
+                    if (value && !selectedCustomerIds.includes(parseInt(value))) {
+                      setSelectedCustomerIds([...selectedCustomerIds, parseInt(value)]);
+                    }
+                  }}
+                >
+                  <SelectTrigger className="mt-1 min-h-[42px]">
+                    <div className="flex flex-wrap gap-1 py-1">
+                      {selectedCustomerIds.length === 0 ? (
+                        <span className="text-gray-500">Select customers...</span>
+                      ) : (
+                        selectedCustomerIds.map(customerId => {
+                          const customer = allCustomers?.find((c: any) => c.id === customerId);
+                          return customer ? (
+                            <span key={customerId} className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
+                              {customer.name}
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedCustomerIds(selectedCustomerIds.filter(id => id !== customerId));
+                                }}
+                                className="ml-1 text-green-600 hover:text-green-800"
+                              >
+                                ×
+                              </button>
+                            </span>
+                          ) : null;
+                        })
+                      )}
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {allCustomers?.filter((customer: any) => !selectedCustomerIds.includes(customer.id))
+                      .map((customer: any) => (
+                        <SelectItem key={customer.id} value={customer.id.toString()}>
+                          {customer.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
               </div>
               
               <div>
-                <Label className="text-sm font-medium text-gray-700">Partner</Label>
-                <p className="text-sm text-gray-500 mt-1">{opportunity.partnerName || 'Not assigned'} (read-only)</p>
+                <Label className="text-sm font-medium text-gray-700">Partners</Label>
+                <Select 
+                  onValueChange={(value) => {
+                    if (value && !selectedPartnerIds.includes(parseInt(value))) {
+                      setSelectedPartnerIds([...selectedPartnerIds, parseInt(value)]);
+                    }
+                  }}
+                >
+                  <SelectTrigger className="mt-1 min-h-[42px]">
+                    <div className="flex flex-wrap gap-1 py-1">
+                      {selectedPartnerIds.length === 0 ? (
+                        <span className="text-gray-500">Select partners...</span>
+                      ) : (
+                        selectedPartnerIds.map(partnerId => {
+                          const partner = allPartners?.find((p: any) => p.id === partnerId);
+                          return partner ? (
+                            <span key={partnerId} className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">
+                              {partner.name}
+                              <button
+                                type="button"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setSelectedPartnerIds(selectedPartnerIds.filter(id => id !== partnerId));
+                                }}
+                                className="ml-1 text-blue-600 hover:text-blue-800"
+                              >
+                                ×
+                              </button>
+                            </span>
+                          ) : null;
+                        })
+                      )}
+                    </div>
+                  </SelectTrigger>
+                  <SelectContent>
+                    {allPartners?.filter((partner: any) => !selectedPartnerIds.includes(partner.id))
+                      .map((partner: any) => (
+                        <SelectItem key={partner.id} value={partner.id.toString()}>
+                          {partner.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
               </div>
               
               <div>
@@ -683,7 +805,7 @@ export default function OpportunityDetail() {
             </div>
           </div>
           
-          <DialogFooter>
+          <DialogFooter style={{ marginTop: '24px' }}>
             <Button 
               variant="outline" 
               onClick={() => {
@@ -700,6 +822,8 @@ export default function OpportunityDetail() {
                   expectedCloseDate: ''
                 });
               }}
+              className="text-[#282A3F] border-[#282A3F]"
+              style={{ padding: '8px 16px', marginRight: '12px' }}
             >
               Cancel
             </Button>
@@ -711,6 +835,10 @@ export default function OpportunityDetail() {
                     estimatedValue: editedOpportunity.estimatedValue ? parseFloat(editedOpportunity.estimatedValue) : null,
                     probability: editedOpportunity.probability ? parseFloat(editedOpportunity.probability) : null
                   };
+                  
+                  console.log('Saving opportunity data:', updatedData);
+                  console.log('Selected customers:', selectedCustomerIds);
+                  console.log('Selected partners:', selectedPartnerIds);
                   
                   // Note: Add API call here when backend endpoint is available
                   // await apiRequest(`/api/${environment?.id}/opportunities/${id}`, {
@@ -734,6 +862,8 @@ export default function OpportunityDetail() {
                   });
                 }
               }}
+              className="bg-[#5567E5] text-[#ffffff] hover:bg-[#4556D4]"
+              style={{ padding: '8px 16px' }}
             >
               Save
             </Button>
