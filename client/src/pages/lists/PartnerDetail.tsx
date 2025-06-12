@@ -407,32 +407,7 @@ export default function PartnerDetail() {
     queryKey: ['/api/customers'],
   });
 
-  // Initialize dialog data when it opens
-  useEffect(() => {
-    if (showDetailsDialog && partner) {
-      setEditedPartner({
-        name: partner.name || '',
-        description: partner.description || '',
-        type: partner.type || '',
-        contactEmail: partner.contactEmail || '',
-        contactPhone: partner.contactPhone || '',
-        website: partner.website || '',
-        status: partner.status || '',
-        address: partner.address || '',
-      });
-      
-      // Initialize with existing relationships
-      const opportunityIds = Array.isArray(relatedOpportunities) 
-        ? relatedOpportunities.map((opp: any) => opp.id) 
-        : [];
-      const customerIds = Array.isArray(relatedCustomers) 
-        ? relatedCustomers.map((customer: any) => customer.id) 
-        : [];
-        
-      setSelectedOpportunityIds(opportunityIds);
-      setSelectedCustomerIds(customerIds);
-    }
-  }, [showDetailsDialog, partner, relatedOpportunities, relatedCustomers]);
+
 
   // Fetch saved lists for opportunities that include this partner
   const { data: savedListsData } = useQuery({
@@ -711,6 +686,33 @@ export default function PartnerDetail() {
   }
 
   const partner = (partners as any[] || []).find((p: any) => p.id === parseInt(id || '1'));
+  
+  // Initialize dialog data when it opens (after partner is declared)
+  useEffect(() => {
+    if (showDetailsDialog && partner) {
+      setEditedPartner({
+        name: partner.name || '',
+        description: partner.description || '',
+        type: partner.type || '',
+        contactEmail: partner.contactEmail || '',
+        contactPhone: partner.contactPhone || '',
+        website: partner.website || '',
+        status: partner.status || '',
+        address: partner.address || '',
+      });
+      
+      // Initialize with existing relationships
+      const opportunityIds = Array.isArray(relatedOpportunities) 
+        ? relatedOpportunities.map((opp: any) => opp.id) 
+        : [];
+      const customerIds = Array.isArray(relatedCustomers) 
+        ? relatedCustomers.map((customer: any) => customer.id) 
+        : [];
+        
+      setSelectedOpportunityIds(opportunityIds);
+      setSelectedCustomerIds(customerIds);
+    }
+  }, [showDetailsDialog, partner, relatedOpportunities, relatedCustomers]);
   
   if (!partner) {
     return <div className="p-4">Partner not found</div>;
