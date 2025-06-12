@@ -100,6 +100,9 @@ const campaignSettingsSchema = z.object({
   fromName: z.string().min(2, "Sender name is required"),
   fromEmail: z.string().email("Invalid email address"),
   isShared: z.boolean().default(false),
+  saveAsTemplate: z.boolean().default(false),
+  templateName: z.string().optional(),
+  templateDescription: z.string().optional(),
 });
 
 // Combined campaign schema
@@ -229,12 +232,16 @@ export default function CampaignBuilder() {
       fromName: "",
       fromEmail: "",
       isShared: false,
+      saveAsTemplate: false,
+      templateName: "",
+      templateDescription: "",
       status: "draft",
     }
   });
 
   // Watch the recipientIds to ensure UI updates
   const selectedRecipientIds = form.watch("recipientIds");
+  const saveAsTemplate = form.watch("saveAsTemplate");
 
   // Contact form for new contact creation
   const contactForm = useForm<ContactFormValues>({
@@ -532,19 +539,69 @@ export default function CampaignBuilder() {
     }, 1000);
   };
 
+  // Template creation mutation
+  const createTemplateMutation = useMutation({
+    mutationFn: (templateData: any) => {
+      return apiRequest('POST', '/api/campaign-templates', templateData);
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/campaign-templates'] });
+      toast({
+        title: "Template saved",
+        description: "Your campaign template has been saved successfully",
+      });
+    },
+    onError: (error) => {
+      console.error("Error creating template:", error);
+      toast({
+        title: "Template save failed",
+        description: "Failed to save template. Campaign was still created.",
+        variant: "destructive"
+      });
+    }
+  });
+
   // Form submission
-  const onSubmit = (data: CampaignFormValues) => {
+  const onSubmit = async (data: CampaignFormValues) => {
     setIsSubmitting(true);
     
     // Transform form data to match API schema
     const campaignData = {
       ...data,
-      listId: data.listId ? parseInt(data.listId) : null,
+      listIds: data.listIds,
       recipientIds: data.recipientIds.map(id => parseInt(id)),
       followUpEmails: data.enableFollowUp ? data.followUpEmails : [],
     };
+
+    // Remove template-specific fields from campaign data
+    const { saveAsTemplate, templateName, templateDescription, ...cleanCampaignData } = campaignData;
     
-    createCampaignMutation.mutate(campaignData);
+    // If saving as template, create the template first
+    if (data.saveAsTemplate && data.templateName) {
+      const templateData = {
+        name: data.templateName,
+        description: data.templateDescription || "",
+        type: data.type,
+        category: data.category || "",
+        emailBody: data.emailBody,
+        emailLogo: data.emailLogo || "",
+        subject: data.subject,
+        frequency: data.frequency,
+        fromName: data.fromName,
+        fromEmail: data.fromEmail,
+        followUpEmails: data.enableFollowUp ? data.followUpEmails : [],
+        enableFollowUp: data.enableFollowUp,
+      };
+      
+      try {
+        await createTemplateMutation.mutateAsync(templateData);
+      } catch (error) {
+        // Continue with campaign creation even if template fails
+        console.warn("Template creation failed, continuing with campaign:", error);
+      }
+    }
+    
+    createCampaignMutation.mutate(cleanCampaignData);
   };
 
   // Render current step content
@@ -1159,6 +1216,44 @@ export default function CampaignBuilder() {
                 className="rounded text-indigo-600 focus:ring-indigo-500"
               />
               <Label htmlFor="share-campaign">Share this campaign with team members</Label>
+            </div>
+            
+            <div className="border-t pt-4">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="save-as-template"
+                  checked={form.getValues("saveAsTemplate")}
+                  onChange={(e) => form.setValue("saveAsTemplate", e.target.checked)}
+                  className="rounded text-indigo-600 focus:ring-indigo-500"
+                />
+                <Label htmlFor="save-as-template">Save as template for future campaigns</Label>
+              </div>
+              <p className="text-xs text-gray-500 mt-1 ml-6">
+                This will create a reusable template with your campaign settings and content
+              </p>
+              
+              {form.getValues("saveAsTemplate") && (
+                <div className="mt-3 ml-6 space-y-2">
+                  <Label htmlFor="template-name">Template Name</Label>
+                  <Input
+                    id="template-name"
+                    placeholder="e.g., Property Cross-sell Template"
+                    value={form.getValues("templateName") || ""}
+                    onChange={(e) => form.setValue("templateName", e.target.value)}
+                  />
+                  <div className="space-y-2">
+                    <Label htmlFor="template-description">Description (optional)</Label>
+                    <Textarea
+                      id="template-description"
+                      placeholder="Describe when and how to use this template..."
+                      className="min-h-[80px]"
+                      value={form.getValues("templateDescription") || ""}
+                      onChange={(e) => form.setValue("templateDescription", e.target.value)}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         );
