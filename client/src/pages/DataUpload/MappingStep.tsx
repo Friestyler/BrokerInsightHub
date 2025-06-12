@@ -9,7 +9,7 @@ interface MappingStepProps {
   uploadType: string;
   stepName: string;
   currentStep: number;
-  onNext: () => void;
+  onNext: (csvHeaders: string[]) => void;
   onBack: () => void;
 }
 
@@ -148,7 +148,7 @@ export default function MappingStep({
           Back
         </Button>
         <Button 
-          onClick={onNext} 
+          onClick={() => onNext(csvHeaders)} 
           disabled={!canProceed}
           className="min-w-[100px]"
         >

@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Upload, FileSpreadsheet, ArrowLeft, ArrowRight, CheckCircle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import MappingStep from './MappingStep';
+import AttributeMappingStep from './AttributeMappingStep';
 
 interface UploadProcessProps {
   entityType?: string;
@@ -17,9 +18,10 @@ interface UploadProcessProps {
 const steps = [
   { id: 1, name: 'Transformation', description: 'Configure data transformation' },
   { id: 2, name: 'Upload', description: 'Upload your CSV file' },
-  { id: 3, name: 'Mapping', description: 'Map columns to attributes' },
-  { id: 4, name: 'Processing', description: 'Process and validate data' },
-  { id: 5, name: 'Complete', description: 'Review results' }
+  { id: 3, name: 'Review Columns', description: 'Review CSV column headers' },
+  { id: 4, name: 'Mapping', description: 'Map columns to attributes' },
+  { id: 5, name: 'Processing', description: 'Process and validate data' },
+  { id: 6, name: 'Complete', description: 'Review results' }
 ];
 
 export default function UploadProcessPage() {
@@ -35,6 +37,7 @@ export default function UploadProcessPage() {
   
   const [currentStep, setCurrentStep] = useState(1); // Always start at step 1
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
+  const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
   const [dragOver, setDragOver] = useState(false);
 
   const visibleSteps = isSpecialFormat ? steps : steps.slice(1); // Skip transformation for regular entities
@@ -266,15 +269,31 @@ export default function UploadProcessPage() {
             </div>
           )}
 
-          {/* Mapping Step with Template Management */}
+          {/* Review Columns Step */}
           {((currentStep === 3 && isSpecialFormat) || (currentStep === 2 && !isSpecialFormat)) && (
             <MappingStep 
-              uploadType={uploadType}
               uploadedFile={uploadedFile}
-              onNext={goToNextStep}
-              onPrevious={goToPreviousStep}
+              uploadType={uploadType || ''}
+              stepName={currentStepData?.name || 'Review Columns'}
               currentStep={currentStep}
-              stepName={currentStepData?.name || 'Mapping'}
+              onNext={(headers) => {
+                setCsvHeaders(headers);
+                goToNextStep();
+              }}
+              onBack={goToPreviousStep}
+            />
+          )}
+
+          {/* Attribute Mapping Step */}
+          {((currentStep === 4 && isSpecialFormat) || (currentStep === 3 && !isSpecialFormat)) && (
+            <AttributeMappingStep 
+              uploadedFile={uploadedFile}
+              csvHeaders={csvHeaders}
+              uploadType={uploadType || ''}
+              stepName={currentStepData?.name || 'Attribute Mapping'}
+              currentStep={currentStep}
+              onNext={goToNextStep}
+              onBack={goToPreviousStep}
             />
           )}
 
