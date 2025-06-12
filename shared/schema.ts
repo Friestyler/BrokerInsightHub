@@ -912,6 +912,180 @@ export type CampaignRecipient = typeof campaignRecipients.$inferSelect;
 export type InsertCampaignFollowUp = z.infer<typeof insertCampaignFollowUpSchema>;
 export type CampaignFollowUp = typeof campaignFollowUps.$inferSelect;
 
+// Upload Settings Infrastructure - Phase 1
+
+// Upload settings per entity and environment
+export const uploadSettings = pgTable("upload_settings", {
+  id: serial("id").primaryKey(),
+  environmentId: text("environment_id").notNull(), // e.g., "degoudse", "acme"
+  entityType: text("entity_type").notNull(), // e.g., "opportunities", "partners", "customers"
+  attributeName: text("attribute_name").notNull(), // column name from the entity
+  isMandatory: boolean("is_mandatory").notNull().default(false),
+  dataType: text("data_type"), // inferred from schema: text, integer, boolean, timestamp, etc.
+  validationRules: json("validation_rules"), // custom validation rules
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Transformation scripts for special formats
+export const transformationScripts = pgTable("transformation_scripts", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  entityType: text("entity_type").notNull(), // target entity type
+  environmentId: text("environment_id").notNull(),
+  scriptContent: text("script_content").notNull(), // Python code
+  isActive: boolean("is_active").notNull().default(true),
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Upload templates for column mappings
+export const uploadTemplates = pgTable("upload_templates", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  entityType: text("entity_type").notNull(),
+  environmentId: text("environment_id").notNull(),
+  columnMappings: json("column_mappings").notNull(), // mapping configuration
+  isShared: boolean("is_shared").notNull().default(false),
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Upload sessions for tracking upload progress
+export const uploadSessions = pgTable("upload_sessions", {
+  id: serial("id").primaryKey(),
+  sessionId: text("session_id").notNull().unique(),
+  entityType: text("entity_type").notNull(),
+  environmentId: text("environment_id").notNull(),
+  fileName: text("file_name").notNull(),
+  status: text("status").notNull().default("uploading"), // uploading, mapping, processing, complete, error
+  currentStep: integer("current_step").notNull().default(1), // 1-5 for progress tracking
+  errorLog: json("error_log"), // detailed error information
+  processedRows: integer("processed_rows").default(0),
+  totalRows: integer("total_rows").default(0),
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
+// Error logs for upload processing
+export const uploadErrors = pgTable("upload_errors", {
+  id: serial("id").primaryKey(),
+  sessionId: text("session_id").notNull().references(() => uploadSessions.sessionId),
+  rowNumber: integer("row_number").notNull(),
+  errorType: text("error_type").notNull(), // format, missing_data, type_mismatch, duplicate, etc.
+  errorMessage: text("error_message").notNull(),
+  problematicData: json("problematic_data"), // the actual data that caused the error
+  resolutionAction: text("resolution_action"), // skip, replace, edit, etc.
+  isResolved: boolean("is_resolved").notNull().default(false),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+});
+
+// Define relationships
+export const uploadSettingsRelations = relations(uploadSettings, ({ one }) => ({}));
+
+export const transformationScriptsRelations = relations(transformationScripts, ({ one }) => ({
+  createdBy: one(users, {
+    fields: [transformationScripts.createdBy],
+    references: [users.id],
+  }),
+}));
+
+export const uploadTemplatesRelations = relations(uploadTemplates, ({ one }) => ({
+  createdBy: one(users, {
+    fields: [uploadTemplates.createdBy],
+    references: [users.id],
+  }),
+}));
+
+export const uploadSessionsRelations = relations(uploadSessions, ({ one, many }) => ({
+  createdBy: one(users, {
+    fields: [uploadSessions.createdBy],
+    references: [users.id],
+  }),
+  errors: many(uploadErrors),
+}));
+
+export const uploadErrorsRelations = relations(uploadErrors, ({ one }) => ({
+  session: one(uploadSessions, {
+    fields: [uploadErrors.sessionId],
+    references: [uploadSessions.sessionId],
+  }),
+}));
+
+// Insert schemas
+export const insertUploadSettingSchema = createInsertSchema(uploadSettings).pick({
+  environmentId: true,
+  entityType: true,
+  attributeName: true,
+  isMandatory: true,
+  dataType: true,
+  validationRules: true,
+});
+
+export const insertTransformationScriptSchema = createInsertSchema(transformationScripts).pick({
+  name: true,
+  description: true,
+  entityType: true,
+  environmentId: true,
+  scriptContent: true,
+  isActive: true,
+  createdBy: true,
+});
+
+export const insertUploadTemplateSchema = createInsertSchema(uploadTemplates).pick({
+  name: true,
+  description: true,
+  entityType: true,
+  environmentId: true,
+  columnMappings: true,
+  isShared: true,
+  createdBy: true,
+});
+
+export const insertUploadSessionSchema = createInsertSchema(uploadSessions).pick({
+  sessionId: true,
+  entityType: true,
+  environmentId: true,
+  fileName: true,
+  status: true,
+  currentStep: true,
+  errorLog: true,
+  processedRows: true,
+  totalRows: true,
+  createdBy: true,
+});
+
+export const insertUploadErrorSchema = createInsertSchema(uploadErrors).pick({
+  sessionId: true,
+  rowNumber: true,
+  errorType: true,
+  errorMessage: true,
+  problematicData: true,
+  resolutionAction: true,
+  isResolved: true,
+});
+
+// Types
+export type InsertUploadSetting = z.infer<typeof insertUploadSettingSchema>;
+export type UploadSetting = typeof uploadSettings.$inferSelect;
+
+export type InsertTransformationScript = z.infer<typeof insertTransformationScriptSchema>;
+export type TransformationScript = typeof transformationScripts.$inferSelect;
+
+export type InsertUploadTemplate = z.infer<typeof insertUploadTemplateSchema>;
+export type UploadTemplate = typeof uploadTemplates.$inferSelect;
+
+export type InsertUploadSession = z.infer<typeof insertUploadSessionSchema>;
+export type UploadSession = typeof uploadSessions.$inferSelect;
+
+export type InsertUploadError = z.infer<typeof insertUploadErrorSchema>;
+export type UploadError = typeof uploadErrors.$inferSelect;
+
 // Activity tables type exports
 export const insertActivityTaskSchema = createInsertSchema(activityTasks).omit({
   id: true,
