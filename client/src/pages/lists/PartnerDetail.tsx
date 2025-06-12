@@ -88,6 +88,8 @@ export default function PartnerDetail() {
   // Details dialog state
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
   const [editedPartner, setEditedPartner] = useState<any>({});
+  const [selectedOpportunityIds, setSelectedOpportunityIds] = useState<number[]>([]);
+  const [selectedCustomerIds, setSelectedCustomerIds] = useState<number[]>([]);
 
   // Get collaborators for the currently active list
   const getCollaboratorsForList = (listId: number) => {
@@ -393,6 +395,16 @@ export default function PartnerDetail() {
   const { data: relatedOpportunities, isLoading: opportunitiesLoading } = useQuery({
     queryKey: [`/api/partners/${id}/opportunities`],
     enabled: !!id,
+  });
+
+  // Fetch all opportunities for multi-select
+  const { data: allOpportunities } = useQuery({
+    queryKey: ['/api/opportunities'],
+  });
+
+  // Fetch all customers for multi-select
+  const { data: allCustomers } = useQuery({
+    queryKey: ['/api/customers'],
   });
 
   // Fetch saved lists for opportunities that include this partner
@@ -2957,12 +2969,92 @@ export default function PartnerDetail() {
               
               <div>
                 <Label className="text-sm font-medium text-gray-700">Opportunities</Label>
-                <p className="text-sm text-gray-500 mt-1">{(relatedOpportunities as any[] || []).length} active (read-only)</p>
+                <Select
+                  value=""
+                  onValueChange={(value) => {
+                    const id = parseInt(value);
+                    if (!selectedOpportunityIds.includes(id)) {
+                      setSelectedOpportunityIds([...selectedOpportunityIds, id]);
+                    }
+                  }}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Add opportunities..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(allOpportunities || []).filter((opportunity: any) => 
+                      !selectedOpportunityIds.includes(opportunity.id)
+                    ).map((opportunity: any) => (
+                      <SelectItem key={opportunity.id} value={opportunity.id.toString()}>
+                        {opportunity.title}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {selectedOpportunityIds.map(id => {
+                    const opp = (allOpportunities || []).find((o: any) => o.id === id);
+                    return opp ? (
+                      <span key={id} className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-md">
+                        {opp.title}
+                        <button
+                          onClick={() => setSelectedOpportunityIds(selectedOpportunityIds.filter(oid => oid !== id))}
+                          className="text-blue-600 hover:text-blue-800"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ) : null;
+                  })}
+                  {selectedOpportunityIds.length === 0 && (
+                    <span className="text-xs text-gray-500">No opportunities selected</span>
+                  )}
+                </div>
               </div>
               
               <div>
                 <Label className="text-sm font-medium text-gray-700">Customers</Label>
-                <p className="text-sm text-gray-500 mt-1">{(relatedCustomers as any[] || []).length} connected (read-only)</p>
+                <Select
+                  value=""
+                  onValueChange={(value) => {
+                    const id = parseInt(value);
+                    if (!selectedCustomerIds.includes(id)) {
+                      setSelectedCustomerIds([...selectedCustomerIds, id]);
+                    }
+                  }}
+                >
+                  <SelectTrigger className="mt-1">
+                    <SelectValue placeholder="Add customers..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(allCustomers || []).filter((customer: any) => 
+                      !selectedCustomerIds.includes(customer.id)
+                    ).map((customer: any) => (
+                      <SelectItem key={customer.id} value={customer.id.toString()}>
+                        {customer.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <div className="mt-2 flex flex-wrap gap-1">
+                  {selectedCustomerIds.map(id => {
+                    const customer = (allCustomers || []).find((c: any) => c.id === id);
+                    return customer ? (
+                      <span key={id} className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 text-xs rounded-md">
+                        {customer.name}
+                        <button
+                          onClick={() => setSelectedCustomerIds(selectedCustomerIds.filter(cid => cid !== id))}
+                          className="text-green-600 hover:text-green-800"
+                        >
+                          ×
+                        </button>
+                      </span>
+                    ) : null;
+                  })}
+                  {selectedCustomerIds.length === 0 && (
+                    <span className="text-xs text-gray-500">No customers selected</span>
+                  )}
+                </div>
               </div>
             </div>
           </div>
