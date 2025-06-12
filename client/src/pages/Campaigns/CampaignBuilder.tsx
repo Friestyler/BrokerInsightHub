@@ -250,10 +250,19 @@ export default function CampaignBuilder() {
   // Contact creation mutation
   const createContactMutation = useMutation({
     mutationFn: async (contactData: ContactFormValues & { linked_entity_type: string; linked_entity_id: number }) => {
-      return await apiRequest(`/api/contacts`, {
+      const response = await fetch(`/api/${environment}/contacts`, {
         method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
         body: JSON.stringify(contactData),
       });
+      
+      if (!response.ok) {
+        throw new Error('Failed to create contact');
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/contacts'] });
@@ -844,6 +853,47 @@ export default function CampaignBuilder() {
                                     </Label>
                                   </div>
                                 ))}
+                                
+                                {/* Add Contact Button */}
+                                <div className="pt-2">
+                                  <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    className="w-full text-xs text-gray-500 hover:text-gray-700 border-dashed border hover:border-solid"
+                                    onClick={() => {
+                                      // Get record ID based on type and record name
+                                      let recordId = 0;
+                                      let entityType = group.recordType;
+                                      
+                                      if (group.recordType === 'customer') {
+                                        const customer = Array.isArray(customers) 
+                                          ? customers.find((c: any) => c.name === recordName)
+                                          : null;
+                                        recordId = customer?.id || 0;
+                                      } else if (group.recordType === 'partner') {
+                                        const partner = Array.isArray(partners) 
+                                          ? partners.find((p: any) => p.name === recordName)
+                                          : null;
+                                        recordId = partner?.id || 0;
+                                      } else if (group.recordType === 'opportunity') {
+                                        const opportunity = Array.isArray(opportunities) 
+                                          ? opportunities.find((o: any) => o.title === recordName)
+                                          : null;
+                                        recordId = opportunity?.id || 0;
+                                      }
+                                      
+                                      setSelectedRecord({
+                                        name: recordName,
+                                        type: entityType,
+                                        id: recordId
+                                      });
+                                      setShowContactDialog(true);
+                                    }}
+                                  >
+                                    <Plus className="h-3 w-3 mr-1" /> Add Contact
+                                  </Button>
+                                </div>
                               </div>
                             </div>
                           );
@@ -1256,6 +1306,115 @@ export default function CampaignBuilder() {
           </Card>
         </div>
       </div>
+
+      {/* Add Contact Dialog */}
+      <Dialog open={showContactDialog} onOpenChange={setShowContactDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Add New Contact</DialogTitle>
+            <DialogDescription>
+              Create a new contact for {selectedRecord?.name}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <form onSubmit={contactForm.handleSubmit(handleCreateContact)} className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="first_name">First Name</Label>
+                <Input
+                  id="first_name"
+                  {...contactForm.register("first_name")}
+                  placeholder="John"
+                />
+                {contactForm.formState.errors.first_name && (
+                  <p className="text-sm text-red-500">{contactForm.formState.errors.first_name.message}</p>
+                )}
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="last_name">Last Name</Label>
+                <Input
+                  id="last_name"
+                  {...contactForm.register("last_name")}
+                  placeholder="Smith"
+                />
+                {contactForm.formState.errors.last_name && (
+                  <p className="text-sm text-red-500">{contactForm.formState.errors.last_name.message}</p>
+                )}
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                {...contactForm.register("email")}
+                placeholder="john.smith@company.com"
+              />
+              {contactForm.formState.errors.email && (
+                <p className="text-sm text-red-500">{contactForm.formState.errors.email.message}</p>
+              )}
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="phone">Phone (optional)</Label>
+              <Input
+                id="phone"
+                {...contactForm.register("phone")}
+                placeholder="+31 20 123 4567"
+              />
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-2">
+                <Label htmlFor="job_title">Job Title (optional)</Label>
+                <Input
+                  id="job_title"
+                  {...contactForm.register("job_title")}
+                  placeholder="CEO"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="department">Department (optional)</Label>
+                <Input
+                  id="department"
+                  {...contactForm.register("department")}
+                  placeholder="Management"
+                />
+              </div>
+            </div>
+            
+            <div className="space-y-2">
+              <Label htmlFor="company">Company (optional)</Label>
+              <Input
+                id="company"
+                {...contactForm.register("company")}
+                placeholder="Company Name"
+              />
+            </div>
+          </form>
+          
+          <DialogFooter>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setShowContactDialog(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              onClick={contactForm.handleSubmit(handleCreateContact)}
+              disabled={createContactMutation.isPending}
+              className="bg-blue-600 hover:bg-blue-700"
+            >
+              {createContactMutation.isPending ? "Creating..." : "Create Contact"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
