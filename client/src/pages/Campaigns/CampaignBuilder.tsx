@@ -124,6 +124,7 @@ export default function CampaignBuilder() {
   const [currentStep, setCurrentStep] = useState<string>("select-list");
   const [showAiPrompt, setShowAiPrompt] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
 
   // Get template from URL if any
   const searchParams = new URLSearchParams(window.location.search);
@@ -138,6 +139,18 @@ export default function CampaignBuilder() {
     queryKey: ['/api/contacts'],
     enabled: currentStep === "recipients"
   });
+
+  // Filter contacts based on search query
+  const filteredContacts = contacts ? contacts.filter((contact: any) => {
+    const searchLower = searchQuery.toLowerCase();
+    const fullName = `${contact.firstName || ''} ${contact.lastName || ''}`.toLowerCase();
+    const email = (contact.email || '').toLowerCase();
+    const company = (contact.company || '').toLowerCase();
+    
+    return fullName.includes(searchLower) || 
+           email.includes(searchLower) || 
+           company.includes(searchLower);
+  }) : [];
 
   // Form definition
   const form = useForm<CampaignFormValues>({
@@ -499,35 +512,48 @@ export default function CampaignBuilder() {
                   <Input 
                     placeholder="Search contacts..." 
                     className="text-sm"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
                   />
                 </div>
                 <div className="p-2">
-                  {/* Demo recipients list */}
-                  {[1, 2, 3, 4, 5].map((id) => (
-                    <div key={id} className="flex items-center space-x-2 py-2 border-b last:border-0">
-                      <input
-                        type="checkbox"
-                        id={`contact-${id}`}
-                        value={id.toString()}
-                        onChange={(e) => {
-                          const currentIds = form.getValues("recipientIds");
-                          if (e.target.checked) {
-                            form.setValue("recipientIds", [...currentIds, e.target.value]);
-                          } else {
-                            form.setValue("recipientIds", currentIds.filter(cid => cid !== e.target.value));
-                          }
-                        }}
-                        className="rounded text-indigo-600 focus:ring-indigo-500"
-                      />
-                      <Label htmlFor={`contact-${id}`} className="text-sm font-normal cursor-pointer flex-1">
-                        <div className="font-medium">John Doe {id}</div>
-                        <div className="text-xs text-gray-500">john.doe{id}@example.com</div>
-                      </Label>
-                      <span className="text-xs text-gray-500">
-                        {id % 2 === 0 ? "Customer" : "Partner"}
-                      </span>
+                  {contacts && contacts.length > 0 ? (
+                    filteredContacts.map((contact: any) => (
+                      <div key={contact.id} className="flex items-center space-x-2 py-2 border-b last:border-0">
+                        <input
+                          type="checkbox"
+                          id={`contact-${contact.id}`}
+                          value={contact.id.toString()}
+                          checked={form.getValues("recipientIds").includes(contact.id.toString())}
+                          onChange={(e) => {
+                            const currentIds = form.getValues("recipientIds");
+                            if (e.target.checked) {
+                              form.setValue("recipientIds", [...currentIds, e.target.value]);
+                            } else {
+                              form.setValue("recipientIds", currentIds.filter(cid => cid !== e.target.value));
+                            }
+                          }}
+                          className="rounded text-indigo-600 focus:ring-indigo-500"
+                        />
+                        <Label htmlFor={`contact-${contact.id}`} className="text-sm font-normal cursor-pointer flex-1">
+                          <div className="font-medium">
+                            {contact.firstName} {contact.lastName}
+                          </div>
+                          <div className="text-xs text-gray-500">{contact.email}</div>
+                          {contact.company && (
+                            <div className="text-xs text-gray-400">{contact.company}</div>
+                          )}
+                        </Label>
+                        <span className="text-xs text-gray-500 capitalize">
+                          {contact.linkedEntityType || 'Contact'}
+                        </span>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="text-center py-8 text-gray-500">
+                      {contacts === undefined ? "Loading contacts..." : "No contacts found"}
                     </div>
-                  ))}
+                  )}
                 </div>
               </div>
               {form.formState.errors.recipientIds && (
@@ -535,13 +561,19 @@ export default function CampaignBuilder() {
               )}
             </div>
             
-            <Button 
-              variant="outline" 
-              type="button"
-              className="text-sm"
-            >
-              <Plus className="h-4 w-4 mr-1" /> Add New Recipient
-            </Button>
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-gray-600">
+                {form.getValues("recipientIds").length} recipient(s) selected
+              </span>
+              <Button 
+                variant="outline" 
+                type="button"
+                className="text-sm"
+                onClick={() => setLocation("/contacts/new")}
+              >
+                <Plus className="h-4 w-4 mr-1" /> Add New Contact
+              </Button>
+            </div>
           </div>
         );
       
