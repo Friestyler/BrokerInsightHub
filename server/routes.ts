@@ -1846,6 +1846,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.get('/api/degoudse/customers', async (req, res) => {
     const cacheKey = 'degoudse_customers';
+    // Clear cache to ensure fresh data with opportunity counts
+    cache.delete(cacheKey);
     const cached = getCached(cacheKey);
     
     if (cached) {
@@ -1858,26 +1860,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     
     try {
       const envPool = getEnvironmentPool('degoudse');
-      // Optimized simple query with LIMIT for faster response
+      // Query with proper counts for accurate statistics
       const result = await envPool.query(`
-        SELECT c.*
+        SELECT c.id, c.name, c.description, c."ownerId", c."createdAt", c."updatedAt",
+               COUNT(DISTINCT pc.partner_id) as partner_count,
+               COUNT(DISTINCT co.opportunity_id) as opportunity_count
         FROM degoudse.customers c
+        LEFT JOIN degoudse.partner_customers pc ON c.id = pc.customer_id
+        LEFT JOIN degoudse.customer_opportunities co ON c.id = co.customer_id
+        GROUP BY c.id, c.name, c.description, c."ownerId", c."createdAt", c."updatedAt"
         ORDER BY c.id
         LIMIT 100
       `);
       
-      const customers = result.rows.map((customer: any) => ({
-        id: customer.id,
-        name: customer.name,
-        description: customer.description,
-        initials: customer.name.split(' ').map((word: string) => word[0]).join('').toUpperCase().slice(0, 2),
-        ownerId: customer.ownerId,
-        createdAt: customer.createdAt,
-        updatedAt: customer.updatedAt,
-        partnerCount: 0, // Simplified - removed expensive count queries
-        opportunityCount: 0, // Simplified - removed expensive count queries
-        partnerNames: '' // Simplified - removed expensive aggregation
-      }));
+      // Get partner details for each customer separately
+      const customerIds = result.rows.map(c => c.id);
+      const partnerDetails = await envPool.query(`
+        SELECT pc.customer_id, p.id as partner_id, p.name as partner_name
+        FROM degoudse.partner_customers pc
+        JOIN degoudse.partners p ON p.id = pc.partner_id
+        WHERE pc.customer_id = ANY($1)
+        ORDER BY pc.customer_id, p.name
+      `, [customerIds]);
+      
+      const customers = result.rows.map((customer: any) => {
+        const customerPartners = partnerDetails.rows.filter((p: any) => p.customer_id === customer.id);
+        const partnerNames = customerPartners.map((p: any) => p.partner_name).join(', ');
+        
+        return {
+          id: customer.id,
+          name: customer.name,
+          description: customer.description,
+          initials: customer.name.split(' ').map((word: string) => word[0]).join('').toUpperCase().slice(0, 2),
+          ownerId: customer.ownerId,
+          createdAt: customer.createdAt,
+          updatedAt: customer.updatedAt,
+          partnerCount: parseInt(customer.partner_count) || 0,
+          opportunityCount: parseInt(customer.opportunity_count) || 0,
+          partnerNames: partnerNames
+        };
+      });
       
       // Cache the result for fast subsequent requests
       setCache(cacheKey, customers);
