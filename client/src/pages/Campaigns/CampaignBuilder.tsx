@@ -100,6 +100,10 @@ const campaignSettingsSchema = z.object({
   fromName: z.string().min(2, "Sender name is required"),
   fromEmail: z.string().email("Invalid email address"),
   isShared: z.boolean().default(false),
+  sharedPartnerIds: z.array(z.string()).optional(),
+  shareAccessLevel: z.string().optional(),
+  shareMessage: z.string().optional(),
+  sharedContactIds: z.array(z.string()).optional(),
   saveAsTemplate: z.boolean().default(false),
   templateName: z.string().optional(),
   templateDescription: z.string().optional(),
@@ -232,6 +236,10 @@ export default function CampaignBuilder() {
       fromName: "",
       fromEmail: "",
       isShared: false,
+      sharedPartnerIds: [],
+      shareAccessLevel: "view",
+      shareMessage: "",
+      sharedContactIds: [],
       saveAsTemplate: false,
       templateName: "",
       templateDescription: "",
@@ -242,6 +250,8 @@ export default function CampaignBuilder() {
   // Watch the recipientIds to ensure UI updates
   const selectedRecipientIds = form.watch("recipientIds");
   const saveAsTemplate = form.watch("saveAsTemplate");
+  const isShared = form.watch("isShared");
+  const sharedPartnerIds = form.watch("sharedPartnerIds");
 
   // Contact form for new contact creation
   const contactForm = useForm<ContactFormValues>({
@@ -1212,15 +1222,73 @@ export default function CampaignBuilder() {
               </div>
             </div>
             
-            <div className="flex items-center space-x-2 pt-2">
-              <input
-                type="checkbox"
-                id="share-campaign"
-                checked={form.getValues("isShared")}
-                onChange={(e) => form.setValue("isShared", e.target.checked)}
-                className="rounded text-indigo-600 focus:ring-indigo-500"
-              />
-              <Label htmlFor="share-campaign">Share this campaign with team members</Label>
+            <div className="space-y-4 pt-2">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="share-campaign"
+                  checked={form.getValues("isShared")}
+                  onChange={(e) => form.setValue("isShared", e.target.checked)}
+                  className="rounded text-indigo-600 focus:ring-indigo-500"
+                />
+                <Label htmlFor="share-campaign">Share this campaign with team members</Label>
+              </div>
+              
+              {isShared && (
+                <div className="ml-6 space-y-4 border-l-2 border-gray-200 pl-4">
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Select Partners to Share With</Label>
+                    <div className="space-y-2 max-h-32 overflow-y-auto border rounded-md p-2">
+                      {partners?.map((partner) => (
+                        <div key={partner.id} className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            id={`partner-${partner.id}`}
+                            checked={form.getValues("sharedPartnerIds")?.includes(partner.id.toString()) || false}
+                            onChange={(e) => {
+                              const currentIds = form.getValues("sharedPartnerIds") || [];
+                              const partnerId = partner.id.toString();
+                              if (e.target.checked) {
+                                form.setValue("sharedPartnerIds", [...currentIds, partnerId]);
+                              } else {
+                                form.setValue("sharedPartnerIds", currentIds.filter(id => id !== partnerId));
+                              }
+                            }}
+                            className="rounded text-indigo-600 focus:ring-indigo-500"
+                          />
+                          <Label htmlFor={`partner-${partner.id}`} className="text-sm">
+                            {partner.name}
+                          </Label>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Access Level</Label>
+                    <select 
+                      value={form.getValues("shareAccessLevel") || "view"}
+                      onChange={(e) => form.setValue("shareAccessLevel", e.target.value)}
+                      className="w-full p-2 border rounded-md"
+                    >
+                      <option value="view">View Only - Can see campaign content</option>
+                      <option value="comment">Comment - Can add feedback and notes</option>
+                      <option value="edit">Edit - Can modify campaign content</option>
+                      <option value="admin">Admin - Full control including sharing</option>
+                    </select>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <Label className="text-sm font-medium">Share Message (optional)</Label>
+                    <Textarea
+                      placeholder="Add a message for shared recipients..."
+                      value={form.getValues("shareMessage") || ""}
+                      onChange={(e) => form.setValue("shareMessage", e.target.value)}
+                      className="min-h-[60px]"
+                    />
+                  </div>
+                </div>
+              )}
             </div>
             
             <div className="border-t pt-4">
