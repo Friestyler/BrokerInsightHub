@@ -233,6 +233,9 @@ export default function CampaignBuilder() {
     }
   });
 
+  // Watch the recipientIds to ensure UI updates
+  const selectedRecipientIds = form.watch("recipientIds");
+
   // Contact form for new contact creation
   const contactForm = useForm<ContactFormValues>({
     resolver: zodResolver(contactFormSchema),
@@ -831,20 +834,17 @@ export default function CampaignBuilder() {
                                       type="checkbox"
                                       id={`contact-${contact.id}`}
                                       value={contact.id.toString()}
-                                      checked={form.getValues("recipientIds").includes(contact.id.toString())}
+                                      checked={selectedRecipientIds.includes(contact.id.toString())}
                                       onChange={(e) => {
-                                        const currentIds = form.getValues("recipientIds") || [];
+                                        const currentIds = selectedRecipientIds || [];
                                         const contactId = contact.id.toString();
-                                        console.log('Checkbox changed:', { contactId, checked: e.target.checked, currentIds });
                                         
                                         if (e.target.checked) {
                                           const newIds = [...currentIds, contactId];
                                           form.setValue("recipientIds", newIds);
-                                          console.log('Updated recipientIds (add):', newIds);
                                         } else {
                                           const newIds = currentIds.filter(cid => cid !== contactId);
                                           form.setValue("recipientIds", newIds);
-                                          console.log('Updated recipientIds (remove):', newIds);
                                         }
                                       }}
                                       className="rounded text-indigo-600 focus:ring-indigo-500"
@@ -927,7 +927,7 @@ export default function CampaignBuilder() {
             
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">
-                {form.getValues("recipientIds").length} recipient(s) selected
+                {selectedRecipientIds.length} recipient(s) selected
                 {Object.keys(groupedContacts).length > 0 && (
                   <span className="text-gray-400 ml-2">
                     from {Object.values(groupedContacts).reduce((total: number, group: any) => total + group.contacts.length, 0)} total contacts
