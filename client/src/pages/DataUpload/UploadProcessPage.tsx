@@ -23,27 +23,25 @@ const steps = [
 
 export default function UploadProcessPage() {
   const [location, setLocation] = useLocation();
-  const [match, params] = useRoute('/data-upload-2/process/:entityType/:formatType?');
+  const [match, params] = useRoute('/data-upload-2/process/:type');
   
-  const entityType = params?.entityType;
-  const formatType = params?.formatType;
+  const uploadType = params?.type;
   
-  const [currentStep, setCurrentStep] = useState(formatType ? 1 : 2); // Start at Transformation for special formats, Upload for entities
+  // Determine if this is a special format (contains hyphen) or entity
+  const isSpecialFormat = uploadType?.includes('-') || ['salesforce', 'brio', 'degoudse'].includes(uploadType || '');
+  const entityType = isSpecialFormat ? undefined : uploadType;
+  const formatType = isSpecialFormat ? uploadType : undefined;
+  
+  const [currentStep, setCurrentStep] = useState(isSpecialFormat ? 1 : 2); // Start at Transformation for special formats, Upload for entities
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [dragOver, setDragOver] = useState(false);
 
-  // Get entity configuration
-  const { data: entityConfig } = useQuery({
-    queryKey: ['/api/upload/supported-entities'],
-    enabled: !!entityType && !formatType
-  });
-
-  // Determine if this is a special format upload
-  const isSpecialFormat = !!formatType;
-  const availableSteps = isSpecialFormat ? steps : steps.slice(1); // Skip transformation for regular entities
-
-  const currentStepData = availableSteps[currentStep - (isSpecialFormat ? 1 : 2)];
-  const progressPercentage = ((currentStep - (isSpecialFormat ? 1 : 2)) / (availableSteps.length - 1)) * 100;
+  const startStep = isSpecialFormat ? 1 : 2;
+  const totalSteps = 5;
+  
+  const currentStepData = steps[currentStep - 1];
+  const visibleSteps = isSpecialFormat ? steps : steps.slice(1); // Skip transformation for regular entities
+  const progressPercentage = ((currentStep - startStep) / (totalSteps - startStep)) * 100;
 
   const handleFileUpload = (file: File) => {
     if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
@@ -73,13 +71,13 @@ export default function UploadProcessPage() {
   };
 
   const goToNextStep = () => {
-    if (currentStep < (isSpecialFormat ? 5 : 5)) {
+    if (currentStep < 5) {
       setCurrentStep(currentStep + 1);
     }
   };
 
   const goToPreviousStep = () => {
-    if (currentStep > (isSpecialFormat ? 1 : 2)) {
+    if (currentStep > startStep) {
       setCurrentStep(currentStep - 1);
     }
   };
@@ -132,7 +130,7 @@ export default function UploadProcessPage() {
           </div>
           
           <div className="flex justify-between">
-            {availableSteps.map((step, index) => {
+            {visibleSteps.map((step, index) => {
               const stepNumber = isSpecialFormat ? step.id : step.id - 1;
               const isActive = stepNumber === currentStep;
               const isCompleted = stepNumber < currentStep;
