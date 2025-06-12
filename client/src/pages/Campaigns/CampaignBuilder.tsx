@@ -833,11 +833,18 @@ export default function CampaignBuilder() {
                                       value={contact.id.toString()}
                                       checked={form.getValues("recipientIds").includes(contact.id.toString())}
                                       onChange={(e) => {
-                                        const currentIds = form.getValues("recipientIds");
+                                        const currentIds = form.getValues("recipientIds") || [];
+                                        const contactId = contact.id.toString();
+                                        console.log('Checkbox changed:', { contactId, checked: e.target.checked, currentIds });
+                                        
                                         if (e.target.checked) {
-                                          form.setValue("recipientIds", [...currentIds, e.target.value]);
+                                          const newIds = [...currentIds, contactId];
+                                          form.setValue("recipientIds", newIds);
+                                          console.log('Updated recipientIds (add):', newIds);
                                         } else {
-                                          form.setValue("recipientIds", currentIds.filter(cid => cid !== e.target.value));
+                                          const newIds = currentIds.filter(cid => cid !== contactId);
+                                          form.setValue("recipientIds", newIds);
+                                          console.log('Updated recipientIds (remove):', newIds);
                                         }
                                       }}
                                       className="rounded text-indigo-600 focus:ring-indigo-500"
