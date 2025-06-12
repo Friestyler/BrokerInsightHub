@@ -104,9 +104,9 @@ export default function AttributeMappingStep({
 
   // Initialize required attributes based on upload settings
   useEffect(() => {
-    if (entityData && uploadSettings && uploadType) {
+    if (Array.isArray(entityData) && Array.isArray(uploadSettings) && uploadType) {
       const entitySchema = entityData.find((e: any) => 
-        e.tableName.toLowerCase().includes(uploadType.toLowerCase())
+        e.tableName && e.tableName.toLowerCase().includes(uploadType.toLowerCase())
       );
       
       const entityUploadSettings = uploadSettings.find((s: any) => 
@@ -128,9 +128,9 @@ export default function AttributeMappingStep({
 
   // Get available entity attributes
   const getEntityAttributes = () => {
-    if (!entityData || !uploadType) return [];
+    if (!Array.isArray(entityData) || !uploadType) return [];
     const entitySchema = entityData.find((e: any) => 
-      e.tableName.toLowerCase().includes(uploadType.toLowerCase())
+      e.tableName && e.tableName.toLowerCase().includes(uploadType.toLowerCase())
     );
     return entitySchema?.columns
       ?.map((col: any) => col.name)

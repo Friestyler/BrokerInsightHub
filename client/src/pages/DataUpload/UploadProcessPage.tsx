@@ -276,7 +276,7 @@ export default function UploadProcessPage() {
               uploadType={uploadType || ''}
               stepName={currentStepData?.name || 'Review Columns'}
               currentStep={currentStep}
-              onNext={(headers) => {
+              onNext={(headers: string[]) => {
                 setCsvHeaders(headers);
                 goToNextStep();
               }}
@@ -298,7 +298,7 @@ export default function UploadProcessPage() {
           )}
 
           {/* Additional steps */}
-          {currentStep > (isSpecialFormat ? 3 : 2) && (
+          {currentStep > (isSpecialFormat ? 4 : 3) && (
             <div className="text-center py-12">
               <h3 className="text-lg font-medium mb-2">Step {currentStep}: {currentStepData?.name}</h3>
               <p className="text-gray-600 mb-6">This step will be implemented in the next phase.</p>
