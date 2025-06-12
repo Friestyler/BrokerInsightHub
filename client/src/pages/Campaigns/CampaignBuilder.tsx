@@ -152,6 +152,21 @@ export default function CampaignBuilder() {
     enabled: currentStep === "recipients"
   });
 
+  const { data: partners } = useQuery({
+    queryKey: ['/api/partners'],
+    enabled: currentStep === "recipients"
+  });
+
+  const { data: customers } = useQuery({
+    queryKey: ['/api/customers'],
+    enabled: currentStep === "recipients"
+  });
+
+  const { data: opportunities } = useQuery({
+    queryKey: ['/api/opportunities'],
+    enabled: currentStep === "recipients"
+  });
+
   // Group saved lists by entity type
   const groupedSavedLists = React.useMemo(() => {
     if (!allSavedLists || !Array.isArray(allSavedLists)) return {};
@@ -177,21 +192,6 @@ export default function CampaignBuilder() {
     }
   };
 
-  // Filter contacts based on search query
-  const contactsArray = Array.isArray(contacts) ? contacts : [];
-  const filteredContacts = contactsArray.filter((contact: any) => {
-    if (!searchQuery) return true;
-    
-    const searchLower = searchQuery.toLowerCase();
-    const fullName = `${contact.firstName || ''} ${contact.lastName || ''}`.toLowerCase();
-    const email = (contact.email || '').toLowerCase();
-    const company = (contact.company || '').toLowerCase();
-    
-    return fullName.includes(searchLower) || 
-           email.includes(searchLower) || 
-           company.includes(searchLower);
-  });
-
   // Form definition
   const form = useForm<CampaignFormValues>({
     resolver: zodResolver(campaignFormSchema),
@@ -214,6 +214,99 @@ export default function CampaignBuilder() {
       status: "draft",
     }
   });
+
+  // Get contacts filtered by target lists and group by records
+  const groupedContacts = React.useMemo(() => {
+    if (!contacts || !Array.isArray(contacts)) return {};
+    
+    const selectedListIds = form.getValues("listIds") || [];
+    let filteredContacts = contacts;
+    
+    // If target lists were selected, filter contacts by those relationships
+    if (selectedListIds.length > 0) {
+      // Get all entities from selected lists
+      const relatedEntityIds = new Set();
+      
+      selectedListIds.forEach(listId => {
+        const list = Array.isArray(allSavedLists) 
+          ? allSavedLists.find((l: any) => l.id.toString() === listId)
+          : null;
+        if (list && list.members) {
+          list.members.forEach((memberId: any) => {
+            relatedEntityIds.add(`${list.entity_type}:${memberId}`);
+          });
+        }
+      });
+      
+      // Filter contacts that have relationships with these entities
+      filteredContacts = contacts.filter((contact: any) => {
+        if (contact.customer_id && relatedEntityIds.has(`customers:${contact.customer_id}`)) return true;
+        if (contact.partner_id && relatedEntityIds.has(`partners:${contact.partner_id}`)) return true;
+        if (contact.opportunity_id && relatedEntityIds.has(`opportunities:${contact.opportunity_id}`)) return true;
+        return false;
+      });
+    }
+    
+    // Apply search filter
+    if (searchQuery) {
+      const searchLower = searchQuery.toLowerCase();
+      filteredContacts = filteredContacts.filter((contact: any) => {
+        const fullName = `${contact.first_name || ''} ${contact.last_name || ''}`.toLowerCase();
+        const email = (contact.email || '').toLowerCase();
+        const company = (contact.company || '').toLowerCase();
+        
+        return fullName.includes(searchLower) || 
+               email.includes(searchLower) || 
+               company.includes(searchLower);
+      });
+    }
+    
+    // Group contacts by their related records
+    const groups: any = {};
+    
+    filteredContacts.forEach((contact: any) => {
+      let recordName = '';
+      let recordType = '';
+      
+      // Determine the primary record this contact belongs to
+      if (contact.customer_id) {
+        const customer = customers?.find((c: any) => c.id === contact.customer_id);
+        recordName = customer?.name || `Customer ${contact.customer_id}`;
+        recordType = 'customer';
+      } else if (contact.partner_id) {
+        const partner = partners?.find((p: any) => p.id === contact.partner_id);
+        recordName = partner?.name || `Partner ${contact.partner_id}`;
+        recordType = 'partner';
+      } else if (contact.opportunity_id) {
+        const opportunity = opportunities?.find((o: any) => o.id === contact.opportunity_id);
+        recordName = opportunity?.title || `Opportunity ${contact.opportunity_id}`;
+        recordType = 'opportunity';
+      } else {
+        recordName = 'Unlinked Contacts';
+        recordType = 'unlinked';
+      }
+      
+      if (!groups[recordName]) {
+        groups[recordName] = {
+          recordType,
+          contacts: []
+        };
+      }
+      
+      groups[recordName].contacts.push(contact);
+    });
+    
+    // Sort contacts within each group alphabetically
+    Object.keys(groups).forEach(recordName => {
+      groups[recordName].contacts.sort((a: any, b: any) => {
+        const nameA = `${a.first_name || ''} ${a.last_name || ''}`.trim();
+        const nameB = `${b.first_name || ''} ${b.last_name || ''}`.trim();
+        return nameA.localeCompare(nameB);
+      });
+    });
+    
+    return groups;
+  }, [contacts, partners, customers, opportunities, allSavedLists, searchQuery, form.watch("listIds")]);
 
   // Campaign creation mutation
   const createCampaignMutation = useMutation({
@@ -625,37 +718,69 @@ export default function CampaignBuilder() {
                 </div>
                 <div className="p-2">
                   {contacts && Array.isArray(contacts) && contacts.length > 0 ? (
-                    filteredContacts.map((contact: any) => (
-                      <div key={contact.id} className="flex items-center space-x-2 py-2 border-b last:border-0">
-                        <input
-                          type="checkbox"
-                          id={`contact-${contact.id}`}
-                          value={contact.id.toString()}
-                          checked={form.getValues("recipientIds").includes(contact.id.toString())}
-                          onChange={(e) => {
-                            const currentIds = form.getValues("recipientIds");
-                            if (e.target.checked) {
-                              form.setValue("recipientIds", [...currentIds, e.target.value]);
-                            } else {
-                              form.setValue("recipientIds", currentIds.filter(cid => cid !== e.target.value));
-                            }
-                          }}
-                          className="rounded text-indigo-600 focus:ring-indigo-500"
-                        />
-                        <Label htmlFor={`contact-${contact.id}`} className="text-sm font-normal cursor-pointer flex-1">
-                          <div className="font-medium">
-                            {contact.firstName} {contact.lastName}
-                          </div>
-                          <div className="text-xs text-gray-500">{contact.email}</div>
-                          {contact.company && (
-                            <div className="text-xs text-gray-400">{contact.company}</div>
-                          )}
-                        </Label>
-                        <span className="text-xs text-gray-500 capitalize">
-                          {contact.linkedEntityType || 'Contact'}
-                        </span>
+                    Object.keys(groupedContacts).length > 0 ? (
+                      // Sort record names alphabetically and display groups
+                      Object.keys(groupedContacts)
+                        .sort((a, b) => a.localeCompare(b))
+                        .map((recordName) => {
+                          const group = groupedContacts[recordName];
+                          const recordTypeIcon = group.recordType === 'customer' ? '👤' : 
+                                                 group.recordType === 'partner' ? '🤝' : 
+                                                 group.recordType === 'opportunity' ? '💼' : '📧';
+                          
+                          return (
+                            <div key={recordName} className="mb-4">
+                              {/* Record group header */}
+                              <div className="flex items-center space-x-2 py-2 px-3 bg-gray-50 rounded-md mb-2">
+                                <span className="text-sm">{recordTypeIcon}</span>
+                                <span className="font-medium text-sm text-gray-700">{recordName}</span>
+                                <span className="text-xs text-gray-500">
+                                  ({group.contacts.length} contact{group.contacts.length !== 1 ? 's' : ''})
+                                </span>
+                              </div>
+                              
+                              {/* Contacts in this group */}
+                              <div className="pl-4 space-y-1">
+                                {group.contacts.map((contact: any) => (
+                                  <div key={contact.id} className="flex items-center space-x-2 py-2 border-b last:border-0">
+                                    <input
+                                      type="checkbox"
+                                      id={`contact-${contact.id}`}
+                                      value={contact.id.toString()}
+                                      checked={form.getValues("recipientIds").includes(contact.id.toString())}
+                                      onChange={(e) => {
+                                        const currentIds = form.getValues("recipientIds");
+                                        if (e.target.checked) {
+                                          form.setValue("recipientIds", [...currentIds, e.target.value]);
+                                        } else {
+                                          form.setValue("recipientIds", currentIds.filter(cid => cid !== e.target.value));
+                                        }
+                                      }}
+                                      className="rounded text-indigo-600 focus:ring-indigo-500"
+                                    />
+                                    <Label htmlFor={`contact-${contact.id}`} className="text-sm font-normal cursor-pointer flex-1">
+                                      <div className="font-medium">
+                                        {contact.first_name} {contact.last_name}
+                                      </div>
+                                      <div className="text-xs text-gray-500">{contact.email}</div>
+                                      {contact.company && (
+                                        <div className="text-xs text-gray-400">{contact.company}</div>
+                                      )}
+                                    </Label>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          );
+                        })
+                    ) : (
+                      <div className="text-center py-8 text-gray-500">
+                        {form.getValues("listIds").length > 0 
+                          ? "No contacts found for the selected target lists" 
+                          : "No contacts match your search"
+                        }
                       </div>
-                    ))
+                    )
                   ) : (
                     <div className="text-center py-8 text-gray-500">
                       {contacts === undefined ? "Loading contacts..." : "No contacts found"}
