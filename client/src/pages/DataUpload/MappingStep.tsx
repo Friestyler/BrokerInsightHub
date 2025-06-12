@@ -1,406 +1,158 @@
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { useToast } from '@/hooks/use-toast';
-import { ArrowLeft, ArrowRight, Plus, Save, Upload as UploadIcon, Trash2, Edit, Code, Bookmark } from 'lucide-react';
+import { FileText, CheckCircle, AlertCircle } from 'lucide-react';
 
 interface MappingStepProps {
-  uploadType: string;
   uploadedFile: File | null;
-  onNext: () => void;
-  onPrevious: () => void;
-  currentStep: number;
+  uploadType: string;
   stepName: string;
+  currentStep: number;
+  onNext: () => void;
+  onBack: () => void;
 }
 
-interface UploadTemplate {
-  id: number;
-  name: string;
-  description?: string;
-  entityType: string;
-  environmentId: string;
-  columnMappings: any;
-  isShared: boolean;
-  usageCount: number;
-  lastUsedAt: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
-
-interface ColumnMapping {
-  attribute: string;
-  csvColumn: string;
-  isRequired: boolean;
-  customCode?: string;
-}
-
-export function MappingStep({ uploadType, uploadedFile, onNext, onPrevious, currentStep, stepName }: MappingStepProps) {
-  const [columnMappings, setColumnMappings] = useState<ColumnMapping[]>([]);
+export default function MappingStep({ 
+  uploadedFile, 
+  uploadType, 
+  stepName, 
+  currentStep,
+  onNext, 
+  onBack 
+}: MappingStepProps) {
   const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
-  const [selectedTemplate, setSelectedTemplate] = useState<string>('');
-  const [saveTemplateDialogOpen, setSaveTemplateDialogOpen] = useState(false);
-  const [templateName, setTemplateName] = useState('');
-  const [templateDescription, setTemplateDescription] = useState('');
-  const [showCodeEditor, setShowCodeEditor] = useState<{ [key: string]: boolean }>({});
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-  
-  const environmentId = 'degoudse'; // Default environment
-
-  // Fetch available templates
-  const { data: templates = [] } = useQuery<UploadTemplate[]>({
-    queryKey: ['/api', environmentId, 'upload', 'templates', { entityType: uploadType }],
-    enabled: !!uploadType,
-  });
-
-  // Fetch entity attributes for the upload type
-  const { data: entityData } = useQuery({
-    queryKey: ['/api', environmentId, 'upload', 'entities'],
-    enabled: !!uploadType,
-  });
-
-  // Save template mutation
-  const saveTemplateMutation = useMutation({
-    mutationFn: async (templateData: any) => {
-      const response = await fetch(`/api/${environmentId}/upload/templates`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(templateData),
-      });
-      if (!response.ok) throw new Error('Failed to save template');
-      return response.json();
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api', environmentId, 'upload', 'templates'] });
-      toast({ title: 'Template saved successfully' });
-      setSaveTemplateDialogOpen(false);
-      setTemplateName('');
-      setTemplateDescription('');
-    },
-    onError: () => {
-      toast({ title: 'Failed to save template', variant: 'destructive' });
-    },
-  });
-
-  // Update template usage mutation
-  const updateUsageMutation = useMutation({
-    mutationFn: async (templateId: string) => {
-      const response = await fetch(`/api/${environmentId}/upload/templates/${templateId}/use`, {
-        method: 'POST',
-      });
-      if (!response.ok) throw new Error('Failed to update template usage');
-      return response.json();
-    },
-  });
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   // Parse CSV headers when file is uploaded
   useEffect(() => {
     if (uploadedFile) {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const csv = e.target?.result as string;
-        const lines = csv.split('\n');
-        if (lines.length > 0) {
-          const headers = lines[0].split(',')
-            .map(h => h.trim().replace(/"/g, ''))
-            .filter(h => h.length > 0); // Remove empty headers
-          setCsvHeaders(headers);
-        }
-      };
-      reader.readAsText(uploadedFile);
+      parseCSVHeaders();
     }
   }, [uploadedFile]);
 
-  // Initialize column mappings based on entity type
-  useEffect(() => {
-    if (entityData && uploadType) {
-      const entitySchema = entityData.find((e: any) => e.tableName.toLowerCase().includes(uploadType.toLowerCase()));
-      if (entitySchema) {
-        const requiredColumns = entitySchema.columns
-          .filter((col: any) => !col.hasDefault && !col.isNullable && col.name !== 'id')
-          .map((col: any) => ({
-            attribute: col.name,
-            csvColumn: '',
-            isRequired: true,
-          }));
-        setColumnMappings(requiredColumns);
+  const parseCSVHeaders = async () => {
+    if (!uploadedFile) return;
+
+    setIsProcessing(true);
+    setError(null);
+
+    try {
+      const text = await uploadedFile.text();
+      const lines = text.split('\n');
+      
+      if (lines.length === 0) {
+        throw new Error('File appears to be empty');
       }
+
+      // Get first line as headers
+      const headerLine = lines[0];
+      const headers = headerLine.split(',').map(header => header.trim().replace(/"/g, ''));
+      
+      if (headers.length === 0 || headers.every(h => !h)) {
+        throw new Error('No valid column headers found');
+      }
+
+      setCsvHeaders(headers.filter(h => h)); // Remove empty headers
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to parse CSV file');
+    } finally {
+      setIsProcessing(false);
     }
-  }, [entityData, uploadType]);
-
-  // Load template
-  const loadTemplate = (templateId: string) => {
-    const template = templates.find(t => t.id.toString() === templateId);
-    if (template) {
-      setColumnMappings(template.columnMappings);
-      updateUsageMutation.mutate(templateId);
-      toast({ title: `Template "${template.name}" loaded successfully` });
-    }
   };
 
-  // Add optional attribute
-  const addOptionalAttribute = () => {
-    setColumnMappings(prev => [...prev, {
-      attribute: '',
-      csvColumn: '',
-      isRequired: false,
-    }]);
-  };
-
-  // Remove optional attribute
-  const removeAttribute = (index: number) => {
-    setColumnMappings(prev => prev.filter((_, i) => i !== index));
-  };
-
-  // Update column mapping
-  const updateMapping = (index: number, field: string, value: string) => {
-    setColumnMappings(prev => prev.map((mapping, i) => 
-      i === index ? { ...mapping, [field]: value } : mapping
-    ));
-  };
-
-  // Save current mapping as template
-  const saveAsTemplate = () => {
-    if (!templateName.trim()) {
-      toast({ title: 'Please enter a template name', variant: 'destructive' });
-      return;
-    }
-
-    saveTemplateMutation.mutate({
-      name: templateName,
-      description: templateDescription,
-      entityType: uploadType,
-      environmentId,
-      columnMappings,
-      isShared: false,
-    });
-  };
-
-  // Get available entity attributes for dropdown
-  const getEntityAttributes = () => {
-    if (!entityData || !uploadType) return [];
-    const entitySchema = entityData.find((e: any) => e.tableName.toLowerCase().includes(uploadType.toLowerCase()));
-    return entitySchema?.columns?.map((col: any) => col.name) || [];
-  };
-
-  const canProceed = columnMappings.every(mapping => 
-    !mapping.isRequired || (mapping.csvColumn || mapping.customCode)
-  );
+  const canProceed = csvHeaders.length > 0 && !isProcessing && !error;
 
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <div>
           <h3 className="text-lg font-medium">Step {currentStep}: {stepName}</h3>
-          <p className="text-gray-600">Map your CSV columns to {uploadType} attributes</p>
-        </div>
-        
-        {/* Template Management */}
-        <div className="flex gap-2">
-          <Select value={selectedTemplate} onValueChange={(value) => {
-            setSelectedTemplate(value);
-            if (value) loadTemplate(value);
-          }}>
-            <SelectTrigger className="w-48">
-              <SelectValue placeholder="Load template" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="">No template</SelectItem>
-              {templates.map(template => (
-                <SelectItem key={template.id} value={template.id.toString()}>
-                  <div className="flex items-center justify-between w-full">
-                    <span>{template.name}</span>
-                    <Badge variant="secondary" className="ml-2">{template.usageCount}</Badge>
-                  </div>
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          
-          <Dialog open={saveTemplateDialogOpen} onOpenChange={setSaveTemplateDialogOpen}>
-            <DialogTrigger asChild>
-              <Button variant="outline" size="sm">
-                <Bookmark className="h-4 w-4 mr-1" />
-                Save Template
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Save Mapping Template</DialogTitle>
-                <DialogDescription>
-                  Save your current column mappings as a reusable template
-                </DialogDescription>
-              </DialogHeader>
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="template-name">Template Name</Label>
-                  <Input
-                    id="template-name"
-                    value={templateName}
-                    onChange={(e) => setTemplateName(e.target.value)}
-                    placeholder="Enter template name"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="template-description">Description (Optional)</Label>
-                  <Input
-                    id="template-description"
-                    value={templateDescription}
-                    onChange={(e) => setTemplateDescription(e.target.value)}
-                    placeholder="Describe this template"
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button variant="outline" onClick={() => setSaveTemplateDialogOpen(false)}>
-                  Cancel
-                </Button>
-                <Button onClick={saveAsTemplate} disabled={saveTemplateMutation.isPending}>
-                  {saveTemplateMutation.isPending ? 'Saving...' : 'Save Template'}
-                </Button>
-              </DialogFooter>
-            </DialogContent>
-          </Dialog>
+          <p className="text-sm text-muted-foreground">
+            Review the column headers identified in your CSV file
+          </p>
         </div>
       </div>
 
-      {/* Mapping Interface */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Left side: Entity Attributes */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Entity Attributes</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {columnMappings.map((mapping, index) => (
-              <div key={index} className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <Label className="flex items-center gap-2">
-                    {mapping.isRequired ? (
-                      <Badge variant="destructive" className="text-xs">Required</Badge>
-                    ) : (
-                      <Badge variant="secondary" className="text-xs">Optional</Badge>
-                    )}
-                    {mapping.isRequired ? mapping.attribute : (
-                      <Select 
-                        value={mapping.attribute} 
-                        onValueChange={(value) => updateMapping(index, 'attribute', value)}
-                      >
-                        <SelectTrigger className="w-40">
-                          <SelectValue placeholder="Select attribute" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {getEntityAttributes().map(attr => (
-                            <SelectItem key={attr} value={attr}>{attr}</SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                    )}
-                  </Label>
-                  {!mapping.isRequired && (
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      onClick={() => removeAttribute(index)}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  )}
-                </div>
-                
-                {/* Column Selection or Code Editor */}
-                <div className="space-y-2">
-                  <Select 
-                    value={mapping.csvColumn || '__no_mapping__'} 
-                    onValueChange={(value) => {
-                      if (value === 'code') {
-                        setShowCodeEditor(prev => ({ ...prev, [index]: true }));
-                      } else {
-                        const mappingValue = value === '__no_mapping__' ? '' : value;
-                        updateMapping(index, 'csvColumn', mappingValue);
-                        setShowCodeEditor(prev => ({ ...prev, [index]: false }));
-                      }
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select CSV column" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="__no_mapping__">No mapping</SelectItem>
-                      {csvHeaders.filter(header => header && header.trim().length > 0).map(header => (
-                        <SelectItem key={header} value={header}>{header}</SelectItem>
-                      ))}
-                      <SelectItem value="code">
-                        <div className="flex items-center">
-                          <Code className="h-4 w-4 mr-2" />
-                          Custom Code
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                  
-                  {showCodeEditor[index] && (
-                    <div className="border rounded-md p-3 bg-gray-50">
-                      <Label className="text-sm text-gray-600 mb-2 block">
-                        Python Code (use column names as variables)
-                      </Label>
-                      <textarea
-                        className="w-full p-2 border rounded text-sm font-mono"
-                        rows={3}
-                        value={mapping.customCode || ''}
-                        onChange={(e) => updateMapping(index, 'customCode', e.target.value)}
-                        placeholder="# Example: first_name + ' ' + last_name"
-                      />
-                    </div>
-                  )}
-                </div>
+      {/* File Info */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <FileText className="h-4 w-4" />
+            Uploaded File
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {uploadedFile ? (
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="font-medium">{uploadedFile.name}</span>
+                <Badge variant="secondary">{uploadType}</Badge>
               </div>
-            ))}
-            
-            <Button variant="outline" onClick={addOptionalAttribute} className="w-full">
-              <Plus className="h-4 w-4 mr-2" />
-              Add Optional Attribute
-            </Button>
-          </CardContent>
-        </Card>
+              <div className="text-sm text-muted-foreground">
+                Size: {(uploadedFile.size / 1024).toFixed(1)} KB
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-muted-foreground">No file uploaded</div>
+          )}
+        </CardContent>
+      </Card>
 
-        {/* Right side: CSV Preview */}
-        <Card>
-          <CardHeader>
-            <CardTitle>CSV File Preview</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {csvHeaders.length > 0 ? (
-              <div className="space-y-2">
-                <p className="text-sm text-gray-600">Available columns in your file:</p>
-                <div className="flex flex-wrap gap-2">
-                  {csvHeaders.map(header => (
-                    <Badge key={header} variant="outline">{header}</Badge>
-                  ))}
-                </div>
-              </div>
+      {/* CSV Headers */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base">
+            {isProcessing ? (
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            ) : error ? (
+              <AlertCircle className="h-4 w-4 text-destructive" />
+            ) : csvHeaders.length > 0 ? (
+              <CheckCircle className="h-4 w-4 text-green-600" />
             ) : (
-              <p className="text-gray-500">No file uploaded</p>
+              <FileText className="h-4 w-4" />
             )}
-          </CardContent>
-        </Card>
-      </div>
+            Column Headers
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isProcessing ? (
+            <div className="text-sm text-muted-foreground">Processing CSV file...</div>
+          ) : error ? (
+            <div className="text-sm text-destructive">{error}</div>
+          ) : csvHeaders.length > 0 ? (
+            <div className="space-y-3">
+              <div className="text-sm text-muted-foreground">
+                Found {csvHeaders.length} column{csvHeaders.length !== 1 ? 's' : ''}:
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {csvHeaders.map((header, index) => (
+                  <Badge key={index} variant="outline" className="text-sm">
+                    {header}
+                  </Badge>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div className="text-sm text-muted-foreground">
+              Upload a CSV file to see column headers
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-      {/* Navigation */}
+      {/* Actions */}
       <div className="flex justify-between">
-        <Button variant="outline" onClick={onPrevious}>
-          <ArrowLeft className="h-4 w-4 mr-2" />
-          Previous
+        <Button variant="outline" onClick={onBack}>
+          Back
         </Button>
-        <Button onClick={onNext} disabled={!canProceed}>
-          Continue to Processing
-          <ArrowRight className="h-4 w-4 ml-2" />
+        <Button 
+          onClick={onNext} 
+          disabled={!canProceed}
+          className="min-w-[100px]"
+        >
+          {isProcessing ? 'Processing...' : 'Continue'}
         </Button>
       </div>
     </div>

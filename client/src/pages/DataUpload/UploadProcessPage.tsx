@@ -7,7 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Upload, FileSpreadsheet, ArrowLeft, ArrowRight, CheckCircle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { MappingStep } from './MappingStep';
+import MappingStep from './MappingStep';
 
 interface UploadProcessProps {
   entityType?: string;
