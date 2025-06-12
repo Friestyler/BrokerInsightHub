@@ -25,6 +25,14 @@ interface AttributeMapping {
   isRequired: boolean;
 }
 
+interface Template {
+  id: number;
+  name: string;
+  description?: string;
+  entity_type: string;
+  column_mappings: any;
+}
+
 export default function AttributeMappingStep({ 
   uploadedFile, 
   csvHeaders,
@@ -74,7 +82,7 @@ export default function AttributeMappingStep({
   });
 
   // Fetch templates for this entity type
-  const { data: templates = [] } = useQuery({
+  const { data: templates = [] } = useQuery<Template[]>({
     queryKey: [`/api/${environmentId}/upload-templates`],
     enabled: !!environmentId,
   });
@@ -177,7 +185,7 @@ export default function AttributeMappingStep({
 
   // Load template
   const loadTemplate = (templateId: string) => {
-    const template = templates.find((t: any) => t.id.toString() === templateId);
+    const template = templates.find((t) => t.id.toString() === templateId);
     if (template && template.column_mappings) {
       let mappings;
       try {
@@ -212,7 +220,7 @@ export default function AttributeMappingStep({
   const updateTemplate = () => {
     if (!selectedTemplateId) return;
     
-    const template = templates.find((t: any) => t.id.toString() === selectedTemplateId);
+    const template = templates.find((t) => t.id.toString() === selectedTemplateId);
     if (!template) return;
 
     updateTemplateMutation.mutate({
@@ -265,7 +273,7 @@ export default function AttributeMappingStep({
                   <SelectValue placeholder="Select a template" />
                 </SelectTrigger>
                 <SelectContent>
-                  {templates.map((template: any) => (
+                  {templates.map((template) => (
                     <SelectItem key={template.id} value={template.id.toString()}>
                       {template.name}
                     </SelectItem>
