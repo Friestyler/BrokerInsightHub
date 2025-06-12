@@ -315,12 +315,13 @@ export function MappingStep({ uploadType, uploadedFile, onNext, onPrevious, curr
                 {/* Column Selection or Code Editor */}
                 <div className="space-y-2">
                   <Select 
-                    value={mapping.csvColumn} 
+                    value={mapping.csvColumn || '__no_mapping__'} 
                     onValueChange={(value) => {
                       if (value === 'code') {
                         setShowCodeEditor(prev => ({ ...prev, [index]: true }));
                       } else {
-                        updateMapping(index, 'csvColumn', value);
+                        const mappingValue = value === '__no_mapping__' ? '' : value;
+                        updateMapping(index, 'csvColumn', mappingValue);
                         setShowCodeEditor(prev => ({ ...prev, [index]: false }));
                       }
                     }}
@@ -329,7 +330,7 @@ export function MappingStep({ uploadType, uploadedFile, onNext, onPrevious, curr
                       <SelectValue placeholder="Select CSV column" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="">No mapping</SelectItem>
+                      <SelectItem value="__no_mapping__">No mapping</SelectItem>
                       {csvHeaders.map(header => (
                         <SelectItem key={header} value={header}>{header}</SelectItem>
                       ))}
