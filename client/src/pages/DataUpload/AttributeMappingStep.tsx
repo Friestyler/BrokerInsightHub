@@ -46,6 +46,8 @@ export default function AttributeMappingStep({
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
   const [templateName, setTemplateName] = useState('');
   const [showSaveTemplate, setShowSaveTemplate] = useState(false);
+  const [showAddAttribute, setShowAddAttribute] = useState(false);
+  const [selectedNewAttribute, setSelectedNewAttribute] = useState<string>('');
   const [extractedHeaders, setExtractedHeaders] = useState<string[]>([]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -168,18 +170,23 @@ export default function AttributeMappingStep({
     ));
   };
 
-  // Add optional attribute
-  const addOptionalAttribute = () => {
-    const availableAttributes = getEntityAttributes();
+  // Get available attributes for adding (excluding already used ones)
+  const getAvailableAttributesForAdding = () => {
+    const allAttributes = getEntityAttributes();
     const usedAttributes = attributeMappings.map(m => m.attribute);
-    const nextAvailable = availableAttributes.find((attr: string) => !usedAttributes.includes(attr));
-    
-    if (nextAvailable) {
+    return allAttributes.filter((attr: string) => !usedAttributes.includes(attr));
+  };
+
+  // Add selected optional attribute
+  const addSelectedAttribute = () => {
+    if (selectedNewAttribute) {
       setAttributeMappings(prev => [...prev, {
-        attribute: nextAvailable,
+        attribute: selectedNewAttribute,
         csvColumn: '',
         isRequired: false,
       }]);
+      setSelectedNewAttribute('');
+      setShowAddAttribute(false);
     }
   };
 
@@ -379,16 +386,59 @@ export default function AttributeMappingStep({
                     ))}
                 </div>
 
-                {/* Add Attribute Button */}
-                <Button 
-                  variant="outline" 
-                  onClick={addOptionalAttribute}
-                  className="w-full mt-4"
-                  size="sm"
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  Add Attribute
-                </Button>
+                {/* Add Attribute Section */}
+                <div className="mt-4 space-y-3">
+                  {!showAddAttribute ? (
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setShowAddAttribute(true)}
+                      className="w-full"
+                      size="sm"
+                      disabled={getAvailableAttributesForAdding().length === 0}
+                    >
+                      <Plus className="h-4 w-4 mr-2" />
+                      Add Attribute
+                    </Button>
+                  ) : (
+                    <div className="border rounded-lg p-3 bg-muted/50 space-y-3">
+                      <div>
+                        <Label className="text-sm font-medium">Select Attribute</Label>
+                        <Select 
+                          value={selectedNewAttribute} 
+                          onValueChange={setSelectedNewAttribute}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Choose an attribute to add" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {getAvailableAttributesForAdding().map(attr => (
+                              <SelectItem key={attr} value={attr}>{attr}</SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                      <div className="flex gap-2">
+                        <Button 
+                          onClick={addSelectedAttribute}
+                          disabled={!selectedNewAttribute}
+                          size="sm"
+                        >
+                          Add
+                        </Button>
+                        <Button 
+                          variant="outline" 
+                          onClick={() => {
+                            setShowAddAttribute(false);
+                            setSelectedNewAttribute('');
+                          }}
+                          size="sm"
+                        >
+                          Cancel
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
