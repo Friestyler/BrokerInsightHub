@@ -593,7 +593,7 @@ export default function CampaignBuilder() {
     
     // Include sharing data in campaign
     if (data.isShared) {
-      cleanCampaignData.sharing = {
+      (cleanCampaignData as any).sharing = {
         sharedPartnerIds: data.sharedPartnerIds || [],
         shareAccessLevel: data.shareAccessLevel || "view",
         shareMessage: data.shareMessage || "",

@@ -5067,11 +5067,86 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/campaigns', async (req, res) => {
     try {
-      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      const envId = req.headers['x-environment-id'] || 'degoudse';
+      const envDb = getEnvironmentDb(envId);
       
-      // No campaigns table exists yet - return error for authentic data only
-      console.log(`Campaign creation not available in ${envId} environment - no campaigns table exists`);
-      res.status(501).json({ error: 'Campaign creation not implemented - no campaigns table exists' });
+      const { sharing, ...campaignData } = req.body;
+      
+      // Create the campaign first
+      const [campaign] = await envDb
+        .insert(campaigns)
+        .values({
+          ...campaignData,
+          createdById: 1, // Default user for now
+          status: campaignData.status || 'draft'
+        })
+        .returning();
+      
+      // If campaign is shared, create sharing records
+      if (sharing && campaign.id) {
+        const shareRecords = [];
+        
+        // Add partner shares
+        if (sharing.sharedPartnerIds && sharing.sharedPartnerIds.length > 0) {
+          for (const partnerId of sharing.sharedPartnerIds) {
+            shareRecords.push({
+              campaignId: campaign.id,
+              sharedWithType: 'partner',
+              sharedWithId: parseInt(partnerId),
+              accessLevel: sharing.shareAccessLevel || 'view',
+              shareMessage: sharing.shareMessage || null,
+              sharedById: 1
+            });
+          }
+        }
+        
+        // Add contact shares
+        if (sharing.sharedContactIds && sharing.sharedContactIds.length > 0) {
+          for (const contactId of sharing.sharedContactIds) {
+            shareRecords.push({
+              campaignId: campaign.id,
+              sharedWithType: 'contact',
+              sharedWithId: parseInt(contactId),
+              accessLevel: sharing.shareAccessLevel || 'view',
+              shareMessage: sharing.shareMessage || null,
+              sharedById: 1
+            });
+          }
+        }
+        
+        // Insert sharing records if any exist
+        if (shareRecords.length > 0) {
+          await envDb.insert(campaignShares).values(shareRecords);
+        }
+      }
+      
+      // Create recipients if provided
+      if (campaignData.recipientIds && campaignData.recipientIds.length > 0) {
+        const recipientRecords = campaignData.recipientIds.map((contactId: number) => ({
+          campaignId: campaign.id,
+          contactId: contactId,
+          status: 'pending'
+        }));
+        
+        await envDb.insert(campaignRecipients).values(recipientRecords);
+      }
+      
+      // Create follow-ups if provided
+      if (campaignData.followUpEmails && campaignData.followUpEmails.length > 0) {
+        const followUpRecords = campaignData.followUpEmails.map((followUp: any) => ({
+          campaignId: campaign.id,
+          subject: followUp.subject || '',
+          emailBody: followUp.emailBody || '',
+          delayDays: followUp.delayDays,
+          status: 'pending',
+          attachment: followUp.attachment || null
+        }));
+        
+        await envDb.insert(campaignFollowUps).values(followUpRecords);
+      }
+      
+      console.log(`Campaign created successfully in ${envId} environment:`, campaign.id);
+      res.status(201).json(campaign);
     } catch (error) {
       console.error('Error creating campaign:', error);
       res.status(500).json({ error: 'Failed to create campaign' });

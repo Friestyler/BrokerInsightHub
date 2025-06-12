@@ -914,6 +914,20 @@ export const campaignFollowUps = pgTable("campaign_follow_ups", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+// Campaign shares - for sharing campaigns with partners and contacts
+export const campaignShares = pgTable("campaign_shares", {
+  id: serial("id").primaryKey(),
+  campaignId: integer("campaign_id").notNull().references(() => campaigns.id),
+  sharedWithType: text("shared_with_type").notNull(), // partner, contact, user
+  sharedWithId: integer("shared_with_id").notNull(), // ID of partner, contact, or user
+  accessLevel: text("access_level").notNull().default("view"), // view, comment, edit, admin
+  shareMessage: text("share_message"),
+  sharedById: integer("shared_by_id").references(() => users.id),
+  isActive: boolean("is_active").notNull().default(true),
+  createdAt: timestamp("created_at").defaultNow().notNull(),
+  updatedAt: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Define relationships
 export const campaignsRelations = relations(campaigns, ({ one, many }) => ({
   createdBy: one(users, {
@@ -922,6 +936,7 @@ export const campaignsRelations = relations(campaigns, ({ one, many }) => ({
   }),
   recipients: many(campaignRecipients),
   followUps: many(campaignFollowUps),
+  shares: many(campaignShares),
 }));
 
 export const campaignRecipientsRelations = relations(campaignRecipients, ({ one }) => ({
@@ -935,6 +950,17 @@ export const campaignFollowUpsRelations = relations(campaignFollowUps, ({ one })
   campaign: one(campaigns, {
     fields: [campaignFollowUps.campaignId],
     references: [campaigns.id],
+  }),
+}));
+
+export const campaignSharesRelations = relations(campaignShares, ({ one }) => ({
+  campaign: one(campaigns, {
+    fields: [campaignShares.campaignId],
+    references: [campaigns.id],
+  }),
+  sharedBy: one(users, {
+    fields: [campaignShares.sharedById],
+    references: [users.id],
   }),
 }));
 
@@ -975,6 +1001,16 @@ export const insertCampaignFollowUpSchema = createInsertSchema(campaignFollowUps
   attachment: true,
 });
 
+export const insertCampaignShareSchema = createInsertSchema(campaignShares).pick({
+  campaignId: true,
+  sharedWithType: true,
+  sharedWithId: true,
+  accessLevel: true,
+  shareMessage: true,
+  sharedById: true,
+  isActive: true,
+});
+
 export type InsertCampaign = z.infer<typeof insertCampaignSchema>;
 export type Campaign = typeof campaigns.$inferSelect;
 
@@ -983,6 +1019,9 @@ export type CampaignRecipient = typeof campaignRecipients.$inferSelect;
 
 export type InsertCampaignFollowUp = z.infer<typeof insertCampaignFollowUpSchema>;
 export type CampaignFollowUp = typeof campaignFollowUps.$inferSelect;
+
+export type InsertCampaignShare = z.infer<typeof insertCampaignShareSchema>;
+export type CampaignShare = typeof campaignShares.$inferSelect;
 
 // Activity tables type exports
 export const insertActivityTaskSchema = createInsertSchema(activityTasks).omit({
