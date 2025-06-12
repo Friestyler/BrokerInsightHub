@@ -9,6 +9,9 @@ import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
 
 interface AttributeMapping {
   attribute: string;
@@ -75,6 +78,9 @@ export default function ProcessingStep({
   const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
   const [existingRecords, setExistingRecords] = useState<any[]>([]);
   const [phase, setPhase] = useState<'initial' | 'validation' | 'processing' | 'completed'>('initial');
+  const [selectedIssues, setSelectedIssues] = useState<Set<number>>(new Set());
+  const [filters, setFilters] = useState<Record<string, string>>({});
+  const [filteredIssues, setFilteredIssues] = useState<ValidationIssue[]>([]);
   const { toast } = useToast();
 
   // Parse CSV data when component mounts
@@ -83,6 +89,22 @@ export default function ProcessingStep({
       parseCSVData();
     }
   }, [uploadedFile]);
+
+  // Filter issues based on filters
+  useEffect(() => {
+    let filtered = validationIssues;
+    
+    Object.entries(filters).forEach(([field, value]) => {
+      if (value.trim()) {
+        filtered = filtered.filter(issue => {
+          const rowValue = issue.rowData[field];
+          return rowValue && rowValue.toString().toLowerCase().includes(value.toLowerCase());
+        });
+      }
+    });
+    
+    setFilteredIssues(filtered);
+  }, [validationIssues, filters]);
 
   const parseCSVData = async () => {
     if (!uploadedFile) return;
@@ -231,6 +253,46 @@ export default function ProcessingStep({
         index === issueIndex ? { ...issue, solution } : issue
       )
     );
+  };
+
+  const toggleIssueSelection = (issueIndex: number) => {
+    setSelectedIssues(prev => {
+      const newSelected = new Set(prev);
+      if (newSelected.has(issueIndex)) {
+        newSelected.delete(issueIndex);
+      } else {
+        newSelected.add(issueIndex);
+      }
+      return newSelected;
+    });
+  };
+
+  const toggleSelectAll = () => {
+    if (selectedIssues.size === filteredIssues.length) {
+      setSelectedIssues(new Set());
+    } else {
+      setSelectedIssues(new Set(filteredIssues.map((_, index) => validationIssues.indexOf(_))));
+    }
+  };
+
+  const bulkUpdateSolution = (solution: 'skip' | 'replace' | 'ignore') => {
+    setValidationIssues(prev => 
+      prev.map((issue, index) => 
+        selectedIssues.has(index) ? { ...issue, solution } : issue
+      )
+    );
+    setSelectedIssues(new Set());
+  };
+
+  const updateFilter = (field: string, value: string) => {
+    setFilters(prev => ({
+      ...prev,
+      [field]: value
+    }));
+  };
+
+  const clearFilters = () => {
+    setFilters({});
   };
 
   const processData = async () => {
@@ -458,23 +520,114 @@ export default function ProcessingStep({
                 </AlertDescription>
               </Alert>
 
-              <Tabs defaultValue="issues" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="issues">
-                    Issues ({validationIssues.length})
-                  </TabsTrigger>
-                  <TabsTrigger value="summary">Summary</TabsTrigger>
-                </TabsList>
-                
-                <TabsContent value="issues" className="space-y-4">
-                  <div className="max-h-96 overflow-y-auto space-y-3">
-                    {validationIssues.map((issue, index) => (
-                      <div key={index} className="border rounded-lg p-4 space-y-3">
-                        <div className="flex items-start gap-3">
-                          {getIssueIcon(issue.type)}
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-1">
-                              <Badge variant="outline">Row {issue.row}</Badge>
+              {/* Bulk Actions Bar */}
+              {selectedIssues.size > 0 && (
+                <div className="flex items-center gap-4 p-4 bg-blue-50 rounded-lg">
+                  <span className="text-sm font-medium">
+                    {selectedIssues.size} selected
+                  </span>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => bulkUpdateSolution('skip')}
+                    >
+                      <Trash2 className="h-3 w-3 mr-1" />
+                      Skip Selected
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => bulkUpdateSolution('replace')}
+                    >
+                      <RefreshCw className="h-3 w-3 mr-1" />
+                      Replace Selected
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => bulkUpdateSolution('ignore')}
+                    >
+                      <CheckCircle className="h-3 w-3 mr-1" />
+                      Ignore Selected
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Filters */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="font-medium">Filter by Attributes</h3>
+                  <Button variant="outline" size="sm" onClick={clearFilters}>
+                    Clear Filters
+                  </Button>
+                </div>
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                  {attributeMappings
+                    .filter(mapping => mapping.csvColumn)
+                    .map(mapping => (
+                      <div key={mapping.attribute} className="space-y-1">
+                        <Label className="text-xs text-gray-600">
+                          {mapping.attribute}
+                        </Label>
+                        <Input
+                          placeholder={`Filter by ${mapping.attribute}`}
+                          value={filters[mapping.csvColumn] || ''}
+                          onChange={(e) => updateFilter(mapping.csvColumn, e.target.value)}
+                          className="h-8"
+                        />
+                      </div>
+                    ))}
+                </div>
+              </div>
+
+              {/* Issues Table */}
+              <div className="border rounded-lg">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-12">
+                        <Checkbox
+                          checked={selectedIssues.size === filteredIssues.length && filteredIssues.length > 0}
+                          onCheckedChange={toggleSelectAll}
+                        />
+                      </TableHead>
+                      <TableHead>Row</TableHead>
+                      <TableHead>Issue Type</TableHead>
+                      <TableHead>Field</TableHead>
+                      <TableHead>Value</TableHead>
+                      <TableHead>Message</TableHead>
+                      {attributeMappings
+                        .filter(mapping => mapping.csvColumn)
+                        .slice(0, 3)
+                        .map(mapping => (
+                          <TableHead key={mapping.attribute}>
+                            {mapping.attribute}
+                          </TableHead>
+                        ))}
+                      <TableHead className="w-32">Action</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {filteredIssues.map((issue, filteredIndex) => {
+                      const originalIndex = validationIssues.indexOf(issue);
+                      return (
+                        <TableRow key={originalIndex}>
+                          <TableCell>
+                            <Checkbox
+                              checked={selectedIssues.has(originalIndex)}
+                              onCheckedChange={() => toggleIssueSelection(originalIndex)}
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Badge variant="outline">
+                              {issue.row}
+                            </Badge>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              {getIssueIcon(issue.type)}
                               <Badge variant={
                                 issue.type === 'empty_required' ? 'destructive' :
                                 issue.type === 'duplicate' ? 'default' : 'secondary'
@@ -482,87 +635,104 @@ export default function ProcessingStep({
                                 {issue.type.replace('_', ' ')}
                               </Badge>
                             </div>
-                            <p className="text-sm font-medium">{issue.message}</p>
-                            <p className="text-xs text-gray-500">Field: {issue.field}, Value: "{issue.value}"</p>
+                          </TableCell>
+                          <TableCell className="font-mono text-xs">
+                            {issue.field}
+                          </TableCell>
+                          <TableCell className="max-w-32 truncate">
+                            <span className="font-mono text-xs">
+                              "{issue.value}"
+                            </span>
+                          </TableCell>
+                          <TableCell className="max-w-48 truncate">
+                            <span className="text-xs text-gray-600">
+                              {issue.message}
+                            </span>
                             {issue.duplicateOf && (
-                              <p className="text-xs text-blue-600">
-                                Duplicate of existing record: {JSON.stringify(issue.duplicateOf, null, 2).slice(0, 100)}...
-                              </p>
+                              <div className="text-xs text-blue-600 mt-1">
+                                Duplicate of ID: {issue.duplicateOf.id}
+                              </div>
                             )}
-                          </div>
-                        </div>
-                        
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-medium">Solution:</span>
-                          <Select
-                            value={issue.solution}
-                            onValueChange={(value: 'skip' | 'replace' | 'ignore') => 
-                              updateIssueSolution(index, value)
-                            }
-                          >
-                            <SelectTrigger className="w-32">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="skip">
-                                <div className="flex items-center gap-2">
-                                  <Trash2 className="h-3 w-3" />
-                                  Skip
-                                </div>
-                              </SelectItem>
-                              {issue.type === 'duplicate' && (
-                                <SelectItem value="replace">
+                          </TableCell>
+                          {attributeMappings
+                            .filter(mapping => mapping.csvColumn)
+                            .slice(0, 3)
+                            .map(mapping => (
+                              <TableCell key={mapping.attribute} className="max-w-24 truncate">
+                                <span className="text-xs">
+                                  {issue.rowData[mapping.csvColumn] || '-'}
+                                </span>
+                              </TableCell>
+                            ))}
+                          <TableCell>
+                            <Select
+                              value={issue.solution}
+                              onValueChange={(value: 'skip' | 'replace' | 'ignore') => 
+                                updateIssueSolution(originalIndex, value)
+                              }
+                            >
+                              <SelectTrigger className="h-8 w-28">
+                                <SelectValue />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="skip">
                                   <div className="flex items-center gap-2">
-                                    <RefreshCw className="h-3 w-3" />
-                                    Replace
+                                    <Trash2 className="h-3 w-3" />
+                                    Skip
                                   </div>
                                 </SelectItem>
-                              )}
-                              <SelectItem value="ignore">
-                                <div className="flex items-center gap-2">
-                                  <CheckCircle className="h-3 w-3" />
-                                  Ignore
-                                </div>
-                              </SelectItem>
-                            </SelectContent>
-                          </Select>
-                          <span className={`text-xs ${getSolutionColor(issue.solution)}`}>
-                            {issue.solution === 'skip' && 'Row will be skipped'}
-                            {issue.solution === 'replace' && 'Will update existing record'}
-                            {issue.solution === 'ignore' && 'Will process as-is'}
-                          </span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </TabsContent>
-                
-                <TabsContent value="summary" className="space-y-4">
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div className="text-center p-4 bg-red-50 rounded-lg">
-                      <Trash2 className="mx-auto h-8 w-8 text-red-600 mb-2" />
-                      <h3 className="font-medium">To Skip</h3>
-                      <p className="text-2xl font-bold text-red-600">
-                        {validationIssues.filter(i => i.solution === 'skip').length}
-                      </p>
-                    </div>
-                    <div className="text-center p-4 bg-blue-50 rounded-lg">
-                      <RefreshCw className="mx-auto h-8 w-8 text-blue-600 mb-2" />
-                      <h3 className="font-medium">To Replace</h3>
-                      <p className="text-2xl font-bold text-blue-600">
-                        {validationIssues.filter(i => i.solution === 'replace').length}
-                      </p>
-                    </div>
-                    <div className="text-center p-4 bg-gray-50 rounded-lg">
-                      <CheckCircle className="mx-auto h-8 w-8 text-gray-600 mb-2" />
-                      <h3 className="font-medium">To Ignore</h3>
-                      <p className="text-2xl font-bold text-gray-600">
-                        {validationIssues.filter(i => i.solution === 'ignore').length}
-                      </p>
-                    </div>
-                  </div>
-                </TabsContent>
-              </Tabs>
+                                {issue.type === 'duplicate' && (
+                                  <SelectItem value="replace">
+                                    <div className="flex items-center gap-2">
+                                      <RefreshCw className="h-3 w-3" />
+                                      Replace
+                                    </div>
+                                  </SelectItem>
+                                )}
+                                <SelectItem value="ignore">
+                                  <div className="flex items-center gap-2">
+                                    <CheckCircle className="h-3 w-3" />
+                                    Ignore
+                                  </div>
+                                </SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
+                  </TableBody>
+                </Table>
+              </div>
+
+              {/* Summary Stats */}
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div className="text-center p-4 bg-gray-50 rounded-lg">
+                  <h3 className="font-medium text-sm">Total Issues</h3>
+                  <p className="text-2xl font-bold text-gray-700">{validationIssues.length}</p>
+                </div>
+                <div className="text-center p-4 bg-red-50 rounded-lg">
+                  <Trash2 className="mx-auto h-6 w-6 text-red-600 mb-1" />
+                  <h3 className="font-medium text-sm">To Skip</h3>
+                  <p className="text-2xl font-bold text-red-600">
+                    {validationIssues.filter(i => i.solution === 'skip').length}
+                  </p>
+                </div>
+                <div className="text-center p-4 bg-blue-50 rounded-lg">
+                  <RefreshCw className="mx-auto h-6 w-6 text-blue-600 mb-1" />
+                  <h3 className="font-medium text-sm">To Replace</h3>
+                  <p className="text-2xl font-bold text-blue-600">
+                    {validationIssues.filter(i => i.solution === 'replace').length}
+                  </p>
+                </div>
+                <div className="text-center p-4 bg-green-50 rounded-lg">
+                  <CheckCircle className="mx-auto h-6 w-6 text-green-600 mb-1" />
+                  <h3 className="font-medium text-sm">To Process</h3>
+                  <p className="text-2xl font-bold text-green-600">
+                    {csvData.length - validationIssues.filter(i => i.solution === 'skip').length}
+                  </p>
+                </div>
+              </div>
 
               <div className="text-center">
                 <Button onClick={processData} disabled={isProcessing} size="lg">
