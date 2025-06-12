@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useLocation } from 'wouter';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -57,6 +57,19 @@ export default function PartnerPilot() {
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
   const [activeSection, setActiveSection] = useState<'copilot' | 'reports' | 'data-upload' | 'data-upload-2' | 'data-upload-2-degoudse' | 'settings'>('copilot');
+
+  // Listen for navigation events from upload process pages
+  useEffect(() => {
+    const handleNavigateToSection = (event: CustomEvent) => {
+      setActiveSection(event.detail);
+    };
+
+    window.addEventListener('navigate-to-section', handleNavigateToSection as EventListener);
+    
+    return () => {
+      window.removeEventListener('navigate-to-section', handleNavigateToSection as EventListener);
+    };
+  }, []);
 
   // Sample activities data
   const activities: ActivityItem[] = [
