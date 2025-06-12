@@ -70,7 +70,7 @@ export default function AttributeMappingStep({
   const environmentId = localStorage.getItem('currentEnvironment') || 'degoudse';
 
   // Get upload settings to determine mandatory attributes
-  const { data: uploadSettings = {} } = useQuery({
+  const { data: uploadSettings = [] } = useQuery({
     queryKey: [`/api/${environmentId}/upload-settings/${uploadType}`],
     enabled: !!environmentId && !!uploadType,
   });
@@ -142,10 +142,10 @@ export default function AttributeMappingStep({
 
   // Get mandatory attributes from upload settings
   const getMandatoryAttributes = () => {
-    if (!uploadSettings || typeof uploadSettings !== 'object') return [];
-    return Object.entries(uploadSettings)
-      .filter(([_, isMandatory]) => isMandatory === true)
-      .map(([attributeName]) => attributeName);
+    if (!Array.isArray(uploadSettings)) return [];
+    return uploadSettings
+      .filter((setting: any) => setting.is_mandatory === true)
+      .map((setting: any) => setting.attribute_name);
   };
 
   // Initialize mandatory attributes
