@@ -976,7 +976,7 @@ export default function PartnerDetailBrokerPOV() {
                                 >
                                   All Customers
                                 </button>
-                                {uniqueCustomers.map((customer: string) => (
+                                {uniqueCustomers.map((customer) => (
                                   <button
                                     key={customer}
                                     className="flex w-full items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
