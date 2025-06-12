@@ -1301,7 +1301,7 @@ export default function PartnerDetail() {
                     
                     <Button 
                       size="sm" 
-                      className="flex items-center bg-indigo-600 hover:bg-indigo-700"
+                      className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-primary/90 h-10 px-4 py-2 text-[#ffffff] bg-[#5567E5] pl-[14px] pr-[14px] ml-[8px] mr-[8px]"
                       onClick={() => {/* Handle new opportunity creation */}}
                     >
                       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
@@ -1646,7 +1646,7 @@ export default function PartnerDetail() {
                 </>
               ) : (
                 /* Empty state when no opportunities are selected */
-                <div className="flex items-center justify-center w-full min-h-[32px]">
+                (<div className="flex items-center justify-center w-full min-h-[32px]">
                   <div className="flex items-center text-gray-500">
                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
                       <path d="M9 12l2 2 4-4"></path>
@@ -1654,7 +1654,7 @@ export default function PartnerDetail() {
                     </svg>
                     <span className="text-sm">Select at least one opportunity from the list to perform bulk actions</span>
                   </div>
-                </div>
+                </div>)
               )}
             </div>
 
@@ -2730,7 +2730,6 @@ export default function PartnerDetail() {
           return true; // Return success
         }}
       />
-
       {/* Logo Upload Modal */}
       <LogoUploadModal
         isOpen={showLogoUploadModal}
@@ -2744,7 +2743,6 @@ export default function PartnerDetail() {
         entityType="partner"
         entityId={partner?.id || 0}
       />
-
       {/* Save as new View Modal */}
       <Dialog 
         open={showSaveViewModal} 
@@ -2868,10 +2866,9 @@ export default function PartnerDetail() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
       {/* Partner Details Dialog */}
       <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
-        <DialogContent className="max-w-2xl">
+        <DialogContent className="fixed left-[50%] top-[50%] z-50 grid w-full translate-x-[-50%] translate-y-[-50%] gap-4 border p-6 shadow-lg duration-200 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 data-[state=closed]:slide-out-to-left-1/2 data-[state=closed]:slide-out-to-top-[48%] data-[state=open]:slide-in-from-left-1/2 data-[state=open]:slide-in-from-top-[48%] sm:rounded-lg max-w-2xl bg-[#ffffff] text-[#282A3F] pl-[32px] pr-[32px] pt-[32px] pb-[32px]">
           <DialogHeader>
             <DialogTitle>Partner Details</DialogTitle>
             <DialogDescription>
@@ -2984,9 +2981,7 @@ export default function PartnerDetail() {
                 title: "Partner updated",
                 description: "Partner information has been saved successfully.",
               });
-            }}>
-              Save
-            </Button>
+            }}>Save changes</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
