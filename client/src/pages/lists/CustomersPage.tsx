@@ -710,10 +710,17 @@ export default function CustomersPageClean() {
         </div>
 
         {/* Statistics overview - exact match to Opportunities */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
           <div className="bg-white p-4 rounded-md border border-gray-200">
             <div className="text-xl font-semibold text-[#282A3F]">{filteredCustomers.length}</div>
             <div className="text-sm text-gray-500">Total Customers</div>
+          </div>
+          
+          <div className="bg-white p-4 rounded-md border border-gray-200">
+            <div className="text-xl font-semibold text-[#282A3F]">
+              {filteredCustomers.reduce((total, customer) => total + (customer.opportunityCount || 0), 0)}
+            </div>
+            <div className="text-sm text-gray-500">Total Opportunities</div>
           </div>
           
           <div className="bg-white p-4 rounded-md border border-gray-200">
