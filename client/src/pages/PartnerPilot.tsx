@@ -546,7 +546,7 @@ export default function PartnerPilot() {
                 <CardHeader>
                   <div className="flex justify-between items-start">
                     <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
-                      <Truck className="h-5 w-5 text-red-600" />
+                      <Upload className="h-5 w-5 text-red-600" />
                     </div>
                   </div>
                   <CardTitle className="text-lg mt-2">Vendors</CardTitle>
@@ -565,7 +565,7 @@ export default function PartnerPilot() {
                 <CardHeader>
                   <div className="flex justify-between items-start">
                     <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
-                      <Contact className="h-5 w-5 text-gray-600" />
+                      <Users className="h-5 w-5 text-gray-600" />
                     </div>
                   </div>
                   <CardTitle className="text-lg mt-2">Contacts</CardTitle>
@@ -615,7 +615,7 @@ export default function PartnerPilot() {
                 <CardHeader>
                   <div className="flex justify-between items-start">
                     <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                      <Cloud className="h-5 w-5 text-blue-600" />
+                      <Upload className="h-5 w-5 text-blue-600" />
                     </div>
                     <Badge variant="secondary" className="text-xs">Coming Soon</Badge>
                   </div>
@@ -635,7 +635,7 @@ export default function PartnerPilot() {
                 <CardHeader>
                   <div className="flex justify-between items-start">
                     <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
-                      <Database className="h-5 w-5 text-indigo-600" />
+                      <FileSpreadsheet className="h-5 w-5 text-indigo-600" />
                     </div>
                     <Badge variant="secondary" className="text-xs">Coming Soon</Badge>
                   </div>
