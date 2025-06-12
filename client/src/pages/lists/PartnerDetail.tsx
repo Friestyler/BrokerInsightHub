@@ -407,6 +407,33 @@ export default function PartnerDetail() {
     queryKey: ['/api/customers'],
   });
 
+  // Initialize dialog data when it opens
+  useEffect(() => {
+    if (showDetailsDialog && partner) {
+      setEditedPartner({
+        name: partner.name || '',
+        description: partner.description || '',
+        type: partner.type || '',
+        contactEmail: partner.contactEmail || '',
+        contactPhone: partner.contactPhone || '',
+        website: partner.website || '',
+        status: partner.status || '',
+        address: partner.address || '',
+      });
+      
+      // Initialize with existing relationships
+      const opportunityIds = Array.isArray(relatedOpportunities) 
+        ? relatedOpportunities.map((opp: any) => opp.id) 
+        : [];
+      const customerIds = Array.isArray(relatedCustomers) 
+        ? relatedCustomers.map((customer: any) => customer.id) 
+        : [];
+        
+      setSelectedOpportunityIds(opportunityIds);
+      setSelectedCustomerIds(customerIds);
+    }
+  }, [showDetailsDialog, partner, relatedOpportunities, relatedCustomers]);
+
   // Fetch saved lists for opportunities that include this partner
   const { data: savedListsData } = useQuery({
     queryKey: ['/api/saved-lists', 'opportunities', 'partner', id],
@@ -2982,7 +3009,7 @@ export default function PartnerDetail() {
                     <SelectValue placeholder="Add opportunities..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {(allOpportunities || []).filter((opportunity: any) => 
+                    {Array.isArray(allOpportunities) && allOpportunities.filter((opportunity: any) => 
                       !selectedOpportunityIds.includes(opportunity.id)
                     ).map((opportunity: any) => (
                       <SelectItem key={opportunity.id} value={opportunity.id.toString()}>
@@ -2993,7 +3020,7 @@ export default function PartnerDetail() {
                 </Select>
                 <div className="mt-2 flex flex-wrap gap-1">
                   {selectedOpportunityIds.map(id => {
-                    const opp = (allOpportunities || []).find((o: any) => o.id === id);
+                    const opp = Array.isArray(allOpportunities) ? allOpportunities.find((o: any) => o.id === id) : null;
                     return opp ? (
                       <span key={id} className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-md">
                         {opp.title}
@@ -3027,7 +3054,7 @@ export default function PartnerDetail() {
                     <SelectValue placeholder="Add customers..." />
                   </SelectTrigger>
                   <SelectContent>
-                    {(allCustomers || []).filter((customer: any) => 
+                    {Array.isArray(allCustomers) && allCustomers.filter((customer: any) => 
                       !selectedCustomerIds.includes(customer.id)
                     ).map((customer: any) => (
                       <SelectItem key={customer.id} value={customer.id.toString()}>
@@ -3038,7 +3065,7 @@ export default function PartnerDetail() {
                 </Select>
                 <div className="mt-2 flex flex-wrap gap-1">
                   {selectedCustomerIds.map(id => {
-                    const customer = (allCustomers || []).find((c: any) => c.id === id);
+                    const customer = Array.isArray(allCustomers) ? allCustomers.find((c: any) => c.id === id) : null;
                     return customer ? (
                       <span key={id} className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 text-xs rounded-md">
                         {customer.name}
