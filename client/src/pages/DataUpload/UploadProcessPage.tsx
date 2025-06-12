@@ -18,10 +18,9 @@ interface UploadProcessProps {
 const steps = [
   { id: 1, name: 'Transformation', description: 'Configure data transformation' },
   { id: 2, name: 'Upload', description: 'Upload your CSV file' },
-  { id: 3, name: 'Review Columns', description: 'Review CSV column headers' },
-  { id: 4, name: 'Mapping', description: 'Map columns to attributes' },
-  { id: 5, name: 'Processing', description: 'Process and validate data' },
-  { id: 6, name: 'Complete', description: 'Review results' }
+  { id: 3, name: 'Mapping', description: 'Map columns to attributes' },
+  { id: 4, name: 'Processing', description: 'Process and validate data' },
+  { id: 5, name: 'Complete', description: 'Review results' }
 ];
 
 export default function UploadProcessPage() {
@@ -269,23 +268,8 @@ export default function UploadProcessPage() {
             </div>
           )}
 
-          {/* Review Columns Step */}
-          {((currentStep === 3 && isSpecialFormat) || (currentStep === 2 && !isSpecialFormat)) && (
-            <MappingStep 
-              uploadedFile={uploadedFile}
-              uploadType={uploadType || ''}
-              stepName={currentStepData?.name || 'Review Columns'}
-              currentStep={currentStep}
-              onNext={(headers: string[]) => {
-                setCsvHeaders(headers);
-                goToNextStep();
-              }}
-              onBack={goToPreviousStep}
-            />
-          )}
-
           {/* Attribute Mapping Step */}
-          {((currentStep === 4 && isSpecialFormat) || (currentStep === 3 && !isSpecialFormat)) && (
+          {((currentStep === 3 && isSpecialFormat) || (currentStep === 2 && !isSpecialFormat)) && (
             <AttributeMappingStep 
               uploadedFile={uploadedFile}
               csvHeaders={csvHeaders}
@@ -298,7 +282,7 @@ export default function UploadProcessPage() {
           )}
 
           {/* Additional steps */}
-          {currentStep > (isSpecialFormat ? 4 : 3) && (
+          {currentStep > (isSpecialFormat ? 3 : 2) && (
             <div className="text-center py-12">
               <h3 className="text-lg font-medium mb-2">Step {currentStep}: {currentStepData?.name}</h3>
               <p className="text-gray-600 mb-6">This step will be implemented in the next phase.</p>

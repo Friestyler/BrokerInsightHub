@@ -44,8 +44,25 @@ export default function AttributeMappingStep({
   const [templateDescription, setTemplateDescription] = useState('');
   const [showTemplateForm, setShowTemplateForm] = useState(false);
   const [editingCodeFor, setEditingCodeFor] = useState<string | null>(null);
+  const [extractedHeaders, setExtractedHeaders] = useState<string[]>([]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Extract CSV headers from uploaded file
+  useEffect(() => {
+    if (uploadedFile && uploadedFile.type === 'text/csv') {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const content = e.target?.result as string;
+        const lines = content.split('\n');
+        if (lines.length > 0) {
+          const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+          setExtractedHeaders(headers);
+        }
+      };
+      reader.readAsText(uploadedFile);
+    }
+  }, [uploadedFile]);
 
   // Get environment ID from localStorage
   const environmentId = localStorage.getItem('currentEnvironment') || 'degoudse';
@@ -252,12 +269,12 @@ export default function AttributeMappingStep({
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2 text-base">
             <FileText className="h-4 w-4" />
-            CSV Headers ({csvHeaders.length} columns)
+            CSV Headers ({(extractedHeaders.length || csvHeaders.length)} columns)
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex flex-wrap gap-2">
-            {csvHeaders.map((header, index) => (
+            {(extractedHeaders.length > 0 ? extractedHeaders : csvHeaders).map((header, index) => (
               <Badge key={index} variant="outline" className="text-sm">
                 {header}
               </Badge>
