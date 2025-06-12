@@ -155,7 +155,7 @@ export default function AttributeMappingStep({
   const addOptionalAttribute = () => {
     const availableAttributes = getEntityAttributes();
     const usedAttributes = attributeMappings.map(m => m.attribute);
-    const nextAvailable = availableAttributes.find(attr => !usedAttributes.includes(attr));
+    const nextAvailable = availableAttributes.find((attr: string) => !usedAttributes.includes(attr));
     
     setAttributeMappings(prev => [...prev, {
       attribute: nextAvailable || '',
@@ -231,16 +231,16 @@ export default function AttributeMappingStep({
       </div>
 
       {/* Template Carousel */}
-      {templates.length > 0 && (
+      {Array.isArray(templates) && templates.length > 0 && (
         <Card>
           <CardHeader className="pb-3">
             <CardTitle className="text-base">Available Templates</CardTitle>
           </CardHeader>
           <CardContent>
             <TemplateCarousel
-              templates={templates}
+              templates={Array.isArray(templates) ? templates : []}
               onSelectTemplate={loadTemplate}
-              entityType={uploadType}
+              entityType={uploadType || ''}
               environmentId={environmentId}
             />
           </CardContent>
