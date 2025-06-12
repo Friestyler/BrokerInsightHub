@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { useLocation, useRoute } from "wouter";
 import { 
   Card, 
@@ -135,10 +135,41 @@ export default function CampaignBuilder() {
     enabled: currentStep === "select-list"
   });
 
+  // Fetch all saved lists for target list selection
+  const { data: allSavedLists } = useQuery({
+    queryKey: ['/api/saved-lists'],
+    enabled: currentStep === "select-list"
+  });
+
   const { data: contacts } = useQuery({
     queryKey: ['/api/contacts'],
     enabled: currentStep === "recipients"
   });
+
+  // Group saved lists by entity type
+  const groupedSavedLists = React.useMemo(() => {
+    if (!allSavedLists || !Array.isArray(allSavedLists)) return {};
+    
+    return allSavedLists.reduce((groups: any, list: any) => {
+      const entityType = list.entity_type || 'other';
+      if (!groups[entityType]) {
+        groups[entityType] = [];
+      }
+      groups[entityType].push(list);
+      return groups;
+    }, {});
+  }, [allSavedLists]);
+
+  // Helper function to format entity type labels
+  const getEntityTypeLabel = (entityType: string) => {
+    switch (entityType) {
+      case 'partners': return 'Partners';
+      case 'customers': return 'Customers';
+      case 'opportunities': return 'Opportunities';
+      case 'contacts': return 'Contacts';
+      default: return 'Other';
+    }
+  };
 
   // Filter contacts based on search query
   const contactsArray = Array.isArray(contacts) ? contacts : [];
@@ -404,10 +435,22 @@ export default function CampaignBuilder() {
                   <SelectValue placeholder="Select a target list" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1">Premium Customers</SelectItem>
-                  <SelectItem value="2">New Customers (Last 90 Days)</SelectItem>
-                  <SelectItem value="3">Car Insurance Holders</SelectItem>
-                  <SelectItem value="4">Home Insurance Only</SelectItem>
+                  {Object.keys(groupedSavedLists).length === 0 ? (
+                    <SelectItem value="no-lists" disabled>No saved lists available</SelectItem>
+                  ) : (
+                    Object.entries(groupedSavedLists).flatMap(([entityType, lists]) =>
+                      (lists as any[]).map((list: any) => (
+                        <SelectItem key={list.id} value={list.id.toString()}>
+                          <div className="flex flex-col">
+                            <span className="font-medium">{list.name}</span>
+                            <span className="text-xs text-gray-500">
+                              {getEntityTypeLabel(entityType)} • {list.description || 'No description'}
+                            </span>
+                          </div>
+                        </SelectItem>
+                      ))
+                    )
+                  )}
                 </SelectContent>
               </Select>
               <p className="text-xs text-gray-500">
