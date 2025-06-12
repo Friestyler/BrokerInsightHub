@@ -293,20 +293,31 @@ export class UploadSettingsService {
     const values = [];
     let paramCount = 1;
     
+    console.log('Processing update fields:', Object.keys(updates));
+    
     Object.entries(updates).forEach(([key, value]) => {
+      console.log(`Processing field: ${key} = ${JSON.stringify(value)}`);
       if (value !== undefined) {
         if (key === 'columnMappings') {
           setClause.push(`column_mappings = $${paramCount}`);
           values.push(JSON.stringify(value));
+          console.log(`Added column_mappings field`);
         } else if (key === 'entityType') {
           setClause.push(`entity_type = $${paramCount}`);
           values.push(value);
+          console.log(`Added entity_type field`);
+        } else if (key === 'isShared') {
+          setClause.push(`is_shared = $${paramCount}`);
+          values.push(value);
+          console.log(`Added is_shared field`);
         } else if (key === 'environmentId' || key === 'createdBy') {
           // Skip these fields as they shouldn't be updated
+          console.log(`Skipping field: ${key}`);
           return;
         } else {
           setClause.push(`${key} = $${paramCount}`);
           values.push(value);
+          console.log(`Added direct field: ${key}`);
         }
         paramCount++;
       }
@@ -325,6 +336,9 @@ export class UploadSettingsService {
       WHERE id = $${paramCount} AND environment_id = $${paramCount + 1}
       RETURNING *
     `;
+    
+    console.log('Final query:', query);
+    console.log('Query values:', values);
     
     const result = await pool.query(query, values);
     return result.rows[0];
