@@ -22,7 +22,11 @@ import path from 'path';
 import fs from 'fs';
 import { promises as fsPromises } from 'fs';
 import { v4 as uuidv4 } from 'uuid';
+import { z } from 'zod';
 import { comparePdfDocuments, extractTextFromPdf } from './services/pdfComparison';
+import { discoverEntitySchemas, getAvailableEnvironments, isSupportedEntityType } from './services/schemaDiscoveryService';
+import { UploadSettingsService } from './services/uploadSettingsService';
+import { insertUploadSettingSchema, insertTransformationScriptSchema, insertUploadTemplateSchema } from '@shared/schema';
 
 // Setup multer storage for file uploads
 const storage_config = multer.diskStorage({
@@ -4527,6 +4531,218 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error generating AI actions:', error);
       res.status(500).json({ error: 'Failed to generate AI recommendations' });
+    }
+  });
+
+  // Phase 1: Upload Settings Infrastructure Routes
+
+  // Schema Discovery Routes
+  app.get('/api/:environmentId/upload/entities', async (req: Request, res: Response) => {
+    try {
+      const { environmentId } = req.params;
+      
+      if (!getAvailableEnvironments().includes(environmentId)) {
+        return res.status(400).json({ error: 'Invalid environment' });
+      }
+      
+      const entitySchemas = await discoverEntitySchemas(environmentId);
+      res.json(entitySchemas);
+    } catch (error) {
+      console.error('Failed to discover entity schemas:', error);
+      res.status(500).json({ error: 'Failed to discover entity schemas' });
+    }
+  });
+
+  app.get('/api/:environmentId/upload/entities/:entityType/attributes', async (req: Request, res: Response) => {
+    try {
+      const { environmentId, entityType } = req.params;
+      
+      if (!isSupportedEntityType(entityType)) {
+        return res.status(400).json({ error: 'Unsupported entity type' });
+      }
+      
+      const entitySchemas = await discoverEntitySchemas(environmentId);
+      const entitySchema = entitySchemas.find(schema => schema.entityType === entityType);
+      
+      if (!entitySchema) {
+        return res.status(404).json({ error: 'Entity not found' });
+      }
+      
+      res.json(entitySchema.attributes);
+    } catch (error) {
+      console.error('Failed to get entity attributes:', error);
+      res.status(500).json({ error: 'Failed to get entity attributes' });
+    }
+  });
+
+  // Upload Settings Routes
+  app.get('/api/:environmentId/upload-settings/:entityType', async (req: Request, res: Response) => {
+    try {
+      const { environmentId, entityType } = req.params;
+      
+      if (!isSupportedEntityType(entityType)) {
+        return res.status(400).json({ error: 'Unsupported entity type' });
+      }
+      
+      const settings = await UploadSettingsService.getUploadSettings(environmentId, entityType);
+      res.json(settings);
+    } catch (error) {
+      console.error('Failed to get upload settings:', error);
+      res.status(500).json({ error: 'Failed to get upload settings' });
+    }
+  });
+
+  app.post('/api/:environmentId/upload-settings/:entityType', async (req: Request, res: Response) => {
+    try {
+      const { environmentId, entityType } = req.params;
+      const { settings } = req.body;
+      
+      if (!isSupportedEntityType(entityType)) {
+        return res.status(400).json({ error: 'Unsupported entity type' });
+      }
+      
+      const settingsSchema = z.array(z.object({
+        attributeName: z.string(),
+        isMandatory: z.boolean(),
+        dataType: z.string().optional()
+      }));
+      
+      const validatedSettings = settingsSchema.parse(settings);
+      
+      await UploadSettingsService.updateUploadSettings(environmentId, entityType, validatedSettings);
+      
+      res.json({ success: true, message: 'Upload settings updated successfully' });
+    } catch (error) {
+      console.error('Failed to update upload settings:', error);
+      res.status(500).json({ error: 'Failed to update upload settings' });
+    }
+  });
+
+  // Transformation Scripts Routes
+  app.get('/api/:environmentId/transformation-scripts', async (req: Request, res: Response) => {
+    try {
+      const { environmentId } = req.params;
+      const { entityType } = req.query;
+      
+      const scripts = await UploadSettingsService.getTransformationScripts(
+        environmentId, 
+        entityType as string
+      );
+      
+      res.json(scripts);
+    } catch (error) {
+      console.error('Failed to get transformation scripts:', error);
+      res.status(500).json({ error: 'Failed to get transformation scripts' });
+    }
+  });
+
+  app.post('/api/:environmentId/transformation-scripts', async (req: Request, res: Response) => {
+    try {
+      const { environmentId } = req.params;
+      const scriptData = { ...req.body, environmentId };
+      
+      const validatedScript = insertTransformationScriptSchema.parse(scriptData);
+      
+      const validation = UploadSettingsService.validateScriptSyntax(validatedScript.scriptContent);
+      if (!validation.isValid) {
+        return res.status(400).json({ 
+          error: 'Invalid script syntax', 
+          details: validation.errors 
+        });
+      }
+      
+      const script = await UploadSettingsService.createTransformationScript(validatedScript);
+      res.status(201).json(script);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid script data', details: error.errors });
+      }
+      console.error('Failed to create transformation script:', error);
+      res.status(500).json({ error: 'Failed to create transformation script' });
+    }
+  });
+
+  app.post('/api/:environmentId/transformation-scripts/validate', async (req: Request, res: Response) => {
+    try {
+      const { scriptContent } = req.body;
+      
+      if (!scriptContent || typeof scriptContent !== 'string') {
+        return res.status(400).json({ error: 'Script content is required' });
+      }
+      
+      const validation = UploadSettingsService.validateScriptSyntax(scriptContent);
+      res.json(validation);
+    } catch (error) {
+      console.error('Failed to validate script:', error);
+      res.status(500).json({ error: 'Failed to validate script' });
+    }
+  });
+
+  // Upload Templates Routes
+  app.get('/api/:environmentId/upload-templates', async (req: Request, res: Response) => {
+    try {
+      const { environmentId } = req.params;
+      const { entityType } = req.query;
+      const userId = 1; // Default user for testing
+      
+      const templates = await UploadSettingsService.getUploadTemplates(
+        environmentId, 
+        entityType as string,
+        userId
+      );
+      
+      res.json(templates);
+    } catch (error) {
+      console.error('Failed to get upload templates:', error);
+      res.status(500).json({ error: 'Failed to get upload templates' });
+    }
+  });
+
+  app.post('/api/:environmentId/upload-templates', async (req: Request, res: Response) => {
+    try {
+      const { environmentId } = req.params;
+      const templateData = { ...req.body, environmentId, createdBy: 1 }; // Default user
+      
+      const validatedTemplate = insertUploadTemplateSchema.parse(templateData);
+      
+      const template = await UploadSettingsService.createUploadTemplate(validatedTemplate);
+      res.status(201).json(template);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ error: 'Invalid template data', details: error.errors });
+      }
+      console.error('Failed to create upload template:', error);
+      res.status(500).json({ error: 'Failed to create upload template' });
+    }
+  });
+
+  // Utility Routes
+  app.get('/api/upload/environments', async (req: Request, res: Response) => {
+    try {
+      const environments = getAvailableEnvironments();
+      res.json(environments);
+    } catch (error) {
+      console.error('Failed to get environments:', error);
+      res.status(500).json({ error: 'Failed to get environments' });
+    }
+  });
+
+  app.get('/api/upload/supported-entities', async (req: Request, res: Response) => {
+    try {
+      const supportedEntities = [
+        'opportunities',
+        'partners', 
+        'customers',
+        'vendors',
+        'products',
+        'users',
+        'contacts'
+      ];
+      
+      res.json(supportedEntities);
+    } catch (error) {
+      console.error('Failed to get supported entities:', error);
+      res.status(500).json({ error: 'Failed to get supported entities' });
     }
   });
 
