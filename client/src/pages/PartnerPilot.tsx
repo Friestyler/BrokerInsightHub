@@ -8,6 +8,7 @@ import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import DataUploadOptions from '@/pages/DataUpload/DataUploadOptions';
 import DeGoudseUploadWizard from '@/pages/DataUpload/DeGoudseUploadWizard';
+import { TemplateCarousel } from '@/components/TemplateCarousel';
 import { 
   MessageSquare, 
   Search, 

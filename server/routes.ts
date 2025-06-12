@@ -4544,7 +4544,11 @@ export async function registerRoutes(app: Express): Promise<Server> {
         return res.status(400).json({ error: 'Invalid environment' });
       }
       
-      let query = `SELECT * FROM upload_templates WHERE environment_id = $1`;
+      let query = `SELECT id, template_name as name, description, entity_type as "entityType", 
+                          environment_id as "environmentId", template_data as "columnMappings",
+                          is_active as "isShared", 0 as "usageCount", null as "lastUsedAt",
+                          created_at as "createdAt", updated_at as "updatedAt"
+                   FROM upload_templates WHERE environment_id = $1 AND is_active = true`;
       const params = [environmentId];
       
       if (entityType) {
@@ -4552,7 +4556,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
         params.push(entityType as string);
       }
       
-      query += ` ORDER BY last_used_at DESC NULLS LAST, created_at DESC`;
+      query += ` ORDER BY created_at DESC`;
       
       const result = await pool.query(query, params);
       res.json(result.rows);
@@ -4572,10 +4576,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const result = await pool.query(`
-        INSERT INTO upload_templates (name, description, entity_type, environment_id, column_mappings, is_shared, created_by)
+        INSERT INTO upload_templates (template_name, description, entity_type, environment_id, template_data, is_active, created_by)
         VALUES ($1, $2, $3, $4, $5, $6, $7) 
         RETURNING *
-      `, [name, description, entityType, environmentId, JSON.stringify(columnMappings), isShared || false, 1]);
+      `, [name, description, entityType, environmentId, JSON.stringify(columnMappings), true, 1]);
       
       res.json(result.rows[0]);
     } catch (error) {
