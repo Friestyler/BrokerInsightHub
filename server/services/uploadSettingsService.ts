@@ -239,14 +239,15 @@ export class UploadSettingsService {
     
     const query = `
       INSERT INTO upload_templates (
-        name, description, entity_type, environment_id, 
+        template_name, name, description, entity_type, environment_id, 
         column_mappings, is_shared, created_by
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING *
     `;
     
     const result = await pool.query(query, [
+      template.name,
       template.name,
       template.description,
       template.entityType,
