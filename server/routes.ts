@@ -4820,6 +4820,59 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create Record Route
+  app.post('/api/:environmentId/create-record', async (req: Request, res: Response) => {
+    try {
+      const { environmentId } = req.params;
+      const { entityType, data, originalRow } = req.body;
+      
+      if (!getAvailableEnvironments().includes(environmentId)) {
+        return res.status(400).json({ error: 'Invalid environment' });
+      }
+      
+      if (!isSupportedEntityType(entityType)) {
+        return res.status(400).json({ error: 'Unsupported entity type' });
+      }
+      
+      const envPool = getEnvironmentPool(environmentId);
+      
+      // Build dynamic insert query based on entity type and data
+      const columns = Object.keys(data).filter(key => data[key] !== null && data[key] !== undefined);
+      const values = columns.map(col => data[col]);
+      const placeholders = columns.map((_, index) => `$${index + 1}`);
+      
+      const tableName = `${environmentId}.${entityType}`;
+      const insertQuery = `
+        INSERT INTO ${tableName} (${columns.join(', ')})
+        VALUES (${placeholders.join(', ')})
+        RETURNING *
+      `;
+      
+      console.log('Creating record:', {
+        entityType,
+        tableName,
+        columns,
+        values: values.map((v, i) => `${columns[i]}: ${v}`)
+      });
+      
+      const result = await envPool.query(insertQuery, values);
+      const createdRecord = result.rows[0];
+      
+      res.status(201).json({
+        success: true,
+        record: createdRecord,
+        entityType,
+        originalRow
+      });
+      
+    } catch (error) {
+      console.error('Failed to create record:', error);
+      res.status(500).json({ 
+        error: error instanceof Error ? error.message : 'Failed to create record' 
+      });
+    }
+  });
+
   // Upload Settings Routes
   app.get('/api/:environmentId/upload-settings/:entityType', async (req: Request, res: Response) => {
     try {

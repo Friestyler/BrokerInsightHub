@@ -9,6 +9,7 @@ import { Upload, FileSpreadsheet, ArrowLeft, ArrowRight, CheckCircle } from 'luc
 import { useQuery } from '@tanstack/react-query';
 import MappingStep from './MappingStep';
 import AttributeMappingStep from './AttributeMappingStep';
+import ProcessingStep from './ProcessingStep';
 
 interface UploadProcessProps {
   entityType?: string;
@@ -38,6 +39,11 @@ export default function UploadProcessPage() {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const [csvHeaders, setCsvHeaders] = useState<string[]>([]);
   const [dragOver, setDragOver] = useState(false);
+  const [attributeMappings, setAttributeMappings] = useState<Array<{
+    attribute: string;
+    csvColumn: string;
+    isRequired: boolean;
+  }>>([]);
 
   const visibleSteps = isSpecialFormat ? steps : steps.slice(1); // Skip transformation for regular entities
   const totalSteps = visibleSteps.length;
