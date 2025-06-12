@@ -18,9 +18,11 @@ import {
   campaigns,
   campaignRecipients,
   campaignFollowUps,
+  campaignShares,
   insertCampaignSchema,
   insertCampaignRecipientSchema,
-  insertCampaignFollowUpSchema
+  insertCampaignFollowUpSchema,
+  insertCampaignShareSchema
 } from '@shared/schema';
 import { eq, sql } from 'drizzle-orm';
 import { db, getEnvironmentPool, getEnvironmentDb } from './db';
@@ -5067,7 +5069,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
   app.post('/api/campaigns', async (req, res) => {
     try {
-      const envId = req.headers['x-environment-id'] || 'degoudse';
+      const envId = (req.headers['x-environment-id'] as string) || 'degoudse';
       const envDb = getEnvironmentDb(envId);
       
       const { sharing, ...campaignData } = req.body;

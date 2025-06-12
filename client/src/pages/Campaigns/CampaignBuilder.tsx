@@ -415,7 +415,14 @@ export default function CampaignBuilder() {
   // Campaign creation mutation
   const createCampaignMutation = useMutation({
     mutationFn: (data: any) => {
-      return apiRequest('POST', '/api/campaigns', data);
+      return fetch('/api/campaigns', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-environment-id': 'degoudse'
+        },
+        body: JSON.stringify(data)
+      }).then(res => res.json());
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/campaigns'] });
