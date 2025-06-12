@@ -49,7 +49,7 @@ export default function PartnerPilot() {
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [activeTab, setActiveTab] = useState('all');
-  const [activeSection, setActiveSection] = useState<'copilot' | 'reports' | 'data-upload' | 'data-upload-2' | 'data-upload-2-degoudse' | 'data-upload-2-settings'>('copilot');
+  const [activeSection, setActiveSection] = useState<'copilot' | 'reports' | 'data-upload' | 'data-upload-2' | 'data-upload-2-degoudse' | 'settings'>('copilot');
 
   // Sample activities data
   const activities: ActivityItem[] = [
