@@ -195,7 +195,7 @@ export default function UploadProcessPage() {
           )}
 
           {/* Upload Step */}
-          {currentStep === 2 && (
+          {((currentStep === 2 && isSpecialFormat) || (currentStep === 1 && !isSpecialFormat)) && (
             <div className="space-y-6">
               <div 
                 className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
