@@ -436,42 +436,69 @@ export default function CampaignBuilder() {
                 </SelectTrigger>
                 <SelectContent className="max-h-80">
                   {Object.keys(groupedSavedLists).length === 0 ? (
-                    <SelectItem value="no-lists" disabled>No saved lists available</SelectItem>
+                    <SelectItem value="no-lists" disabled>
+                      <span className="text-gray-500">No saved lists available</span>
+                    </SelectItem>
                   ) : (
                     Object.entries(groupedSavedLists).flatMap(([entityType, lists], groupIndex) => {
-                      const groupItems = [];
+                      const items = [];
                       
-                      // Add header item (disabled, for visual grouping only)
-                      groupItems.push(
+                      // Add divider for visual separation (except for first group)
+                      if (groupIndex > 0) {
+                        items.push(
+                          <SelectItem 
+                            key={`divider-${entityType}`} 
+                            value={`divider-${entityType}`} 
+                            disabled 
+                            className="h-px p-0 my-1 bg-gray-100 cursor-default"
+                          >
+                            <span></span>
+                          </SelectItem>
+                        );
+                      }
+                      
+                      // Add category header
+                      items.push(
                         <SelectItem 
-                          key={`header-${entityType}`} 
-                          value={`header-${entityType}`} 
+                          key={`category-${entityType}`} 
+                          value={`category-${entityType}`} 
                           disabled
-                          className="px-3 py-2 text-sm font-semibold text-gray-700 bg-gray-50 border-b border-gray-200 cursor-default"
+                          className="py-1.5 px-3 text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50/80 cursor-default select-none"
                         >
                           {getEntityTypeLabel(entityType)}
                         </SelectItem>
                       );
                       
-                      // Add list items
+                      // Add actual list items
                       (lists as any[]).forEach((list: any) => {
-                        groupItems.push(
+                        items.push(
                           <SelectItem 
                             key={list.id} 
                             value={list.id.toString()}
-                            className="pl-6 py-2"
+                            className="pl-4 pr-3 py-2.5 hover:bg-blue-50 focus:bg-blue-50 data-[highlighted]:bg-blue-50"
                           >
-                            <div className="flex flex-col">
-                              <span className="font-medium">{list.name}</span>
-                              {list.description && (
-                                <span className="text-xs text-gray-500">{list.description}</span>
-                              )}
+                            <div className="flex items-center justify-between w-full">
+                              <div className="flex-1 min-w-0">
+                                <div className="font-medium text-sm text-gray-900 truncate">
+                                  {list.name}
+                                </div>
+                                {list.description && (
+                                  <div className="text-xs text-gray-500 mt-0.5 truncate">
+                                    {list.description}
+                                  </div>
+                                )}
+                              </div>
+                              <div className="ml-2 flex-shrink-0">
+                                <span className="inline-block px-1.5 py-0.5 text-xs text-gray-600 bg-gray-100 rounded">
+                                  {getEntityTypeLabel(entityType).charAt(0).toUpperCase() + getEntityTypeLabel(entityType).slice(1, -1)}
+                                </span>
+                              </div>
                             </div>
                           </SelectItem>
                         );
                       });
                       
-                      return groupItems;
+                      return items;
                     })
                   )}
                 </SelectContent>
