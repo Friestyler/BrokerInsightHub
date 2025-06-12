@@ -91,8 +91,7 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
 
   // Fetch timeline
   const { data: timeline } = useQuery({
-    queryKey: [`/api/${currentEnv}/partners/${partnerId}/timeline`],
-    enabled: selectedActivityType === 'timeline'
+    queryKey: [`/api/${currentEnv}/partners/${partnerId}/timeline`]
   });
 
   // Fetch next best actions
@@ -137,6 +136,7 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
       }).then(res => res.json()),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/partners/${partnerId}/activities`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/partners/${partnerId}/timeline`] });
     }
   });
 

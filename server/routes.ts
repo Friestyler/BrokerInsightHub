@@ -1036,6 +1036,67 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get activities for a specific partner
+  app.get('/api/:envId/partners/:id/activities', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const partnerId = parseInt(req.params.id);
+      const envPool = getEnvironmentPool(envId);
+      
+      // Return empty array for now - activities will be handled by timeline
+      res.json([]);
+    } catch (error) {
+      console.error('Error fetching partner activities:', error);
+      res.status(500).json({ error: 'Failed to fetch partner activities' });
+    }
+  });
+
+  // Get timeline for a specific partner
+  app.get('/api/:envId/partners/:id/timeline', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const partnerId = parseInt(req.params.id);
+      const envPool = getEnvironmentPool(envId);
+      
+      // Mock timeline data that matches the expected structure
+      const mockTimeline = [
+        {
+          id: 1,
+          activity_type: 'comment',
+          title: 'Initial partner review completed',
+          content: 'Completed comprehensive review of partner capabilities and market position',
+          created_at: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+          author_name: 'System',
+          visible_to_partner: true
+        },
+        {
+          id: 2,
+          activity_type: 'task',
+          title: 'Follow up on Q1 targets',
+          content: 'Review quarterly performance metrics and discuss improvement strategies',
+          created_at: new Date(Date.now() - 12 * 60 * 60 * 1000).toISOString(),
+          author_name: 'Account Manager',
+          priority: 'high',
+          visible_to_partner: false
+        },
+        {
+          id: 3,
+          activity_type: 'attachment',
+          title: 'Contract renewal documents',
+          content: 'Updated partnership agreement for 2025',
+          created_at: new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString(),
+          author_name: 'Legal Team',
+          visible_to_partner: true
+        }
+      ];
+      
+      res.json(mockTimeline);
+    } catch (error) {
+      console.error('Error fetching partner timeline:', error);
+      res.status(500).json({ error: 'Failed to fetch partner timeline' });
+    }
+  });
+
   // Get partners for a specific customer using many-to-many relationship
   app.get('/api/customers/:id/partners', async (req, res) => {
     try {
