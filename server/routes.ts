@@ -15,7 +15,7 @@ import {
   contacts
 } from '@shared/schema';
 import { eq, sql } from 'drizzle-orm';
-import { db, getEnvironmentPool, getEnvironmentDb } from './db';
+import { db, pool, getEnvironmentPool, getEnvironmentDb } from './db';
 import multer from 'multer';
 import { copyEnvironmentData } from './initDatabase';
 import path from 'path';

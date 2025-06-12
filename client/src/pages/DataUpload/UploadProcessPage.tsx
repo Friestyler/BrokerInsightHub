@@ -7,6 +7,7 @@ import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Upload, FileSpreadsheet, ArrowLeft, ArrowRight, CheckCircle } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import { MappingStep } from './MappingStep';
 
 interface UploadProcessProps {
   entityType?: string;
@@ -265,25 +266,16 @@ export default function UploadProcessPage() {
             </div>
           )}
 
-          {/* Placeholder for other steps */}
+          {/* Mapping Step with Template Management */}
           {((currentStep === 3 && isSpecialFormat) || (currentStep === 2 && !isSpecialFormat)) && (
-            <div className="text-center py-12">
-              <h3 className="text-lg font-medium mb-2">Step {currentStep}: {currentStepData?.name}</h3>
-              <p className="text-gray-600 mb-6">This step will be implemented in the next phase.</p>
-              
-              <div className="flex justify-between">
-                <Button variant="outline" onClick={goToPreviousStep}>
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Previous
-                </Button>
-                {currentStep < totalSteps && (
-                  <Button onClick={goToNextStep}>
-                    Continue
-                    <ArrowRight className="h-4 w-4 ml-2" />
-                  </Button>
-                )}
-              </div>
-            </div>
+            <MappingStep 
+              uploadType={uploadType}
+              uploadedFile={uploadedFile}
+              onNext={goToNextStep}
+              onPrevious={goToPreviousStep}
+              currentStep={currentStep}
+              stepName={currentStepData?.name || 'Mapping'}
+            />
           )}
 
           {/* Additional steps */}

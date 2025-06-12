@@ -418,7 +418,8 @@ export default function PartnerPilot() {
             <p className="text-gray-600">Upload your data using intelligent templates and entity mapping</p>
           </div>
           
-
+          {/* Template Carousel Section */}
+          <TemplateCarousel />
 
           {/* Main Section: Entity Upload Options */}
           <div className="mb-10">
