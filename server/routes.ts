@@ -4848,6 +4848,28 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.put('/api/:environmentId/upload-templates/:templateId', async (req: Request, res: Response) => {
+    try {
+      const { environmentId, templateId } = req.params;
+      const updates = req.body;
+      
+      console.log('Updating template:', templateId, 'with data:', JSON.stringify(updates, null, 2));
+      
+      const template = await UploadSettingsService.updateUploadTemplate(
+        parseInt(templateId), 
+        environmentId, 
+        updates, 
+        1 // Default user
+      );
+      
+      console.log('Template updated successfully:', template);
+      res.json(template);
+    } catch (error) {
+      console.error('Failed to update upload template:', error);
+      res.status(500).json({ error: 'Failed to update upload template' });
+    }
+  });
+
   // Utility Routes
   app.get('/api/upload/environments', async (req: Request, res: Response) => {
     try {

@@ -31,6 +31,8 @@ interface Template {
   description?: string;
   entity_type: string;
   column_mappings: any;
+  isShared?: boolean;
+  createdBy?: number;
 }
 
 export default function AttributeMappingStep({ 
@@ -238,8 +240,11 @@ export default function AttributeMappingStep({
       templateData: {
         name: template.name,
         description: template.description,
-        entity_type: uploadType,
-        column_mappings: attributeMappings,
+        entityType: uploadType,
+        environmentId: environmentId,
+        columnMappings: attributeMappings,
+        isShared: template.isShared || false,
+        createdBy: template.createdBy || 1,
       }
     });
   };
