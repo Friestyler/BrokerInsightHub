@@ -1223,7 +1223,7 @@ export default function CampaignBuilder() {
                 <input
                   type="checkbox"
                   id="save-as-template"
-                  checked={form.getValues("saveAsTemplate")}
+                  checked={saveAsTemplate}
                   onChange={(e) => form.setValue("saveAsTemplate", e.target.checked)}
                   className="rounded text-indigo-600 focus:ring-indigo-500"
                 />
@@ -1233,7 +1233,7 @@ export default function CampaignBuilder() {
                 This will create a reusable template with your campaign settings and content
               </p>
               
-              {form.getValues("saveAsTemplate") && (
+              {saveAsTemplate && (
                 <div className="mt-3 ml-6 space-y-2">
                   <Label htmlFor="template-name">Template Name</Label>
                   <Input
