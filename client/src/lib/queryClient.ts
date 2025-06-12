@@ -70,24 +70,33 @@ export async function apiRequest<T = any>(
   url: string,
   data?: unknown | undefined,
 ): Promise<T> {
-  // Apply environment to URL
-  const envUrl = getEnvironmentUrl(url);
-  
-  const res = await fetch(envUrl, {
-    method,
-    headers: {
-      ...(data ? { "Content-Type": "application/json" } : {}),
-      // Add environment header as an alternative way to specify environment
-      'X-Environment': getCurrentEnvironmentId(),
-      // Force fresh data for saved lists
-      ...(envUrl.includes('saved-lists') ? { 'Cache-Control': 'no-cache' } : {})
-    },
-    body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
-  });
+  try {
+    // Apply environment to URL
+    const envUrl = getEnvironmentUrl(url);
+    
+    const res = await fetch(envUrl, {
+      method,
+      headers: {
+        ...(data ? { "Content-Type": "application/json" } : {}),
+        // Add environment header as an alternative way to specify environment
+        'X-Environment': getCurrentEnvironmentId(),
+        // Force fresh data for saved lists
+        ...(envUrl.includes('saved-lists') ? { 'Cache-Control': 'no-cache' } : {})
+      },
+      body: data ? JSON.stringify(data) : undefined,
+      credentials: "include",
+    });
 
-  await throwIfResNotOk(res);
-  return res.json();
+    await throwIfResNotOk(res);
+    return res.json();
+  } catch (error: any) {
+    // Handle AbortError and other network errors gracefully
+    if (error.name === 'AbortError') {
+      console.warn('API request aborted:', url);
+      throw new Error('Request timeout');
+    }
+    throw error;
+  }
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
@@ -96,26 +105,35 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    // Get the base URL from the query key
-    const baseUrl = queryKey[0] as string;
-    
-    // Apply environment to URL
-    const envUrl = getEnvironmentUrl(baseUrl);
-    
-    const res = await fetch(envUrl, {
-      credentials: "include",
-      headers: {
-        // Add environment header as an alternative way to specify environment
-        'X-Environment': getCurrentEnvironmentId()
+    try {
+      // Get the base URL from the query key
+      const baseUrl = queryKey[0] as string;
+      
+      // Apply environment to URL
+      const envUrl = getEnvironmentUrl(baseUrl);
+      
+      const res = await fetch(envUrl, {
+        credentials: "include",
+        headers: {
+          // Add environment header as an alternative way to specify environment
+          'X-Environment': getCurrentEnvironmentId()
+        }
+      });
+
+      if (unauthorizedBehavior === "returnNull" && res.status === 401) {
+        return null;
       }
-    });
 
-    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-      return null;
+      await throwIfResNotOk(res);
+      return await res.json();
+    } catch (error: any) {
+      // Handle AbortError and other network errors gracefully
+      if (error.name === 'AbortError') {
+        console.warn('Query aborted:', queryKey[0]);
+        throw new Error('Request timeout');
+      }
+      throw error;
     }
-
-    await throwIfResNotOk(res);
-    return await res.json();
   };
 
 export const queryClient = new QueryClient({

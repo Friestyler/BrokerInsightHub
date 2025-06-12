@@ -816,7 +816,7 @@ export default function CustomersPageClean() {
               {filteredCustomers.map((customer: any) => (
                 <tr 
                   key={customer.id} 
-                  className="hover:bg-gray-50 group"
+                  className="hover:bg-gray-50 group border-b border-gray-200"
                 >
                   <td className="relative whitespace-nowrap py-4 pl-3 pr-3 text-sm w-10">
                     <input

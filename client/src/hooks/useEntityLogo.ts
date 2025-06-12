@@ -64,10 +64,12 @@ export function useEntityLogo(entityType: 'partner' | 'customer', entityId: numb
         // Cache the result (even if null)
         logoCache.set(cacheKey, { url, timestamp: Date.now() });
         
-      } catch (err) {
+      } catch (err: any) {
         if (err.name === 'AbortError') {
           // Timeout - fail silently and cache null result
           logoCache.set(cacheKey, { url: null, timestamp: Date.now() });
+        } else {
+          console.warn('Logo fetch error:', err);
         }
         setLogoUrl(null);
         setError(null); // Don't show errors to user
