@@ -172,14 +172,50 @@ export default function CampaignBuilder() {
     enabled: currentStep === "select-list"
   });
 
+  // Form definition
+  const form = useForm<CampaignFormValues>({
+    resolver: zodResolver(campaignFormSchema),
+    defaultValues: {
+      name: "",
+      description: "",
+      type: "cross_sell",
+      listIds: [],
+      emailBody: "",
+      emailLogo: "",
+      recipientIds: [],
+      enableFollowUp: false,
+      followUpEmails: [{ delayDays: 3, subject: "", emailBody: "" }],
+      subject: "",
+      scheduledTime: "",
+      frequency: "one_time",
+      fromName: "",
+      fromEmail: "",
+      isShared: false,
+      sharedPartnerIds: [],
+      shareAccessLevel: "view",
+      shareMessage: "",
+      sharedContactIds: [],
+      saveAsTemplate: false,
+      templateName: "",
+      templateDescription: "",
+      status: "draft",
+    }
+  });
+
+  // Watch the recipientIds to ensure UI updates
+  const selectedRecipientIds = form.watch("recipientIds");
+  const saveAsTemplate = form.watch("saveAsTemplate");
+  const isShared = form.watch("isShared");
+  const sharedPartnerIds = form.watch("sharedPartnerIds");
+
   const { data: contacts } = useQuery({
     queryKey: ['/api/contacts'],
-    enabled: currentStep === "recipients"
+    enabled: currentStep === "recipients" || currentStep === "settings"
   });
 
   const { data: partners } = useQuery({
     queryKey: ['/api/partners'],
-    enabled: currentStep === "recipients"
+    enabled: currentStep === "recipients" || currentStep === "settings"
   });
 
   const { data: customers } = useQuery({
@@ -216,42 +252,6 @@ export default function CampaignBuilder() {
       default: return 'Other';
     }
   };
-
-  // Form definition
-  const form = useForm<CampaignFormValues>({
-    resolver: zodResolver(campaignFormSchema),
-    defaultValues: {
-      name: "",
-      description: "",
-      type: "cross_sell",
-      listIds: [],
-      emailBody: "",
-      emailLogo: "",
-      recipientIds: [],
-      enableFollowUp: false,
-      followUpEmails: [{ delayDays: 3, subject: "", emailBody: "" }],
-      subject: "",
-      scheduledTime: "",
-      frequency: "one_time",
-      fromName: "",
-      fromEmail: "",
-      isShared: false,
-      sharedPartnerIds: [],
-      shareAccessLevel: "view",
-      shareMessage: "",
-      sharedContactIds: [],
-      saveAsTemplate: false,
-      templateName: "",
-      templateDescription: "",
-      status: "draft",
-    }
-  });
-
-  // Watch the recipientIds to ensure UI updates
-  const selectedRecipientIds = form.watch("recipientIds");
-  const saveAsTemplate = form.watch("saveAsTemplate");
-  const isShared = form.watch("isShared");
-  const sharedPartnerIds = form.watch("sharedPartnerIds");
 
   // Contact form for new contact creation
   const contactForm = useForm<ContactFormValues>({
@@ -590,6 +590,16 @@ export default function CampaignBuilder() {
 
     // Remove template-specific fields from campaign data
     const { saveAsTemplate, templateName, templateDescription, ...cleanCampaignData } = campaignData;
+    
+    // Include sharing data in campaign
+    if (data.isShared) {
+      cleanCampaignData.sharing = {
+        sharedPartnerIds: data.sharedPartnerIds || [],
+        shareAccessLevel: data.shareAccessLevel || "view",
+        shareMessage: data.shareMessage || "",
+        sharedContactIds: data.sharedContactIds || []
+      };
+    }
     
     // If saving as template, create the template first
     if (data.saveAsTemplate && data.templateName) {
@@ -1239,7 +1249,7 @@ export default function CampaignBuilder() {
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">Select Partners to Share With</Label>
                     <div className="space-y-2 max-h-32 overflow-y-auto border rounded-md p-2">
-                      {partners?.map((partner) => (
+                      {Array.isArray(partners) && partners.map((partner: any) => (
                         <div key={partner.id} className="flex items-center space-x-2">
                           <input
                             type="checkbox"
@@ -1263,6 +1273,51 @@ export default function CampaignBuilder() {
                       ))}
                     </div>
                   </div>
+                  
+                  {/* Contact selection for selected partners */}
+                  {sharedPartnerIds && sharedPartnerIds.length > 0 && (
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium">Select Contacts from Partners</Label>
+                      <div className="space-y-2 max-h-32 overflow-y-auto border rounded-md p-2">
+                        {Array.isArray(contacts) && contacts
+                          .filter((contact: any) => 
+                            sharedPartnerIds.some((partnerId: string) => 
+                              contact.partner_id?.toString() === partnerId
+                            )
+                          )
+                          .map((contact: any) => (
+                            <div key={contact.id} className="flex items-center space-x-2">
+                              <input
+                                type="checkbox"
+                                id={`contact-${contact.id}`}
+                                checked={form.getValues("sharedContactIds")?.includes(contact.id.toString()) || false}
+                                onChange={(e) => {
+                                  const currentIds = form.getValues("sharedContactIds") || [];
+                                  const contactId = contact.id.toString();
+                                  if (e.target.checked) {
+                                    form.setValue("sharedContactIds", [...currentIds, contactId]);
+                                  } else {
+                                    form.setValue("sharedContactIds", currentIds.filter(id => id !== contactId));
+                                  }
+                                }}
+                                className="rounded text-indigo-600 focus:ring-indigo-500"
+                              />
+                              <Label htmlFor={`contact-${contact.id}`} className="text-sm">
+                                {contact.first_name} {contact.last_name} ({contact.email})
+                              </Label>
+                            </div>
+                          ))
+                        }
+                        {(!contacts || !Array.isArray(contacts) || contacts.filter((contact: any) => 
+                          sharedPartnerIds.some((partnerId: string) => 
+                            contact.partner_id?.toString() === partnerId
+                          )
+                        ).length === 0) && (
+                          <p className="text-sm text-gray-500">No contacts found for selected partners</p>
+                        )}
+                      </div>
+                    </div>
+                  )}
                   
                   <div className="space-y-2">
                     <Label className="text-sm font-medium">Access Level</Label>
