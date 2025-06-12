@@ -1117,12 +1117,12 @@ export default function PartnerDetailBrokerPOV() {
                             />
                           </div>
                         </TableHead>
-                        <TableHead className="text-[#696C8C]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '13px' }}>Opportunity</TableHead>
-                        <TableHead className="text-[#696C8C]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '13px' }}>Customer</TableHead>
-                        <TableHead className="text-[#696C8C]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '13px' }}>Related contacts</TableHead>
-                        <TableHead className="text-[#696C8C]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '13px' }}>Stage</TableHead>
-                        <TableHead className="text-[#696C8C]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '13px' }}>Value</TableHead>
-                        <TableHead className="text-[#696C8C]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '13px' }}>Close Date</TableHead>
+                        <TableHead className="text-[#696C8C]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>Opportunity</TableHead>
+                        <TableHead className="text-[#696C8C]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>Customer</TableHead>
+                        <TableHead className="text-[#696C8C]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>Related contacts</TableHead>
+                        <TableHead className="text-[#696C8C]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>Stage</TableHead>
+                        <TableHead className="text-[#696C8C]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>Value</TableHead>
+                        <TableHead className="text-[#696C8C]" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>Close Date</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>

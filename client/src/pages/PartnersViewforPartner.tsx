@@ -242,7 +242,7 @@ function PartnerTable() {
           <table className="min-w-full divide-y divide-gray-200">
             <thead className="bg-white">
               <tr>
-                <th className="w-12 group relative px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '13px' }}>
+                <th className="w-12 group relative px-6 py-3 text-left text-xs font-medium text-[#696C8C] uppercase tracking-wider" style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}>
                   <div className={`transition-opacity ${
                     selectedPartners.length > 0 ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
                   }`}>

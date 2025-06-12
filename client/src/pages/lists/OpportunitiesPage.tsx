@@ -1663,7 +1663,7 @@ function OpportunitiesTable() {
                 Type
               </SortableTableHead>
               <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900 w-[120px] bg-white">
-                <div className="flex items-center text-[#696C8C] text-[13px] font-medium">
+                <div className="flex items-center text-[#696C8C] text-[14px] font-medium">
                   Template
                 </div>
               </th>
