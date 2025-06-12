@@ -4,13 +4,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { Separator } from '@/components/ui/separator';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Trash2, Save, Code, FileText } from 'lucide-react';
+import { Plus, Save, Edit, ArrowLeft, ArrowRight } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
-import { TemplateCarousel } from '@/components/TemplateCarousel';
 
 interface AttributeMappingStepProps {
   uploadedFile: File | null;
@@ -25,9 +22,7 @@ interface AttributeMappingStepProps {
 interface AttributeMapping {
   attribute: string;
   csvColumn: string;
-  customCode?: string;
   isRequired: boolean;
-  isCodeBased: boolean;
 }
 
 export default function AttributeMappingStep({ 
@@ -40,10 +35,9 @@ export default function AttributeMappingStep({
   onBack 
 }: AttributeMappingStepProps) {
   const [attributeMappings, setAttributeMappings] = useState<AttributeMapping[]>([]);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
   const [templateName, setTemplateName] = useState('');
-  const [templateDescription, setTemplateDescription] = useState('');
-  const [showTemplateForm, setShowTemplateForm] = useState(false);
-  const [editingCodeFor, setEditingCodeFor] = useState<string | null>(null);
+  const [showSaveTemplate, setShowSaveTemplate] = useState(false);
   const [extractedHeaders, setExtractedHeaders] = useState<string[]>([]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -67,28 +61,28 @@ export default function AttributeMappingStep({
   // Get environment ID from localStorage
   const environmentId = localStorage.getItem('currentEnvironment') || 'degoudse';
 
-  // Fetch entity schema to get attributes
-  const { data: entityData = [] } = useQuery({
-    queryKey: ['/api/admin/entity-schemas', environmentId],
-    enabled: !!environmentId,
+  // Get upload settings to determine mandatory attributes
+  const { data: uploadSettings = {} } = useQuery({
+    queryKey: [`/api/${environmentId}/upload-settings/${uploadType}`],
+    enabled: !!environmentId && !!uploadType,
   });
 
-  // Fetch upload settings to determine required attributes
-  const { data: uploadSettings = [] } = useQuery({
-    queryKey: ['/api/upload-settings', environmentId],
-    enabled: !!environmentId,
+  // Get entity schema to get all available attributes
+  const { data: entityData = [] } = useQuery({
+    queryKey: ['/api/admin/entity-schemas'],
+    enabled: true,
   });
 
   // Fetch templates for this entity type
   const { data: templates = [] } = useQuery({
-    queryKey: ['/api/upload-templates', environmentId, uploadType],
-    enabled: !!environmentId && !!uploadType,
+    queryKey: [`/api/${environmentId}/upload-templates`],
+    enabled: !!environmentId,
   });
 
   // Save template mutation
   const saveTemplateMutation = useMutation({
     mutationFn: async (templateData: any) => {
-      const response = await fetch('/api/upload-templates', {
+      const response = await fetch(`/api/${environmentId}/upload-templates`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(templateData),
@@ -97,51 +91,35 @@ export default function AttributeMappingStep({
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/upload-templates'] });
+      queryClient.invalidateQueries({ queryKey: [`/api/${environmentId}/upload-templates`] });
       toast({ title: 'Template saved successfully' });
-      setShowTemplateForm(false);
+      setShowSaveTemplate(false);
       setTemplateName('');
-      setTemplateDescription('');
     },
     onError: () => {
       toast({ title: 'Failed to save template', variant: 'destructive' });
     },
   });
 
-  // Update template usage mutation
-  const updateUsageMutation = useMutation({
-    mutationFn: async (templateId: string) => {
-      const response = await fetch(`/api/upload-templates/${templateId}/usage`, {
-        method: 'PATCH',
+  // Update template mutation
+  const updateTemplateMutation = useMutation({
+    mutationFn: async ({ templateId, templateData }: { templateId: string, templateData: any }) => {
+      const response = await fetch(`/api/${environmentId}/upload-templates/${templateId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(templateData),
       });
-      if (!response.ok) throw new Error('Failed to update usage');
+      if (!response.ok) throw new Error('Failed to update template');
       return response.json();
     },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/${environmentId}/upload-templates`] });
+      toast({ title: 'Template updated successfully' });
+    },
+    onError: () => {
+      toast({ title: 'Failed to update template', variant: 'destructive' });
+    },
   });
-
-  // Initialize required attributes based on upload settings
-  useEffect(() => {
-    if (Array.isArray(entityData) && Array.isArray(uploadSettings) && uploadType) {
-      const entitySchema = entityData.find((e: any) => 
-        e.tableName && e.tableName.toLowerCase().includes(uploadType.toLowerCase())
-      );
-      
-      const entityUploadSettings = uploadSettings.find((s: any) => 
-        s.entityType === uploadType
-      );
-
-      if (entitySchema && entityUploadSettings) {
-        const requiredAttributes = entityUploadSettings.requiredAttributes || [];
-        const mappings = requiredAttributes.map((attr: string) => ({
-          attribute: attr,
-          csvColumn: '',
-          isRequired: true,
-          isCodeBased: false,
-        }));
-        setAttributeMappings(mappings);
-      }
-    }
-  }, [entityData, uploadSettings, uploadType]);
 
   // Get available entity attributes
   const getEntityAttributes = () => {
@@ -154,17 +132,31 @@ export default function AttributeMappingStep({
       ?.filter((name: string) => name && name.trim().length > 0) || [];
   };
 
+  // Get mandatory attributes from upload settings
+  const getMandatoryAttributes = () => {
+    if (!uploadSettings || typeof uploadSettings !== 'object') return [];
+    return Object.entries(uploadSettings)
+      .filter(([_, isMandatory]) => isMandatory === true)
+      .map(([attributeName]) => attributeName);
+  };
+
+  // Initialize mandatory attributes
+  useEffect(() => {
+    const mandatoryAttrs = getMandatoryAttributes();
+    if (mandatoryAttrs.length > 0) {
+      const mappings = mandatoryAttrs.map((attr: string) => ({
+        attribute: attr,
+        csvColumn: '',
+        isRequired: true,
+      }));
+      setAttributeMappings(mappings);
+    }
+  }, [uploadSettings]);
+
   // Update attribute mapping
-  const updateMapping = (index: number, field: string, value: string) => {
+  const updateMapping = (index: number, csvColumn: string) => {
     setAttributeMappings(prev => prev.map((mapping, i) => 
-      i === index ? { 
-        ...mapping, 
-        [field]: value,
-        // Reset code when switching to CSV column
-        ...(field === 'csvColumn' && value !== '__code__' ? { customCode: '', isCodeBased: false } : {}),
-        // Set code flag when switching to code
-        ...(field === 'csvColumn' && value === '__code__' ? { isCodeBased: true } : {})
-      } : mapping
+      i === index ? { ...mapping, csvColumn } : mapping
     ));
   };
 
@@ -174,34 +166,30 @@ export default function AttributeMappingStep({
     const usedAttributes = attributeMappings.map(m => m.attribute);
     const nextAvailable = availableAttributes.find((attr: string) => !usedAttributes.includes(attr));
     
-    setAttributeMappings(prev => [...prev, {
-      attribute: nextAvailable || '',
-      csvColumn: '',
-      isRequired: false,
-      isCodeBased: false,
-    }]);
-  };
-
-  // Remove optional attribute
-  const removeAttribute = (index: number) => {
-    setAttributeMappings(prev => prev.filter((_, i) => i !== index));
+    if (nextAvailable) {
+      setAttributeMappings(prev => [...prev, {
+        attribute: nextAvailable,
+        csvColumn: '',
+        isRequired: false,
+      }]);
+    }
   };
 
   // Load template
   const loadTemplate = (templateId: string) => {
-    if (!Array.isArray(templates)) return;
     const template = templates.find((t: any) => t.id.toString() === templateId);
-    if (template && template.columnMappings) {
-      const mappings = Object.entries(template.columnMappings).map(([attr, mapping]: [string, any]) => ({
-        attribute: attr,
-        csvColumn: mapping.csvColumn || '',
-        customCode: mapping.customCode || '',
-        isRequired: mapping.isRequired || false,
-        isCodeBased: mapping.isCodeBased || false,
-      }));
-      setAttributeMappings(mappings);
-      updateUsageMutation.mutate(templateId);
-      toast({ title: `Template "${template.name}" loaded successfully` });
+    if (template && template.column_mappings) {
+      let mappings;
+      try {
+        mappings = typeof template.column_mappings === 'string' 
+          ? JSON.parse(template.column_mappings) 
+          : template.column_mappings;
+        
+        setAttributeMappings(mappings);
+        toast({ title: `Template "${template.name}" loaded` });
+      } catch (error) {
+        toast({ title: 'Failed to load template', variant: 'destructive' });
+      }
     }
   };
 
@@ -212,32 +200,41 @@ export default function AttributeMappingStep({
       return;
     }
 
-    const columnMappings = attributeMappings.reduce((acc, mapping) => {
-      acc[mapping.attribute] = {
-        csvColumn: mapping.csvColumn,
-        customCode: mapping.customCode,
-        isRequired: mapping.isRequired,
-        isCodeBased: mapping.isCodeBased,
-      };
-      return acc;
-    }, {} as any);
-
     saveTemplateMutation.mutate({
       name: templateName,
-      description: templateDescription,
-      entityType: uploadType,
-      environmentId,
-      columnMappings,
-      isShared: false,
+      description: `Template for ${uploadType}`,
+      entity_type: uploadType,
+      column_mappings: attributeMappings,
+    });
+  };
+
+  // Update existing template
+  const updateTemplate = () => {
+    if (!selectedTemplateId) return;
+    
+    const template = templates.find((t: any) => t.id.toString() === selectedTemplateId);
+    if (!template) return;
+
+    updateTemplateMutation.mutate({
+      templateId: selectedTemplateId,
+      templateData: {
+        name: template.name,
+        description: template.description,
+        entity_type: uploadType,
+        column_mappings: attributeMappings,
+      }
     });
   };
 
   const canProceed = attributeMappings
     .filter(m => m.isRequired)
-    .every(mapping => mapping.csvColumn || mapping.customCode);
+    .every(mapping => mapping.csvColumn);
+
+  const csvHeadersToUse = extractedHeaders.length > 0 ? extractedHeaders : csvHeaders;
 
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex justify-between items-center">
         <div>
           <h3 className="text-lg font-medium">Step {currentStep}: {stepName}</h3>
@@ -247,174 +244,83 @@ export default function AttributeMappingStep({
         </div>
       </div>
 
-      {/* Template Carousel */}
-      {Array.isArray(templates) && templates.length > 0 && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base">Available Templates</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <TemplateCarousel
-              templates={Array.isArray(templates) ? templates : []}
-              onSelectTemplate={loadTemplate}
-              entityType={uploadType || ''}
-              environmentId={environmentId}
-            />
-          </CardContent>
-        </Card>
-      )}
-
-      {/* File Info */}
+      {/* Template Management Section */}
       <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-base">
-            <FileText className="h-4 w-4" />
-            CSV Headers ({(extractedHeaders.length || csvHeaders.length)} columns)
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex flex-wrap gap-2">
-            {(extractedHeaders.length > 0 ? extractedHeaders : csvHeaders).map((header, index) => (
-              <Badge key={index} variant="outline" className="text-sm">
-                {header}
-              </Badge>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Attribute Mappings */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">Attribute Mappings</CardTitle>
+        <CardHeader className="pb-4">
+          <CardTitle className="text-base">Template Management</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
-          {attributeMappings.map((mapping, index) => (
-            <div key={index} className="border rounded-lg p-4 space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Label className="font-medium">{mapping.attribute}</Label>
-                  {mapping.isRequired && (
-                    <Badge variant="destructive" className="text-xs">Required</Badge>
-                  )}
-                </div>
-                {!mapping.isRequired && (
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    onClick={() => removeAttribute(index)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-
-              <div className="space-y-3">
-                <div>
-                  <Label className="text-sm text-muted-foreground">Map to:</Label>
-                  <Select 
-                    value={mapping.isCodeBased ? '__code__' : mapping.csvColumn} 
-                    onValueChange={(value) => {
-                      updateMapping(index, 'csvColumn', value);
-                      if (value === '__code__') {
-                        setEditingCodeFor(mapping.attribute);
-                      }
-                    }}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select CSV column or custom code" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {(extractedHeaders.length > 0 ? extractedHeaders : csvHeaders).map(header => (
-                        <SelectItem key={header} value={header}>{header}</SelectItem>
-                      ))}
-                      <Separator />
-                      <SelectItem value="__code__">
-                        <div className="flex items-center gap-2">
-                          <Code className="h-4 w-4" />
-                          Custom Code
-                        </div>
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                {mapping.isCodeBased && (
-                  <div className="space-y-2">
-                    <Label className="text-sm text-muted-foreground">Python Code:</Label>
-                    <Textarea
-                      placeholder="# Define custom logic using column references
-# Example: column_first_name + ' ' + column_last_name
-# Available columns: ${(extractedHeaders.length > 0 ? extractedHeaders : csvHeaders).join(', ')}"
-                      value={mapping.customCode || ''}
-                      onChange={(e) => updateMapping(index, 'customCode', e.target.value)}
-                      className="font-mono text-sm"
-                      rows={4}
-                    />
-                    <div className="text-xs text-muted-foreground">
-                      Use column names as variables: {(extractedHeaders.length > 0 ? extractedHeaders : csvHeaders).map(h => `column_${h.replace(/[^a-zA-Z0-9]/g, '_')}`).join(', ')}
-                    </div>
-                  </div>
-                )}
-              </div>
+          <div className="flex gap-4 items-end">
+            {/* Use Template Dropdown */}
+            <div className="flex-1">
+              <Label className="text-sm font-medium">Use Template</Label>
+              <Select 
+                value={selectedTemplateId} 
+                onValueChange={(value) => {
+                  setSelectedTemplateId(value);
+                  if (value) loadTemplate(value);
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a template" />
+                </SelectTrigger>
+                <SelectContent>
+                  {templates.map((template: any) => (
+                    <SelectItem key={template.id} value={template.id.toString()}>
+                      {template.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          ))}
 
-          <Button 
-            variant="outline" 
-            onClick={addOptionalAttribute}
-            className="w-full"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Add Optional Attribute
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Save Template */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-base">Save as Template</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {!showTemplateForm ? (
+            {/* Save Template Button */}
             <Button 
               variant="outline" 
-              onClick={() => setShowTemplateForm(true)}
-              className="w-full"
+              onClick={() => setShowSaveTemplate(true)}
+              className="shrink-0"
             >
               <Save className="h-4 w-4 mr-2" />
-              Save Current Mapping as Template
+              Save Template
             </Button>
-          ) : (
-            <div className="space-y-3">
+
+            {/* Update Template Button */}
+            {selectedTemplateId && (
+              <Button 
+                variant="outline" 
+                onClick={updateTemplate}
+                disabled={updateTemplateMutation.isPending}
+                className="shrink-0"
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                {updateTemplateMutation.isPending ? 'Updating...' : 'Update Template'}
+              </Button>
+            )}
+          </div>
+
+          {/* Save Template Form */}
+          {showSaveTemplate && (
+            <div className="border rounded-lg p-4 space-y-3 bg-muted/50">
               <div>
-                <Label>Template Name</Label>
+                <Label className="text-sm font-medium">Template Name</Label>
                 <Input
                   value={templateName}
                   onChange={(e) => setTemplateName(e.target.value)}
                   placeholder="Enter template name"
                 />
               </div>
-              <div>
-                <Label>Description (Optional)</Label>
-                <Textarea
-                  value={templateDescription}
-                  onChange={(e) => setTemplateDescription(e.target.value)}
-                  placeholder="Describe this template..."
-                  rows={2}
-                />
-              </div>
               <div className="flex gap-2">
                 <Button 
                   onClick={saveAsTemplate}
                   disabled={saveTemplateMutation.isPending}
+                  size="sm"
                 >
-                  {saveTemplateMutation.isPending ? 'Saving...' : 'Save Template'}
+                  {saveTemplateMutation.isPending ? 'Saving...' : 'Save'}
                 </Button>
                 <Button 
                   variant="outline" 
-                  onClick={() => setShowTemplateForm(false)}
+                  onClick={() => setShowSaveTemplate(false)}
+                  size="sm"
                 >
                   Cancel
                 </Button>
@@ -424,9 +330,126 @@ export default function AttributeMappingStep({
         </CardContent>
       </Card>
 
+      {/* Main Mapping Section - 2 Columns */}
+      <Card>
+        <CardHeader className="pb-4">
+          <CardTitle className="text-base">Column Mapping</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 gap-8">
+            {/* Left Column - Entity Attributes */}
+            <div className="space-y-4">
+              <div>
+                <h4 className="font-medium text-sm text-muted-foreground mb-3">Entity Attributes</h4>
+                
+                {/* Mandatory Attributes */}
+                <div className="space-y-3">
+                  {attributeMappings
+                    .filter(mapping => mapping.isRequired)
+                    .map((mapping, index) => (
+                      <div key={`mandatory-${index}`} className="flex items-center gap-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2">
+                            <span className="font-medium text-sm">{mapping.attribute}</span>
+                            <Badge variant="destructive" className="text-xs">Required</Badge>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+
+                {/* Optional Attributes */}
+                <div className="space-y-3 mt-4">
+                  {attributeMappings
+                    .filter(mapping => !mapping.isRequired)
+                    .map((mapping, index) => (
+                      <div key={`optional-${index}`} className="flex items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div className="flex-1">
+                          <span className="font-medium text-sm">{mapping.attribute}</span>
+                        </div>
+                      </div>
+                    ))}
+                </div>
+
+                {/* Add Attribute Button */}
+                <Button 
+                  variant="outline" 
+                  onClick={addOptionalAttribute}
+                  className="w-full mt-4"
+                  size="sm"
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Attribute
+                </Button>
+              </div>
+            </div>
+
+            {/* Right Column - CSV Column Mapping */}
+            <div className="space-y-4">
+              <div>
+                <h4 className="font-medium text-sm text-muted-foreground mb-3">CSV Column Mapping</h4>
+                
+                {/* Mandatory Mappings */}
+                <div className="space-y-3">
+                  {attributeMappings
+                    .filter(mapping => mapping.isRequired)
+                    .map((mapping, index) => {
+                      const mappingIndex = attributeMappings.findIndex(m => m.attribute === mapping.attribute);
+                      return (
+                        <div key={`mapping-mandatory-${index}`} className="p-3 bg-red-50 border border-red-200 rounded-lg">
+                          <Select 
+                            value={mapping.csvColumn} 
+                            onValueChange={(value) => updateMapping(mappingIndex, value)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select CSV column" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {csvHeadersToUse.map(header => (
+                                <SelectItem key={header} value={header}>{header}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      );
+                    })}
+                </div>
+
+                {/* Optional Mappings */}
+                <div className="space-y-3 mt-4">
+                  {attributeMappings
+                    .filter(mapping => !mapping.isRequired)
+                    .map((mapping, index) => {
+                      const mappingIndex = attributeMappings.findIndex(m => m.attribute === mapping.attribute);
+                      return (
+                        <div key={`mapping-optional-${index}`} className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                          <Select 
+                            value={mapping.csvColumn} 
+                            onValueChange={(value) => updateMapping(mappingIndex, value)}
+                          >
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select CSV column" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {csvHeadersToUse.map(header => (
+                                <SelectItem key={header} value={header}>{header}</SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Actions */}
       <div className="flex justify-between">
         <Button variant="outline" onClick={onBack}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
           Back
         </Button>
         <Button 
@@ -434,6 +457,7 @@ export default function AttributeMappingStep({
           disabled={!canProceed}
         >
           Continue to Processing
+          <ArrowRight className="h-4 w-4 ml-2" />
         </Button>
       </div>
     </div>
