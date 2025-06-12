@@ -8,8 +8,11 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { ArrowLeft, Search } from "lucide-react";
 import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
+import EntityAvatar from "@/components/EntityAvatar";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { BrokerLayout } from "@/components/layouts/BrokerLayout";
 import deGoudseLogo from "@assets/De_Goudse_logo_1749714740191.png";
@@ -105,6 +108,54 @@ export default function PartnerDetailBrokerPOV() {
     queryFn: () => apiRequest('GET', '/api/degoudse/partners/4/customers'),
     staleTime: 2 * 60 * 1000,
   });
+
+  // Customer lists and views data
+  const { data: customerSavedLists = [] } = useQuery({
+    queryKey: ['/api/degoudse/saved-lists', { entity_type: 'customers', partner_id: 4 }],
+    queryFn: () => apiRequest('GET', '/api/degoudse/saved-lists?entity_type=customers&partner_id=4'),
+  });
+
+  const { data: customerSavedViews = [] } = useQuery({
+    queryKey: ['/api/degoudse/saved-views', { entity_type: 'customers' }],
+    queryFn: () => apiRequest('GET', '/api/degoudse/saved-views?entity_type=customers'),
+  });
+
+  // Customer filtering state
+  const [customerSearchText, setCustomerSearchText] = useState('');
+  const [selectedCustomerStatus, setSelectedCustomerStatus] = useState('');
+  const [selectedIndustry, setSelectedIndustry] = useState('');
+  const [selectedCustomers, setSelectedCustomers] = useState<number[]>([]);
+  const [activeCustomerList, setActiveCustomerList] = useState<any>(null);
+  const [showCustomerListsDropdown, setShowCustomerListsDropdown] = useState(false);
+
+  // Filter customers based on search and filters
+  const filteredCustomers = partnerCustomers.filter((customer: any) => {
+    const matchesSearch = !customerSearchText || 
+      customer.name?.toLowerCase().includes(customerSearchText.toLowerCase()) ||
+      customer.description?.toLowerCase().includes(customerSearchText.toLowerCase());
+    
+    const matchesStatus = !selectedCustomerStatus || customer.status === selectedCustomerStatus;
+    const matchesIndustry = !selectedIndustry || customer.industry === selectedIndustry;
+    
+    return matchesSearch && matchesStatus && matchesIndustry;
+  });
+
+  // Customer selection handlers
+  const handleSelectCustomer = (customerId: number) => {
+    setSelectedCustomers(prev => 
+      prev.includes(customerId)
+        ? prev.filter(id => id !== customerId)
+        : [...prev, customerId]
+    );
+  };
+
+  const handleSelectAllCustomers = () => {
+    if (selectedCustomers.length === filteredCustomers.length) {
+      setSelectedCustomers([]);
+    } else {
+      setSelectedCustomers(filteredCustomers.map((c: any) => c.id));
+    }
+  };
 
 
 
@@ -1257,88 +1308,361 @@ export default function PartnerDetailBrokerPOV() {
 
           {activeTab === "customers" && (
             <div className="space-y-6">
+              {/* Lists and Views Controls */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  {/* Lists Dropdown */}
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowCustomerListsDropdown(!showCustomerListsDropdown)}
+                      className="flex items-center px-3 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                        <path d="M3 12h18l-9-9-9 9z" />
+                      </svg>
+                      {activeCustomerList ? activeCustomerList.name : 'All Customers'}
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
+                        <path d="M6 9l6 6 6-6" />
+                      </svg>
+                    </button>
+                    
+                    {showCustomerListsDropdown && (
+                      <div className="absolute z-10 mt-1 w-56 bg-white border border-gray-300 rounded-md shadow-lg">
+                        <div className="py-1">
+                          <button
+                            onClick={() => {
+                              setActiveCustomerList(null);
+                              setShowCustomerListsDropdown(false);
+                            }}
+                            className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+                          >
+                            All Customers ({partnerCustomers.length})
+                          </button>
+                          {customerSavedLists.map((list: any) => (
+                            <button
+                              key={list.id}
+                              onClick={() => {
+                                setActiveCustomerList(list);
+                                setShowCustomerListsDropdown(false);
+                              }}
+                              className="block w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100"
+                            >
+                              {list.name} ({list.item_count || 0})
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Views Dropdown */}
+                  <select
+                    className="px-3 py-2 text-sm border border-gray-300 rounded-md bg-white"
+                    defaultValue=""
+                  >
+                    <option value="">Select View</option>
+                    {customerSavedViews.map((view: any) => (
+                      <option key={view.id} value={view.id}>
+                        {view.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="flex items-center space-x-2">
+                  <Button variant="outline" className="text-sm">
+                    Export
+                  </Button>
+                  <Button variant="outline" className="text-sm">
+                    Import
+                  </Button>
+                </div>
+              </div>
+
+              {/* Search and Filters */}
+              <div className="flex items-center space-x-4">
+                <div className="flex-1">
+                  <Input
+                    type="text"
+                    placeholder="Search customers..."
+                    value={customerSearchText}
+                    onChange={(e) => setCustomerSearchText(e.target.value)}
+                    className="w-full"
+                  />
+                </div>
+                <select
+                  value={selectedCustomerStatus}
+                  onChange={(e) => setSelectedCustomerStatus(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-md bg-white text-sm"
+                >
+                  <option value="">All Status</option>
+                  <option value="Active">Active</option>
+                  <option value="Inactive">Inactive</option>
+                  <option value="Prospect">Prospect</option>
+                </select>
+                <select
+                  value={selectedIndustry}
+                  onChange={(e) => setSelectedIndustry(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-md bg-white text-sm"
+                >
+                  <option value="">All Industries</option>
+                  <option value="Insurance">Insurance</option>
+                  <option value="Finance">Finance</option>
+                  <option value="Real Estate">Real Estate</option>
+                  <option value="Healthcare">Healthcare</option>
+                </select>
+              </div>
+
+              {/* Bulk Actions Bar */}
+              {selectedCustomers.length > 0 && (
+                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-blue-800">
+                      {selectedCustomers.length} customer{selectedCustomers.length !== 1 ? 's' : ''} selected
+                    </span>
+                    <div className="flex space-x-2">
+                      <Button variant="outline" size="sm">
+                        Add to List
+                      </Button>
+                      <Button variant="outline" size="sm">
+                        Export
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => setSelectedCustomers([])}
+                      >
+                        Clear Selection
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {/* Statistics Overview */}
+              <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+                <div className="bg-white p-4 rounded-md border border-gray-200">
+                  <div className="text-xl font-semibold text-[#282A3F]">{filteredCustomers.length}</div>
+                  <div className="text-sm text-gray-500">Total Customers</div>
+                </div>
+                
+                <div className="bg-white p-4 rounded-md border border-gray-200">
+                  <div className="text-xl font-semibold text-[#282A3F]">
+                    {filteredCustomers.reduce((total: number, customer: any) => total + (customer.opportunityCount || 0), 0)}
+                  </div>
+                  <div className="text-sm text-gray-500">Total Opportunities</div>
+                </div>
+                
+                <div className="bg-white p-4 rounded-md border border-gray-200">
+                  <div className="text-xl font-semibold text-[#282A3F]">
+                    {filteredCustomers.filter((c: any) => c.status === 'Active').length}
+                  </div>
+                  <div className="text-sm text-gray-500">Active</div>
+                </div>
+                
+                <div className="bg-white p-4 rounded-md border border-gray-200">
+                  <div className="text-xl font-semibold text-[#282A3F]">€{(Math.random() * 100).toFixed(0)}K</div>
+                  <div className="text-sm text-gray-500">Total Value</div>
+                </div>
+                
+                <div className="bg-white p-4 rounded-md border border-gray-200">
+                  <div className="text-xl font-semibold text-[#282A3F]">€{(Math.random() * 50).toFixed(0)}K</div>
+                  <div className="text-sm text-gray-500">Weighted Value</div>
+                </div>
+              </div>
+
+              {/* Customers Table */}
               {customersLoading ? (
                 <div className="text-center py-8">
                   <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
                   <p className="text-gray-500 mt-2">Loading customers...</p>
                 </div>
               ) : (
-                <div className="bg-white rounded-lg shadow">
-                  <div className="px-6 py-4 border-b border-gray-200">
-                    <h3 className="text-lg font-semibold text-gray-900">
-                      Partner Customers ({partnerCustomers?.length || 0})
-                    </h3>
-                    <p className="text-sm text-gray-600 mt-1">
-                      Customers associated with this partnership
-                    </p>
-                  </div>
-                  
-                  {partnerCustomers && partnerCustomers.length > 0 ? (
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Customer Name</TableHead>
-                          <TableHead>Contact Info</TableHead>
-                          <TableHead>Opportunities</TableHead>
-                          <TableHead>Description</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {partnerCustomers.map((customer: any) => (
-                          <TableRow key={customer.id}>
-                            <TableCell>
-                              <div className="flex items-center space-x-3">
-                                <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                                  <span className="text-sm font-medium text-blue-600">
-                                    {customer.name?.charAt(0)?.toUpperCase() || 'C'}
-                                  </span>
+                <div className="bg-white rounded-lg shadow-sm">
+                  <table className="min-w-full">
+                    <thead className="bg-white">
+                      <tr>
+                        <th scope="col" className="relative px-3 py-3.5 w-10 pt-[12px] pb-[12px] group">
+                          <div className="flex items-center justify-center">
+                            <input
+                              type="checkbox"
+                              className={`h-4 w-4 rounded border-gray-300 ${
+                                selectedCustomers.length > 0 ? 'opacity-100' : 'opacity-0 group-hover:opacity-100 transition-opacity'
+                              }`}
+                              checked={selectedCustomers.length === filteredCustomers.length && filteredCustomers.length > 0}
+                              onChange={handleSelectAllCustomers}
+                            />
+                          </div>
+                        </th>
+                        <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold w-[250px] text-[#696C8C] pt-[12px] pb-[12px]">
+                          <div className="flex items-center text-[#696C8C] text-[14px] font-medium">
+                            Customer
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                              <path d="M8 9l4-4 4 4"></path>
+                              <path d="M16 15l-4 4-4-4"></path>
+                            </svg>
+                          </div>
+                        </th>
+                        <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-[#696C8C] pt-[12px] pb-[12px]">
+                          <div className="flex items-center text-[14px] font-medium text-[#696C8C]">
+                            Partner
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                              <path d="M8 9l4-4 4 4"></path>
+                              <path d="M16 15l-4 4-4-4"></path>
+                            </svg>
+                          </div>
+                        </th>
+                        <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-[#696C8C] pt-[12px] pb-[12px]">
+                          <div className="flex items-center text-[14px] font-medium text-[#696C8C]">
+                            Industry
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                              <path d="M8 9l4-4 4 4"></path>
+                              <path d="M16 15l-4 4-4-4"></path>
+                            </svg>
+                          </div>
+                        </th>
+                        <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-[#696C8C]">
+                          <div className="flex items-center text-[14px] font-medium text-[#696C8C]">
+                            Type
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                              <path d="M8 9l4-4 4 4"></path>
+                              <path d="M16 15l-4 4-4-4"></path>
+                            </svg>
+                          </div>
+                        </th>
+                        <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                          <div className="flex items-center text-[14px] font-medium text-[#696C8C]">
+                            Status
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                              <path d="M8 9l4-4 4 4"></path>
+                              <path d="M16 15l-4 4-4-4"></path>
+                            </svg>
+                          </div>
+                        </th>
+                        <th scope="col" className="px-3 py-3.5 text-left text-sm font-semibold text-[#696C8C]">
+                          <div className="flex items-center text-[14px] font-medium text-[#696C8C]">
+                            Related contacts
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                              <path d="M8 9l4-4 4 4"></path>
+                              <path d="M16 15l-4 4-4-4"></path>
+                            </svg>
+                          </div>
+                        </th>
+                        <th scope="col" className="relative px-6 py-3.5">
+                          <span className="sr-only">Actions</span>
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-200 bg-white">
+                      {filteredCustomers.length > 0 ? (
+                        filteredCustomers.map((customer: any) => (
+                          <tr key={customer.id} className="hover:bg-gray-50">
+                            <td className="relative px-3 py-4 w-10">
+                              <div className="flex items-center justify-center">
+                                <input
+                                  type="checkbox"
+                                  className="h-4 w-4 rounded border-gray-300"
+                                  checked={selectedCustomers.includes(customer.id)}
+                                  onChange={() => handleSelectCustomer(customer.id)}
+                                />
+                              </div>
+                            </td>
+                            <td className="px-3 py-4 text-sm w-[250px]">
+                              <div className="flex items-center">
+                                <EntityAvatar 
+                                  entityType="customer" 
+                                  entityId={customer.id} 
+                                  fallbackText={customer.name?.charAt(0)?.toUpperCase() || 'C'}
+                                  size="sm"
+                                />
+                                <div className="ml-3">
+                                  <Link 
+                                    href={`/lists/customers/${customer.id}`}
+                                    className="text-gray-900 hover:text-indigo-600 font-medium"
+                                  >
+                                    {customer.name}
+                                  </Link>
+                                  {customer.description && (
+                                    <div className="text-gray-500 text-xs mt-1 max-w-[200px] truncate">
+                                      {customer.description}
+                                    </div>
+                                  )}
                                 </div>
-                                <div>
-                                  <div className="font-medium text-gray-900">{customer.name}</div>
-                                </div>
                               </div>
-                            </TableCell>
-                            <TableCell>
-                              <div className="text-sm">
-                                {customer.contactName && (
-                                  <div className="text-gray-900">{customer.contactName}</div>
-                                )}
-                                {customer.contactEmail && (
-                                  <div className="text-gray-500">{customer.contactEmail}</div>
-                                )}
-                                {customer.contactPhone && (
-                                  <div className="text-gray-500">{customer.contactPhone}</div>
-                                )}
+                            </td>
+                            <td className="px-3 py-4 text-sm text-gray-500">
+                              <div className="flex items-center">
+                                <EntityAvatar 
+                                  entityType="partner" 
+                                  entityId={customer.partnerId || 4} 
+                                  fallbackText={(customer.partnerName || "De Goudse").charAt(0)}
+                                  size="sm"
+                                />
+                                <span className="ml-2">{customer.partnerName || "De Goudse"}</span>
                               </div>
-                            </TableCell>
-                            <TableCell>
-                              <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                                {customer.opportunityCount || 0} opportunities
-                              </span>
-                            </TableCell>
-                            <TableCell>
-                              <div className="text-sm text-gray-900 max-w-xs truncate">
-                                {customer.description || 'No description available'}
-                              </div>
-                            </TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  ) : (
-                    <div className="text-center py-12">
-                      <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
-                          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-                          <circle cx="9" cy="7" r="4" />
-                          <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-                          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-                        </svg>
-                      </div>
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">No customers found</h3>
-                      <p className="text-gray-500">This partner doesn't have any associated customers yet.</p>
-                    </div>
-                  )}
+                            </td>
+                            <td className="px-3 py-4 text-sm text-gray-500">
+                              {customer.industry || 'Insurance'}
+                            </td>
+                            <td className="px-3 py-4 text-sm text-gray-500">
+                              {customer.type || 'Corporate'}
+                            </td>
+                            <td className="px-3 py-4 text-sm">
+                              <Badge variant={customer.status === 'Active' ? 'default' : 'secondary'}>
+                                {customer.status || 'Active'}
+                              </Badge>
+                            </td>
+                            <td className="px-3 py-4 text-sm text-gray-500">
+                              <Badge variant="outline">
+                                {customer.contactCount || 1} contact{(customer.contactCount || 1) !== 1 ? 's' : ''}
+                              </Badge>
+                            </td>
+                            <td className="relative px-6 py-4 text-right text-sm font-medium">
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button variant="ghost" className="h-8 w-8 p-0">
+                                    <span className="sr-only">Open menu</span>
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                      <circle cx="12" cy="12" r="1"></circle>
+                                      <circle cx="12" cy="5" r="1"></circle>
+                                      <circle cx="12" cy="19" r="1"></circle>
+                                    </svg>
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem>
+                                    <Link href={`/lists/customers/${customer.id}`}>
+                                      View Details
+                                    </Link>
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem>Edit</DropdownMenuItem>
+                                  <DropdownMenuSeparator />
+                                  <DropdownMenuItem className="text-red-600">
+                                    Delete
+                                  </DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan={8} className="px-6 py-12 text-center">
+                            <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-gray-400">
+                                <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                                <circle cx="9" cy="7" r="4" />
+                                <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                                <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                              </svg>
+                            </div>
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">No customers found</h3>
+                            <p className="text-gray-500">This partner doesn't have any associated customers yet.</p>
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               )}
             </div>
