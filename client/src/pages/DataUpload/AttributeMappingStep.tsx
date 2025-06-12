@@ -15,7 +15,7 @@ interface AttributeMappingStepProps {
   uploadType: string;
   stepName: string;
   currentStep: number;
-  onNext: () => void;
+  onNext: (mappings: AttributeMapping[]) => void;
   onBack: () => void;
 }
 
@@ -297,6 +297,10 @@ export default function AttributeMappingStep({
 
   const csvHeadersToUse = extractedHeaders.length > 0 ? extractedHeaders : csvHeaders;
 
+  const handleNext = () => {
+    onNext(attributeMappings);
+  };
+
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -561,7 +565,7 @@ export default function AttributeMappingStep({
           Back
         </Button>
         <Button 
-          onClick={onNext} 
+          onClick={handleNext} 
           disabled={!canProceed}
         >
           Continue to Processing

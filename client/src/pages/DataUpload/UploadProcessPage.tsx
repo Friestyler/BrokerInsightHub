@@ -282,28 +282,47 @@ export default function UploadProcessPage() {
               uploadType={uploadType || ''}
               stepName={currentStepData?.name || 'Attribute Mapping'}
               currentStep={currentStep}
+              onNext={(mappings) => {
+                setAttributeMappings(mappings);
+                goToNextStep();
+              }}
+              onBack={goToPreviousStep}
+            />
+          )}
+
+          {/* Processing Step */}
+          {((currentStep === 4 && isSpecialFormat) || (currentStep === 3 && !isSpecialFormat)) && (
+            <ProcessingStep 
+              uploadedFile={uploadedFile}
+              attributeMappings={attributeMappings}
+              uploadType={uploadType || ''}
+              stepName={currentStepData?.name || 'Processing'}
+              currentStep={currentStep}
               onNext={goToNextStep}
               onBack={goToPreviousStep}
             />
           )}
 
-          {/* Additional steps */}
-          {currentStep > (isSpecialFormat ? 3 : 2) && (
+          {/* Results Step */}
+          {((currentStep === 5 && isSpecialFormat) || (currentStep === 4 && !isSpecialFormat)) && (
             <div className="text-center py-12">
-              <h3 className="text-lg font-medium mb-2">Step {currentStep}: {currentStepData?.name}</h3>
-              <p className="text-gray-600 mb-6">This step will be implemented in the next phase.</p>
+              <CheckCircle className="mx-auto h-16 w-16 text-green-600 mb-4" />
+              <h3 className="text-lg font-medium mb-2">Processing Complete!</h3>
+              <p className="text-gray-600 mb-6">Your {uploadType} data has been successfully processed and imported.</p>
               
-              <div className="flex justify-between">
-                <Button variant="outline" onClick={goToPreviousStep}>
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Previous
+              <div className="flex justify-center gap-4">
+                <Button variant="outline" onClick={() => setCurrentStep(1)}>
+                  Process Another File
                 </Button>
-                {currentStep < totalSteps && (
-                  <Button onClick={goToNextStep}>
-                    Continue
-                    <ArrowRight className="h-4 w-4 ml-2" />
-                  </Button>
-                )}
+                <Button onClick={() => {
+                  // Navigate back to main page
+                  setLocation('/');
+                  setTimeout(() => {
+                    window.dispatchEvent(new CustomEvent('navigate-to-section', { detail: 'data-upload-2' }));
+                  }, 100);
+                }}>
+                  Back to Upload Options
+                </Button>
               </div>
             </div>
           )}
