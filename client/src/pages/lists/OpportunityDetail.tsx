@@ -155,7 +155,9 @@ export default function OpportunityDetail() {
                 <div className="flex items-center space-x-4 mb-1">
                   <h1 className="text-2xl font-bold text-gray-900">{opportunity.title}</h1>
                   <div className="flex items-center space-x-2">
-                    <span className="text-sm bg-gray-100 text-gray-700 px-2 py-1 rounded">Details</span>
+                    <Button variant="ghost" size="sm" className="text-sm bg-gray-100 text-gray-700 px-2 py-1 rounded h-auto">
+                      Details
+                    </Button>
                     <span className="text-sm text-gray-500">Stage: <span className="text-blue-600">{opportunity.stage}</span></span>
                   </div>
                 </div>

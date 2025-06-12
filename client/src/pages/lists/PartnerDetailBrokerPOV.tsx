@@ -603,7 +603,9 @@ export default function PartnerDetailBrokerPOV() {
               <div className="flex items-center space-x-4 mb-1">
                 <h1 className="text-2xl font-bold text-gray-900">{partner.name}</h1>
                 <div className="flex items-center space-x-2">
-                  <span className="text-sm bg-gray-100 text-gray-700 px-2 py-1 rounded">Details</span>
+                  <Button variant="ghost" size="sm" className="text-sm bg-gray-100 text-gray-700 px-2 py-1 rounded h-auto">
+                    Details
+                  </Button>
                   <span className="text-sm text-gray-500">Owner: <span className="text-blue-600">De Goudse</span></span>
                 </div>
               </div>
