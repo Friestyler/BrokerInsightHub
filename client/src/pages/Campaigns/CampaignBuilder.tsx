@@ -477,22 +477,15 @@ export default function CampaignBuilder() {
                             value={list.id.toString()}
                             className="pl-4 pr-3 py-2.5 hover:bg-blue-50 focus:bg-blue-50 data-[highlighted]:bg-blue-50"
                           >
-                            <div className="flex items-center justify-between w-full">
-                              <div className="flex-1 min-w-0">
-                                <div className="font-medium text-sm text-gray-900 truncate">
-                                  {list.name}
+                            <div className="flex flex-col">
+                              <div className="font-medium text-sm text-gray-900">
+                                {list.name}
+                              </div>
+                              {list.description && (
+                                <div className="text-xs text-gray-500 mt-0.5">
+                                  {list.description}
                                 </div>
-                                {list.description && (
-                                  <div className="text-xs text-gray-500 mt-0.5 truncate">
-                                    {list.description}
-                                  </div>
-                                )}
-                              </div>
-                              <div className="ml-2 flex-shrink-0">
-                                <span className="inline-block px-1.5 py-0.5 text-xs text-gray-600 bg-gray-100 rounded">
-                                  {getEntityTypeLabel(entityType).charAt(0).toUpperCase() + getEntityTypeLabel(entityType).slice(1, -1)}
-                                </span>
-                              </div>
+                              )}
                             </div>
                           </SelectItem>
                         );
