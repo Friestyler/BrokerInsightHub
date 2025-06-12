@@ -4707,6 +4707,119 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Admin Entity Schemas Route
+  app.get('/api/admin/entity-schemas', async (req: Request, res: Response) => {
+    try {
+      const entitySchemas = [
+        {
+          tableName: 'opportunities',
+          entityType: 'opportunities',
+          columns: [
+            { name: 'id', type: 'number', isRequired: false },
+            { name: 'title', type: 'string', isRequired: true },
+            { name: 'description', type: 'string', isRequired: false },
+            { name: 'value', type: 'number', isRequired: false },
+            { name: 'status', type: 'string', isRequired: false },
+            { name: 'priority', type: 'string', isRequired: false },
+            { name: 'customer_id', type: 'number', isRequired: false },
+            { name: 'partner_id', type: 'number', isRequired: false },
+            { name: 'owner_id', type: 'number', isRequired: false },
+            { name: 'created_at', type: 'datetime', isRequired: false },
+            { name: 'updated_at', type: 'datetime', isRequired: false },
+            { name: 'expected_close_date', type: 'date', isRequired: false },
+            { name: 'probability', type: 'number', isRequired: false },
+            { name: 'stage', type: 'string', isRequired: false },
+            { name: 'source', type: 'string', isRequired: false },
+            { name: 'notes', type: 'text', isRequired: false }
+          ]
+        },
+        {
+          tableName: 'partners',
+          entityType: 'partners',
+          columns: [
+            { name: 'id', type: 'number', isRequired: false },
+            { name: 'name', type: 'string', isRequired: true },
+            { name: 'description', type: 'string', isRequired: false },
+            { name: 'type', type: 'string', isRequired: false },
+            { name: 'status', type: 'string', isRequired: false },
+            { name: 'contact_email', type: 'string', isRequired: false },
+            { name: 'contact_phone', type: 'string', isRequired: false },
+            { name: 'website', type: 'string', isRequired: false },
+            { name: 'address', type: 'string', isRequired: false },
+            { name: 'created_at', type: 'datetime', isRequired: false },
+            { name: 'updated_at', type: 'datetime', isRequired: false }
+          ]
+        },
+        {
+          tableName: 'customers',
+          entityType: 'customers',
+          columns: [
+            { name: 'id', type: 'number', isRequired: false },
+            { name: 'name', type: 'string', isRequired: true },
+            { name: 'email', type: 'string', isRequired: false },
+            { name: 'phone', type: 'string', isRequired: false },
+            { name: 'company', type: 'string', isRequired: false },
+            { name: 'status', type: 'string', isRequired: false },
+            { name: 'partner_id', type: 'number', isRequired: false },
+            { name: 'created_at', type: 'datetime', isRequired: false },
+            { name: 'updated_at', type: 'datetime', isRequired: false },
+            { name: 'address', type: 'string', isRequired: false },
+            { name: 'notes', type: 'text', isRequired: false }
+          ]
+        },
+        {
+          tableName: 'products',
+          entityType: 'products',
+          columns: [
+            { name: 'id', type: 'number', isRequired: false },
+            { name: 'name', type: 'string', isRequired: true },
+            { name: 'description', type: 'string', isRequired: false },
+            { name: 'price', type: 'number', isRequired: false },
+            { name: 'category', type: 'string', isRequired: false },
+            { name: 'sku', type: 'string', isRequired: false },
+            { name: 'status', type: 'string', isRequired: false },
+            { name: 'created_at', type: 'datetime', isRequired: false },
+            { name: 'updated_at', type: 'datetime', isRequired: false }
+          ]
+        },
+        {
+          tableName: 'vendors',
+          entityType: 'vendors',
+          columns: [
+            { name: 'id', type: 'number', isRequired: false },
+            { name: 'name', type: 'string', isRequired: true },
+            { name: 'contact_email', type: 'string', isRequired: false },
+            { name: 'contact_phone', type: 'string', isRequired: false },
+            { name: 'address', type: 'string', isRequired: false },
+            { name: 'status', type: 'string', isRequired: false },
+            { name: 'created_at', type: 'datetime', isRequired: false },
+            { name: 'updated_at', type: 'datetime', isRequired: false }
+          ]
+        },
+        {
+          tableName: 'contacts',
+          entityType: 'contacts',
+          columns: [
+            { name: 'id', type: 'number', isRequired: false },
+            { name: 'first_name', type: 'string', isRequired: true },
+            { name: 'last_name', type: 'string', isRequired: true },
+            { name: 'email', type: 'string', isRequired: false },
+            { name: 'phone', type: 'string', isRequired: false },
+            { name: 'company', type: 'string', isRequired: false },
+            { name: 'position', type: 'string', isRequired: false },
+            { name: 'created_at', type: 'datetime', isRequired: false },
+            { name: 'updated_at', type: 'datetime', isRequired: false }
+          ]
+        }
+      ];
+      
+      res.json(entitySchemas);
+    } catch (error) {
+      console.error('Failed to get entity schemas:', error);
+      res.status(500).json({ error: 'Failed to get entity schemas' });
+    }
+  });
+
   // Upload Settings Routes
   app.get('/api/:environmentId/upload-settings/:entityType', async (req: Request, res: Response) => {
     try {

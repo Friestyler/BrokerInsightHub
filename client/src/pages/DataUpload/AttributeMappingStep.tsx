@@ -136,9 +136,42 @@ export default function AttributeMappingStep({
   // Get available entity attributes
   const getEntityAttributes = () => {
     if (!Array.isArray(entityData) || !uploadType) return [];
-    const entitySchema = entityData.find((e: any) => 
+    
+    // Try multiple matching strategies
+    let entitySchema = entityData.find((e: any) => 
       e.tableName && e.tableName.toLowerCase().includes(uploadType.toLowerCase())
     );
+    
+    // If not found, try exact match
+    if (!entitySchema) {
+      entitySchema = entityData.find((e: any) => 
+        e.tableName && e.tableName.toLowerCase() === uploadType.toLowerCase()
+      );
+    }
+    
+    // If still not found, try plural/singular variations
+    if (!entitySchema) {
+      const variations = [
+        uploadType + 's',
+        uploadType.endsWith('s') ? uploadType.slice(0, -1) : uploadType + 's',
+        uploadType.replace('ies', 'y'),
+        uploadType.replace('y', 'ies')
+      ];
+      
+      entitySchema = entityData.find((e: any) => 
+        e.tableName && variations.some(v => 
+          e.tableName.toLowerCase().includes(v.toLowerCase())
+        )
+      );
+    }
+    
+    console.log('Entity schema lookup:', {
+      uploadType,
+      availableSchemas: entityData.map((e: any) => e.tableName),
+      foundSchema: entitySchema?.tableName,
+      columns: entitySchema?.columns?.map((col: any) => col.name)
+    });
+    
     return entitySchema?.columns
       ?.map((col: any) => col.name)
       ?.filter((name: string) => name && name.trim().length > 0) || [];
@@ -176,7 +209,16 @@ export default function AttributeMappingStep({
   const getAvailableAttributesForAdding = () => {
     const allAttributes = getEntityAttributes();
     const usedAttributes = attributeMappings.map(m => m.attribute);
-    return allAttributes.filter((attr: string) => !usedAttributes.includes(attr));
+    const availableAttributes = allAttributes.filter((attr: string) => !usedAttributes.includes(attr));
+    
+    console.log('Available attributes for adding:', {
+      allAttributes,
+      usedAttributes,
+      availableAttributes,
+      attributeMappings
+    });
+    
+    return availableAttributes;
   };
 
   // Add selected optional attribute
