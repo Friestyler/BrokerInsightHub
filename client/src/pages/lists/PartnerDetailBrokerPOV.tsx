@@ -12,6 +12,7 @@ import { ArrowLeft, Search } from "lucide-react";
 import PartnerActivityHub from "@/components/activity/PartnerActivityHub";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 import { BrokerLayout } from "@/components/layouts/BrokerLayout";
+import deGoudseLogo from "@assets/De_Goudse_logo_1749714740191.png";
 
 
 
@@ -521,7 +522,7 @@ export default function PartnerDetailBrokerPOV() {
               {partner.name === 'De Goudse' ? (
                 <div className="w-16 h-16 rounded-lg overflow-hidden bg-white border border-gray-200 flex items-center justify-center">
                   <img 
-                    src="/attached_assets/De_Goudse_logo_1749714740191.png" 
+                    src={deGoudseLogo} 
                     alt="De Goudse Logo"
                     className="w-full h-full object-contain p-1"
                   />
