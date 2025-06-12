@@ -100,6 +100,8 @@ export default function PartnerDetailBrokerPOV() {
 
 
 
+
+
   // Fetch saved lists for opportunities including partner-specific ones
   const { data: savedListsData } = useQuery({
     queryKey: ['/api/degoudse/saved-lists', 'opportunities', 'partner', '4'],
@@ -436,8 +438,8 @@ export default function PartnerDetailBrokerPOV() {
   }, []);
 
   // Extract unique values for dropdowns
-  const uniqueStages = Array.from(new Set(allOpportunities.map((opp: any) => opp.stage).filter(Boolean)));
-  const uniqueCustomers = Array.from(new Set(allOpportunities.map((opp: any) => opp.customerName).filter(Boolean)));
+  const uniqueStages = Array.from(new Set(allOpportunities.map((opp: any) => opp.stage).filter(Boolean))) as string[];
+  const uniqueCustomers = Array.from(new Set(allOpportunities.map((opp: any) => opp.customerName).filter(Boolean))) as string[];
 
   // Fetch OKR tags for filtering
   const { data: tags = [] } = useQuery({
@@ -974,7 +976,7 @@ export default function PartnerDetailBrokerPOV() {
                                 >
                                   All Customers
                                 </button>
-                                {uniqueCustomers.map((customer) => (
+                                {uniqueCustomers.map((customer: string) => (
                                   <button
                                     key={customer}
                                     className="flex w-full items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
@@ -1164,7 +1166,7 @@ export default function PartnerDetailBrokerPOV() {
                             <div className="relative">
                               {editingStageId === opportunity.id ? (
                                 <div 
-                                  ref={(el) => setStageDropdownRef(el)}
+                                  ref={(el) => setEditStageDropdownRef(el)}
                                   className="relative"
                                 >
                                   <div className="absolute top-0 left-0 z-50 bg-white border border-gray-300 rounded-md shadow-lg min-w-[150px]">
