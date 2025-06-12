@@ -392,23 +392,29 @@ function PartnersTable() {
   const viewsDropdownRef = useRef<HTMLDivElement>(null);
   const viewsButtonRef = useRef<HTMLButtonElement>(null);
   
-  // Handle outside clicks for views dropdown
+  // Handle outside clicks for all dropdowns
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (viewsDropdownRef.current && !viewsDropdownRef.current.contains(event.target as Node) &&
           viewsButtonRef.current && !viewsButtonRef.current.contains(event.target as Node)) {
         setShowViewsDropdown(false);
       }
+      if (statusDropdownRef.current && !statusDropdownRef.current.contains(event.target as Node)) {
+        setShowStatusDropdown(false);
+      }
+      if (industryDropdownRef.current && !industryDropdownRef.current.contains(event.target as Node)) {
+        setShowIndustryDropdown(false);
+      }
+      if (typeDropdownRef.current && !typeDropdownRef.current.contains(event.target as Node)) {
+        setShowTypeDropdown(false);
+      }
     };
 
-    if (showViewsDropdown) {
-      document.addEventListener('mousedown', handleClickOutside);
-    }
-
+    document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
-  }, [showViewsDropdown]);
+  }, [showViewsDropdown, showStatusDropdown, showIndustryDropdown, showTypeDropdown]);
   
   const [isCreatingNewList, setIsCreatingNewList] = useState(false); // Default to adding to existing list
   const [selectedExistingList, setSelectedExistingList] = useState<string | null>(null);
@@ -505,8 +511,13 @@ function PartnersTable() {
     }
   });
     
+  // Extract unique filter values from partners data
+  const uniqueStatuses = Array.from(new Set((partners as any[] || []).map((p: any) => p.status).filter(Boolean)));
+  const uniqueRegions = Array.from(new Set((partners as any[] || []).map((p: any) => p.region).filter(Boolean)));
+  const uniquePartnerTypes = Array.from(new Set((partners as any[] || []).map((p: any) => p.partner_type).filter(Boolean)));
+
   // Filter partners based on search text, filter selections, and list membership
-  const displayedPartners = partners
+  const displayedPartners = (partners as any[])
     .filter((partner: any) => {
       // Handle selection-based lists (with member IDs)
       if (activeList && !activeList.isDefault && activeList.type === 'selection' && Array.isArray(activeList.members)) {
@@ -531,12 +542,12 @@ function PartnersTable() {
       
       const matchesText = !filterText || 
         partner.name.toLowerCase().includes(filterText.toLowerCase()) ||
-        partner.industry.toLowerCase().includes(filterText.toLowerCase()) ||
-        partner.type.toLowerCase().includes(filterText.toLowerCase());
+        (partner.region && partner.region.toLowerCase().includes(filterText.toLowerCase())) ||
+        (partner.partner_type && partner.partner_type.toLowerCase().includes(filterText.toLowerCase()));
         
       const matchesStatus = !selectedStatus || partner.status === selectedStatus;
-      const matchesIndustry = !selectedIndustry || partner.industry === selectedIndustry;
-      const matchesType = !selectedType || partner.type === selectedType;
+      const matchesIndustry = !selectedIndustry || partner.region === selectedIndustry;
+      const matchesType = !selectedType || partner.partner_type === selectedType;
       
       return matchesText && matchesStatus && matchesIndustry && matchesType;
     })
@@ -1075,53 +1086,197 @@ function PartnersTable() {
               
               {/* Filter buttons next to the views dropdown */}
               <div className="flex items-center gap-2 ml-3">
-                <button 
-                  className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedStatus ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
-                  onClick={() => setSelectedStatus(selectedStatus ? '' : 'active')}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                  </svg>
-                  <span>{selectedStatus ? `Status: ${selectedStatus.charAt(0).toUpperCase() + selectedStatus.slice(1)}` : 'Status'}</span>
-                  {selectedStatus && (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                <div className="relative" ref={statusDropdownRef}>
+                  <button 
+                    className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedStatus ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+                    onClick={() => setShowStatusDropdown(!showStatusDropdown)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
                     </svg>
+                    <span>{selectedStatus ? `Status: ${selectedStatus.charAt(0).toUpperCase() + selectedStatus.slice(1)}` : 'Status'}</span>
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      width="14" 
+                      height="14" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      className={`ml-2 transition-transform ${showStatusDropdown ? 'rotate-180' : ''}`}
+                    >
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  </button>
+                  
+                  {showStatusDropdown && (
+                    <div className="absolute z-50 mt-1 w-48 rounded-md border border-slate-200 bg-white shadow-md">
+                      <div className="p-1">
+                        <div 
+                          className="flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 text-slate-700"
+                          onClick={() => {
+                            setSelectedStatus('');
+                            setShowStatusDropdown(false);
+                          }}
+                        >
+                          <span>All Statuses</span>
+                          {!selectedStatus && (
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                              <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                          )}
+                        </div>
+                        {uniqueStatuses.map(status => (
+                          <div 
+                            key={status}
+                            className={`flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 ${selectedStatus === status ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700'}`}
+                            onClick={() => {
+                              setSelectedStatus(status);
+                              setShowStatusDropdown(false);
+                            }}
+                          >
+                            <span>{status.charAt(0).toUpperCase() + status.slice(1)}</span>
+                            {selectedStatus === status && (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                              </svg>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   )}
-                </button>
+                </div>
                 
-                <button 
-                  className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedIndustry ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
-                  onClick={() => setSelectedIndustry(selectedIndustry ? '' : 'Insurance')}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                  </svg>
-                  <span>{selectedIndustry ? `Industry: ${selectedIndustry}` : 'Industry'}</span>
-                  {selectedIndustry && (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                <div className="relative" ref={industryDropdownRef}>
+                  <button 
+                    className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedIndustry ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+                    onClick={() => setShowIndustryDropdown(!showIndustryDropdown)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
                     </svg>
+                    <span>{selectedIndustry ? `Region: ${selectedIndustry}` : 'Region'}</span>
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      width="14" 
+                      height="14" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      className={`ml-2 transition-transform ${showIndustryDropdown ? 'rotate-180' : ''}`}
+                    >
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  </button>
+                  
+                  {showIndustryDropdown && (
+                    <div className="absolute z-50 mt-1 w-48 rounded-md border border-slate-200 bg-white shadow-md">
+                      <div className="p-1">
+                        <div 
+                          className="flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 text-slate-700"
+                          onClick={() => {
+                            setSelectedIndustry('');
+                            setShowIndustryDropdown(false);
+                          }}
+                        >
+                          <span>All Regions</span>
+                          {!selectedIndustry && (
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                              <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                          )}
+                        </div>
+                        {uniqueRegions.map(region => (
+                          <div 
+                            key={region}
+                            className={`flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 ${selectedIndustry === region ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700'}`}
+                            onClick={() => {
+                              setSelectedIndustry(region);
+                              setShowIndustryDropdown(false);
+                            }}
+                          >
+                            <span>{region}</span>
+                            {selectedIndustry === region && (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                              </svg>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   )}
-                </button>
+                </div>
                 
-                <button 
-                  className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedType ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
-                  onClick={() => setSelectedType(selectedType ? '' : 'Broker')}
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                    <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                  </svg>
-                  <span>{selectedType ? `Type: ${selectedType}` : 'Type'}</span>
-                  {selectedType && (
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
-                      <line x1="18" y1="6" x2="6" y2="18"></line>
-                      <line x1="6" y1="6" x2="18" y2="18"></line>
+                <div className="relative" ref={typeDropdownRef}>
+                  <button 
+                    className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedType ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+                    onClick={() => setShowTypeDropdown(!showTypeDropdown)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
                     </svg>
+                    <span>{selectedType ? `Type: ${selectedType}` : 'Type'}</span>
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      width="14" 
+                      height="14" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      className={`ml-2 transition-transform ${showTypeDropdown ? 'rotate-180' : ''}`}
+                    >
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  </button>
+                  
+                  {showTypeDropdown && (
+                    <div className="absolute z-50 mt-1 w-48 rounded-md border border-slate-200 bg-white shadow-md">
+                      <div className="p-1">
+                        <div 
+                          className="flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 text-slate-700"
+                          onClick={() => {
+                            setSelectedType('');
+                            setShowTypeDropdown(false);
+                          }}
+                        >
+                          <span>All Types</span>
+                          {!selectedType && (
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                              <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                          )}
+                        </div>
+                        {uniquePartnerTypes.map(type => (
+                          <div 
+                            key={type}
+                            className={`flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 ${selectedType === type ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700'}`}
+                            onClick={() => {
+                              setSelectedType(type);
+                              setShowTypeDropdown(false);
+                            }}
+                          >
+                            <span>{type}</span>
+                            {selectedType === type && (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                              </svg>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   )}
-                </button>
+                </div>
               </div>
               
               {/* Action buttons - only shown when filters have changed from an existing view or no view is selected */}
