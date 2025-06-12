@@ -193,7 +193,12 @@ export default function CustomerDetailNew() {
             <div className="flex items-center space-x-4 mb-1">
               <h1 className="text-2xl font-bold text-gray-900">{customer.name}</h1>
               <div className="flex items-center space-x-2">
-                <Button variant="ghost" size="sm" className="text-sm bg-gray-100 text-gray-700 px-2 py-1 rounded h-auto">
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  className="text-sm bg-gray-100 text-gray-700 px-2 py-1 rounded h-auto"
+                  onClick={() => setShowDetailsDialog(true)}
+                >
                   Details
                 </Button>
                 <span className="text-sm text-gray-500">Type: <span className="text-blue-600">Customer</span></span>
@@ -640,6 +645,80 @@ export default function CustomerDetailNew() {
         entityType="customer"
         entityId={customer?.id || 0}
       />
+
+      {/* Customer Details Dialog */}
+      <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Customer Details</DialogTitle>
+            <DialogDescription>
+              Complete information about {customer?.name}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid grid-cols-2 gap-4 py-4">
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Customer Name</Label>
+                <p className="text-sm text-gray-900 mt-1">{customer?.name || 'N/A'}</p>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Description</Label>
+                <p className="text-sm text-gray-900 mt-1">{customer?.description || 'No description available'}</p>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Industry</Label>
+                <p className="text-sm text-gray-900 mt-1">{customer?.industry || 'Not specified'}</p>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Contact Email</Label>
+                <p className="text-sm text-gray-900 mt-1">{customer?.contact_email || 'contact@customer.com'}</p>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Contact Phone</Label>
+                <p className="text-sm text-gray-900 mt-1">{customer?.contact_phone || '+31 20 123 4567'}</p>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Location</Label>
+                <p className="text-sm text-gray-900 mt-1">{customer?.location || 'Netherlands'}</p>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Status</Label>
+                <p className="text-sm text-gray-900 mt-1">{customer?.status || 'Active'}</p>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Opportunities</Label>
+                <p className="text-sm text-gray-900 mt-1">{(relatedOpportunities as any[] || []).length} active</p>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Products</Label>
+                <p className="text-sm text-gray-900 mt-1">{(relatedProducts as any[] || []).length} associated</p>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Contacts</Label>
+                <p className="text-sm text-gray-900 mt-1">{(relatedContacts as any[] || []).length} contacts</p>
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDetailsDialog(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

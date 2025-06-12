@@ -6,6 +6,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 import { ArrowLeft, Building2, Users, Target, Search } from "lucide-react";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
 
@@ -58,6 +60,9 @@ export default function OpportunityDetail() {
   const [selectedTag, setSelectedTag] = useState("all");
   const [selectedUnit, setSelectedUnit] = useState("all");
   const [selectedRange, setSelectedRange] = useState("all");
+  
+  // Details dialog state
+  const [showDetailsDialog, setShowDetailsDialog] = useState(false);
 
   // Detect navigation context and set appropriate back URL
   useEffect(() => {
@@ -155,7 +160,12 @@ export default function OpportunityDetail() {
                 <div className="flex items-center space-x-4 mb-1">
                   <h1 className="text-2xl font-bold text-gray-900">{opportunity.title}</h1>
                   <div className="flex items-center space-x-2">
-                    <Button variant="ghost" size="sm" className="text-sm bg-gray-100 text-gray-700 px-2 py-1 rounded h-auto">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-sm bg-gray-100 text-gray-700 px-2 py-1 rounded h-auto"
+                      onClick={() => setShowDetailsDialog(true)}
+                    >
                       Details
                     </Button>
                     <span className="text-sm text-gray-500">Stage: <span className="text-blue-600">{opportunity.stage}</span></span>
@@ -527,6 +537,94 @@ export default function OpportunityDetail() {
           </div>
         )}
       </div>
+
+      {/* Opportunity Details Dialog */}
+      <Dialog open={showDetailsDialog} onOpenChange={setShowDetailsDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Opportunity Details</DialogTitle>
+            <DialogDescription>
+              Complete information about {opportunity.title}
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="grid grid-cols-2 gap-4 py-4">
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Opportunity Title</Label>
+                <p className="text-sm text-gray-900 mt-1">{opportunity.title}</p>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Description</Label>
+                <p className="text-sm text-gray-900 mt-1">{opportunity.description || 'No description available'}</p>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Stage</Label>
+                <p className="text-sm text-gray-900 mt-1">{opportunity.stage}</p>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Status</Label>
+                <p className="text-sm text-gray-900 mt-1">{opportunity.status}</p>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Type</Label>
+                <p className="text-sm text-gray-900 mt-1">{opportunity.type || 'Not specified'}</p>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Location</Label>
+                <p className="text-sm text-gray-900 mt-1">{opportunity.location || 'Not specified'}</p>
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Estimated Value</Label>
+                <p className="text-sm text-gray-900 mt-1">
+                  {opportunity.estimatedValue ? formatCurrency(opportunity.estimatedValue) : 'Not specified'}
+                </p>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Probability</Label>
+                <p className="text-sm text-gray-900 mt-1">{opportunity.probability ? `${opportunity.probability}%` : 'Not specified'}</p>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Customer</Label>
+                <p className="text-sm text-gray-900 mt-1">{opportunity.customerName || 'Not assigned'}</p>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Partner</Label>
+                <p className="text-sm text-gray-900 mt-1">{opportunity.partnerName || 'Not assigned'}</p>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Expected Close Date</Label>
+                <p className="text-sm text-gray-900 mt-1">
+                  {opportunity.expectedCloseDate ? new Date(opportunity.expectedCloseDate).toLocaleDateString() : 'Not set'}
+                </p>
+              </div>
+              
+              <div>
+                <Label className="text-sm font-medium text-gray-700">Created Date</Label>
+                <p className="text-sm text-gray-900 mt-1">{new Date(opportunity.createdAt).toLocaleDateString()}</p>
+              </div>
+            </div>
+          </div>
+          
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowDetailsDialog(false)}>
+              Close
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
