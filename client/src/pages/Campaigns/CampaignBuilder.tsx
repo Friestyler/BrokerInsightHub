@@ -462,7 +462,7 @@ export default function CampaignBuilder() {
                           )}
                           
                           {/* Category header */}
-                          <div className="py-1.5 px-3 text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50/80 sticky top-0">
+                          <div className="py-1.5 px-3 text-xs font-medium text-gray-500 uppercase tracking-wider bg-gray-50/80">
                             {getEntityTypeLabel(entityType)}
                           </div>
                           
