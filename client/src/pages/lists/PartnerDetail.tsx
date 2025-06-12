@@ -3008,7 +3008,31 @@ export default function PartnerDetail() {
                   }}
                 >
                   <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Add opportunities..." />
+                    <SelectValue>
+                      {selectedOpportunityIds.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {selectedOpportunityIds.map(id => {
+                            const opp = Array.isArray(allOpportunities) ? allOpportunities.find((o: any) => o.id === id) : null;
+                            return opp ? (
+                              <span key={id} className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-md">
+                                {opp.title}
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedOpportunityIds(selectedOpportunityIds.filter(oid => oid !== id));
+                                  }}
+                                  className="text-blue-600 hover:text-blue-800"
+                                >
+                                  ×
+                                </button>
+                              </span>
+                            ) : null;
+                          })}
+                        </div>
+                      ) : (
+                        "Select opportunities..."
+                      )}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {Array.isArray(allOpportunities) && allOpportunities.filter((opportunity: any) => 
@@ -3020,25 +3044,6 @@ export default function PartnerDetail() {
                     ))}
                   </SelectContent>
                 </Select>
-                <div className="mt-2 flex flex-wrap gap-1">
-                  {selectedOpportunityIds.map(id => {
-                    const opp = Array.isArray(allOpportunities) ? allOpportunities.find((o: any) => o.id === id) : null;
-                    return opp ? (
-                      <span key={id} className="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-md">
-                        {opp.title}
-                        <button
-                          onClick={() => setSelectedOpportunityIds(selectedOpportunityIds.filter(oid => oid !== id))}
-                          className="text-blue-600 hover:text-blue-800"
-                        >
-                          ×
-                        </button>
-                      </span>
-                    ) : null;
-                  })}
-                  {selectedOpportunityIds.length === 0 && (
-                    <span className="text-xs text-gray-500">No opportunities selected</span>
-                  )}
-                </div>
               </div>
               
               <div>
@@ -3053,7 +3058,31 @@ export default function PartnerDetail() {
                   }}
                 >
                   <SelectTrigger className="mt-1">
-                    <SelectValue placeholder="Add customers..." />
+                    <SelectValue>
+                      {selectedCustomerIds.length > 0 ? (
+                        <div className="flex flex-wrap gap-1">
+                          {selectedCustomerIds.map(id => {
+                            const customer = Array.isArray(allCustomers) ? allCustomers.find((c: any) => c.id === id) : null;
+                            return customer ? (
+                              <span key={id} className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 text-xs rounded-md">
+                                {customer.name}
+                                <button
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setSelectedCustomerIds(selectedCustomerIds.filter(cid => cid !== id));
+                                  }}
+                                  className="text-green-600 hover:text-green-800"
+                                >
+                                  ×
+                                </button>
+                              </span>
+                            ) : null;
+                          })}
+                        </div>
+                      ) : (
+                        "Select customers..."
+                      )}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     {Array.isArray(allCustomers) && allCustomers.filter((customer: any) => 
@@ -3065,25 +3094,6 @@ export default function PartnerDetail() {
                     ))}
                   </SelectContent>
                 </Select>
-                <div className="mt-2 flex flex-wrap gap-1">
-                  {selectedCustomerIds.map(id => {
-                    const customer = Array.isArray(allCustomers) ? allCustomers.find((c: any) => c.id === id) : null;
-                    return customer ? (
-                      <span key={id} className="inline-flex items-center gap-1 px-2 py-1 bg-green-100 text-green-800 text-xs rounded-md">
-                        {customer.name}
-                        <button
-                          onClick={() => setSelectedCustomerIds(selectedCustomerIds.filter(cid => cid !== id))}
-                          className="text-green-600 hover:text-green-800"
-                        >
-                          ×
-                        </button>
-                      </span>
-                    ) : null;
-                  })}
-                  {selectedCustomerIds.length === 0 && (
-                    <span className="text-xs text-gray-500">No customers selected</span>
-                  )}
-                </div>
               </div>
             </div>
           </div>
