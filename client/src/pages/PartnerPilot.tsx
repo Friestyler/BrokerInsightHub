@@ -468,6 +468,21 @@ export default function PartnerPilot() {
           <DeGoudseUploadWizard />
         </div>
       )}
+
+      {activeSection === 'data-upload-2-settings' && (
+        <div className="w-full">
+          <div className="mb-6">
+            <Button 
+              variant="outline" 
+              onClick={() => setActiveSection('data-upload-2')}
+              className="mb-4"
+            >
+              ← Back to Data Upload 2
+            </Button>
+          </div>
+          <UploadSettingsPage />
+        </div>
+      )}
     </div>
   );
 }
