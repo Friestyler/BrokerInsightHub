@@ -434,22 +434,45 @@ export default function CampaignBuilder() {
                 <SelectTrigger>
                   <SelectValue placeholder="Select a target list" />
                 </SelectTrigger>
-                <SelectContent>
+                <SelectContent className="max-h-80">
                   {Object.keys(groupedSavedLists).length === 0 ? (
                     <SelectItem value="no-lists" disabled>No saved lists available</SelectItem>
                   ) : (
-                    Object.entries(groupedSavedLists).flatMap(([entityType, lists]) =>
-                      (lists as any[]).map((list: any) => (
-                        <SelectItem key={list.id} value={list.id.toString()}>
-                          <div className="flex flex-col">
-                            <span className="font-medium">{list.name}</span>
-                            <span className="text-xs text-gray-500">
-                              {getEntityTypeLabel(entityType)} • {list.description || 'No description'}
-                            </span>
-                          </div>
+                    Object.entries(groupedSavedLists).flatMap(([entityType, lists], groupIndex) => {
+                      const groupItems = [];
+                      
+                      // Add header item (disabled, for visual grouping only)
+                      groupItems.push(
+                        <SelectItem 
+                          key={`header-${entityType}`} 
+                          value={`header-${entityType}`} 
+                          disabled
+                          className="px-3 py-2 text-sm font-semibold text-gray-700 bg-gray-50 border-b border-gray-200 cursor-default"
+                        >
+                          {getEntityTypeLabel(entityType)}
                         </SelectItem>
-                      ))
-                    )
+                      );
+                      
+                      // Add list items
+                      (lists as any[]).forEach((list: any) => {
+                        groupItems.push(
+                          <SelectItem 
+                            key={list.id} 
+                            value={list.id.toString()}
+                            className="pl-6 py-2"
+                          >
+                            <div className="flex flex-col">
+                              <span className="font-medium">{list.name}</span>
+                              {list.description && (
+                                <span className="text-xs text-gray-500">{list.description}</span>
+                              )}
+                            </div>
+                          </SelectItem>
+                        );
+                      });
+                      
+                      return groupItems;
+                    })
                   )}
                 </SelectContent>
               </Select>
