@@ -237,14 +237,18 @@ export class UploadSettingsService {
   static async createUploadTemplate(template: InsertUploadTemplate): Promise<UploadTemplate> {
     const pool = getEnvironmentPool(template.environmentId);
     
+    console.log('Creating template with data:', JSON.stringify(template, null, 2));
+    
     const query = `
       INSERT INTO upload_templates (
         template_name, name, description, entity_type, environment_id, 
-        column_mappings, is_shared, created_by
+        template_data, column_mappings, is_shared, created_by
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
       RETURNING *
     `;
+    
+    const templateData = JSON.stringify(template.columnMappings);
     
     const result = await pool.query(query, [
       template.name,
@@ -252,11 +256,13 @@ export class UploadSettingsService {
       template.description,
       template.entityType,
       template.environmentId,
-      JSON.stringify(template.columnMappings),
+      templateData,
+      templateData,
       template.isShared ?? false,
       template.createdBy
     ]);
     
+    console.log('Template created successfully:', result.rows[0]);
     return result.rows[0];
   }
 
