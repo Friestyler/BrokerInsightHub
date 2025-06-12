@@ -405,7 +405,7 @@ export default function PartnerDetailBrokerPOV() {
     }
     
     // Filter by customer if selected
-    if (selectedCustomer && selectedCustomer !== 'all' && opportunity.customerName !== selectedCustomer) {
+    if (selectedCustomer && selectedCustomer !== 'all' && opportunity.clientName !== selectedCustomer) {
       return false;
     }
     
@@ -439,7 +439,7 @@ export default function PartnerDetailBrokerPOV() {
 
   // Extract unique values for dropdowns
   const uniqueStages = Array.from(new Set(allOpportunities.map((opp: any) => opp.stage).filter(Boolean))) as string[];
-  const uniqueCustomers = Array.from(new Set(allOpportunities.map((opp: any) => opp.customerName).filter(Boolean))) as string[];
+  const uniqueCustomers = Array.from(new Set(allOpportunities.map((opp: any) => opp.clientName).filter(Boolean))) as string[];
 
   // Fetch OKR tags for filtering
   const { data: tags = [] } = useQuery({
