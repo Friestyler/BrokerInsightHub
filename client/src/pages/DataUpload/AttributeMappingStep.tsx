@@ -218,8 +218,11 @@ export default function AttributeMappingStep({
     saveTemplateMutation.mutate({
       name: templateName,
       description: `Template for ${uploadType}`,
-      entity_type: uploadType,
-      column_mappings: attributeMappings,
+      entityType: uploadType,
+      environmentId: environmentId,
+      columnMappings: attributeMappings,
+      isShared: false,
+      createdBy: 1,
     });
   };
 
@@ -411,7 +414,7 @@ export default function AttributeMappingStep({
                             <SelectValue placeholder="Choose an attribute to add" />
                           </SelectTrigger>
                           <SelectContent>
-                            {getAvailableAttributesForAdding().map(attr => (
+                            {getAvailableAttributesForAdding().map((attr: string) => (
                               <SelectItem key={attr} value={attr}>{attr}</SelectItem>
                             ))}
                           </SelectContent>
