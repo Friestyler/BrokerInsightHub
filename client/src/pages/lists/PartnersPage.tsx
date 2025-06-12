@@ -521,6 +521,7 @@ function PartnersTable() {
   const uniqueStatuses = Array.from(new Set((partners as any[] || []).map((p: any) => p.status).filter(Boolean)));
   const uniqueRegions = Array.from(new Set((partners as any[] || []).map((p: any) => p.region).filter(Boolean)));
   const uniquePartnerTypes = Array.from(new Set((partners as any[] || []).map((p: any) => p.partner_type).filter(Boolean)));
+  const uniqueIndustries = Array.from(new Set((partners as any[] || []).map((p: any) => p.industry).filter(Boolean)));
 
   // Filter partners based on search text, filter selections, and list membership
   const displayedPartners = (partners as any[])
@@ -549,13 +550,15 @@ function PartnersTable() {
       const matchesText = !filterText || 
         partner.name.toLowerCase().includes(filterText.toLowerCase()) ||
         (partner.region && partner.region.toLowerCase().includes(filterText.toLowerCase())) ||
-        (partner.partner_type && partner.partner_type.toLowerCase().includes(filterText.toLowerCase()));
+        (partner.partner_type && partner.partner_type.toLowerCase().includes(filterText.toLowerCase())) ||
+        (partner.industry && partner.industry.toLowerCase().includes(filterText.toLowerCase()));
         
       const matchesStatus = !selectedStatus || partner.status === selectedStatus;
       const matchesIndustry = !selectedIndustry || partner.region === selectedIndustry;
+      const matchesActualIndustry = !selectedActualIndustry || partner.industry === selectedActualIndustry;
       const matchesType = !selectedType || partner.partner_type === selectedType;
       
-      return matchesText && matchesStatus && matchesIndustry && matchesType;
+      return matchesText && matchesStatus && matchesIndustry && matchesActualIndustry && matchesType;
     })
     // Apply sorting
     .sort((a: any, b: any) => {
@@ -1283,6 +1286,70 @@ function PartnersTable() {
                     </div>
                   )}
                 </div>
+                
+                <div className="relative" ref={actualIndustryDropdownRef}>
+                  <button 
+                    className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${selectedActualIndustry ? 'border-indigo-500 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'}`}
+                    onClick={() => setShowActualIndustryDropdown(!showActualIndustryDropdown)}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                      <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                    </svg>
+                    <span>{selectedActualIndustry ? `Industry: ${selectedActualIndustry}` : 'Industry'}</span>
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      width="14" 
+                      height="14" 
+                      viewBox="0 0 24 24" 
+                      fill="none" 
+                      stroke="currentColor" 
+                      strokeWidth="2" 
+                      strokeLinecap="round" 
+                      strokeLinejoin="round" 
+                      className={`ml-2 transition-transform ${showActualIndustryDropdown ? 'rotate-180' : ''}`}
+                    >
+                      <polyline points="6 9 12 15 18 9" />
+                    </svg>
+                  </button>
+                  
+                  {showActualIndustryDropdown && (
+                    <div className="absolute z-50 mt-1 w-48 rounded-md border border-slate-200 bg-white shadow-md">
+                      <div className="p-1">
+                        <div 
+                          className="flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 text-slate-700"
+                          onClick={() => {
+                            setSelectedActualIndustry('');
+                            setShowActualIndustryDropdown(false);
+                          }}
+                        >
+                          <span>All Industries</span>
+                          {!selectedActualIndustry && (
+                            <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                              <polyline points="20 6 9 17 4 12"></polyline>
+                            </svg>
+                          )}
+                        </div>
+                        {uniqueIndustries.map(industry => (
+                          <div 
+                            key={industry}
+                            className={`flex justify-between items-center p-2 text-sm rounded-md cursor-pointer hover:bg-slate-50 ${selectedActualIndustry === industry ? 'bg-indigo-50 text-indigo-700' : 'text-slate-700'}`}
+                            onClick={() => {
+                              setSelectedActualIndustry(industry);
+                              setShowActualIndustryDropdown(false);
+                            }}
+                          >
+                            <span>{industry}</span>
+                            {selectedActualIndustry === industry && (
+                              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-600">
+                                <polyline points="20 6 9 17 4 12"></polyline>
+                              </svg>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
               
               {/* Action buttons - only shown when filters have changed from an existing view or no view is selected */}
@@ -1293,10 +1360,11 @@ function PartnersTable() {
                   (filterText !== (activeView.filters.searchText || '') || 
                    selectedStatus !== (activeView.filters.status || '') || 
                    selectedIndustry !== (activeView.filters.industry || '') || 
+                   selectedActualIndustry !== (activeView.filters.actualIndustry || '') || 
                    selectedType !== (activeView.filters.type || ''));
                    
                 // Only render buttons if there are filters applied or filters have changed
-                return (filterText || selectedStatus || selectedIndustry || selectedType) && (
+                return (filterText || selectedStatus || selectedIndustry || selectedActualIndustry || selectedType) && (
                   <div className="flex items-center gap-2">
                     {/* Show Revert and Save buttons only when a view is active AND filters have changed */}
                     {filtersChanged && (
@@ -1309,6 +1377,7 @@ function PartnersTable() {
                             setFilterText(activeView.filters.searchText || '');
                             setSelectedStatus(activeView.filters.status || '');
                             setSelectedIndustry(activeView.filters.industry || '');
+                            setSelectedActualIndustry(activeView.filters.actualIndustry || '');
                             setSelectedType(activeView.filters.type || '');
                           }}
                           style={{ fontFamily: 'Poppins, sans-serif', fontSize: '14px' }}
@@ -1329,6 +1398,7 @@ function PartnersTable() {
                                 searchText: filterText || undefined,
                                 status: selectedStatus || undefined,
                                 industry: selectedIndustry || undefined,
+                                actualIndustry: selectedActualIndustry || undefined,
                                 type: selectedType || undefined
                               };
                               
@@ -1411,7 +1481,7 @@ function PartnersTable() {
             </div>
             
             {/* Clear filters button - shown when any filters are applied */}
-            {(filterText || selectedStatus || selectedIndustry || selectedType) && (
+            {(filterText || selectedStatus || selectedIndustry || selectedActualIndustry || selectedType) && (
               <div className="mt-2">
                 <button 
                   className="flex items-center text-sm text-gray-500 hover:text-gray-700"
@@ -1419,6 +1489,7 @@ function PartnersTable() {
                     setFilterText('');
                     setSelectedStatus('');
                     setSelectedIndustry('');
+                    setSelectedActualIndustry('');
                     setSelectedType('');
                   }}
                 >
