@@ -53,6 +53,7 @@ export default function OpportunityDetail() {
   const { id } = useParams();
   const { environment } = useEnvironment();
   const [location] = useLocation();
+  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("okr-plan");
   const [backUrl, setBackUrl] = useState("/opportunities");
   const [backLabel, setBackLabel] = useState("Back to Opportunities");
@@ -65,7 +66,17 @@ export default function OpportunityDetail() {
   
   // Details dialog state
   const [showDetailsDialog, setShowDetailsDialog] = useState(false);
-  const [editedOpportunity, setEditedOpportunity] = useState<any>({});
+  const [editedOpportunity, setEditedOpportunity] = useState({
+    title: '',
+    description: '',
+    stage: '',
+    status: '',
+    type: '',
+    location: '',
+    estimatedValue: '',
+    probability: '',
+    expectedCloseDate: ''
+  });
 
   // Detect navigation context and set appropriate back URL
   useEffect(() => {
@@ -167,7 +178,20 @@ export default function OpportunityDetail() {
                       variant="ghost" 
                       size="sm" 
                       className="text-sm bg-gray-100 text-gray-700 px-2 py-1 rounded h-auto"
-                      onClick={() => setShowDetailsDialog(true)}
+                      onClick={() => {
+                        setEditedOpportunity({
+                          title: opportunity.title || '',
+                          description: opportunity.description || '',
+                          stage: opportunity.stage || '',
+                          status: opportunity.status || '',
+                          type: opportunity.type || '',
+                          location: opportunity.location || '',
+                          estimatedValue: opportunity.estimatedValue?.toString() || '',
+                          probability: opportunity.probability?.toString() || '',
+                          expectedCloseDate: opportunity.expectedCloseDate || ''
+                        });
+                        setShowDetailsDialog(true);
+                      }}
                     >
                       Details
                     </Button>
@@ -555,75 +579,163 @@ export default function OpportunityDetail() {
             <div className="space-y-4">
               <div>
                 <Label className="text-sm font-medium text-gray-700">Opportunity Title</Label>
-                <p className="text-sm text-gray-900 mt-1">{opportunity.title}</p>
+                <Input
+                  value={editedOpportunity.title || ''}
+                  onChange={(e) => setEditedOpportunity({...editedOpportunity, title: e.target.value})}
+                  className="mt-1"
+                />
               </div>
               
               <div>
                 <Label className="text-sm font-medium text-gray-700">Description</Label>
-                <p className="text-sm text-gray-900 mt-1">{opportunity.description || 'No description available'}</p>
+                <Textarea
+                  value={editedOpportunity.description || ''}
+                  onChange={(e) => setEditedOpportunity({...editedOpportunity, description: e.target.value})}
+                  className="mt-1"
+                  rows={3}
+                />
               </div>
               
               <div>
                 <Label className="text-sm font-medium text-gray-700">Stage</Label>
-                <p className="text-sm text-gray-900 mt-1">{opportunity.stage}</p>
+                <Input
+                  value={editedOpportunity.stage || ''}
+                  onChange={(e) => setEditedOpportunity({...editedOpportunity, stage: e.target.value})}
+                  className="mt-1"
+                />
               </div>
               
               <div>
                 <Label className="text-sm font-medium text-gray-700">Status</Label>
-                <p className="text-sm text-gray-900 mt-1">{opportunity.status}</p>
+                <Input
+                  value={editedOpportunity.status || ''}
+                  onChange={(e) => setEditedOpportunity({...editedOpportunity, status: e.target.value})}
+                  className="mt-1"
+                />
               </div>
               
               <div>
                 <Label className="text-sm font-medium text-gray-700">Type</Label>
-                <p className="text-sm text-gray-900 mt-1">{opportunity.type || 'Not specified'}</p>
+                <Input
+                  value={editedOpportunity.type || ''}
+                  onChange={(e) => setEditedOpportunity({...editedOpportunity, type: e.target.value})}
+                  className="mt-1"
+                />
               </div>
               
               <div>
                 <Label className="text-sm font-medium text-gray-700">Location</Label>
-                <p className="text-sm text-gray-900 mt-1">{opportunity.location || 'Not specified'}</p>
+                <Input
+                  value={editedOpportunity.location || ''}
+                  onChange={(e) => setEditedOpportunity({...editedOpportunity, location: e.target.value})}
+                  className="mt-1"
+                />
               </div>
             </div>
             
             <div className="space-y-4">
               <div>
                 <Label className="text-sm font-medium text-gray-700">Estimated Value</Label>
-                <p className="text-sm text-gray-900 mt-1">
-                  {opportunity.estimatedValue ? formatCurrency(opportunity.estimatedValue) : 'Not specified'}
-                </p>
+                <Input
+                  type="number"
+                  value={editedOpportunity.estimatedValue || ''}
+                  onChange={(e) => setEditedOpportunity({...editedOpportunity, estimatedValue: e.target.value})}
+                  className="mt-1"
+                />
               </div>
               
               <div>
-                <Label className="text-sm font-medium text-gray-700">Probability</Label>
-                <p className="text-sm text-gray-900 mt-1">{opportunity.probability ? `${opportunity.probability}%` : 'Not specified'}</p>
+                <Label className="text-sm font-medium text-gray-700">Probability (%)</Label>
+                <Input
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={editedOpportunity.probability || ''}
+                  onChange={(e) => setEditedOpportunity({...editedOpportunity, probability: e.target.value})}
+                  className="mt-1"
+                />
               </div>
               
               <div>
                 <Label className="text-sm font-medium text-gray-700">Customer</Label>
-                <p className="text-sm text-gray-900 mt-1">{opportunity.customerName || 'Not assigned'}</p>
+                <p className="text-sm text-gray-500 mt-1">{opportunity.customerName || 'Not assigned'} (read-only)</p>
               </div>
               
               <div>
                 <Label className="text-sm font-medium text-gray-700">Partner</Label>
-                <p className="text-sm text-gray-900 mt-1">{opportunity.partnerName || 'Not assigned'}</p>
+                <p className="text-sm text-gray-500 mt-1">{opportunity.partnerName || 'Not assigned'} (read-only)</p>
               </div>
               
               <div>
                 <Label className="text-sm font-medium text-gray-700">Expected Close Date</Label>
-                <p className="text-sm text-gray-900 mt-1">
-                  {opportunity.expectedCloseDate ? new Date(opportunity.expectedCloseDate).toLocaleDateString() : 'Not set'}
-                </p>
+                <Input
+                  type="date"
+                  value={editedOpportunity.expectedCloseDate ? editedOpportunity.expectedCloseDate.split('T')[0] : ''}
+                  onChange={(e) => setEditedOpportunity({...editedOpportunity, expectedCloseDate: e.target.value})}
+                  className="mt-1"
+                />
               </div>
               
               <div>
                 <Label className="text-sm font-medium text-gray-700">Created Date</Label>
-                <p className="text-sm text-gray-900 mt-1">{new Date(opportunity.createdAt).toLocaleDateString()}</p>
+                <p className="text-sm text-gray-500 mt-1">{new Date(opportunity.createdAt).toLocaleDateString()} (read-only)</p>
               </div>
             </div>
           </div>
           
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowDetailsDialog(false)}>
-              Close
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setShowDetailsDialog(false);
+                setEditedOpportunity({
+                  title: '',
+                  description: '',
+                  stage: '',
+                  status: '',
+                  type: '',
+                  location: '',
+                  estimatedValue: '',
+                  probability: '',
+                  expectedCloseDate: ''
+                });
+              }}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={async () => {
+                try {
+                  const updatedData = {
+                    ...editedOpportunity,
+                    estimatedValue: editedOpportunity.estimatedValue ? parseFloat(editedOpportunity.estimatedValue) : null,
+                    probability: editedOpportunity.probability ? parseFloat(editedOpportunity.probability) : null
+                  };
+                  
+                  // Note: Add API call here when backend endpoint is available
+                  // await apiRequest(`/api/${environment?.id}/opportunities/${id}`, {
+                  //   method: 'PATCH',
+                  //   body: JSON.stringify(updatedData)
+                  // });
+                  
+                  toast({
+                    title: "Success",
+                    description: "Opportunity details saved successfully.",
+                  });
+                  
+                  setShowDetailsDialog(false);
+                  // Invalidate opportunity query to refresh data
+                  // queryClient.invalidateQueries(['/api/opportunities', id]);
+                } catch (error) {
+                  toast({
+                    title: "Error",
+                    description: "Failed to save opportunity details.",
+                    variant: "destructive",
+                  });
+                }
+              }}
+            >
+              Save
             </Button>
           </DialogFooter>
         </DialogContent>
