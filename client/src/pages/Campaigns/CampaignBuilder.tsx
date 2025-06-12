@@ -343,6 +343,9 @@ export default function CampaignBuilder() {
                 placeholder="Enter campaign name"
                 {...form.register("name")}
               />
+              <p className="text-xs text-gray-500">
+                This is to help your team find the campaign. It won't be shown externally.
+              </p>
               {form.formState.errors.name && (
                 <p className="text-sm text-red-500">{form.formState.errors.name.message}</p>
               )}
@@ -370,6 +373,10 @@ export default function CampaignBuilder() {
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="upsell" id="upsell" />
                   <Label htmlFor="upsell">Upsell</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="smart_update" id="smart_update" />
+                  <Label htmlFor="smart_update">Smart update</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="custom" id="custom" />
