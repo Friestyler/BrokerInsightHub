@@ -164,6 +164,20 @@ export default function PartnerPilot() {
           <Upload className="h-4 w-4 mr-2" />
           Data Upload
         </Button>
+        <Button 
+          variant="ghost"
+          onClick={() => setLocation("/data-upload-2")}
+        >
+          <Upload className="h-4 w-4 mr-2" />
+          Data Upload 2
+        </Button>
+        <Button 
+          variant="ghost"
+          onClick={() => setLocation("/data-upload-3")}
+        >
+          <Upload className="h-4 w-4 mr-2" />
+          Data Upload 3
+        </Button>
       </div>
 
       {/* ChatGPT-style Assistant Section */}
