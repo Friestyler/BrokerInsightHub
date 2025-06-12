@@ -4534,6 +4534,134 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Template Management Routes
+  app.get('/api/:environmentId/upload/templates', async (req: Request, res: Response) => {
+    try {
+      const { environmentId } = req.params;
+      const { entityType } = req.query;
+      
+      if (!getAvailableEnvironments().includes(environmentId)) {
+        return res.status(400).json({ error: 'Invalid environment' });
+      }
+      
+      let query = `SELECT * FROM upload_templates WHERE environment_id = $1`;
+      const params = [environmentId];
+      
+      if (entityType) {
+        query += ` AND entity_type = $2`;
+        params.push(entityType as string);
+      }
+      
+      query += ` ORDER BY last_used_at DESC NULLS LAST, created_at DESC`;
+      
+      const result = await pool.query(query, params);
+      res.json(result.rows);
+    } catch (error) {
+      console.error('Error fetching templates:', error);
+      res.status(500).json({ error: 'Failed to fetch templates' });
+    }
+  });
+
+  app.post('/api/:environmentId/upload/templates', async (req: Request, res: Response) => {
+    try {
+      const { environmentId } = req.params;
+      const { name, description, entityType, columnMappings, isShared } = req.body;
+      
+      if (!getAvailableEnvironments().includes(environmentId)) {
+        return res.status(400).json({ error: 'Invalid environment' });
+      }
+      
+      const result = await pool.query(`
+        INSERT INTO upload_templates (name, description, entity_type, environment_id, column_mappings, is_shared, created_by)
+        VALUES ($1, $2, $3, $4, $5, $6, $7) 
+        RETURNING *
+      `, [name, description, entityType, environmentId, JSON.stringify(columnMappings), isShared || false, 1]);
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error saving template:', error);
+      res.status(500).json({ error: 'Failed to save template' });
+    }
+  });
+
+  app.put('/api/:environmentId/upload/templates/:templateId', async (req: Request, res: Response) => {
+    try {
+      const { environmentId, templateId } = req.params;
+      const { name, description, columnMappings, isShared } = req.body;
+      
+      if (!getAvailableEnvironments().includes(environmentId)) {
+        return res.status(400).json({ error: 'Invalid environment' });
+      }
+      
+      const result = await pool.query(`
+        UPDATE upload_templates 
+        SET name = $1, description = $2, column_mappings = $3, is_shared = $4, updated_at = NOW()
+        WHERE id = $5 AND environment_id = $6
+        RETURNING *
+      `, [name, description, JSON.stringify(columnMappings), isShared || false, templateId, environmentId]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Template not found' });
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error updating template:', error);
+      res.status(500).json({ error: 'Failed to update template' });
+    }
+  });
+
+  app.delete('/api/:environmentId/upload/templates/:templateId', async (req: Request, res: Response) => {
+    try {
+      const { environmentId, templateId } = req.params;
+      
+      if (!getAvailableEnvironments().includes(environmentId)) {
+        return res.status(400).json({ error: 'Invalid environment' });
+      }
+      
+      const result = await pool.query(`
+        DELETE FROM upload_templates 
+        WHERE id = $1 AND environment_id = $2
+        RETURNING id
+      `, [templateId, environmentId]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Template not found' });
+      }
+      
+      res.json({ success: true });
+    } catch (error) {
+      console.error('Error deleting template:', error);
+      res.status(500).json({ error: 'Failed to delete template' });
+    }
+  });
+
+  app.post('/api/:environmentId/upload/templates/:templateId/use', async (req: Request, res: Response) => {
+    try {
+      const { environmentId, templateId } = req.params;
+      
+      if (!getAvailableEnvironments().includes(environmentId)) {
+        return res.status(400).json({ error: 'Invalid environment' });
+      }
+      
+      const result = await pool.query(`
+        UPDATE upload_templates 
+        SET usage_count = usage_count + 1, last_used_at = NOW()
+        WHERE id = $1 AND environment_id = $2
+        RETURNING *
+      `, [templateId, environmentId]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Template not found' });
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error updating template usage:', error);
+      res.status(500).json({ error: 'Failed to update template usage' });
+    }
+  });
+
   // Phase 1: Upload Settings Infrastructure Routes
 
   // Schema Discovery Routes

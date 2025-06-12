@@ -842,6 +842,8 @@ export const campaignFollowUps = pgTable("campaign_follow_ups", {
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
+
+
 // Define relationships
 export const campaignsRelations = relations(campaigns, ({ one, many }) => ({
   createdBy: one(users, {
@@ -941,7 +943,7 @@ export const transformationScripts = pgTable("transformation_scripts", {
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// Upload templates for column mappings
+// Upload templates for column mappings (enhanced version)
 export const uploadTemplates = pgTable("upload_templates", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
@@ -950,6 +952,8 @@ export const uploadTemplates = pgTable("upload_templates", {
   environmentId: text("environment_id").notNull(),
   columnMappings: json("column_mappings").notNull(), // mapping configuration
   isShared: boolean("is_shared").notNull().default(false),
+  usageCount: integer("usage_count").notNull().default(0),
+  lastUsedAt: timestamp("last_used_at"),
   createdBy: integer("created_by").notNull().references(() => users.id),
   createdAt: timestamp("created_at").defaultNow().notNull(),
   updatedAt: timestamp("updated_at").defaultNow().notNull(),
@@ -1037,14 +1041,12 @@ export const insertTransformationScriptSchema = createInsertSchema(transformatio
   createdBy: true,
 });
 
-export const insertUploadTemplateSchema = createInsertSchema(uploadTemplates).pick({
-  name: true,
-  description: true,
-  entityType: true,
-  environmentId: true,
-  columnMappings: true,
-  isShared: true,
-  createdBy: true,
+export const insertUploadTemplateSchema = createInsertSchema(uploadTemplates).omit({
+  id: true,
+  usageCount: true,
+  lastUsedAt: true,
+  createdAt: true,
+  updatedAt: true,
 });
 
 export const insertUploadSessionSchema = createInsertSchema(uploadSessions).pick({
@@ -1122,3 +1124,5 @@ export type InsertActivityAttachment = z.infer<typeof insertActivityAttachmentSc
 
 export type NextBestAction = typeof nextBestActions.$inferSelect;
 export type InsertNextBestAction = z.infer<typeof insertNextBestActionSchema>;
+
+
