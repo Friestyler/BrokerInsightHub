@@ -44,35 +44,49 @@ export function useEntityLogo(entityType: 'partner' | 'customer', entityId: numb
         
         // Add timeout to prevent hanging requests
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 2000);
+        const timeoutId = setTimeout(() => {
+          controller.abort();
+        }, 5000); // Increased timeout to 5 seconds
         
-        const response = await fetch(
-          `/api/entity-logos?entityType=${entityType}&entityId=${entityId}&environmentId=${environment}`,
-          { signal: controller.signal }
-        );
-        
-        clearTimeout(timeoutId);
-        
-        let logoData = null;
-        if (response.ok) {
-          logoData = await response.json();
+        try {
+          const response = await fetch(
+            `/api/entity-logos?entityType=${entityType}&entityId=${entityId}&environmentId=${environment}`,
+            { signal: controller.signal }
+          );
+          
+          clearTimeout(timeoutId);
+          
+          let logoData = null;
+          if (response.ok) {
+            logoData = await response.json();
+          }
+          
+          const url = logoData?.logo_data || null;
+          setLogoUrl(url);
+          
+          // Cache the result (even if null)
+          logoCache.set(cacheKey, { url, timestamp: Date.now() });
+          
+        } catch (fetchError: any) {
+          clearTimeout(timeoutId);
+          
+          if (fetchError.name === 'AbortError') {
+            // Request was aborted (timeout) - cache null result
+            logoCache.set(cacheKey, { url: null, timestamp: Date.now() });
+            setLogoUrl(null);
+            return; // Exit early for abort errors
+          }
+          
+          // Re-throw other errors to be handled by outer catch
+          throw fetchError;
         }
-        
-        const url = logoData?.logo_data || null;
-        setLogoUrl(url);
-        
-        // Cache the result (even if null)
-        logoCache.set(cacheKey, { url, timestamp: Date.now() });
         
       } catch (err: any) {
-        if (err.name === 'AbortError') {
-          // Timeout - fail silently and cache null result
-          logoCache.set(cacheKey, { url: null, timestamp: Date.now() });
-        } else {
-          console.warn('Logo fetch error:', err);
-        }
+        // Handle any errors not caught by inner try-catch
+        console.warn('Logo fetch error:', err);
         setLogoUrl(null);
         setError(null); // Don't show errors to user
+        logoCache.set(cacheKey, { url: null, timestamp: Date.now() });
       } finally {
         setIsLoading(false);
       }
