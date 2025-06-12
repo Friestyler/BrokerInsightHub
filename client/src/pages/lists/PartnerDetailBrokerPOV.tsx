@@ -37,9 +37,16 @@ export default function PartnerDetailBrokerPOV() {
   const [activeOpportunitiesList, setActiveOpportunitiesList] = useState<any>(null);
   const [filterText, setFilterText] = useState('');
   const [selectedStatus, setSelectedStatus] = useState('');
+  const [selectedCustomer, setSelectedCustomer] = useState('');
   const [selectedOpportunityType, setSelectedOpportunityType] = useState('');
   const [renderKey, setRenderKey] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Dropdown state for filters
+  const [showStageDropdown, setShowStageDropdown] = useState(false);
+  const [showCustomerDropdown, setShowCustomerDropdown] = useState(false);
+  const stageDropdownRef = useRef<HTMLDivElement>(null);
+  const customerDropdownRef = useRef<HTMLDivElement>(null);
 
   // Edit list state management
   const [isEditingList, setIsEditingList] = useState(false);
@@ -52,7 +59,7 @@ export default function PartnerDetailBrokerPOV() {
 
   // Stage editing state
   const [editingStageId, setEditingStageId] = useState<number | null>(null);
-  const [stageDropdownRef, setStageDropdownRef] = useState<HTMLDivElement | null>(null);
+  const [editStageDropdownRef, setEditStageDropdownRef] = useState<HTMLDivElement | null>(null);
 
   // Define stage options
   const OPPORTUNITY_STAGES = ['discovery', 'qualification', 'proposal', 'negotiation', 'closed_won', 'closed_lost'];
@@ -60,7 +67,7 @@ export default function PartnerDetailBrokerPOV() {
   // Close stage dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (stageDropdownRef && !stageDropdownRef.contains(event.target as Node)) {
+      if (editStageDropdownRef && !editStageDropdownRef.contains(event.target as Node)) {
         setEditingStageId(null);
       }
     }
@@ -71,7 +78,7 @@ export default function PartnerDetailBrokerPOV() {
         document.removeEventListener('mousedown', handleClickOutside);
       };
     }
-  }, [editingStageId, stageDropdownRef]);
+  }, [editingStageId, editStageDropdownRef]);
 
   // For broker view, show De Goudse as the sharing partner
   const partner = {
@@ -385,12 +392,18 @@ export default function PartnerDetailBrokerPOV() {
       const matchesSearch = 
         opportunity.title?.toLowerCase().includes(searchLower) ||
         opportunity.clientName?.toLowerCase().includes(searchLower) ||
+        opportunity.customerName?.toLowerCase().includes(searchLower) ||
         opportunity.stage?.toLowerCase().includes(searchLower);
       if (!matchesSearch) return false;
     }
     
-    // Filter by status if selected
+    // Filter by status/stage if selected
     if (selectedStatus && selectedStatus !== 'all' && opportunity.stage !== selectedStatus) {
+      return false;
+    }
+    
+    // Filter by customer if selected
+    if (selectedCustomer && selectedCustomer !== 'all' && opportunity.customerName !== selectedCustomer) {
       return false;
     }
     
@@ -402,11 +415,17 @@ export default function PartnerDetailBrokerPOV() {
     return true;
   });
 
-  // Click outside handler to close dropdown
+  // Click outside handler to close dropdowns
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setShowListsDropdown(false);
+      }
+      if (stageDropdownRef.current && !stageDropdownRef.current.contains(event.target as Node)) {
+        setShowStageDropdown(false);
+      }
+      if (customerDropdownRef.current && !customerDropdownRef.current.contains(event.target as Node)) {
+        setShowCustomerDropdown(false);
       }
     }
 
@@ -415,6 +434,10 @@ export default function PartnerDetailBrokerPOV() {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, []);
+
+  // Extract unique values for dropdowns
+  const uniqueStages = Array.from(new Set(allOpportunities.map((opp: any) => opp.stage).filter(Boolean)));
+  const uniqueCustomers = Array.from(new Set(allOpportunities.map((opp: any) => opp.customerName).filter(Boolean)));
 
   // Fetch OKR tags for filtering
   const { data: tags = [] } = useQuery({
@@ -852,27 +875,121 @@ export default function PartnerDetailBrokerPOV() {
                         </button>
                       </div>
                       
-                      {/* Filter buttons next to the views dropdown */}
+                      {/* Filter dropdowns next to the views dropdown */}
                       <div className="flex items-center gap-2 ml-3">
-                        <button 
-                          className="flex items-center px-3 py-2 border rounded-md text-sm font-medium border-gray-300 text-gray-700"
-                          onClick={() => {/* Handle status filter */}}
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                          </svg>
-                          <span>Status</span>
-                        </button>
+                        {/* Stage filter dropdown */}
+                        <div className="relative" ref={stageDropdownRef}>
+                          <button 
+                            className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${
+                              selectedStatus ? 'border-indigo-300 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'
+                            } hover:border-gray-400`}
+                            onClick={() => setShowStageDropdown(!showStageDropdown)}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                            </svg>
+                            <span>{selectedStatus || 'Stage'}</span>
+                            <svg 
+                              xmlns="http://www.w3.org/2000/svg" 
+                              width="14" 
+                              height="14" 
+                              viewBox="0 0 24 24" 
+                              fill="none" 
+                              stroke="currentColor" 
+                              strokeWidth="2" 
+                              strokeLinecap="round" 
+                              strokeLinejoin="round" 
+                              className={`ml-2 transition-transform ${showStageDropdown ? 'rotate-180' : ''}`}
+                            >
+                              <polyline points="6 9 12 15 18 9" />
+                            </svg>
+                          </button>
+                          
+                          {showStageDropdown && (
+                            <div className="absolute z-50 mt-1 w-48 rounded-md border border-slate-200 bg-white shadow-lg">
+                              <div className="py-1">
+                                <button
+                                  className="flex w-full items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                  onClick={() => {
+                                    setSelectedStatus('');
+                                    setShowStageDropdown(false);
+                                  }}
+                                >
+                                  All Stages
+                                </button>
+                                {uniqueStages.map((stage) => (
+                                  <button
+                                    key={stage}
+                                    className="flex w-full items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                    onClick={() => {
+                                      setSelectedStatus(stage);
+                                      setShowStageDropdown(false);
+                                    }}
+                                  >
+                                    {stage}
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
                         
-                        <button 
-                          className="flex items-center px-3 py-2 border rounded-md text-sm font-medium border-gray-300 text-gray-700"
-                          onClick={() => {/* Handle type filter */}}
-                        >
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
-                            <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
-                          </svg>
-                          <span>Type</span>
-                        </button>
+                        {/* Customer filter dropdown */}
+                        <div className="relative" ref={customerDropdownRef}>
+                          <button 
+                            className={`flex items-center px-3 py-2 border rounded-md text-sm font-medium ${
+                              selectedCustomer ? 'border-indigo-300 bg-indigo-50 text-indigo-700' : 'border-gray-300 text-gray-700'
+                            } hover:border-gray-400`}
+                            onClick={() => setShowCustomerDropdown(!showCustomerDropdown)}
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                            </svg>
+                            <span>{selectedCustomer || 'Customer'}</span>
+                            <svg 
+                              xmlns="http://www.w3.org/2000/svg" 
+                              width="14" 
+                              height="14" 
+                              viewBox="0 0 24 24" 
+                              fill="none" 
+                              stroke="currentColor" 
+                              strokeWidth="2" 
+                              strokeLinecap="round" 
+                              strokeLinejoin="round" 
+                              className={`ml-2 transition-transform ${showCustomerDropdown ? 'rotate-180' : ''}`}
+                            >
+                              <polyline points="6 9 12 15 18 9" />
+                            </svg>
+                          </button>
+                          
+                          {showCustomerDropdown && (
+                            <div className="absolute z-50 mt-1 w-64 rounded-md border border-slate-200 bg-white shadow-lg">
+                              <div className="py-1">
+                                <button
+                                  className="flex w-full items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                  onClick={() => {
+                                    setSelectedCustomer('');
+                                    setShowCustomerDropdown(false);
+                                  }}
+                                >
+                                  All Customers
+                                </button>
+                                {uniqueCustomers.map((customer) => (
+                                  <button
+                                    key={customer}
+                                    className="flex w-full items-center px-3 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                                    onClick={() => {
+                                      setSelectedCustomer(customer);
+                                      setShowCustomerDropdown(false);
+                                    }}
+                                  >
+                                    <span className="truncate">{customer}</span>
+                                  </button>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
