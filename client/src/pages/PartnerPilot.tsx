@@ -449,7 +449,7 @@ export default function PartnerPilot() {
                 </CardFooter>
               </Card>
 
-              <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-purple-100">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-purple-100" onClick={() => setLocation('/data-upload-2/process/customers')}>
                 <CardHeader>
                   <div className="flex justify-between items-start">
                     <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
@@ -468,7 +468,7 @@ export default function PartnerPilot() {
                 </CardFooter>
               </Card>
 
-              <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-orange-100">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-orange-100" onClick={() => setLocation('/data-upload-2/process/products')}>
                 <CardHeader>
                   <div className="flex justify-between items-start">
                     <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center">
@@ -487,7 +487,7 @@ export default function PartnerPilot() {
                 </CardFooter>
               </Card>
 
-              <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-red-100">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-red-100" onClick={() => setLocation('/data-upload-2/process/vendors')}>
                 <CardHeader>
                   <div className="flex justify-between items-start">
                     <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
@@ -506,7 +506,7 @@ export default function PartnerPilot() {
                 </CardFooter>
               </Card>
 
-              <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-gray-100">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-gray-100" onClick={() => setLocation('/data-upload-2/process/contacts')}>
                 <CardHeader>
                   <div className="flex justify-between items-start">
                     <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
@@ -533,9 +533,7 @@ export default function PartnerPilot() {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <Card 
                 className="hover:shadow-md transition-shadow cursor-pointer border-2 border-orange-100"
-                onClick={() => {
-                  setActiveSection('data-upload-2-degoudse');
-                }}
+                onClick={() => setLocation('/data-upload-2/process/degoudse')}
               >
                 <CardHeader>
                   <div className="flex justify-between items-start">
