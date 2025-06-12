@@ -735,7 +735,7 @@ export default function CustomersPageClean() {
 
 
         {/* Customers table - exact match to Opportunities */}
-        <div className="overflow-hidden bg-white sm:rounded-lg">
+        <div className="bg-white rounded-lg shadow-sm">
           <table className="min-w-full">
             <thead className="bg-white">
               <tr>
