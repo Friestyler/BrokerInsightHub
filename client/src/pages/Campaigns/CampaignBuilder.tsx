@@ -270,15 +270,21 @@ export default function CampaignBuilder() {
       
       // Determine the primary record this contact belongs to
       if (contact.customer_id) {
-        const customer = customers?.find((c: any) => c.id === contact.customer_id);
+        const customer = Array.isArray(customers) 
+          ? customers.find((c: any) => c.id === contact.customer_id)
+          : null;
         recordName = customer?.name || `Customer ${contact.customer_id}`;
         recordType = 'customer';
       } else if (contact.partner_id) {
-        const partner = partners?.find((p: any) => p.id === contact.partner_id);
+        const partner = Array.isArray(partners) 
+          ? partners.find((p: any) => p.id === contact.partner_id)
+          : null;
         recordName = partner?.name || `Partner ${contact.partner_id}`;
         recordType = 'partner';
       } else if (contact.opportunity_id) {
-        const opportunity = opportunities?.find((o: any) => o.id === contact.opportunity_id);
+        const opportunity = Array.isArray(opportunities) 
+          ? opportunities.find((o: any) => o.id === contact.opportunity_id)
+          : null;
         recordName = opportunity?.title || `Opportunity ${contact.opportunity_id}`;
         recordType = 'opportunity';
       } else {
@@ -796,6 +802,11 @@ export default function CampaignBuilder() {
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">
                 {form.getValues("recipientIds").length} recipient(s) selected
+                {Object.keys(groupedContacts).length > 0 && (
+                  <span className="text-gray-400 ml-2">
+                    from {Object.values(groupedContacts).reduce((total: number, group: any) => total + group.contacts.length, 0)} total contacts
+                  </span>
+                )}
               </span>
               <Button 
                 variant="outline" 
