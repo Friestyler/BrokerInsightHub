@@ -43,7 +43,7 @@ export function SortableTableHead({
       onClick={() => onSort(sortKey)}
     >
       <div className="flex items-center justify-between">
-        <span className="text-[#696C8C] text-[13px] font-medium" style={{ fontFamily: 'Poppins' }}>{children}</span>
+        <span className="text-[#696C8C] text-[14px] font-medium" style={{ fontFamily: 'Poppins' }}>{children}</span>
         {getSortIcon()}
       </div>
     </TableHead>
