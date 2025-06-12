@@ -13,8 +13,6 @@ import CampaignDetail from "@/pages/Campaigns/CampaignDetail";
 import DataUploadOptions from "@/pages/DataUpload/DataUploadOptions";
 import BrioUploadFlow from "@/pages/DataUpload/BrioUploadFlow";
 import DeGoudseUploadWizard from "@/pages/DataUpload/DeGoudseUploadWizard";
-import DataUpload2 from "@/pages/DataUpload2";
-import DataUpload3 from "@/pages/DataUpload3";
 import ReportsPage from "@/pages/Reports/ReportsPage";
 import PartnersPage from "@/pages/lists/PartnersPage";
 import PartnerDetail from "@/pages/lists/PartnerDetail";
@@ -108,22 +106,6 @@ function Router() {
           {() => (
             <EnvironmentRouteGuard
               component={DeGoudseUploadWizard} 
-              excludedEnvironments={[]} 
-            />
-          )}
-        </Route>
-        <Route path="/data-upload-2">
-          {() => (
-            <EnvironmentRouteGuard
-              component={DataUpload2} 
-              excludedEnvironments={[]} 
-            />
-          )}
-        </Route>
-        <Route path="/data-upload-3">
-          {() => (
-            <EnvironmentRouteGuard
-              component={DataUpload3} 
               excludedEnvironments={[]} 
             />
           )}
