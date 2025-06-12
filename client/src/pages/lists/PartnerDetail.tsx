@@ -2971,17 +2971,22 @@ export default function PartnerDetail() {
             <Button variant="outline" onClick={() => setShowDetailsDialog(false)}>
               Cancel
             </Button>
-            <Button onClick={() => {
-              // Save the edited partner data
-              console.log('Saving partner data:', editedPartner);
-              // Here you would typically make an API call to update the partner
-              // For now, we'll just close the dialog
-              setShowDetailsDialog(false);
-              toast({
-                title: "Partner updated",
-                description: "Partner information has been saved successfully.",
-              });
-            }}>Save changes</Button>
+            <Button 
+              className="inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:bg-primary/90 h-10 px-4 py-2 text-[#ffffff] bg-[#5567E5] pl-[14px] pr-[14px] ml-[8px] mr-[8px]"
+              onClick={() => {
+                // Save the edited partner data
+                console.log('Saving partner data:', editedPartner);
+                // Here you would typically make an API call to update the partner
+                // For now, we'll just close the dialog
+                setShowDetailsDialog(false);
+                toast({
+                  title: "Partner updated",
+                  description: "Partner information has been saved successfully.",
+                });
+              }}
+            >
+              Save changes
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
