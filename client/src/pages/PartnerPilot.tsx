@@ -405,68 +405,13 @@ export default function PartnerPilot() {
             <p className="text-gray-600">Upload your data using intelligent templates and entity mapping</p>
           </div>
           
-          {/* Top Section: Saved Templates Carousel */}
-          <div className="mb-10">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-semibold">Saved Templates</h2>
-              <Button variant="outline" size="sm">
-                Create New Template
-              </Button>
-            </div>
-            <div className="bg-gray-50 rounded-lg p-6">
-              <div className="flex space-x-4 overflow-x-auto pb-2">
-                {/* Template cards will be dynamically loaded */}
-                <Card className="min-w-[280px] border-2 border-blue-100 hover:border-blue-200 transition-all cursor-pointer">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center space-x-2">
-                      <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
-                        <FileSpreadsheet className="h-4 w-4 text-blue-600" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-sm">Opportunities Import</CardTitle>
-                        <CardDescription className="text-xs">Created 2 days ago</CardDescription>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <p className="text-xs text-gray-600 mb-2">Maps Excel columns to opportunity fields with validation</p>
-                    <Badge variant="secondary" className="text-xs">3 entities</Badge>
-                  </CardContent>
-                </Card>
-                
-                <Card className="min-w-[280px] border-2 border-green-100 hover:border-green-200 transition-all cursor-pointer">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center space-x-2">
-                      <div className="h-8 w-8 rounded-full bg-green-100 flex items-center justify-center">
-                        <Users className="h-4 w-4 text-green-600" />
-                      </div>
-                      <div>
-                        <CardTitle className="text-sm">Partner Onboarding</CardTitle>
-                        <CardDescription className="text-xs">Created 1 week ago</CardDescription>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <p className="text-xs text-gray-600 mb-2">Complete partner data import with contact mapping</p>
-                    <Badge variant="secondary" className="text-xs">2 entities</Badge>
-                  </CardContent>
-                </Card>
 
-                <Card className="min-w-[280px] border-dashed border-2 border-gray-300 hover:border-gray-400 transition-all cursor-pointer flex items-center justify-center">
-                  <CardContent className="text-center">
-                    <div className="h-8 w-8 text-gray-400 mx-auto mb-2 flex items-center justify-center text-2xl">+</div>
-                    <p className="text-sm text-gray-600">Create New Template</p>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </div>
 
           {/* Main Section: Entity Upload Options */}
           <div className="mb-10">
             <h2 className="text-lg font-semibold mb-4">Upload by Entity Type</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-blue-100">
+              <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-blue-100" onClick={() => setLocation('/data-upload-2/process/opportunities')}>
                 <CardHeader>
                   <div className="flex justify-between items-start">
                     <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">

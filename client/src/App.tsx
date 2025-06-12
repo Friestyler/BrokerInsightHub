@@ -30,6 +30,7 @@ import ContactsPage from "@/pages/Settings/ContactsPage";
 import DeveloperPage from "@/pages/Settings/DeveloperPage";
 import DatabaseAdmin from "@/pages/Settings/DatabaseAdmin";
 import UploadSettingsPage from "@/pages/DataUpload/UploadSettingsPage";
+import UploadProcessPage from "@/pages/DataUpload/UploadProcessPage";
 import NotificationsPage from "@/pages/smart-updates/NotificationsPage";
 import SmartUpdatesPage from "@/pages/smart-updates/SmartUpdatesPage";
 
@@ -111,6 +112,7 @@ function Router() {
             />
           )}
         </Route>
+        <Route path="/data-upload-2/process/:entityType/:formatType?" component={UploadProcessPage} />
         
         {/* Reports section route */}
         <Route path="/reports" component={ReportsPage} />
