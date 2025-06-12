@@ -33,11 +33,13 @@ interface EntitySchema {
 
 interface UploadSetting {
   id: number;
-  environmentId: string;
-  entityType: string;
-  attributeName: string;
-  isMandatory: boolean;
-  dataType?: string;
+  environment_id: string;
+  entity_type: string;
+  attribute_name: string;
+  is_mandatory: boolean;
+  data_type?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 interface TransformationScript {
@@ -87,7 +89,7 @@ export default function UploadSettingsPage() {
 
   // Fetch upload settings for selected entity
   const { data: uploadSettings = [], isLoading: settingsLoading } = useQuery<UploadSetting[]>({
-    queryKey: ['/api/upload-settings', selectedEnvironment, selectedEntity],
+    queryKey: [`/api/${selectedEnvironment}/upload-settings/${selectedEntity}`, selectedEnvironment, selectedEntity],
     enabled: !!selectedEnvironment && !!selectedEntity
   });
 
@@ -116,7 +118,7 @@ export default function UploadSettingsPage() {
     },
     onSuccess: () => {
       toast({ title: 'Success', description: 'Upload settings updated successfully' });
-      queryClient.invalidateQueries({ queryKey: ['/api/upload-settings', selectedEnvironment, selectedEntity] });
+      queryClient.invalidateQueries({ queryKey: [`/api/${selectedEnvironment}/upload-settings/${selectedEntity}`, selectedEnvironment, selectedEntity] });
     },
     onError: () => {
       toast({ title: 'Error', description: 'Failed to update upload settings', variant: 'destructive' });
@@ -176,8 +178,8 @@ export default function UploadSettingsPage() {
       ) : selectedSchema ? (
         <div className="space-y-4">
           {selectedSchema.attributes.map((attribute) => {
-            const setting = uploadSettings.find(s => s.attributeName === attribute.name);
-            const isMandatory = setting?.isMandatory || false;
+            const setting = uploadSettings.find(s => s.attribute_name === attribute.name);
+            const isMandatory = setting?.is_mandatory || false;
 
             return (
               <Card key={attribute.name} className="p-4">
