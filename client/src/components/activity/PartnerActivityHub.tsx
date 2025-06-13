@@ -233,7 +233,40 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
   const comments = (activities as any)?.comments || [];
   const attachments = (activities as any)?.attachments || [];
   const actions = (nextActions as any) || [];
-  const timelineData = (timeline as any) || [];
+  const rawTimelineData = (timeline as any) || [];
+  
+  // Merge tasks with timeline data
+  const timelineData = [
+    ...rawTimelineData,
+    ...tasks.map((task: any) => ({
+      ...task,
+      activity_type: 'task',
+      title: task.title,
+      content: task.title,
+      description: task.description || '',
+      priority: task.priority,
+      completed: task.completed,
+      visible_to_partner: task.visible_to_partner,
+      assigned_to_name: task.assignedTo ? teamMembers.find(m => m.id === task.assignedTo)?.name || task.assignedTo : null,
+      author_name: 'System' // or get from actual user data
+    })),
+    ...comments.map((comment: any) => ({
+      ...comment,
+      activity_type: 'comment',
+      title: 'Comment',
+      content: comment.content,
+      visible_to_partner: comment.visible_to_partner,
+      author_name: comment.author_name || 'User'
+    })),
+    ...attachments.map((attachment: any) => ({
+      ...attachment,
+      activity_type: 'attachment',
+      title: 'Document',
+      content: attachment.filename || 'File attachment',
+      visible_to_partner: attachment.visible_to_partner,
+      author_name: attachment.author_name || 'User'
+    }))
+  ];
 
   const completedTasks = tasks.filter((t: any) => t.completed).length;
   const pendingTasks = tasks.filter((t: any) => !t.completed).length;
