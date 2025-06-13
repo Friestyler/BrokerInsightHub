@@ -157,6 +157,9 @@ export default function UploadSettingsPage() {
   }, [supportedEntities, selectedEntity]);
 
   const selectedSchema = entitySchemas.find(schema => schema.entityType === selectedEntity);
+  
+  const isLoading = settingsLoading || schemasLoading;
+  const hasValidData = selectedSchema && selectedEntity;
 
   const handleSettingChange = (attributeName: string, isMandatory: boolean) => {
     if (!selectedSchema || !environment.id || !selectedEntity) return;
@@ -202,13 +205,13 @@ export default function UploadSettingsPage() {
 
       <Separator />
 
-      {settingsLoading || schemasLoading ? (
+      {isLoading ? (
         <div className="space-y-3">
           {[...Array(5)].map((_, i) => (
             <div key={i} className="h-12 bg-muted animate-pulse rounded" />
           ))}
         </div>
-      ) : selectedSchema && selectedEntity ? (
+      ) : hasValidData && selectedSchema ? (
         <div className="space-y-4">
           {selectedSchema.attributes.map((attribute) => {
             const setting = uploadSettings.find(s => s.attribute_name === attribute.name);
