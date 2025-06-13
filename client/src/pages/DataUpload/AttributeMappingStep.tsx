@@ -779,26 +779,28 @@ export default function AttributeMappingStep({
                         </div>
                       </div>
                       
-                      {/* Available Columns Helper */}
+                      {/* Available Columns Dropdown */}
                       {extractedHeaders.length > 0 && (
                         <div className="space-y-2">
-                          <p className="text-xs font-medium text-gray-700">Available Columns:</p>
-                          <div className="flex flex-wrap gap-1 max-h-20 overflow-y-auto">
-                            {extractedHeaders.map((header, headerIndex) => (
-                              <button
-                                key={headerIndex}
-                                type="button"
-                                onClick={() => {
-                                  const currentCode = codeEditorContent[index] || '';
-                                  const columnRef = `column_${header.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
-                                  handleCodeChange(index, currentCode + columnRef);
-                                }}
-                                className="px-2 py-1 text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 rounded"
-                              >
-                                {header}
-                              </button>
-                            ))}
-                          </div>
+                          <p className="text-xs font-medium text-gray-700">Insert Column Reference:</p>
+                          <Select
+                            onValueChange={(value) => {
+                              const currentCode = codeEditorContent[index] || '';
+                              const columnRef = `column_${value.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+                              handleCodeChange(index, currentCode + columnRef);
+                            }}
+                          >
+                            <SelectTrigger className="h-8">
+                              <SelectValue placeholder="Select column to insert" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {extractedHeaders.map((header, headerIndex) => (
+                                <SelectItem key={headerIndex} value={header}>
+                                  {header} → column_{header.toLowerCase().replace(/[^a-z0-9]/g, '_')}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
                         </div>
                       )}
                     </div>
