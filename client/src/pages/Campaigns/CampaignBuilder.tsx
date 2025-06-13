@@ -223,7 +223,7 @@ export default function CampaignBuilder() {
 
   // Initialize form with template data when available
   useEffect(() => {
-    if (templateData) {
+    if (templateData && templateData.name) {
       form.reset({
         name: templateData.name + " (Copy)",
         description: templateData.description || "",
@@ -466,14 +466,7 @@ export default function CampaignBuilder() {
   // Campaign creation mutation
   const createCampaignMutation = useMutation({
     mutationFn: (data: any) => {
-      return fetch('/api/campaigns', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-environment-id': 'degoudse'
-        },
-        body: JSON.stringify(data)
-      }).then(res => res.json());
+      return apiRequest('POST', '/api/degoudse/campaigns', data);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/campaigns'] });
@@ -497,14 +490,7 @@ export default function CampaignBuilder() {
   // Save draft mutation
   const saveDraftMutation = useMutation({
     mutationFn: (data: any) => {
-      return fetch('/api/campaigns', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-environment-id': 'degoudse'
-        },
-        body: JSON.stringify({ ...data, status: 'draft' })
-      }).then(res => res.json());
+      return apiRequest('POST', '/api/degoudse/campaigns', { ...data, status: 'draft' });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/campaigns'] });

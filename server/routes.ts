@@ -5124,6 +5124,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create new campaign
+  app.post('/api/:envId/campaigns', async (req, res) => {
+    try {
+      const { envId } = req.params;
+      const campaignData = req.body;
+      
+      // Insert campaign into database
+      const result = await pool.query(`
+        INSERT INTO ${envId}.campaigns (
+          name, description, type, category, status, created_by_id, 
+          sponsor_id, list_id, subject, heading, email_body, email_logo,
+          from_name, from_email, button_link, button_text, button_color,
+          follow_up_emails, scheduled_time, frequency, is_shared, is_template, tags
+        ) VALUES (
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23
+        ) RETURNING *
+      `, [
+        campaignData.name,
+        campaignData.description || null,
+        campaignData.type,
+        campaignData.category || null,
+        campaignData.status || 'draft',
+        campaignData.createdById || 1, // Default to user 1 for demo
+        campaignData.sponsorId || null,
+        campaignData.listId || null,
+        campaignData.subject || null,
+        campaignData.heading || null,
+        campaignData.emailBody || null,
+        campaignData.emailLogo || null,
+        campaignData.fromName || null,
+        campaignData.fromEmail || null,
+        campaignData.buttonLink || null,
+        campaignData.buttonText || null,
+        campaignData.buttonColor || null,
+        JSON.stringify(campaignData.followUpEmails || []),
+        campaignData.scheduledTime || null,
+        campaignData.frequency || 'one_time',
+        campaignData.isShared || false,
+        campaignData.isTemplate || false,
+        JSON.stringify(campaignData.tags || [])
+      ]);
+      
+      const newCampaign = result.rows[0];
+      
+      console.log(`Created new campaign: ${newCampaign.name} in ${envId} environment`);
+      res.json(newCampaign);
+    } catch (error) {
+      console.error('Error creating campaign:', error);
+      res.status(500).json({ error: 'Failed to create campaign' });
+    }
+  });
+
   // Get campaigns shared with broker users (for Regional Insurance Partners environment)
   app.get('/api/broker/shared-campaigns', async (req, res) => {
     try {
