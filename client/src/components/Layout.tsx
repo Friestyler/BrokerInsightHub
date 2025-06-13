@@ -50,7 +50,6 @@ function LayoutComponent({ children }: LayoutProps) {
       <div className="h-screen flex-shrink-0">
         <Sidebar collapsed={sidebarCollapsed} setCollapsed={setSidebarCollapsed} />
       </div>
-      
       {/* Main content column with top bar */}
       <div className="flex-1 flex flex-col bg-white overflow-hidden">
         {/* Top bar - fixed, not scrollable */}
@@ -89,7 +88,7 @@ function LayoutComponent({ children }: LayoutProps) {
         </div>
         
         {/* Main content area - scrollable */}
-        <div className="flex-1 overflow-y-auto">
+        <div className="flex-1 overflow-y-auto text-[#282A3F]">
           {children}
         </div>
       </div>
