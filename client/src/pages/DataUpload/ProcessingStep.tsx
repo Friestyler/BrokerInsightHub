@@ -833,7 +833,7 @@ export default function ProcessingStep({
       case 'skip': return 'text-red-600';
       case 'replace': return 'text-blue-600';
       case 'create_duplicate': return 'text-green-600';
-      case 'delete_and_create': return 'text-orange-600';
+
       default: return 'text-gray-600';
     }
   };
@@ -969,14 +969,7 @@ export default function ProcessingStep({
                       <CheckCircle className="h-3 w-3 mr-1" />
                       Create Duplicate
                     </Button>
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => bulkUpdateSolution('delete_and_create')}
-                    >
-                      <Trash2 className="h-3 w-3 mr-1" />
-                      Delete & Create
-                    </Button>
+
                   </div>
                 </div>
               )}
