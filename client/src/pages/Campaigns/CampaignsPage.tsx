@@ -144,14 +144,6 @@ export default function CampaignsPage() {
   const sharedCampaigns = campaigns?.filter(c => !c.isTemplate && c.isShared) || [];
   const dbTemplates = userTemplates || [];
 
-  // Debug logging
-  console.log('Template data debug:', {
-    userTemplates,
-    dbTemplates,
-    isLoadingTemplates,
-    templatesLength: userTemplates?.length
-  });
-
   // Helper function to get sponsor name
   const getSponsorName = (sponsorId: number) => {
     const sponsorMap: Record<number, string> = {
@@ -1032,22 +1024,36 @@ export default function CampaignsPage() {
           </div>
           
           <div className="p-6 overflow-y-auto max-h-[60vh]">
-            <div className="text-center py-16 rounded-xl bg-gray-50 border border-gray-200">
-              <div className="p-3 rounded-full bg-gray-100 w-fit mx-auto mb-4">
-                <FileText className="h-8 w-8 text-gray-400" />
-              </div>
-              <h3 className="text-base font-medium text-gray-900 mb-2">No templates available</h3>
-              <p className="text-sm text-gray-500 mb-6">Create some templates first to use them for new campaigns.</p>
-              <Button 
-                variant="outline"
-                className="rounded-lg"
-                onClick={() => {
-                  setTemplateSelectionDialogOpen(false);
-                  setLocation("/campaigns/template-builder");
-                }}
-              >
-                Create Template
-              </Button>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {getFilteredTemplates().map(template => (
+                <Card 
+                  key={template.id} 
+                  className="group hover:shadow-md transition-all duration-200 cursor-pointer border border-gray-200 hover:border-blue-200 rounded-xl overflow-hidden"
+                  onClick={() => startCampaignFromTemplate(template.id)}
+                >
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between">
+                      <CardTitle className="text-base font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
+                        {template.name}
+                      </CardTitle>
+                      <Badge variant="secondary" className="text-xs bg-gray-100 text-gray-600">
+                        Template
+                      </Badge>
+                    </div>
+                    <CardDescription className="text-sm text-gray-500">
+                      {template.isSponsored ? `By ${template.sponsor}` : template.category}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+                      <p className="text-sm text-gray-600">
+                        {template.category}
+                      </p>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
           </div>
         </DialogContent>
