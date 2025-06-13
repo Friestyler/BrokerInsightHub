@@ -434,7 +434,7 @@ export default function PartnerPilot() {
                   </div>
                   <CardTitle className="text-lg mt-2">Opportunities</CardTitle>
                   <CardDescription>
-                    Upload opportunity data with automatic field mapping and validation
+                    Upload opportunity data with automatic attribute mapping and validation
                   </CardDescription>
                 </CardHeader>
                 <CardFooter>
