@@ -4878,8 +4878,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { environmentId, entityType } = req.params;
       
-      if (!isSupportedEntityType(entityType)) {
+      // Check if this is a special format (same logic as frontend)
+      const isSpecialFormat = entityType.includes('-') || ['salesforce', 'brio', 'degoudse'].includes(entityType);
+      
+      if (!isSpecialFormat && !isSupportedEntityType(entityType)) {
         return res.status(400).json({ error: 'Unsupported entity type' });
+      }
+      
+      // For special formats, return empty settings array since they don't have predefined mandatory attributes
+      if (isSpecialFormat) {
+        return res.json([]);
       }
       
       const settings = await UploadSettingsService.getUploadSettings(environmentId, entityType);
@@ -4895,8 +4903,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { environmentId, entityType } = req.params;
       const { settings } = req.body;
       
-      if (!isSupportedEntityType(entityType)) {
+      // Check if this is a special format (same logic as frontend)
+      const isSpecialFormat = entityType.includes('-') || ['salesforce', 'brio', 'degoudse'].includes(entityType);
+      
+      if (!isSpecialFormat && !isSupportedEntityType(entityType)) {
         return res.status(400).json({ error: 'Unsupported entity type' });
+      }
+      
+      // For special formats, return success without saving settings
+      if (isSpecialFormat) {
+        return res.json({ success: true, message: 'Special format uploads do not require settings configuration' });
       }
       
       const settingsSchema = z.array(z.object({
