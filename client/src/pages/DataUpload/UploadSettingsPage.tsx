@@ -12,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Settings, Database, Code, FileText, Info, Save, Plus, Edit, Trash2 } from 'lucide-react';
+import { Settings, Database, Code, Info, Save, Plus, Edit, Trash2 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 
@@ -52,15 +52,7 @@ interface TransformationScript {
   isActive: boolean;
 }
 
-interface UploadTemplate {
-  id: number;
-  environmentId: string;
-  entityType: string;
-  templateName: string;
-  templateData: Record<string, any>;
-  description?: string;
-  isActive: boolean;
-}
+
 
 export default function UploadSettingsPage() {
   const [selectedEnvironment, setSelectedEnvironment] = useState<string>('');
@@ -99,11 +91,7 @@ export default function UploadSettingsPage() {
     enabled: !!selectedEnvironment && !!selectedEntity
   });
 
-  // Fetch upload templates
-  const { data: uploadTemplates = [] } = useQuery<UploadTemplate[]>({
-    queryKey: ['/api/upload-templates', selectedEnvironment, selectedEntity],
-    enabled: !!selectedEnvironment && !!selectedEntity
-  });
+
 
   // Update upload settings mutation
   const updateSettingsMutation = useMutation({
@@ -331,62 +319,7 @@ export default function UploadSettingsPage() {
     </div>
   );
 
-  const renderTemplatesTab = () => (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <div>
-          <h3 className="text-lg font-medium">Upload Templates</h3>
-          <p className="text-sm text-muted-foreground">
-            Pre-configured templates for common upload scenarios
-          </p>
-        </div>
-        <Button size="sm">
-          <Plus className="h-4 w-4 mr-2" />
-          Add Template
-        </Button>
-      </div>
 
-      <div className="space-y-4">
-        {uploadTemplates.length > 0 ? (
-          uploadTemplates.map((template) => (
-            <Card key={template.id}>
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <div className="space-y-1">
-                    <CardTitle className="text-base">{template.templateName}</CardTitle>
-                    <CardDescription>{template.description}</CardDescription>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Badge variant={template.isActive ? "default" : "secondary"}>
-                      {template.isActive ? "Active" : "Inactive"}
-                    </Badge>
-                    <Button variant="ghost" size="sm">
-                      <Edit className="h-4 w-4" />
-                    </Button>
-                    <Button variant="ghost" size="sm">
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardHeader>
-              <CardContent>
-                <div className="text-sm text-muted-foreground">
-                  {template.templateData ? Object.keys(template.templateData).length : 0} configured fields
-                </div>
-              </CardContent>
-            </Card>
-          ))
-        ) : (
-          <Alert>
-            <FileText className="h-4 w-4" />
-            <AlertDescription>
-              No upload templates found. Create templates to standardize upload configurations.
-            </AlertDescription>
-          </Alert>
-        )}
-      </div>
-    </div>
-  );
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
@@ -428,7 +361,7 @@ export default function UploadSettingsPage() {
       <Separator />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-2">
           <TabsTrigger value="settings" className="flex items-center gap-2">
             <Settings className="h-4 w-4" />
             Settings
@@ -436,10 +369,6 @@ export default function UploadSettingsPage() {
           <TabsTrigger value="scripts" className="flex items-center gap-2">
             <Code className="h-4 w-4" />
             Scripts
-          </TabsTrigger>
-          <TabsTrigger value="templates" className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            Templates
           </TabsTrigger>
         </TabsList>
 
@@ -449,10 +378,6 @@ export default function UploadSettingsPage() {
 
         <TabsContent value="scripts" className="mt-6">
           {renderScriptsTab()}
-        </TabsContent>
-
-        <TabsContent value="templates" className="mt-6">
-          {renderTemplatesTab()}
         </TabsContent>
       </Tabs>
     </div>
