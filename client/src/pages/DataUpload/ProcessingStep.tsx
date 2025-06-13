@@ -380,19 +380,52 @@ export default function ProcessingStep({
           if (hasAllMandatoryValues) {
             let duplicateFound = false;
             let checkedRecords = 0;
+            let matchingRecord = null;
             
-            const duplicate = existing.find((record: any) => {
+            // Search through ALL existing records to find duplicates
+            for (const record of existing) {
               checkedRecords++;
               
               // Check if ALL mandatory attributes match
               const allMatch = mandatoryMappings.every(mapping => {
                 const existingValue = record[mapping.attribute];
                 const currentValue = currentRowMandatoryValues[mapping.attribute];
-                const normalizedExisting = existingValue ? existingValue.toString().toLowerCase() : '';
-                const match = existingValue && normalizedExisting === currentValue;
                 
-                if (checkedRecords <= 3) { // Log first few comparisons for debugging
-                  console.log(`    Compare ${mapping.attribute}: "${normalizedExisting}" vs "${currentValue}" = ${match}`);
+                // Handle different data types and normalize for comparison
+                let normalizedExisting = '';
+                let normalizedCurrent = currentValue;
+                
+                if (existingValue !== null && existingValue !== undefined) {
+                  if (mapping.attribute === 'probability') {
+                    // Handle probability: convert to decimal format for comparison
+                    const existingProb = parseFloat(existingValue.toString());
+                    const currentProb = parseFloat(currentValue);
+                    normalizedExisting = existingProb.toString();
+                    normalizedCurrent = currentProb.toString();
+                  } else if (mapping.attribute === 'estimatedValue') {
+                    // Handle estimated value: compare as numbers
+                    const existingVal = parseFloat(existingValue.toString());
+                    const currentVal = parseFloat(currentValue);
+                    normalizedExisting = existingVal.toString();
+                    normalizedCurrent = currentVal.toString();
+                  } else if (mapping.attribute === 'clientId' || mapping.attribute === 'productId') {
+                    // Handle IDs: compare as numbers
+                    normalizedExisting = parseInt(existingValue.toString()).toString();
+                    normalizedCurrent = parseInt(currentValue).toString();
+                  } else {
+                    // Handle text fields: normalize case and trim
+                    normalizedExisting = existingValue.toString().toLowerCase().trim();
+                    normalizedCurrent = currentValue.toLowerCase().trim();
+                  }
+                } else {
+                  normalizedExisting = '';
+                }
+                
+                const match = normalizedExisting === normalizedCurrent;
+                
+                // Log detailed comparison for potential matches
+                if (record.clientId && parseInt(record.clientId.toString()) >= 10001 && parseInt(record.clientId.toString()) <= 10010) {
+                  console.log(`    Compare ${mapping.attribute}: existing="${normalizedExisting}" vs current="${normalizedCurrent}" = ${match}`);
                 }
                 
                 return match;
@@ -400,13 +433,15 @@ export default function ProcessingStep({
               
               if (allMatch) {
                 duplicateFound = true;
-                console.log(`  ✅ DUPLICATE FOUND! Record ID: ${record.id}`);
+                matchingRecord = record;
+                console.log(`  ✅ DUPLICATE FOUND! Record ID: ${record.id}, ClientId: ${record.clientId}`);
+                break; // Found a duplicate, no need to check more
               }
-              
-              return allMatch;
-            });
+            }
             
             console.log(`  Checked ${checkedRecords} existing records, duplicate found: ${duplicateFound}`);
+            
+            const duplicate = matchingRecord;
             
             if (duplicate) {
               // Create a summary of the matching mandatory fields
