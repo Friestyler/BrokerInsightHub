@@ -638,19 +638,19 @@ export default function ProcessingStep({
                           <span>Issue Type</span>
                           <ChevronDown className="h-3 w-3" />
                         </div>
-                        {filters.issueType && (
+                        {filters.hasOwnProperty('issueType') && (
                           <Input
                             placeholder="Filter issue type..."
-                            value={filters.issueType}
+                            value={filters.issueType || ''}
                             onChange={(e) => updateFilter('issueType', e.target.value)}
                             className="h-6 mt-1 text-xs"
                             autoFocus
                           />
                         )}
-                        {!filters.issueType && (
+                        {!filters.hasOwnProperty('issueType') && (
                           <button
                             onClick={() => updateFilter('issueType', '')}
-                            className="text-xs text-blue-600 hover:underline mt-1"
+                            className="text-xs text-blue-600 hover:underline mt-1 block w-full text-left"
                           >
                             Add filter
                           </button>
@@ -661,19 +661,19 @@ export default function ProcessingStep({
                           <span>Field</span>
                           <ChevronDown className="h-3 w-3" />
                         </div>
-                        {filters.field && (
+                        {filters.hasOwnProperty('field') && (
                           <Input
                             placeholder="Filter field..."
-                            value={filters.field}
+                            value={filters.field || ''}
                             onChange={(e) => updateFilter('field', e.target.value)}
                             className="h-6 mt-1 text-xs"
                             autoFocus
                           />
                         )}
-                        {!filters.field && (
+                        {!filters.hasOwnProperty('field') && (
                           <button
                             onClick={() => updateFilter('field', '')}
-                            className="text-xs text-blue-600 hover:underline mt-1"
+                            className="text-xs text-blue-600 hover:underline mt-1 block w-full text-left"
                           >
                             Add filter
                           </button>
@@ -684,19 +684,19 @@ export default function ProcessingStep({
                           <span>Value</span>
                           <ChevronDown className="h-3 w-3" />
                         </div>
-                        {filters.value && (
+                        {filters.hasOwnProperty('value') && (
                           <Input
                             placeholder="Filter value..."
-                            value={filters.value}
+                            value={filters.value || ''}
                             onChange={(e) => updateFilter('value', e.target.value)}
                             className="h-6 mt-1 text-xs"
                             autoFocus
                           />
                         )}
-                        {!filters.value && (
+                        {!filters.hasOwnProperty('value') && (
                           <button
                             onClick={() => updateFilter('value', '')}
-                            className="text-xs text-blue-600 hover:underline mt-1"
+                            className="text-xs text-blue-600 hover:underline mt-1 block w-full text-left"
                           >
                             Add filter
                           </button>
@@ -707,19 +707,19 @@ export default function ProcessingStep({
                           <span>Message</span>
                           <ChevronDown className="h-3 w-3" />
                         </div>
-                        {filters.message && (
+                        {filters.hasOwnProperty('message') && (
                           <Input
                             placeholder="Filter message..."
-                            value={filters.message}
+                            value={filters.message || ''}
                             onChange={(e) => updateFilter('message', e.target.value)}
                             className="h-6 mt-1 text-xs"
                             autoFocus
                           />
                         )}
-                        {!filters.message && (
+                        {!filters.hasOwnProperty('message') && (
                           <button
                             onClick={() => updateFilter('message', '')}
-                            className="text-xs text-blue-600 hover:underline mt-1"
+                            className="text-xs text-blue-600 hover:underline mt-1 block w-full text-left"
                           >
                             Add filter
                           </button>
@@ -734,19 +734,19 @@ export default function ProcessingStep({
                               <span>{mapping.attribute}</span>
                               <ChevronDown className="h-3 w-3" />
                             </div>
-                            {filters[mapping.csvColumn] && (
+                            {filters.hasOwnProperty(mapping.csvColumn) && (
                               <Input
                                 placeholder={`Filter ${mapping.attribute}...`}
-                                value={filters[mapping.csvColumn]}
+                                value={filters[mapping.csvColumn] || ''}
                                 onChange={(e) => updateFilter(mapping.csvColumn, e.target.value)}
                                 className="h-6 mt-1 text-xs"
                                 autoFocus
                               />
                             )}
-                            {!filters[mapping.csvColumn] && (
+                            {!filters.hasOwnProperty(mapping.csvColumn) && (
                               <button
                                 onClick={() => updateFilter(mapping.csvColumn, '')}
-                                className="text-xs text-blue-600 hover:underline mt-1"
+                                className="text-xs text-blue-600 hover:underline mt-1 block w-full text-left"
                               >
                                 Add filter
                               </button>
