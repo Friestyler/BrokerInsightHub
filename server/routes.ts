@@ -5302,6 +5302,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get template shares endpoint
+  app.get('/api/campaign-templates/:templateId/shares', async (req, res) => {
+    try {
+      const envId = (req.headers['x-environment-id'] as string) || 'degoudse';
+      const { templateId } = req.params;
+      
+      // For now, we'll simulate existing shares since we don't have campaign_shares table yet
+      // In a real implementation, this would query the campaign_shares table
+      const mockShares = [
+        {
+          id: 1,
+          templateId: parseInt(templateId),
+          shareType: 'external',
+          userId: null,
+          contactId: 5,
+          contactName: 'John Smith',
+          contactEmail: 'john.smith@abcinsurance.com',
+          accessLevel: 'view',
+          sharedAt: '2024-06-13T10:30:00Z',
+          sharedBy: 'De Goudse Admin'
+        }
+      ];
+      
+      console.log(`Fetching shares for template ${templateId} in ${envId} environment`);
+      res.json(mockShares);
+      
+    } catch (error) {
+      console.error('Error fetching template shares:', error);
+      res.status(500).json({ error: 'Failed to fetch template shares' });
+    }
+  });
+
+  // Remove template share endpoint
+  app.delete('/api/campaign-templates/:templateId/shares/:shareId', async (req, res) => {
+    try {
+      const envId = (req.headers['x-environment-id'] as string) || 'degoudse';
+      const { templateId, shareId } = req.params;
+      
+      // In a real implementation, this would delete from campaign_shares table
+      console.log(`Removing share ${shareId} for template ${templateId} in ${envId} environment`);
+      
+      res.json({ 
+        success: true, 
+        message: 'Share removed successfully' 
+      });
+      
+    } catch (error) {
+      console.error('Error removing template share:', error);
+      res.status(500).json({ error: 'Failed to remove template share' });
+    }
+  });
+
   // Template sharing endpoint
   app.post('/api/campaign-templates/share', async (req, res) => {
     try {

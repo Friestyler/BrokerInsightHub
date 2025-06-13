@@ -115,6 +115,12 @@ export default function CampaignsPage() {
     enabled: shareDialogOpen && shareMode === 'external',
   });
 
+  // Fetch existing shares for the template
+  const { data: existingShares, refetch: refetchShares } = useQuery<any[]>({
+    queryKey: ['/api/campaign-templates', selectedTemplate?.id || 0, 'shares'],
+    enabled: shareDialogOpen && !!selectedTemplate?.id,
+  });
+
   // Filter campaigns based on ownership and sharing
   const myCampaigns = campaigns?.filter(c => !c.isTemplate && !c.isShared) || [];
   const sharedCampaigns = campaigns?.filter(c => !c.isTemplate && c.isShared) || [];
@@ -281,6 +287,9 @@ export default function CampaignsPage() {
         duration: 4000,
       });
       
+      // Refresh the shares list
+      refetchShares();
+      
       setShareDialogOpen(false);
       setSelectedTemplate(null);
       setSelectedUsers([]);
@@ -289,6 +298,38 @@ export default function CampaignsPage() {
       toast({
         title: "Sharing Failed",
         description: "Unable to share the template. Please try again.",
+        variant: "destructive",
+        duration: 4000,
+      });
+    }
+  };
+
+  // Handle unshare
+  const handleUnshare = async (shareId: number) => {
+    if (!selectedTemplate) return;
+    
+    try {
+      const response = await fetch(`/api/campaign-templates/${selectedTemplate.id}/shares/${shareId}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to remove share');
+      }
+      
+      toast({
+        title: "Access Removed",
+        description: "Share has been successfully removed.",
+        duration: 4000,
+      });
+      
+      // Refresh the shares list
+      refetchShares();
+    } catch (error) {
+      console.error('Error removing share:', error);
+      toast({
+        title: "Failed to Remove Access",
+        description: "Unable to remove the share. Please try again.",
         variant: "destructive",
         duration: 4000,
       });
