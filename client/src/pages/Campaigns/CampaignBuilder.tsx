@@ -112,26 +112,17 @@ const campaignSettingsSchema = z.object({
   templateDescription: z.string().optional(),
 });
 
-// Create conditional recipients schema
-const createRecipientsSchema = (isTemplate: boolean) => {
-  return isTemplate 
-    ? z.object({ recipientIds: z.array(z.string()).optional() })
-    : selectRecipientsSchema;
-};
+// Combined campaign schema
+const campaignFormSchema = selectListSchema
+  .merge(composeEmailSchema)
+  .merge(selectRecipientsSchema)
+  .merge(followUpSchema)
+  .merge(campaignSettingsSchema)
+  .extend({
+    status: z.string().optional(),
+  });
 
-// Combined campaign schema - will be created dynamically based on mode
-const createCampaignFormSchema = (isTemplate: boolean) => {
-  return selectListSchema
-    .merge(composeEmailSchema)
-    .merge(createRecipientsSchema(isTemplate))
-    .merge(followUpSchema)
-    .merge(campaignSettingsSchema)
-    .extend({
-      status: z.string().optional(),
-    });
-};
-
-type CampaignFormValues = z.infer<ReturnType<typeof createCampaignFormSchema>>;
+type CampaignFormValues = z.infer<typeof campaignFormSchema>;
 
 // Contact creation schema
 const contactFormSchema = z.object({
@@ -172,7 +163,6 @@ export default function CampaignBuilder() {
   // Get template from URL if any
   const searchParams = new URLSearchParams(window.location.search);
   const templateId = searchParams.get("template");
-  const isTemplateMode = searchParams.get("mode") === "template";
 
   const { data: entities } = useQuery({
     queryKey: ['/api/entities'],
@@ -187,7 +177,7 @@ export default function CampaignBuilder() {
 
   // Form definition
   const form = useForm<CampaignFormValues>({
-    resolver: zodResolver(createCampaignFormSchema(isTemplateMode)),
+    resolver: zodResolver(campaignFormSchema),
     defaultValues: {
       name: "",
       description: "",
@@ -506,8 +496,8 @@ export default function CampaignBuilder() {
     }
   }, [templateQuery.data, form]);
 
-  // Step definitions - exclude recipients step for templates
-  const allSteps: BuilderStep[] = [
+  // Step definitions
+  const steps: BuilderStep[] = [
     {
       id: "select-list",
       title: "Select List",
@@ -539,11 +529,6 @@ export default function CampaignBuilder() {
       icon: <Settings className="h-5 w-5" />,
     }
   ];
-
-  // Filter out recipients step for template mode
-  const steps = isTemplateMode 
-    ? allSteps.filter(step => step.id !== "recipients")
-    : allSteps;
 
   // Navigate between steps
   const goToStep = (stepId: string) => {
@@ -599,10 +584,7 @@ export default function CampaignBuilder() {
         title: "Template saved",
         description: "Your campaign template has been saved successfully",
       });
-      // Redirect to templates tab after successful template creation
-      if (isTemplateMode) {
-        setLocation("/campaigns?tab=templates");
-      }
+      // Template creation success handled here
       setIsSubmitting(false);
     },
     onError: (error) => {
@@ -628,12 +610,24 @@ export default function CampaignBuilder() {
       followUpEmails: data.enableFollowUp ? data.followUpEmails : [],
     };
 
-    // Handle template mode vs regular campaign mode
-    if (isTemplateMode) {
-      // In template mode, create a template instead of a campaign
+    // Remove template-specific fields from campaign data
+    const { saveAsTemplate, templateName, templateDescription, ...cleanCampaignData } = campaignData;
+    
+    // Include sharing data in campaign
+    if (data.isShared) {
+      (cleanCampaignData as any).sharing = {
+        sharedPartnerIds: data.sharedPartnerIds || [],
+        shareAccessLevel: data.shareAccessLevel || "view",
+        shareMessage: data.shareMessage || "",
+        sharedContactIds: data.sharedContactIds || []
+      };
+    }
+    
+    // If saving as template, create the template first
+    if (data.saveAsTemplate && data.templateName) {
       const templateData = {
-        name: data.name,
-        description: data.description || "",
+        name: data.templateName,
+        description: data.templateDescription || "",
         type: data.type,
         category: data.category || "",
         emailBody: data.emailBody,
@@ -646,48 +640,15 @@ export default function CampaignBuilder() {
         enableFollowUp: data.enableFollowUp,
       };
       
-      createTemplateMutation.mutate(templateData);
-    } else {
-      // Regular campaign mode
-      const { saveAsTemplate, templateName, templateDescription, ...cleanCampaignData } = campaignData;
-      
-      // Include sharing data in campaign
-      if (data.isShared) {
-        (cleanCampaignData as any).sharing = {
-          sharedPartnerIds: data.sharedPartnerIds || [],
-          shareAccessLevel: data.shareAccessLevel || "view",
-          shareMessage: data.shareMessage || "",
-          sharedContactIds: data.sharedContactIds || []
-        };
+      try {
+        await createTemplateMutation.mutateAsync(templateData);
+      } catch (error) {
+        // Continue with campaign creation even if template fails
+        console.warn("Template creation failed, continuing with campaign:", error);
       }
-      
-      // If saving as template, create the template first
-      if (data.saveAsTemplate && data.templateName) {
-        const templateData = {
-          name: data.templateName,
-          description: data.templateDescription || "",
-          type: data.type,
-          category: data.category || "",
-          emailBody: data.emailBody,
-          emailLogo: data.emailLogo || "",
-          subject: data.subject,
-          frequency: data.frequency,
-          fromName: data.fromName,
-          fromEmail: data.fromEmail,
-          followUpEmails: data.enableFollowUp ? data.followUpEmails : [],
-          enableFollowUp: data.enableFollowUp,
-        };
-        
-        try {
-          await createTemplateMutation.mutateAsync(templateData);
-        } catch (error) {
-          // Continue with campaign creation even if template fails
-          console.warn("Template creation failed, continuing with campaign:", error);
-        }
-      }
-      
-      createCampaignMutation.mutate(cleanCampaignData);
     }
+    
+    createCampaignMutation.mutate(cleanCampaignData);
   };
 
   // Render current step content
@@ -1671,8 +1632,8 @@ export default function CampaignBuilder() {
                     }}
                     disabled={isSubmitting}
                   >
-                    {isSubmitting ? "Saving..." : isTemplateMode ? "Save Template" : "Save and Send"} 
-                    {isTemplateMode ? <Save className="h-4 w-4 ml-1" /> : <Send className="h-4 w-4 ml-1" />}
+                    {isSubmitting ? "Saving..." : "Save and Send"} 
+                    <Send className="h-4 w-4 ml-1" />
                   </Button>
                 </div>
               ) : (
