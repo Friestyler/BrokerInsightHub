@@ -405,14 +405,14 @@ export default function AttributeMappingStep({
           {/* Mapping Rows */}
           <div className="space-y-3">
             {attributeMappings.map((mapping, index) => (
-              <div key={`mapping-row-${index}`} className="grid grid-cols-2 gap-8 items-center">
+              <div key={`mapping-row-${index}`} className="grid grid-cols-2 gap-8 items-stretch">
                 {/* Left: Entity Attribute */}
-                <div className={`p-3 rounded-lg border ${
+                <div className={`p-3 rounded-lg border flex items-center min-h-[44px] ${
                   mapping.isRequired 
                     ? 'bg-red-50 border-red-200' 
                     : 'bg-blue-50 border-blue-200'
                 }`}>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 w-full">
                     <span className="font-medium text-sm">{mapping.attribute}</span>
                     {mapping.isRequired && (
                       <Badge variant="destructive" className="text-xs">Required</Badge>
@@ -421,24 +421,26 @@ export default function AttributeMappingStep({
                 </div>
                 
                 {/* Right: CSV Column Dropdown */}
-                <div className={`p-3 rounded-lg border ${
+                <div className={`p-3 rounded-lg border flex items-center min-h-[44px] ${
                   mapping.isRequired 
                     ? 'bg-red-50 border-red-200' 
                     : 'bg-blue-50 border-blue-200'
                 }`}>
-                  <Select 
-                    value={mapping.csvColumn} 
-                    onValueChange={(value) => updateMapping(index, value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select CSV column" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {csvHeadersToUse.map(header => (
-                        <SelectItem key={header} value={header}>{header}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <div className="w-full">
+                    <Select 
+                      value={mapping.csvColumn} 
+                      onValueChange={(value) => updateMapping(index, value)}
+                    >
+                      <SelectTrigger className="border-0 bg-transparent p-0 h-auto shadow-none">
+                        <SelectValue placeholder="Select CSV column" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {csvHeadersToUse.map(header => (
+                          <SelectItem key={header} value={header}>{header}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
               </div>
             ))}
