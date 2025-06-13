@@ -524,25 +524,58 @@ export default function CampaignsPage() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {/* Since we only have templates and no actual campaigns, show empty state */}
-                    <TableRow>
-                      <TableCell colSpan={9} className="text-center py-12">
-                        <div className="flex flex-col items-center space-y-4">
-                          <Send className="h-12 w-12 text-gray-400" />
-                          <div>
-                            <h3 className="text-sm font-medium text-gray-900">No campaigns yet</h3>
-                            <p className="text-sm text-gray-500">Create your first campaign to get started.</p>
+                    {campaigns && campaigns.length > 0 ? (
+                      campaigns.map(campaign => (
+                        <TableRow key={campaign.id} className="hover:bg-gray-50">
+                          <TableCell>
+                            <Checkbox />
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex flex-col">
+                              <span className="font-medium text-gray-900">{campaign.name}</span>
+                              <span className="text-sm text-gray-500">{campaign.type}</span>
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <Badge 
+                              variant={campaign.status === 'active' ? 'default' : 
+                                       campaign.status === 'draft' ? 'secondary' : 'outline'}
+                              className={campaign.status === 'active' ? 'bg-green-100 text-green-800' :
+                                        campaign.status === 'draft' ? 'bg-yellow-100 text-yellow-800' : ''}
+                            >
+                              {campaign.status}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-gray-600">
+                            {campaign.createdById ? `User ${campaign.createdById}` : 'Unknown'}
+                          </TableCell>
+                          <TableCell className="text-gray-600">-</TableCell>
+                          <TableCell className="text-gray-600">-</TableCell>
+                          <TableCell className="text-gray-600">-</TableCell>
+                          <TableCell className="text-gray-600">-</TableCell>
+                          <TableCell className="text-gray-600">-</TableCell>
+                        </TableRow>
+                      ))
+                    ) : (
+                      <TableRow>
+                        <TableCell colSpan={9} className="text-center py-12">
+                          <div className="flex flex-col items-center space-y-4">
+                            <Send className="h-12 w-12 text-gray-400" />
+                            <div>
+                              <h3 className="text-sm font-medium text-gray-900">No campaigns yet</h3>
+                              <p className="text-sm text-gray-500">Create your first campaign to get started.</p>
+                            </div>
+                            <Button 
+                              className="bg-indigo-600 hover:bg-indigo-700" 
+                              onClick={() => startNewCampaign()}
+                            >
+                              <Plus className="h-4 w-4 mr-2" />
+                              New Campaign
+                            </Button>
                           </div>
-                          <Button 
-                            className="bg-indigo-600 hover:bg-indigo-700" 
-                            onClick={() => startNewCampaign()}
-                          >
-                            <Plus className="h-4 w-4 mr-2" />
-                            New Campaign
-                          </Button>
-                        </div>
-                      </TableCell>
-                    </TableRow>
+                        </TableCell>
+                      </TableRow>
+                    )}
                   </TableBody>
                 </Table>
               </div>
