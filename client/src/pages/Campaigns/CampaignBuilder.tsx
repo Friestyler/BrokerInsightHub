@@ -210,7 +210,7 @@ export default function CampaignBuilder() {
 
   // Fetch campaign data if campaignId is provided (for editing)
   const { data: campaignData } = useQuery({
-    queryKey: ['/api/campaigns', campaignId],
+    queryKey: ['/api/degoudse/campaigns', campaignId],
     enabled: !!campaignId,
   });
 
