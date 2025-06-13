@@ -236,30 +236,30 @@ function PartnerTable({ stats }: { stats: any }) {
         )}
       </div>
 
-      {/* Statistics Cards */}
-      <div className="flex flex-wrap gap-4 mb-6">
-        <div className="bg-white p-4 rounded-md border border-gray-200 flex-1 min-w-[160px]">
-          <div className="text-xl font-semibold">{stats.totalPartners}</div>
+      {/* Statistics overview */}
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+        <div className="bg-white p-4 rounded-md border border-gray-200">
+          <div className="text-xl font-semibold text-[#282A3F]">{stats.totalPartners}</div>
           <div className="text-sm text-gray-500">Total Partners</div>
         </div>
         
-        <div className="bg-white p-4 rounded-md border border-gray-200 flex-1 min-w-[160px]">
-          <div className="text-xl font-semibold">{stats.totalOpportunities}</div>
+        <div className="bg-white p-4 rounded-md border border-gray-200">
+          <div className="text-xl font-semibold text-[#282A3F]">{stats.totalOpportunities}</div>
           <div className="text-sm text-gray-500">Total Opportunities</div>
         </div>
         
-        <div className="bg-white p-4 rounded-md border border-gray-200 flex-1 min-w-[160px]">
-          <div className="text-xl font-semibold">{stats.totalCustomers}</div>
+        <div className="bg-white p-4 rounded-md border border-gray-200">
+          <div className="text-xl font-semibold text-[#282A3F]">{stats.totalCustomers}</div>
           <div className="text-sm text-gray-500">Total Customers</div>
         </div>
         
-        <div className="bg-white p-4 rounded-md border border-gray-200 flex-1 min-w-[160px]">
-          <div className="text-xl font-semibold">{formatCurrency(stats.totalValue)}</div>
+        <div className="bg-white p-4 rounded-md border border-gray-200">
+          <div className="text-xl font-semibold text-[#282A3F]">{formatCurrency(stats.totalValue)}</div>
           <div className="text-sm text-gray-500">Total Value Opportunities</div>
         </div>
         
-        <div className="bg-white p-4 rounded-md border border-gray-200 flex-1 min-w-[160px]">
-          <div className="text-xl font-semibold">{formatCurrency(Math.round(stats.weightedValue))}</div>
+        <div className="bg-white p-4 rounded-md border border-gray-200">
+          <div className="text-xl font-semibold text-[#282A3F]">{formatCurrency(Math.round(stats.weightedValue))}</div>
           <div className="text-sm text-gray-500">Weighted Value Opportunities</div>
         </div>
       </div>
