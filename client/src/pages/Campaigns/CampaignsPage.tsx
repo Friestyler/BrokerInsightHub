@@ -269,12 +269,6 @@ export default function CampaignsPage() {
   const getGroupedContacts = () => {
     const grouped: { [key: string]: any[] } = {};
     
-    // Debug logging
-    console.log('DEBUG - getGroupedContacts called');
-    console.log('DEBUG - partners:', partners);
-    console.log('DEBUG - users:', users);
-    console.log('DEBUG - contacts:', contacts);
-    
     // Only show partners and their related contacts/users/guests
     if (partners) {
       const partnerList = partners
@@ -284,12 +278,10 @@ export default function CampaignsPage() {
           type: 'partner',
           hasRelatedParties: (
             contacts?.some(contact => contact.partner_id === partner.id) ||
-            users?.some(user => user.partner_id === partner.id)
+            users?.some(user => user.partnerId === partner.id)
           )
         }))
         .sort((a, b) => a.name.localeCompare(b.name));
-      
-      console.log('DEBUG - partnerList:', partnerList);
       
       partnerList.forEach(partner => {
         const relatedParties = [];
@@ -314,7 +306,7 @@ export default function CampaignsPage() {
         
         // Add partner users (guests)
         const partnerUsers = users
-          ?.filter(user => user.partner_id === partner.id)
+          ?.filter(user => user.partnerId === partner.id)
           ?.map(user => ({
             ...user,
             name: user.name || user.username,
@@ -326,13 +318,9 @@ export default function CampaignsPage() {
           ?.filter(user => user.name)
           ?.sort((a, b) => a.name.localeCompare(b.name));
           
-        console.log(`DEBUG - partnerUsers for ${partner.name} (ID: ${partner.id}):`, partnerUsers);
-          
         if (partnerUsers && partnerUsers.length > 0) {
           relatedParties.push(...partnerUsers);
         }
-        
-        console.log(`DEBUG - relatedParties for ${partner.name}:`, relatedParties);
         
         // Only add partner section if it has related parties
         if (relatedParties.length > 0) {
@@ -341,7 +329,6 @@ export default function CampaignsPage() {
       });
     }
     
-    console.log('DEBUG - final grouped:', grouped);
     return grouped;
   };
 
