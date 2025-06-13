@@ -453,7 +453,7 @@ export default function CampaignsPage() {
           ) : campaignTemplates.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {campaignTemplates.map(template => (
-                <Card key={template.id} className="group hover:shadow-xl hover:shadow-black/5 transition-all duration-300 border-0 bg-white/80 backdrop-blur-sm hover:-translate-y-1">
+                <Card key={template.id} className="group hover:shadow-xl hover:shadow-black/5 transition-all duration-300 border border-gray-200/40 bg-white/80 backdrop-blur-sm hover:-translate-y-1 hover:border-indigo-200/60">
                   <CardHeader className="pb-4 space-y-3">
                     <div className="flex items-start justify-between">
                       <CardTitle className="text-lg font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors">
@@ -523,7 +523,7 @@ export default function CampaignsPage() {
               ))}
             </div>
           ) : (
-            <Card className="text-center py-16 border-0 bg-gradient-to-br from-gray-50/50 to-white backdrop-blur-sm">
+            <Card className="text-center py-16 border border-gray-200/40 bg-gradient-to-br from-gray-50/50 to-white backdrop-blur-sm">
               <CardContent className="pt-6 space-y-6">
                 <div className="mx-auto w-20 h-20 rounded-full bg-gradient-to-br from-indigo-50 to-purple-50 flex items-center justify-center">
                   <FileText className="h-8 w-8 text-indigo-400" />
@@ -550,7 +550,7 @@ export default function CampaignsPage() {
           <div>
             <h2 className="text-xl font-semibold mb-4">Do what works and try out some of our predesigned campaigns</h2>
             
-            <Card className="p-4 mb-6 border-0 bg-white/60 backdrop-blur-sm shadow-sm">
+            <Card className="p-4 mb-6 border border-gray-200/40 bg-white/60 backdrop-blur-sm shadow-sm">
               <CardContent className="p-0">
                 <div className="flex space-x-3 overflow-x-auto scrollbar-hide">
                   <Badge
@@ -616,7 +616,7 @@ export default function CampaignsPage() {
               {getFilteredTemplates().map(template => (
                 <Card 
                   key={template.id} 
-                  className="group hover:shadow-xl hover:shadow-black/5 transition-all duration-300 cursor-pointer border-0 bg-white/80 backdrop-blur-sm hover:-translate-y-1"
+                  className="group hover:shadow-xl hover:shadow-black/5 transition-all duration-300 cursor-pointer border border-gray-200/40 bg-white/80 backdrop-blur-sm hover:-translate-y-1 hover:border-indigo-200/60"
                   onClick={() => startNewCampaign(template.id)}
                 >
                   <CardHeader className="pb-4 space-y-4">
@@ -658,7 +658,7 @@ export default function CampaignsPage() {
               ))}
             </div>
 
-            <Card className="p-8 border-0 bg-gradient-to-br from-gray-50/50 to-white backdrop-blur-sm">
+            <Card className="p-8 border border-gray-200/40 bg-gradient-to-br from-gray-50/50 to-white backdrop-blur-sm">
               <CardContent className="p-0">
                 <div className="flex flex-col sm:flex-row justify-center gap-4">
                   <Button 
@@ -685,7 +685,7 @@ export default function CampaignsPage() {
         </TabsContent>
         
         <TabsContent value="upload" className="space-y-6">
-          <Card className="p-8 border-0 bg-gradient-to-br from-gray-50/30 to-white backdrop-blur-sm">
+          <Card className="p-8 border border-gray-200/40 bg-gradient-to-br from-gray-50/30 to-white backdrop-blur-sm">
             <CardHeader className="px-0 pt-0 pb-6">
               <CardTitle className="text-2xl font-semibold text-gray-900">Import your data to create targeted campaigns</CardTitle>
               <CardDescription className="text-base text-gray-600 leading-relaxed">
@@ -695,7 +695,7 @@ export default function CampaignsPage() {
             <CardContent className="px-0 pb-0">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Card 
-                  className="group hover:shadow-xl hover:shadow-black/5 transition-all duration-300 cursor-pointer border-0 bg-white/80 backdrop-blur-sm hover:-translate-y-1"
+                  className="group hover:shadow-xl hover:shadow-black/5 transition-all duration-300 cursor-pointer border border-gray-200/40 bg-white/80 backdrop-blur-sm hover:-translate-y-1 hover:border-indigo-200/60"
                   onClick={() => setLocation("/campaigns/upload/brio/step1")}
                 >
                   <CardHeader className="pb-4 space-y-4">
@@ -721,7 +721,7 @@ export default function CampaignsPage() {
                 </Card>
                 
                 <Card 
-                  className="group hover:shadow-xl hover:shadow-black/5 transition-all duration-300 cursor-pointer border-0 bg-white/80 backdrop-blur-sm hover:-translate-y-1"
+                  className="group hover:shadow-xl hover:shadow-black/5 transition-all duration-300 cursor-pointer border border-gray-200/40 bg-white/80 backdrop-blur-sm hover:-translate-y-1 hover:border-blue-200/60"
                 >
                   <CardHeader className="pb-4 space-y-4">
                     <div className="flex justify-between items-start">
@@ -747,7 +747,7 @@ export default function CampaignsPage() {
                 </Card>
                 
                 <Card 
-                  className="group hover:shadow-xl hover:shadow-black/5 transition-all duration-300 cursor-pointer border-0 bg-white/80 backdrop-blur-sm hover:-translate-y-1"
+                  className="group hover:shadow-xl hover:shadow-black/5 transition-all duration-300 cursor-pointer border border-gray-200/40 bg-white/80 backdrop-blur-sm hover:-translate-y-1 hover:border-green-200/60"
                 >
                   <CardHeader className="pb-4 space-y-4">
                     <div className="flex justify-between items-start">
@@ -773,7 +773,7 @@ export default function CampaignsPage() {
                 </Card>
                 
                 <Card 
-                  className="group hover:shadow-xl hover:shadow-black/5 transition-all duration-300 cursor-pointer border-0 bg-white/80 backdrop-blur-sm hover:-translate-y-1"
+                  className="group hover:shadow-xl hover:shadow-black/5 transition-all duration-300 cursor-pointer border border-gray-200/40 bg-white/80 backdrop-blur-sm hover:-translate-y-1 hover:border-purple-200/60"
                 >
                   <CardHeader className="pb-4 space-y-4">
                     <div className="flex justify-between items-start">
