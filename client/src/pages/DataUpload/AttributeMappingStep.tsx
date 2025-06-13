@@ -813,6 +813,7 @@ export default function AttributeMappingStep({
           ? JSON.parse(template.column_mappings) 
           : template.column_mappings;
         
+        console.log('Loading template mappings:', mappings);
         setAttributeMappings(mappings);
         
         // Load code editor states and content for code-based mappings
@@ -825,7 +826,10 @@ export default function AttributeMappingStep({
           }
         });
         
-        toast({ title: `Template "${template.name}" loaded` });
+        toast({ 
+          title: `Template "${template.name}" loaded`,
+          description: `Auto-loaded with ${mappings.length} column mappings`
+        });
       } catch (error) {
         toast({ title: 'Failed to load template', variant: 'destructive' });
       }
