@@ -265,98 +265,68 @@ export default function CampaignsPage() {
     setSelectedContacts([]);
   };
 
-  // Group external contacts by record type, including contacts under their parent records
+  // Group external parties - only contacts, users, and guests with partner relationships
   const getGroupedContacts = () => {
     const grouped: { [key: string]: any[] } = {};
     
-    // Add customers with their contacts
-    if (customers) {
-      const customerList = customers
-        .filter(c => c.name)
-        .map(customer => ({
-          ...customer,
-          type: 'customer',
-          hasContacts: contacts?.some(contact => contact.customer_id === customer.id)
-        }))
-        .sort((a, b) => a.name.localeCompare(b.name));
-      
-      if (customerList.length > 0) {
-        grouped['Customers'] = customerList;
-        
-        // Add customer contacts under each customer
-        customerList.forEach(customer => {
-          const customerContacts = contacts
-            ?.filter(contact => contact.customer_id === customer.id)
-            ?.map(contact => ({
-              ...contact,
-              name: contact.name || `${contact.first_name || ''} ${contact.last_name || ''}`.trim(),
-              type: 'contact',
-              parentType: 'customer',
-              parentId: customer.id,
-              parentName: customer.name
-            }))
-            ?.filter(contact => contact.name)
-            ?.sort((a, b) => a.name.localeCompare(b.name));
-            
-          if (customerContacts && customerContacts.length > 0) {
-            grouped[`${customer.name} - Contacts`] = customerContacts;
-          }
-        });
-      }
-    }
-    
-    // Add partners with their contacts
+    // Only show partners and their related contacts/users/guests
     if (partners) {
       const partnerList = partners
         .filter(p => p.name)
         .map(partner => ({
           ...partner,
           type: 'partner',
-          hasContacts: contacts?.some(contact => contact.partner_id === partner.id)
+          hasRelatedParties: (
+            contacts?.some(contact => contact.partner_id === partner.id) ||
+            users?.some(user => user.partner_id === partner.id)
+          )
         }))
         .sort((a, b) => a.name.localeCompare(b.name));
       
-      if (partnerList.length > 0) {
-        grouped['Partners'] = partnerList;
+      partnerList.forEach(partner => {
+        const relatedParties = [];
         
-        // Add partner contacts under each partner
-        partnerList.forEach(partner => {
-          const partnerContacts = contacts
-            ?.filter(contact => contact.partner_id === partner.id)
-            ?.map(contact => ({
-              ...contact,
-              name: contact.name || `${contact.first_name || ''} ${contact.last_name || ''}`.trim(),
-              type: 'contact',
-              parentType: 'partner',
-              parentId: partner.id,
-              parentName: partner.name
-            }))
-            ?.filter(contact => contact.name)
-            ?.sort((a, b) => a.name.localeCompare(b.name));
-            
-          if (partnerContacts && partnerContacts.length > 0) {
-            grouped[`${partner.name} - Contacts`] = partnerContacts;
-          }
-        });
-      }
-    }
-    
-    // Add independent contacts (not linked to customers or partners)
-    if (contacts) {
-      const independentContacts = contacts
-        .filter(contact => !contact.customer_id && !contact.partner_id)
-        .filter(c => c.first_name || c.last_name || c.name)
-        .map(c => ({
-          ...c,
-          name: c.name || `${c.first_name || ''} ${c.last_name || ''}`.trim(),
-          type: 'contact'
-        }))
-        .filter(contact => contact.name)
-        .sort((a, b) => a.name.localeCompare(b.name));
+        // Add partner contacts
+        const partnerContacts = contacts
+          ?.filter(contact => contact.partner_id === partner.id)
+          ?.map(contact => ({
+            ...contact,
+            name: contact.name || `${contact.first_name || ''} ${contact.last_name || ''}`.trim(),
+            type: 'contact',
+            parentType: 'partner',
+            parentId: partner.id,
+            parentName: partner.name
+          }))
+          ?.filter(contact => contact.name)
+          ?.sort((a, b) => a.name.localeCompare(b.name));
+          
+        if (partnerContacts && partnerContacts.length > 0) {
+          relatedParties.push(...partnerContacts);
+        }
         
-      if (independentContacts.length > 0) {
-        grouped['Independent Contacts'] = independentContacts;
-      }
+        // Add partner users (guests)
+        const partnerUsers = users
+          ?.filter(user => user.partner_id === partner.id)
+          ?.map(user => ({
+            ...user,
+            name: user.name || user.username,
+            type: 'user',
+            parentType: 'partner',
+            parentId: partner.id,
+            parentName: partner.name
+          }))
+          ?.filter(user => user.name)
+          ?.sort((a, b) => a.name.localeCompare(b.name));
+          
+        if (partnerUsers && partnerUsers.length > 0) {
+          relatedParties.push(...partnerUsers);
+        }
+        
+        // Only add partner section if it has related parties
+        if (relatedParties.length > 0) {
+          grouped[`${partner.name} - External Parties`] = relatedParties;
+        }
+      });
     }
     
     return grouped;
@@ -788,7 +758,7 @@ export default function CampaignsPage() {
                     External Parties
                   </Label>
                 </div>
-                <p className="text-xs text-gray-500 ml-6">Contacts and guest or partner users</p>
+                <p className="text-xs text-gray-500 ml-6">Partner-related contacts, users, and guests only</p>
               </RadioGroup>
             </div>
 
@@ -827,19 +797,13 @@ export default function CampaignsPage() {
               <div className="space-y-3">
                 <Label className="text-[#282A3F] font-medium">Select Recipients:</Label>
                 <div className="max-h-60 overflow-y-auto space-y-3">
-                  {Object.entries(getGroupedContacts()).map(([groupName, groupContacts]) => (
+                  {Object.entries(getGroupedContacts()).map(([groupName, groupItems]) => (
                     <div key={groupName} className="space-y-2">
                       <h4 className="text-sm font-medium text-[#282A3F] border-b pb-1">
-                        {groupName.includes(' - Contacts') ? (
-                          <span className="ml-4 text-gray-600">└ Contacts</span>
-                        ) : (
-                          groupName
-                        )}
+                        {groupName}
                       </h4>
-                      {groupContacts.map((item) => (
-                        <label key={`${groupName}-${item.id}`} className={`flex items-start space-x-2 cursor-pointer ${
-                          groupName.includes(' - Contacts') ? 'ml-6' : ''
-                        }`}>
+                      {groupItems.map((item) => (
+                        <label key={`${groupName}-${item.type}-${item.id}`} className="flex items-start space-x-2 cursor-pointer ml-4">
                           <Checkbox
                             checked={selectedContacts.includes(item.id)}
                             onCheckedChange={(checked) => {
@@ -852,16 +816,22 @@ export default function CampaignsPage() {
                             className="mt-0.5"
                           />
                           <div className="flex-1">
-                            <span className="text-sm font-medium text-[#282A3F]">{item.name}</span>
+                            <div className="flex items-center gap-2">
+                              <span className="text-sm font-medium text-[#282A3F]">{item.name}</span>
+                              <span className={`text-xs px-2 py-0.5 rounded-full ${
+                                item.type === 'contact' 
+                                  ? 'bg-blue-100 text-blue-700' 
+                                  : item.type === 'user'
+                                  ? 'bg-green-100 text-green-700'
+                                  : 'bg-gray-100 text-gray-700'
+                              }`}>
+                                {item.type === 'contact' ? 'Contact' : item.type === 'user' ? 'User/Guest' : item.type}
+                              </span>
+                            </div>
                             {item.email && (
                               <div className="flex items-center text-xs text-gray-500 mt-0.5">
                                 <Mail className="h-3 w-3 mr-1" />
                                 {item.email}
-                              </div>
-                            )}
-                            {item.type === 'contact' && item.parentName && (
-                              <div className="text-xs text-gray-400 mt-0.5">
-                                Contact from {item.parentName}
                               </div>
                             )}
                           </div>
@@ -870,7 +840,7 @@ export default function CampaignsPage() {
                     </div>
                   ))}
                   {Object.keys(getGroupedContacts()).length === 0 && (
-                    <p className="text-sm text-gray-500">No external contacts found</p>
+                    <p className="text-sm text-gray-500">No partner-related external parties found</p>
                   )}
                 </div>
               </div>
