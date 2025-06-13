@@ -48,7 +48,8 @@ import {
   Plus,
   Users,
   Link,
-  Trash2
+  Trash2,
+  X
 } from "lucide-react";
 import { 
   useQuery,
@@ -84,8 +85,12 @@ const followUpSchema = z.object({
   enableFollowUp: z.boolean().default(false),
   followUpEmails: z.array(z.object({
     subject: z.string().min(1, "Follow-up subject is required"),
+    heading: z.string().optional(),
     emailBody: z.string().min(1, "Follow-up content is required"),
     delay: z.number().min(1, "Delay must be at least 1 day"),
+    link: z.string().optional(),
+    buttonText: z.string().optional(),
+    buttonColor: z.string().optional(),
   })).optional(),
 });
 
@@ -594,22 +599,155 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
         );
 
       case "follow-up":
+        const followUpEmails = form.watch("followUpEmails") || [];
+        
         return (
           <div className="space-y-4">
-            <div className="flex items-center space-x-2">
-              <Checkbox
-                id="enable-followup"
-                checked={form.watch("enableFollowUp")}
-                onCheckedChange={(checked) => form.setValue("enableFollowUp", !!checked)}
-              />
-              <Label htmlFor="enable-followup" className="text-[#282A3F]">Enable follow-up emails</Label>
-            </div>
+            <div className="space-y-4">
+              <p className="text-sm text-gray-600">
+                Follow-up emails will be sent automatically after the initial campaign.
+              </p>
+              
+              {followUpEmails.length === 0 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    form.setValue("followUpEmails", [
+                      { subject: "", heading: "", emailBody: "", delay: 7, link: "", buttonText: "", buttonColor: "#3B82F6" }
+                    ]);
+                  }}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add a follow-up email
+                </Button>
+              )}
 
-            {form.watch("enableFollowUp") && (
-              <div className="space-y-4 p-4 border rounded-lg">
-                <p className="text-sm text-gray-600">
-                  Follow-up emails will be sent automatically after the initial campaign.
-                </p>
+              {followUpEmails.map((followUp, index) => (
+                <div key={index} className="space-y-4 p-4 border rounded-lg">
+                  <div className="flex justify-between items-center">
+                    <h4 className="font-medium text-[#282A3F]">Follow-up Email {index + 1}</h4>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        const updatedFollowUps = followUpEmails.filter((_, i) => i !== index);
+                        form.setValue("followUpEmails", updatedFollowUps);
+                      }}
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor={`delay-${index}`} className="text-[#282A3F]">Delay (in days)</Label>
+                    <Input
+                      id={`delay-${index}`}
+                      type="number"
+                      min="1"
+                      placeholder="7"
+                      value={followUp.delay || ""}
+                      onChange={(e) => {
+                        const updatedFollowUps = [...followUpEmails];
+                        updatedFollowUps[index] = { ...updatedFollowUps[index], delay: parseInt(e.target.value) || 7 };
+                        form.setValue("followUpEmails", updatedFollowUps);
+                      }}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor={`subject-${index}`} className="text-[#282A3F]">Email Subject</Label>
+                    <Input
+                      id={`subject-${index}`}
+                      placeholder='e.g. "Still interested in our health insurance options?"'
+                      value={followUp.subject || ""}
+                      onChange={(e) => {
+                        const updatedFollowUps = [...followUpEmails];
+                        updatedFollowUps[index] = { ...updatedFollowUps[index], subject: e.target.value };
+                        form.setValue("followUpEmails", updatedFollowUps);
+                      }}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor={`heading-${index}`} className="text-[#282A3F]">Heading</Label>
+                    <Input
+                      id={`heading-${index}`}
+                      placeholder='e.g. "Don&apos;t Miss Out on Comprehensive Coverage"'
+                      value={followUp.heading || ""}
+                      onChange={(e) => {
+                        const updatedFollowUps = [...followUpEmails];
+                        updatedFollowUps[index] = { ...updatedFollowUps[index], heading: e.target.value };
+                        form.setValue("followUpEmails", updatedFollowUps);
+                      }}
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor={`email-body-${index}`} className="text-[#282A3F]">Email Content</Label>
+                    <Textarea
+                      id={`email-body-${index}`}
+                      placeholder="Write your follow-up email content here..."
+                      className="min-h-[150px]"
+                      value={followUp.emailBody || ""}
+                      onChange={(e) => {
+                        const updatedFollowUps = [...followUpEmails];
+                        updatedFollowUps[index] = { ...updatedFollowUps[index], emailBody: e.target.value };
+                        form.setValue("followUpEmails", updatedFollowUps);
+                      }}
+                    />
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label className="text-[#282A3F] font-medium">Call-to-Action Button</Label>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label htmlFor={`button-url-${index}`} className="text-sm text-[#282A3F]">Button URL</Label>
+                        <Input
+                          id={`button-url-${index}`}
+                          placeholder="https://example.com/signup"
+                          value={followUp.link || ""}
+                          onChange={(e) => {
+                            const updatedFollowUps = [...followUpEmails];
+                            updatedFollowUps[index] = { ...updatedFollowUps[index], link: e.target.value };
+                            form.setValue("followUpEmails", updatedFollowUps);
+                          }}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`button-text-${index}`} className="text-sm text-[#282A3F]">Button Text</Label>
+                        <Input
+                          id={`button-text-${index}`}
+                          placeholder="Get Quote Now"
+                          value={followUp.buttonText || ""}
+                          onChange={(e) => {
+                            const updatedFollowUps = [...followUpEmails];
+                            updatedFollowUps[index] = { ...updatedFollowUps[index], buttonText: e.target.value };
+                            form.setValue("followUpEmails", updatedFollowUps);
+                          }}
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`button-color-${index}`} className="text-sm text-[#282A3F]">Button Color</Label>
+                      <Input
+                        id={`button-color-${index}`}
+                        type="color"
+                        className="w-20 h-10"
+                        value={followUp.buttonColor || "#3B82F6"}
+                        onChange={(e) => {
+                          const updatedFollowUps = [...followUpEmails];
+                          updatedFollowUps[index] = { ...updatedFollowUps[index], buttonColor: e.target.value };
+                          form.setValue("followUpEmails", updatedFollowUps);
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+
+              {followUpEmails.length > 0 && (
                 <Button
                   type="button"
                   variant="outline"
@@ -617,15 +755,15 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
                     const currentFollowUps = form.getValues("followUpEmails") || [];
                     form.setValue("followUpEmails", [
                       ...currentFollowUps,
-                      { subject: "", emailBody: "", delay: 7 }
+                      { subject: "", heading: "", emailBody: "", delay: 7, link: "", buttonText: "", buttonColor: "#3B82F6" }
                     ]);
                   }}
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  Add Follow-up Email
+                  Add another follow-up
                 </Button>
-              </div>
-            )}
+              )}
+            </div>
           </div>
         );
 
