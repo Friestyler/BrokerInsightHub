@@ -412,9 +412,6 @@ export class UploadSettingsService {
     headers: string[];
     rowCount: number;
   }> {
-    // For now, we'll implement a basic Python execution simulation
-    // In a production environment, you'd want to use a secure Python execution environment
-    
     try {
       // Parse the original CSV
       const lines = csvData.trim().split('\n');
@@ -422,130 +419,66 @@ export class UploadSettingsService {
         throw new Error('Empty CSV data');
       }
 
-      // Extract headers from first line
-      let originalHeaders = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+      // Extract headers and data lines
+      let headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+      let dataLines = lines.slice(1);
       
       // Check if first row is all empty and second row has actual headers
-      const firstRowIsEmpty = originalHeaders.every(h => h === '' || h.trim() === '');
+      const firstRowIsEmpty = headers.every(h => h === '' || h.trim() === '');
       if (firstRowIsEmpty && lines.length > 1) {
         const secondRowHeaders = lines[1].split(',').map(h => h.trim().replace(/"/g, ''));
         const secondRowHasContent = secondRowHeaders.some(h => h !== '' && h.trim() !== '');
         
         if (secondRowHasContent) {
-          // Use second row as headers and skip first row
-          originalHeaders = secondRowHeaders;
-          transformedLines = lines.slice(1); // Skip the empty first row
+          // Use second row as headers and start data from third row
+          headers = secondRowHeaders;
+          dataLines = lines.slice(2);
         } else {
-          transformedLines = [...lines];
+          // Skip the empty first row, treat second as headers
+          dataLines = lines.slice(2);
         }
-      } else {
-        transformedLines = [...lines];
       }
+
+      // Apply transformations based on script patterns
       
-      // For this demo, we'll apply some basic transformations based on common script patterns
-      let transformedHeaders = [...originalHeaders];
-
-      // Check if script contains common transformation patterns
+      // Remove empty rows (dropna)
       if (scriptContent.includes('dropna(how=\'all\')')) {
-        // Remove empty rows
-        transformedLines = transformedLines.filter(line => {
+        dataLines = dataLines.filter((line: string) => {
           const cells = line.split(',');
-          return cells.some(cell => cell.trim().length > 0);
+          return cells.some((cell: string) => cell.trim().length > 0);
         });
       }
 
-      if (scriptContent.includes('iloc[') && scriptContent.includes(':')) {
-        // Handle row skipping (e.g., df.iloc[4:])
-        const skipMatch = scriptContent.match(/iloc\[(\d+):/);
-        if (skipMatch) {
-          const skipRows = parseInt(skipMatch[1]);
-          if (skipRows < transformedLines.length) {
-            transformedLines = transformedLines.slice(skipRows);
-            // Use the first line after skipping as new headers
-            if (transformedLines.length > 0) {
-              transformedHeaders = transformedLines[0].split(',').map(h => h.trim().replace(/"/g, ''));
-              transformedLines = transformedLines.slice(1);
-            }
-          }
-        }
-      }
-
-      if (scriptContent.includes('columns.str.contains(\'Unnamed\')') || scriptContent.includes('columns.str.contains(\'^Unnamed\')')) {
-        // Remove unnamed and empty columns
-        const headerIndexesToKeep: number[] = [];
-        transformedHeaders.forEach((header, index) => {
-          const cleanHeader = header.trim();
-          if (!header.toLowerCase().includes('unnamed') && 
-              cleanHeader.length > 0 && 
-              cleanHeader !== '' &&
-              !cleanHeader.startsWith('Unnamed')) {
-            headerIndexesToKeep.push(index);
-          }
-        });
-
-        transformedHeaders = headerIndexesToKeep.map(i => transformedHeaders[i]);
-        transformedLines = transformedLines.map(line => {
-          const cells = line.split(',');
-          return headerIndexesToKeep.map(i => cells[i] || '').join(',');
-        });
-      }
-
-      // Enhanced column filtering - check for specific manual column removal patterns only
-      // Note: dropna(axis=1, how='all') is handled by the general empty column removal below
-      const specificColumnDropPatterns = [
-        /df\s*=\s*df\.drop\(.*columns.*\)/g,
-        /df\s*=\s*df\.filter\(/g,
-        /df\[.*\]/g
-      ];
-
-      let hasSpecificColumnFiltering = specificColumnDropPatterns.some(pattern => pattern.test(scriptContent));
-
-      if (hasSpecificColumnFiltering && scriptContent.toLowerCase().includes('id')) {
-        // Only apply ID-based filtering for explicit column drop operations, not dropna
-        const headerIndexesToKeep: number[] = [];
+      // Remove empty columns and unnamed columns
+      if (scriptContent.includes('dropna(axis=1, how=\'all\')') || 
+          scriptContent.includes('columns.str.contains(')) {
         
-        transformedHeaders.forEach((header, index) => {
-          const headerLower = header.toLowerCase();
-          // Keep columns that don't contain "id" in various forms
-          if (!headerLower.includes('id') && !headerLower.includes('ID')) {
-            headerIndexesToKeep.push(index);
+        const validColumnIndices: number[] = [];
+        headers.forEach((header, index) => {
+          const cleanHeader = header.trim();
+          // Keep columns that are not empty and not unnamed
+          if (cleanHeader.length > 0 && 
+              cleanHeader !== '' && 
+              !cleanHeader.toLowerCase().includes('unnamed')) {
+            validColumnIndices.push(index);
           }
         });
 
-        // Apply the filtering if we found columns to remove
-        if (headerIndexesToKeep.length < transformedHeaders.length) {
-          transformedHeaders = headerIndexesToKeep.map(i => transformedHeaders[i]);
-          transformedLines = transformedLines.map(line => {
-            const cells = line.split(',');
-            return headerIndexesToKeep.map(i => cells[i] || '').join(',');
-          });
-        }
-      }
-
-      // General empty column removal - always filter out completely empty headers
-      const finalHeaderIndexesToKeep: number[] = [];
-      transformedHeaders.forEach((header, index) => {
-        const cleanHeader = header.trim();
-        if (cleanHeader.length > 0 && cleanHeader !== '') {
-          finalHeaderIndexesToKeep.push(index);
-        }
-      });
-
-      if (finalHeaderIndexesToKeep.length !== transformedHeaders.length) {
-        transformedHeaders = finalHeaderIndexesToKeep.map(i => transformedHeaders[i]);
-        transformedLines = transformedLines.map(line => {
+        // Filter headers and data to keep only valid columns
+        headers = validColumnIndices.map(i => headers[i]);
+        dataLines = dataLines.map((line: string) => {
           const cells = line.split(',');
-          return finalHeaderIndexesToKeep.map(i => cells[i] || '').join(',');
+          return validColumnIndices.map(i => cells[i] || '').join(',');
         });
       }
 
       // Rebuild CSV
-      const transformedCsv = [transformedHeaders.join(','), ...transformedLines].join('\n');
+      const transformedCsv = [headers.join(','), ...dataLines].join('\n');
 
       return {
         transformedCsv,
-        headers: transformedHeaders,
-        rowCount: transformedLines.length
+        headers,
+        rowCount: dataLines.length
       };
 
     } catch (error: any) {
