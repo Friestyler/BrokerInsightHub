@@ -63,8 +63,11 @@ const getSteps = (uploadType: string) => [
 
 export default function UploadProcessPage() {
   const [location, setLocation] = useLocation();
-  const [match, params] = useRoute('/data-upload-2/process/:type');
+  const [match2, params2] = useRoute('/data-upload-2/process/:type');
+  const [match3, params3] = useRoute('/data-upload-3/process/:type');
   
+  // Use params from whichever route matched
+  const params = params2 || params3;
   const uploadType = params?.type || '';
   
   // Determine if this is a special format (contains hyphen) or entity
