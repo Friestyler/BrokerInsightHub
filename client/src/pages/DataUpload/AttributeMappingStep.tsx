@@ -15,6 +15,7 @@ interface AttributeMappingStepProps {
   uploadType: string;
   stepName: string;
   currentStep: number;
+  selectedTransformationScript?: { id: number; name: string } | null;
   onNext: (mappings: AttributeMapping[]) => void;
   onBack: () => void;
 }
@@ -43,6 +44,7 @@ export default function AttributeMappingStep({
   uploadType, 
   stepName, 
   currentStep,
+  selectedTransformationScript,
   onNext, 
   onBack 
 }: AttributeMappingStepProps) {
@@ -61,33 +63,96 @@ export default function AttributeMappingStep({
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Extract CSV headers and data from uploaded file
+  // Extract CSV headers and data from uploaded file with transformation
   useEffect(() => {
     if (uploadedFile && uploadedFile.type === 'text/csv') {
-      const reader = new FileReader();
-      reader.onload = (e) => {
-        const content = e.target?.result as string;
-        const lines = content.split('\n').filter(line => line.trim());
-        if (lines.length > 0) {
-          const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
-          setExtractedHeaders(headers);
+      processCSVFile();
+    }
+  }, [uploadedFile, selectedTransformationScript]);
+
+  const processCSVFile = async () => {
+    if (!uploadedFile) return;
+
+    try {
+      // Check if we need to apply transformation script
+      const isSpecialFormat = uploadType.includes('-') || ['salesforce', 'brio', 'degoudse'].includes(uploadType);
+      
+      if (isSpecialFormat && selectedTransformationScript) {
+        // Apply transformation script first
+        console.log('Applying transformation script:', selectedTransformationScript);
+        
+        const formData = new FormData();
+        formData.append('csvFile', uploadedFile);
+        formData.append('scriptId', selectedTransformationScript.id.toString());
+        formData.append('entityType', uploadType);
+
+        const response = await fetch(`/api/${environmentId}/transformation-scripts/execute`, {
+          method: 'POST',
+          body: formData
+        });
+
+        if (response.ok) {
+          const result = await response.json();
+          console.log('Transformation applied successfully:', result);
           
-          // Parse CSV data (first 5 rows for preview)
-          const dataRows = lines.slice(1, 6).map(line => {
-            const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
+          // Use the transformed headers and data
+          setExtractedHeaders(result.headers);
+          
+          // Parse transformed CSV data for preview
+          const transformedLines = result.transformedCsv.split('\n').filter((line: string) => line.trim());
+          const dataRows = transformedLines.slice(1, 6).map((line: string) => {
+            const values = line.split(',').map((v: string) => v.trim().replace(/"/g, ''));
             const row: Record<string, any> = {};
-            headers.forEach((header, index) => {
+            result.headers.forEach((header: string, index: number) => {
               const columnVar = `column_${header.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
               row[columnVar] = values[index] || '';
             });
             return row;
           });
           setCsvData(dataRows);
+          
+        } else {
+          console.error('Failed to apply transformation script:', await response.text());
+          // Fall back to original CSV processing
+          processOriginalCSV();
         }
-      };
-      reader.readAsText(uploadedFile);
+      } else {
+        // No transformation needed, process original CSV
+        processOriginalCSV();
+      }
+    } catch (error) {
+      console.error('Error processing CSV with transformation:', error);
+      // Fall back to original CSV processing
+      processOriginalCSV();
     }
-  }, [uploadedFile]);
+  };
+
+  const processOriginalCSV = () => {
+    if (!uploadedFile) return;
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target?.result as string;
+      const lines = content.split('\n').filter(line => line.trim());
+      if (lines.length > 0) {
+        const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+        setExtractedHeaders(headers);
+        
+        // Parse CSV data (first 5 rows for preview)
+        const dataRows = lines.slice(1, 6).map(line => {
+          const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
+          const row: Record<string, any> = {};
+          headers.forEach((header, index) => {
+            const columnVar = `column_${header.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+            row[columnVar] = values[index] || '';
+          });
+          return row;
+        });
+        setCsvData(dataRows);
+      }
+    };
+    reader.readAsText(uploadedFile);
+  };
 
   // Get environment ID from localStorage
   const environmentId = localStorage.getItem('currentEnvironment') || 'degoudse';
