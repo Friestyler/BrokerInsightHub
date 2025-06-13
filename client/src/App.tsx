@@ -9,6 +9,7 @@ import Layout from "@/components/Layout";
 import PartnerPilot from "@/pages/PartnerPilot";
 import CampaignsPage from "@/pages/Campaigns/CampaignsPage";
 import CampaignBuilder from "@/pages/Campaigns/CampaignBuilder";
+import CampaignTemplateBuilder from "@/pages/Campaigns/CampaignTemplateBuilder";
 import CampaignDetail from "@/pages/Campaigns/CampaignDetail";
 import DataUploadOptions from "@/pages/DataUpload/DataUploadOptions";
 import BrioUploadFlow from "@/pages/DataUpload/BrioUploadFlow";
@@ -95,6 +96,14 @@ function Router() {
                 {() => (
                   <EnvironmentRouteGuard
                     component={CampaignBuilder} 
+                    excludedEnvironments={["acme"]} 
+                  />
+                )}
+              </Route>
+              <Route path="/campaigns/template/create">
+                {() => (
+                  <EnvironmentRouteGuard
+                    component={CampaignTemplateBuilder} 
                     excludedEnvironments={["acme"]} 
                   />
                 )}
