@@ -660,7 +660,6 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
               {currentStep === steps[steps.length - 1].id ? (
                 <Button
                   type="button"
-                  className="bg-purple-600 hover:bg-purple-700"
                   onClick={() => {
                     form.handleSubmit(onSubmit)();
                   }}
@@ -671,7 +670,6 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
               ) : (
                 <Button 
                   type="button"
-                  className="bg-purple-600 hover:bg-purple-700"
                   onClick={goToNextStep}
                 >
                   Next <ArrowRight className="h-4 w-4 ml-1" />
