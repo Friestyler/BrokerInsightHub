@@ -271,7 +271,7 @@ export default function CampaignsPage() {
   };
 
   // Start campaign from specific template
-  const startCampaignFromTemplate = (templateId: number) => {
+  const startCampaignFromTemplate = (templateId: number | string) => {
     setTemplateSelectionDialogOpen(false);
     setLocation(`/campaigns/create?template=${templateId}`);
   };
@@ -603,7 +603,7 @@ export default function CampaignsPage() {
             <h2 className="text-xl font-semibold">Campaign Templates</h2>
             <Button 
               className="bg-indigo-600 hover:bg-indigo-700"
-              onClick={() => setLocation("/campaigns/template/create")}
+              onClick={() => setLocation("/campaigns/template-builder")}
             >
               <Plus className="h-4 w-4 mr-2" />
               Create Template
@@ -644,9 +644,9 @@ export default function CampaignsPage() {
                         {template.type === "cross_sell" ? "Cross-Sell" : template.type === "upsell" ? "Upsell" : "Custom"}
                       </p>
                     </div>
-                    {template.tags && template.tags.length > 0 && (
+                    {template.tags && Array.isArray(template.tags) && template.tags.length > 0 && (
                       <div className="flex flex-wrap gap-2">
-                        {template.tags.slice(0, 3).map((tag, index) => (
+                        {template.tags.slice(0, 3).map((tag: string, index: number) => (
                           <Badge key={index} variant="outline" className="text-xs px-2 py-1 rounded-md border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">
                             {tag}
                           </Badge>
