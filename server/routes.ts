@@ -3598,14 +3598,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
     
     try {
-      // Return only De Goudse environment
-      const environments = [{
-        id: 'degoudse',
-        name: 'De Goudse',
-        apiBaseUrl: '/api/degoudse',
-        databaseId: 'degoudse_db',
-        logo: '/api/static/de-goudse-logo.png'
-      }];
+      // Return both De Goudse and Regional Insurance Partners environments
+      const environments = [
+        {
+          id: 'degoudse',
+          name: 'De Goudse',
+          apiBaseUrl: '/api/degoudse',
+          databaseId: 'degoudse_db',
+          logo: '/api/static/de-goudse-logo.png'
+        },
+        {
+          id: 'myqollabi',
+          name: 'Regional Insurance Partners',
+          apiBaseUrl: '/api/myqollabi',
+          databaseId: 'myqollabi_db',
+          logo: '/api/static/myqollabi-logo.png'
+        }
+      ];
 
       setCache('admin_environments', environments);
       res.json(environments);
