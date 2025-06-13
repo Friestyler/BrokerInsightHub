@@ -865,11 +865,11 @@ export default function AttributeMappingStep({
                         <SelectValue placeholder="Select CSV column" />
                       </SelectTrigger>
                       <SelectContent className="max-h-[270px]">
-                        <div className="sticky top-0 z-10 bg-white border-b px-2 py-1">
+                        <div className="sticky top-0 z-50 bg-white border-b px-2 py-1 shadow-sm">
                           <input
                             type="text"
                             placeholder="Search columns..."
-                            className="w-full px-2 py-1 text-sm border rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            className="w-full px-2 py-1 text-sm border rounded focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
                             onClick={(e) => e.stopPropagation()}
                             onChange={(e) => {
                               const searchTerm = e.target.value.toLowerCase();
