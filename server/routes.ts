@@ -5189,15 +5189,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/:envId/campaign-templates', async (req, res) => {
     try {
       const { envId } = req.params;
-      const envDb = db;
       
-      const templates = await envDb
-        .select()
-        .from(campaigns)
-        .where(eq(campaigns.isTemplate, true))
-        .orderBy(sql`${campaigns.createdAt} DESC`);
+      const result = await pool.query(`
+        SELECT * FROM ${envId}.campaigns 
+        WHERE is_template = true 
+        ORDER BY created_at DESC
+      `);
       
-      res.json(templates);
+      res.json(result.rows);
     } catch (error) {
       console.error('Error fetching campaign templates:', error);
       res.status(500).json({ error: 'Failed to fetch campaign templates' });

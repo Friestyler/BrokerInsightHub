@@ -59,10 +59,16 @@ export default function CampaignsPage() {
     enabled: true,
   });
 
+  // Fetch campaign templates separately
+  const { data: userTemplates, isLoading: isLoadingTemplates } = useQuery<Campaign[]>({
+    queryKey: ['/api/campaign-templates'],
+    enabled: true,
+  });
+
   // Filter campaigns based on ownership and sharing
   const myCampaigns = campaigns?.filter(c => !c.isTemplate && !c.isShared) || [];
   const sharedCampaigns = campaigns?.filter(c => !c.isTemplate && c.isShared) || [];
-  const campaignTemplates = campaigns?.filter(c => c.isTemplate) || [];
+  const campaignTemplates = userTemplates || [];
 
   // Demo campaign templates
   const templates: TemplateCard[] = [
@@ -295,7 +301,7 @@ export default function CampaignsPage() {
           </div>
           <p className="text-sm text-gray-600 mb-6">Creating templates helps your brokers send campaigns faster and more effectively. With ready-made content that's compliant and on-brand, brokers can focus on reaching their clients instead of writing from scratch.</p>
 
-          {isLoadingCampaigns ? (
+          {isLoadingTemplates ? (
             <div className="text-center py-12">Loading templates...</div>
           ) : campaignTemplates.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
