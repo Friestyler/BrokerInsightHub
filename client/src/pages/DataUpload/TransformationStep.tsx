@@ -179,11 +179,56 @@ export default function TransformationStep({
     ? uploadType 
     : 'degoudse'; // Default environment
 
+  // Check if this is a special format upload (should pre-select last used script)
+  const isSpecialFormat = uploadType.includes('-') || ['salesforce', 'brio', 'degoudse'].includes(uploadType);
+
+  // Storage key for last used script per upload type
+  const getLastUsedScriptKey = (uploadType: string) => `lastUsedScript_${uploadType}`;
+  
+  // Save last used script to localStorage
+  const saveLastUsedScript = (scriptId: string, uploadType: string) => {
+    if (isSpecialFormat) {
+      localStorage.setItem(getLastUsedScriptKey(uploadType), scriptId);
+    }
+  };
+
+  // Get last used script from localStorage
+  const getLastUsedScript = (uploadType: string): string | null => {
+    if (isSpecialFormat) {
+      return localStorage.getItem(getLastUsedScriptKey(uploadType));
+    }
+    return null;
+  };
+
   // Query transformation scripts
   const { data: scripts = [], isLoading } = useQuery<TransformationScript[]>({
     queryKey: [`/api/${environmentId}/transformation-scripts`],
     enabled: true
   });
+
+  // Auto-select last used script for special format uploads
+  useEffect(() => {
+    if (scripts.length > 0 && isSpecialFormat) {
+      const lastUsedScriptId = getLastUsedScript(uploadType);
+      
+      if (lastUsedScriptId) {
+        const lastUsedScript = scripts.find(script => script.id.toString() === lastUsedScriptId);
+        if (lastUsedScript) {
+          console.log(`Auto-selecting last used script for ${uploadType}:`, lastUsedScript.name);
+          setSelectedScriptId(lastUsedScriptId);
+          handleScriptSelect(lastUsedScriptId);
+        }
+      } else {
+        // For special formats, auto-select the first active script if no preference is saved
+        const activeScript = scripts.find(script => script.isActive);
+        if (activeScript) {
+          console.log(`Auto-selecting first active script for ${uploadType}:`, activeScript.name);
+          setSelectedScriptId(activeScript.id.toString());
+          handleScriptSelect(activeScript.id.toString());
+        }
+      }
+    }
+  }, [scripts, uploadType, isSpecialFormat]);
 
   // Save script mutation
   const saveScriptMutation = useMutation({
@@ -272,6 +317,11 @@ export default function TransformationStep({
   // Handle script selection
   const handleScriptSelect = (scriptId: string) => {
     setSelectedScriptId(scriptId);
+    
+    // Save the selection for special format uploads
+    if (scriptId !== 'new' && isSpecialFormat) {
+      saveLastUsedScript(scriptId, uploadType);
+    }
     
     if (scriptId === 'new') {
       setScriptName('');

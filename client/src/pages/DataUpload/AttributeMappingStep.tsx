@@ -63,6 +63,25 @@ export default function AttributeMappingStep({
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
+  // Check if this is a special format upload (should pre-select last used template)
+  const isSpecialFormat = uploadType.includes('-') || ['salesforce', 'brio', 'degoudse'].includes(uploadType);
+
+  // Storage functions for last used template
+  const getLastUsedTemplateKey = (uploadType: string) => `lastUsedTemplate_${uploadType}`;
+  
+  const saveLastUsedTemplate = (templateId: number, uploadType: string) => {
+    if (isSpecialFormat) {
+      localStorage.setItem(getLastUsedTemplateKey(uploadType), templateId.toString());
+    }
+  };
+
+  const getLastUsedTemplate = (uploadType: string): string | null => {
+    if (isSpecialFormat) {
+      return localStorage.getItem(getLastUsedTemplateKey(uploadType));
+    }
+    return null;
+  };
+
   // Extract CSV headers and data from uploaded file with transformation
   useEffect(() => {
     if (uploadedFile && uploadedFile.type === 'text/csv') {
@@ -201,6 +220,21 @@ export default function AttributeMappingStep({
     queryKey: [`/api/${environmentId}/upload-templates`],
     enabled: !!environmentId,
   });
+
+  // Auto-select last used template for special format uploads
+  useEffect(() => {
+    if (templates.length > 0 && isSpecialFormat && mappings.length === 0) {
+      const lastUsedTemplateId = getLastUsedTemplate(uploadType);
+      
+      if (lastUsedTemplateId) {
+        const lastUsedTemplate = templates.find(template => template.id.toString() === lastUsedTemplateId);
+        if (lastUsedTemplate && lastUsedTemplate.entity_type === uploadType) {
+          console.log(`Auto-loading last used template for ${uploadType}:`, lastUsedTemplate.name);
+          loadTemplate(lastUsedTemplate);
+        }
+      }
+    }
+  }, [templates, uploadType, isSpecialFormat, mappings.length]);
 
   // Save template mutation
   const saveTemplateMutation = useMutation({
