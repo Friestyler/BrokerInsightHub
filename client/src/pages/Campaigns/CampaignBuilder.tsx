@@ -193,7 +193,9 @@ export default function CampaignBuilder() {
       fromName: "",
       fromEmail: "",
       isShared: false,
+      shareType: "team",
       sharedPartnerIds: [],
+      sharedUserIds: [],
       shareAccessLevel: "view",
       shareMessage: "",
       sharedContactIds: [],
@@ -208,7 +210,9 @@ export default function CampaignBuilder() {
   const selectedRecipientIds = form.watch("recipientIds");
   const saveAsTemplate = form.watch("saveAsTemplate");
   const isShared = form.watch("isShared");
+  const shareType = form.watch("shareType");
   const sharedPartnerIds = form.watch("sharedPartnerIds");
+  const sharedUserIds = form.watch("sharedUserIds");
 
   const { data: contacts } = useQuery({
     queryKey: ['/api/contacts'],
@@ -1271,10 +1275,10 @@ export default function CampaignBuilder() {
                           id="share-with-team"
                           name="share-type"
                           value="team"
-                          checked={(form.getValues as any)("shareType") === "team" || !(form.getValues as any)("shareType")}
+                          checked={shareType === "team" || !shareType}
                           onChange={(e) => {
                             if (e.target.checked) {
-                              (form.setValue as any)("shareType", "team");
+                              form.setValue("shareType", "team");
                               form.setValue("sharedPartnerIds", []);
                               form.setValue("sharedContactIds", []);
                             }
@@ -1290,11 +1294,11 @@ export default function CampaignBuilder() {
                           id="share-with-partners"
                           name="share-type"
                           value="partners"
-                          checked={(form.getValues as any)("shareType") === "partners"}
+                          checked={shareType === "partners"}
                           onChange={(e) => {
                             if (e.target.checked) {
-                              (form.setValue as any)("shareType", "partners");
-                              (form.setValue as any)("sharedUserIds", []);
+                              form.setValue("shareType", "partners");
+                              form.setValue("sharedUserIds", []);
                             }
                           }}
                           className="text-indigo-600 focus:ring-indigo-500"
@@ -1305,13 +1309,13 @@ export default function CampaignBuilder() {
                   </div>
 
                   {/* Team member selection */}
-                  {(!(form.getValues as any)("shareType") || (form.getValues as any)("shareType") === "team") && (
+                  {(!shareType || shareType === "team") && (
                     <div className="space-y-2">
                       <Label className="text-sm font-medium">Select Team Members</Label>
                       <div className="space-y-2 max-h-32 overflow-y-auto border rounded-md p-2">
-                        {users && users.length > 0 ? (
+                        {users && Array.isArray(users) && users.length > 0 ? (
                           users.map((user: any) => {
-                            const currentSharedUserIds = (form.getValues as any)("sharedUserIds") || [];
+                            const currentSharedUserIds = sharedUserIds || [];
                             const isChecked = currentSharedUserIds.includes(user.id);
                             
                             return (
@@ -1321,11 +1325,11 @@ export default function CampaignBuilder() {
                                   id={`team-member-${user.id}`}
                                   checked={isChecked}
                                   onChange={(e) => {
-                                    const currentIds = (form.getValues as any)("sharedUserIds") || [];
+                                    const currentIds = sharedUserIds || [];
                                     if (e.target.checked) {
-                                      (form.setValue as any)("sharedUserIds", [...currentIds, user.id]);
+                                      form.setValue("sharedUserIds", [...currentIds, user.id]);
                                     } else {
-                                      (form.setValue as any)("sharedUserIds", currentIds.filter((id: number) => id !== user.id));
+                                      form.setValue("sharedUserIds", currentIds.filter((id: number) => id !== user.id));
                                     }
                                   }}
                                   className="rounded text-indigo-600 focus:ring-indigo-500"
@@ -1346,7 +1350,7 @@ export default function CampaignBuilder() {
                   )}
 
                   {/* Partner and contact selection */}
-                  {(form.getValues as any)("shareType") === "partners" && (
+                  {shareType === "partners" && (
                     <>
                       <div className="space-y-2">
                         <Label className="text-sm font-medium">Select Partners to Share With</Label>
