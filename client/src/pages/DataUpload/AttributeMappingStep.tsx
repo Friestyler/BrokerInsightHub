@@ -204,19 +204,19 @@ export default function AttributeMappingStep({
   const environmentId = localStorage.getItem('currentEnvironment') || 'degoudse';
 
   // Get upload settings to determine mandatory attributes
-  const { data: uploadSettings = [] } = useQuery({
+  const { data: uploadSettings = [], isLoading: isLoadingUploadSettings } = useQuery({
     queryKey: [`/api/${environmentId}/upload-settings/${uploadType}`],
     enabled: !!environmentId && !!uploadType,
   });
 
   // Get entity schema to get all available attributes
-  const { data: entityData = [] } = useQuery({
+  const { data: entityData = [], isLoading: isLoadingEntityData } = useQuery({
     queryKey: ['/api/admin/entity-schemas'],
     enabled: true,
   });
 
   // Fetch templates for this entity type
-  const { data: templates = [] } = useQuery<Template[]>({
+  const { data: templates = [], isLoading: isLoadingTemplates } = useQuery<Template[]>({
     queryKey: [`/api/${environmentId}/upload-templates`],
     enabled: !!environmentId,
   });
@@ -893,8 +893,22 @@ export default function AttributeMappingStep({
     onNext(attributeMappings);
   };
 
+  // Check if we're still loading critical data
+  const isLoadingCriticalData = isLoadingUploadSettings || isLoadingEntityData;
+
   return (
     <div className="space-y-6">
+      {/* Loading state for mandatory attributes */}
+      {isLoadingCriticalData && (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-center space-x-2">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+              <span className="text-gray-600">Loading column mapping requirements...</span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Template Management Section */}
       <Card>
@@ -1022,6 +1036,24 @@ export default function AttributeMappingStep({
           
           {/* Mapping Rows */}
           <div className="space-y-3">
+            {/* Show loading state when upload settings are loading and no mappings exist yet */}
+            {isLoadingUploadSettings && attributeMappings.length === 0 && (
+              <div className="flex items-center justify-center py-8">
+                <div className="flex items-center space-x-2">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                  <span className="text-gray-600">Loading mandatory attributes...</span>
+                </div>
+              </div>
+            )}
+            
+            {/* Show message when no mandatory attributes are configured */}
+            {!isLoadingUploadSettings && attributeMappings.length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                <p>No mandatory attributes configured for this upload type.</p>
+                <p className="text-sm mt-1">You can add optional attributes using the button below.</p>
+              </div>
+            )}
+            
             {attributeMappings.map((mapping, index) => (
               <div key={`mapping-row-${index}`} className="space-y-4">
                 <div className="grid grid-cols-2 gap-8 items-stretch">
