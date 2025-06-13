@@ -96,8 +96,8 @@ const followUpSchema = z.object({
 
 const templateSettingsSchema = z.object({
   frequency: z.string().default("one_time"),
-  fromName: z.string().min(1, "From name is required"),
-  fromEmail: z.string().email("Valid email is required"),
+  fromName: z.string().optional(),
+  fromEmail: z.string().optional(),
 });
 
 // Combined template schema
@@ -308,8 +308,8 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
       subject: data.subject,
       heading: data.heading || "",
       frequency: data.frequency,
-      fromName: data.fromName,
-      fromEmail: data.fromEmail,
+      fromName: data.fromName || "",
+      fromEmail: data.fromEmail || "",
       buttonLink: data.buttonLink || "",
       buttonText: data.buttonText || "",
       buttonColor: data.buttonColor || "#3B82F6",
