@@ -10,6 +10,7 @@ import { useQuery } from '@tanstack/react-query';
 import MappingStep from './MappingStep';
 import AttributeMappingStep from './AttributeMappingStep';
 import ProcessingStep from './ProcessingStep';
+import TransformationStep from './TransformationStep';
 
 interface UploadProcessProps {
   entityType?: string;
