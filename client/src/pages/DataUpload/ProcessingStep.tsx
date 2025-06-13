@@ -220,77 +220,97 @@ export default function ProcessingStep({
       let evaluatedCode = code.trim();
       console.log('📝 Original code:', evaluatedCode);
       
-      // Replace column references with actual CSV values
+      // Replace column references with actual CSV values (without quotes initially)
       Object.entries(rowData).forEach(([key, value]) => {
         const regex = new RegExp(`\\b${key}\\b`, 'g');
-        if (typeof value === 'string') {
-          evaluatedCode = evaluatedCode.replace(regex, `"${value}"`);
-        } else {
-          evaluatedCode = evaluatedCode.replace(regex, String(value || ''));
-        }
+        evaluatedCode = evaluatedCode.replace(regex, String(value || ''));
       });
       
       console.log('🔀 Code after column substitution:', evaluatedCode);
 
-      // Handle simple operations
-      if (evaluatedCode.includes('+') && !evaluatedCode.includes('if')) {
-        // Simple addition/concatenation
-        const parts = evaluatedCode.split('+').map(p => p.trim().replace(/"/g, ''));
-        const result = parts.join(' ');
+      let result = evaluatedCode;
+
+      // Handle Python functions
+      // Handle upper() function
+      if (result.includes('upper(')) {
+        result = result.replace(/upper\(([^)]+)\)/g, (match, content) => {
+          // Remove any quotes and apply upper case
+          const cleanContent = content.replace(/['"]/g, '');
+          return `"${cleanContent.toUpperCase()}"`;
+        });
+        console.log('🔠 After upper() processing:', result);
+      }
+      
+      // Handle lower() function
+      if (result.includes('lower(')) {
+        result = result.replace(/lower\(([^)]+)\)/g, (match, content) => {
+          const cleanContent = content.replace(/['"]/g, '');
+          return `"${cleanContent.toLowerCase()}"`;
+        });
+        console.log('🔡 After lower() processing:', result);
+      }
+      
+      // Handle str() function
+      if (result.includes('str(')) {
+        result = result.replace(/str\(([^)]+)\)/g, (match, content) => {
+          const cleanContent = content.replace(/['"]/g, '');
+          return `"${String(cleanContent)}"`;
+        });
+        console.log('🔤 After str() processing:', result);
+      }
+
+      // Handle title() function for title case
+      if (result.includes('title(')) {
+        result = result.replace(/title\(([^)]+)\)/g, (match, content) => {
+          const cleanContent = content.replace(/['"]/g, '');
+          return `"${cleanContent.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase())}"`;
+        });
+        console.log('🔢 After title() processing:', result);
+      }
+
+      // Handle strip() function for trimming whitespace
+      if (result.includes('strip(')) {
+        result = result.replace(/strip\(([^)]+)\)/g, (match, content) => {
+          const cleanContent = content.replace(/['"]/g, '');
+          return `"${cleanContent.trim()}"`;
+        });
+        console.log('✂️ After strip() processing:', result);
+      }
+
+      // Handle string concatenation with +
+      if (result.includes('+') && !result.includes('if')) {
+        const parts = result.split('+').map(p => p.trim().replace(/^["']|["']$/g, ''));
+        result = parts.join('');
         console.log('➕ Concatenation result:', result);
-        return result;
-      } else if (evaluatedCode.includes('if') && evaluatedCode.includes('else')) {
-        // Enhanced conditional handling
-        const conditionalMatch = evaluatedCode.match(/"([^"]*)" if (.+?) else "([^"]*)"/);
-        if (conditionalMatch) {
-          const [, trueValue, condition, falseValue] = conditionalMatch;
+      }
+      
+      // Handle conditional expressions (if/else)
+      if (result.includes('if') && result.includes('else')) {
+        const match = result.match(/"?([^"]*)"?\s+if\s+(.+?)\s+else\s+"?([^"]*)"?/);
+        if (match) {
+          const [, trueValue, condition, falseValue] = match;
           console.log('🔀 Conditional detected:', { trueValue, condition, falseValue });
           
-          // Try to evaluate simple conditions
-          try {
-            // Simple equality checks
-            if (condition.includes('==')) {
-              const [left, right] = condition.split('==').map(s => s.trim().replace(/"/g, ''));
-              const result = left === right ? trueValue : falseValue;
-              console.log('🔍 Equality check result:', result);
-              return result;
-            }
-            
-            // Simple not-null/empty checks
-            if (condition.includes('is not') || condition.includes('!=')) {
-              const result = trueValue; // Default to true case for now
-              console.log('🔍 Not-null check result:', result);
-              return result;
-            }
-            
-            // Default to true case for complex conditions
-            console.log('🔍 Complex condition, defaulting to true case:', trueValue);
-            return trueValue;
-          } catch (conditionError) {
-            console.warn('⚠️ Condition evaluation failed, using true case:', conditionError);
-            return trueValue;
+          // Simple condition evaluation
+          let conditionResult = false;
+          if (condition.includes('==')) {
+            const [left, right] = condition.split('==').map(s => s.trim().replace(/['"]/g, ''));
+            conditionResult = left === right;
+          } else if (condition.includes('!=')) {
+            const [left, right] = condition.split('!=').map(s => s.trim().replace(/['"]/g, ''));
+            conditionResult = left !== right;
+          } else {
+            conditionResult = true; // fallback for complex conditions
           }
+          result = conditionResult ? trueValue : falseValue;
+          console.log('🔍 Condition result:', result);
         }
       }
       
-      // For simple string literals, return without quotes
-      const stringMatch = evaluatedCode.match(/^"([^"]*)"$/);
-      if (stringMatch) {
-        const result = stringMatch[1];
-        console.log('📄 String literal result:', result);
-        return result;
-      }
+      // Clean up quotes for final result
+      result = result.replace(/^["']|["']$/g, '');
       
-      // Handle direct column references
-      if (Object.keys(rowData).some(key => evaluatedCode.includes(key))) {
-        const result = evaluatedCode.replace(/"/g, '');
-        console.log('📊 Column reference result:', result);
-        return result;
-      }
-      
-      // Return the evaluated code as fallback
-      const result = evaluatedCode.replace(/"/g, '');
-      console.log('🔄 Fallback result:', result);
+      console.log('✅ Final result:', result);
       return result;
     } catch (error) {
       console.warn('❌ Error executing custom code:', error);
