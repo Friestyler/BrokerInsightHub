@@ -35,7 +35,7 @@ interface ValidationIssue {
   field: string;
   value: string;
   message: string;
-  solution: 'skip' | 'replace' | 'ignore';
+  solution: 'skip' | 'replace' | 'create_duplicate' | 'delete_and_create';
   duplicateOf?: any;
   rowData: any;
 }
@@ -215,7 +215,7 @@ export default function ProcessingStep({
                   field: mapping.attribute,
                   value: value,
                   message: `Duplicate ${field}: '${value}' already exists`,
-                  solution: 'ignore',
+                  solution: 'create_duplicate',
                   duplicateOf: duplicate,
                   rowData: row
                 });
@@ -307,7 +307,7 @@ export default function ProcessingStep({
     }
   };
 
-  const updateIssueSolution = (issueIndex: number, solution: 'skip' | 'replace' | 'ignore') => {
+  const updateIssueSolution = (issueIndex: number, solution: 'skip' | 'replace' | 'create_duplicate' | 'delete_and_create') => {
     setValidationIssues(prev => 
       prev.map((issue, index) => 
         index === issueIndex ? { ...issue, solution } : issue
@@ -335,7 +335,7 @@ export default function ProcessingStep({
     }
   };
 
-  const bulkUpdateSolution = (solution: 'skip' | 'replace' | 'ignore') => {
+  const bulkUpdateSolution = (solution: 'skip' | 'replace' | 'create_duplicate' | 'delete_and_create') => {
     setValidationIssues(prev => 
       prev.map((issue, index) => 
         selectedIssues.has(index) ? { ...issue, solution } : issue
@@ -425,19 +425,42 @@ export default function ProcessingStep({
             continue;
           }
 
-          // For 'ignore' solution, proceed with creating new record despite duplicate warning
-
           let response;
+          
           if (duplicateIssue && duplicateIssue.solution === 'replace') {
-            // Update existing record
+            // Strategy 1: Replace Existing - Update the existing record with new data
             console.log('Updating existing record:', duplicateIssue.duplicateOf.id);
             response = await fetch(`/api/degoudse/${uploadType}/${duplicateIssue.duplicateOf.id}`, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(transformedData)
             });
+          } else if (duplicateIssue && duplicateIssue.solution === 'delete_and_create') {
+            // Strategy 2: Delete Existing & Create New - Remove old record and create new one
+            console.log('Deleting existing record and creating new one:', duplicateIssue.duplicateOf.id);
+            
+            // First delete the existing record
+            const deleteResponse = await fetch(`/api/degoudse/${uploadType}/${duplicateIssue.duplicateOf.id}`, {
+              method: 'DELETE',
+              headers: { 'Content-Type': 'application/json' }
+            });
+            
+            if (deleteResponse.ok) {
+              // Then create the new record
+              response = await fetch(`/api/degoudse/create-record`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  entityType: uploadType,
+                  data: transformedData
+                })
+              });
+            } else {
+              throw new Error('Failed to delete existing record');
+            }
           } else {
-            // Create new record
+            // Strategy 3: Create Duplicate - Allow multiple records with same values
+            // This includes 'create_duplicate' solution and no duplicate issue
             console.log('Creating new record for row:', row._rowNumber);
             response = await fetch(`/api/degoudse/create-record`, {
               method: 'POST',
@@ -677,10 +700,18 @@ export default function ProcessingStep({
                     <Button
                       size="sm"
                       variant="outline"
-                      onClick={() => bulkUpdateSolution('ignore')}
+                      onClick={() => bulkUpdateSolution('create_duplicate')}
                     >
                       <CheckCircle className="h-3 w-3 mr-1" />
-                      Ignore Selected
+                      Create Duplicates
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => bulkUpdateSolution('delete_and_create')}
+                    >
+                      <Trash2 className="h-3 w-3 mr-1" />
+                      Delete & Create
                     </Button>
                   </div>
                 </div>
@@ -903,7 +934,7 @@ export default function ProcessingStep({
                           <TableCell>
                             <Select
                               value={issue.solution}
-                              onValueChange={(value: 'skip' | 'replace' | 'ignore') => 
+                              onValueChange={(value: 'skip' | 'replace' | 'create_duplicate' | 'delete_and_create') => 
                                 updateIssueSolution(originalIndex, value)
                               }
                             >
@@ -925,12 +956,22 @@ export default function ProcessingStep({
                                     </div>
                                   </SelectItem>
                                 )}
-                                <SelectItem value="ignore">
-                                  <div className="flex items-center gap-2">
-                                    <CheckCircle className="h-3 w-3" />
-                                    Ignore
-                                  </div>
-                                </SelectItem>
+                                {issue.type === 'duplicate' && (
+                                  <>
+                                    <SelectItem value="create_duplicate">
+                                      <div className="flex items-center gap-2">
+                                        <CheckCircle className="h-3 w-3" />
+                                        Create Duplicate
+                                      </div>
+                                    </SelectItem>
+                                    <SelectItem value="delete_and_create">
+                                      <div className="flex items-center gap-2">
+                                        <Trash2 className="h-3 w-3" />
+                                        Delete & Create
+                                      </div>
+                                    </SelectItem>
+                                  </>
+                                )}
                               </SelectContent>
                             </Select>
                           </TableCell>
