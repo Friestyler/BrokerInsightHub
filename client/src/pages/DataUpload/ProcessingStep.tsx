@@ -338,9 +338,9 @@ export default function ProcessingStep({
             }
           });
 
-        // Check for duplicates based on ALL mandatory attributes
+        // Check for duplicates based on ALL mandatory attributes (excluding ID field)
         // A record is considered duplicate if ALL mandatory attributes match an existing record
-        const mandatoryMappings = attributeMappings.filter(mapping => mapping.isRequired);
+        const mandatoryMappings = attributeMappings.filter(mapping => mapping.isRequired && mapping.attribute !== 'id');
         
         if (mandatoryMappings.length > 0) {
           // Build the values for mandatory fields from current row (including transformed values)
