@@ -27,6 +27,7 @@ interface ProcessingStepProps {
   currentStep: number;
   onNext: () => void;
   onBack: () => void;
+  onProcessingComplete?: (results: ProcessingResult) => void;
 }
 
 interface ValidationIssue {
@@ -65,7 +66,8 @@ export default function ProcessingStep({
   stepName,
   currentStep,
   onNext,
-  onBack
+  onBack,
+  onProcessingComplete
 }: ProcessingStepProps) {
   const [isValidating, setIsValidating] = useState(false);
   const [validationIssues, setValidationIssues] = useState<ValidationIssue[]>([]);
@@ -522,6 +524,11 @@ export default function ProcessingStep({
 
       setProcessingResult(result);
       setIsCompleted(true);
+      
+      // Notify parent component of processing completion
+      if (onProcessingComplete) {
+        onProcessingComplete(result);
+      }
       setPhase('completed');
 
       toast({
@@ -1016,12 +1023,12 @@ export default function ProcessingStep({
                   )}
                 </div>
                 <h3 className="text-lg font-medium mb-2">
-                  {isProcessing ? 'Processing Data...' : 'Processing Complete!'}
+                  {isProcessing ? 'Processing Data...' : 'Processing Results'}
                 </h3>
                 <p className="text-gray-600 mb-4">
                   {isProcessing 
                     ? 'Creating records in your database. This may take a few moments.' 
-                    : 'All records have been processed successfully.'
+                    : 'Review the processing results below and continue to complete the upload.'
                   }
                 </p>
               </div>

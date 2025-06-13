@@ -88,6 +88,12 @@ export default function UploadProcessPage() {
     id: number;
     name: string;
   } | null>(null);
+  const [processingResults, setProcessingResults] = useState<{
+    recordsCreated: number;
+    recordsSkipped: number;
+    recordsProcessed: number;
+    errors: any[];
+  } | null>(null);
 
   const visibleSteps = isSpecialFormat ? steps : steps.slice(1); // Skip transformation for regular entities
   const totalSteps = visibleSteps.length;
@@ -353,7 +359,33 @@ export default function UploadProcessPage() {
             <div className="text-center py-12">
               <CheckCircle className="mx-auto h-16 w-16 text-green-600 mb-4" />
               <h3 className="text-lg font-medium mb-2">Processing Complete!</h3>
-              <p className="text-gray-600 mb-6">Your {uploadType} data has been successfully processed and imported.</p>
+              
+              {processingResults && (
+                <div className="mb-6">
+                  <p className="text-gray-600 mb-4">
+                    {processingResults.recordsCreated} {uploadType} records have been successfully processed.
+                  </p>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-md mx-auto mb-4">
+                    <div className="text-center p-4 bg-green-50 rounded-lg">
+                      <div className="text-2xl font-bold text-green-600">{processingResults.recordsCreated}</div>
+                      <div className="text-sm text-gray-600">Created</div>
+                    </div>
+                    <div className="text-center p-4 bg-gray-50 rounded-lg">
+                      <div className="text-2xl font-bold text-gray-600">{processingResults.recordsSkipped}</div>
+                      <div className="text-sm text-gray-600">Skipped</div>
+                    </div>
+                    <div className="text-center p-4 bg-blue-50 rounded-lg">
+                      <div className="text-2xl font-bold text-blue-600">{processingResults.recordsProcessed}</div>
+                      <div className="text-sm text-gray-600">Total Processed</div>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {!processingResults && (
+                <p className="text-gray-600 mb-6">Your {uploadType} data has been successfully processed and imported.</p>
+              )}
               
               <div className="flex justify-center gap-4">
                 <Button variant="outline" onClick={() => setCurrentStep(1)}>
