@@ -88,26 +88,33 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    // Get the base URL from the query key
-    const baseUrl = queryKey[0] as string;
-    
-    // Apply environment to URL
-    const envUrl = getEnvironmentUrl(baseUrl);
-    
-    const res = await fetch(envUrl, {
-      credentials: "include",
-      headers: {
-        // Add environment header as an alternative way to specify environment
-        'X-Environment': getCurrentEnvironmentId()
+    try {
+      // Get the base URL from the query key
+      const baseUrl = queryKey[0] as string;
+      
+      // Apply environment to URL
+      const envUrl = getEnvironmentUrl(baseUrl);
+      console.log('Fetching from URL:', envUrl);
+      
+      const res = await fetch(envUrl, {
+        credentials: "include",
+        headers: {
+          // Add environment header as an alternative way to specify environment
+          'X-Environment': getCurrentEnvironmentId()
+        }
+      });
+
+      if (unauthorizedBehavior === "returnNull" && res.status === 401) {
+        return null;
       }
-    });
 
-    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-      return null;
+      await throwIfResNotOk(res);
+      return await res.json();
+    } catch (error) {
+      console.error('Fetch error in queryFn:', error);
+      console.error('Query key:', queryKey);
+      throw error;
     }
-
-    await throwIfResNotOk(res);
-    return await res.json();
   };
 
 export const queryClient = new QueryClient({

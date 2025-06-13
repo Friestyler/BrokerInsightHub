@@ -183,8 +183,18 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Redirect opportunities to De Goudse environment
-  app.get('/api/opportunities', (req, res) => res.redirect('/api/degoudse/opportunities'));
+  // Direct opportunities handler - avoid redirect issues
+  app.get('/api/opportunities', async (req, res) => {
+    try {
+      const db = await getDeGoudseDatabase();
+      const opportunities = await db.select().from(deGoudseOpportunities);
+      console.log(`Returning ${opportunities.length} opportunities from De Goudse database`);
+      res.json(opportunities);
+    } catch (error) {
+      console.error('Error fetching opportunities:', error);
+      res.status(500).json({ error: 'Failed to fetch opportunities' });
+    }
+  });
 
 
 

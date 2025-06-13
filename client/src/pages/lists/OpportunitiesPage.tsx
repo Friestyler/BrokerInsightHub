@@ -39,6 +39,7 @@ import { SortableTableHead } from "@/components/ui/sortable-table-head";
 const useOpportunitiesData = () => {
   return useQuery({
     queryKey: ['/api/opportunities'],
+    queryFn: () => apiRequest('GET', '/api/opportunities'),
     staleTime: 2 * 60 * 1000,
   });
 };
