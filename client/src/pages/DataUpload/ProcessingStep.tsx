@@ -342,6 +342,12 @@ export default function ProcessingStep({
         // A record is considered duplicate if ALL mandatory attributes match an existing record
         const mandatoryMappings = attributeMappings.filter(mapping => mapping.isRequired && mapping.attribute !== 'id');
         
+        console.log(`🔍 Row ${row._rowNumber} - Duplicate detection debug:`, {
+          totalMandatoryMappings: mandatoryMappings.length,
+          mandatoryFields: mandatoryMappings.map(m => m.attribute),
+          existingRecordsCount: existing.length
+        });
+        
         if (mandatoryMappings.length > 0) {
           // Build the values for mandatory fields from current row (including transformed values)
           const currentRowMandatoryValues: Record<string, string> = {};
@@ -357,29 +363,57 @@ export default function ProcessingStep({
               value = row[mapping.csvColumn];
             }
             
+            console.log(`  Field ${mapping.attribute}: csvColumn="${mapping.csvColumn}", rawValue="${value}"`);
+            
             if (value && value.toString().trim() !== '') {
               currentRowMandatoryValues[mapping.attribute] = value.toString().trim().toLowerCase();
             } else {
               hasAllMandatoryValues = false;
+              console.log(`  ❌ Missing value for mandatory field: ${mapping.attribute}`);
             }
           });
           
+          console.log(`  Current row values:`, currentRowMandatoryValues);
+          console.log(`  Has all mandatory values: ${hasAllMandatoryValues}`);
+          
           // Only check for duplicates if we have all mandatory values
           if (hasAllMandatoryValues) {
+            let duplicateFound = false;
+            let checkedRecords = 0;
+            
             const duplicate = existing.find((record: any) => {
+              checkedRecords++;
+              
               // Check if ALL mandatory attributes match
-              return mandatoryMappings.every(mapping => {
+              const allMatch = mandatoryMappings.every(mapping => {
                 const existingValue = record[mapping.attribute];
                 const currentValue = currentRowMandatoryValues[mapping.attribute];
-                return existingValue && 
-                       existingValue.toString().toLowerCase() === currentValue;
+                const normalizedExisting = existingValue ? existingValue.toString().toLowerCase() : '';
+                const match = existingValue && normalizedExisting === currentValue;
+                
+                if (checkedRecords <= 3) { // Log first few comparisons for debugging
+                  console.log(`    Compare ${mapping.attribute}: "${normalizedExisting}" vs "${currentValue}" = ${match}`);
+                }
+                
+                return match;
               });
+              
+              if (allMatch) {
+                duplicateFound = true;
+                console.log(`  ✅ DUPLICATE FOUND! Record ID: ${record.id}`);
+              }
+              
+              return allMatch;
             });
+            
+            console.log(`  Checked ${checkedRecords} existing records, duplicate found: ${duplicateFound}`);
             
             if (duplicate) {
               // Create a summary of the matching mandatory fields
               const matchingFields = mandatoryMappings.map(m => m.attribute).join(', ');
               const matchingValues = mandatoryMappings.map(m => currentRowMandatoryValues[m.attribute]).join(', ');
+              
+              console.log(`  🚨 Adding duplicate issue for row ${row._rowNumber}`);
               
               issues.push({
                 row: row._rowNumber,
