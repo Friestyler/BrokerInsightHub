@@ -44,12 +44,16 @@ interface UploadSetting {
 
 interface TransformationScript {
   id: number;
-  environmentId: string;
-  entityType: string;
-  scriptName: string;
-  scriptContent: string;
+  environment_id: string;
+  entity_type: string;
+  name: string;
+  script_name?: string;
+  script_content: string;
   description?: string;
-  isActive: boolean;
+  is_active: boolean;
+  created_by: number;
+  created_at: string;
+  updated_at: string;
 }
 
 
@@ -87,8 +91,8 @@ export default function UploadSettingsPage() {
 
   // Fetch transformation scripts
   const { data: transformationScripts = [] } = useQuery<TransformationScript[]>({
-    queryKey: ['/api/transformation-scripts', selectedEnvironment, selectedEntity],
-    enabled: !!selectedEnvironment && !!selectedEntity
+    queryKey: [`/api/${selectedEnvironment}/transformation-scripts`],
+    enabled: !!selectedEnvironment
   });
 
 
@@ -284,16 +288,64 @@ export default function UploadSettingsPage() {
               <CardHeader className="pb-3">
                 <div className="flex items-center justify-between">
                   <div className="space-y-1">
-                    <CardTitle className="text-base">{script.scriptName}</CardTitle>
-                    <CardDescription>{script.description}</CardDescription>
+                    <CardTitle className="text-base">{script.name}</CardTitle>
+                    {script.description && (
+                      <CardDescription>{script.description}</CardDescription>
+                    )}
                   </div>
                   <div className="flex items-center gap-2">
-                    <Badge variant={script.isActive ? "default" : "secondary"}>
-                      {script.isActive ? "Active" : "Inactive"}
-                    </Badge>
-                    <Button variant="ghost" size="sm">
-                      <Edit className="h-4 w-4" />
-                    </Button>
+                    <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <Edit className="h-4 w-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-2xl">
+                        <DialogHeader>
+                          <DialogTitle>Edit Transformation Script</DialogTitle>
+                          <DialogDescription>
+                            Modify the transformation script for data processing
+                          </DialogDescription>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-2">
+                              <Label htmlFor="edit-script-name">Script Name</Label>
+                              <Input id="edit-script-name" defaultValue={script.name} />
+                            </div>
+                            <div className="space-y-2">
+                              <Label htmlFor="edit-script-entity">Target Entity</Label>
+                              <Select defaultValue={script.entity_type}>
+                                <SelectTrigger>
+                                  <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {supportedEntities.map(entity => (
+                                    <SelectItem key={entity} value={entity}>{entity}</SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="edit-script-description">Description</Label>
+                            <Input id="edit-script-description" defaultValue={script.description || ''} />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="edit-script-content">Script Content</Label>
+                            <Textarea 
+                              id="edit-script-content" 
+                              defaultValue={script.script_content}
+                              className="font-mono text-sm min-h-[200px]"
+                            />
+                          </div>
+                        </div>
+                        <DialogFooter>
+                          <Button variant="outline">Cancel</Button>
+                          <Button>Save Changes</Button>
+                        </DialogFooter>
+                      </DialogContent>
+                    </Dialog>
                     <Button variant="ghost" size="sm">
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -302,7 +354,7 @@ export default function UploadSettingsPage() {
               </CardHeader>
               <CardContent>
                 <div className="bg-muted p-3 rounded-md">
-                  <code className="text-sm">{script.scriptContent.slice(0, 200)}...</code>
+                  <code className="text-sm">{script.script_content.slice(0, 200)}...</code>
                 </div>
               </CardContent>
             </Card>
