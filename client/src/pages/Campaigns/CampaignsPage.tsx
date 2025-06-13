@@ -265,30 +265,98 @@ export default function CampaignsPage() {
     setSelectedContacts([]);
   };
 
-  // Group external contacts by record type
+  // Group external contacts by record type, including contacts under their parent records
   const getGroupedContacts = () => {
     const grouped: { [key: string]: any[] } = {};
     
+    // Add customers with their contacts
     if (customers) {
-      grouped['Customers'] = customers
+      const customerList = customers
         .filter(c => c.name)
+        .map(customer => ({
+          ...customer,
+          type: 'customer',
+          hasContacts: contacts?.some(contact => contact.customer_id === customer.id)
+        }))
         .sort((a, b) => a.name.localeCompare(b.name));
+      
+      if (customerList.length > 0) {
+        grouped['Customers'] = customerList;
+        
+        // Add customer contacts under each customer
+        customerList.forEach(customer => {
+          const customerContacts = contacts
+            ?.filter(contact => contact.customer_id === customer.id)
+            ?.map(contact => ({
+              ...contact,
+              name: contact.name || `${contact.first_name || ''} ${contact.last_name || ''}`.trim(),
+              type: 'contact',
+              parentType: 'customer',
+              parentId: customer.id,
+              parentName: customer.name
+            }))
+            ?.filter(contact => contact.name)
+            ?.sort((a, b) => a.name.localeCompare(b.name));
+            
+          if (customerContacts && customerContacts.length > 0) {
+            grouped[`${customer.name} - Contacts`] = customerContacts;
+          }
+        });
+      }
     }
     
+    // Add partners with their contacts
     if (partners) {
-      grouped['Partners'] = partners
+      const partnerList = partners
         .filter(p => p.name)
+        .map(partner => ({
+          ...partner,
+          type: 'partner',
+          hasContacts: contacts?.some(contact => contact.partner_id === partner.id)
+        }))
         .sort((a, b) => a.name.localeCompare(b.name));
+      
+      if (partnerList.length > 0) {
+        grouped['Partners'] = partnerList;
+        
+        // Add partner contacts under each partner
+        partnerList.forEach(partner => {
+          const partnerContacts = contacts
+            ?.filter(contact => contact.partner_id === partner.id)
+            ?.map(contact => ({
+              ...contact,
+              name: contact.name || `${contact.first_name || ''} ${contact.last_name || ''}`.trim(),
+              type: 'contact',
+              parentType: 'partner',
+              parentId: partner.id,
+              parentName: partner.name
+            }))
+            ?.filter(contact => contact.name)
+            ?.sort((a, b) => a.name.localeCompare(b.name));
+            
+          if (partnerContacts && partnerContacts.length > 0) {
+            grouped[`${partner.name} - Contacts`] = partnerContacts;
+          }
+        });
+      }
     }
     
+    // Add independent contacts (not linked to customers or partners)
     if (contacts) {
-      grouped['Contacts'] = contacts
+      const independentContacts = contacts
+        .filter(contact => !contact.customer_id && !contact.partner_id)
         .filter(c => c.first_name || c.last_name || c.name)
         .map(c => ({
           ...c,
-          name: c.name || `${c.first_name || ''} ${c.last_name || ''}`.trim()
+          name: c.name || `${c.first_name || ''} ${c.last_name || ''}`.trim(),
+          type: 'contact'
         }))
+        .filter(contact => contact.name)
         .sort((a, b) => a.name.localeCompare(b.name));
+        
+      if (independentContacts.length > 0) {
+        grouped['Independent Contacts'] = independentContacts;
+      }
     }
     
     return grouped;
@@ -761,26 +829,39 @@ export default function CampaignsPage() {
                 <div className="max-h-60 overflow-y-auto space-y-3">
                   {Object.entries(getGroupedContacts()).map(([groupName, groupContacts]) => (
                     <div key={groupName} className="space-y-2">
-                      <h4 className="text-sm font-medium text-[#282A3F] border-b pb-1">{groupName}</h4>
-                      {groupContacts.map((contact) => (
-                        <label key={`${groupName}-${contact.id}`} className="flex items-start space-x-2 cursor-pointer">
+                      <h4 className="text-sm font-medium text-[#282A3F] border-b pb-1">
+                        {groupName.includes(' - Contacts') ? (
+                          <span className="ml-4 text-gray-600">└ Contacts</span>
+                        ) : (
+                          groupName
+                        )}
+                      </h4>
+                      {groupContacts.map((item) => (
+                        <label key={`${groupName}-${item.id}`} className={`flex items-start space-x-2 cursor-pointer ${
+                          groupName.includes(' - Contacts') ? 'ml-6' : ''
+                        }`}>
                           <Checkbox
-                            checked={selectedContacts.includes(contact.id)}
+                            checked={selectedContacts.includes(item.id)}
                             onCheckedChange={(checked) => {
                               if (checked) {
-                                setSelectedContacts([...selectedContacts, contact.id]);
+                                setSelectedContacts([...selectedContacts, item.id]);
                               } else {
-                                setSelectedContacts(selectedContacts.filter(id => id !== contact.id));
+                                setSelectedContacts(selectedContacts.filter(id => id !== item.id));
                               }
                             }}
                             className="mt-0.5"
                           />
                           <div className="flex-1">
-                            <span className="text-sm font-medium text-[#282A3F]">{contact.name}</span>
-                            {contact.email && (
+                            <span className="text-sm font-medium text-[#282A3F]">{item.name}</span>
+                            {item.email && (
                               <div className="flex items-center text-xs text-gray-500 mt-0.5">
                                 <Mail className="h-3 w-3 mr-1" />
-                                {contact.email}
+                                {item.email}
+                              </div>
+                            )}
+                            {item.type === 'contact' && item.parentName && (
+                              <div className="text-xs text-gray-400 mt-0.5">
+                                Contact from {item.parentName}
                               </div>
                             )}
                           </div>
