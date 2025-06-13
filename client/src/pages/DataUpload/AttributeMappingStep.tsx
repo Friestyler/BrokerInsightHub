@@ -405,9 +405,9 @@ export default function AttributeMappingStep({
           {/* Mapping Rows */}
           <div className="space-y-3">
             {attributeMappings.map((mapping, index) => (
-              <div key={`mapping-row-${index}`} className="grid grid-cols-2 gap-8 items-center">
+              <div key={`mapping-row-${index}`} className="grid grid-cols-2 gap-8 items-stretch">
                 {/* Left: Entity Attribute */}
-                <div className={`p-3 rounded-lg border ${
+                <div className={`p-3 rounded-lg border flex items-center ${
                   mapping.isRequired 
                     ? 'bg-red-50 border-red-200' 
                     : 'bg-blue-50 border-blue-200'
