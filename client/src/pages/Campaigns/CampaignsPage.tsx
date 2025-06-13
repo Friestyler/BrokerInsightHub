@@ -140,7 +140,7 @@ export default function CampaignsPage() {
   });
 
   // Filter campaigns based on ownership and sharing
-  const myCampaigns = campaigns?.filter(c => !c.isTemplate && !c.isShared) || [];
+
   const sharedCampaigns = campaigns?.filter(c => !c.isTemplate && c.isShared) || [];
   const dbTemplates = userTemplates || [];
 
@@ -482,9 +482,8 @@ export default function CampaignsPage() {
     <div className="container mx-auto px-4 py-6">
       <h1 className="text-2xl font-bold mb-6">Campaigns</h1>
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
-          <TabsTrigger value="my">My Campaigns</TabsTrigger>
           <TabsTrigger value="shared">Shared Campaigns</TabsTrigger>
           <TabsTrigger value="templates">Templates</TabsTrigger>
           <TabsTrigger value="new">New Campaign</TabsTrigger>
@@ -583,41 +582,7 @@ export default function CampaignsPage() {
           )}
         </TabsContent>
 
-        <TabsContent value="my" className="space-y-4">
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">My Campaigns</h2>
-            <Button 
-              className="bg-indigo-600 hover:bg-indigo-700" 
-              onClick={() => startNewCampaign()}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              New Campaign
-            </Button>
-          </div>
 
-          {isLoadingCampaigns ? (
-            <div className="text-center py-12">Loading campaigns...</div>
-          ) : myCampaigns.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {myCampaigns.map(campaign => renderCampaignCard(campaign))}
-            </div>
-          ) : (
-            <div className="text-center py-12 border rounded-lg bg-gray-50">
-              <Send className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No campaigns</h3>
-              <p className="mt-1 text-sm text-gray-500">Get started by creating a new campaign.</p>
-              <div className="mt-6">
-                <Button 
-                  className="bg-indigo-600 hover:bg-indigo-700" 
-                  onClick={() => startNewCampaign()}
-                >
-                  <Plus className="h-4 w-4 mr-2" />
-                  New Campaign
-                </Button>
-              </div>
-            </div>
-          )}
-        </TabsContent>
 
         <TabsContent value="shared" className="space-y-4">
           <div className="flex justify-between items-center mb-4">
