@@ -721,8 +721,9 @@ export default function AttributeMappingStep({
                       </div>
                     </details>
                   </div>
-                </div>
-              )}
+                  </div>
+                )}
+              </div>
             ))}
           </div>
 
