@@ -103,11 +103,9 @@ interface BuilderStep {
   icon: React.ReactNode;
 }
 
-interface CampaignTemplateBuilderProps {
-  onClose?: () => void;
-}
+interface CampaignTemplateBuilderProps {}
 
-export default function CampaignTemplateBuilder({ onClose }: CampaignTemplateBuilderProps) {
+export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps) {
   const [, setLocation] = useLocation();
   const [currentStep, setCurrentStep] = useState("select-list");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -230,7 +228,7 @@ export default function CampaignTemplateBuilder({ onClose }: CampaignTemplateBui
         description: "Your campaign template has been saved successfully",
       });
       setIsSubmitting(false);
-      onClose?.();
+      setLocation('/campaigns');
     },
     onError: (error) => {
       console.error("Error creating template:", error);
