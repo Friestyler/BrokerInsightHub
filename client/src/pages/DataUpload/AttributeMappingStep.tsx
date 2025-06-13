@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Save, Edit, ArrowLeft, ArrowRight } from 'lucide-react';
+import { Plus, Save, Edit, ArrowLeft, ArrowRight, CheckCircle, X } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 
@@ -23,6 +23,8 @@ interface AttributeMapping {
   attribute: string;
   csvColumn: string;
   isRequired: boolean;
+  customCode?: string;
+  isCodeBased?: boolean;
 }
 
 interface Template {
@@ -51,6 +53,10 @@ export default function AttributeMappingStep({
   const [showAddAttribute, setShowAddAttribute] = useState(false);
   const [selectedNewAttribute, setSelectedNewAttribute] = useState<string>('');
   const [extractedHeaders, setExtractedHeaders] = useState<string[]>([]);
+  const [showCodeEditor, setShowCodeEditor] = useState<{ [key: number]: boolean }>({});
+  const [codeEditorContent, setCodeEditorContent] = useState<{ [key: number]: string }>({});
+  const [codeValidation, setCodeValidation] = useState<{ [key: number]: { isValid: boolean; error?: string } }>({});
+  const [codePreview, setCodePreview] = useState<{ [key: number]: string[] }>({});
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -201,8 +207,91 @@ export default function AttributeMappingStep({
   // Update attribute mapping
   const updateMapping = (index: number, csvColumn: string) => {
     setAttributeMappings(prev => prev.map((mapping, i) => 
-      i === index ? { ...mapping, csvColumn } : mapping
+      i === index ? { 
+        ...mapping, 
+        csvColumn,
+        isCodeBased: csvColumn === 'CODE',
+        customCode: csvColumn === 'CODE' ? (codeEditorContent[index] || '') : undefined
+      } : mapping
     ));
+
+    // Show/hide code editor based on selection
+    if (csvColumn === 'CODE') {
+      setShowCodeEditor(prev => ({ ...prev, [index]: true }));
+      if (!codeEditorContent[index]) {
+        setCodeEditorContent(prev => ({ ...prev, [index]: '# Define custom logic using column references\n# Available columns: ' + extractedHeaders.join(', ') + '\n\n' }));
+      }
+    } else {
+      setShowCodeEditor(prev => ({ ...prev, [index]: false }));
+    }
+  };
+
+  // Validate Python code
+  const validatePythonCode = (code: string, index: number) => {
+    try {
+      // Basic Python syntax validation
+      if (!code.trim()) {
+        setCodeValidation(prev => ({ 
+          ...prev, 
+          [index]: { isValid: false, error: 'Code cannot be empty' }
+        }));
+        return false;
+      }
+
+      // Check for basic Python syntax issues
+      const lines = code.split('\n').filter(line => line.trim() && !line.trim().startsWith('#'));
+      if (lines.length === 0) {
+        setCodeValidation(prev => ({ 
+          ...prev, 
+          [index]: { isValid: false, error: 'Please add some code logic' }
+        }));
+        return false;
+      }
+
+      // Basic validation passed
+      setCodeValidation(prev => ({ 
+        ...prev, 
+        [index]: { isValid: true }
+      }));
+      
+      // Generate preview
+      generateCodePreview(code, index);
+      return true;
+    } catch (error) {
+      setCodeValidation(prev => ({ 
+        ...prev, 
+        [index]: { isValid: false, error: 'Invalid Python syntax' }
+      }));
+      return false;
+    }
+  };
+
+  // Generate code preview
+  const generateCodePreview = (code: string, index: number) => {
+    // Mock preview data - in real implementation, this would run the code against sample data
+    const sampleResults = [
+      'Preview row 1: Custom logic result',
+      'Preview row 2: Custom logic result',
+      'Preview row 3: Custom logic result'
+    ];
+    
+    setCodePreview(prev => ({ 
+      ...prev, 
+      [index]: sampleResults
+    }));
+  };
+
+  // Handle code editor changes
+  const handleCodeChange = (index: number, code: string) => {
+    setCodeEditorContent(prev => ({ ...prev, [index]: code }));
+    
+    // Update the mapping with the new code
+    setAttributeMappings(prev => prev.map((mapping, i) => 
+      i === index && mapping.isCodeBased ? { ...mapping, customCode: code } : mapping
+    ));
+
+    // Debounced validation
+    setTimeout(() => validatePythonCode(code, index), 500);
   };
 
   // Get available attributes for adding (excluding already used ones)
@@ -405,59 +494,235 @@ export default function AttributeMappingStep({
           {/* Mapping Rows */}
           <div className="space-y-3">
             {attributeMappings.map((mapping, index) => (
-              <div key={`mapping-row-${index}`} className="grid grid-cols-2 gap-8 items-stretch">
-                {/* Left: Entity Attribute */}
-                <div className={`p-3 rounded-lg border flex items-center ${
-                  mapping.isRequired 
-                    ? 'bg-red-50 border-red-200' 
-                    : 'bg-blue-50 border-blue-200'
-                }`}>
-                  <div className="flex items-center gap-2">
-                    <span className="font-medium text-sm">{mapping.attribute}</span>
-                    {mapping.isRequired && (
-                      <Badge variant="destructive" className="text-xs">Required</Badge>
-                    )}
+              <div key={`mapping-row-${index}`} className="space-y-4">
+                <div className="grid grid-cols-2 gap-8 items-stretch">
+                  {/* Left: Entity Attribute */}
+                  <div className={`p-3 rounded-lg border flex items-center ${
+                    mapping.isRequired 
+                      ? 'bg-red-50 border-red-200' 
+                      : 'bg-blue-50 border-blue-200'
+                  }`}>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-sm">{mapping.attribute}</span>
+                      {mapping.isRequired && (
+                        <Badge variant="destructive" className="text-xs">Required</Badge>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Right: CSV Column Dropdown */}
+                  <div className={`p-3 rounded-lg border ${
+                    mapping.isRequired 
+                      ? 'bg-red-50 border-red-200' 
+                      : 'bg-blue-50 border-blue-200'
+                  }`}>
+                    <Select 
+                      value={mapping.csvColumn} 
+                      onValueChange={(value) => updateMapping(index, value)}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select CSV column" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[270px]">
+                        <div className="px-2 py-1">
+                          <input
+                            type="text"
+                            placeholder="Search columns..."
+                            className="w-full px-2 py-1 text-sm border rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            onClick={(e) => e.stopPropagation()}
+                            onChange={(e) => {
+                              const searchTerm = e.target.value.toLowerCase();
+                              const items = e.target.closest('[role="listbox"]')?.querySelectorAll('[role="option"]');
+                              items?.forEach((item) => {
+                                const text = item.textContent?.toLowerCase() || '';
+                                const shouldShow = text.includes(searchTerm);
+                                (item as HTMLElement).style.display = shouldShow ? 'flex' : 'none';
+                              });
+                            }}
+                          />
+                        </div>
+                        <SelectItem value="CODE" className="bg-purple-50 text-purple-700 font-medium">
+                          <div className="flex items-center gap-2">
+                            <span className="text-purple-500">&lt;/&gt;</span>
+                            Code (Custom Logic)
+                          </div>
+                        </SelectItem>
+                        {csvHeadersToUse.map(header => (
+                          <SelectItem key={header} value={header}>{header}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                 </div>
-                
-                {/* Right: CSV Column Dropdown */}
-                <div className={`p-3 rounded-lg border ${
-                  mapping.isRequired 
-                    ? 'bg-red-50 border-red-200' 
-                    : 'bg-blue-50 border-blue-200'
-                }`}>
-                  <Select 
-                    value={mapping.csvColumn} 
-                    onValueChange={(value) => updateMapping(index, value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select CSV column" />
-                    </SelectTrigger>
-                    <SelectContent className="max-h-[270px]">
-                      <div className="px-2 py-1">
-                        <input
-                          type="text"
-                          placeholder="Search columns..."
-                          className="w-full px-2 py-1 text-sm border rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                          onClick={(e) => e.stopPropagation()}
-                          onChange={(e) => {
-                            const searchTerm = e.target.value.toLowerCase();
-                            const items = e.target.closest('[role="listbox"]')?.querySelectorAll('[role="option"]');
-                            items?.forEach((item) => {
-                              const text = item.textContent?.toLowerCase() || '';
-                              const shouldShow = text.includes(searchTerm);
-                              (item as HTMLElement).style.display = shouldShow ? 'flex' : 'none';
-                            });
-                          }}
+
+                {/* Code Editor Section - appears when "Code" is selected */}
+                {showCodeEditor[index] && mapping.csvColumn === 'CODE' && (
+                  <div className="border rounded-lg p-4 bg-gray-50">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    {/* Code Editor Section */}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-medium text-sm">Python Code Editor</h4>
+                        <div className="flex items-center gap-2">
+                          {codeValidation[index]?.isValid ? (
+                            <div className="flex items-center gap-1 text-green-600">
+                              <CheckCircle className="h-4 w-4" />
+                              <span className="text-xs">Valid</span>
+                            </div>
+                          ) : codeValidation[index]?.error ? (
+                            <div className="flex items-center gap-1 text-red-600">
+                              <X className="h-4 w-4" />
+                              <span className="text-xs">Error</span>
+                            </div>
+                          ) : null}
+                        </div>
+                      </div>
+                      
+                      <p className="text-xs text-gray-600">
+                        Define custom logic using column references (Python)
+                      </p>
+                      
+                      <div className="relative">
+                        <textarea
+                          value={codeEditorContent[index] || ''}
+                          onChange={(e) => handleCodeChange(index, e.target.value)}
+                          className="w-full h-32 p-3 border rounded-md font-mono text-sm bg-white resize-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+                          placeholder="# Write your Python code here
+# Example: column_first_name + ' ' + column_last_name
+# Available columns: column_name1, column_name2, etc."
                         />
                       </div>
-                      {csvHeadersToUse.map(header => (
-                        <SelectItem key={header} value={header}>{header}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                      
+                      {codeValidation[index]?.error && (
+                        <div className="text-red-600 text-xs bg-red-50 p-2 rounded border">
+                          {codeValidation[index].error}
+                        </div>
+                      )}
+                      
+                      {/* Quick Insert Helper Buttons */}
+                      <div className="space-y-2">
+                        <p className="text-xs font-medium text-gray-700">Quick Insert:</p>
+                        <div className="flex flex-wrap gap-1">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const currentCode = codeEditorContent[index] || '';
+                              handleCodeChange(index, currentCode + ' + ');
+                            }}
+                            className="px-2 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded"
+                          >
+                            +
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const currentCode = codeEditorContent[index] || '';
+                              handleCodeChange(index, currentCode + ' - ');
+                            }}
+                            className="px-2 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded"
+                          >
+                            -
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const currentCode = codeEditorContent[index] || '';
+                              handleCodeChange(index, currentCode + '"Yes" if column_name == "Active" else "No"');
+                            }}
+                            className="px-2 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded"
+                          >
+                            Conditional
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const currentCode = codeEditorContent[index] || '';
+                              handleCodeChange(index, currentCode + 'str(column_name1) + " " + str(column_name2)');
+                            }}
+                            className="px-2 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded"
+                          >
+                            Concatenate
+                          </button>
+                        </div>
+                      </div>
+                      
+                      {/* Available Columns Helper */}
+                      {extractedHeaders.length > 0 && (
+                        <div className="space-y-2">
+                          <p className="text-xs font-medium text-gray-700">Available Columns:</p>
+                          <div className="flex flex-wrap gap-1 max-h-20 overflow-y-auto">
+                            {extractedHeaders.map((header, headerIndex) => (
+                              <button
+                                key={headerIndex}
+                                type="button"
+                                onClick={() => {
+                                  const currentCode = codeEditorContent[index] || '';
+                                  const columnRef = `column_${header.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+                                  handleCodeChange(index, currentCode + columnRef);
+                                }}
+                                className="px-2 py-1 text-xs bg-blue-100 hover:bg-blue-200 text-blue-700 rounded"
+                              >
+                                {header}
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                    
+                    {/* Preview Section */}
+                    <div className="space-y-3">
+                      <h4 className="font-medium text-sm">Preview</h4>
+                      <p className="text-xs text-gray-600">
+                        Sample output from your Python code
+                      </p>
+                      
+                      <div className="border rounded-md p-3 bg-white min-h-32">
+                        {codePreview[index] && codePreview[index].length > 0 ? (
+                          <div className="space-y-1">
+                            {codePreview[index].map((preview, previewIndex) => (
+                              <div key={previewIndex} className="text-sm font-mono text-gray-700 py-1 px-2 bg-gray-50 rounded">
+                                {preview}
+                              </div>
+                            ))}
+                          </div>
+                        ) : (
+                          <div className="text-gray-400 text-sm">
+                            Preview will appear here when you write valid Python code
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {/* Example Code Section */}
+                  <div className="mt-4 pt-4 border-t">
+                    <details className="space-y-2">
+                      <summary className="text-xs font-medium text-gray-700 cursor-pointer hover:text-gray-900">
+                        View Example Python Code
+                      </summary>
+                      <div className="bg-gray-100 p-3 rounded text-xs font-mono space-y-2">
+                        <div>
+                          <div className="text-gray-600"># Combine first and last name</div>
+                          <div>column_first_name + " " + column_last_name</div>
+                        </div>
+                        <div>
+                          <div className="text-gray-600"># Add 20 to price</div>
+                          <div>column_price + 20</div>
+                        </div>
+                        <div>
+                          <div className="text-gray-600"># Conditional logic</div>
+                          <div>"Yes" if column_status == "Active" else "No"</div>
+                        </div>
+                        <div>
+                          <div className="text-gray-600"># Sum multiple columns</div>
+                          <div>column_amount1 + column_amount2 + column_amount3</div>
+                        </div>
+                      </div>
+                    </details>
+                  </div>
                 </div>
-              </div>
+              )}
             ))}
           </div>
 
