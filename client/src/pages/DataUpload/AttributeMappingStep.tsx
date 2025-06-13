@@ -433,7 +433,24 @@ export default function AttributeMappingStep({
                     <SelectTrigger>
                       <SelectValue placeholder="Select CSV column" />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="max-h-[200px]">
+                      <div className="px-2 py-1">
+                        <input
+                          type="text"
+                          placeholder="Search columns..."
+                          className="w-full px-2 py-1 text-sm border rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                          onClick={(e) => e.stopPropagation()}
+                          onChange={(e) => {
+                            const searchTerm = e.target.value.toLowerCase();
+                            const items = e.target.closest('[role="listbox"]')?.querySelectorAll('[role="option"]');
+                            items?.forEach((item) => {
+                              const text = item.textContent?.toLowerCase() || '';
+                              const shouldShow = text.includes(searchTerm);
+                              (item as HTMLElement).style.display = shouldShow ? 'flex' : 'none';
+                            });
+                          }}
+                        />
+                      </div>
                       {csvHeadersToUse.map(header => (
                         <SelectItem key={header} value={header}>{header}</SelectItem>
                       ))}
@@ -469,7 +486,24 @@ export default function AttributeMappingStep({
                       <SelectTrigger>
                         <SelectValue placeholder="Choose an attribute to add" />
                       </SelectTrigger>
-                      <SelectContent>
+                      <SelectContent className="max-h-[200px]">
+                        <div className="px-2 py-1">
+                          <input
+                            type="text"
+                            placeholder="Search attributes..."
+                            className="w-full px-2 py-1 text-sm border rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            onClick={(e) => e.stopPropagation()}
+                            onChange={(e) => {
+                              const searchTerm = e.target.value.toLowerCase();
+                              const items = e.target.closest('[role="listbox"]')?.querySelectorAll('[role="option"]');
+                              items?.forEach((item) => {
+                                const text = item.textContent?.toLowerCase() || '';
+                                const shouldShow = text.includes(searchTerm);
+                                (item as HTMLElement).style.display = shouldShow ? 'flex' : 'none';
+                              });
+                            }}
+                          />
+                        </div>
                         {getAvailableAttributesForAdding().map((attr: string) => (
                           <SelectItem key={attr} value={attr}>{attr}</SelectItem>
                         ))}
