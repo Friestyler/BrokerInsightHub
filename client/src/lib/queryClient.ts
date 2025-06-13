@@ -88,10 +88,10 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
+    // Get the base URL from the query key
+    const baseUrl = queryKey[0] as string;
+    
     try {
-      // Get the base URL from the query key
-      const baseUrl = queryKey[0] as string;
-      
       // Apply environment to URL
       const envUrl = getEnvironmentUrl(baseUrl);
       console.log('Fetching from URL:', envUrl);
@@ -108,11 +108,20 @@ export const getQueryFn: <T>(options: {
         return null;
       }
 
+      // Check if response is HTML (indicates a routing error)
+      const contentType = res.headers.get('content-type');
+      if (contentType && contentType.includes('text/html')) {
+        throw new Error(`Endpoint ${envUrl} returned HTML instead of JSON - likely missing backend route`);
+      }
+
       await throwIfResNotOk(res);
       return await res.json();
     } catch (error) {
-      console.error('Fetch error in queryFn:', error);
-      console.error('Query key:', queryKey);
+      // Only log errors for non-template-assignment endpoints to reduce noise
+      if (!baseUrl.includes('template-assignments')) {
+        console.error('Fetch error in queryFn:', error);
+        console.error('Query key:', queryKey);
+      }
       throw error;
     }
   };
@@ -125,15 +134,6 @@ export const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
       staleTime: Infinity,
       retry: 1,
-      onError: (error) => {
-        // Suppress logging for template assignment errors as they're non-critical
-        if (error && typeof error === 'object' && 'message' in error) {
-          const errorMessage = error.message as string;
-          if (!errorMessage.includes('template-assignments')) {
-            console.error('Query error:', error);
-          }
-        }
-      },
     },
     mutations: {
       retry: false,
