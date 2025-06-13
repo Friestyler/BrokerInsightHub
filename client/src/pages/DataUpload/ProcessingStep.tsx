@@ -215,7 +215,7 @@ export default function ProcessingStep({
                   field: mapping.attribute,
                   value: value,
                   message: `Duplicate ${field}: '${value}' already exists`,
-                  solution: 'replace',
+                  solution: 'skip',
                   duplicateOf: duplicate,
                   rowData: row
                 });
@@ -223,6 +223,8 @@ export default function ProcessingStep({
             }
           }
         });
+
+        // Note: ID conflicts are automatically handled by skipping ID field during insertion
 
         // Check for invalid formats (email, dates, etc.)
         attributeMappings.forEach(mapping => {
@@ -391,12 +393,17 @@ export default function ProcessingStep({
             if (mapping.csvColumn && row[mapping.csvColumn] !== undefined) {
               const value = row[mapping.csvColumn];
               
+              // Skip ID field to avoid primary key conflicts - let database auto-generate
+              if (mapping.attribute === 'id') {
+                return;
+              }
+              
               // Transform data types
               if (mapping.attribute.includes('date') && value) {
                 transformedData[mapping.attribute] = new Date(value).toISOString();
               } else if (mapping.attribute === 'value' || mapping.attribute.includes('amount') || mapping.attribute.includes('Value')) {
                 transformedData[mapping.attribute] = parseFloat(value) || 0;
-              } else if (mapping.attribute === 'probability' || mapping.attribute.includes('Id') || mapping.attribute === 'id') {
+              } else if (mapping.attribute === 'probability' || mapping.attribute.includes('Id')) {
                 // Handle numeric fields that should be integers
                 const numValue = parseFloat(value);
                 transformedData[mapping.attribute] = isNaN(numValue) ? 0 : Math.round(numValue);
