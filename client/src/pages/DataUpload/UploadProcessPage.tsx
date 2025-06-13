@@ -19,6 +19,13 @@ interface UploadProcessProps {
 
 const capitalizeUploadType = (type: string) => {
   if (!type) return '';
+  
+  // Handle special cases
+  if (type.toLowerCase() === 'degoudse') {
+    return 'De Goudse';
+  }
+  
+  // Default capitalization
   return type.charAt(0).toUpperCase() + type.slice(1);
 };
 
