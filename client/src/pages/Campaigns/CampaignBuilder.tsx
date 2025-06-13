@@ -182,7 +182,6 @@ interface BuilderStep {
 }
 
 export default function CampaignBuilder() {
-  const [, params] = useRoute("/campaigns/new");
   const [, setLocation] = useLocation();
   const { goBack } = useNavigationHistory("/campaigns");
   const { environment } = useEnvironment();
@@ -1642,7 +1641,9 @@ export default function CampaignBuilder() {
         >
           <ArrowLeft className="h-4 w-4 mr-1" /> Back
         </Button>
-        <h1 className="text-2xl font-bold mt-2">{form.getValues("name") || "New Campaign"}</h1>
+        <h1 className="text-2xl font-bold mt-2">
+          {campaignId ? `Edit: ${form.getValues("name") || "Loading..."}` : "New Campaign"}
+        </h1>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
