@@ -635,12 +635,9 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
         <div className="md:col-span-3">
           <Card>
             <CardHeader>
-              <div className="flex items-center">
-                {steps.find(step => step.id === currentStep)?.icon}
-                <CardTitle className="ml-2 text-[#282A3F]">
-                  {steps.find(step => step.id === currentStep)?.title}
-                </CardTitle>
-              </div>
+              <CardTitle className="text-[#282A3F]">
+                {steps.find(step => step.id === currentStep)?.title}
+              </CardTitle>
               <CardDescription>
                 {steps.find(step => step.id === currentStep)?.description}
               </CardDescription>
