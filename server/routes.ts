@@ -186,10 +186,29 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Direct opportunities handler - avoid redirect issues
   app.get('/api/opportunities', async (req, res) => {
     try {
-      const db = await getDeGoudseDatabase();
-      const opportunities = await db.select().from(deGoudseOpportunities);
-      console.log(`Returning ${opportunities.length} opportunities from De Goudse database`);
-      res.json(opportunities);
+      const envPool = getEnvironmentPool('degoudse');
+      const result = await envPool.query(`
+        SELECT o.*, 
+               STRING_AGG(DISTINCT c.name, ', ') as customer_names,
+               STRING_AGG(DISTINCT p.name, ', ') as partner_names,
+               STRING_AGG(DISTINCT pr.name, ', ') as product_names,
+               COUNT(DISTINCT co.customer_id) as customer_count,
+               COUNT(DISTINCT po.partner_id) as partner_count,
+               COUNT(DISTINCT op.product_id) as product_count
+        FROM degoudse.opportunities o
+        LEFT JOIN degoudse.customer_opportunities co ON o.id = co.opportunity_id
+        LEFT JOIN degoudse.customers c ON c.id = co.customer_id
+        LEFT JOIN degoudse.partner_opportunities po ON o.id = po.opportunity_id
+        LEFT JOIN degoudse.partners p ON p.id = po.partner_id
+        LEFT JOIN degoudse.opportunity_products op ON o.id = op.opportunity_id
+        LEFT JOIN degoudse.products pr ON pr.id = op.product_id
+        GROUP BY o.id, o.title, o.description, o.status, o.stage, o."estimatedValue", 
+                 o."expectedCloseDate", o."clientId", o."partnerId", o."productId", 
+                 o."ownerId", o.probability, o.type, o."createdAt", o."updatedAt"
+        ORDER BY o.id
+      `);
+      console.log(`Returning ${result.rows.length} opportunities from De Goudse database`);
+      res.json(result.rows);
     } catch (error) {
       console.error('Error fetching opportunities:', error);
       res.status(500).json({ error: 'Failed to fetch opportunities' });
@@ -3888,8 +3907,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     res.redirect(`/api/degoudse/saved-views${queryParams}`);
   });
 
-  // Main entity routes - redirect all to De Goudse
-  app.get('/api/opportunities', (req, res) => res.redirect('/api/degoudse/opportunities'));
+  // Main entity routes - redirect all to De Goudse (opportunities already handled above)
   app.post('/api/opportunities', (req, res) => res.redirect(307, '/api/degoudse/opportunities'));
   app.get('/api/partners', (req, res) => res.redirect('/api/degoudse/partners'));
   app.get('/api/customers', (req, res) => res.redirect('/api/degoudse/customers'));
