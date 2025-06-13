@@ -764,31 +764,6 @@ export default function CampaignBuilder() {
             </div>
             
             <div className="space-y-2">
-              <Label>Campaign Type</Label>
-              <RadioGroup 
-                defaultValue={form.getValues("type")} 
-                onValueChange={(value) => form.setValue("type", value)}
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="cross_sell" id="cross_sell" />
-                  <Label htmlFor="cross_sell">Cross-Sell</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="upsell" id="upsell" />
-                  <Label htmlFor="upsell">Upsell</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="smart_update" id="smart_update" />
-                  <Label htmlFor="smart_update">Smart update</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="custom" id="custom" />
-                  <Label htmlFor="custom">Custom</Label>
-                </div>
-              </RadioGroup>
-            </div>
-            
-            <div className="space-y-2">
               <Label htmlFor="campaign-category">Category (Optional)</Label>
               <Input
                 id="campaign-category"
