@@ -1095,10 +1095,8 @@ export default function ProcessingStep({
         onProcessingComplete(result);
       }
       
-      // Automatically advance to next step instead of showing completion phase
-      setTimeout(() => {
-        onNext();
-      }, 1000);
+      // Set phase to completed to show final results
+      setPhase('completed');
 
 
 
@@ -1586,23 +1584,12 @@ export default function ProcessingStep({
           {phase === 'processing' && (
             <div className="space-y-6">
               <div className="text-center">
-                <div className={`mx-auto h-16 w-16 rounded-full flex items-center justify-center mb-4 ${
-                  isProcessing ? 'bg-blue-100' : 'bg-green-100'
-                }`}>
-                  {isProcessing ? (
-                    <AlertCircle className="h-8 w-8 text-blue-600 animate-spin" />
-                  ) : (
-                    <CheckCircle className="h-8 w-8 text-green-600" />
-                  )}
+                <div className="mx-auto h-16 w-16 rounded-full bg-blue-100 flex items-center justify-center mb-4">
+                  <AlertCircle className="h-8 w-8 text-blue-600 animate-spin" />
                 </div>
-                <h3 className="text-lg font-medium mb-2">
-                  {isProcessing ? 'Processing Data...' : 'Processing Results'}
-                </h3>
+                <h3 className="text-lg font-medium mb-2">Processing Data...</h3>
                 <p className="text-gray-600 mb-4">
-                  {isProcessing 
-                    ? 'Creating records in your database. This may take a few moments.' 
-                    : 'Review the processing results below and continue to complete the upload.'
-                  }
+                  Creating records in your database. This may take a few moments.
                 </p>
               </div>
 
@@ -1612,6 +1599,21 @@ export default function ProcessingStep({
                   <span>{Math.round(processingProgress)}%</span>
                 </div>
                 <Progress value={processingProgress} className="w-full" />
+              </div>
+            </div>
+          )}
+
+          {/* Completed Phase */}
+          {phase === 'completed' && (
+            <div className="space-y-6">
+              <div className="text-center">
+                <div className="mx-auto h-16 w-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
+                  <CheckCircle className="h-8 w-8 text-green-600" />
+                </div>
+                <h3 className="text-lg font-medium mb-2">Processing Complete!</h3>
+                <p className="text-gray-600 mb-4">
+                  Your data has been successfully processed and imported.
+                </p>
               </div>
 
               {processingResult && (
@@ -1633,6 +1635,13 @@ export default function ProcessingStep({
                   </div>
                 </div>
               )}
+
+              <div className="text-center">
+                <Button onClick={onNext} size="lg">
+                  <ArrowRight className="mr-2 h-4 w-4" />
+                  Continue
+                </Button>
+              </div>
             </div>
           )}
 
