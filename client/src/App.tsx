@@ -41,6 +41,7 @@ import NotFound from "@/pages/not-found";
 import EnvironmentRouteGuard from "@/components/EnvironmentRouteGuard";
 import SharedListView from "@/pages/shared/SharedListView";
 import PartnerView from "@/pages/PartnerView";
+import BrokerCampaignsPage from "@/pages/broker-view/BrokerCampaignsPage";
 
 // Temporary placeholder components for other list pages
 const ProjectsPage = () => <div className="p-6"><h1 className="text-2xl font-bold">Projects List (Coming Soon)</h1></div>;
@@ -60,6 +61,7 @@ function Router() {
       <Route path="/broker-view/list/:listId" component={PartnerView} />
       <Route path="/broker-view/partners" component={PartnerView} />
       <Route path="/broker-view/opportunities" component={PartnerView} />
+      <Route path="/broker-view/campaigns" component={BrokerCampaignsPage} />
       <Route path="/broker-view/opportunity/:opportunityId" component={OpportunityDetailBrokerPOV} />
       <Route path="/broker-view/partner/:partnerId" component={PartnerDetailBrokerPOV} />
       
