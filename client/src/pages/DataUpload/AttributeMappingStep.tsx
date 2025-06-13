@@ -223,15 +223,27 @@ export default function AttributeMappingStep({
     if (templates.length > 0 && !isLoadingUploadSettings && attributeMappings.length === 0) {
       const lastUsedTemplateId = getLastUsedTemplate(uploadType);
       
+      console.log('Template auto-loading debug:', {
+        uploadType,
+        lastUsedTemplateId,
+        availableTemplates: templates.map(t => ({ id: t.id, name: t.name, entity_type: t.entity_type })),
+        templatesCount: templates.length
+      });
+      
       if (lastUsedTemplateId) {
         const lastUsedTemplate = templates.find(template => template.id.toString() === lastUsedTemplateId);
+        console.log('Found template by ID:', lastUsedTemplate);
+        
         if (lastUsedTemplate && lastUsedTemplate.entity_type === uploadType) {
           console.log(`Auto-loading last used template for ${uploadType}:`, lastUsedTemplate.name);
           setSelectedTemplateId(lastUsedTemplateId);
           setTemplateLoaded(true); // Set this BEFORE loading to prevent interference
           loadTemplate(lastUsedTemplate.id.toString());
+        } else if (lastUsedTemplate) {
+          console.log(`Template entity type mismatch: template.entity_type=${lastUsedTemplate.entity_type}, uploadType=${uploadType}`);
         }
       } else {
+        console.log('No last used template found, initializing mandatory attributes');
         // Only initialize mandatory attributes if no template is available
         const mandatoryAttrs = getMandatoryAttributes();
         if (mandatoryAttrs.length > 0) {
