@@ -447,24 +447,24 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
         return (
           <TooltipProvider>
             <div className="space-y-4">
-            <div className="flex justify-between items-start mb-2">
-              <div className="flex space-x-2 items-center">
-                <Checkbox
-                  id="use-ai"
-                  checked={showAiPrompt}
-                  onCheckedChange={(checked) => setShowAiPrompt(!!checked)}
-                />
-                <Label htmlFor="use-ai" className="text-sm font-normal text-[#282A3F]">Use AI to help write content</Label>
+              <div className="flex justify-between items-start mb-2">
+                <div className="flex space-x-2 items-center">
+                  <Checkbox
+                    id="use-ai"
+                    checked={showAiPrompt}
+                    onCheckedChange={(checked) => setShowAiPrompt(!!checked)}
+                  />
+                  <Label htmlFor="use-ai" className="text-sm font-normal text-[#282A3F]">Use AI to help write content</Label>
+                </div>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  type="button"
+                  className="flex items-center text-xs"
+                >
+                  <Upload className="h-3 w-3 mr-1" /> Add Logo
+                </Button>
               </div>
-              <Button 
-                variant="outline" 
-                size="sm"
-                type="button"
-                className="flex items-center text-xs"
-              >
-                <Upload className="h-3 w-3 mr-1" /> Add Logo
-              </Button>
-            </div>
             
             {showAiPrompt && (
               <div className="space-y-2 p-3 bg-gray-50 rounded-md border">
