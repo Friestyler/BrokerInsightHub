@@ -5068,9 +5068,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Campaigns API endpoints
-  app.get('/api/campaigns', async (req, res) => {
+  app.get('/api/:envId/campaigns', async (req, res) => {
     try {
-      const envId = req.headers['x-environment'] || req.headers['x-environment-id'] || 'degoudse';
+      const { envId } = req.params;
       
       // For degoudse environment, check for shared templates
       if (envId === 'degoudse') {
