@@ -288,7 +288,7 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
       fromName: "",
       fromEmail: "",
       isTemplate: true,
-      status: "draft"
+      status: "active"
     };
     
     createTemplateMutation.mutate(templateData);
@@ -767,15 +767,38 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
               </Button>
               
               {currentStep === steps[steps.length - 1].id ? (
-                <Button
-                  type="button"
-                  onClick={() => {
-                    form.handleSubmit(onSubmit)();
-                  }}
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? "Saving..." : "Save Template"} <Save className="h-4 w-4 ml-1" />
-                </Button>
+                <div className="space-x-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => {
+                      // Save as draft template
+                      const currentData = form.getValues();
+                      const templateData = {
+                        ...currentData,
+                        frequency: "one_time",
+                        fromName: "",
+                        fromEmail: "",
+                        isTemplate: true,
+                        status: "draft"
+                      };
+                      createTemplateMutation.mutate(templateData);
+                    }}
+                    disabled={isSubmitting}
+                  >
+                    Save as Draft
+                  </Button>
+                  <Button
+                    type="button"
+                    className="bg-indigo-600 hover:bg-indigo-700"
+                    onClick={() => {
+                      form.handleSubmit(onSubmit)();
+                    }}
+                    disabled={isSubmitting}
+                  >
+                    {isSubmitting ? "Saving..." : "Save Template"} <Save className="h-4 w-4 ml-1" />
+                  </Button>
+                </div>
               ) : (
                 <Button 
                   type="button"
