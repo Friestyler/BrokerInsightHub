@@ -445,6 +445,58 @@ export default function UploadSettingsPage() {
           {renderScriptsTab()}
         </TabsContent>
       </Tabs>
+
+      {/* Edit Script Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Edit Transformation Script</DialogTitle>
+            <DialogDescription>
+              Modify the transformation script for data processing
+            </DialogDescription>
+          </DialogHeader>
+          {editingScript && (
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="edit-script-name">Script Name</Label>
+                <Input 
+                  id="edit-script-name" 
+                  defaultValue={editingScript.name}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-script-description">Description</Label>
+                <Input 
+                  id="edit-script-description" 
+                  defaultValue={editingScript.description || ''}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="edit-script-content">Script Content</Label>
+                <Textarea 
+                  id="edit-script-content" 
+                  defaultValue={editingScript.script_content}
+                  className="font-mono text-sm min-h-[200px]"
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsEditDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleSaveScript}
+              disabled={updateScriptMutation.isPending}
+            >
+              {updateScriptMutation.isPending ? 'Saving...' : 'Save Changes'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
