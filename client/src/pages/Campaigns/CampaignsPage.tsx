@@ -59,6 +59,7 @@ export default function CampaignsPage() {
   // Filter campaigns based on ownership and sharing
   const myCampaigns = campaigns?.filter(c => !c.isTemplate && !c.isShared) || [];
   const sharedCampaigns = campaigns?.filter(c => !c.isTemplate && c.isShared) || [];
+  const campaignTemplates = campaigns?.filter(c => c.isTemplate) || [];
 
   // Demo campaign templates
   const templates: TemplateCard[] = [
@@ -216,9 +217,10 @@ export default function CampaignsPage() {
       <h1 className="text-2xl font-bold mb-6">Campaigns</h1>
 
       <Tabs defaultValue="new" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-3">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="my">My Campaigns</TabsTrigger>
           <TabsTrigger value="shared">Shared Campaigns</TabsTrigger>
+          <TabsTrigger value="templates">Templates</TabsTrigger>
           <TabsTrigger value="new">New Campaign</TabsTrigger>
         </TabsList>
 
@@ -274,6 +276,94 @@ export default function CampaignsPage() {
               <Users className="mx-auto h-12 w-12 text-gray-400" />
               <h3 className="mt-2 text-sm font-medium text-gray-900">No shared campaigns</h3>
               <p className="mt-1 text-sm text-gray-500">Campaigns shared with you will appear here.</p>
+            </div>
+          )}
+        </TabsContent>
+
+        <TabsContent value="templates" className="space-y-4">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold">Campaign Templates</h2>
+            <Button 
+              className="bg-indigo-600 hover:bg-indigo-700" 
+              onClick={() => setLocation("/campaigns/create?mode=template")}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              Create Template
+            </Button>
+          </div>
+
+          {isLoadingCampaigns ? (
+            <div className="text-center py-12">Loading templates...</div>
+          ) : campaignTemplates.length > 0 ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {campaignTemplates.map(template => (
+                <Card key={template.id} className="hover:shadow-md transition-shadow">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-md font-medium flex justify-between">
+                      {template.name}
+                      <Badge
+                        variant="secondary"
+                        className="ml-2 bg-purple-100 text-purple-700"
+                      >
+                        Template
+                      </Badge>
+                    </CardTitle>
+                    <CardDescription className="text-xs">{template.category}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="pb-2">
+                    <p className="text-sm text-gray-600">
+                      {template.type === "cross_sell" ? "Cross-Sell" : template.type === "upsell" ? "Upsell" : "Custom"}
+                    </p>
+                    {template.tags && template.tags.length > 0 && (
+                      <div className="flex flex-wrap gap-1 mt-2">
+                        {template.tags.slice(0, 3).map((tag, index) => (
+                          <Badge key={index} variant="outline" className="text-xs">
+                            {tag}
+                          </Badge>
+                        ))}
+                        {template.tags.length > 3 && (
+                          <Badge variant="outline" className="text-xs">
+                            +{template.tags.length - 3}
+                          </Badge>
+                        )}
+                      </div>
+                    )}
+                  </CardContent>
+                  <CardFooter className="pt-0 flex gap-2">
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 p-0 flex-1"
+                      onClick={() => startNewCampaign(template.id.toString())}
+                    >
+                      Use Template
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-gray-600 hover:text-gray-700 hover:bg-gray-50 p-0 flex-1"
+                      onClick={() => setLocation(`/campaigns/${template.id}?mode=edit`)}
+                    >
+                      Edit
+                    </Button>
+                  </CardFooter>
+                </Card>
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-12 border rounded-lg bg-gray-50">
+              <FileText className="mx-auto h-12 w-12 text-gray-400" />
+              <h3 className="mt-2 text-sm font-medium text-gray-900">No templates</h3>
+              <p className="mt-1 text-sm text-gray-500">Create your first campaign template to reuse in future campaigns.</p>
+              <div className="mt-6">
+                <Button 
+                  className="bg-indigo-600 hover:bg-indigo-700" 
+                  onClick={() => setLocation("/campaigns/create?mode=template")}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Template
+                </Button>
+              </div>
             </div>
           )}
         </TabsContent>
