@@ -3,6 +3,11 @@ import { Link, useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Separator } from "@/components/ui/separator";
 
 import { useQuery } from "@tanstack/react-query";
 import { 
@@ -17,7 +22,10 @@ import {
   Cloud,
   Database,
   RefreshCw,
-  FileText
+  FileText,
+  Share2,
+  Check,
+  Mail
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
@@ -52,6 +60,11 @@ export default function CampaignsPage() {
   const { environment } = useEnvironment();
   const [activeFilter, setActiveFilter] = useState("popular");
   const [activeTab, setActiveTab] = useState("new");
+  const [shareDialogOpen, setShareDialogOpen] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<Campaign | null>(null);
+  const [shareMode, setShareMode] = useState<'internal' | 'external'>('internal');
+  const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
+  const [selectedContacts, setSelectedContacts] = useState<number[]>([]);
 
   // Read tab from URL parameters
   useEffect(() => {
@@ -73,6 +86,30 @@ export default function CampaignsPage() {
   const { data: userTemplates, isLoading: isLoadingTemplates } = useQuery<Campaign[]>({
     queryKey: ['/api/campaign-templates'],
     enabled: true,
+  });
+
+  // Fetch users for internal sharing
+  const { data: users } = useQuery<any[]>({
+    queryKey: ['/api/users'],
+    enabled: shareDialogOpen && shareMode === 'internal',
+  });
+
+  // Fetch contacts for external sharing
+  const { data: contacts } = useQuery<any[]>({
+    queryKey: ['/api/contacts'],
+    enabled: shareDialogOpen && shareMode === 'external',
+  });
+
+  // Fetch customers for external sharing
+  const { data: customers } = useQuery<any[]>({
+    queryKey: ['/api/customers'],
+    enabled: shareDialogOpen && shareMode === 'external',
+  });
+
+  // Fetch partners for external sharing
+  const { data: partners } = useQuery<any[]>({
+    queryKey: ['/api/partners'],
+    enabled: shareDialogOpen && shareMode === 'external',
   });
 
   // Filter campaigns based on ownership and sharing
@@ -197,6 +234,53 @@ export default function CampaignsPage() {
   // Start from template - navigate to template selection
   const startFromTemplate = () => {
     setLocation("/campaigns/templates");
+  };
+
+  // Open share dialog
+  const openShareDialog = (template: Campaign) => {
+    setSelectedTemplate(template);
+    setShareDialogOpen(true);
+    setSelectedUsers([]);
+    setSelectedContacts([]);
+  };
+
+  // Handle share submission
+  const handleShare = async () => {
+    if (!selectedTemplate) return;
+    
+    const shareData = {
+      templateId: selectedTemplate.id,
+      shareMode,
+      userIds: shareMode === 'internal' ? selectedUsers : [],
+      contactIds: shareMode === 'external' ? selectedContacts : []
+    };
+    
+    // API call to share template would go here
+    console.log('Sharing template:', shareData);
+    
+    setShareDialogOpen(false);
+    setSelectedTemplate(null);
+    setSelectedUsers([]);
+    setSelectedContacts([]);
+  };
+
+  // Group external contacts by record type
+  const getGroupedContacts = () => {
+    const grouped: { [key: string]: any[] } = {};
+    
+    if (customers) {
+      grouped['Customers'] = customers.sort((a, b) => a.name.localeCompare(b.name));
+    }
+    
+    if (partners) {
+      grouped['Partners'] = partners.sort((a, b) => a.name.localeCompare(b.name));
+    }
+    
+    if (contacts) {
+      grouped['Contacts'] = contacts.sort((a, b) => a.name.localeCompare(b.name));
+    }
+    
+    return grouped;
   };
 
   const renderCampaignCard = (campaign: Campaign) => (
@@ -348,7 +432,7 @@ export default function CampaignsPage() {
                       </div>
                     )}
                   </CardContent>
-                  <CardFooter className="pt-0 flex gap-2">
+                  <CardFooter className="pt-0 flex gap-1">
                     <Button 
                       variant="ghost" 
                       size="sm" 
@@ -364,6 +448,18 @@ export default function CampaignsPage() {
                       onClick={() => setLocation(`/campaigns/template-builder?template=${template.id}`)}
                     >
                       Edit
+                    </Button>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 p-0 flex-1"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openShareDialog(template);
+                      }}
+                    >
+                      <Share2 className="h-4 w-4 mr-1" />
+                      Share
                     </Button>
                   </CardFooter>
                 </Card>
@@ -586,6 +682,138 @@ export default function CampaignsPage() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Share Template Dialog */}
+      <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Share Template: {selectedTemplate?.name}</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {/* Share Mode Selection */}
+            <div className="space-y-3">
+              <Label>Share with:</Label>
+              <div className="space-y-2">
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="shareMode"
+                    value="internal"
+                    checked={shareMode === 'internal'}
+                    onChange={() => setShareMode('internal')}
+                    className="text-blue-600"
+                  />
+                  <span className="text-sm font-medium">Internal Team Members</span>
+                </label>
+                <p className="text-xs text-gray-500 ml-6">Platform users who are not guests or partners</p>
+                
+                <label className="flex items-center space-x-2 cursor-pointer">
+                  <input
+                    type="radio"
+                    name="shareMode"
+                    value="external"
+                    checked={shareMode === 'external'}
+                    onChange={() => setShareMode('external')}
+                    className="text-blue-600"
+                  />
+                  <span className="text-sm font-medium">External Parties</span>
+                </label>
+                <p className="text-xs text-gray-500 ml-6">Contacts and guest or partner users</p>
+              </div>
+            </div>
+
+            <Separator />
+
+            {/* Internal Users Selection */}
+            {shareMode === 'internal' && (
+              <div className="space-y-3">
+                <Label>Select Team Members:</Label>
+                <div className="max-h-40 overflow-y-auto space-y-2">
+                  {users?.map((user) => (
+                    <label key={user.id} className="flex items-center space-x-2 cursor-pointer">
+                      <Checkbox
+                        checked={selectedUsers.includes(user.id)}
+                        onCheckedChange={(checked) => {
+                          if (checked) {
+                            setSelectedUsers([...selectedUsers, user.id]);
+                          } else {
+                            setSelectedUsers(selectedUsers.filter(id => id !== user.id));
+                          }
+                        }}
+                      />
+                      <span className="text-sm">{user.name || user.username}</span>
+                      <span className="text-xs text-gray-500">({user.email})</span>
+                    </label>
+                  ))}
+                  {!users || users.length === 0 && (
+                    <p className="text-sm text-gray-500">No team members found</p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* External Contacts Selection */}
+            {shareMode === 'external' && (
+              <div className="space-y-3">
+                <Label>Select Recipients:</Label>
+                <div className="max-h-60 overflow-y-auto space-y-3">
+                  {Object.entries(getGroupedContacts()).map(([groupName, groupContacts]) => (
+                    <div key={groupName} className="space-y-2">
+                      <h4 className="text-sm font-medium text-gray-700 border-b pb-1">{groupName}</h4>
+                      {groupContacts.map((contact) => (
+                        <label key={`${groupName}-${contact.id}`} className="flex items-start space-x-2 cursor-pointer">
+                          <Checkbox
+                            checked={selectedContacts.includes(contact.id)}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                setSelectedContacts([...selectedContacts, contact.id]);
+                              } else {
+                                setSelectedContacts(selectedContacts.filter(id => id !== contact.id));
+                              }
+                            }}
+                            className="mt-0.5"
+                          />
+                          <div className="flex-1">
+                            <span className="text-sm font-medium">{contact.name}</span>
+                            {contact.email && (
+                              <div className="flex items-center text-xs text-gray-500 mt-0.5">
+                                <Mail className="h-3 w-3 mr-1" />
+                                {contact.email}
+                              </div>
+                            )}
+                          </div>
+                        </label>
+                      ))}
+                    </div>
+                  ))}
+                  {Object.keys(getGroupedContacts()).length === 0 && (
+                    <p className="text-sm text-gray-500">No external contacts found</p>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex justify-end space-x-2 pt-4">
+              <Button variant="outline" onClick={() => setShareDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button 
+                onClick={handleShare}
+                disabled={
+                  (shareMode === 'internal' && selectedUsers.length === 0) ||
+                  (shareMode === 'external' && selectedContacts.length === 0)
+                }
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                <Share2 className="h-4 w-4 mr-2" />
+                Share Template
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
