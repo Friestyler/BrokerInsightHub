@@ -569,7 +569,8 @@ export default function ProcessingStep({
     switch (solution) {
       case 'skip': return 'text-red-600';
       case 'replace': return 'text-blue-600';
-      case 'ignore': return 'text-gray-600';
+      case 'create_duplicate': return 'text-green-600';
+      case 'delete_and_create': return 'text-orange-600';
       default: return 'text-gray-600';
     }
   };
