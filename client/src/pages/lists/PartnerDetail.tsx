@@ -131,6 +131,51 @@ export default function PartnerDetail() {
   const [renderKey, setRenderKey] = useState(0);
   const dropdownRef = useRef<HTMLDivElement>(null);
   
+  // Fetch all partners to find this specific partner
+  const { data: partners, isLoading: partnersLoading } = useQuery({
+    queryKey: ['/api/partners'],
+  });
+
+  // Fetch related customers for this partner
+  const { data: relatedCustomers, isLoading: customersLoading } = useQuery({
+    queryKey: [`/api/partners/${id}/customers`],
+    enabled: !!id,
+  });
+
+  // Fetch related opportunities for this partner
+  const { data: relatedOpportunities, isLoading: opportunitiesLoading } = useQuery({
+    queryKey: [`/api/partners/${id}/opportunities`],
+    enabled: !!id,
+  });
+  
+  // Initialize dialog data when it opens (needs to be here for hooks order)
+  useEffect(() => {
+    const partner = (partners as any[] || []).find((p: any) => p.id === parseInt(id || '1'));
+    if (showDetailsDialog && partner) {
+      setEditedPartner({
+        name: partner.name || '',
+        description: partner.description || '',
+        type: partner.type || '',
+        contactEmail: partner.contactEmail || '',
+        contactPhone: partner.contactPhone || '',
+        website: partner.website || '',
+        status: partner.status || '',
+        address: partner.address || '',
+      });
+      
+      // Initialize with existing relationships
+      const opportunityIds = Array.isArray(relatedOpportunities) 
+        ? relatedOpportunities.map((opp: any) => opp.id) 
+        : [];
+      const customerIds = Array.isArray(relatedCustomers) 
+        ? relatedCustomers.map((customer: any) => customer.id) 
+        : [];
+        
+      setSelectedOpportunityIds(opportunityIds);
+      setSelectedCustomerIds(customerIds);
+    }
+  }, [showDetailsDialog, partners, id, relatedOpportunities, relatedCustomers]);
+
   // Close stage dropdown when clicking outside
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
@@ -378,23 +423,6 @@ export default function PartnerDetail() {
       });
       setIsSavingList(false);
     }
-  });
-
-  // Fetch all partners to find this specific partner
-  const { data: partners, isLoading: partnersLoading } = useQuery({
-    queryKey: ['/api/partners'],
-  });
-
-  // Fetch related customers for this partner
-  const { data: relatedCustomers, isLoading: customersLoading } = useQuery({
-    queryKey: [`/api/partners/${id}/customers`],
-    enabled: !!id,
-  });
-
-  // Fetch related opportunities for this partner
-  const { data: relatedOpportunities, isLoading: opportunitiesLoading } = useQuery({
-    queryKey: [`/api/partners/${id}/opportunities`],
-    enabled: !!id,
   });
 
   // Fetch all opportunities for multi-select
@@ -686,33 +714,6 @@ export default function PartnerDetail() {
   }
 
   const partner = (partners as any[] || []).find((p: any) => p.id === parseInt(id || '1'));
-  
-  // Initialize dialog data when it opens (after partner is declared)
-  useEffect(() => {
-    if (showDetailsDialog && partner) {
-      setEditedPartner({
-        name: partner.name || '',
-        description: partner.description || '',
-        type: partner.type || '',
-        contactEmail: partner.contactEmail || '',
-        contactPhone: partner.contactPhone || '',
-        website: partner.website || '',
-        status: partner.status || '',
-        address: partner.address || '',
-      });
-      
-      // Initialize with existing relationships
-      const opportunityIds = Array.isArray(relatedOpportunities) 
-        ? relatedOpportunities.map((opp: any) => opp.id) 
-        : [];
-      const customerIds = Array.isArray(relatedCustomers) 
-        ? relatedCustomers.map((customer: any) => customer.id) 
-        : [];
-        
-      setSelectedOpportunityIds(opportunityIds);
-      setSelectedCustomerIds(customerIds);
-    }
-  }, [showDetailsDialog, partner, relatedOpportunities, relatedCustomers]);
   
   if (!partner) {
     return <div className="p-4">Partner not found</div>;
