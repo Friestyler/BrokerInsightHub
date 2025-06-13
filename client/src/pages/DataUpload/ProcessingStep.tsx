@@ -301,9 +301,25 @@ export default function ProcessingStep({
     setPhase('validation');
     
     try {
+      console.log('🔍 Starting validation process...');
+      console.log('Upload type:', uploadType);
+      console.log('CSV data length:', csvData.length);
+      console.log('Attribute mappings:', attributeMappings);
+      
+      // Validate inputs before proceeding
+      if (!csvData || csvData.length === 0) {
+        throw new Error('No CSV data available for validation');
+      }
+      
+      if (!attributeMappings || attributeMappings.length === 0) {
+        throw new Error('No attribute mappings configured');
+      }
+      
       // First, fetch existing records to check for duplicates
+      console.log('📡 Fetching existing records for duplicate detection...');
       const response = await fetch(`/api/degoudse/${uploadType}`);
       const existing = response.ok ? await response.json() : [];
+      console.log('✅ Fetched existing records:', existing.length);
       setExistingRecords(existing);
 
       const issues: ValidationIssue[] = [];
@@ -549,7 +565,13 @@ export default function ProcessingStep({
       setShowValidation(issues.length > 0);
       
     } catch (error) {
-      toast({ title: 'Error', description: 'Failed to validate data', variant: 'destructive' });
+      console.error('Validation error details:', error);
+      console.error('Error stack:', error instanceof Error ? error.stack : 'No stack trace');
+      toast({ 
+        title: 'Validation Error', 
+        description: `Failed to validate data: ${error instanceof Error ? error.message : 'Unknown error'}`, 
+        variant: 'destructive' 
+      });
     } finally {
       setIsValidating(false);
     }
