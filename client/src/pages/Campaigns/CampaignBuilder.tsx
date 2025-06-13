@@ -113,7 +113,42 @@ const campaignSettingsSchema = z.object({
   templateDescription: z.string().optional(),
 });
 
-// Combined campaign schema
+// Draft schema - only requires campaign name
+const draftCampaignSchema = z.object({
+  name: z.string().min(2, "Campaign name is required"),
+  description: z.string().optional(),
+  type: z.string().optional(),
+  category: z.string().optional(),
+  listIds: z.array(z.string()).optional(),
+  emailBody: z.string().optional(),
+  emailLogo: z.string().optional(),
+  recipientIds: z.array(z.string()).optional(),
+  enableFollowUp: z.boolean().optional(),
+  followUpEmails: z.array(z.object({
+    delayDays: z.number().optional(),
+    subject: z.string().optional(),
+    emailBody: z.string().optional(),
+    attachment: z.string().optional(),
+  })).optional(),
+  subject: z.string().optional(),
+  scheduledTime: z.string().optional(),
+  frequency: z.string().optional(),
+  fromName: z.string().optional(),
+  fromEmail: z.string().optional(),
+  isShared: z.boolean().optional(),
+  shareType: z.string().optional(),
+  sharedPartnerIds: z.array(z.string()).optional(),
+  sharedUserIds: z.array(z.string()).optional(),
+  shareAccessLevel: z.string().optional(),
+  shareMessage: z.string().optional(),
+  sharedContactIds: z.array(z.string()).optional(),
+  saveAsTemplate: z.boolean().optional(),
+  templateName: z.string().optional(),
+  templateDescription: z.string().optional(),
+  status: z.string().optional(),
+});
+
+// Combined campaign schema (for full validation)
 const campaignFormSchema = selectListSchema
   .merge(composeEmailSchema)
   .merge(selectRecipientsSchema)
@@ -1672,9 +1707,28 @@ export default function CampaignBuilder() {
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => {
+                    onClick={async () => {
+                      // Validate only the campaign name for draft
+                      const currentData = form.getValues();
+                      const draftValidation = draftCampaignSchema.safeParse(currentData);
+                      
+                      if (!draftValidation.success) {
+                        // Show validation errors (only name is required)
+                        const nameError = draftValidation.error.errors.find(e => e.path.includes('name'));
+                        if (nameError) {
+                          form.setError('name', { message: nameError.message });
+                          toast({
+                            title: "Validation Error",
+                            description: "Campaign name is required to save as draft",
+                            variant: "destructive"
+                          });
+                          return;
+                        }
+                      }
+                      
+                      // Set status and submit with draft data
                       form.setValue("status", "draft");
-                      form.handleSubmit(onSubmit)();
+                      await onSubmit({ ...currentData, status: "draft" });
                     }}
                     disabled={isSubmitting}
                   >

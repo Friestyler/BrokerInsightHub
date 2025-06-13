@@ -94,7 +94,33 @@ const followUpSchema = z.object({
   })).optional(),
 });
 
-// Combined template schema
+// Draft template schema - only requires name
+const draftTemplateSchema = z.object({
+  name: z.string().min(2, "Template name is required"),
+  description: z.string().optional(),
+  type: z.string().optional(),
+  category: z.string().optional(),
+  subject: z.string().optional(),
+  heading: z.string().optional(),
+  emailBody: z.string().optional(),
+  emailLogo: z.string().optional(),
+  aiPrompt: z.string().optional(),
+  buttonText: z.string().optional(),
+  buttonLink: z.string().optional(),
+  buttonColor: z.string().optional(),
+  enableFollowUp: z.boolean().optional(),
+  followUpEmails: z.array(z.object({
+    subject: z.string().optional(),
+    heading: z.string().optional(),
+    emailBody: z.string().optional(),
+    delay: z.number().optional(),
+    link: z.string().optional(),
+    buttonText: z.string().optional(),
+    buttonColor: z.string().optional(),
+  })).optional(),
+});
+
+// Combined template schema (for full validation)
 const templateFormSchema = selectListSchema
   .merge(composeEmailSchema)
   .merge(followUpSchema);
@@ -771,9 +797,27 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
                   <Button
                     type="button"
                     variant="outline"
-                    onClick={() => {
-                      // Save as draft template
+                    onClick={async () => {
+                      // Validate only the template name for draft
                       const currentData = form.getValues();
+                      const draftValidation = draftTemplateSchema.safeParse(currentData);
+                      
+                      if (!draftValidation.success) {
+                        // Show validation errors (only name is required)
+                        const nameError = draftValidation.error.errors.find(e => e.path.includes('name'));
+                        if (nameError) {
+                          form.setError('name', { message: nameError.message });
+                          toast({
+                            title: "Validation Error",
+                            description: "Template name is required to save as draft",
+                            variant: "destructive"
+                          });
+                          return;
+                        }
+                      }
+                      
+                      // Save as draft template
+                      setIsSubmitting(true);
                       const templateData = {
                         ...currentData,
                         frequency: "one_time",
