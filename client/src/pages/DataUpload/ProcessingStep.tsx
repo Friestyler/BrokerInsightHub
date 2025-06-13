@@ -217,7 +217,7 @@ export default function ProcessingStep({
                   field: mapping.attribute,
                   value: value,
                   message: `Duplicate ${field}: '${value}' already exists`,
-                  solution: 'create_duplicate',
+                  solution: 'skip',
                   duplicateOf: duplicate,
                   rowData: row
                 });
@@ -692,7 +692,7 @@ export default function ProcessingStep({
                       onClick={() => bulkUpdateSolution('skip')}
                     >
                       <Trash2 className="h-3 w-3 mr-1" />
-                      Skip Selected
+                      Skip Upload Row
                     </Button>
                     <Button
                       size="sm"
@@ -700,7 +700,7 @@ export default function ProcessingStep({
                       onClick={() => bulkUpdateSolution('replace')}
                     >
                       <RefreshCw className="h-3 w-3 mr-1" />
-                      Replace Selected
+                      Replace Existing
                     </Button>
                     <Button
                       size="sm"
@@ -708,7 +708,7 @@ export default function ProcessingStep({
                       onClick={() => bulkUpdateSolution('create_duplicate')}
                     >
                       <CheckCircle className="h-3 w-3 mr-1" />
-                      Create Duplicates
+                      Create Duplicate
                     </Button>
                     <Button
                       size="sm"
@@ -951,14 +951,14 @@ export default function ProcessingStep({
                                 <SelectItem value="skip">
                                   <div className="flex items-center gap-2">
                                     <Trash2 className="h-3 w-3" />
-                                    Skip
+                                    Skip Upload Row
                                   </div>
                                 </SelectItem>
                                 {issue.type === 'duplicate' && (
                                   <SelectItem value="replace">
                                     <div className="flex items-center gap-2">
                                       <RefreshCw className="h-3 w-3" />
-                                      Replace
+                                      Replace Existing
                                     </div>
                                   </SelectItem>
                                 )}
