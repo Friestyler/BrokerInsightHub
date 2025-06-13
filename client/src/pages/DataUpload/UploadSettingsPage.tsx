@@ -70,29 +70,50 @@ export default function UploadSettingsPage() {
   const queryClient = useQueryClient();
   const { environment } = useEnvironment();
 
+  // Debug logging for state changes
+  useEffect(() => {
+    console.log('🔍 [UploadSettings] State Debug:', {
+      selectedEntity,
+      environmentId: environment?.id,
+      activeTab,
+      timestamp: new Date().toISOString()
+    });
+  }, [selectedEntity, environment?.id, activeTab]);
+
   // Fetch supported entities
-  const { data: supportedEntities = [] } = useQuery<string[]>({
+  const { data: supportedEntities = [], isLoading: entitiesLoading, error: entitiesError } = useQuery<string[]>({
     queryKey: ['/api/upload/supported-entities'],
     enabled: true
   });
 
   // Fetch entity schemas for current environment
-  const { data: entitySchemas = [], isLoading: schemasLoading } = useQuery<EntitySchema[]>({
+  const { data: entitySchemas = [], isLoading: schemasLoading, error: schemasError } = useQuery<EntitySchema[]>({
     queryKey: ['/api/upload/entities', environment.id],
     enabled: !!environment.id
   });
 
   // Fetch upload settings for selected entity
-  const { data: uploadSettings = [], isLoading: settingsLoading } = useQuery<UploadSetting[]>({
+  const { data: uploadSettings = [], isLoading: settingsLoading, error: settingsError } = useQuery<UploadSetting[]>({
     queryKey: [`/api/${environment.id}/upload-settings/${selectedEntity}`, environment.id, selectedEntity],
     enabled: !!environment.id && !!selectedEntity
   });
 
   // Fetch transformation scripts
-  const { data: transformationScripts = [] } = useQuery<TransformationScript[]>({
+  const { data: transformationScripts = [], isLoading: scriptsLoading, error: scriptsError } = useQuery<TransformationScript[]>({
     queryKey: [`/api/${environment.id}/transformation-scripts`],
     enabled: !!environment.id
   });
+
+  // Debug logging for query results
+  useEffect(() => {
+    console.log('📊 [UploadSettings] Query Data Debug:', {
+      supportedEntities: { data: supportedEntities, loading: entitiesLoading, error: entitiesError },
+      entitySchemas: { data: entitySchemas, loading: schemasLoading, error: schemasError },
+      uploadSettings: { data: uploadSettings, loading: settingsLoading, error: settingsError },
+      transformationScripts: { data: transformationScripts, loading: scriptsLoading, error: scriptsError },
+      timestamp: new Date().toISOString()
+    });
+  }, [supportedEntities, entitiesLoading, entitiesError, entitySchemas, schemasLoading, schemasError, uploadSettings, settingsLoading, settingsError, transformationScripts, scriptsLoading, scriptsError]);
 
 
 
@@ -190,6 +211,26 @@ export default function UploadSettingsPage() {
   const isLoading = settingsLoading || schemasLoading;
   const hasValidData = selectedSchema && selectedEntity;
 
+  // Debug rendering logic
+  useEffect(() => {
+    console.log('🎨 [UploadSettings] Render Logic Debug:', {
+      selectedEntity,
+      selectedSchema: selectedSchema ? {
+        entityType: selectedSchema.entityType,
+        tableName: selectedSchema.tableName,
+        attributesCount: selectedSchema.attributes?.length || 0,
+        attributes: selectedSchema.attributes?.map(attr => ({ name: attr.name, dataType: attr.dataType })) || []
+      } : null,
+      uploadSettings: uploadSettings?.map(setting => ({
+        attribute_name: setting.attribute_name,
+        is_mandatory: setting.is_mandatory
+      })) || [],
+      isLoading,
+      hasValidData,
+      timestamp: new Date().toISOString()
+    });
+  }, [selectedEntity, selectedSchema, uploadSettings, isLoading, hasValidData]);
+
   const handleSettingChange = (attributeName: string, isMandatory: boolean) => {
     if (!selectedSchema || !environment.id || !selectedEntity) return;
 
@@ -225,7 +266,14 @@ export default function UploadSettingsPage() {
 
       <div className="space-y-2">
         <Label htmlFor="entity-select">Entity Type</Label>
-        <Select value={selectedEntity} onValueChange={setSelectedEntity}>
+        <Select value={selectedEntity} onValueChange={(value) => {
+          console.log('🔄 [UploadSettings] Entity Selection Debug:', {
+            previousEntity: selectedEntity,
+            newEntity: value,
+            timestamp: new Date().toISOString()
+          });
+          setSelectedEntity(value);
+        }}>
           <SelectTrigger>
             <SelectValue placeholder="Select entity" />
           </SelectTrigger>
