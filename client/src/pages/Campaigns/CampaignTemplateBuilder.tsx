@@ -495,6 +495,17 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
   return (
     <div className="container mx-auto px-4 py-6">
       <div className="mb-6">
+        <div className="flex items-center gap-4 mb-4">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setLocation('/campaigns')}
+            className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back to Campaigns
+          </Button>
+        </div>
         <h1 className="text-2xl font-bold">Create Campaign Template</h1>
         <p className="text-gray-600">
           Create a reusable template that can be used for future campaigns
