@@ -315,11 +315,23 @@ export default function ProcessingStep({
         throw new Error('No attribute mappings configured');
       }
       
-      // First, fetch existing records to check for duplicates
-      console.log('📡 Fetching existing records for duplicate detection...');
-      const response = await fetch(`/api/degoudse/${uploadType}`);
-      const existing = response.ok ? await response.json() : [];
-      console.log('✅ Fetched existing records:', existing.length);
+      // For special formats like salesforce, skip duplicate detection since they can contain mixed entities
+      let existing = [];
+      
+      if (uploadType !== 'salesforce') {
+        console.log('📡 Fetching existing records for duplicate detection...');
+        const response = await fetch(`/api/degoudse/${uploadType}`);
+        
+        if (!response.ok) {
+          console.error('Failed to fetch existing records:', response.status, response.statusText);
+          throw new Error(`Failed to fetch existing records: ${response.status} ${response.statusText}`);
+        }
+        
+        existing = await response.json();
+        console.log('✅ Fetched existing records:', existing.length);
+      } else {
+        console.log('⏭️ Skipping duplicate detection for special format:', uploadType);
+      }
       setExistingRecords(existing);
 
       const issues: ValidationIssue[] = [];
