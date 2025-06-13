@@ -656,8 +656,12 @@ export default function ProcessingStep({
               transformedData[mapping.attribute] = new Date(value).toISOString();
             } else if (mapping.attribute === 'value' || mapping.attribute.includes('amount') || mapping.attribute.includes('Value')) {
               transformedData[mapping.attribute] = parseFloat(value) || 0;
-            } else if (mapping.attribute === 'probability' || mapping.attribute.includes('Id')) {
-              // Handle numeric fields that should be integers
+            } else if (mapping.attribute === 'probability') {
+              // Handle probability as decimal (0.0 to 1.0)
+              const numValue = parseFloat(value);
+              transformedData[mapping.attribute] = isNaN(numValue) ? 0 : numValue;
+            } else if (mapping.attribute.includes('Id')) {
+              // Handle ID fields as integers
               const numValue = parseFloat(value);
               transformedData[mapping.attribute] = isNaN(numValue) ? 0 : Math.round(numValue);
             } else {
