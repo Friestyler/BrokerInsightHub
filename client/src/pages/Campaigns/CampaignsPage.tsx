@@ -144,6 +144,14 @@ export default function CampaignsPage() {
   const sharedCampaigns = campaigns?.filter(c => !c.isTemplate && c.isShared) || [];
   const dbTemplates = userTemplates || [];
 
+  // Debug logging
+  console.log('Template data debug:', {
+    userTemplates,
+    dbTemplates,
+    isLoadingTemplates,
+    templatesLength: userTemplates?.length
+  });
+
   // Helper function to get sponsor name
   const getSponsorName = (sponsorId: number) => {
     const sponsorMap: Record<number, string> = {
