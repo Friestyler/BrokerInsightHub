@@ -50,7 +50,6 @@ function calculatePartnerStats(partners: any[]) {
 // Partner Table Component for Partner View
 function PartnerTable({ stats }: { stats: any }) {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedLocation, setSelectedLocation] = useState('');
   const [selectedPartners, setSelectedPartners] = useState<string[]>([]);
   const [tableSortConfig, setTableSortConfig] = useState({
     key: '',
@@ -98,10 +97,7 @@ function PartnerTable({ stats }: { stats: any }) {
         partner.contact_email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         partner.primary_contact?.toLowerCase().includes(searchTerm.toLowerCase());
       
-      const matchesLocation = !selectedLocation || 
-        partner.location?.toLowerCase().includes(selectedLocation.toLowerCase());
-      
-      return matchesSearch && matchesLocation;
+      return matchesSearch;
     })
     .sort((a: any, b: any) => {
       if (!tableSortConfig.key) {
@@ -155,28 +151,12 @@ function PartnerTable({ stats }: { stats: any }) {
             </div>
           </div>
 
-          <div className="w-48">
-            <select
-              value={selectedLocation}
-              onChange={(e) => setSelectedLocation(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500"
-            >
-              <option value="">All Locations</option>
-              <option value="Amsterdam">Amsterdam</option>
-              <option value="Rotterdam">Rotterdam</option>
-              <option value="Utrecht">Utrecht</option>
-              <option value="Netherlands">Netherlands</option>
-              <option value="The Hague">The Hague</option>
-            </select>
-          </div>
-
-          {(searchTerm || selectedLocation) && (
+          {searchTerm && (
             <Button
               variant="outline"
               size="sm"
               onClick={() => {
                 setSearchTerm('');
-                setSelectedLocation('');
               }}
             >
               Clear filters
@@ -431,7 +411,7 @@ function PartnerTable({ stats }: { stats: any }) {
             <Building2 className="mx-auto h-12 w-12 text-gray-400" />
             <h3 className="mt-2 text-sm font-medium text-gray-900">No partners found</h3>
             <p className="mt-1 text-sm text-gray-500">
-              {searchTerm || selectedLocation ? 'Try adjusting your search criteria.' : 'No partners are available.'}
+              {searchTerm ? 'Try adjusting your search criteria.' : 'No partners are available.'}
             </p>
           </div>
         )}
