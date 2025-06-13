@@ -890,7 +890,7 @@ export default function AttributeMappingStep({
                               Code (Custom Logic)
                             </div>
                           </SelectItem>
-                          {csvHeadersToUse.map(header => (
+                          {csvHeadersToUse.filter(header => header && header.trim().length > 0).map(header => (
                             <SelectItem key={header} value={header}>{header}</SelectItem>
                           ))}
                         </div>
@@ -1005,7 +1005,7 @@ export default function AttributeMappingStep({
                               <SelectValue placeholder="Select column to insert" />
                             </SelectTrigger>
                             <SelectContent>
-                              {extractedHeaders.map((header, headerIndex) => (
+                              {extractedHeaders.filter(header => header && header.trim().length > 0).map((header, headerIndex) => (
                                 <SelectItem key={headerIndex} value={header}>
                                   {header}
                                 </SelectItem>
