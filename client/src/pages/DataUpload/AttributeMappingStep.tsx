@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Save, Edit, ArrowLeft, ArrowRight, CheckCircle, X, Trash2 } from 'lucide-react';
+import { Plus, Save, Edit, ArrowLeft, ArrowRight, CheckCircle, X, Trash2, Minus } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 
@@ -770,6 +770,35 @@ export default function AttributeMappingStep({
     }
   };
 
+  // Remove attribute mapping (only for non-mandatory attributes)
+  const removeAttributeMapping = (index: number) => {
+    const mapping = attributeMappings[index];
+    if (!mapping.isRequired) {
+      setAttributeMappings(prev => prev.filter((_, i) => i !== index));
+      // Clean up associated states
+      setShowCodeEditor(prev => {
+        const newState = { ...prev };
+        delete newState[index];
+        return newState;
+      });
+      setCodeEditorContent(prev => {
+        const newState = { ...prev };
+        delete newState[index];
+        return newState;
+      });
+      setCodeValidation(prev => {
+        const newState = { ...prev };
+        delete newState[index];
+        return newState;
+      });
+      setCodePreview(prev => {
+        const newState = { ...prev };
+        delete newState[index];
+        return newState;
+      });
+    }
+  };
+
   // Load template
   const loadTemplate = (templateId: string | Template) => {
     const template = typeof templateId === 'string' 
@@ -997,7 +1026,7 @@ export default function AttributeMappingStep({
               <div key={`mapping-row-${index}`} className="space-y-4">
                 <div className="grid grid-cols-2 gap-8 items-stretch">
                   {/* Left: Entity Attribute */}
-                  <div className={`p-3 rounded-lg border flex items-center ${
+                  <div className={`p-3 rounded-lg border flex items-center justify-between ${
                     mapping.isRequired 
                       ? 'bg-red-50 border-red-200' 
                       : 'bg-blue-50 border-blue-200'
@@ -1008,6 +1037,16 @@ export default function AttributeMappingStep({
                         <Badge variant="destructive" className="text-xs">Required</Badge>
                       )}
                     </div>
+                    {!mapping.isRequired && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeAttributeMapping(index)}
+                        className="h-6 w-6 p-0 text-gray-400 hover:text-red-500 hover:bg-red-50"
+                      >
+                        <Minus className="h-3 w-3" />
+                      </Button>
+                    )}
                   </div>
                   
                   {/* Right: CSV Column Dropdown */}
