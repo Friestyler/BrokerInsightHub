@@ -990,28 +990,29 @@ export default function AttributeMappingStep({
                         </div>
                       </div>
                       
-                      {/* Available Columns Dropdown */}
+                      {/* Available Columns with Plus Icons */}
                       {extractedHeaders.length > 0 && (
                         <div className="space-y-2">
                           <p className="text-xs font-medium text-gray-700">Insert Column Reference:</p>
-                          <Select
-                            onValueChange={(value) => {
-                              const currentCode = codeEditorContent[index] || '';
-                              const columnRef = `column_${value.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
-                              handleCodeChange(index, currentCode + columnRef);
-                            }}
-                          >
-                            <SelectTrigger className="h-8">
-                              <SelectValue placeholder="Select column to insert" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {extractedHeaders.filter(header => header && header.trim().length > 0).map((header, headerIndex) => (
-                                <SelectItem key={headerIndex} value={header}>
-                                  {header}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
+                          <div className="max-h-32 overflow-y-auto border rounded-md p-2 bg-white space-y-1">
+                            {extractedHeaders.filter(header => header && header.trim().length > 0).map((header, headerIndex) => (
+                              <div key={headerIndex} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded group">
+                                <span className="text-sm text-gray-700 font-mono">{header}</span>
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const currentCode = codeEditorContent[index] || '';
+                                    const columnRef = `column_${header.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+                                    handleCodeChange(index, currentCode + columnRef);
+                                  }}
+                                  className="opacity-0 group-hover:opacity-100 transition-opacity w-6 h-6 flex items-center justify-center text-purple-600 hover:text-purple-800 hover:bg-purple-100 rounded"
+                                  title={`Add ${header} column reference`}
+                                >
+                                  <span className="text-sm font-bold">+</span>
+                                </button>
+                              </div>
+                            ))}
+                          </div>
                         </div>
                       )}
                     </div>
