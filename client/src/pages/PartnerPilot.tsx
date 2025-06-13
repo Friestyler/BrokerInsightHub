@@ -629,193 +629,183 @@ export default function PartnerPilot() {
           
 
 
-          {/* Main Section: Entity Upload Options */}
-          <div className="mb-10">
-            <h2 className="text-lg font-semibold mb-4">Upload by Entity Type</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-emerald-100 flex flex-col" onClick={() => setLocation('/data-upload-3/entities')}>
-                <CardHeader className="flex-grow">
-                  <div className="flex justify-between items-start">
-                    <div className="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center">
-                      <Upload className="h-5 w-5 text-emerald-600" />
-                    </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-emerald-100 flex flex-col" onClick={() => setLocation('/data-upload-3/entities')}>
+              <CardHeader className="flex-grow">
+                <div className="flex justify-between items-start">
+                  <div className="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center">
+                    <Upload className="h-5 w-5 text-emerald-600" />
                   </div>
-                  <CardTitle className="text-lg mt-2">Upload Entity Data</CardTitle>
-                  <CardDescription>
-                    General entity data upload with flexible mapping and validation
-                  </CardDescription>
-                </CardHeader>
-                <CardFooter className="mt-auto">
-                  <Button className="w-full bg-emerald-600 hover:bg-emerald-700">
-                    Upload Entity Data
-                  </Button>
-                </CardFooter>
-              </Card>
+                </div>
+                <CardTitle className="text-lg mt-2">Upload Entity Data</CardTitle>
+                <CardDescription>
+                  General entity data upload with flexible mapping and validation
+                </CardDescription>
+              </CardHeader>
+              <CardFooter className="mt-auto">
+                <Button className="w-full bg-emerald-600 hover:bg-emerald-700">
+                  Upload Entity Data
+                </Button>
+              </CardFooter>
+            </Card>
 
-              <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-blue-100 flex flex-col" onClick={() => setLocation('/data-upload-2/process/opportunities')}>
-                <CardHeader className="flex-grow">
-                  <div className="flex justify-between items-start">
-                    <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                      <FileSpreadsheet className="h-5 w-5 text-blue-600" />
-                    </div>
+            <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-blue-100 flex flex-col" onClick={() => setLocation('/data-upload-2/process/opportunities')}>
+              <CardHeader className="flex-grow">
+                <div className="flex justify-between items-start">
+                  <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                    <FileSpreadsheet className="h-5 w-5 text-blue-600" />
                   </div>
-                  <CardTitle className="text-lg mt-2">Opportunities</CardTitle>
-                  <CardDescription>
-                    Upload opportunity data with automatic attribute mapping and validation
-                  </CardDescription>
-                </CardHeader>
-                <CardFooter className="mt-auto">
-                  <Button className="w-full bg-blue-600 hover:bg-blue-700">
-                    Upload Opportunities
-                  </Button>
-                </CardFooter>
-              </Card>
+                </div>
+                <CardTitle className="text-lg mt-2">Opportunities</CardTitle>
+                <CardDescription>
+                  Upload opportunity data with automatic attribute mapping and validation
+                </CardDescription>
+              </CardHeader>
+              <CardFooter className="mt-auto">
+                <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                  Upload Opportunities
+                </Button>
+              </CardFooter>
+            </Card>
 
-              <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-green-100 flex flex-col" onClick={() => setLocation('/data-upload-2/process/partners')}>
-                <CardHeader className="flex-grow">
-                  <div className="flex justify-between items-start">
-                    <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
-                      <Handshake className="h-5 w-5 text-green-600" />
-                    </div>
+            <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-green-100 flex flex-col" onClick={() => setLocation('/data-upload-2/process/partners')}>
+              <CardHeader className="flex-grow">
+                <div className="flex justify-between items-start">
+                  <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
+                    <Handshake className="h-5 w-5 text-green-600" />
                   </div>
-                  <CardTitle className="text-lg mt-2">Partners</CardTitle>
-                  <CardDescription>
-                    Import partner information with contact and relationship mapping
-                  </CardDescription>
-                </CardHeader>
-                <CardFooter className="mt-auto">
-                  <Button className="w-full bg-green-600 hover:bg-green-700">
-                    Upload Partners
-                  </Button>
-                </CardFooter>
-              </Card>
+                </div>
+                <CardTitle className="text-lg mt-2">Partners</CardTitle>
+                <CardDescription>
+                  Import partner information with contact and relationship mapping
+                </CardDescription>
+              </CardHeader>
+              <CardFooter className="mt-auto">
+                <Button className="w-full bg-green-600 hover:bg-green-700">
+                  Upload Partners
+                </Button>
+              </CardFooter>
+            </Card>
 
-              <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-purple-100 flex flex-col" onClick={() => setLocation('/data-upload-2/process/customers')}>
-                <CardHeader className="flex-grow">
-                  <div className="flex justify-between items-start">
-                    <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
-                      <UserCheck className="h-5 w-5 text-purple-600" />
-                    </div>
+            <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-purple-100 flex flex-col" onClick={() => setLocation('/data-upload-2/process/customers')}>
+              <CardHeader className="flex-grow">
+                <div className="flex justify-between items-start">
+                  <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
+                    <UserCheck className="h-5 w-5 text-purple-600" />
                   </div>
-                  <CardTitle className="text-lg mt-2">Customers</CardTitle>
-                  <CardDescription>
-                    Upload customer data with segmentation and preference mapping
-                  </CardDescription>
-                </CardHeader>
-                <CardFooter className="mt-auto">
-                  <Button className="w-full bg-purple-600 hover:bg-purple-700">
-                    Upload Customers
-                  </Button>
-                </CardFooter>
-              </Card>
+                </div>
+                <CardTitle className="text-lg mt-2">Customers</CardTitle>
+                <CardDescription>
+                  Upload customer data with segmentation and preference mapping
+                </CardDescription>
+              </CardHeader>
+              <CardFooter className="mt-auto">
+                <Button className="w-full bg-purple-600 hover:bg-purple-700">
+                  Upload Customers
+                </Button>
+              </CardFooter>
+            </Card>
 
-              <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-orange-100 flex flex-col" onClick={() => setLocation('/data-upload-2/process/products')}>
-                <CardHeader className="flex-grow">
-                  <div className="flex justify-between items-start">
-                    <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center">
-                      <Archive className="h-5 w-5 text-orange-600" />
-                    </div>
+            <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-orange-100 flex flex-col" onClick={() => setLocation('/data-upload-2/process/products')}>
+              <CardHeader className="flex-grow">
+                <div className="flex justify-between items-start">
+                  <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center">
+                    <Archive className="h-5 w-5 text-orange-600" />
                   </div>
-                  <CardTitle className="text-lg mt-2">Products</CardTitle>
-                  <CardDescription>
-                    Import product catalog with pricing and category organization
-                  </CardDescription>
-                </CardHeader>
-                <CardFooter className="mt-auto">
-                  <Button className="w-full bg-orange-600 hover:bg-orange-700">
-                    Upload Products
-                  </Button>
-                </CardFooter>
-              </Card>
+                </div>
+                <CardTitle className="text-lg mt-2">Products</CardTitle>
+                <CardDescription>
+                  Import product catalog with pricing and category organization
+                </CardDescription>
+              </CardHeader>
+              <CardFooter className="mt-auto">
+                <Button className="w-full bg-orange-600 hover:bg-orange-700">
+                  Upload Products
+                </Button>
+              </CardFooter>
+            </Card>
 
-              <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-red-100 flex flex-col" onClick={() => setLocation('/data-upload-2/process/vendors')}>
-                <CardHeader className="flex-grow">
-                  <div className="flex justify-between items-start">
-                    <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
-                      <Factory className="h-5 w-5 text-red-600" />
-                    </div>
+            <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-red-100 flex flex-col" onClick={() => setLocation('/data-upload-2/process/vendors')}>
+              <CardHeader className="flex-grow">
+                <div className="flex justify-between items-start">
+                  <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
+                    <Factory className="h-5 w-5 text-red-600" />
                   </div>
-                  <CardTitle className="text-lg mt-2">Vendors</CardTitle>
-                  <CardDescription>
-                    Upload vendor information with contract and performance data
-                  </CardDescription>
-                </CardHeader>
-                <CardFooter className="mt-auto">
-                  <Button className="w-full bg-red-600 hover:bg-red-700">
-                    Upload Vendors
-                  </Button>
-                </CardFooter>
-              </Card>
+                </div>
+                <CardTitle className="text-lg mt-2">Vendors</CardTitle>
+                <CardDescription>
+                  Upload vendor information with contract and performance data
+                </CardDescription>
+              </CardHeader>
+              <CardFooter className="mt-auto">
+                <Button className="w-full bg-red-600 hover:bg-red-700">
+                  Upload Vendors
+                </Button>
+              </CardFooter>
+            </Card>
 
-              <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-gray-100 flex flex-col" onClick={() => setLocation('/data-upload-2/process/contacts')}>
-                <CardHeader className="flex-grow">
-                  <div className="flex justify-between items-start">
-                    <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
-                      <Phone className="h-5 w-5 text-gray-600" />
-                    </div>
+            <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-gray-100 flex flex-col" onClick={() => setLocation('/data-upload-2/process/contacts')}>
+              <CardHeader className="flex-grow">
+                <div className="flex justify-between items-start">
+                  <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
+                    <Phone className="h-5 w-5 text-gray-600" />
                   </div>
-                  <CardTitle className="text-lg mt-2">Contacts</CardTitle>
-                  <CardDescription>
-                    Import contact information with relationship and communication preferences
-                  </CardDescription>
-                </CardHeader>
-                <CardFooter className="mt-auto">
-                  <Button className="w-full bg-gray-600 hover:bg-gray-700">
-                    Upload Contacts
-                  </Button>
-                </CardFooter>
-              </Card>
-            </div>
-          </div>
+                </div>
+                <CardTitle className="text-lg mt-2">Contacts</CardTitle>
+                <CardDescription>
+                  Import contact information with relationship and communication preferences
+                </CardDescription>
+              </CardHeader>
+              <CardFooter className="mt-auto">
+                <Button className="w-full bg-gray-600 hover:bg-gray-700">
+                  Upload Contacts
+                </Button>
+              </CardFooter>
+            </Card>
 
-          {/* Special Formats Section */}
-          <div>
-            <h2 className="text-lg font-semibold mb-4">Specialized Import Formats</h2>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              <Card 
-                className="hover:shadow-md transition-shadow cursor-pointer border-2 border-blue-100 flex flex-col"
-                onClick={() => setLocation('/data-upload-2/process/salesforce')}
-              >
-                <CardHeader className="flex-grow">
-                  <div className="flex justify-between items-start">
-                    <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                      <Cloud className="h-5 w-5 text-blue-600" />
-                    </div>
+            <Card 
+              className="hover:shadow-md transition-shadow cursor-pointer border-2 border-blue-100 flex flex-col"
+              onClick={() => setLocation('/data-upload-2/process/salesforce')}
+            >
+              <CardHeader className="flex-grow">
+                <div className="flex justify-between items-start">
+                  <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
+                    <Cloud className="h-5 w-5 text-blue-600" />
                   </div>
-                  <CardTitle className="text-lg mt-2">Salesforce Import</CardTitle>
-                  <CardDescription>
-                    Specialized CSV import for Salesforce CRM data export formats
-                  </CardDescription>
-                </CardHeader>
-                <CardFooter className="mt-auto">
-                  <Button className="w-full bg-blue-600 hover:bg-blue-700">
-                    Upload Salesforce File
-                  </Button>
-                </CardFooter>
-              </Card>
+                </div>
+                <CardTitle className="text-lg mt-2">Salesforce Import</CardTitle>
+                <CardDescription>
+                  Specialized CSV import for Salesforce CRM data export formats
+                </CardDescription>
+              </CardHeader>
+              <CardFooter className="mt-auto">
+                <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                  Upload Salesforce File
+                </Button>
+              </CardFooter>
+            </Card>
 
-              <Card 
-                className="hover:shadow-md transition-shadow cursor-pointer border-2 border-indigo-100 flex flex-col"
-                onClick={() => setLocation('/data-upload-2/process/brio')}
-              >
-                <CardHeader className="flex-grow">
-                  <div className="flex justify-between items-start">
-                    <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
-                      <FileSpreadsheet className="h-5 w-5 text-indigo-600" />
-                    </div>
+            <Card 
+              className="hover:shadow-md transition-shadow cursor-pointer border-2 border-indigo-100 flex flex-col"
+              onClick={() => setLocation('/data-upload-2/process/brio')}
+            >
+              <CardHeader className="flex-grow">
+                <div className="flex justify-between items-start">
+                  <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
+                    <FileSpreadsheet className="h-5 w-5 text-indigo-600" />
                   </div>
-                  <CardTitle className="text-lg mt-2">Brio Format</CardTitle>
-                  <CardDescription>
-                    Import data using Brio business intelligence export formats
-                  </CardDescription>
-                </CardHeader>
-                <CardFooter className="mt-auto">
-                  <Button className="w-full bg-indigo-600 hover:bg-indigo-700">
-                    Upload Brio File
-                  </Button>
-                </CardFooter>
-              </Card>
-            </div>
+                </div>
+                <CardTitle className="text-lg mt-2">Brio Format</CardTitle>
+                <CardDescription>
+                  Import data using Brio business intelligence export formats
+                </CardDescription>
+              </CardHeader>
+              <CardFooter className="mt-auto">
+                <Button className="w-full bg-indigo-600 hover:bg-indigo-700">
+                  Upload Brio File
+                </Button>
+              </CardFooter>
+            </Card>
           </div>
         </div>
       )}
