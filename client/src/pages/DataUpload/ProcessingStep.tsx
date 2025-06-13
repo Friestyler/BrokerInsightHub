@@ -998,8 +998,19 @@ export default function ProcessingStep({
             </div>
           )}
 
+          {/* Validation Loading State */}
+          {phase === 'validation' && isValidating && (
+            <div className="text-center space-y-4">
+              <div className="mx-auto h-16 w-16 rounded-full bg-blue-100 flex items-center justify-center">
+                <AlertCircle className="h-8 w-8 text-blue-600 animate-spin" />
+              </div>
+              <h3 className="text-lg font-medium">Validating Data...</h3>
+              <p className="text-gray-600">Checking for issues and validating your data. Please wait.</p>
+            </div>
+          )}
+
           {/* No Validation Issues */}
-          {phase === 'validation' && !showValidation && (
+          {phase === 'validation' && !showValidation && !isValidating && (
             <div className="text-center space-y-4">
               <CheckCircle className="mx-auto h-16 w-16 text-green-600" />
               <h3 className="text-lg font-medium">No Issues Found!</h3>
