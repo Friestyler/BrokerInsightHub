@@ -51,7 +51,14 @@ export default function MappingStep({
           formData.append('csvFile', uploadedFile);
           formData.append('entityType', uploadType);
 
-          const response = await fetch(`/api/${window.environmentId || 'degoudse'}/transformation-scripts/execute`, {
+          // Get environment ID from URL or default to degoudse
+          const getCurrentEnvironment = () => {
+            const path = window.location.pathname;
+            const envMatch = path.match(/\/data-upload-2\/process\/([^\/]+)/);
+            return envMatch ? envMatch[1] : 'degoudse';
+          };
+
+          const response = await fetch(`/api/${getCurrentEnvironment()}/transformation-scripts/execute`, {
             method: 'POST',
             body: formData
           });

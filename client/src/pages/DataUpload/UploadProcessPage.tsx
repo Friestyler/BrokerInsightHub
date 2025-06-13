@@ -236,7 +236,10 @@ export default function UploadProcessPage() {
               uploadType={uploadType}
               stepName={currentStepData?.name || 'Transformation'}
               currentStep={currentStep}
-              onNext={goToNextStep}
+              onNext={(scriptInfo) => {
+                setSelectedTransformationScript(scriptInfo || null);
+                goToNextStep();
+              }}
               onBack={goToPreviousStep}
             />
           )}

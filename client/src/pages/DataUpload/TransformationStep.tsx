@@ -29,7 +29,7 @@ interface TransformationStepProps {
   uploadType: string;
   stepName: string;
   currentStep: number;
-  onNext: () => void;
+  onNext: (scriptInfo: { id: number; name: string } | null) => void;
   onBack: () => void;
 }
 
@@ -438,7 +438,17 @@ export default function TransformationStep({
       return;
     }
     
-    onNext();
+    // Pass selected script information to the next step
+    if (selectedScriptId !== 'new') {
+      const selectedScript = scripts.find(s => s.id.toString() === selectedScriptId);
+      if (selectedScript) {
+        onNext({ id: selectedScript.id, name: selectedScript.name });
+        return;
+      }
+    }
+    
+    // No script selected or new script without content
+    onNext(null);
   };
 
   if (isLoading) {
