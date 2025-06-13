@@ -317,7 +317,15 @@ export default function ProcessingStep({
     }));
   };
 
-  const clearFilters = () => {
+  const removeFilter = (filterKey: string) => {
+    setFilters(prev => {
+      const newFilters = { ...prev };
+      delete newFilters[filterKey];
+      return newFilters;
+    });
+  };
+
+  const clearAllFilters = () => {
     setFilters({});
   };
 
@@ -581,32 +589,37 @@ export default function ProcessingStep({
                 </div>
               )}
 
-              {/* Filters */}
-              <div className="space-y-4">
-                <div className="flex items-center justify-between">
-                  <h3 className="font-medium">Filter by Attributes</h3>
-                  <Button variant="outline" size="sm" onClick={clearFilters}>
-                    Clear Filters
-                  </Button>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {attributeMappings
-                    .filter(mapping => mapping.csvColumn)
-                    .map(mapping => (
-                      <div key={mapping.attribute} className="space-y-1">
-                        <Label className="text-xs text-gray-600">
-                          {mapping.attribute}
-                        </Label>
-                        <Input
-                          placeholder={`Filter by ${mapping.attribute}`}
-                          value={filters[mapping.csvColumn] || ''}
-                          onChange={(e) => updateFilter(mapping.csvColumn, e.target.value)}
-                          className="h-8"
-                        />
-                      </div>
+              {/* Active Filters */}
+              {activeFilters.length > 0 && (
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <Filter className="h-4 w-4 text-gray-500" />
+                      <span className="text-sm font-medium">Active Filters:</span>
+                    </div>
+                    <Button variant="outline" size="sm" onClick={clearAllFilters}>
+                      Clear All
+                    </Button>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {activeFilters.map((filter) => (
+                      <Badge
+                        key={filter.key}
+                        variant="secondary"
+                        className="flex items-center gap-1 pr-1"
+                      >
+                        {filter.label}
+                        <button
+                          onClick={() => removeFilter(filter.key)}
+                          className="ml-1 hover:bg-gray-300 rounded-full p-0.5"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                      </Badge>
                     ))}
+                  </div>
                 </div>
-              </div>
+              )}
 
               {/* Issues Table */}
               <div className="border rounded-lg">
@@ -620,16 +633,124 @@ export default function ProcessingStep({
                         />
                       </TableHead>
                       <TableHead>Row</TableHead>
-                      <TableHead>Issue Type</TableHead>
-                      <TableHead>Field</TableHead>
-                      <TableHead>Value</TableHead>
-                      <TableHead>Message</TableHead>
+                      <TableHead className="cursor-pointer hover:bg-gray-50">
+                        <div className="flex items-center gap-1">
+                          <span>Issue Type</span>
+                          <ChevronDown className="h-3 w-3" />
+                        </div>
+                        {filters.issueType && (
+                          <Input
+                            placeholder="Filter issue type..."
+                            value={filters.issueType}
+                            onChange={(e) => updateFilter('issueType', e.target.value)}
+                            className="h-6 mt-1 text-xs"
+                            autoFocus
+                          />
+                        )}
+                        {!filters.issueType && (
+                          <button
+                            onClick={() => updateFilter('issueType', '')}
+                            className="text-xs text-blue-600 hover:underline mt-1"
+                          >
+                            Add filter
+                          </button>
+                        )}
+                      </TableHead>
+                      <TableHead className="cursor-pointer hover:bg-gray-50">
+                        <div className="flex items-center gap-1">
+                          <span>Field</span>
+                          <ChevronDown className="h-3 w-3" />
+                        </div>
+                        {filters.field && (
+                          <Input
+                            placeholder="Filter field..."
+                            value={filters.field}
+                            onChange={(e) => updateFilter('field', e.target.value)}
+                            className="h-6 mt-1 text-xs"
+                            autoFocus
+                          />
+                        )}
+                        {!filters.field && (
+                          <button
+                            onClick={() => updateFilter('field', '')}
+                            className="text-xs text-blue-600 hover:underline mt-1"
+                          >
+                            Add filter
+                          </button>
+                        )}
+                      </TableHead>
+                      <TableHead className="cursor-pointer hover:bg-gray-50">
+                        <div className="flex items-center gap-1">
+                          <span>Value</span>
+                          <ChevronDown className="h-3 w-3" />
+                        </div>
+                        {filters.value && (
+                          <Input
+                            placeholder="Filter value..."
+                            value={filters.value}
+                            onChange={(e) => updateFilter('value', e.target.value)}
+                            className="h-6 mt-1 text-xs"
+                            autoFocus
+                          />
+                        )}
+                        {!filters.value && (
+                          <button
+                            onClick={() => updateFilter('value', '')}
+                            className="text-xs text-blue-600 hover:underline mt-1"
+                          >
+                            Add filter
+                          </button>
+                        )}
+                      </TableHead>
+                      <TableHead className="cursor-pointer hover:bg-gray-50">
+                        <div className="flex items-center gap-1">
+                          <span>Message</span>
+                          <ChevronDown className="h-3 w-3" />
+                        </div>
+                        {filters.message && (
+                          <Input
+                            placeholder="Filter message..."
+                            value={filters.message}
+                            onChange={(e) => updateFilter('message', e.target.value)}
+                            className="h-6 mt-1 text-xs"
+                            autoFocus
+                          />
+                        )}
+                        {!filters.message && (
+                          <button
+                            onClick={() => updateFilter('message', '')}
+                            className="text-xs text-blue-600 hover:underline mt-1"
+                          >
+                            Add filter
+                          </button>
+                        )}
+                      </TableHead>
                       {attributeMappings
                         .filter(mapping => mapping.csvColumn)
                         .slice(0, 3)
                         .map(mapping => (
-                          <TableHead key={mapping.attribute}>
-                            {mapping.attribute}
+                          <TableHead key={mapping.attribute} className="cursor-pointer hover:bg-gray-50">
+                            <div className="flex items-center gap-1">
+                              <span>{mapping.attribute}</span>
+                              <ChevronDown className="h-3 w-3" />
+                            </div>
+                            {filters[mapping.csvColumn] && (
+                              <Input
+                                placeholder={`Filter ${mapping.attribute}...`}
+                                value={filters[mapping.csvColumn]}
+                                onChange={(e) => updateFilter(mapping.csvColumn, e.target.value)}
+                                className="h-6 mt-1 text-xs"
+                                autoFocus
+                              />
+                            )}
+                            {!filters[mapping.csvColumn] && (
+                              <button
+                                onClick={() => updateFilter(mapping.csvColumn, '')}
+                                className="text-xs text-blue-600 hover:underline mt-1"
+                              >
+                                Add filter
+                              </button>
+                            )}
                           </TableHead>
                         ))}
                       <TableHead className="w-32">Action</TableHead>
