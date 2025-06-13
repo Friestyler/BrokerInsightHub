@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import Papa from 'papaparse';
 
 interface AttributeMapping {
   attribute: string;
@@ -304,7 +305,7 @@ export default function ProcessingStep({
     try {
       console.log('🔍 Starting validation process...');
       console.log('Upload type:', uploadType);
-      console.log('CSV data length:', csvData.length);
+      console.log('Original CSV data length:', csvData.length);
       console.log('Attribute mappings:', attributeMappings);
       
       // Validate inputs before proceeding
@@ -314,6 +315,53 @@ export default function ProcessingStep({
       
       if (!attributeMappings || attributeMappings.length === 0) {
         throw new Error('No attribute mappings configured');
+      }
+
+      // First, get the transformed CSV data
+      console.log('📊 Running transformation script to get clean data for validation...');
+      let transformedCsvData = csvData;
+      
+      if (uploadedFile) {
+        try {
+          const formData = new FormData();
+          formData.append('file', uploadedFile);
+          formData.append('scriptId', '7'); // Default transformation script
+          formData.append('entityType', uploadType);
+          formData.append('environmentId', 'degoudse');
+          
+          const transformResponse = await fetch('/api/degoudse/transformation-scripts/execute', {
+            method: 'POST',
+            body: formData
+          });
+          
+          if (transformResponse.ok) {
+            const transformResult = await transformResponse.json();
+            if (transformResult.success && transformResult.transformedCsv) {
+              // Parse the transformed CSV manually
+              const lines = transformResult.transformedCsv.split('\n').filter(line => line.trim());
+              if (lines.length > 1) {
+                const headers = lines[0].split(',').map((h: string) => h.trim().replace(/"/g, ''));
+                const dataRows = lines.slice(1).map((line: string, index: number) => {
+                  const values = line.split(',').map((v: string) => v.trim().replace(/"/g, ''));
+                  const rowObj: any = { _rowNumber: index + 1 };
+                  headers.forEach((header: string, i: number) => {
+                    rowObj[header] = values[i] || '';
+                  });
+                  return rowObj;
+                });
+                
+                if (dataRows.length > 0) {
+                  transformedCsvData = dataRows;
+                  console.log('✅ Using transformed CSV data for validation:', transformedCsvData.length, 'rows');
+                  console.log('✅ Transformed headers:', headers);
+                  console.log('✅ Sample transformed row:', dataRows[0]);
+                }
+              }
+            }
+          }
+        } catch (transformError) {
+          console.warn('⚠️ Transformation failed, using original data:', transformError);
+        }
       }
       
       // Determine target entity type from attribute mappings
@@ -347,7 +395,7 @@ export default function ProcessingStep({
 
       const issues: ValidationIssue[] = [];
       
-      csvData.forEach((row, index) => {
+      transformedCsvData.forEach((row, index) => {
         // Apply custom code transformations first
         const transformedRow = applyCustomCodeTransformations(row);
         
@@ -662,6 +710,51 @@ export default function ProcessingStep({
     setProcessingProgress(0);
 
     try {
+      // Get the same transformed CSV data that was used for validation
+      console.log('📊 Getting transformed data for processing...');
+      let transformedCsvData = csvData;
+      
+      if (uploadedFile) {
+        try {
+          const formData = new FormData();
+          formData.append('file', uploadedFile);
+          formData.append('scriptId', '7'); // Default transformation script
+          formData.append('entityType', uploadType);
+          formData.append('environmentId', 'degoudse');
+          
+          const transformResponse = await fetch('/api/degoudse/transformation-scripts/execute', {
+            method: 'POST',
+            body: formData
+          });
+          
+          if (transformResponse.ok) {
+            const transformResult = await transformResponse.json();
+            if (transformResult.success && transformResult.transformedCsv) {
+              // Parse the transformed CSV manually
+              const lines = transformResult.transformedCsv.split('\n').filter(line => line.trim());
+              if (lines.length > 1) {
+                const headers = lines[0].split(',').map((h: string) => h.trim().replace(/"/g, ''));
+                const dataRows = lines.slice(1).map((line: string, index: number) => {
+                  const values = line.split(',').map((v: string) => v.trim().replace(/"/g, ''));
+                  const rowObj: any = { _rowNumber: index + 1 };
+                  headers.forEach((header: string, i: number) => {
+                    rowObj[header] = values[i] || '';
+                  });
+                  return rowObj;
+                });
+                
+                if (dataRows.length > 0) {
+                  transformedCsvData = dataRows;
+                  console.log('✅ Using transformed CSV data for processing:', transformedCsvData.length, 'rows');
+                }
+              }
+            }
+          }
+        } catch (transformError) {
+          console.warn('⚠️ Transformation failed, using original data:', transformError);
+        }
+      }
+
       // Filter out rows that should be skipped based on validation issues
       const skipRows = new Set(
         validationIssues
@@ -669,7 +762,7 @@ export default function ProcessingStep({
           .map(issue => issue.row)
       );
 
-      const rowsToProcess = csvData.filter(row => !skipRows.has(row._rowNumber));
+      const rowsToProcess = transformedCsvData.filter(row => !skipRows.has(row._rowNumber));
       const totalRows = rowsToProcess.length;
       let processedCount = 0;
       let createdCount = 0;
