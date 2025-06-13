@@ -20,9 +20,31 @@ interface UploadProcessProps {
 const capitalizeUploadType = (type: string) => {
   if (!type) return '';
   
-  // Handle special cases
-  if (type.toLowerCase() === 'degoudse') {
-    return 'De Goudse';
+  // Handle special cases with spaces
+  const specialCases: { [key: string]: string } = {
+    'degoudse': 'De Goudse',
+    'de-goudse': 'De Goudse',
+    'axa-verzekeringen': 'AXA Verzekeringen',
+    'ing-bank': 'ING Bank'
+  };
+  
+  const lowerType = type.toLowerCase();
+  if (specialCases[lowerType]) {
+    return specialCases[lowerType];
+  }
+  
+  // Handle hyphenated names - convert to spaces and capitalize each word
+  if (type.includes('-')) {
+    return type.split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
+  }
+  
+  // Handle underscore names - convert to spaces and capitalize each word
+  if (type.includes('_')) {
+    return type.split('_')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+      .join(' ');
   }
   
   // Default capitalization
