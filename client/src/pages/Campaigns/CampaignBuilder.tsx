@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, useRoute } from "wouter";
+import { useNavigationHistory } from "@/hooks/useNavigationHistory";
 import { 
   Card, 
   CardContent, 
@@ -148,6 +149,7 @@ interface BuilderStep {
 export default function CampaignBuilder() {
   const [, params] = useRoute("/campaigns/new");
   const [, setLocation] = useLocation();
+  const { goBack } = useNavigationHistory("/campaigns");
   const { environment } = useEnvironment();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -1599,9 +1601,9 @@ export default function CampaignBuilder() {
         <Button 
           variant="ghost" 
           className="pl-0 text-gray-500"
-          onClick={() => setLocation("/campaigns")}
+          onClick={goBack}
         >
-          <ArrowLeft className="h-4 w-4 mr-1" /> Back to Campaigns
+          <ArrowLeft className="h-4 w-4 mr-1" /> Back
         </Button>
         <h1 className="text-2xl font-bold mt-2">{form.getValues("name") || "New Campaign"}</h1>
       </div>

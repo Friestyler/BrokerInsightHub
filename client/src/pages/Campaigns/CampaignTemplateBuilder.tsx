@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useLocation } from "wouter";
+import { useNavigationHistory } from "@/hooks/useNavigationHistory";
 import { 
   Card, 
   CardContent, 
@@ -119,6 +120,7 @@ interface CampaignTemplateBuilderProps {}
 
 export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps) {
   const [, setLocation] = useLocation();
+  const { goBack } = useNavigationHistory("/campaigns");
   const [currentStep, setCurrentStep] = useState("select-list");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showAiPrompt, setShowAiPrompt] = useState(false);
