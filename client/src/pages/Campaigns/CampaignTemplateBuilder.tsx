@@ -299,7 +299,7 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
         return (
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="template-name">Campaign Name</Label>
+              <Label htmlFor="template-name" className="text-[#282A3F]">Campaign Name</Label>
               <Input
                 id="template-name"
                 placeholder="e.g. Health Coverage for Self-Employed - June"
@@ -310,7 +310,7 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
               </p>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="template-description">Description (Optional)</Label>
+              <Label htmlFor="template-description" className="text-[#282A3F]">Description (Optional)</Label>
               <Textarea
                 id="template-description"
                 placeholder="Add a short note about the campaign's purpose, timing, or target audience. This helps your team stay aligned on context and intent."
@@ -318,14 +318,14 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
               />
             </div>
             <div className="space-y-2">
-              <Label>Campaign Type</Label>
+              <Label className="text-[#282A3F]">Campaign Type</Label>
               <RadioGroup 
                 value={form.watch("type")} 
                 onValueChange={(value) => form.setValue("type", value)}
               >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="cross_sell" id="cross_sell" />
-                  <Label htmlFor="cross_sell">Cross-sell</Label>
+                  <Label htmlFor="cross_sell" className="text-[#282A3F]">Cross-sell</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="upsell" id="upsell" />
@@ -503,7 +503,7 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
             Back to Campaigns
           </Button>
         </div>
-        <h1 className="text-2xl font-bold">Create Campaign Template</h1>
+        <h1 className="text-2xl font-bold text-[#282A3F]">Create Campaign Template</h1>
         <p className="text-gray-600">
           Create a reusable template that can be used for future campaigns
         </p>
@@ -514,7 +514,7 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
         <div className="md:col-span-1">
           <Card>
             <CardHeader>
-              <CardTitle>Steps</CardTitle>
+              <CardTitle className="text-[#282A3F]">Steps</CardTitle>
             </CardHeader>
             <CardContent>
               <nav>
@@ -558,7 +558,7 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
             <CardHeader>
               <div className="flex items-center">
                 {steps.find(step => step.id === currentStep)?.icon}
-                <CardTitle className="ml-2">
+                <CardTitle className="ml-2 text-[#282A3F]">
                   {steps.find(step => step.id === currentStep)?.title}
                 </CardTitle>
               </div>
