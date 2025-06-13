@@ -62,24 +62,35 @@ export async function apiRequest<T = any>(
   url: string,
   data?: unknown | undefined,
 ): Promise<T> {
-  // Apply environment to URL
-  const envUrl = getEnvironmentUrl(url);
-  
-  const res = await fetch(envUrl, {
-    method,
-    headers: {
-      ...(data ? { "Content-Type": "application/json" } : {}),
-      // Add environment header as an alternative way to specify environment
-      'X-Environment': getCurrentEnvironmentId(),
-      // Force fresh data for saved lists
-      ...(envUrl.includes('saved-lists') ? { 'Cache-Control': 'no-cache' } : {})
-    },
-    body: data ? JSON.stringify(data) : undefined,
-    credentials: "include",
-  });
+  try {
+    // Apply environment to URL
+    const envUrl = getEnvironmentUrl(url);
+    console.log('apiRequest - Fetching from URL:', envUrl);
+    
+    const res = await fetch(envUrl, {
+      method,
+      headers: {
+        ...(data ? { "Content-Type": "application/json" } : {}),
+        // Add environment header as an alternative way to specify environment
+        'X-Environment': getCurrentEnvironmentId(),
+        // Force fresh data for saved lists
+        ...(envUrl.includes('saved-lists') ? { 'Cache-Control': 'no-cache' } : {})
+      },
+      body: data ? JSON.stringify(data) : undefined,
+      credentials: "include",
+    });
 
-  await throwIfResNotOk(res);
-  return res.json();
+    await throwIfResNotOk(res);
+    return res.json();
+  } catch (error) {
+    // Only log errors for non-template-assignment endpoints to reduce noise
+    if (!url.includes('template-assignments')) {
+      console.error('apiRequest error:', error);
+      console.error('URL:', url);
+      console.error('Method:', method);
+    }
+    throw error;
+  }
 }
 
 type UnauthorizedBehavior = "returnNull" | "throw";
