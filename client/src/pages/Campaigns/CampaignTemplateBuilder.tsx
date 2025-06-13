@@ -704,11 +704,8 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
           </Button>
         </div>
         <h1 className="text-2xl font-bold text-[#282A3F]">Create Campaign Template</h1>
-        <p className="text-gray-600">
-          Create a reusable template that can be used for future campaigns
-        </p>
+        <p className="text-gray-600">Create a reusable template that can be used for future campaigns by your team or it can be shared with brokers.</p>
       </div>
-
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
         {/* Step navigation */}
         <div className="md:col-span-1">
