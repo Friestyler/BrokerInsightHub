@@ -508,43 +508,67 @@ export default function AttributeMappingStep({
           // Simple evaluation for basic expressions
           let evaluatedCode = code.trim();
           
-          // Replace column references with actual CSV values
+          // Replace column references with actual CSV values (without quotes initially)
           Object.entries(rowData).forEach(([key, value]) => {
             const regex = new RegExp(`\\b${key}\\b`, 'g');
-            if (typeof value === 'string') {
-              evaluatedCode = evaluatedCode.replace(regex, `"${value}"`);
-            } else {
-              evaluatedCode = evaluatedCode.replace(regex, String(value));
-            }
+            evaluatedCode = evaluatedCode.replace(regex, String(value));
           });
 
-          // Handle simple operations
-          if (evaluatedCode.includes('+') && !evaluatedCode.includes('if')) {
-            // Simple addition/concatenation
-            const parts = evaluatedCode.split('+').map(p => p.trim().replace(/"/g, ''));
-            const result = parts.join(' ');
-            return `Row ${idx + 1}: ${result}`;
-          } else if (evaluatedCode.includes('if') && evaluatedCode.includes('else')) {
-            // Simple conditional
-            const match = evaluatedCode.match(/"([^"]*)" if .* else "([^"]*)"/);
+          let result = evaluatedCode;
+
+          // Handle Python functions
+          // Handle upper() function
+          if (result.includes('upper(')) {
+            result = result.replace(/upper\(([^)]+)\)/g, (match, content) => {
+              // Remove any quotes and apply upper case
+              const cleanContent = content.replace(/['"]/g, '');
+              return `"${cleanContent.toUpperCase()}"`;
+            });
+          }
+          
+          // Handle lower() function
+          if (result.includes('lower(')) {
+            result = result.replace(/lower\(([^)]+)\)/g, (match, content) => {
+              const cleanContent = content.replace(/['"]/g, '');
+              return `"${cleanContent.toLowerCase()}"`;
+            });
+          }
+          
+          // Handle str() function
+          if (result.includes('str(')) {
+            result = result.replace(/str\(([^)]+)\)/g, (match, content) => {
+              const cleanContent = content.replace(/['"]/g, '');
+              return `"${String(cleanContent)}"`;
+            });
+          }
+
+          // Handle string concatenation with +
+          if (result.includes('+') && !result.includes('if')) {
+            const parts = result.split('+').map(p => p.trim().replace(/^["']|["']$/g, ''));
+            result = parts.join('');
+          }
+          
+          // Handle conditional expressions (if/else)
+          if (result.includes('if') && result.includes('else')) {
+            const match = result.match(/"?([^"]*)"?\s+if\s+(.+?)\s+else\s+"?([^"]*)"?/);
             if (match) {
-              // For demo, randomly choose true/false based on row
-              const condition = idx % 2 === 0;
-              return `Row ${idx + 1}: ${condition ? match[1] : match[2]}`;
+              const [, trueValue, condition, falseValue] = match;
+              // Simple condition evaluation
+              let conditionResult = false;
+              if (condition.includes('==')) {
+                const [left, right] = condition.split('==').map(s => s.trim().replace(/['"]/g, ''));
+                conditionResult = left === right;
+              } else {
+                conditionResult = idx % 2 === 0; // fallback for demo
+              }
+              result = conditionResult ? trueValue : falseValue;
             }
           }
           
-          // For simple column references, show the actual value
-          if (evaluatedCode.includes('column_') && !evaluatedCode.includes('+') && !evaluatedCode.includes('if')) {
-            // Find the column being referenced
-            const columnMatch = evaluatedCode.match(/column_\w+/);
-            if (columnMatch && rowData[columnMatch[0]]) {
-              return `Row ${idx + 1}: ${rowData[columnMatch[0]]}`;
-            }
-          }
+          // Clean up quotes for final display
+          result = result.replace(/^["']|["']$/g, '');
           
-          // Fallback to showing the evaluated code
-          return `Row ${idx + 1}: ${evaluatedCode.slice(0, 50)}${evaluatedCode.length > 50 ? '...' : ''}`;
+          return `Row ${idx + 1}: ${result}`;
         } catch (error) {
           return `Row ${idx + 1}: Error evaluating code`;
         }
