@@ -135,7 +135,18 @@ export default function CampaignsPage() {
   // Filter campaigns based on ownership and sharing
   const myCampaigns = campaigns?.filter(c => !c.isTemplate && !c.isShared) || [];
   const sharedCampaigns = campaigns?.filter(c => !c.isTemplate && c.isShared) || [];
-  const campaignTemplates = userTemplates || [];
+  const dbTemplates = userTemplates || [];
+
+  // Helper function to get sponsor name
+  const getSponsorName = (sponsorId: number) => {
+    const sponsorMap: Record<number, string> = {
+      1: 'Rabobank',
+      2: 'Arag',
+      3: 'De Goudse',
+      4: 'Partner'
+    };
+    return sponsorMap[sponsorId] || 'Unknown';
+  };
 
   // Demo campaign templates
   const templates: TemplateCard[] = [
@@ -606,14 +617,14 @@ export default function CampaignsPage() {
                 Loading templates...
               </CardContent>
             </Card>
-          ) : campaignTemplates.length > 0 ? (
+          ) : dbTemplates && dbTemplates.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {campaignTemplates.map(template => (
+              {dbTemplates.map(template => (
                 <Card key={template.id} className="group hover:shadow-xl hover:shadow-black/5 transition-all duration-300 border border-gray-200/40 bg-white/80 backdrop-blur-sm hover:-translate-y-1 hover:border-indigo-200/60">
                   <CardHeader className="pb-4 space-y-3">
                     <div className="flex items-start justify-between">
                       <CardTitle className="text-lg font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors">
-                        {template.name}
+                        {template.name || 'Untitled Template'}
                       </CardTitle>
                       <Badge
                         variant="secondary"
@@ -622,7 +633,9 @@ export default function CampaignsPage() {
                         Template
                       </Badge>
                     </div>
-                    <CardDescription className="text-sm text-gray-500 leading-relaxed">{template.category}</CardDescription>
+                    <CardDescription className="text-sm text-gray-500 leading-relaxed">
+                      {template.sponsorId ? `By ${getSponsorName(template.sponsorId)}` : template.category || 'Campaign Template'}
+                    </CardDescription>
                   </CardHeader>
                   <CardContent className="pb-6 space-y-4">
                     <div className="flex items-center gap-2">
