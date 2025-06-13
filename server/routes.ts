@@ -5216,21 +5216,24 @@ export async function registerRoutes(app: Express): Promise<Server> {
         createdById: 1 // Default user for now
       };
       
-      // Use direct SQL with schema qualification
-      const [template] = await envDb.execute(sql`
-        INSERT INTO ${sql.identifier(envId)}.campaigns (
+      // Execute raw SQL query
+      const result = await pool.query(`
+        INSERT INTO ${envId}.campaigns (
           name, description, type, category, subject, heading, email_body, email_logo,
           from_name, from_email, button_link, button_text, button_color, follow_up_emails,
           frequency, is_shared, is_template, status, created_by_id, created_at, updated_at
         ) VALUES (
-          ${templateData.name}, ${templateData.description}, ${templateData.type}, ${templateData.category},
-          ${templateData.subject}, ${templateData.heading}, ${templateData.emailBody}, ${templateData.emailLogo},
-          ${templateData.fromName}, ${templateData.fromEmail}, ${templateData.buttonLink}, ${templateData.buttonText},
-          ${templateData.buttonColor}, ${JSON.stringify(templateData.followUpEmails)}, ${templateData.frequency},
-          ${templateData.isShared || false}, ${templateData.isTemplate}, ${templateData.status}, ${templateData.createdById},
-          NOW(), NOW()
+          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, NOW(), NOW()
         ) RETURNING *
-      `);
+      `, [
+        templateData.name, templateData.description, templateData.type, templateData.category,
+        templateData.subject, templateData.heading, templateData.emailBody, templateData.emailLogo,
+        templateData.fromName, templateData.fromEmail, templateData.buttonLink, templateData.buttonText,
+        templateData.buttonColor, JSON.stringify(templateData.followUpEmails), templateData.frequency,
+        templateData.isShared || false, templateData.isTemplate, templateData.status, templateData.createdById
+      ]);
+      
+      const template = result.rows[0];
       
       res.status(201).json(template);
     } catch (error) {
