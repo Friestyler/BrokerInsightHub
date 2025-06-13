@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, ArrowRight, Code, Play, Save, FileCode, AlertCircle, CheckCircle } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Code, Play, Save, FileCode, AlertCircle, CheckCircle, ChevronDown, ChevronRight, Copy } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 
@@ -33,51 +33,126 @@ interface TransformationStepProps {
   onBack: () => void;
 }
 
-const defaultScript = `# CSV Transformation Script
-# This script will be applied to your CSV data before column mapping
-# The 'df' variable contains your CSV data as a pandas DataFrame
+const defaultScript = ``;
 
-import pandas as pd
+const exampleScripts = [
+  {
+    title: "Skip Rows to Find Headers",
+    description: "Handle CSV files where the actual data starts after several empty rows",
+    code: `import pandas as pd
 
 def transform_csv(df):
-    """
-    Transform the CSV data.
-    
-    Args:
-        df (pandas.DataFrame): The original CSV data
-        
-    Returns:
-        pandas.DataFrame: The transformed CSV data
-    """
-    
-    # Example transformations:
-    
-    # 1. Skip rows until you find the actual header (e.g., start from row 5)
-    # if len(df) > 5:
-    #     df = df.iloc[4:].reset_index(drop=True)
-    #     df.columns = df.iloc[0]  # Use first row as headers
-    #     df = df.drop(df.index[0]).reset_index(drop=True)
-    
-    # 2. Remove empty rows and columns
-    df = df.dropna(how='all')  # Remove completely empty rows
-    df = df.loc[:, ~df.columns.str.contains('^Unnamed')]  # Remove unnamed columns
-    
-    # 3. Filter specific columns (example: keep only columns A, B, C)
-    # columns_to_keep = ['Column A', 'Column B', 'Column C']
-    # df = df[columns_to_keep]
-    
-    # 4. Remove rows based on criteria
-    # df = df[df['Status'] != 'Cancelled']  # Remove cancelled items
-    
-    # 5. Clean and standardize data
-    # df['Phone'] = df['Phone'].str.replace(r'[^\d+]', '', regex=True)  # Clean phone numbers
-    # df['Email'] = df['Email'].str.lower().str.strip()  # Normalize emails
+    # Skip rows until you find the actual header (e.g., start from row 5)
+    if len(df) > 5:
+        df = df.iloc[4:].reset_index(drop=True)
+        df.columns = df.iloc[0]  # Use first row as headers
+        df = df.drop(df.index[0]).reset_index(drop=True)
     
     return df
 
-# Apply the transformation
-transformed_df = transform_csv(df)
-`;
+transformed_df = transform_csv(df)`
+  },
+  {
+    title: "Clean Empty Rows and Columns",
+    description: "Remove completely empty rows and unnamed columns",
+    code: `import pandas as pd
+
+def transform_csv(df):
+    # Remove completely empty rows
+    df = df.dropna(how='all')
+    
+    # Remove unnamed columns (usually empty columns from Excel)
+    df = df.loc[:, ~df.columns.str.contains('^Unnamed')]
+    
+    return df
+
+transformed_df = transform_csv(df)`
+  },
+  {
+    title: "Filter Specific Columns",
+    description: "Keep only the columns you need for processing",
+    code: `import pandas as pd
+
+def transform_csv(df):
+    # Define which columns to keep
+    columns_to_keep = ['Customer Name', 'Product', 'Amount', 'Date']
+    
+    # Filter to only keep specified columns
+    df = df[columns_to_keep]
+    
+    return df
+
+transformed_df = transform_csv(df)`
+  },
+  {
+    title: "Filter Rows by Criteria",
+    description: "Remove unwanted rows based on specific conditions",
+    code: `import pandas as pd
+
+def transform_csv(df):
+    # Remove cancelled or inactive items
+    df = df[df['Status'] != 'Cancelled']
+    df = df[df['Active'] == 'Yes']
+    
+    # Remove rows with missing critical data
+    df = df[df['Customer Name'].notna()]
+    
+    return df
+
+transformed_df = transform_csv(df)`
+  },
+  {
+    title: "Clean and Standardize Data",
+    description: "Normalize phone numbers, emails, and other data formats",
+    code: `import pandas as pd
+
+def transform_csv(df):
+    # Clean phone numbers (keep only digits and +)
+    if 'Phone' in df.columns:
+        df['Phone'] = df['Phone'].str.replace(r'[^\d+]', '', regex=True)
+    
+    # Normalize emails
+    if 'Email' in df.columns:
+        df['Email'] = df['Email'].str.lower().str.strip()
+    
+    # Standardize names
+    if 'Name' in df.columns:
+        df['Name'] = df['Name'].str.title().str.strip()
+    
+    return df
+
+transformed_df = transform_csv(df)`
+  },
+  {
+    title: "Handle Complex CSV Structure",
+    description: "For files with data starting at a specific cell (e.g., D5)",
+    code: `import pandas as pd
+
+def transform_csv(df):
+    # Find where actual data starts (look for a specific header)
+    start_row = None
+    start_col = None
+    
+    for idx, row in df.iterrows():
+        for col_idx, cell in enumerate(row):
+            if str(cell).strip() == 'Customer Name':  # Your expected header
+                start_row = idx
+                start_col = col_idx
+                break
+        if start_row is not None:
+            break
+    
+    if start_row is not None:
+        # Extract data from the found position
+        df = df.iloc[start_row:, start_col:].reset_index(drop=True)
+        df.columns = df.iloc[0]  # Use first row as headers
+        df = df.drop(df.index[0]).reset_index(drop=True)
+    
+    return df
+
+transformed_df = transform_csv(df)`
+  }
+];
 
 export default function TransformationStep({ 
   uploadType, 
@@ -95,6 +170,7 @@ export default function TransformationStep({
     isValid: boolean;
     errors?: string[];
   } | null>(null);
+  const [showExamples, setShowExamples] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -340,6 +416,17 @@ export default function TransformationStep({
     });
   };
 
+  // Copy example code to editor
+  const copyExampleToEditor = (exampleCode: string) => {
+    setScriptContent(exampleCode);
+    setIsModified(true);
+    setValidationResult(null);
+    toast({
+      title: "Example copied",
+      description: "The example code has been copied to the editor."
+    });
+  };
+
   // Proceed to next step
   const handleNext = () => {
     if (isModified) {
@@ -511,6 +598,66 @@ export default function TransformationStep({
             </Alert>
           )}
         </CardContent>
+      </Card>
+
+      {/* Code Examples Section */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-base">Code Examples</CardTitle>
+              <CardDescription>
+                Ready-to-use Python code snippets for common CSV transformations
+              </CardDescription>
+            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowExamples(!showExamples)}
+              className="gap-2"
+            >
+              {showExamples ? (
+                <>
+                  <ChevronDown className="h-4 w-4" />
+                  Hide Examples
+                </>
+              ) : (
+                <>
+                  <ChevronRight className="h-4 w-4" />
+                  Show Examples
+                </>
+              )}
+            </Button>
+          </div>
+        </CardHeader>
+        {showExamples && (
+          <CardContent className="space-y-4">
+            {exampleScripts.map((example, index) => (
+              <div key={index} className="border rounded-lg p-4 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-medium">{example.title}</h4>
+                    <p className="text-sm text-gray-600">{example.description}</p>
+                  </div>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => copyExampleToEditor(example.code)}
+                    className="gap-2"
+                  >
+                    <Copy className="h-4 w-4" />
+                    Use This Example
+                  </Button>
+                </div>
+                <div className="bg-gray-50 rounded-md p-3">
+                  <pre className="text-sm overflow-x-auto">
+                    <code>{example.code}</code>
+                  </pre>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        )}
       </Card>
 
       {/* Action Buttons */}
