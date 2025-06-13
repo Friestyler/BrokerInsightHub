@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link, useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -51,6 +51,16 @@ export default function CampaignsPage() {
   const [, setLocation] = useLocation();
   const { environment } = useEnvironment();
   const [activeFilter, setActiveFilter] = useState("popular");
+  const [activeTab, setActiveTab] = useState("new");
+
+  // Read tab from URL parameters
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabParam = urlParams.get('tab');
+    if (tabParam && ['my', 'shared', 'templates', 'new'].includes(tabParam)) {
+      setActiveTab(tabParam);
+    }
+  }, []);
 
 
   // Fetch campaigns
@@ -224,7 +234,7 @@ export default function CampaignsPage() {
   return (
     <div className="container mx-auto px-4 py-6">
       <h1 className="text-2xl font-bold mb-6">Campaigns</h1>
-      <Tabs defaultValue="new" className="space-y-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="my">My Campaigns</TabsTrigger>
           <TabsTrigger value="shared">Shared Campaigns</TabsTrigger>
