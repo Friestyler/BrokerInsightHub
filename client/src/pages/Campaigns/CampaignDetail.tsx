@@ -47,12 +47,16 @@ type Campaign = {
   id: number;
   name: string;
   description: string;
-  type: string;
   category: string;
   status: string;
   createdById: number | null;
   sponsorId: number | null;
   listId: number | null;
+  recipients: number;
+  delivered: number;
+  opened: number;
+  clicked: number;
+  replied: number;
   subject: string;
   emailBody: string;
   emailLogo: string | null;
@@ -176,14 +180,12 @@ export default function CampaignDetail() {
   // Render status badge
   const renderStatusBadge = (status: string) => {
     switch (status) {
-      case "active":
+      case "on":
         return <Badge className="bg-green-500">Active</Badge>;
       case "draft":
         return <Badge variant="outline">Draft</Badge>;
-      case "paused":
-        return <Badge variant="secondary">Paused</Badge>;
-      case "completed":
-        return <Badge className="bg-blue-500">Completed</Badge>;
+      case "off":
+        return <Badge variant="secondary">Inactive</Badge>;
       default:
         return <Badge variant="outline">{status}</Badge>;
     }
@@ -252,28 +254,28 @@ export default function CampaignDetail() {
         <div className="flex space-x-2">
           {campaign.status === "draft" && (
             <Button
-              onClick={() => handleStatusChange("active")}
+              onClick={() => handleStatusChange("on")}
               className="bg-green-600 hover:bg-green-700"
             >
-              <Send className="h-4 w-4 mr-1" /> Send Campaign
+              <Send className="h-4 w-4 mr-1" /> Activate Campaign
             </Button>
           )}
-          {campaign.status === "active" && (
+          {campaign.status === "on" && (
             <Button
-              onClick={() => handleStatusChange("paused")}
+              onClick={() => handleStatusChange("off")}
               variant="outline"
-              className="border-amber-500 text-amber-600 hover:bg-amber-50"
+              className="border-red-500 text-red-600 hover:bg-red-50"
             >
-              <PauseCircle className="h-4 w-4 mr-1" /> Pause
+              <PauseCircle className="h-4 w-4 mr-1" /> Turn Off
             </Button>
           )}
-          {campaign.status === "paused" && (
+          {campaign.status === "off" && (
             <Button
-              onClick={() => handleStatusChange("active")}
+              onClick={() => handleStatusChange("on")}
               variant="outline"
               className="border-green-500 text-green-600 hover:bg-green-50"
             >
-              <CheckCircle className="h-4 w-4 mr-1" /> Resume
+              <CheckCircle className="h-4 w-4 mr-1" /> Turn On
             </Button>
           )}
           <Button
