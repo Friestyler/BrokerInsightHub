@@ -546,28 +546,6 @@ export default function PartnerPilot() {
             <h2 className="text-lg font-semibold mb-4">Specialized Import Formats</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               <Card 
-                className="hover:shadow-md transition-shadow cursor-pointer border-2 border-orange-100"
-                onClick={() => setLocation('/data-upload-2/process/degoudse')}
-              >
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center">
-                      <FileSpreadsheet className="h-5 w-5 text-orange-600" />
-                    </div>
-                  </div>
-                  <CardTitle className="text-lg mt-2">De Goudse Format</CardTitle>
-                  <CardDescription>
-                    Specialized Excel import for De Goudse insurance opportunity data
-                  </CardDescription>
-                </CardHeader>
-                <CardFooter>
-                  <Button className="w-full bg-orange-600 hover:bg-orange-700">
-                    Upload De Goudse File
-                  </Button>
-                </CardFooter>
-              </Card>
-
-              <Card 
                 className="hover:shadow-md transition-shadow cursor-pointer border-2 border-blue-100"
                 onClick={() => setLocation('/data-upload-2/process/salesforce')}
               >
