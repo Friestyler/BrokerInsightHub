@@ -47,7 +47,8 @@ import {
   MessageSquare, 
   Settings, 
   Clock, 
-  Calendar, 
+  Calendar,
+  Save, 
   Upload,
   Send,
   Plus
@@ -598,14 +599,20 @@ export default function CampaignBuilder() {
         title: "Template saved",
         description: "Your campaign template has been saved successfully",
       });
+      // Redirect to templates tab after successful template creation
+      if (isTemplateMode) {
+        setLocation("/campaigns?tab=templates");
+      }
+      setIsSubmitting(false);
     },
     onError: (error) => {
       console.error("Error creating template:", error);
       toast({
         title: "Template save failed",
-        description: "Failed to save template. Campaign was still created.",
+        description: "Failed to save template. Please try again.",
         variant: "destructive"
       });
+      setIsSubmitting(false);
     }
   });
 
@@ -1664,7 +1671,8 @@ export default function CampaignBuilder() {
                     }}
                     disabled={isSubmitting}
                   >
-                    {isSubmitting ? "Saving..." : "Save and Send"} <Send className="h-4 w-4 ml-1" />
+                    {isSubmitting ? "Saving..." : isTemplateMode ? "Save Template" : "Save and Send"} 
+                    {isTemplateMode ? <Save className="h-4 w-4 ml-1" /> : <Send className="h-4 w-4 ml-1" />}
                   </Button>
                 </div>
               ) : (
