@@ -4999,7 +4999,16 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { scriptId, entityType } = req.body;
       const file = req.file;
 
-      console.log('Transformation request:', { environmentId, scriptId, entityType, hasFile: !!file });
+      console.log('🔄 SERVER TRANSFORMATION DEBUG: Received request');
+      console.log('🔄 Environment ID:', environmentId);
+      console.log('🔄 Script ID:', scriptId);
+      console.log('🔄 Entity Type:', entityType);
+      console.log('🔄 Has file:', !!file);
+      console.log('🔄 File details:', file ? {
+        originalname: file.originalname,
+        mimetype: file.mimetype,
+        size: file.size
+      } : 'No file');
 
       if (!file) {
         return res.status(400).json({ error: 'CSV file is required' });
@@ -5011,31 +5020,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
 
       let script;
       if (scriptId) {
+        console.log('🔄 Looking up transformation script by ID:', scriptId);
         script = await UploadSettingsService.getTransformationScriptById(parseInt(scriptId), environmentId);
+        console.log('🔄 Found script by ID:', script ? { id: script.id, name: script.name } : 'Not found');
       } else {
         // Get the first active script for this entity type
+        console.log('🔄 Looking up scripts for entity type:', entityType);
         const scripts = await UploadSettingsService.getTransformationScripts(environmentId, entityType);
-        console.log('Found scripts for entity type:', scripts.length);
+        console.log('🔄 Found scripts for entity type:', scripts.length);
         script = scripts.find(s => s.isActive);
+        console.log('🔄 Active script found:', script ? { id: script.id, name: script.name } : 'None');
       }
 
       if (!script) {
-        console.log('No transformation script found');
+        console.log('❌ No transformation script found');
         return res.status(404).json({ error: 'No transformation script found' });
       }
 
-      console.log('Using script:', { id: script.id, name: script.name });
+      console.log('✅ Using script:', { 
+        id: script.id, 
+        name: script.name,
+        scriptLength: script.scriptContent?.length || 0
+      });
 
       // Execute the transformation
       const csvData = file.buffer.toString('utf-8');
-      console.log('Original CSV headers:', csvData.split('\n')[0]);
+      const originalLines = csvData.split('\n').filter(line => line.trim());
+      console.log('🔄 Original CSV stats:', {
+        totalLines: originalLines.length,
+        headers: originalLines[0]?.substring(0, 200) + (originalLines[0]?.length > 200 ? '...' : ''),
+        sampleDataLine: originalLines[1]?.substring(0, 200) + (originalLines[1]?.length > 200 ? '...' : '')
+      });
 
+      console.log('🔄 Executing transformation script...');
       const result = await UploadSettingsService.executeTransformationScript(
         script.scriptContent,
         csvData
       );
 
-      console.log('Transformation result headers:', result.headers);
+      console.log('✅ Transformation completed:', {
+        headers: result.headers,
+        rowCount: result.rowCount,
+        transformedCsvLength: result.transformedCsv?.length || 0
+      });
+
+      const transformedLines = result.transformedCsv.split('\n').filter((line: string) => line.trim());
+      console.log('✅ Transformed CSV sample:', {
+        totalLines: transformedLines.length,
+        headers: transformedLines[0]?.substring(0, 200) + (transformedLines[0]?.length > 200 ? '...' : ''),
+        sampleDataLine: transformedLines[1]?.substring(0, 200) + (transformedLines[1]?.length > 200 ? '...' : '')
+      });
 
       res.json({
         success: true,

@@ -79,27 +79,47 @@ export default function AttributeMappingStep({
       
       if (isSpecialFormat && selectedTransformationScript) {
         // Apply transformation script first
-        console.log('Applying transformation script:', selectedTransformationScript);
+        console.log('🔄 TRANSFORMATION DEBUG: Starting transformation process');
+        console.log('🔄 Selected transformation script:', selectedTransformationScript);
+        console.log('🔄 Upload type:', uploadType);
+        console.log('🔄 Is special format:', isSpecialFormat);
+        console.log('🔄 Environment ID:', environmentId);
+        console.log('🔄 Original file size:', uploadedFile.size, 'bytes');
         
         const formData = new FormData();
         formData.append('csvFile', uploadedFile);
         formData.append('scriptId', selectedTransformationScript.id.toString());
         formData.append('entityType', uploadType);
 
+        console.log('🔄 Making transformation API call to:', `/api/${environmentId}/transformation-scripts/execute`);
+        
         const response = await fetch(`/api/${environmentId}/transformation-scripts/execute`, {
           method: 'POST',
           body: formData
         });
 
+        console.log('🔄 Transformation API response status:', response.status);
+        
         if (response.ok) {
           const result = await response.json();
-          console.log('Transformation applied successfully:', result);
+          console.log('✅ TRANSFORMATION SUCCESS:', {
+            originalHeaders: 'N/A (will extract from original file for comparison)',
+            transformedHeaders: result.headers,
+            transformedRowCount: result.rowCount,
+            transformedCsvLength: result.transformedCsv?.length || 0
+          });
+          
+          // Also log a sample of the transformed CSV for debugging
+          const transformedLines = result.transformedCsv.split('\n').filter((line: string) => line.trim());
+          console.log('✅ First few lines of transformed CSV:');
+          transformedLines.slice(0, 3).forEach((line: string, index: number) => {
+            console.log(`   Line ${index + 1}: ${line.substring(0, 100)}${line.length > 100 ? '...' : ''}`);
+          });
           
           // Use the transformed headers and data
           setExtractedHeaders(result.headers);
           
           // Parse transformed CSV data for preview
-          const transformedLines = result.transformedCsv.split('\n').filter((line: string) => line.trim());
           const dataRows = transformedLines.slice(1, 6).map((line: string) => {
             const values = line.split(',').map((v: string) => v.trim().replace(/"/g, ''));
             const row: Record<string, any> = {};
@@ -111,8 +131,15 @@ export default function AttributeMappingStep({
           });
           setCsvData(dataRows);
           
+          console.log('✅ Transformed data preview:', dataRows.slice(0, 2));
+          
         } else {
-          console.error('Failed to apply transformation script:', await response.text());
+          const errorText = await response.text();
+          console.error('❌ TRANSFORMATION FAILED:', {
+            status: response.status,
+            statusText: response.statusText,
+            errorText: errorText
+          });
           // Fall back to original CSV processing
           processOriginalCSV();
         }
