@@ -41,12 +41,19 @@ type Campaign = {
   type: string;
   category: string;
   status: string;
-  createdById: number | null;
+  createdById?: number | null;
+  created_by_id?: number | null;
   isShared: boolean;
   isTemplate: boolean;
-  tags: string[];
-  sponsorId: number | null;
+  tags: string[] | null;
+  sponsorId?: number | null;
+  sponsor_id?: number | null;
   createdAt: string;
+  subject?: string;
+  description?: string;
+  email_body?: string;
+  heading?: string;
+  [key: string]: any; // Allow additional properties from database
 };
 
 type TemplateCard = {
@@ -624,7 +631,7 @@ export default function CampaignsPage() {
                   <CardHeader className="pb-4 space-y-3">
                     <div className="flex items-start justify-between">
                       <CardTitle className="text-lg font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors">
-                        {template.name || 'Untitled Template'}
+                        {template.name && template.name !== "name" ? template.name : template.subject || 'Untitled Template'}
                       </CardTitle>
                       <Badge
                         variant="secondary"
@@ -634,7 +641,9 @@ export default function CampaignsPage() {
                       </Badge>
                     </div>
                     <CardDescription className="text-sm text-gray-500 leading-relaxed">
-                      {template.sponsorId ? `By ${getSponsorName(template.sponsorId)}` : template.category || 'Campaign Template'}
+                      {template.sponsor_id ? `By ${getSponsorName(template.sponsor_id)}` : 
+                       template.description && template.description !== "description" ? template.description :
+                       template.category || 'Campaign Template'}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="pb-6 space-y-4">
@@ -1015,61 +1024,23 @@ export default function CampaignsPage() {
           </div>
           
           <div className="p-6 overflow-y-auto max-h-[60vh]">
-            {isLoadingTemplates ? (
-              <div className="text-center py-16">
-                <div className="text-gray-500">Loading templates...</div>
+            <div className="text-center py-16 rounded-xl bg-gray-50 border border-gray-200">
+              <div className="p-3 rounded-full bg-gray-100 w-fit mx-auto mb-4">
+                <FileText className="h-8 w-8 text-gray-400" />
               </div>
-            ) : userTemplates && userTemplates.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {userTemplates.map(template => (
-                  <Card 
-                    key={template.id} 
-                    className="group hover:shadow-md transition-all duration-200 cursor-pointer border border-gray-200 hover:border-blue-200 rounded-xl overflow-hidden"
-                    onClick={() => startCampaignFromTemplate(template.id)}
-                  >
-                    <CardHeader className="pb-3">
-                      <div className="flex items-start justify-between">
-                        <CardTitle className="text-base font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
-                          {template.name}
-                        </CardTitle>
-                        <Badge variant="secondary" className="text-xs bg-gray-100 text-gray-600">
-                          Template
-                        </Badge>
-                      </div>
-                      <CardDescription className="text-sm text-gray-500">
-                        {template.category}
-                      </CardDescription>
-                    </CardHeader>
-                    <CardContent className="pt-0">
-                      <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-blue-400"></div>
-                        <p className="text-sm text-gray-600">
-                          {template.type === "cross_sell" ? "Cross-Sell" : template.type === "upsell" ? "Upsell" : "Custom"}
-                        </p>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <div className="text-center py-16 rounded-xl bg-gray-50 border border-gray-200">
-                <div className="p-3 rounded-full bg-gray-100 w-fit mx-auto mb-4">
-                  <FileText className="h-8 w-8 text-gray-400" />
-                </div>
-                <h3 className="text-base font-medium text-gray-900 mb-2">No templates available</h3>
-                <p className="text-sm text-gray-500 mb-6">Create some templates first to use them for new campaigns.</p>
-                <Button 
-                  variant="outline"
-                  className="rounded-lg"
-                  onClick={() => {
-                    setTemplateSelectionDialogOpen(false);
-                    setLocation("/campaigns/template-builder");
-                  }}
-                >
-                  Create Template
-                </Button>
-              </div>
-            )}
+              <h3 className="text-base font-medium text-gray-900 mb-2">No templates available</h3>
+              <p className="text-sm text-gray-500 mb-6">Create some templates first to use them for new campaigns.</p>
+              <Button 
+                variant="outline"
+                className="rounded-lg"
+                onClick={() => {
+                  setTemplateSelectionDialogOpen(false);
+                  setLocation("/campaigns/template-builder");
+                }}
+              >
+                Create Template
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
