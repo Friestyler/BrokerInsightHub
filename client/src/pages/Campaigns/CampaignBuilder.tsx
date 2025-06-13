@@ -1299,7 +1299,7 @@ export default function CampaignBuilder() {
                           }}
                           className="text-indigo-600 focus:ring-indigo-500"
                         />
-                        <Label htmlFor="share-with-partners" className="text-sm">External Partners</Label>
+                        <Label htmlFor="share-with-partners" className="text-sm">External Parties</Label>
                       </div>
                     </div>
                   </div>
