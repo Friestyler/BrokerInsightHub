@@ -796,7 +796,7 @@ export default function AttributeMappingStep({
                             <SelectContent>
                               {extractedHeaders.map((header, headerIndex) => (
                                 <SelectItem key={headerIndex} value={header}>
-                                  {header} → column_{header.toLowerCase().replace(/[^a-z0-9]/g, '_')}
+                                  {header}
                                 </SelectItem>
                               ))}
                             </SelectContent>
