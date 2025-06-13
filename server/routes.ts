@@ -5216,10 +5216,21 @@ export async function registerRoutes(app: Express): Promise<Server> {
         createdById: 1 // Default user for now
       };
       
-      const [template] = await envDb
-        .insert(campaigns)
-        .values(templateData)
-        .returning();
+      // Use direct SQL with schema qualification
+      const [template] = await envDb.execute(sql`
+        INSERT INTO ${sql.identifier(envId)}.campaigns (
+          name, description, type, category, subject, heading, email_body, email_logo,
+          from_name, from_email, button_link, button_text, button_color, follow_up_emails,
+          frequency, is_shared, is_template, status, created_by_id, created_at, updated_at
+        ) VALUES (
+          ${templateData.name}, ${templateData.description}, ${templateData.type}, ${templateData.category},
+          ${templateData.subject}, ${templateData.heading}, ${templateData.emailBody}, ${templateData.emailLogo},
+          ${templateData.fromName}, ${templateData.fromEmail}, ${templateData.buttonLink}, ${templateData.buttonText},
+          ${templateData.buttonColor}, ${JSON.stringify(templateData.followUpEmails)}, ${templateData.frequency},
+          ${templateData.isShared || false}, ${templateData.isTemplate}, ${templateData.status}, ${templateData.createdById},
+          NOW(), NOW()
+        ) RETURNING *
+      `);
       
       res.status(201).json(template);
     } catch (error) {
