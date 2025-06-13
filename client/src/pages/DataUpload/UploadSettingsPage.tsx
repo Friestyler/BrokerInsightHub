@@ -308,24 +308,9 @@ export default function UploadSettingsPage() {
                           </DialogDescription>
                         </DialogHeader>
                         <div className="space-y-4">
-                          <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                              <Label htmlFor="edit-script-name">Script Name</Label>
-                              <Input id="edit-script-name" defaultValue={script.name} />
-                            </div>
-                            <div className="space-y-2">
-                              <Label htmlFor="edit-script-entity">Target Entity</Label>
-                              <Select defaultValue={script.entity_type}>
-                                <SelectTrigger>
-                                  <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {supportedEntities.map(entity => (
-                                    <SelectItem key={entity} value={entity}>{entity}</SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="edit-script-name">Script Name</Label>
+                            <Input id="edit-script-name" defaultValue={script.name} />
                           </div>
                           <div className="space-y-2">
                             <Label htmlFor="edit-script-description">Description</Label>
@@ -341,7 +326,9 @@ export default function UploadSettingsPage() {
                           </div>
                         </div>
                         <DialogFooter>
-                          <Button variant="outline">Cancel</Button>
+                          <DialogTrigger asChild>
+                            <Button variant="outline">Cancel</Button>
+                          </DialogTrigger>
                           <Button>Save Changes</Button>
                         </DialogFooter>
                       </DialogContent>
