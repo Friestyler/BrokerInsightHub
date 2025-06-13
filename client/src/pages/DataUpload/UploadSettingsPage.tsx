@@ -15,6 +15,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Settings, Database, Code, Info, Save, Plus, Edit, Trash2 } from 'lucide-react';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
+import { useEnvironment } from '@/contexts/EnvironmentContext';
 
 interface EntityAttribute {
   name: string;
@@ -59,19 +60,13 @@ interface TransformationScript {
 
 
 export default function UploadSettingsPage() {
-  const [selectedEnvironment, setSelectedEnvironment] = useState<string>('');
   const [selectedEntity, setSelectedEntity] = useState<string>('');
   const [activeTab, setActiveTab] = useState('settings');
   const [editingScript, setEditingScript] = useState<TransformationScript | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-
-  // Fetch available environments
-  const { data: environments = [] } = useQuery<string[]>({
-    queryKey: ['/api/upload/environments'],
-    enabled: true
-  });
+  const { environment } = useEnvironment();
 
   // Fetch supported entities
   const { data: supportedEntities = [] } = useQuery<string[]>({
@@ -79,22 +74,22 @@ export default function UploadSettingsPage() {
     enabled: true
   });
 
-  // Fetch entity schemas for selected environment
+  // Fetch entity schemas for current environment
   const { data: entitySchemas = [], isLoading: schemasLoading } = useQuery<EntitySchema[]>({
-    queryKey: ['/api/upload/entities', selectedEnvironment],
-    enabled: !!selectedEnvironment
+    queryKey: ['/api/upload/entities', environment.id],
+    enabled: !!environment.id
   });
 
   // Fetch upload settings for selected entity
   const { data: uploadSettings = [], isLoading: settingsLoading } = useQuery<UploadSetting[]>({
-    queryKey: [`/api/${selectedEnvironment}/upload-settings/${selectedEntity}`, selectedEnvironment, selectedEntity],
-    enabled: !!selectedEnvironment && !!selectedEntity
+    queryKey: [`/api/${environment.id}/upload-settings/${selectedEntity}`, environment.id, selectedEntity],
+    enabled: !!environment.id && !!selectedEntity
   });
 
   // Fetch transformation scripts
   const { data: transformationScripts = [] } = useQuery<TransformationScript[]>({
-    queryKey: [`/api/${selectedEnvironment}/transformation-scripts`],
-    enabled: !!selectedEnvironment
+    queryKey: [`/api/${environment.id}/transformation-scripts`],
+    enabled: !!environment.id
   });
 
 
@@ -102,7 +97,7 @@ export default function UploadSettingsPage() {
   // Update transformation script mutation
   const updateScriptMutation = useMutation({
     mutationFn: async (data: { scriptId: number; name: string; description: string; scriptContent: string }) => {
-      const response = await fetch(`/api/${selectedEnvironment}/transformation-scripts/${data.scriptId}`, {
+      const response = await fetch(`/api/${environment.id}/transformation-scripts/${data.scriptId}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json'
@@ -117,7 +112,7 @@ export default function UploadSettingsPage() {
       return response.json();
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [`/api/${selectedEnvironment}/transformation-scripts`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/${environment.id}/transformation-scripts`] });
       setIsEditDialogOpen(false);
       setEditingScript(null);
       toast({
@@ -137,7 +132,7 @@ export default function UploadSettingsPage() {
   // Update upload settings mutation
   const updateSettingsMutation = useMutation({
     mutationFn: async (settings: { attributeName: string; isMandatory: boolean; dataType?: string }[]) => {
-      const response = await fetch(`/api/${selectedEnvironment}/upload-settings/${selectedEntity}`, {
+      const response = await fetch(`/api/${environment.id}/upload-settings/${selectedEntity}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ settings })
@@ -147,19 +142,12 @@ export default function UploadSettingsPage() {
     },
     onSuccess: () => {
       toast({ title: 'Success', description: 'Upload settings updated successfully' });
-      queryClient.invalidateQueries({ queryKey: [`/api/${selectedEnvironment}/upload-settings/${selectedEntity}`, selectedEnvironment, selectedEntity] });
+      queryClient.invalidateQueries({ queryKey: [`/api/${environment.id}/upload-settings/${selectedEntity}`, environment.id, selectedEntity] });
     },
     onError: () => {
       toast({ title: 'Error', description: 'Failed to update upload settings', variant: 'destructive' });
     }
   });
-
-  // Set default environment when environments are loaded
-  useEffect(() => {
-    if (environments.length > 0 && !selectedEnvironment) {
-      setSelectedEnvironment(environments[0]);
-    }
-  }, [environments, selectedEnvironment]);
 
   // Set default entity when entities are loaded
   useEffect(() => {
@@ -171,7 +159,7 @@ export default function UploadSettingsPage() {
   const selectedSchema = entitySchemas.find(schema => schema.entityType === selectedEntity);
 
   const handleSettingChange = (attributeName: string, isMandatory: boolean) => {
-    if (!selectedSchema || !selectedEnvironment || !selectedEntity) return;
+    if (!selectedSchema || !environment.id || !selectedEntity) return;
 
     // Create the single setting update
     const settingUpdate = {
@@ -393,37 +381,7 @@ export default function UploadSettingsPage() {
         <h1 className="text-2xl font-bold">Upload Settings</h1>
       </div>
 
-      <div className="grid grid-cols-2 gap-4">
-        <div className="space-y-2">
-          <Label htmlFor="environment-select">Environment</Label>
-          <Select value={selectedEnvironment} onValueChange={setSelectedEnvironment}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select environment" />
-            </SelectTrigger>
-            <SelectContent>
-              {environments.map(env => (
-                <SelectItem key={env} value={env}>{env}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
 
-        <div className="space-y-2">
-          <Label htmlFor="entity-select">Entity Type</Label>
-          <Select value={selectedEntity} onValueChange={setSelectedEntity}>
-            <SelectTrigger>
-              <SelectValue placeholder="Select entity" />
-            </SelectTrigger>
-            <SelectContent>
-              {supportedEntities.map(entity => (
-                <SelectItem key={entity} value={entity}>{entity}</SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        </div>
-      </div>
-
-      <Separator />
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-2">
