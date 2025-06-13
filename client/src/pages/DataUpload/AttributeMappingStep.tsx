@@ -607,29 +607,53 @@ export default function AttributeMappingStep({
           
           // Handle startswith() function
           if (result.includes('startswith(')) {
+            // Handle method syntax: variable.startswith("prefix")
             result = result.replace(/(\w+)\.startswith\(['"]([^'"]*)['"]\)/g, (match, variable, prefix) => {
               return variable.startsWith(prefix) ? 'True' : 'False';
+            });
+            // Handle function syntax: startswith(variable, "prefix")
+            result = result.replace(/startswith\(([^,]+),\s*['"]([^'"]*)['"]\)/g, (match, variable, prefix) => {
+              const cleanVariable = variable.replace(/['"]/g, '');
+              return cleanVariable.startsWith(prefix) ? 'True' : 'False';
             });
           }
           
           // Handle endswith() function
           if (result.includes('endswith(')) {
+            // Handle method syntax: variable.endswith("suffix")
             result = result.replace(/(\w+)\.endswith\(['"]([^'"]*)['"]\)/g, (match, variable, suffix) => {
               return variable.endsWith(suffix) ? 'True' : 'False';
+            });
+            // Handle function syntax: endswith(variable, "suffix")
+            result = result.replace(/endswith\(([^,]+),\s*['"]([^'"]*)['"]\)/g, (match, variable, suffix) => {
+              const cleanVariable = variable.replace(/['"]/g, '');
+              return cleanVariable.endsWith(suffix) ? 'True' : 'False';
             });
           }
           
           // Handle find() function
           if (result.includes('find(')) {
+            // Handle method syntax: variable.find("search")
             result = result.replace(/(\w+)\.find\(['"]([^'"]*)['"]\)/g, (match, variable, searchStr) => {
               return String(variable.indexOf(searchStr));
+            });
+            // Handle function syntax: find(variable, "search")
+            result = result.replace(/find\(([^,]+),\s*['"]([^'"]*)['"]\)/g, (match, variable, searchStr) => {
+              const cleanVariable = variable.replace(/['"]/g, '');
+              return String(cleanVariable.indexOf(searchStr));
             });
           }
           
           // Handle count() function
           if (result.includes('count(')) {
+            // Handle method syntax: variable.count("search")
             result = result.replace(/(\w+)\.count\(['"]([^'"]*)['"]\)/g, (match, variable, searchStr) => {
               return String((variable.match(new RegExp(searchStr, 'g')) || []).length);
+            });
+            // Handle function syntax: count(variable, "search")
+            result = result.replace(/count\(([^,]+),\s*['"]([^'"]*)['"]\)/g, (match, variable, searchStr) => {
+              const cleanVariable = variable.replace(/['"]/g, '');
+              return String((cleanVariable.match(new RegExp(searchStr, 'g')) || []).length);
             });
           }
           
