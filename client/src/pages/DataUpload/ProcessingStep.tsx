@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ArrowLeft, ArrowRight, CheckCircle, AlertCircle, Play, Download, FileText, AlertTriangle, Trash2, RefreshCw } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle, AlertCircle, Play, Download, FileText, AlertTriangle, Trash2, RefreshCw, Filter, X, ChevronDown } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -31,7 +31,7 @@ interface ProcessingStepProps {
 
 interface ValidationIssue {
   row: number;
-  type: 'empty_required' | 'duplicate' | 'invalid_format';
+  type: 'missing_required' | 'duplicate' | 'invalid_format';
   field: string;
   value: string;
   message: string;
@@ -81,6 +81,7 @@ export default function ProcessingStep({
   const [selectedIssues, setSelectedIssues] = useState<Set<number>>(new Set());
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [filteredIssues, setFilteredIssues] = useState<ValidationIssue[]>([]);
+  const [activeFilters, setActiveFilters] = useState<Array<{key: string, value: string, label: string}>>([]);
   const { toast } = useToast();
 
   // Parse CSV data when component mounts
@@ -93,17 +94,42 @@ export default function ProcessingStep({
   // Filter issues based on filters
   useEffect(() => {
     let filtered = validationIssues;
+    const activeFiltersArray: Array<{key: string, value: string, label: string}> = [];
     
     Object.entries(filters).forEach(([field, value]) => {
       if (value.trim()) {
         filtered = filtered.filter(issue => {
-          const rowValue = issue.rowData[field];
-          return rowValue && rowValue.toString().toLowerCase().includes(value.toLowerCase());
+          if (field === 'issueType') {
+            return issue.type.toLowerCase().includes(value.toLowerCase());
+          } else if (field === 'field') {
+            return issue.field.toLowerCase().includes(value.toLowerCase());
+          } else if (field === 'value') {
+            return issue.value.toLowerCase().includes(value.toLowerCase());
+          } else if (field === 'message') {
+            return issue.message.toLowerCase().includes(value.toLowerCase());
+          } else {
+            const rowValue = issue.rowData[field];
+            return rowValue && rowValue.toString().toLowerCase().includes(value.toLowerCase());
+          }
+        });
+        
+        // Create readable label for active filter
+        let label = field;
+        if (field === 'issueType') label = 'Issue Type';
+        else if (field === 'field') label = 'Field';
+        else if (field === 'value') label = 'Value';
+        else if (field === 'message') label = 'Message';
+        
+        activeFiltersArray.push({
+          key: field,
+          value: value,
+          label: `${label}: ${value}`
         });
       }
     });
     
     setFilteredIssues(filtered);
+    setActiveFilters(activeFiltersArray);
   }, [validationIssues, filters]);
 
   const parseCSVData = async () => {
@@ -153,7 +179,7 @@ export default function ProcessingStep({
       const issues: ValidationIssue[] = [];
       
       csvData.forEach((row, index) => {
-        // Check for empty required fields
+        // Check for empty required fields - only validate mandatory attributes
         attributeMappings
           .filter(mapping => mapping.isRequired && mapping.csvColumn)
           .forEach(mapping => {
@@ -161,10 +187,10 @@ export default function ProcessingStep({
             if (!value || value.trim() === '') {
               issues.push({
                 row: row._rowNumber,
-                type: 'empty_required',
+                type: 'missing_required',
                 field: mapping.attribute,
                 value: value || '',
-                message: `Required field '${mapping.attribute}' is empty`,
+                message: `Missing required value for '${mapping.attribute}'`,
                 solution: 'skip',
                 rowData: row
               });
@@ -178,7 +204,7 @@ export default function ProcessingStep({
           if (mapping && mapping.csvColumn) {
             const value = row[mapping.csvColumn];
             if (value && value.trim() !== '') {
-              const duplicate = existing.find(record => 
+              const duplicate = existing.find((record: any) => 
                 record[field] && record[field].toLowerCase() === value.toLowerCase()
               );
               
@@ -440,7 +466,7 @@ export default function ProcessingStep({
 
   const getIssueIcon = (type: ValidationIssue['type']) => {
     switch (type) {
-      case 'empty_required': return <AlertCircle className="h-4 w-4 text-red-500" />;
+      case 'missing_required': return <AlertCircle className="h-4 w-4 text-red-500" />;
       case 'duplicate': return <RefreshCw className="h-4 w-4 text-orange-500" />;
       case 'invalid_format': return <AlertTriangle className="h-4 w-4 text-yellow-500" />;
     }
@@ -629,10 +655,12 @@ export default function ProcessingStep({
                             <div className="flex items-center gap-2">
                               {getIssueIcon(issue.type)}
                               <Badge variant={
-                                issue.type === 'empty_required' ? 'destructive' :
+                                issue.type === 'missing_required' ? 'destructive' :
                                 issue.type === 'duplicate' ? 'default' : 'secondary'
                               }>
-                                {issue.type.replace('_', ' ')}
+                                {issue.type === 'missing_required' ? 'Missing required value' : 
+                                 issue.type === 'duplicate' ? 'Duplicate' : 
+                                 'Invalid format'}
                               </Badge>
                             </div>
                           </TableCell>
