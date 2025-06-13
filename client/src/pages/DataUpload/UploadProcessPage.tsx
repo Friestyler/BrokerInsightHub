@@ -33,15 +33,15 @@ export default function UploadProcessPage() {
   const [location, setLocation] = useLocation();
   const [match, params] = useRoute('/data-upload-2/process/:type');
   
-  const uploadType = params?.type;
-  
-  // Get dynamic steps based on upload type
-  const steps = getSteps(uploadType || '');
+  const uploadType = params?.type || '';
   
   // Determine if this is a special format (contains hyphen) or entity
-  const isSpecialFormat = uploadType?.includes('-') || ['salesforce', 'brio', 'degoudse'].includes(uploadType || '');
+  const isSpecialFormat = uploadType.includes('-') || ['salesforce', 'brio', 'degoudse'].includes(uploadType);
   const entityType = isSpecialFormat ? undefined : uploadType;
   const formatType = isSpecialFormat ? uploadType : undefined;
+  
+  // Get dynamic steps based on upload type
+  const steps = getSteps(uploadType);
   
   const [currentStep, setCurrentStep] = useState(1); // Always start at step 1
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
