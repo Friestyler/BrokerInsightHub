@@ -437,6 +437,14 @@ export default function ProcessingStep({
             createdCount++;
           } else {
             const errorText = await response.text();
+            console.error('Record creation failed:', {
+              row: row._rowNumber,
+              status: response.status,
+              statusText: response.statusText,
+              errorText,
+              transformedData,
+              originalRow: row
+            });
             errors.push({
               row: row._rowNumber,
               message: `Failed to ${duplicateIssue?.solution === 'replace' ? 'update' : 'create'} record: ${errorText}`,
