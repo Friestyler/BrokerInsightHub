@@ -283,6 +283,12 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
       buttonColor: data.buttonColor || "#3B82F6",
       followUpEmails: data.followUpEmails || [],
       enableFollowUp: data.enableFollowUp || false,
+      // Add default values for required campaign fields
+      frequency: "one_time",
+      fromName: "",
+      fromEmail: "",
+      isTemplate: true,
+      status: "draft"
     };
     
     createTemplateMutation.mutate(templateData);
