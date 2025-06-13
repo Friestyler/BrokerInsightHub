@@ -451,45 +451,50 @@ export default function CampaignsPage() {
               </CardContent>
             </Card>
           ) : campaignTemplates.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {campaignTemplates.map(template => (
-                <Card key={template.id} className="hover:shadow-md transition-shadow">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-md font-medium flex justify-between">
-                      {template.name}
+                <Card key={template.id} className="group hover:shadow-xl hover:shadow-black/5 transition-all duration-300 border-0 bg-white/80 backdrop-blur-sm hover:-translate-y-1">
+                  <CardHeader className="pb-4 space-y-3">
+                    <div className="flex items-start justify-between">
+                      <CardTitle className="text-lg font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors">
+                        {template.name}
+                      </CardTitle>
                       <Badge
                         variant="secondary"
-                        className="ml-2 bg-purple-100 text-purple-700"
+                        className="bg-gradient-to-r from-purple-50 to-indigo-50 text-purple-700 border-purple-200/50 px-3 py-1 rounded-full text-xs font-medium"
                       >
                         Template
                       </Badge>
-                    </CardTitle>
-                    <CardDescription className="text-xs">{template.category}</CardDescription>
+                    </div>
+                    <CardDescription className="text-sm text-gray-500 leading-relaxed">{template.category}</CardDescription>
                   </CardHeader>
-                  <CardContent className="pb-2">
-                    <p className="text-sm text-gray-600">
-                      {template.type === "cross_sell" ? "Cross-Sell" : template.type === "upsell" ? "Upsell" : "Custom"}
-                    </p>
+                  <CardContent className="pb-6 space-y-4">
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-indigo-400"></div>
+                      <p className="text-sm font-medium text-gray-700">
+                        {template.type === "cross_sell" ? "Cross-Sell" : template.type === "upsell" ? "Upsell" : "Custom"}
+                      </p>
+                    </div>
                     {template.tags && template.tags.length > 0 && (
-                      <div className="flex flex-wrap gap-1 mt-2">
+                      <div className="flex flex-wrap gap-2">
                         {template.tags.slice(0, 3).map((tag, index) => (
-                          <Badge key={index} variant="outline" className="text-xs">
+                          <Badge key={index} variant="outline" className="text-xs px-2 py-1 rounded-md border-gray-200 text-gray-600 hover:bg-gray-50 transition-colors">
                             {tag}
                           </Badge>
                         ))}
                         {template.tags.length > 3 && (
-                          <Badge variant="outline" className="text-xs">
-                            +{template.tags.length - 3}
+                          <Badge variant="outline" className="text-xs px-2 py-1 rounded-md border-gray-200 text-gray-600">
+                            +{template.tags.length - 3} more
                           </Badge>
                         )}
                       </div>
                     )}
                   </CardContent>
-                  <CardFooter className="pt-0 flex gap-1">
+                  <CardFooter className="pt-0 border-t border-gray-100/50 bg-gray-50/30 rounded-b-lg flex gap-2">
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 p-0 flex-1"
+                      className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 px-4 py-2 rounded-lg font-medium flex-1 transition-all duration-200"
                       onClick={() => startNewCampaign(template.id.toString())}
                     >
                       Use Template
@@ -497,7 +502,7 @@ export default function CampaignsPage() {
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      className="text-gray-600 hover:text-gray-700 hover:bg-gray-50 p-0 flex-1"
+                      className="text-gray-600 hover:text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg font-medium flex-1 transition-all duration-200"
                       onClick={() => setLocation(`/campaigns/template-builder?template=${template.id}`)}
                     >
                       Edit
@@ -505,27 +510,37 @@ export default function CampaignsPage() {
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 p-0 flex-1"
+                      className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-3 py-2 rounded-lg font-medium transition-all duration-200"
                       onClick={(e) => {
                         e.stopPropagation();
                         openShareDialog(template);
                       }}
                     >
-                      <Share2 className="h-4 w-4 mr-1" />
-                      Share
+                      <Share2 className="h-4 w-4" />
                     </Button>
                   </CardFooter>
                 </Card>
               ))}
             </div>
           ) : (
-            <Card className="text-center py-12 border-dashed bg-gray-50">
-              <CardContent className="pt-6">
-                <FileText className="mx-auto h-12 w-12 text-gray-400" />
-                <CardTitle className="mt-2 text-sm font-medium text-gray-900">No templates</CardTitle>
-                <CardDescription className="mt-1 text-sm text-gray-500">
-                  Create your first campaign template to reuse in future campaigns.
-                </CardDescription>
+            <Card className="text-center py-16 border-0 bg-gradient-to-br from-gray-50/50 to-white backdrop-blur-sm">
+              <CardContent className="pt-6 space-y-6">
+                <div className="mx-auto w-20 h-20 rounded-full bg-gradient-to-br from-indigo-50 to-purple-50 flex items-center justify-center">
+                  <FileText className="h-8 w-8 text-indigo-400" />
+                </div>
+                <div className="space-y-2">
+                  <CardTitle className="text-xl font-semibold text-gray-900">No templates yet</CardTitle>
+                  <CardDescription className="text-base text-gray-500 max-w-md mx-auto leading-relaxed">
+                    Create your first campaign template to streamline future campaigns and maintain brand consistency.
+                  </CardDescription>
+                </div>
+                <Button 
+                  className="mt-6 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-6 py-2.5 rounded-lg font-medium shadow-lg hover:shadow-xl transition-all duration-200"
+                  onClick={() => setLocation("/campaigns/template-builder")}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Template
+                </Button>
               </CardContent>
             </Card>
           )}
@@ -535,40 +550,60 @@ export default function CampaignsPage() {
           <div>
             <h2 className="text-xl font-semibold mb-4">Do what works and try out some of our predesigned campaigns</h2>
             
-            <Card className="p-2 mb-4">
-              <CardContent className="p-2">
-                <div className="flex space-x-2 overflow-x-auto">
+            <Card className="p-4 mb-6 border-0 bg-white/60 backdrop-blur-sm shadow-sm">
+              <CardContent className="p-0">
+                <div className="flex space-x-3 overflow-x-auto scrollbar-hide">
                   <Badge
                     variant={activeFilter === "popular" ? "default" : "outline"}
-                    className="cursor-pointer"
+                    className={`cursor-pointer px-4 py-2 rounded-full font-medium transition-all duration-200 whitespace-nowrap ${
+                      activeFilter === "popular" 
+                        ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg hover:shadow-xl" 
+                        : "border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300"
+                    }`}
                     onClick={() => setActiveFilter("popular")}
                   >
                     Most Popular
                   </Badge>
                   <Badge
                     variant={activeFilter === "mortgages" ? "default" : "outline"}
-                    className="cursor-pointer"
+                    className={`cursor-pointer px-4 py-2 rounded-full font-medium transition-all duration-200 whitespace-nowrap ${
+                      activeFilter === "mortgages" 
+                        ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg hover:shadow-xl" 
+                        : "border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300"
+                    }`}
                     onClick={() => setActiveFilter("mortgages")}
                   >
                     Mortgages
                   </Badge>
                   <Badge
                     variant={activeFilter === "partner" ? "default" : "outline"}
-                    className="cursor-pointer"
+                    className={`cursor-pointer px-4 py-2 rounded-full font-medium transition-all duration-200 whitespace-nowrap ${
+                      activeFilter === "partner" 
+                        ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg hover:shadow-xl" 
+                        : "border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300"
+                    }`}
                     onClick={() => setActiveFilter("partner")}
                   >
                     By Partner
                   </Badge>
                   <Badge
                     variant={activeFilter === "cross-sell" ? "default" : "outline"}
-                    className="cursor-pointer whitespace-nowrap"
+                    className={`cursor-pointer px-4 py-2 rounded-full font-medium transition-all duration-200 whitespace-nowrap ${
+                      activeFilter === "cross-sell" 
+                        ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg hover:shadow-xl" 
+                        : "border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300"
+                    }`}
                     onClick={() => setActiveFilter("cross-sell")}
                   >
                     Cross-Sell
                   </Badge>
                   <Badge
                     variant={activeFilter === "upsell" ? "default" : "outline"}
-                    className="cursor-pointer"
+                    className={`cursor-pointer px-4 py-2 rounded-full font-medium transition-all duration-200 whitespace-nowrap ${
+                      activeFilter === "upsell" 
+                        ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg hover:shadow-xl" 
+                        : "border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300"
+                    }`}
                     onClick={() => setActiveFilter("upsell")}
                   >
                     Upsell
@@ -577,37 +612,44 @@ export default function CampaignsPage() {
               </CardContent>
             </Card>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
               {getFilteredTemplates().map(template => (
                 <Card 
                   key={template.id} 
-                  className="hover:shadow-md transition-shadow cursor-pointer"
+                  className="group hover:shadow-xl hover:shadow-black/5 transition-all duration-300 cursor-pointer border-0 bg-white/80 backdrop-blur-sm hover:-translate-y-1"
                   onClick={() => startNewCampaign(template.id)}
                 >
-                  <CardHeader>
+                  <CardHeader className="pb-4 space-y-4">
                     <div className="flex justify-between items-start">
-                      {template.icon}
+                      <div className="p-3 rounded-xl bg-gradient-to-br from-indigo-50 to-purple-50 group-hover:from-indigo-100 group-hover:to-purple-100 transition-colors">
+                        {template.icon}
+                      </div>
                       {template.isSponsored && (
                         <Badge 
                           variant="outline" 
-                          className={template.sponsor === "Rabobank" || template.sponsor === "Arag"
-                            ? "bg-green-50 text-green-700 border-green-200"
-                            : "bg-yellow-50 text-yellow-700 border-yellow-200"
-                          }
+                          className={`px-3 py-1 rounded-full text-xs font-medium border-0 ${
+                            template.sponsor === "Rabobank" || template.sponsor === "Arag"
+                              ? "bg-gradient-to-r from-green-50 to-emerald-50 text-green-700"
+                              : "bg-gradient-to-r from-amber-50 to-yellow-50 text-amber-700"
+                          }`}
                         >
                           {template.sponsor === "Rabobank" || template.sponsor === "Arag" ? "Created for you" : "Sponsored"}
                         </Badge>
                       )}
                     </div>
-                    <CardTitle className="text-lg mt-2">{template.name}</CardTitle>
-                    <CardDescription>
-                      {template.isSponsored ? `By ${template.sponsor}` : template.category}
-                    </CardDescription>
+                    <div className="space-y-2">
+                      <CardTitle className="text-lg font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors">
+                        {template.name}
+                      </CardTitle>
+                      <CardDescription className="text-sm text-gray-500 leading-relaxed">
+                        {template.isSponsored ? `By ${template.sponsor}` : template.category}
+                      </CardDescription>
+                    </div>
                   </CardHeader>
-                  <CardFooter>
+                  <CardFooter className="pt-0">
                     <Button 
                       variant="outline" 
-                      className="w-full border-indigo-200 text-indigo-600 hover:bg-indigo-50"
+                      className="w-full border-0 bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-600 hover:from-indigo-100 hover:to-purple-100 hover:text-indigo-700 font-medium py-2.5 rounded-lg transition-all duration-200"
                     >
                       Use Template
                     </Button>
@@ -616,13 +658,13 @@ export default function CampaignsPage() {
               ))}
             </div>
 
-            <Card className="p-4">
+            <Card className="p-8 border-0 bg-gradient-to-br from-gray-50/50 to-white backdrop-blur-sm">
               <CardContent className="p-0">
-                <div className="flex justify-center gap-4">
+                <div className="flex flex-col sm:flex-row justify-center gap-4">
                   <Button 
                     size="lg"
                     variant="outline" 
-                    className="border-2 border-dashed border-gray-300 hover:border-indigo-300 hover:bg-indigo-50"
+                    className="border-2 border-dashed border-gray-200 hover:border-indigo-300 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 text-gray-600 hover:text-indigo-600 px-8 py-3 rounded-xl font-medium transition-all duration-200 min-w-[200px]"
                     onClick={() => startNewCampaign()}
                   >
                     <Plus className="h-5 w-5 mr-2" />
@@ -630,7 +672,7 @@ export default function CampaignsPage() {
                   </Button>
                   <Button 
                     size="lg"
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                    className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-8 py-3 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-200 min-w-[200px]"
                     onClick={() => startFromTemplate()}
                   >
                     <FileText className="h-5 w-5 mr-2" />
@@ -642,111 +684,119 @@ export default function CampaignsPage() {
           </div>
         </TabsContent>
         
-        <TabsContent value="upload" className="space-y-4">
-          <Card className="p-6">
-            <CardHeader className="px-0 pt-0">
-              <CardTitle className="text-xl font-semibold">Import your data to create targeted campaigns</CardTitle>
-              <CardDescription className="text-gray-600">
+        <TabsContent value="upload" className="space-y-6">
+          <Card className="p-8 border-0 bg-gradient-to-br from-gray-50/30 to-white backdrop-blur-sm">
+            <CardHeader className="px-0 pt-0 pb-6">
+              <CardTitle className="text-2xl font-semibold text-gray-900">Import your data to create targeted campaigns</CardTitle>
+              <CardDescription className="text-base text-gray-600 leading-relaxed">
                 Choose your data source to get started with intelligent campaign creation
               </CardDescription>
             </CardHeader>
             <CardContent className="px-0 pb-0">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <Card 
-                className="hover:shadow-md transition-shadow cursor-pointer border-2 border-indigo-100"
-                onClick={() => setLocation("/campaigns/upload/brio/step1")}
-              >
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
-                      <FileUp className="h-5 w-5 text-indigo-600" />
+                  className="group hover:shadow-xl hover:shadow-black/5 transition-all duration-300 cursor-pointer border-0 bg-white/80 backdrop-blur-sm hover:-translate-y-1"
+                  onClick={() => setLocation("/campaigns/upload/brio/step1")}
+                >
+                  <CardHeader className="pb-4 space-y-4">
+                    <div className="flex justify-between items-start">
+                      <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-indigo-50 to-indigo-100 flex items-center justify-center group-hover:from-indigo-100 group-hover:to-indigo-200 transition-colors">
+                        <FileUp className="h-7 w-7 text-indigo-600" />
+                      </div>
                     </div>
-                  </div>
-                  <CardTitle className="text-lg mt-2">Upload from Brio</CardTitle>
-                  <CardDescription>
-                    Import your customer data directly from Brio
-                  </CardDescription>
-                </CardHeader>
-                <CardFooter>
-                  <Button 
-                    className="w-full bg-indigo-600 hover:bg-indigo-700"
-                  >
-                    Start Import
-                  </Button>
-                </CardFooter>
-              </Card>
-              
-              <Card 
-                className="hover:shadow-md transition-shadow cursor-pointer"
-              >
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                      <Cloud className="h-5 w-5 text-blue-600" />
+                    <div className="space-y-2">
+                      <CardTitle className="text-lg font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors">Upload from Brio</CardTitle>
+                      <CardDescription className="text-sm text-gray-500 leading-relaxed">
+                        Import your customer data directly from Brio
+                      </CardDescription>
                     </div>
-                  </div>
-                  <CardTitle className="text-lg mt-2">Upload from Broker Cloud</CardTitle>
-                  <CardDescription>
-                    Import data from your Broker Cloud account
-                  </CardDescription>
-                </CardHeader>
-                <CardFooter>
-                  <Button 
-                    variant="outline" 
-                    className="w-full border-gray-200"
-                  >
-                    Connect
-                  </Button>
-                </CardFooter>
-              </Card>
-              
-              <Card 
-                className="hover:shadow-md transition-shadow cursor-pointer"
-              >
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
-                      <Database className="h-5 w-5 text-green-600" />
+                  </CardHeader>
+                  <CardFooter className="pt-0">
+                    <Button 
+                      className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-2.5 rounded-lg font-medium shadow-lg hover:shadow-xl transition-all duration-200"
+                    >
+                      Start Import
+                    </Button>
+                  </CardFooter>
+                </Card>
+                
+                <Card 
+                  className="group hover:shadow-xl hover:shadow-black/5 transition-all duration-300 cursor-pointer border-0 bg-white/80 backdrop-blur-sm hover:-translate-y-1"
+                >
+                  <CardHeader className="pb-4 space-y-4">
+                    <div className="flex justify-between items-start">
+                      <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-blue-50 to-blue-100 flex items-center justify-center group-hover:from-blue-100 group-hover:to-blue-200 transition-colors">
+                        <Cloud className="h-7 w-7 text-blue-600" />
+                      </div>
                     </div>
-                  </div>
-                  <CardTitle className="text-lg mt-2">Upload from other CRM or portal</CardTitle>
-                  <CardDescription>
-                    Import from any other third-party system
-                  </CardDescription>
-                </CardHeader>
-                <CardFooter>
-                  <Button 
-                    variant="outline" 
-                    className="w-full border-gray-200"
-                  >
-                    Select Source
-                  </Button>
-                </CardFooter>
-              </Card>
-              
-              <Card 
-                className="hover:shadow-md transition-shadow cursor-pointer"
-              >
-                <CardHeader>
-                  <div className="flex justify-between items-start">
-                    <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
-                      <RefreshCw className="h-5 w-5 text-purple-600" />
+                    <div className="space-y-2">
+                      <CardTitle className="text-lg font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">Upload from Broker Cloud</CardTitle>
+                      <CardDescription className="text-sm text-gray-500 leading-relaxed">
+                        Import data from your Broker Cloud account
+                      </CardDescription>
                     </div>
-                  </div>
-                  <CardTitle className="text-lg mt-2">Sync with your CRM</CardTitle>
-                  <CardDescription>
-                    Set up automatic data synchronization
-                  </CardDescription>
-                </CardHeader>
-                <CardFooter>
-                  <Button 
-                    variant="outline" 
-                    className="w-full border-gray-200"
-                  >
-                    Set Up Sync
-                  </Button>
-                </CardFooter>
-              </Card>
+                  </CardHeader>
+                  <CardFooter className="pt-0">
+                    <Button 
+                      variant="outline" 
+                      className="w-full border-0 bg-gradient-to-r from-blue-50 to-blue-50 text-blue-600 hover:from-blue-100 hover:to-blue-100 hover:text-blue-700 py-2.5 rounded-lg font-medium transition-all duration-200"
+                    >
+                      Connect
+                    </Button>
+                  </CardFooter>
+                </Card>
+                
+                <Card 
+                  className="group hover:shadow-xl hover:shadow-black/5 transition-all duration-300 cursor-pointer border-0 bg-white/80 backdrop-blur-sm hover:-translate-y-1"
+                >
+                  <CardHeader className="pb-4 space-y-4">
+                    <div className="flex justify-between items-start">
+                      <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-green-50 to-green-100 flex items-center justify-center group-hover:from-green-100 group-hover:to-green-200 transition-colors">
+                        <Database className="h-7 w-7 text-green-600" />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <CardTitle className="text-lg font-semibold text-gray-900 group-hover:text-green-600 transition-colors">Upload from other CRM or portal</CardTitle>
+                      <CardDescription className="text-sm text-gray-500 leading-relaxed">
+                        Import from any other third-party system
+                      </CardDescription>
+                    </div>
+                  </CardHeader>
+                  <CardFooter className="pt-0">
+                    <Button 
+                      variant="outline" 
+                      className="w-full border-0 bg-gradient-to-r from-green-50 to-green-50 text-green-600 hover:from-green-100 hover:to-green-100 hover:text-green-700 py-2.5 rounded-lg font-medium transition-all duration-200"
+                    >
+                      Select Source
+                    </Button>
+                  </CardFooter>
+                </Card>
+                
+                <Card 
+                  className="group hover:shadow-xl hover:shadow-black/5 transition-all duration-300 cursor-pointer border-0 bg-white/80 backdrop-blur-sm hover:-translate-y-1"
+                >
+                  <CardHeader className="pb-4 space-y-4">
+                    <div className="flex justify-between items-start">
+                      <div className="h-14 w-14 rounded-2xl bg-gradient-to-br from-purple-50 to-purple-100 flex items-center justify-center group-hover:from-purple-100 group-hover:to-purple-200 transition-colors">
+                        <RefreshCw className="h-7 w-7 text-purple-600" />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <CardTitle className="text-lg font-semibold text-gray-900 group-hover:text-purple-600 transition-colors">Sync with your CRM</CardTitle>
+                      <CardDescription className="text-sm text-gray-500 leading-relaxed">
+                        Set up automatic data synchronization
+                      </CardDescription>
+                    </div>
+                  </CardHeader>
+                  <CardFooter className="pt-0">
+                    <Button 
+                      variant="outline" 
+                      className="w-full border-0 bg-gradient-to-r from-purple-50 to-purple-50 text-purple-600 hover:from-purple-100 hover:to-purple-100 hover:text-purple-700 py-2.5 rounded-lg font-medium transition-all duration-200"
+                    >
+                      Set Up Sync
+                    </Button>
+                  </CardFooter>
+                </Card>
               </div>
             </CardContent>
           </Card>
