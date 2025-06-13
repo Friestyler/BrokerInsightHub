@@ -232,7 +232,7 @@ export default function AttributeMappingStep({
     if (csvColumn === 'CODE') {
       setShowCodeEditor(prev => ({ ...prev, [index]: true }));
       if (!codeEditorContent[index]) {
-        setCodeEditorContent(prev => ({ ...prev, [index]: '# Define custom logic using column references\n# Available columns: ' + extractedHeaders.join(', ') + '\n\n' }));
+        setCodeEditorContent(prev => ({ ...prev, [index]: '' }));
       }
     } else {
       setShowCodeEditor(prev => ({ ...prev, [index]: false }));
