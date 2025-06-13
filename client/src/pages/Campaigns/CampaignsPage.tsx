@@ -218,7 +218,6 @@ export default function CampaignsPage() {
   return (
     <div className="container mx-auto px-4 py-6">
       <h1 className="text-2xl font-bold mb-6">Campaigns</h1>
-
       <Tabs defaultValue="new" className="space-y-6">
         <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="my">My Campaigns</TabsTrigger>
@@ -294,9 +293,7 @@ export default function CampaignsPage() {
               Create Template
             </Button>
           </div>
-          <p className="text-sm text-gray-600 mb-6">
-            Creating templates helps your brokers send campaigns faster and more effectively. With ready-made content that's compliant and on-brand, brokers can focus on reaching their clients instead of writing from scratch. It saves time, ensures consistency, and helps you scale product promotions across your network—all while strengthening your relationship with brokers.
-          </p>
+          <p className="text-sm text-gray-600 mb-6">Creating templates helps your brokers send campaigns faster and more effectively. With ready-made content that's compliant and on-brand, brokers can focus on reaching their clients instead of writing from scratch.</p>
 
           {isLoadingCampaigns ? (
             <div className="text-center py-12">Loading templates...</div>
