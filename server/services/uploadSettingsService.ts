@@ -467,6 +467,46 @@ export class UploadSettingsService {
         });
       }
 
+      // Enhanced column filtering - check for various column removal patterns
+      const columnDropPatterns = [
+        /df\s*=\s*df\.drop\(.*columns.*\)/g,
+        /df\.drop\(.*axis\s*=\s*1/g,
+        /df\s*=\s*df\.filter\(/g,
+        /df\[.*\]/g
+      ];
+
+      let hasColumnFiltering = columnDropPatterns.some(pattern => pattern.test(scriptContent));
+
+      if (hasColumnFiltering || scriptContent.includes('ID')) {
+        // Look for specific column filtering logic
+        const headerIndexesToKeep: number[] = [];
+        
+        // If script mentions removing columns with "ID", implement that logic
+        if (scriptContent.toLowerCase().includes('id')) {
+          transformedHeaders.forEach((header, index) => {
+            const headerLower = header.toLowerCase();
+            // Keep columns that don't contain "id" in various forms
+            if (!headerLower.includes('id') && !headerLower.includes('ID')) {
+              headerIndexesToKeep.push(index);
+            }
+          });
+        } else {
+          // Generic column filtering - keep all for now unless specific patterns found
+          transformedHeaders.forEach((header, index) => {
+            headerIndexesToKeep.push(index);
+          });
+        }
+
+        // Apply the filtering if we found columns to remove
+        if (headerIndexesToKeep.length < transformedHeaders.length) {
+          transformedHeaders = headerIndexesToKeep.map(i => transformedHeaders[i]);
+          transformedLines = transformedLines.map(line => {
+            const cells = line.split(',');
+            return headerIndexesToKeep.map(i => cells[i] || '').join(',');
+          });
+        }
+      }
+
       // Rebuild CSV
       const transformedCsv = [transformedHeaders.join(','), ...transformedLines].join('\n');
 

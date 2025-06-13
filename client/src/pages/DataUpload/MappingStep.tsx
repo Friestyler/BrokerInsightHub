@@ -63,10 +63,16 @@ export default function MappingStep({
             body: formData
           });
 
+          console.log('Transformation response status:', response.status);
+          
           if (response.ok) {
             const result = await response.json();
+            console.log('Transformation result:', result);
             finalHeaders = result.headers || [];
+            console.log('Final headers after transformation:', finalHeaders);
           } else {
+            const errorText = await response.text();
+            console.error('Transformation failed:', response.status, errorText);
             // If transformation fails, fall back to regular parsing
             const text = await uploadedFile.text();
             const lines = text.split('\n');

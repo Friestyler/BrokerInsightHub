@@ -4983,6 +4983,8 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { scriptId, entityType } = req.body;
       const file = req.file;
 
+      console.log('Transformation request:', { environmentId, scriptId, entityType, hasFile: !!file });
+
       if (!file) {
         return res.status(400).json({ error: 'CSV file is required' });
       }
@@ -4997,18 +4999,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
       } else {
         // Get the first active script for this entity type
         const scripts = await UploadSettingsService.getTransformationScripts(environmentId, entityType);
+        console.log('Found scripts for entity type:', scripts.length);
         script = scripts.find(s => s.isActive);
       }
 
       if (!script) {
+        console.log('No transformation script found');
         return res.status(404).json({ error: 'No transformation script found' });
       }
 
+      console.log('Using script:', { id: script.id, name: script.name });
+
       // Execute the transformation
+      const csvData = file.buffer.toString('utf-8');
+      console.log('Original CSV headers:', csvData.split('\n')[0]);
+
       const result = await UploadSettingsService.executeTransformationScript(
         script.scriptContent,
-        file.buffer.toString('utf-8')
+        csvData
       );
+
+      console.log('Transformation result headers:', result.headers);
 
       res.json({
         success: true,
