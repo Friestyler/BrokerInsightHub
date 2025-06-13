@@ -537,6 +537,7 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
                   <SelectContent>
                     <SelectItem value="external">External link</SelectItem>
                     <SelectItem value="internal">Internal page</SelectItem>
+                    <SelectItem value="form">Form</SelectItem>
                     <SelectItem value="email">Email address</SelectItem>
                     <SelectItem value="phone">Phone number</SelectItem>
                   </SelectContent>
