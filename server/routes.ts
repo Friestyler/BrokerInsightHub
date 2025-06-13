@@ -4858,8 +4858,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const placeholders = columns.map((_, index) => `$${index + 1}`);
       
       const tableName = `${environmentId}.${entityType}`;
+      // Quote column names to preserve case sensitivity
+      const quotedColumns = columns.map(col => `"${col}"`);
       const insertQuery = `
-        INSERT INTO ${tableName} (${columns.join(', ')})
+        INSERT INTO ${tableName} (${quotedColumns.join(', ')})
         VALUES (${placeholders.join(', ')})
         RETURNING *
       `;

@@ -964,13 +964,13 @@ export default function ProcessingStep({
               </div>
 
               {processingResult.errors.length > 0 && (
-                <Alert>
+                <Alert variant="destructive">
                   <AlertCircle className="h-4 w-4" />
-                  <AlertDescription>
-                    {processingResult.errors.length} rows had errors during processing.
+                  <AlertDescription className="text-red-600">
+                    <span className="text-red-600 font-medium">{processingResult.errors.length} rows had errors during processing.</span>
                     <Button
                       variant="link"
-                      className="p-0 h-auto font-normal underline ml-1"
+                      className="p-0 h-auto font-normal underline ml-1 text-red-600 hover:text-red-700"
                       onClick={downloadErrorReport}
                     >
                       Download error report
