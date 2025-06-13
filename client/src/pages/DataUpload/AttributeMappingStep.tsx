@@ -228,7 +228,19 @@ export default function AttributeMappingStep({
         if (lastUsedTemplate && lastUsedTemplate.entity_type === uploadType) {
           console.log(`Auto-loading last used template for ${uploadType}:`, lastUsedTemplate.name);
           setSelectedTemplateId(lastUsedTemplateId);
+          setTemplateLoaded(true); // Set this BEFORE loading to prevent interference
           loadTemplate(lastUsedTemplate.id.toString());
+        }
+      } else {
+        // Only initialize mandatory attributes if no template is available
+        const mandatoryAttrs = getMandatoryAttributes();
+        if (mandatoryAttrs.length > 0) {
+          const mappings = mandatoryAttrs.map((attr: string) => ({
+            attribute: attr,
+            csvColumn: '',
+            isRequired: true,
+          }));
+          setAttributeMappings(mappings);
         }
       }
     }
@@ -376,18 +388,8 @@ export default function AttributeMappingStep({
       .map((setting: any) => setting.attribute_name);
   };
 
-  // Initialize mandatory attributes (only if no mappings exist to avoid overwriting templates)
-  useEffect(() => {
-    const mandatoryAttrs = getMandatoryAttributes();
-    if (mandatoryAttrs.length > 0 && attributeMappings.length === 0) {
-      const mappings = mandatoryAttrs.map((attr: string) => ({
-        attribute: attr,
-        csvColumn: '',
-        isRequired: true,
-      }));
-      setAttributeMappings(mappings);
-    }
-  }, [uploadSettings, attributeMappings.length]);
+  // Track if template has been loaded to prevent overwriting
+  const [templateLoaded, setTemplateLoaded] = useState(false);
 
   // Update attribute mapping
   const updateMapping = (index: number, csvColumn: string) => {
@@ -815,6 +817,7 @@ export default function AttributeMappingStep({
         
         console.log('Loading template mappings:', mappings);
         setAttributeMappings(mappings);
+        setTemplateLoaded(true); // Mark template as loaded to prevent mandatory attrs from overwriting
         
         // Load code editor states and content for code-based mappings
         mappings.forEach((mapping: AttributeMapping, index: number) => {
