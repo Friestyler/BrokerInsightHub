@@ -651,7 +651,7 @@ export default function PartnerPilot() {
 
             <Card 
               className="hover:shadow-md transition-shadow cursor-pointer border-2 border-blue-100 flex flex-col"
-              onClick={() => setLocation('/data-upload-2/process/salesforce')}
+              onClick={() => setLocation('/data-upload-3/process/salesforce')}
             >
               <CardHeader className="flex-grow">
                 <div className="flex justify-between items-start">
@@ -673,7 +673,7 @@ export default function PartnerPilot() {
 
             <Card 
               className="hover:shadow-md transition-shadow cursor-pointer border-2 border-indigo-100 flex flex-col"
-              onClick={() => setLocation('/data-upload-2/process/brio')}
+              onClick={() => setLocation('/data-upload-3/process/brio')}
             >
               <CardHeader className="flex-grow">
                 <div className="flex justify-between items-start">

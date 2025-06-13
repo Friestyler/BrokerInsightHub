@@ -65,7 +65,7 @@ export default function EntitySelectPage() {
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-blue-100 flex flex-col" onClick={() => setLocation('/data-upload-2/process/opportunities')}>
+        <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-blue-100 flex flex-col" onClick={() => setLocation('/data-upload-3/process/opportunities')}>
           <CardHeader className="flex-grow">
             <div className="flex justify-between items-start">
               <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
@@ -84,7 +84,7 @@ export default function EntitySelectPage() {
           </CardFooter>
         </Card>
 
-        <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-green-100 flex flex-col" onClick={() => setLocation('/data-upload-2/process/partners')}>
+        <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-green-100 flex flex-col" onClick={() => setLocation('/data-upload-3/process/partners')}>
           <CardHeader className="flex-grow">
             <div className="flex justify-between items-start">
               <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
@@ -103,7 +103,7 @@ export default function EntitySelectPage() {
           </CardFooter>
         </Card>
 
-        <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-purple-100 flex flex-col" onClick={() => setLocation('/data-upload-2/process/customers')}>
+        <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-purple-100 flex flex-col" onClick={() => setLocation('/data-upload-3/process/customers')}>
           <CardHeader className="flex-grow">
             <div className="flex justify-between items-start">
               <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
@@ -122,7 +122,7 @@ export default function EntitySelectPage() {
           </CardFooter>
         </Card>
 
-        <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-orange-100 flex flex-col" onClick={() => setLocation('/data-upload-2/process/products')}>
+        <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-orange-100 flex flex-col" onClick={() => setLocation('/data-upload-3/process/products')}>
           <CardHeader className="flex-grow">
             <div className="flex justify-between items-start">
               <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center">
@@ -141,7 +141,7 @@ export default function EntitySelectPage() {
           </CardFooter>
         </Card>
 
-        <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-red-100 flex flex-col" onClick={() => setLocation('/data-upload-2/process/vendors')}>
+        <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-red-100 flex flex-col" onClick={() => setLocation('/data-upload-3/process/vendors')}>
           <CardHeader className="flex-grow">
             <div className="flex justify-between items-start">
               <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
@@ -160,7 +160,7 @@ export default function EntitySelectPage() {
           </CardFooter>
         </Card>
 
-        <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-gray-100 flex flex-col" onClick={() => setLocation('/data-upload-2/process/contacts')}>
+        <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-gray-100 flex flex-col" onClick={() => setLocation('/data-upload-3/process/contacts')}>
           <CardHeader className="flex-grow">
             <div className="flex justify-between items-start">
               <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
