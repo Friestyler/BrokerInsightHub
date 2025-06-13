@@ -150,8 +150,8 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
   const steps: BuilderStep[] = [
     {
       id: "select-list",
-      title: "Template Details",
-      description: "Define template name and targeting criteria",
+      title: "Campaign Details",
+      description: "Define campaign name and targeting criteria",
       icon: <ListChecks className="h-5 w-5" />,
     },
     {
@@ -299,7 +299,7 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
         return (
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="template-name">Template Name</Label>
+              <Label htmlFor="template-name">Campaign Name</Label>
               <Input
                 id="template-name"
                 placeholder="Enter template name"
@@ -309,7 +309,6 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
                 This template name will help you find and reuse this template later.
               </p>
             </div>
-            
             <div className="space-y-2">
               <Label htmlFor="template-description">Description (Optional)</Label>
               <Textarea
@@ -318,7 +317,6 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
                 {...form.register("description")}
               />
             </div>
-
             <div className="space-y-2">
               <Label>Campaign Type</Label>
               <RadioGroup 
@@ -343,7 +341,6 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
                 </div>
               </RadioGroup>
             </div>
-
             <div className="space-y-2">
               <Label htmlFor="category">Category (Optional)</Label>
               <Input
