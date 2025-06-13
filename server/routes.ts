@@ -5125,29 +5125,43 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get campaigns shared with broker users (for Regional Insurance Partners environment)
-  app.get('/api/campaigns/shared-with-broker', async (req, res) => {
+  app.get('/api/broker/shared-campaigns', async (req, res) => {
     try {
-      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      const envId = req.headers['x-environment-id'] || 'degoudse';
       
-      if (envId === 'myqollabi') {
-        // Return mock shared campaigns data for broker view
+      if (envId === 'degoudse') {
+        // Return campaigns shared with Regional Insurance Partners from De Goudse
         const sharedCampaigns = [
           {
             id: 1,
-            name: "Cross-Sell Campaign Template",
-            description: "Template for cross-selling property insurance to existing auto customers",
+            name: "Property Insurance Cross-Sell",
+            description: "Targeted campaign for existing automotive customers to add property coverage",
             type: "cross_sell",
             category: "cross_sell",
-            status: "template",
+            status: "active",
             sharedAt: "2024-06-10T09:00:00Z",
-            sharedBy: "De Goudse Marketing Team",
+            sharedBy: "De Goudse Marketing",
             accessLevel: "view",
-            isTemplate: true,
+            isTemplate: false,
             sponsorName: "De Goudse Insurance",
             tags: ["property", "cross-sell", "automotive"]
           },
           {
             id: 2,
+            name: "Customer Retention Template",
+            description: "Template for retaining customers approaching policy renewal",
+            type: "retention",
+            category: "retention", 
+            status: "template",
+            sharedAt: "2024-06-08T14:30:00Z",
+            sharedBy: "De Goudse Strategy Team",
+            accessLevel: "view",
+            isTemplate: true,
+            sponsorName: "De Goudse Insurance", 
+            tags: ["retention", "renewal", "loyalty"]
+          },
+          {
+            id: 3,
             name: "Customer Retention Campaign",
             description: "Active campaign to retain customers approaching renewal",
             type: "retention",
