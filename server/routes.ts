@@ -5249,6 +5249,80 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Activity API endpoints
+  app.post('/api/:envId/activity/tasks', async (req, res) => {
+    try {
+      const { envId } = req.params;
+      const { title, priority, visibleToPartner, entityType, entityId, authorId, assignedTo, assignedById } = req.body;
+      
+      const envPool = getEnvironmentPool(envId);
+      
+      const result = await envPool.query(`
+        INSERT INTO ${envId}.activities (
+          activity_type, title, priority, visible_to_partner, 
+          entity_type, entity_id, author_id, assigned_to, assigned_by_id,
+          created_at, updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+        RETURNING *
+      `, ['task', title, priority, visibleToPartner, entityType, entityId, authorId, assignedTo, assignedById]);
+      
+      console.log('Task created successfully:', result.rows[0]);
+      res.status(201).json(result.rows[0]);
+    } catch (error) {
+      console.error('Error creating task:', error);
+      res.status(500).json({ error: 'Failed to create task' });
+    }
+  });
+
+  app.patch('/api/:envId/activity/tasks/:taskId', async (req, res) => {
+    try {
+      const { envId, taskId } = req.params;
+      const { completed, completedAt } = req.body;
+      
+      const envPool = getEnvironmentPool(envId);
+      
+      const result = await envPool.query(`
+        UPDATE ${envId}.activities 
+        SET completed = $1, completed_at = $2, updated_at = NOW()
+        WHERE id = $3 AND activity_type = 'task'
+        RETURNING *
+      `, [completed, completedAt, parseInt(taskId)]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Task not found' });
+      }
+      
+      res.json(result.rows[0]);
+    } catch (error) {
+      console.error('Error updating task:', error);
+      res.status(500).json({ error: 'Failed to update task' });
+    }
+  });
+
+  app.post('/api/:envId/activity/comments', async (req, res) => {
+    try {
+      const { envId } = req.params;
+      const { content, visibleToPartner, entityType, entityId, authorId } = req.body;
+      
+      const envPool = getEnvironmentPool(envId);
+      
+      const result = await envPool.query(`
+        INSERT INTO ${envId}.activities (
+          activity_type, content, visible_to_partner, 
+          entity_type, entity_id, author_id,
+          created_at, updated_at
+        ) VALUES ($1, $2, $3, $4, $5, $6, NOW(), NOW())
+        RETURNING *
+      `, ['comment', content, visibleToPartner, entityType, entityId, authorId]);
+      
+      console.log('Comment created successfully:', result.rows[0]);
+      res.status(201).json(result.rows[0]);
+    } catch (error) {
+      console.error('Error creating comment:', error);
+      res.status(500).json({ error: 'Failed to create comment' });
+    }
+  });
+
   // Table counts endpoint for Developer Dashboard
   app.get('/api/:environment/table-counts', async (req, res) => {
     try {
