@@ -31,6 +31,7 @@ import {
 } from "@/components/ui/form";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { useForm } from "react-hook-form";
 import { 
   ArrowLeft, 
@@ -174,8 +175,8 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
     },
     {
       id: "compose",
-      title: "Compose",
-      description: "Create your email content",
+      title: "Build the email content for this campaign",
+      description: "This template will be used by your internal team or shared with brokers. Fill in each section below to define the email content. They'll be able to personalize it before sending.",
       icon: <FormInput className="h-5 w-5" />,
     },
     {
@@ -488,25 +489,52 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
             )}
 
             <div className="space-y-2">
-              <Label htmlFor="subject" className="text-[#282A3F]">Email Subject</Label>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Label htmlFor="subject" className="text-[#282A3F] cursor-help">Email Subject</Label>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>This is the email subject clients will see in their inbox.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               <Input
                 id="subject"
-                placeholder="Enter email subject"
+                placeholder='e.g. "Health Coverage for the Self-Employed – Now Available"'
                 {...form.register("subject")}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="heading" className="text-[#282A3F]">Heading</Label>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Label htmlFor="heading" className="text-[#282A3F] cursor-help">Heading</Label>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>A strong, clear headline helps draw attention.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               <Input
                 id="heading"
-                placeholder="Enter email heading"
+                placeholder='e.g. "Protect Your Business with Flexible Health Insurance"'
                 {...form.register("heading")}
               />
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email-body" className="text-[#282A3F]">Email Content</Label>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Label htmlFor="email-body" className="text-[#282A3F] cursor-help">Email Content</Label>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    <p>Keep it clear and benefit-driven. Use {"{{customer_name}}"} or other placeholders if needed.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
               <Textarea
                 id="email-body"
                 placeholder="Write your email content here..."
@@ -517,7 +545,7 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
 
             <div className="space-y-4 border rounded-lg p-4">
               <div className="flex justify-between items-center">
-                <Label className="text-[#282A3F]">Button</Label>
+                <Label className="text-[#282A3F]">Call-to-Action Button</Label>
                 <Button
                   type="button"
                   variant="ghost"
