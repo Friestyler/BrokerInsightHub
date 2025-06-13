@@ -1095,8 +1095,10 @@ export default function ProcessingStep({
         onProcessingComplete(result);
       }
       
-      // Set phase to completed to show final results
-      setPhase('completed');
+      // Automatically advance to next step
+      setTimeout(() => {
+        onNext();
+      }, 500);
 
 
 
@@ -1603,47 +1605,7 @@ export default function ProcessingStep({
             </div>
           )}
 
-          {/* Completed Phase */}
-          {phase === 'completed' && (
-            <div className="space-y-6">
-              <div className="text-center">
-                <div className="mx-auto h-16 w-16 rounded-full bg-green-100 flex items-center justify-center mb-4">
-                  <CheckCircle className="h-8 w-8 text-green-600" />
-                </div>
-                <h3 className="text-lg font-medium mb-2">Processing Complete!</h3>
-                <p className="text-gray-600 mb-4">
-                  Your data has been successfully processed and imported.
-                </p>
-              </div>
 
-              {processingResult && (
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  <div className="text-center p-4 bg-green-50 rounded-lg">
-                    <CheckCircle className="mx-auto h-8 w-8 text-green-600 mb-2" />
-                    <h3 className="font-medium">Created</h3>
-                    <p className="text-2xl font-bold text-green-600">{processingResult.recordsCreated}</p>
-                  </div>
-                  <div className="text-center p-4 bg-gray-50 rounded-lg">
-                    <Trash2 className="mx-auto h-8 w-8 text-gray-600 mb-2" />
-                    <h3 className="font-medium">Skipped</h3>
-                    <p className="text-2xl font-bold text-gray-600">{processingResult.recordsSkipped}</p>
-                  </div>
-                  <div className="text-center p-4 bg-red-50 rounded-lg">
-                    <AlertCircle className="mx-auto h-8 w-8 text-red-600 mb-2" />
-                    <h3 className="font-medium">Errors</h3>
-                    <p className="text-2xl font-bold text-red-600">{processingResult.errors.length}</p>
-                  </div>
-                </div>
-              )}
-
-              <div className="text-center">
-                <Button onClick={onNext} size="lg">
-                  <ArrowRight className="mr-2 h-4 w-4" />
-                  Continue
-                </Button>
-              </div>
-            </div>
-          )}
 
 
         </CardContent>
