@@ -949,73 +949,77 @@ export default function CampaignsPage() {
 
       {/* New Campaign Choice Dialog */}
       <Dialog open={newCampaignDialogOpen} onOpenChange={setNewCampaignDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-[#282A3F]">Create New Campaign</DialogTitle>
+        <DialogContent className="max-w-md p-6 border-0 shadow-xl">
+          <DialogHeader className="pb-4">
+            <DialogTitle className="text-xl font-semibold text-gray-900">Create New Campaign</DialogTitle>
+            <p className="text-sm text-gray-500 mt-1">How would you like to start your campaign?</p>
           </DialogHeader>
           
-          <div className="space-y-4">
-            <p className="text-sm text-gray-600">How would you like to start your campaign?</p>
+          <div className="space-y-3">
+            <Button 
+              variant="ghost" 
+              className="w-full h-auto p-4 rounded-xl border border-gray-200 hover:border-gray-300 hover:bg-gray-50 text-left transition-all duration-150"
+              onClick={startFromScratch}
+            >
+              <div className="flex items-center space-x-4">
+                <div className="p-2 rounded-lg bg-gray-100">
+                  <Plus className="h-5 w-5 text-gray-600" />
+                </div>
+                <div>
+                  <div className="font-medium text-gray-900">Start from Scratch</div>
+                  <div className="text-sm text-gray-500">Build your campaign from the ground up</div>
+                </div>
+              </div>
+            </Button>
             
-            <div className="space-y-3">
-              <Button 
-                variant="outline" 
-                className="w-full h-auto p-4 border-2 border-dashed border-gray-200 hover:border-[#5567E5] hover:bg-[#5567E5]/10 text-left"
-                onClick={startFromScratch}
-              >
-                <div className="flex items-center space-x-3">
-                  <Plus className="h-8 w-8 text-gray-500" />
-                  <div>
-                    <div className="font-medium text-gray-900">Start from Scratch</div>
-                    <div className="text-sm text-gray-500">Build your campaign from the ground up</div>
-                  </div>
+            <Button 
+              variant="ghost" 
+              className="w-full h-auto p-4 rounded-xl border border-gray-200 hover:border-[#5567E5] hover:bg-blue-50 text-left transition-all duration-150"
+              onClick={startFromTemplate}
+            >
+              <div className="flex items-center space-x-4">
+                <div className="p-2 rounded-lg bg-blue-100">
+                  <FileText className="h-5 w-5 text-[#5567E5]" />
                 </div>
-              </Button>
-              
-              <Button 
-                variant="outline" 
-                className="w-full h-auto p-4 border-2 border-gray-200 hover:border-[#5567E5] hover:bg-[#5567E5]/10 text-left"
-                onClick={startFromTemplate}
-              >
-                <div className="flex items-center space-x-3">
-                  <FileText className="h-8 w-8 text-[#5567E5]" />
-                  <div>
-                    <div className="font-medium text-gray-900">Start from Template</div>
-                    <div className="text-sm text-gray-500">Choose from pre-built templates</div>
-                  </div>
+                <div>
+                  <div className="font-medium text-gray-900">Start from Template</div>
+                  <div className="text-sm text-gray-500">Choose from pre-built templates</div>
                 </div>
-              </Button>
-            </div>
+              </div>
+            </Button>
           </div>
         </DialogContent>
       </Dialog>
 
       {/* Template Selection Dialog */}
       <Dialog open={templateSelectionDialogOpen} onOpenChange={setTemplateSelectionDialogOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle className="text-[#282A3F]">Choose a Template</DialogTitle>
-          </DialogHeader>
+        <DialogContent className="max-w-4xl max-h-[85vh] overflow-hidden border-0 shadow-xl p-0">
+          <div className="p-6 border-b border-gray-100">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-semibold text-gray-900">Choose a Template</DialogTitle>
+              <p className="text-sm text-gray-500 mt-1">Select a template to start your campaign with pre-filled content.</p>
+            </DialogHeader>
+          </div>
           
-          <div className="space-y-4">
-            <p className="text-sm text-gray-600">Select a template to start your campaign with pre-filled content.</p>
-            
+          <div className="p-6 overflow-y-auto max-h-[60vh]">
             {isLoadingTemplates ? (
-              <div className="text-center py-12">Loading templates...</div>
+              <div className="text-center py-16">
+                <div className="text-gray-500">Loading templates...</div>
+              </div>
             ) : userTemplates && userTemplates.length > 0 ? (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {userTemplates.map(template => (
                   <Card 
                     key={template.id} 
-                    className="group hover:shadow-lg transition-all duration-200 cursor-pointer border border-gray-200 hover:border-indigo-200"
+                    className="group hover:shadow-md transition-all duration-200 cursor-pointer border border-gray-200 hover:border-blue-200 rounded-xl overflow-hidden"
                     onClick={() => startCampaignFromTemplate(template.id)}
                   >
                     <CardHeader className="pb-3">
                       <div className="flex items-start justify-between">
-                        <CardTitle className="text-base font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors">
+                        <CardTitle className="text-base font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">
                           {template.name}
                         </CardTitle>
-                        <Badge variant="secondary" className="text-xs">
+                        <Badge variant="secondary" className="text-xs bg-gray-100 text-gray-600">
                           Template
                         </Badge>
                       </div>
@@ -1025,7 +1029,7 @@ export default function CampaignsPage() {
                     </CardHeader>
                     <CardContent className="pt-0">
                       <div className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-indigo-400"></div>
+                        <div className="w-2 h-2 rounded-full bg-blue-400"></div>
                         <p className="text-sm text-gray-600">
                           {template.type === "cross_sell" ? "Cross-Sell" : template.type === "upsell" ? "Upsell" : "Custom"}
                         </p>
@@ -1035,21 +1039,22 @@ export default function CampaignsPage() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-12 border rounded-lg bg-gray-50">
-                <FileText className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-medium text-gray-900">No templates available</h3>
-                <p className="mt-1 text-sm text-gray-500">Create some templates first to use them for new campaigns.</p>
-                <div className="mt-4">
-                  <Button 
-                    variant="outline"
-                    onClick={() => {
-                      setTemplateSelectionDialogOpen(false);
-                      setLocation("/campaigns/template-builder");
-                    }}
-                  >
-                    Create Template
-                  </Button>
+              <div className="text-center py-16 rounded-xl bg-gray-50 border border-gray-200">
+                <div className="p-3 rounded-full bg-gray-100 w-fit mx-auto mb-4">
+                  <FileText className="h-8 w-8 text-gray-400" />
                 </div>
+                <h3 className="text-base font-medium text-gray-900 mb-2">No templates available</h3>
+                <p className="text-sm text-gray-500 mb-6">Create some templates first to use them for new campaigns.</p>
+                <Button 
+                  variant="outline"
+                  className="rounded-lg"
+                  onClick={() => {
+                    setTemplateSelectionDialogOpen(false);
+                    setLocation("/campaigns/template-builder");
+                  }}
+                >
+                  Create Template
+                </Button>
               </div>
             )}
           </div>
@@ -1058,28 +1063,31 @@ export default function CampaignsPage() {
 
       {/* Share Template Dialog */}
       <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
-        <DialogContent className="max-w-md">
-          <DialogHeader>
-            <DialogTitle className="text-[#282A3F]">Share Template: {selectedTemplate?.name}</DialogTitle>
-          </DialogHeader>
+        <DialogContent className="max-w-lg border-0 shadow-xl p-0 max-h-[85vh] overflow-hidden">
+          <div className="p-6 border-b border-gray-100">
+            <DialogHeader>
+              <DialogTitle className="text-xl font-semibold text-gray-900">Share Template</DialogTitle>
+              <p className="text-sm text-gray-500 mt-1">{selectedTemplate?.name}</p>
+            </DialogHeader>
+          </div>
           
-          <div className="space-y-4">
-            {/* Existing Shares Section - Google Docs Style */}
+          <div className="p-6 overflow-y-auto max-h-[60vh] space-y-6">
+            {/* Existing Shares Section */}
             {existingShares && existingShares.length > 0 && (
               <>
-                <div className="space-y-3">
-                  <Label className="text-[#282A3F] font-medium">People with access</Label>
-                  <div className="space-y-2">
+                <div className="space-y-4">
+                  <Label className="text-base font-medium text-gray-900">People with access</Label>
+                  <div className="space-y-3">
                     {existingShares.map((share) => (
-                      <div key={share.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <div key={share.id} className="flex items-center justify-between p-4 bg-gray-50 rounded-xl border border-gray-100">
                         <div className="flex items-center space-x-3">
-                          <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+                          <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
                             <span className="text-sm font-medium text-blue-600">
                               {share.contactName?.charAt(0).toUpperCase() || share.userName?.charAt(0).toUpperCase() || '?'}
                             </span>
                           </div>
                           <div>
-                            <p className="text-sm font-medium text-[#282A3F]">
+                            <p className="text-sm font-medium text-gray-900">
                               {share.contactName || share.userName}
                             </p>
                             <p className="text-xs text-gray-500">
@@ -1088,14 +1096,14 @@ export default function CampaignsPage() {
                           </div>
                         </div>
                         <div className="flex items-center space-x-2">
-                          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                          <span className="text-xs text-gray-500 bg-white px-3 py-1 rounded-full border border-gray-200">
                             Can view
                           </span>
                           <Button
                             variant="ghost"
                             size="sm"
                             onClick={() => handleUnshare(share.id)}
-                            className="text-gray-400 hover:text-red-500 h-8 w-8 p-0"
+                            className="text-gray-400 hover:text-red-500 h-8 w-8 p-0 rounded-full"
                           >
                             <X className="h-4 w-4" />
                           </Button>
@@ -1104,41 +1112,43 @@ export default function CampaignsPage() {
                     ))}
                   </div>
                 </div>
-                <Separator />
+                <div className="border-t border-gray-100 -mx-6 mx-6"></div>
               </>
             )}
 
             {/* Share Mode Selection */}
-            <div className="space-y-3">
-              <Label className="text-[#282A3F] font-medium">Add people</Label>
-              <RadioGroup value={shareMode} onValueChange={(value: 'internal' | 'external') => setShareMode(value)}>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="internal" id="internal" />
-                  <Label htmlFor="internal" className="text-sm font-medium text-[#282A3F] cursor-pointer">
-                    Internal Team Members
-                  </Label>
+            <div className="space-y-4">
+              <Label className="text-base font-medium text-gray-900">Add people</Label>
+              <RadioGroup value={shareMode} onValueChange={(value: 'internal' | 'external') => setShareMode(value)} className="space-y-3">
+                <div className="p-4 rounded-xl border border-gray-200 hover:border-blue-200 transition-colors">
+                  <div className="flex items-center space-x-3">
+                    <RadioGroupItem value="internal" id="internal" />
+                    <Label htmlFor="internal" className="text-sm font-medium text-gray-900 cursor-pointer">
+                      Internal Team Members
+                    </Label>
+                  </div>
+                  <p className="text-xs text-gray-500 ml-7 mt-1">Platform users who are not guests or partners</p>
                 </div>
-                <p className="text-xs text-gray-500 ml-6">Platform users who are not guests or partners</p>
                 
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="external" id="external" />
-                  <Label htmlFor="external" className="text-sm font-medium text-[#282A3F] cursor-pointer">
-                    External Parties
-                  </Label>
+                <div className="p-4 rounded-xl border border-gray-200 hover:border-blue-200 transition-colors">
+                  <div className="flex items-center space-x-3">
+                    <RadioGroupItem value="external" id="external" />
+                    <Label htmlFor="external" className="text-sm font-medium text-gray-900 cursor-pointer">
+                      External Parties
+                    </Label>
+                  </div>
+                  <p className="text-xs text-gray-500 ml-7 mt-1">Partner-related contacts, users, and guests only</p>
                 </div>
-                <p className="text-xs text-gray-500 ml-6">Partner-related contacts, users, and guests only</p>
               </RadioGroup>
             </div>
 
-            <Separator />
-
             {/* Internal Users Selection */}
             {shareMode === 'internal' && (
-              <div className="space-y-3">
-                <Label className="text-[#282A3F] font-medium">Select Team Members:</Label>
-                <div className="max-h-40 overflow-y-auto space-y-2">
+              <div className="space-y-4">
+                <Label className="text-base font-medium text-gray-900">Select Team Members</Label>
+                <div className="max-h-48 overflow-y-auto space-y-2 p-4 bg-gray-50 rounded-xl border border-gray-200">
                   {users?.map((user) => (
-                    <label key={user.id} className="flex items-center space-x-2 cursor-pointer">
+                    <label key={user.id} className="flex items-center space-x-3 cursor-pointer p-2 rounded-lg hover:bg-white transition-colors">
                       <Checkbox
                         checked={selectedUsers.includes(user.id)}
                         onCheckedChange={(checked) => {
@@ -1149,12 +1159,14 @@ export default function CampaignsPage() {
                           }
                         }}
                       />
-                      <span className="text-sm text-[#282A3F]">{user.name || user.username}</span>
-                      <span className="text-xs text-gray-500">({user.email})</span>
+                      <div>
+                        <span className="text-sm font-medium text-gray-900">{user.name || user.username}</span>
+                        <span className="text-xs text-gray-500 ml-2">({user.email})</span>
+                      </div>
                     </label>
                   ))}
                   {!users || users.length === 0 && (
-                    <p className="text-sm text-gray-500">No team members found</p>
+                    <p className="text-sm text-gray-500 text-center py-4">No team members found</p>
                   )}
                 </div>
               </div>
@@ -1162,61 +1174,69 @@ export default function CampaignsPage() {
 
             {/* External Contacts Selection */}
             {shareMode === 'external' && (
-              <div className="space-y-3">
-                <Label className="text-[#282A3F] font-medium">Select Recipients:</Label>
-                <div className="max-h-60 overflow-y-auto space-y-3">
+              <div className="space-y-4">
+                <Label className="text-base font-medium text-gray-900">Select Recipients</Label>
+                <div className="max-h-64 overflow-y-auto p-4 bg-gray-50 rounded-xl border border-gray-200">
                   {Object.entries(getGroupedContacts()).map(([groupName, groupItems]) => (
-                    <div key={groupName} className="space-y-2">
-                      <h4 className="text-sm font-medium text-[#282A3F] border-b pb-1">
+                    <div key={groupName} className="space-y-3 mb-6 last:mb-0">
+                      <h4 className="text-sm font-medium text-gray-900 border-b border-gray-200 pb-2">
                         {groupName}
                       </h4>
-                      {groupItems.map((item) => (
-                        <label key={`${groupName}-${item.type}-${item.id}`} className="flex items-start space-x-2 cursor-pointer ml-4">
-                          <Checkbox
-                            checked={selectedContacts.includes(item.id)}
-                            onCheckedChange={(checked) => {
-                              if (checked) {
-                                setSelectedContacts([...selectedContacts, item.id]);
-                              } else {
-                                setSelectedContacts(selectedContacts.filter(id => id !== item.id));
-                              }
-                            }}
-                            className="mt-0.5"
-                          />
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2">
-                              <span className="text-sm font-medium text-[#282A3F]">{item.name}</span>
-                              <span className={`text-xs px-2 py-0.5 rounded-full ${
-                                item.type === 'contact' 
-                                  ? 'bg-blue-100 text-blue-700' 
-                                  : item.type === 'user'
-                                  ? 'bg-green-100 text-green-700'
-                                  : 'bg-gray-100 text-gray-700'
-                              }`}>
-                                {item.type === 'contact' ? 'Contact' : item.type === 'user' ? 'User/Guest' : item.type}
-                              </span>
-                            </div>
-                            {item.email && (
-                              <div className="flex items-center text-xs text-gray-500 mt-0.5">
-                                <Mail className="h-3 w-3 mr-1" />
-                                {item.email}
+                      <div className="space-y-2">
+                        {groupItems.map((item) => (
+                          <label key={`${groupName}-${item.type}-${item.id}`} className="flex items-start space-x-3 cursor-pointer p-2 rounded-lg hover:bg-white transition-colors">
+                            <Checkbox
+                              checked={selectedContacts.includes(item.id)}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setSelectedContacts([...selectedContacts, item.id]);
+                                } else {
+                                  setSelectedContacts(selectedContacts.filter(id => id !== item.id));
+                                }
+                              }}
+                              className="mt-0.5"
+                            />
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <span className="text-sm font-medium text-gray-900">{item.name}</span>
+                                <span className={`text-xs px-2 py-1 rounded-full ${
+                                  item.type === 'contact' 
+                                    ? 'bg-blue-100 text-blue-700' 
+                                    : item.type === 'user'
+                                    ? 'bg-green-100 text-green-700'
+                                    : 'bg-gray-100 text-gray-700'
+                                }`}>
+                                  {item.type === 'contact' ? 'Contact' : item.type === 'user' ? 'User/Guest' : item.type}
+                                </span>
                               </div>
-                            )}
-                          </div>
-                        </label>
-                      ))}
+                              {item.email && (
+                                <div className="flex items-center text-xs text-gray-500 mt-1">
+                                  <Mail className="h-3 w-3 mr-1" />
+                                  {item.email}
+                                </div>
+                              )}
+                            </div>
+                          </label>
+                        ))}
+                      </div>
                     </div>
                   ))}
                   {Object.keys(getGroupedContacts()).length === 0 && (
-                    <p className="text-sm text-gray-500">No partner-related external parties found</p>
+                    <p className="text-sm text-gray-500 text-center py-4">No partner-related external parties found</p>
                   )}
                 </div>
               </div>
             )}
+          </div>
 
-            {/* Action Buttons */}
-            <div className="flex justify-end space-x-2 pt-4">
-              <Button variant="outline" onClick={() => setShareDialogOpen(false)}>
+          {/* Action Buttons */}
+          <div className="p-6 border-t border-gray-100 bg-gray-50">
+            <div className="flex justify-end space-x-3">
+              <Button 
+                variant="outline" 
+                onClick={() => setShareDialogOpen(false)}
+                className="rounded-lg"
+              >
                 Cancel
               </Button>
               <Button 
@@ -1225,7 +1245,7 @@ export default function CampaignsPage() {
                   (shareMode === 'internal' && selectedUsers.length === 0) ||
                   (shareMode === 'external' && selectedContacts.length === 0)
                 }
-                className="bg-blue-600 hover:bg-blue-700"
+                className="bg-[#5567E5] hover:bg-[#4556D4] rounded-lg"
               >
                 <Share2 className="h-4 w-4 mr-2" />
                 Share Template
