@@ -313,7 +313,7 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
               <Label htmlFor="template-description">Description (Optional)</Label>
               <Textarea
                 id="template-description"
-                placeholder="Describe what this template is for..."
+                placeholder="Add a short note about the campaign's purpose, timing, or target audience. This helps your team stay aligned on context and intent."
                 {...form.register("description")}
               />
             </div>
