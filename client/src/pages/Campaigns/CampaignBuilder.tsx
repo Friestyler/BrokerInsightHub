@@ -164,6 +164,12 @@ export default function CampaignBuilder() {
   const searchParams = new URLSearchParams(window.location.search);
   const templateId = searchParams.get("template");
 
+  // Fetch template data if templateId is provided
+  const { data: templateData } = useQuery({
+    queryKey: ['/api/campaign-templates', templateId],
+    enabled: !!templateId,
+  });
+
   const { data: entities } = useQuery({
     queryKey: ['/api/entities'],
     enabled: currentStep === "select-list"
@@ -214,6 +220,39 @@ export default function CampaignBuilder() {
   const shareType = form.watch("shareType");
   const sharedPartnerIds = form.watch("sharedPartnerIds");
   const sharedUserIds = form.watch("sharedUserIds");
+
+  // Initialize form with template data when available
+  useEffect(() => {
+    if (templateData) {
+      form.reset({
+        name: templateData.name + " (Copy)",
+        description: templateData.description || "",
+        type: templateData.type || "cross_sell",
+        listIds: [],
+        emailBody: templateData.emailBody || "",
+        emailLogo: templateData.emailLogo || "",
+        recipientIds: [],
+        enableFollowUp: false,
+        followUpEmails: templateData.followUpEmails || [{ delayDays: 3, subject: "", emailBody: "" }],
+        subject: templateData.subject || "",
+        scheduledTime: "",
+        frequency: "one_time",
+        fromName: templateData.fromName || "",
+        fromEmail: templateData.fromEmail || "",
+        isShared: false,
+        shareType: "team",
+        sharedPartnerIds: [],
+        sharedUserIds: [],
+        shareAccessLevel: "view",
+        shareMessage: "",
+        sharedContactIds: [],
+        saveAsTemplate: false,
+        templateName: "",
+        templateDescription: "",
+        status: "draft",
+      });
+    }
+  }, [templateData, form]);
 
   const { data: contacts } = useQuery({
     queryKey: ['/api/contacts'],
@@ -455,6 +494,35 @@ export default function CampaignBuilder() {
     }
   });
 
+  // Save draft mutation
+  const saveDraftMutation = useMutation({
+    mutationFn: (data: any) => {
+      return fetch('/api/campaigns', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-environment-id': 'degoudse'
+        },
+        body: JSON.stringify({ ...data, status: 'draft' })
+      }).then(res => res.json());
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/campaigns'] });
+      toast({
+        title: "Draft saved",
+        description: "Your campaign draft has been saved successfully",
+      });
+    },
+    onError: (error) => {
+      console.error("Error saving draft:", error);
+      toast({
+        title: "Error",
+        description: "Failed to save draft. Please try again.",
+        variant: "destructive"
+      });
+    }
+  });
+
   // Template loading query
   const templateQuery = useQuery({
     queryKey: ['/api/campaign-templates', templateId],
@@ -649,6 +717,32 @@ export default function CampaignBuilder() {
     }
     
     createCampaignMutation.mutate(cleanCampaignData);
+  };
+
+  // Save draft function
+  const saveDraft = async () => {
+    const formData = form.getValues();
+    
+    // Transform form data to match API schema
+    const draftData = {
+      name: formData.name || "Untitled Campaign",
+      description: formData.description || "",
+      type: formData.type || "cross_sell",
+      category: formData.category || "",
+      status: "draft",
+      subject: formData.subject || "",
+      emailBody: formData.emailBody || "",
+      emailLogo: formData.emailLogo || "",
+      fromName: formData.fromName || "",
+      fromEmail: formData.fromEmail || "",
+      followUpEmails: formData.enableFollowUp ? formData.followUpEmails : [],
+      frequency: formData.frequency || "one_time",
+      isShared: false,
+      isTemplate: false,
+      tags: [],
+    };
+
+    saveDraftMutation.mutate(draftData);
   };
 
   // Render current step content
