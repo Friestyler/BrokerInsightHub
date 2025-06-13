@@ -70,16 +70,13 @@ export default function AttributeMappingStep({
   const getLastUsedTemplateKey = (uploadType: string) => `lastUsedTemplate_${uploadType}`;
   
   const saveLastUsedTemplate = (templateId: number, uploadType: string) => {
-    if (isSpecialFormat) {
-      localStorage.setItem(getLastUsedTemplateKey(uploadType), templateId.toString());
-    }
+    // Save last used template for ALL entity types, not just special formats
+    localStorage.setItem(getLastUsedTemplateKey(uploadType), templateId.toString());
   };
 
   const getLastUsedTemplate = (uploadType: string): string | null => {
-    if (isSpecialFormat) {
-      return localStorage.getItem(getLastUsedTemplateKey(uploadType));
-    }
-    return null;
+    // Get last used template for ALL entity types, not just special formats
+    return localStorage.getItem(getLastUsedTemplateKey(uploadType));
   };
 
   // Extract CSV headers and data from uploaded file with transformation
@@ -221,20 +218,21 @@ export default function AttributeMappingStep({
     enabled: !!environmentId,
   });
 
-  // Auto-select last used template for special format uploads
+  // Auto-select last used template for ALL entity types
   useEffect(() => {
-    if (templates.length > 0 && isSpecialFormat && attributeMappings.length === 0) {
+    if (templates.length > 0 && attributeMappings.length === 0) {
       const lastUsedTemplateId = getLastUsedTemplate(uploadType);
       
       if (lastUsedTemplateId) {
         const lastUsedTemplate = templates.find(template => template.id.toString() === lastUsedTemplateId);
         if (lastUsedTemplate && lastUsedTemplate.entity_type === uploadType) {
           console.log(`Auto-loading last used template for ${uploadType}:`, lastUsedTemplate.name);
+          setSelectedTemplateId(lastUsedTemplateId);
           loadTemplate(lastUsedTemplate.id.toString());
         }
       }
     }
-  }, [templates, uploadType, isSpecialFormat, attributeMappings.length]);
+  }, [templates, uploadType, attributeMappings.length]);
 
   // Save template mutation
   const saveTemplateMutation = useMutation({
@@ -806,10 +804,8 @@ export default function AttributeMappingStep({
       : templateId;
       
     if (template && template.column_mappings) {
-      // Save template selection for special format uploads
-      if (isSpecialFormat) {
-        saveLastUsedTemplate(template.id, uploadType);
-      }
+      // Save template selection for ALL entity types (not just special formats)
+      saveLastUsedTemplate(template.id, uploadType);
       
       let mappings;
       try {
@@ -943,7 +939,7 @@ export default function AttributeMappingStep({
                   <SelectValue placeholder="Select a template" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">No Template</SelectItem>
+                  <SelectItem value="none">Create New Template</SelectItem>
                   {templates.map((template) => (
                     <SelectItem key={template.id} value={template.id.toString()}>
                       {template.name}
