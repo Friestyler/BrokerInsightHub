@@ -17,6 +17,8 @@ interface AttributeMapping {
   attribute: string;
   csvColumn: string;
   isRequired: boolean;
+  customCode?: string;
+  isCodeBased?: boolean;
 }
 
 interface ProcessingStepProps {
@@ -168,6 +170,73 @@ export default function ProcessingStep({
     }
   };
 
+  // Helper function to apply custom code transformations
+  const applyCustomCodeTransformations = (row: any) => {
+    const transformedRow = { ...row };
+    
+    attributeMappings.forEach(mapping => {
+      if (mapping.csvColumn === 'CODE') {
+        // Get custom code from mapping or try to access it via the any type
+        const customCode = (mapping as any).customCode || mapping.customCode;
+        if (customCode) {
+          try {
+            // Apply the custom code transformation
+            const transformedValue = executeCustomCode(customCode, row);
+            transformedRow[mapping.attribute] = transformedValue;
+          } catch (error) {
+            console.warn(`Failed to apply custom code for ${mapping.attribute}:`, error);
+            transformedRow[mapping.attribute] = '';
+          }
+        }
+      }
+    });
+    
+    return transformedRow;
+  };
+
+  // Helper function to execute custom Python-like code
+  const executeCustomCode = (code: string, rowData: any) => {
+    try {
+      let evaluatedCode = code.trim();
+      
+      // Replace column references with actual CSV values
+      Object.entries(rowData).forEach(([key, value]) => {
+        const regex = new RegExp(`\\b${key}\\b`, 'g');
+        if (typeof value === 'string') {
+          evaluatedCode = evaluatedCode.replace(regex, `"${value}"`);
+        } else {
+          evaluatedCode = evaluatedCode.replace(regex, String(value || ''));
+        }
+      });
+
+      // Handle simple operations
+      if (evaluatedCode.includes('+') && !evaluatedCode.includes('if')) {
+        // Simple addition/concatenation
+        const parts = evaluatedCode.split('+').map(p => p.trim().replace(/"/g, ''));
+        return parts.join(' ');
+      } else if (evaluatedCode.includes('if') && evaluatedCode.includes('else')) {
+        // Simple conditional - for now, return a placeholder
+        const match = evaluatedCode.match(/"([^"]*)" if .* else "([^"]*)"/);
+        if (match) {
+          // Simple evaluation - could be enhanced for more complex conditions
+          return match[1]; // Return first option for now
+        }
+      }
+      
+      // For simple string literals, return without quotes
+      const stringMatch = evaluatedCode.match(/^"([^"]*)"$/);
+      if (stringMatch) {
+        return stringMatch[1];
+      }
+      
+      // Return the evaluated code as fallback
+      return evaluatedCode.replace(/"/g, '');
+    } catch (error) {
+      console.warn('Error executing custom code:', error);
+      return '';
+    }
+  };
+
   const runValidation = async () => {
     setIsValidating(true);
     setPhase('validation');
@@ -181,13 +250,23 @@ export default function ProcessingStep({
       const issues: ValidationIssue[] = [];
       
       csvData.forEach((row, index) => {
-        // Check for empty required fields - only validate mandatory attributes
-        // Skip validation for attributes that use custom code (CODE mapping) since they will be populated by code logic
+        // Apply custom code transformations first
+        const transformedRow = applyCustomCodeTransformations(row);
+        
+        // Check for empty required fields - validate ALL mandatory attributes including CODE-based ones
         attributeMappings
-          .filter(mapping => mapping.isRequired && mapping.csvColumn && mapping.csvColumn !== 'CODE')
+          .filter(mapping => mapping.isRequired)
           .forEach(mapping => {
-            const value = row[mapping.csvColumn];
-            if (!value || value.trim() === '') {
+            let value;
+            if (mapping.csvColumn === 'CODE') {
+              // Use the transformed value for CODE mappings
+              value = transformedRow[mapping.attribute];
+            } else {
+              // Use the original CSV value for direct mappings
+              value = row[mapping.csvColumn];
+            }
+            
+            if (!value || value.toString().trim() === '') {
               issues.push({
                 row: row._rowNumber,
                 type: 'missing_required',
@@ -202,18 +281,25 @@ export default function ProcessingStep({
 
         // Check for duplicates based on ALL mandatory attributes
         // A record is considered duplicate if ALL mandatory attributes match an existing record
-        // Skip custom code attributes for duplicate checking since they haven't been processed yet
-        const mandatoryMappings = attributeMappings.filter(mapping => mapping.isRequired && mapping.csvColumn && mapping.csvColumn !== 'CODE');
+        const mandatoryMappings = attributeMappings.filter(mapping => mapping.isRequired);
         
         if (mandatoryMappings.length > 0) {
-          // Build the values for mandatory fields from current row
+          // Build the values for mandatory fields from current row (including transformed values)
           const currentRowMandatoryValues: Record<string, string> = {};
           let hasAllMandatoryValues = true;
           
           mandatoryMappings.forEach(mapping => {
-            const value = row[mapping.csvColumn];
-            if (value && value.trim() !== '') {
-              currentRowMandatoryValues[mapping.attribute] = value.trim().toLowerCase();
+            let value;
+            if (mapping.csvColumn === 'CODE') {
+              // Use the transformed value for CODE mappings
+              value = transformedRow[mapping.attribute];
+            } else {
+              // Use the original CSV value for direct mappings
+              value = row[mapping.csvColumn];
+            }
+            
+            if (value && value.toString().trim() !== '') {
+              currentRowMandatoryValues[mapping.attribute] = value.toString().trim().toLowerCase();
             } else {
               hasAllMandatoryValues = false;
             }
