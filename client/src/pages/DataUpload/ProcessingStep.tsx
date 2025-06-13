@@ -380,11 +380,6 @@ export default function ProcessingStep({
           const cleanVariable = variable.replace(/['"]/g, '');
           return String((cleanVariable.match(new RegExp(searchStr, 'g')) || []).length);
         });
-        // Handle single parameter count - return string length
-        result = result.replace(/count\(([^)]+)\)/g, (match, variable) => {
-          const cleanVariable = variable.replace(/['"]/g, '');
-          return String(cleanVariable.length);
-        });
         console.log('🔢 After count() processing:', result);
       }
       
