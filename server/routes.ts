@@ -5353,9 +5353,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Template sharing endpoint
-  app.post('/api/campaign-templates/share', async (req, res) => {
+  app.post('/api/:envId/campaign-templates/share', async (req, res) => {
     try {
-      const envId = (req.headers['x-environment-id'] as string) || 'degoudse';
+      const { envId } = req.params;
       const { templateId, shareMode, userIds, contactIds } = req.body;
       
       // Validate required fields

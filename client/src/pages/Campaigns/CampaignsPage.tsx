@@ -273,7 +273,8 @@ export default function CampaignsPage() {
         contactIds: shareMode === 'external' ? selectedContacts : []
       };
       
-      const response = await fetch('/api/campaign-templates/share', {
+      const envId = environment?.id || environment || 'degoudse';
+      const response = await fetch(`/api/${envId}/campaign-templates/share`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
