@@ -96,10 +96,13 @@ export class UploadSettingsService {
       params.push(entityType);
     }
     
-    query += ` ORDER BY ts.name`;
+    query += ` ORDER BY COALESCE(ts.name, ts.script_name)`;
     
     const result = await pool.query(query, params);
-    return result.rows;
+    return result.rows.map(row => ({
+      ...row,
+      name: row.name || row.script_name // Ensure consistent naming
+    }));
   }
 
   /**
@@ -110,15 +113,16 @@ export class UploadSettingsService {
     
     const query = `
       INSERT INTO transformation_scripts (
-        name, description, entity_type, environment_id, 
+        script_name, name, description, entity_type, environment_id, 
         script_content, is_active, created_by
       )
-      VALUES ($1, $2, $3, $4, $5, $6, $7)
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
       RETURNING *
     `;
     
     const result = await pool.query(query, [
-      script.name,
+      script.name, // script_name
+      script.name, // name
       script.description,
       script.entityType,
       script.environmentId,
