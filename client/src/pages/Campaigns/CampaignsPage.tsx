@@ -100,14 +100,26 @@ export default function CampaignsPage() {
       const response = await fetch(`/api/${envId}/campaigns`, {
         credentials: "include",
         headers: {
-          'X-Environment': envId
+          'X-Environment': envId,
+          'Content-Type': 'application/json'
         }
       });
       console.log('Campaigns response status:', response.status);
+      console.log('Campaigns response headers:', Object.fromEntries(response.headers.entries()));
+      
       if (!response.ok) throw new Error('Failed to fetch campaigns');
-      const data = await response.json();
-      console.log('Campaigns response data:', data);
-      return data;
+      
+      const text = await response.text();
+      console.log('Campaigns raw response:', text.substring(0, 200));
+      
+      try {
+        const data = JSON.parse(text);
+        console.log('Campaigns parsed data:', data);
+        return data;
+      } catch (parseError) {
+        console.error('Failed to parse campaigns response as JSON:', parseError);
+        throw new Error('Invalid JSON response from campaigns API');
+      }
     }
   });
 

@@ -5070,7 +5070,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   // Campaigns API endpoints
   app.get('/api/campaigns', async (req, res) => {
     try {
-      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      const envId = req.headers['x-environment'] || req.headers['x-environment-id'] || 'degoudse';
       
       // For degoudse environment, check for shared templates
       if (envId === 'degoudse') {
@@ -5103,7 +5103,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
             createdAt: campaign.created_at
           }));
           
-          console.log(`Returning ${campaigns.length} campaigns from ${envId} environment`);
+          console.log(`Returning ${campaigns.length} campaigns from ${envId} environment:`, campaigns);
           res.json(campaigns);
           return;
         } catch (dbError) {
