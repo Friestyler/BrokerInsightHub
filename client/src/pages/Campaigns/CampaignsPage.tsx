@@ -269,15 +269,25 @@ export default function CampaignsPage() {
     const grouped: { [key: string]: any[] } = {};
     
     if (customers) {
-      grouped['Customers'] = customers.sort((a, b) => a.name.localeCompare(b.name));
+      grouped['Customers'] = customers
+        .filter(c => c.name)
+        .sort((a, b) => a.name.localeCompare(b.name));
     }
     
     if (partners) {
-      grouped['Partners'] = partners.sort((a, b) => a.name.localeCompare(b.name));
+      grouped['Partners'] = partners
+        .filter(p => p.name)
+        .sort((a, b) => a.name.localeCompare(b.name));
     }
     
     if (contacts) {
-      grouped['Contacts'] = contacts.sort((a, b) => a.name.localeCompare(b.name));
+      grouped['Contacts'] = contacts
+        .filter(c => c.first_name || c.last_name || c.name)
+        .map(c => ({
+          ...c,
+          name: c.name || `${c.first_name || ''} ${c.last_name || ''}`.trim()
+        }))
+        .sort((a, b) => a.name.localeCompare(b.name));
     }
     
     return grouped;
@@ -687,13 +697,13 @@ export default function CampaignsPage() {
       <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Share Template: {selectedTemplate?.name}</DialogTitle>
+            <DialogTitle className="text-[#282A3F]">Share Template: {selectedTemplate?.name}</DialogTitle>
           </DialogHeader>
           
           <div className="space-y-4">
             {/* Share Mode Selection */}
             <div className="space-y-3">
-              <Label>Share with:</Label>
+              <Label className="text-[#282A3F] font-medium">Share with:</Label>
               <div className="space-y-2">
                 <label className="flex items-center space-x-2 cursor-pointer">
                   <input
@@ -704,7 +714,7 @@ export default function CampaignsPage() {
                     onChange={() => setShareMode('internal')}
                     className="text-blue-600"
                   />
-                  <span className="text-sm font-medium">Internal Team Members</span>
+                  <span className="text-sm font-medium text-[#282A3F]">Internal Team Members</span>
                 </label>
                 <p className="text-xs text-gray-500 ml-6">Platform users who are not guests or partners</p>
                 
@@ -717,7 +727,7 @@ export default function CampaignsPage() {
                     onChange={() => setShareMode('external')}
                     className="text-blue-600"
                   />
-                  <span className="text-sm font-medium">External Parties</span>
+                  <span className="text-sm font-medium text-[#282A3F]">External Parties</span>
                 </label>
                 <p className="text-xs text-gray-500 ml-6">Contacts and guest or partner users</p>
               </div>
@@ -728,7 +738,7 @@ export default function CampaignsPage() {
             {/* Internal Users Selection */}
             {shareMode === 'internal' && (
               <div className="space-y-3">
-                <Label>Select Team Members:</Label>
+                <Label className="text-[#282A3F] font-medium">Select Team Members:</Label>
                 <div className="max-h-40 overflow-y-auto space-y-2">
                   {users?.map((user) => (
                     <label key={user.id} className="flex items-center space-x-2 cursor-pointer">
@@ -742,7 +752,7 @@ export default function CampaignsPage() {
                           }
                         }}
                       />
-                      <span className="text-sm">{user.name || user.username}</span>
+                      <span className="text-sm text-[#282A3F]">{user.name || user.username}</span>
                       <span className="text-xs text-gray-500">({user.email})</span>
                     </label>
                   ))}
@@ -756,11 +766,11 @@ export default function CampaignsPage() {
             {/* External Contacts Selection */}
             {shareMode === 'external' && (
               <div className="space-y-3">
-                <Label>Select Recipients:</Label>
+                <Label className="text-[#282A3F] font-medium">Select Recipients:</Label>
                 <div className="max-h-60 overflow-y-auto space-y-3">
                   {Object.entries(getGroupedContacts()).map(([groupName, groupContacts]) => (
                     <div key={groupName} className="space-y-2">
-                      <h4 className="text-sm font-medium text-gray-700 border-b pb-1">{groupName}</h4>
+                      <h4 className="text-sm font-medium text-[#282A3F] border-b pb-1">{groupName}</h4>
                       {groupContacts.map((contact) => (
                         <label key={`${groupName}-${contact.id}`} className="flex items-start space-x-2 cursor-pointer">
                           <Checkbox
@@ -775,7 +785,7 @@ export default function CampaignsPage() {
                             className="mt-0.5"
                           />
                           <div className="flex-1">
-                            <span className="text-sm font-medium">{contact.name}</span>
+                            <span className="text-sm font-medium text-[#282A3F]">{contact.name}</span>
                             {contact.email && (
                               <div className="flex items-center text-xs text-gray-500 mt-0.5">
                                 <Mail className="h-3 w-3 mr-1" />
