@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { ArrowLeft, ArrowRight, CheckCircle, AlertCircle, Play, Download, FileText, AlertTriangle, Trash2, RefreshCw, Filter, X, ChevronDown } from 'lucide-react';
+import { ArrowLeft, ArrowRight, CheckCircle, AlertCircle, Play, Download, FileText, AlertTriangle, Trash2, RefreshCw, Filter, X, ChevronDown, Copy, SkipForward } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -1210,7 +1210,7 @@ export default function ProcessingStep({
                   <p className="text-2xl font-bold text-orange-700">{validationIssues.length}</p>
                 </div>
                 <div className="text-center p-4 bg-red-50 rounded-lg border border-red-200">
-                  <Trash2 className="mx-auto h-6 w-6 text-red-600 mb-2" />
+                  <SkipForward className="mx-auto h-6 w-6 text-red-600 mb-2" />
                   <h3 className="font-medium text-sm">To Skip</h3>
                   <p className="text-2xl font-bold text-red-600">
                     {validationIssues.filter(i => i.solution === 'skip').length}
@@ -1224,7 +1224,7 @@ export default function ProcessingStep({
                   </p>
                 </div>
                 <div className="text-center p-4 bg-yellow-50 rounded-lg border border-yellow-200">
-                  <CheckCircle className="mx-auto h-6 w-6 text-yellow-600 mb-2" />
+                  <Copy className="mx-auto h-6 w-6 text-yellow-600 mb-2" />
                   <h3 className="font-medium text-sm">Create Duplicate</h3>
                   <p className="text-2xl font-bold text-yellow-600">
                     {validationIssues.filter(i => i.solution === 'create_duplicate').length}
@@ -1267,7 +1267,7 @@ export default function ProcessingStep({
                       variant="outline"
                       onClick={() => bulkUpdateSolution('skip')}
                     >
-                      <Trash2 className="h-3 w-3 mr-1" />
+                      <SkipForward className="h-3 w-3 mr-1" />
                       Skip Upload Row
                     </Button>
                     <Button
@@ -1283,7 +1283,7 @@ export default function ProcessingStep({
                       variant="outline"
                       onClick={() => bulkUpdateSolution('create_duplicate')}
                     >
-                      <CheckCircle className="h-3 w-3 mr-1" />
+                      <Copy className="h-3 w-3 mr-1" />
                       Create Duplicate
                     </Button>
 
@@ -1519,7 +1519,7 @@ export default function ProcessingStep({
                               <SelectContent>
                                 <SelectItem value="skip">
                                   <div className="flex items-center gap-2">
-                                    <Trash2 className="h-3 w-3" />
+                                    <SkipForward className="h-3 w-3" />
                                     Skip Upload Row
                                   </div>
                                 </SelectItem>
@@ -1535,7 +1535,7 @@ export default function ProcessingStep({
                                   <>
                                     <SelectItem value="create_duplicate">
                                       <div className="flex items-center gap-2">
-                                        <CheckCircle className="h-3 w-3" />
+                                        <Copy className="h-3 w-3" />
                                         Create Duplicate
                                       </div>
                                     </SelectItem>
