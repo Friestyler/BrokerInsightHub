@@ -351,7 +351,7 @@ export default function CampaignsPage() {
                       variant="ghost" 
                       size="sm" 
                       className="text-gray-600 hover:text-gray-700 hover:bg-gray-50 p-0 flex-1"
-                      onClick={() => setLocation(`/campaigns/${template.id}?mode=edit`)}
+                      onClick={() => setLocation(`/campaigns/template-builder?template=${template.id}`)}
                     >
                       Edit
                     </Button>
