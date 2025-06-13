@@ -64,6 +64,8 @@ export default function UploadSettingsPage() {
   const [activeTab, setActiveTab] = useState('settings');
   const [editingScript, setEditingScript] = useState<TransformationScript | null>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [deletingScript, setDeletingScript] = useState<TransformationScript | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { environment } = useEnvironment();
@@ -149,6 +151,33 @@ export default function UploadSettingsPage() {
     }
   });
 
+  // Delete transformation script mutation
+  const deleteScriptMutation = useMutation({
+    mutationFn: async (scriptId: number) => {
+      const response = await fetch(`/api/${environment.id}/transformation-scripts/${scriptId}`, {
+        method: 'DELETE'
+      });
+      if (!response.ok) throw new Error('Failed to delete script');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/${environment.id}/transformation-scripts`] });
+      setIsDeleteDialogOpen(false);
+      setDeletingScript(null);
+      toast({
+        title: "Success",
+        description: "Transformation script deleted successfully"
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to delete transformation script",
+        variant: "destructive"
+      });
+    }
+  });
+
   // Set default entity when entities are loaded
   useEffect(() => {
     if (supportedEntities.length > 0 && !selectedEntity) {
@@ -172,6 +201,11 @@ export default function UploadSettingsPage() {
     };
 
     updateSettingsMutation.mutate([settingUpdate]);
+  };
+
+  const handleDeleteScript = () => {
+    if (!deletingScript) return;
+    deleteScriptMutation.mutate(deletingScript.id);
   };
 
   const renderSettingsTab = () => (
@@ -348,7 +382,14 @@ export default function UploadSettingsPage() {
                     >
                       <Edit className="h-4 w-4" />
                     </Button>
-                    <Button variant="ghost" size="sm">
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => {
+                        setDeletingScript(script);
+                        setIsDeleteDialogOpen(true);
+                      }}
+                    >
                       <Trash2 className="h-4 w-4" />
                     </Button>
                   </div>
@@ -470,6 +511,43 @@ export default function UploadSettingsPage() {
               disabled={updateScriptMutation.isPending}
             >
               {updateScriptMutation.isPending ? 'Saving...' : 'Save Changes'}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Script Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Delete Transformation Script</DialogTitle>
+            <DialogDescription>
+              Are you sure you want to delete this transformation script? This action cannot be undone.
+            </DialogDescription>
+          </DialogHeader>
+          {deletingScript && (
+            <div className="py-4">
+              <div className="bg-muted p-3 rounded-md">
+                <h4 className="font-medium text-sm">{deletingScript.name}</h4>
+                {deletingScript.description && (
+                  <p className="text-sm text-muted-foreground mt-1">{deletingScript.description}</p>
+                )}
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button 
+              variant="outline" 
+              onClick={() => setIsDeleteDialogOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive"
+              onClick={handleDeleteScript}
+              disabled={deleteScriptMutation.isPending}
+            >
+              {deleteScriptMutation.isPending ? 'Deleting...' : 'Delete Script'}
             </Button>
           </DialogFooter>
         </DialogContent>
