@@ -5079,32 +5079,31 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const userId = 1; // John Smith's user ID
         
         try {
-          // Check if campaigns table exists and get shared templates
+          // Check if campaigns table exists and get all campaigns (including drafts)
           const result = await pool.query(`
-            SELECT c.*, 'shared_template' as campaign_type
+            SELECT c.*, 'campaign' as campaign_type
             FROM ${envId}.campaigns c
-            WHERE c.is_template = true
+            WHERE c.is_template = false
             ORDER BY c.created_at DESC
           `);
           
-          // For demo purposes, we'll simulate that templates have been shared with John Smith
-          // In a real implementation, this would check campaign_shares table
+          // Return actual campaigns with proper data structure
           const campaigns = result.rows.map(campaign => ({
             ...campaign,
             id: campaign.id,
-            name: campaign.name || 'Shared Template',
-            type: 'template',
-            category: campaign.category || 'Shared',
-            status: 'shared',
+            name: campaign.name,
+            type: campaign.type,
+            category: campaign.category,
+            status: campaign.status,
             createdById: campaign.created_by_id,
-            isShared: true,
-            isTemplate: false, // Show as campaign, not template
-            tags: [],
-            sponsorId: null,
+            isShared: campaign.is_shared || false,
+            isTemplate: campaign.is_template || false,
+            tags: campaign.tags || [],
+            sponsorId: campaign.sponsor_id,
             createdAt: campaign.created_at
           }));
           
-          console.log(`Returning ${campaigns.length} shared campaigns for broker user in ${envId} environment`);
+          console.log(`Returning ${campaigns.length} campaigns from ${envId} environment`);
           res.json(campaigns);
           return;
         } catch (dbError) {
