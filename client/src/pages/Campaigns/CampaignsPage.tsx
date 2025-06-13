@@ -118,9 +118,14 @@ export default function CampaignsPage() {
 
   // Fetch existing shares for the template
   const { data: existingShares, refetch: refetchShares } = useQuery<any[]>({
-    queryKey: ['/api/campaign-templates', selectedTemplate?.id || 0, 'shares'],
+    queryKey: [`/api/campaign-templates/${selectedTemplate?.id}/shares`],
     enabled: shareDialogOpen && !!selectedTemplate?.id,
   });
+
+  // Debug log to check if shares are being fetched
+  console.log('Existing shares data:', existingShares);
+  console.log('Share dialog open:', shareDialogOpen);
+  console.log('Selected template:', selectedTemplate);
 
   // Filter campaigns based on ownership and sharing
   const myCampaigns = campaigns?.filter(c => !c.isTemplate && !c.isShared) || [];
