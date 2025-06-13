@@ -30,6 +30,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
+import { useToast } from "@/hooks/use-toast";
 
 
 type Campaign = {
@@ -59,6 +60,7 @@ type TemplateCard = {
 export default function CampaignsPage() {
   const [, setLocation] = useLocation();
   const { environment } = useEnvironment();
+  const { toast } = useToast();
   const [activeFilter, setActiveFilter] = useState("popular");
   const [activeTab, setActiveTab] = useState("new");
   const [shareDialogOpen, setShareDialogOpen] = useState(false);
@@ -249,20 +251,48 @@ export default function CampaignsPage() {
   const handleShare = async () => {
     if (!selectedTemplate) return;
     
-    const shareData = {
-      templateId: selectedTemplate.id,
-      shareMode,
-      userIds: shareMode === 'internal' ? selectedUsers : [],
-      contactIds: shareMode === 'external' ? selectedContacts : []
-    };
-    
-    // API call to share template would go here
-    console.log('Sharing template:', shareData);
-    
-    setShareDialogOpen(false);
-    setSelectedTemplate(null);
-    setSelectedUsers([]);
-    setSelectedContacts([]);
+    try {
+      const shareData = {
+        templateId: selectedTemplate.id,
+        shareMode,
+        userIds: shareMode === 'internal' ? selectedUsers : [],
+        contactIds: shareMode === 'external' ? selectedContacts : []
+      };
+      
+      const response = await fetch('/api/campaign-templates/share', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(shareData),
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to share template');
+      }
+      
+      const recipientCount = shareMode === 'internal' ? selectedUsers.length : selectedContacts.length;
+      const recipientType = shareMode === 'internal' ? 'team member' : 'external party';
+      const recipientText = recipientCount === 1 ? recipientType : `${recipientType.replace('party', 'parties')}s`;
+      
+      toast({
+        title: "Template Shared Successfully",
+        description: `"${selectedTemplate.name}" has been shared with ${recipientCount} ${recipientText}.`,
+        duration: 4000,
+      });
+      
+      setShareDialogOpen(false);
+      setSelectedTemplate(null);
+      setSelectedUsers([]);
+      setSelectedContacts([]);
+    } catch (error) {
+      toast({
+        title: "Sharing Failed",
+        description: "Unable to share the template. Please try again.",
+        variant: "destructive",
+        duration: 4000,
+      });
+    }
   };
 
   // Group external parties - only contacts, users, and guests with partner relationships
