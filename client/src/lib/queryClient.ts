@@ -124,7 +124,16 @@ export const queryClient = new QueryClient({
       refetchInterval: false,
       refetchOnWindowFocus: false,
       staleTime: Infinity,
-      retry: false,
+      retry: 1,
+      onError: (error) => {
+        // Suppress logging for template assignment errors as they're non-critical
+        if (error && typeof error === 'object' && 'message' in error) {
+          const errorMessage = error.message as string;
+          if (!errorMessage.includes('template-assignments')) {
+            console.error('Query error:', error);
+          }
+        }
+      },
     },
     mutations: {
       retry: false,

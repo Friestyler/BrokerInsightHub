@@ -180,10 +180,13 @@ function formatCurrency(value: number): string {
 // Template badges component for opportunities
 function TemplateBadges({ opportunityId }: { opportunityId: number }) {
   // Fetch template assignments for this opportunity
-  const { data: templateAssignments = [] } = useQuery({
+  const { data: templateAssignments = [], error } = useQuery({
     queryKey: [`/api/degoudse/template-assignments/opportunity/${opportunityId}`],
+    queryFn: () => apiRequest('GET', `/api/degoudse/template-assignments/opportunity/${opportunityId}`),
     enabled: !!opportunityId,
     staleTime: 2 * 60 * 1000,
+    retry: 1,
+    refetchOnWindowFocus: false,
   });
 
   const assignments = Array.isArray(templateAssignments) ? templateAssignments : [];
@@ -417,14 +420,16 @@ function OpportunitiesTable() {
   
   // Load template assignments for opportunities
   const { data: templateAssignments = [] } = useQuery({
-    queryKey: ['/api/template-assignments/opportunity'],
+    queryKey: ['/api/degoudse/template-assignments/opportunity'],
+    queryFn: () => apiRequest('GET', '/api/degoudse/template-assignments/opportunity'),
     enabled: opportunities.length > 0,
     staleTime: 2 * 60 * 1000, // 2 minutes
   });
 
   // Load OKR templates from database API
   const { data: okrMetricsFromAPI = [] } = useQuery({
-    queryKey: ['/api/okr-metrics'],
+    queryKey: ['/api/degoudse/okr-metrics'],
+    queryFn: () => apiRequest('GET', '/api/degoudse/okr-metrics'),
     staleTime: 5 * 60 * 1000, // 5 minutes
   });
 
