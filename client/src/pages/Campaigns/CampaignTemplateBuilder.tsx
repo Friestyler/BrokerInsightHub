@@ -110,6 +110,7 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
   const [, setLocation] = useLocation();
   const [currentStep, setCurrentStep] = useState("select-list");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showAiPrompt, setShowAiPrompt] = useState(false);
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -434,6 +435,51 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
       case "compose":
         return (
           <div className="space-y-4">
+            <div className="flex justify-between items-start mb-2">
+              <div className="space-y-2">
+                <Label className="text-[#282A3F]">Email Content</Label>
+                <div className="flex space-x-2 items-center">
+                  <Checkbox
+                    id="use-ai"
+                    checked={showAiPrompt}
+                    onCheckedChange={(checked) => setShowAiPrompt(!!checked)}
+                  />
+                  <Label htmlFor="use-ai" className="text-sm font-normal text-[#282A3F]">Use AI to help write content</Label>
+                </div>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm"
+                type="button"
+                className="flex items-center text-xs"
+              >
+                <Upload className="h-3 w-3 mr-1" /> Add Logo
+              </Button>
+            </div>
+            
+            {showAiPrompt && (
+              <div className="space-y-2 p-3 bg-gray-50 rounded-md border">
+                <Label htmlFor="ai-prompt" className="text-[#282A3F]">AI Prompt</Label>
+                <div className="flex space-x-2">
+                  <Input
+                    id="ai-prompt"
+                    placeholder="Describe what you want the email to say..."
+                    {...form.register("aiPrompt")}
+                  />
+                  <Button 
+                    type="button" 
+                    onClick={handleGenerateFromPrompt}
+                    className="whitespace-nowrap"
+                  >
+                    Generate
+                  </Button>
+                </div>
+                <p className="text-xs text-gray-500">
+                  Example: "Write an email promoting car insurance to customers who already have home insurance"
+                </p>
+              </div>
+            )}
+
             <div className="space-y-2">
               <Label htmlFor="subject" className="text-[#282A3F]">Email Subject</Label>
               <Input
@@ -447,31 +493,10 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
               <Label htmlFor="email-body" className="text-[#282A3F]">Email Content</Label>
               <Textarea
                 id="email-body"
-                placeholder="Enter your email content here..."
+                placeholder="Write your email content here..."
                 className="min-h-[200px]"
                 {...form.register("emailBody")}
               />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="ai-prompt" className="text-[#282A3F]">AI Prompt (Optional)</Label>
-              <div className="flex gap-2">
-                <Input
-                  id="ai-prompt"
-                  placeholder="Describe what you want the email to convey..."
-                  {...form.register("aiPrompt")}
-                />
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={handleGenerateFromPrompt}
-                >
-                  Generate
-                </Button>
-              </div>
-              <p className="text-xs text-gray-500">
-                AI can help generate email content based on your prompt.
-              </p>
             </div>
           </div>
         );
