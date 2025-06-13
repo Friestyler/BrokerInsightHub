@@ -546,21 +546,25 @@ export default function ProcessingStep({
           {/* Validation Phase */}
           {phase === 'validation' && showValidation && (
             <div className="space-y-6">
-              <Alert>
-                <AlertTriangle className="h-4 w-4" />
-                <AlertDescription>
-                  Found {validationIssues.length} issues that need your attention before processing.
-                  Please review and choose how to handle each issue.
-                </AlertDescription>
-              </Alert>
+              <div className="flex items-center justify-between">
+                <Alert className="flex-1 mr-4">
+                  <AlertTriangle className="h-4 w-4" />
+                  <AlertDescription>
+                    Found {validationIssues.length} issues that need your attention before processing.
+                    Please review and choose how to handle each issue.
+                  </AlertDescription>
+                </Alert>
+                <Button onClick={processData} disabled={isProcessing} size="lg">
+                  <Play className="mr-2 h-4 w-4" />
+                  Proceed with Processing
+                </Button>
+              </div>
 
               {/* Summary Stats - Moved to top */}
               <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
                 <div className="text-center p-4 bg-orange-50 rounded-lg border border-orange-200">
-                  <div className="flex items-center justify-center mb-2">
-                    <AlertTriangle className="h-6 w-6 text-orange-600 mr-2" />
-                    <h3 className="font-medium text-sm">Total Issues</h3>
-                  </div>
+                  <AlertTriangle className="mx-auto h-6 w-6 text-orange-600 mb-2" />
+                  <h3 className="font-medium text-sm">Total Issues</h3>
                   <p className="text-2xl font-bold text-orange-700">{validationIssues.length}</p>
                 </div>
                 <div className="text-center p-4 bg-red-50 rounded-lg border border-red-200">
@@ -878,12 +882,7 @@ export default function ProcessingStep({
 
 
 
-              <div className="text-center">
-                <Button onClick={processData} disabled={isProcessing} size="lg">
-                  <Play className="mr-2 h-4 w-4" />
-                  Proceed with Processing
-                </Button>
-              </div>
+
             </div>
           )}
 
