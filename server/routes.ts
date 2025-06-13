@@ -5244,18 +5244,17 @@ export async function registerRoutes(app: Express): Promise<Server> {
   app.get('/api/:envId/campaign-templates/:templateId', async (req, res) => {
     try {
       const { envId, templateId } = req.params;
-      const envDb = db;
       
-      const [template] = await envDb
-        .select()
-        .from(campaigns)
-        .where(sql`${campaigns.id} = ${parseInt(templateId)} AND ${campaigns.isTemplate} = true`);
+      const result = await pool.query(`
+        SELECT * FROM ${envId}.campaigns 
+        WHERE id = $1 AND is_template = true
+      `, [parseInt(templateId)]);
       
-      if (!template) {
+      if (result.rows.length === 0) {
         return res.status(404).json({ error: 'Template not found' });
       }
       
-      res.json(template);
+      res.json(result.rows[0]);
     } catch (error) {
       console.error('Error fetching campaign template:', error);
       res.status(500).json({ error: 'Failed to fetch campaign template' });
