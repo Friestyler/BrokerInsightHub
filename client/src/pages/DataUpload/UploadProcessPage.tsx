@@ -82,6 +82,10 @@ export default function UploadProcessPage() {
     csvColumn: string;
     isRequired: boolean;
   }>>([]);
+  const [selectedTransformationScript, setSelectedTransformationScript] = useState<{
+    id: number;
+    name: string;
+  } | null>(null);
 
   const visibleSteps = isSpecialFormat ? steps : steps.slice(1); // Skip transformation for regular entities
   const totalSteps = visibleSteps.length;

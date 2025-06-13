@@ -4976,6 +4976,56 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Apply transformation script to CSV data
+  app.post('/api/:environmentId/transformation-scripts/execute', upload.single('csvFile'), async (req: Request, res: Response) => {
+    try {
+      const { environmentId } = req.params;
+      const { scriptId, entityType } = req.body;
+      const file = req.file;
+
+      if (!file) {
+        return res.status(400).json({ error: 'CSV file is required' });
+      }
+
+      if (!scriptId && !entityType) {
+        return res.status(400).json({ error: 'Either scriptId or entityType is required' });
+      }
+
+      let script;
+      if (scriptId) {
+        script = await UploadSettingsService.getTransformationScriptById(parseInt(scriptId), environmentId);
+      } else {
+        // Get the first active script for this entity type
+        const scripts = await UploadSettingsService.getTransformationScripts(environmentId, entityType);
+        script = scripts.find(s => s.isActive);
+      }
+
+      if (!script) {
+        return res.status(404).json({ error: 'No transformation script found' });
+      }
+
+      // Execute the transformation
+      const result = await UploadSettingsService.executeTransformationScript(
+        script.scriptContent,
+        file.buffer.toString('utf-8')
+      );
+
+      res.json({
+        success: true,
+        transformedCsv: result.transformedCsv,
+        headers: result.headers,
+        rowCount: result.rowCount
+      });
+
+    } catch (error: any) {
+      console.error('Failed to execute transformation script:', error);
+      res.status(500).json({ 
+        error: 'Failed to execute transformation script',
+        details: error.message 
+      });
+    }
+  });
+
   app.patch('/api/:environmentId/transformation-scripts/:scriptId', async (req: Request, res: Response) => {
     try {
       const { environmentId, scriptId } = req.params;

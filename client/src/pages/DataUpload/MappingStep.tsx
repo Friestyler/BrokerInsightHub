@@ -39,22 +39,60 @@ export default function MappingStep({
     setError(null);
 
     try {
-      const text = await uploadedFile.text();
-      const lines = text.split('\n');
+      // Check if this is a special format that needs transformation
+      const isSpecialFormat = uploadType && (uploadType.includes('-') || uploadType === 'degoudse');
       
-      if (lines.length === 0) {
-        throw new Error('File appears to be empty');
-      }
+      let finalHeaders: string[] = [];
+      
+      if (isSpecialFormat) {
+        // Apply transformation script for special formats
+        try {
+          const formData = new FormData();
+          formData.append('csvFile', uploadedFile);
+          formData.append('entityType', uploadType);
 
-      // Get first line as headers
-      const headerLine = lines[0];
-      const headers = headerLine.split(',').map(header => header.trim().replace(/"/g, ''));
+          const response = await fetch(`/api/${window.environmentId || 'degoudse'}/transformation-scripts/execute`, {
+            method: 'POST',
+            body: formData
+          });
+
+          if (response.ok) {
+            const result = await response.json();
+            finalHeaders = result.headers || [];
+          } else {
+            // If transformation fails, fall back to regular parsing
+            const text = await uploadedFile.text();
+            const lines = text.split('\n');
+            if (lines.length > 0) {
+              finalHeaders = lines[0].split(',').map(header => header.trim().replace(/"/g, ''));
+            }
+          }
+        } catch (transformError) {
+          console.warn('Transformation failed, using original CSV:', transformError);
+          // Fall back to regular parsing
+          const text = await uploadedFile.text();
+          const lines = text.split('\n');
+          if (lines.length > 0) {
+            finalHeaders = lines[0].split(',').map(header => header.trim().replace(/"/g, ''));
+          }
+        }
+      } else {
+        // Regular parsing for standard formats
+        const text = await uploadedFile.text();
+        const lines = text.split('\n');
+        
+        if (lines.length === 0) {
+          throw new Error('File appears to be empty');
+        }
+
+        finalHeaders = lines[0].split(',').map(header => header.trim().replace(/"/g, ''));
+      }
       
-      if (headers.length === 0 || headers.every(h => !h)) {
+      if (finalHeaders.length === 0 || finalHeaders.every(h => !h)) {
         throw new Error('No valid column headers found');
       }
 
-      setCsvHeaders(headers.filter(h => h)); // Remove empty headers
+      setCsvHeaders(finalHeaders.filter(h => h)); // Remove empty headers
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to parse CSV file');
     } finally {

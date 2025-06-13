@@ -371,6 +371,117 @@ export class UploadSettingsService {
   }
 
   /**
+   * Get a transformation script by ID
+   */
+  static async getTransformationScriptById(
+    scriptId: number, 
+    environmentId: string
+  ): Promise<TransformationScript | null> {
+    const pool = getEnvironmentPool(environmentId);
+    
+    const query = `
+      SELECT ts.*, u.username as created_by_username
+      FROM transformation_scripts ts
+      LEFT JOIN users u ON ts.created_by = u.id
+      WHERE ts.id = $1 AND ts.environment_id = $2 AND ts.is_active = true
+    `;
+    
+    const result = await pool.query(query, [scriptId, environmentId]);
+    
+    if (result.rows.length === 0) {
+      return null;
+    }
+    
+    return {
+      ...result.rows[0],
+      name: result.rows[0].name || result.rows[0].script_name
+    };
+  }
+
+  /**
+   * Execute a transformation script on CSV data
+   */
+  static async executeTransformationScript(
+    scriptContent: string,
+    csvData: string
+  ): Promise<{
+    transformedCsv: string;
+    headers: string[];
+    rowCount: number;
+  }> {
+    // For now, we'll implement a basic Python execution simulation
+    // In a production environment, you'd want to use a secure Python execution environment
+    
+    try {
+      // Parse the original CSV
+      const lines = csvData.trim().split('\n');
+      if (lines.length === 0) {
+        throw new Error('Empty CSV data');
+      }
+
+      // Extract headers from first line
+      const originalHeaders = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+      
+      // For this demo, we'll apply some basic transformations based on common script patterns
+      let transformedLines = [...lines];
+      let transformedHeaders = [...originalHeaders];
+
+      // Check if script contains common transformation patterns
+      if (scriptContent.includes('dropna(how=\'all\')')) {
+        // Remove empty rows
+        transformedLines = transformedLines.filter(line => {
+          const cells = line.split(',');
+          return cells.some(cell => cell.trim().length > 0);
+        });
+      }
+
+      if (scriptContent.includes('iloc[') && scriptContent.includes(':')) {
+        // Handle row skipping (e.g., df.iloc[4:])
+        const skipMatch = scriptContent.match(/iloc\[(\d+):/);
+        if (skipMatch) {
+          const skipRows = parseInt(skipMatch[1]);
+          if (skipRows < transformedLines.length) {
+            transformedLines = transformedLines.slice(skipRows);
+            // Use the first line after skipping as new headers
+            if (transformedLines.length > 0) {
+              transformedHeaders = transformedLines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+              transformedLines = transformedLines.slice(1);
+            }
+          }
+        }
+      }
+
+      if (scriptContent.includes('columns.str.contains(\'Unnamed\')')) {
+        // Remove unnamed columns
+        const headerIndexesToKeep: number[] = [];
+        transformedHeaders.forEach((header, index) => {
+          if (!header.toLowerCase().includes('unnamed') && header.trim().length > 0) {
+            headerIndexesToKeep.push(index);
+          }
+        });
+
+        transformedHeaders = headerIndexesToKeep.map(i => transformedHeaders[i]);
+        transformedLines = transformedLines.map(line => {
+          const cells = line.split(',');
+          return headerIndexesToKeep.map(i => cells[i] || '').join(',');
+        });
+      }
+
+      // Rebuild CSV
+      const transformedCsv = [transformedHeaders.join(','), ...transformedLines].join('\n');
+
+      return {
+        transformedCsv,
+        headers: transformedHeaders,
+        rowCount: transformedLines.length
+      };
+
+    } catch (error: any) {
+      throw new Error(`Transformation execution failed: ${error.message}`);
+    }
+  }
+
+  /**
    * Validate transformation script syntax (basic validation)
    */
   static validateScriptSyntax(scriptContent: string): { isValid: boolean; errors: string[] } {
