@@ -445,7 +445,11 @@ export default function CampaignsPage() {
           <p className="text-sm text-gray-600 mb-6">Creating templates helps your brokers send campaigns faster and more effectively. With ready-made content that's compliant and on-brand, brokers can focus on reaching their clients instead of writing from scratch.</p>
 
           {isLoadingTemplates ? (
-            <div className="text-center py-12">Loading templates...</div>
+            <Card className="text-center py-12">
+              <CardContent>
+                Loading templates...
+              </CardContent>
+            </Card>
           ) : campaignTemplates.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {campaignTemplates.map(template => (
@@ -515,11 +519,15 @@ export default function CampaignsPage() {
               ))}
             </div>
           ) : (
-            <div className="text-center py-12 border rounded-lg bg-gray-50">
-              <FileText className="mx-auto h-12 w-12 text-gray-400" />
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No templates</h3>
-              <p className="mt-1 text-sm text-gray-500">Create your first campaign template to reuse in future campaigns.</p>
-            </div>
+            <Card className="text-center py-12 border-dashed bg-gray-50">
+              <CardContent className="pt-6">
+                <FileText className="mx-auto h-12 w-12 text-gray-400" />
+                <CardTitle className="mt-2 text-sm font-medium text-gray-900">No templates</CardTitle>
+                <CardDescription className="mt-1 text-sm text-gray-500">
+                  Create your first campaign template to reuse in future campaigns.
+                </CardDescription>
+              </CardContent>
+            </Card>
           )}
         </TabsContent>
 
@@ -527,43 +535,47 @@ export default function CampaignsPage() {
           <div>
             <h2 className="text-xl font-semibold mb-4">Do what works and try out some of our predesigned campaigns</h2>
             
-            <div className="flex space-x-2 mb-4 overflow-x-auto pb-2">
-              <Badge
-                variant={activeFilter === "popular" ? "default" : "outline"}
-                className="cursor-pointer"
-                onClick={() => setActiveFilter("popular")}
-              >
-                Most Popular
-              </Badge>
-              <Badge
-                variant={activeFilter === "mortgages" ? "default" : "outline"}
-                className="cursor-pointer"
-                onClick={() => setActiveFilter("mortgages")}
-              >
-                Mortgages
-              </Badge>
-              <Badge
-                variant={activeFilter === "partner" ? "default" : "outline"}
-                className="cursor-pointer"
-                onClick={() => setActiveFilter("partner")}
-              >
-                By Partner
-              </Badge>
-              <Badge
-                variant={activeFilter === "cross-sell" ? "default" : "outline"}
-                className="cursor-pointer whitespace-nowrap"
-                onClick={() => setActiveFilter("cross-sell")}
-              >
-                Cross-Sell
-              </Badge>
-              <Badge
-                variant={activeFilter === "upsell" ? "default" : "outline"}
-                className="cursor-pointer"
-                onClick={() => setActiveFilter("upsell")}
-              >
-                Upsell
-              </Badge>
-            </div>
+            <Card className="p-2 mb-4">
+              <CardContent className="p-2">
+                <div className="flex space-x-2 overflow-x-auto">
+                  <Badge
+                    variant={activeFilter === "popular" ? "default" : "outline"}
+                    className="cursor-pointer"
+                    onClick={() => setActiveFilter("popular")}
+                  >
+                    Most Popular
+                  </Badge>
+                  <Badge
+                    variant={activeFilter === "mortgages" ? "default" : "outline"}
+                    className="cursor-pointer"
+                    onClick={() => setActiveFilter("mortgages")}
+                  >
+                    Mortgages
+                  </Badge>
+                  <Badge
+                    variant={activeFilter === "partner" ? "default" : "outline"}
+                    className="cursor-pointer"
+                    onClick={() => setActiveFilter("partner")}
+                  >
+                    By Partner
+                  </Badge>
+                  <Badge
+                    variant={activeFilter === "cross-sell" ? "default" : "outline"}
+                    className="cursor-pointer whitespace-nowrap"
+                    onClick={() => setActiveFilter("cross-sell")}
+                  >
+                    Cross-Sell
+                  </Badge>
+                  <Badge
+                    variant={activeFilter === "upsell" ? "default" : "outline"}
+                    className="cursor-pointer"
+                    onClick={() => setActiveFilter("upsell")}
+                  >
+                    Upsell
+                  </Badge>
+                </div>
+              </CardContent>
+            </Card>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
               {getFilteredTemplates().map(template => (
@@ -604,35 +616,43 @@ export default function CampaignsPage() {
               ))}
             </div>
 
-            <div className="flex justify-center gap-4">
-              <Button 
-                size="lg"
-                variant="outline" 
-                className="border-2 border-dashed border-gray-300 hover:border-indigo-300 hover:bg-indigo-50"
-                onClick={() => startNewCampaign()}
-              >
-                <Plus className="h-5 w-5 mr-2" />
-                Start from Scratch
-              </Button>
-              <Button 
-                size="lg"
-                className="bg-indigo-600 hover:bg-indigo-700 text-white"
-                onClick={() => startFromTemplate()}
-              >
-                <FileText className="h-5 w-5 mr-2" />
-                Start from Template
-              </Button>
-            </div>
+            <Card className="p-4">
+              <CardContent className="p-0">
+                <div className="flex justify-center gap-4">
+                  <Button 
+                    size="lg"
+                    variant="outline" 
+                    className="border-2 border-dashed border-gray-300 hover:border-indigo-300 hover:bg-indigo-50"
+                    onClick={() => startNewCampaign()}
+                  >
+                    <Plus className="h-5 w-5 mr-2" />
+                    Start from Scratch
+                  </Button>
+                  <Button 
+                    size="lg"
+                    className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                    onClick={() => startFromTemplate()}
+                  >
+                    <FileText className="h-5 w-5 mr-2" />
+                    Start from Template
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </TabsContent>
         
         <TabsContent value="upload" className="space-y-4">
-          <div>
-            <h2 className="text-xl font-semibold mb-4">Import your data to create targeted campaigns</h2>
-            <p className="text-gray-600 mb-6">Choose your data source to get started with intelligent campaign creation</p>
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-              <Card 
+          <Card className="p-6">
+            <CardHeader className="px-0 pt-0">
+              <CardTitle className="text-xl font-semibold">Import your data to create targeted campaigns</CardTitle>
+              <CardDescription className="text-gray-600">
+                Choose your data source to get started with intelligent campaign creation
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="px-0 pb-0">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <Card 
                 className="hover:shadow-md transition-shadow cursor-pointer border-2 border-indigo-100"
                 onClick={() => setLocation("/campaigns/upload/brio/step1")}
               >
@@ -727,8 +747,9 @@ export default function CampaignsPage() {
                   </Button>
                 </CardFooter>
               </Card>
-            </div>
-          </div>
+              </div>
+            </CardContent>
+          </Card>
         </TabsContent>
       </Tabs>
 
