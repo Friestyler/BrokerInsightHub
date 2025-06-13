@@ -70,6 +70,8 @@ export default function CampaignsPage() {
   const [shareMode, setShareMode] = useState<'internal' | 'external'>('internal');
   const [selectedUsers, setSelectedUsers] = useState<number[]>([]);
   const [selectedContacts, setSelectedContacts] = useState<number[]>([]);
+  const [newCampaignDialogOpen, setNewCampaignDialogOpen] = useState(false);
+  const [templateSelectionDialogOpen, setTemplateSelectionDialogOpen] = useState(false);
 
   // Read tab from URL parameters
   useEffect(() => {
@@ -240,18 +242,27 @@ export default function CampaignsPage() {
     }
   };
 
-  // Start new campaign
-  const startNewCampaign = (templateId?: string) => {
-    if (templateId) {
-      setLocation(`/campaigns/create?template=${templateId}`);
-    } else {
-      setLocation("/campaigns/create");
-    }
+  // Show new campaign choice dialog
+  const startNewCampaign = () => {
+    setNewCampaignDialogOpen(true);
   };
 
-  // Start from template - navigate to template selection
+  // Start campaign from scratch
+  const startFromScratch = () => {
+    setNewCampaignDialogOpen(false);
+    setLocation("/campaigns/create");
+  };
+
+  // Show template selection dialog
   const startFromTemplate = () => {
-    setLocation("/campaigns/templates");
+    setNewCampaignDialogOpen(false);
+    setTemplateSelectionDialogOpen(true);
+  };
+
+  // Start campaign from specific template
+  const startCampaignFromTemplate = (templateId: number) => {
+    setTemplateSelectionDialogOpen(false);
+    setLocation(`/campaigns/create?template=${templateId}`);
   };
 
   // Open share dialog
@@ -778,7 +789,7 @@ export default function CampaignsPage() {
                 <Card 
                   key={template.id} 
                   className="group hover:shadow-xl hover:shadow-black/5 transition-all duration-300 cursor-pointer border border-gray-200/40 bg-white/80 backdrop-blur-sm hover:-translate-y-1 hover:border-indigo-200/60"
-                  onClick={() => startNewCampaign(template.id)}
+                  onClick={() => startCampaignFromTemplate(template.id)}
                 >
                   <CardHeader className="pb-4 space-y-4">
                     <div className="flex justify-between items-start">
@@ -935,6 +946,116 @@ export default function CampaignsPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* New Campaign Choice Dialog */}
+      <Dialog open={newCampaignDialogOpen} onOpenChange={setNewCampaignDialogOpen}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle className="text-[#282A3F]">Create New Campaign</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">How would you like to start your campaign?</p>
+            
+            <div className="space-y-3">
+              <Button 
+                variant="outline" 
+                className="w-full h-auto p-4 border-2 border-dashed border-gray-200 hover:border-[#5567E5] hover:bg-[#5567E5]/10 text-left"
+                onClick={startFromScratch}
+              >
+                <div className="flex items-center space-x-3">
+                  <Plus className="h-8 w-8 text-gray-500" />
+                  <div>
+                    <div className="font-medium text-gray-900">Start from Scratch</div>
+                    <div className="text-sm text-gray-500">Build your campaign from the ground up</div>
+                  </div>
+                </div>
+              </Button>
+              
+              <Button 
+                variant="outline" 
+                className="w-full h-auto p-4 border-2 border-gray-200 hover:border-[#5567E5] hover:bg-[#5567E5]/10 text-left"
+                onClick={startFromTemplate}
+              >
+                <div className="flex items-center space-x-3">
+                  <FileText className="h-8 w-8 text-[#5567E5]" />
+                  <div>
+                    <div className="font-medium text-gray-900">Start from Template</div>
+                    <div className="text-sm text-gray-500">Choose from pre-built templates</div>
+                  </div>
+                </div>
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Template Selection Dialog */}
+      <Dialog open={templateSelectionDialogOpen} onOpenChange={setTemplateSelectionDialogOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="text-[#282A3F]">Choose a Template</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <p className="text-sm text-gray-600">Select a template to start your campaign with pre-filled content.</p>
+            
+            {isLoadingTemplates ? (
+              <div className="text-center py-12">Loading templates...</div>
+            ) : userTemplates && userTemplates.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {userTemplates.map(template => (
+                  <Card 
+                    key={template.id} 
+                    className="group hover:shadow-lg transition-all duration-200 cursor-pointer border border-gray-200 hover:border-indigo-200"
+                    onClick={() => startCampaignFromTemplate(template.id)}
+                  >
+                    <CardHeader className="pb-3">
+                      <div className="flex items-start justify-between">
+                        <CardTitle className="text-base font-semibold text-gray-900 group-hover:text-indigo-600 transition-colors">
+                          {template.name}
+                        </CardTitle>
+                        <Badge variant="secondary" className="text-xs">
+                          Template
+                        </Badge>
+                      </div>
+                      <CardDescription className="text-sm text-gray-500">
+                        {template.category}
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent className="pt-0">
+                      <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-indigo-400"></div>
+                        <p className="text-sm text-gray-600">
+                          {template.type === "cross_sell" ? "Cross-Sell" : template.type === "upsell" ? "Upsell" : "Custom"}
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-12 border rounded-lg bg-gray-50">
+                <FileText className="mx-auto h-12 w-12 text-gray-400" />
+                <h3 className="mt-2 text-sm font-medium text-gray-900">No templates available</h3>
+                <p className="mt-1 text-sm text-gray-500">Create some templates first to use them for new campaigns.</p>
+                <div className="mt-4">
+                  <Button 
+                    variant="outline"
+                    onClick={() => {
+                      setTemplateSelectionDialogOpen(false);
+                      setLocation("/campaigns/template-builder");
+                    }}
+                  >
+                    Create Template
+                  </Button>
+                </div>
+              </div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+
       {/* Share Template Dialog */}
       <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
         <DialogContent className="max-w-md">
