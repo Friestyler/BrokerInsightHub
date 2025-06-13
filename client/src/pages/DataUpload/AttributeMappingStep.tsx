@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Save, Edit, ArrowLeft, ArrowRight, CheckCircle, X } from 'lucide-react';
+import { Plus, Save, Edit, ArrowLeft, ArrowRight, CheckCircle, X, Trash2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 
@@ -275,6 +275,25 @@ export default function AttributeMappingStep({
     },
     onError: () => {
       toast({ title: 'Failed to update template', variant: 'destructive' });
+    },
+  });
+
+  // Delete template mutation
+  const deleteTemplateMutation = useMutation({
+    mutationFn: async (templateId: string) => {
+      const response = await fetch(`/api/${environmentId}/upload/templates/${templateId}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) throw new Error('Failed to delete template');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/${environmentId}/upload-templates`] });
+      toast({ title: 'Template deleted successfully' });
+      setSelectedTemplateId('');
+    },
+    onError: () => {
+      toast({ title: 'Failed to delete template', variant: 'destructive' });
     },
   });
 
@@ -703,13 +722,26 @@ export default function AttributeMappingStep({
                 value={selectedTemplateId} 
                 onValueChange={(value) => {
                   setSelectedTemplateId(value);
-                  if (value) loadTemplate(value);
+                  if (value && value !== 'none') {
+                    loadTemplate(value);
+                  } else if (value === 'none') {
+                    // Clear current mappings to reset to default state
+                    const mandatoryAttrs = getMandatoryAttributes();
+                    const mappings = mandatoryAttrs.map((attr: string) => ({
+                      attribute: attr,
+                      csvColumn: '',
+                      isRequired: true,
+                    }));
+                    setAttributeMappings(mappings);
+                    toast({ title: 'Template cleared' });
+                  }
                 }}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select a template" />
                 </SelectTrigger>
                 <SelectContent>
+                  <SelectItem value="none">No Template</SelectItem>
                   {templates.map((template) => (
                     <SelectItem key={template.id} value={template.id.toString()}>
                       {template.name}
@@ -730,7 +762,7 @@ export default function AttributeMappingStep({
             </Button>
 
             {/* Update Template Button */}
-            {selectedTemplateId && (
+            {selectedTemplateId && selectedTemplateId !== 'none' && (
               <Button 
                 variant="outline" 
                 onClick={updateTemplate}
@@ -739,6 +771,19 @@ export default function AttributeMappingStep({
               >
                 <Edit className="h-4 w-4 mr-2" />
                 {updateTemplateMutation.isPending ? 'Updating...' : 'Update Template'}
+              </Button>
+            )}
+
+            {/* Delete Template Button */}
+            {selectedTemplateId && selectedTemplateId !== 'none' && (
+              <Button 
+                variant="outline" 
+                onClick={() => deleteTemplateMutation.mutate(selectedTemplateId)}
+                disabled={deleteTemplateMutation.isPending}
+                className="shrink-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                {deleteTemplateMutation.isPending ? 'Deleting...' : 'Delete Template'}
               </Button>
             )}
           </div>
