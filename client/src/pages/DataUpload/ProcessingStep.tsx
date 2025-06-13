@@ -259,6 +259,38 @@ export default function ProcessingStep({
                 });
               }
             }
+            
+            // Numeric validation for integer fields
+            if (mapping.attribute === 'probability' || mapping.attribute.includes('Id') || mapping.attribute === 'id') {
+              const numValue = parseFloat(value);
+              if (isNaN(numValue)) {
+                issues.push({
+                  row: row._rowNumber,
+                  type: 'invalid_format',
+                  field: mapping.attribute,
+                  value: value,
+                  message: `Invalid numeric value for '${mapping.attribute}': '${value}'`,
+                  solution: 'skip',
+                  rowData: row
+                });
+              }
+            }
+            
+            // Numeric validation for decimal fields
+            if (mapping.attribute === 'value' || mapping.attribute.includes('amount') || mapping.attribute.includes('Value')) {
+              const numValue = parseFloat(value);
+              if (isNaN(numValue)) {
+                issues.push({
+                  row: row._rowNumber,
+                  type: 'invalid_format',
+                  field: mapping.attribute,
+                  value: value,
+                  message: `Invalid decimal value for '${mapping.attribute}': '${value}'`,
+                  solution: 'skip',
+                  rowData: row
+                });
+              }
+            }
           }
         });
       });
@@ -362,8 +394,12 @@ export default function ProcessingStep({
               // Transform data types
               if (mapping.attribute.includes('date') && value) {
                 transformedData[mapping.attribute] = new Date(value).toISOString();
-              } else if (mapping.attribute === 'value' || mapping.attribute.includes('amount')) {
+              } else if (mapping.attribute === 'value' || mapping.attribute.includes('amount') || mapping.attribute.includes('Value')) {
                 transformedData[mapping.attribute] = parseFloat(value) || 0;
+              } else if (mapping.attribute === 'probability' || mapping.attribute.includes('Id') || mapping.attribute === 'id') {
+                // Handle numeric fields that should be integers
+                const numValue = parseFloat(value);
+                transformedData[mapping.attribute] = isNaN(numValue) ? 0 : Math.round(numValue);
               } else {
                 transformedData[mapping.attribute] = value;
               }
