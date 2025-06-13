@@ -94,17 +94,10 @@ const followUpSchema = z.object({
   })).optional(),
 });
 
-const templateSettingsSchema = z.object({
-  frequency: z.string().default("one_time"),
-  fromName: z.string().optional(),
-  fromEmail: z.string().optional(),
-});
-
 // Combined template schema
 const templateFormSchema = selectListSchema
   .merge(composeEmailSchema)
-  .merge(followUpSchema)
-  .merge(templateSettingsSchema);
+  .merge(followUpSchema);
 
 type TemplateFormValues = z.infer<typeof templateFormSchema>;
 
@@ -153,9 +146,6 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
       buttonColor: "#3CA2E0",
       enableFollowUp: false,
       followUpEmails: [],
-      frequency: "one_time",
-      fromName: "",
-      fromEmail: "",
     },
   });
 
@@ -179,12 +169,7 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
       description: "Configure optional follow-up emails",
       icon: <MessageSquare className="h-5 w-5" />,
     },
-    {
-      id: "settings",
-      title: "Settings",
-      description: "Configure template options",
-      icon: <Settings className="h-5 w-5" />,
-    }
+
   ];
 
   // Navigate between steps
@@ -275,9 +260,6 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
       form.setValue("category", template.category || "");
       form.setValue("emailBody", template.emailBody || "");
       form.setValue("subject", template.subject || "");
-      form.setValue("frequency", template.frequency || "one_time");
-      form.setValue("fromName", template.fromName || "");
-      form.setValue("fromEmail", template.fromEmail || "");
       form.setValue("enableFollowUp", template.enableFollowUp || false);
       form.setValue("followUpEmails", template.followUpEmails || []);
     }
@@ -296,9 +278,6 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
       emailLogo: data.emailLogo || "",
       subject: data.subject,
       heading: data.heading || "",
-      frequency: data.frequency,
-      fromName: data.fromName || "",
-      fromEmail: data.fromEmail || "",
       buttonLink: data.buttonLink || "",
       buttonText: data.buttonText || "",
       buttonColor: data.buttonColor || "#3B82F6",
@@ -686,57 +665,6 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
                   Add another follow-up
                 </Button>
               )}
-            </div>
-          </div>
-        );
-
-      case "settings":
-        return (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label className="text-[#282A3F]">Frequency</Label>
-              <RadioGroup 
-                value={form.watch("frequency")} 
-                onValueChange={(value) => form.setValue("frequency", value)}
-              >
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="one_time" id="one_time" />
-                  <Label htmlFor="one_time" className="text-[#282A3F]">One-time campaign</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="weekly" id="weekly" />
-                  <Label htmlFor="weekly" className="text-[#282A3F]">Weekly</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="monthly" id="monthly" />
-                  <Label htmlFor="monthly" className="text-[#282A3F]">Monthly</Label>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <RadioGroupItem value="quarterly" id="quarterly" />
-                  <Label htmlFor="quarterly" className="text-[#282A3F]">Quarterly</Label>
-                </div>
-              </RadioGroup>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="from-name" className="text-[#282A3F]">From Name</Label>
-                <Input
-                  id="from-name"
-                  placeholder="Your Name"
-                  {...form.register("fromName")}
-                />
-              </div>
-              
-              <div className="space-y-2">
-                <Label htmlFor="from-email" className="text-[#282A3F]">From Email</Label>
-                <Input
-                  id="from-email"
-                  type="email"
-                  placeholder="your.email@company.com"
-                  {...form.register("fromEmail")}
-                />
-              </div>
             </div>
           </div>
         );
