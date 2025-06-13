@@ -557,7 +557,7 @@ export default function CampaignsPage() {
                     variant={activeFilter === "popular" ? "default" : "outline"}
                     className={`cursor-pointer px-4 py-2 rounded-full font-medium transition-all duration-200 whitespace-nowrap ${
                       activeFilter === "popular" 
-                        ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg hover:shadow-xl" 
+                        ? "bg-[#5567E5] hover:bg-[#4456D4] text-white shadow-lg hover:shadow-xl" 
                         : "border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300"
                     }`}
                     onClick={() => setActiveFilter("popular")}
@@ -568,7 +568,7 @@ export default function CampaignsPage() {
                     variant={activeFilter === "mortgages" ? "default" : "outline"}
                     className={`cursor-pointer px-4 py-2 rounded-full font-medium transition-all duration-200 whitespace-nowrap ${
                       activeFilter === "mortgages" 
-                        ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg hover:shadow-xl" 
+                        ? "bg-[#5567E5] hover:bg-[#4456D4] text-white shadow-lg hover:shadow-xl" 
                         : "border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300"
                     }`}
                     onClick={() => setActiveFilter("mortgages")}
@@ -579,7 +579,7 @@ export default function CampaignsPage() {
                     variant={activeFilter === "partner" ? "default" : "outline"}
                     className={`cursor-pointer px-4 py-2 rounded-full font-medium transition-all duration-200 whitespace-nowrap ${
                       activeFilter === "partner" 
-                        ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg hover:shadow-xl" 
+                        ? "bg-[#5567E5] hover:bg-[#4456D4] text-white shadow-lg hover:shadow-xl" 
                         : "border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300"
                     }`}
                     onClick={() => setActiveFilter("partner")}
@@ -590,7 +590,7 @@ export default function CampaignsPage() {
                     variant={activeFilter === "cross-sell" ? "default" : "outline"}
                     className={`cursor-pointer px-4 py-2 rounded-full font-medium transition-all duration-200 whitespace-nowrap ${
                       activeFilter === "cross-sell" 
-                        ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg hover:shadow-xl" 
+                        ? "bg-[#5567E5] hover:bg-[#4456D4] text-white shadow-lg hover:shadow-xl" 
                         : "border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300"
                     }`}
                     onClick={() => setActiveFilter("cross-sell")}
@@ -601,7 +601,7 @@ export default function CampaignsPage() {
                     variant={activeFilter === "upsell" ? "default" : "outline"}
                     className={`cursor-pointer px-4 py-2 rounded-full font-medium transition-all duration-200 whitespace-nowrap ${
                       activeFilter === "upsell" 
-                        ? "bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow-lg hover:shadow-xl" 
+                        ? "bg-[#5567E5] hover:bg-[#4456D4] text-white shadow-lg hover:shadow-xl" 
                         : "border-gray-200 text-gray-600 hover:bg-gray-50 hover:border-gray-300"
                     }`}
                     onClick={() => setActiveFilter("upsell")}
@@ -649,7 +649,7 @@ export default function CampaignsPage() {
                   <CardFooter className="pt-0">
                     <Button 
                       variant="outline" 
-                      className="w-full border-0 bg-gradient-to-r from-indigo-50 to-purple-50 text-indigo-600 hover:from-indigo-100 hover:to-purple-100 hover:text-indigo-700 font-medium py-2.5 rounded-lg transition-all duration-200"
+                      className="w-full border-0 bg-[#5567E5]/10 text-[#5567E5] hover:bg-[#5567E5]/20 hover:text-[#4456D4] font-medium py-2.5 rounded-lg transition-all duration-200"
                     >
                       Use Template
                     </Button>
@@ -664,7 +664,7 @@ export default function CampaignsPage() {
                   <Button 
                     size="lg"
                     variant="outline" 
-                    className="border-2 border-dashed border-gray-200 hover:border-indigo-300 hover:bg-gradient-to-r hover:from-indigo-50 hover:to-purple-50 text-gray-600 hover:text-indigo-600 px-8 py-3 rounded-xl font-medium transition-all duration-200 min-w-[200px]"
+                    className="border-2 border-dashed border-gray-200 hover:border-[#5567E5] hover:bg-[#5567E5]/10 text-gray-600 hover:text-[#5567E5] px-8 py-3 rounded-xl font-medium transition-all duration-200 min-w-[200px]"
                     onClick={() => startNewCampaign()}
                   >
                     <Plus className="h-5 w-5 mr-2" />
@@ -672,7 +672,7 @@ export default function CampaignsPage() {
                   </Button>
                   <Button 
                     size="lg"
-                    className="bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white px-8 py-3 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-200 min-w-[200px]"
+                    className="bg-[#5567E5] hover:bg-[#4456D4] text-white px-8 py-3 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-200 min-w-[200px]"
                     onClick={() => startFromTemplate()}
                   >
                     <FileText className="h-5 w-5 mr-2" />
@@ -713,7 +713,7 @@ export default function CampaignsPage() {
                   </CardHeader>
                   <CardFooter className="pt-0">
                     <Button 
-                      className="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 text-white py-2.5 rounded-lg font-medium shadow-lg hover:shadow-xl transition-all duration-200"
+                      className="w-full bg-[#5567E5] hover:bg-[#4456D4] text-white py-2.5 rounded-lg font-medium shadow-lg hover:shadow-xl transition-all duration-200"
                     >
                       Start Import
                     </Button>
@@ -739,7 +739,7 @@ export default function CampaignsPage() {
                   <CardFooter className="pt-0">
                     <Button 
                       variant="outline" 
-                      className="w-full border-0 bg-gradient-to-r from-blue-50 to-blue-50 text-blue-600 hover:from-blue-100 hover:to-blue-100 hover:text-blue-700 py-2.5 rounded-lg font-medium transition-all duration-200"
+                      className="w-full border-0 bg-gradient-to-r from-orange-50 to-orange-100 text-orange-600 hover:from-orange-100 hover:to-orange-200 hover:text-orange-700 py-2.5 rounded-lg font-medium transition-all duration-200"
                     >
                       Connect
                     </Button>
