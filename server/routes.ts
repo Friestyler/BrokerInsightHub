@@ -5158,12 +5158,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
         campaignData.buttonLink || null,
         campaignData.buttonText || null,
         campaignData.buttonColor || null,
-        JSON.stringify(campaignData.followUpEmails || []),
+        campaignData.followUpEmails ? JSON.stringify(campaignData.followUpEmails) : null,
         campaignData.scheduledTime || null,
         campaignData.frequency || 'one_time',
         campaignData.isShared || false,
         campaignData.isTemplate || false,
-        JSON.stringify(campaignData.tags || [])
+        campaignData.tags || null
       ]);
       
       const newCampaign = result.rows[0];
