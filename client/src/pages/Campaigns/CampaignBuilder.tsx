@@ -186,7 +186,7 @@ export default function CampaignBuilder() {
 
   // Form definition
   const form = useForm<CampaignFormValues>({
-    resolver: zodResolver(campaignFormSchema),
+    resolver: zodResolver(createCampaignFormSchema(isTemplateMode)),
     defaultValues: {
       name: "",
       description: "",
@@ -617,28 +617,16 @@ export default function CampaignBuilder() {
     const campaignData = {
       ...data,
       listIds: data.listIds,
-      recipientIds: data.recipientIds.map(id => parseInt(id)),
+      recipientIds: data.recipientIds ? data.recipientIds.map(id => parseInt(id)) : [],
       followUpEmails: data.enableFollowUp ? data.followUpEmails : [],
     };
 
-    // Remove template-specific fields from campaign data
-    const { saveAsTemplate, templateName, templateDescription, ...cleanCampaignData } = campaignData;
-    
-    // Include sharing data in campaign
-    if (data.isShared) {
-      (cleanCampaignData as any).sharing = {
-        sharedPartnerIds: data.sharedPartnerIds || [],
-        shareAccessLevel: data.shareAccessLevel || "view",
-        shareMessage: data.shareMessage || "",
-        sharedContactIds: data.sharedContactIds || []
-      };
-    }
-    
-    // If saving as template, create the template first
-    if (data.saveAsTemplate && data.templateName) {
+    // Handle template mode vs regular campaign mode
+    if (isTemplateMode) {
+      // In template mode, create a template instead of a campaign
       const templateData = {
-        name: data.templateName,
-        description: data.templateDescription || "",
+        name: data.name,
+        description: data.description || "",
         type: data.type,
         category: data.category || "",
         emailBody: data.emailBody,
@@ -651,15 +639,48 @@ export default function CampaignBuilder() {
         enableFollowUp: data.enableFollowUp,
       };
       
-      try {
-        await createTemplateMutation.mutateAsync(templateData);
-      } catch (error) {
-        // Continue with campaign creation even if template fails
-        console.warn("Template creation failed, continuing with campaign:", error);
+      createTemplateMutation.mutate(templateData);
+    } else {
+      // Regular campaign mode
+      const { saveAsTemplate, templateName, templateDescription, ...cleanCampaignData } = campaignData;
+      
+      // Include sharing data in campaign
+      if (data.isShared) {
+        (cleanCampaignData as any).sharing = {
+          sharedPartnerIds: data.sharedPartnerIds || [],
+          shareAccessLevel: data.shareAccessLevel || "view",
+          shareMessage: data.shareMessage || "",
+          sharedContactIds: data.sharedContactIds || []
+        };
       }
+      
+      // If saving as template, create the template first
+      if (data.saveAsTemplate && data.templateName) {
+        const templateData = {
+          name: data.templateName,
+          description: data.templateDescription || "",
+          type: data.type,
+          category: data.category || "",
+          emailBody: data.emailBody,
+          emailLogo: data.emailLogo || "",
+          subject: data.subject,
+          frequency: data.frequency,
+          fromName: data.fromName,
+          fromEmail: data.fromEmail,
+          followUpEmails: data.enableFollowUp ? data.followUpEmails : [],
+          enableFollowUp: data.enableFollowUp,
+        };
+        
+        try {
+          await createTemplateMutation.mutateAsync(templateData);
+        } catch (error) {
+          // Continue with campaign creation even if template fails
+          console.warn("Template creation failed, continuing with campaign:", error);
+        }
+      }
+      
+      createCampaignMutation.mutate(cleanCampaignData);
     }
-    
-    createCampaignMutation.mutate(cleanCampaignData);
   };
 
   // Render current step content
@@ -949,7 +970,7 @@ export default function CampaignBuilder() {
                                       type="checkbox"
                                       id={`contact-${contact.id}`}
                                       value={contact.id.toString()}
-                                      checked={selectedRecipientIds.includes(contact.id.toString())}
+                                      checked={selectedRecipientIds?.includes(contact.id.toString()) || false}
                                       onChange={(e) => {
                                         const currentIds = selectedRecipientIds || [];
                                         const contactId = contact.id.toString();
@@ -1042,7 +1063,7 @@ export default function CampaignBuilder() {
             
             <div className="flex justify-between items-center">
               <span className="text-sm text-gray-600">
-                {selectedRecipientIds.length} recipient(s) selected
+                {selectedRecipientIds?.length || 0} recipient(s) selected
                 {Object.keys(groupedContacts).length > 0 && (
                   <span className="text-gray-400 ml-2">
                     from {Object.values(groupedContacts).reduce((total: number, group: any) => total + group.contacts.length, 0)} total contacts
