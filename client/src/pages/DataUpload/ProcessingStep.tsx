@@ -546,14 +546,7 @@ export default function ProcessingStep({
           {/* Validation Phase */}
           {phase === 'validation' && showValidation && (
             <div className="space-y-6">
-              <div className="flex items-center justify-between">
-                <Alert className="flex-1 mr-4">
-                  <AlertTriangle className="h-4 w-4" />
-                  <AlertDescription>
-                    Found {validationIssues.length} issues that need your attention before processing.
-                    Please review and choose how to handle each issue.
-                  </AlertDescription>
-                </Alert>
+              <div className="flex items-center justify-end">
                 <Button onClick={processData} disabled={isProcessing} size="lg">
                   <Play className="mr-2 h-4 w-4" />
                   Proceed with Processing
@@ -589,6 +582,14 @@ export default function ProcessingStep({
                   </p>
                 </div>
               </div>
+
+              <Alert>
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>
+                  Found {validationIssues.length} issues that need your attention before processing.
+                  Please review and choose how to handle each issue.
+                </AlertDescription>
+              </Alert>
 
               {/* Bulk Actions Bar */}
               {selectedIssues.size > 0 && (
