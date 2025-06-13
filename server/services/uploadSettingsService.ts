@@ -423,10 +423,26 @@ export class UploadSettingsService {
       }
 
       // Extract headers from first line
-      const originalHeaders = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+      let originalHeaders = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+      
+      // Check if first row is all empty and second row has actual headers
+      const firstRowIsEmpty = originalHeaders.every(h => h === '' || h.trim() === '');
+      if (firstRowIsEmpty && lines.length > 1) {
+        const secondRowHeaders = lines[1].split(',').map(h => h.trim().replace(/"/g, ''));
+        const secondRowHasContent = secondRowHeaders.some(h => h !== '' && h.trim() !== '');
+        
+        if (secondRowHasContent) {
+          // Use second row as headers and skip first row
+          originalHeaders = secondRowHeaders;
+          transformedLines = lines.slice(1); // Skip the empty first row
+        } else {
+          transformedLines = [...lines];
+        }
+      } else {
+        transformedLines = [...lines];
+      }
       
       // For this demo, we'll apply some basic transformations based on common script patterns
-      let transformedLines = [...lines];
       let transformedHeaders = [...originalHeaders];
 
       // Check if script contains common transformation patterns
@@ -474,35 +490,27 @@ export class UploadSettingsService {
         });
       }
 
-      // Enhanced column filtering - check for various column removal patterns
-      const columnDropPatterns = [
+      // Enhanced column filtering - check for specific manual column removal patterns only
+      // Note: dropna(axis=1, how='all') is handled by the general empty column removal below
+      const specificColumnDropPatterns = [
         /df\s*=\s*df\.drop\(.*columns.*\)/g,
-        /df\.drop\(.*axis\s*=\s*1/g,
         /df\s*=\s*df\.filter\(/g,
         /df\[.*\]/g
       ];
 
-      let hasColumnFiltering = columnDropPatterns.some(pattern => pattern.test(scriptContent));
+      let hasSpecificColumnFiltering = specificColumnDropPatterns.some(pattern => pattern.test(scriptContent));
 
-      if (hasColumnFiltering || scriptContent.includes('ID')) {
-        // Look for specific column filtering logic
+      if (hasSpecificColumnFiltering && scriptContent.toLowerCase().includes('id')) {
+        // Only apply ID-based filtering for explicit column drop operations, not dropna
         const headerIndexesToKeep: number[] = [];
         
-        // If script mentions removing columns with "ID", implement that logic
-        if (scriptContent.toLowerCase().includes('id')) {
-          transformedHeaders.forEach((header, index) => {
-            const headerLower = header.toLowerCase();
-            // Keep columns that don't contain "id" in various forms
-            if (!headerLower.includes('id') && !headerLower.includes('ID')) {
-              headerIndexesToKeep.push(index);
-            }
-          });
-        } else {
-          // Generic column filtering - keep all for now unless specific patterns found
-          transformedHeaders.forEach((header, index) => {
+        transformedHeaders.forEach((header, index) => {
+          const headerLower = header.toLowerCase();
+          // Keep columns that don't contain "id" in various forms
+          if (!headerLower.includes('id') && !headerLower.includes('ID')) {
             headerIndexesToKeep.push(index);
-          });
-        }
+          }
+        });
 
         // Apply the filtering if we found columns to remove
         if (headerIndexesToKeep.length < transformedHeaders.length) {
