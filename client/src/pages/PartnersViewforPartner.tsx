@@ -48,7 +48,7 @@ function calculatePartnerStats(partners: any[]) {
 }
 
 // Partner Table Component for Partner View
-function PartnerTable() {
+function PartnerTable({ stats }: { stats: any }) {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLocation, setSelectedLocation] = useState('');
   const [selectedPartners, setSelectedPartners] = useState<string[]>([]);
@@ -234,6 +234,34 @@ function PartnerTable() {
             </div>
           </div>
         )}
+      </div>
+
+      {/* Statistics Cards */}
+      <div className="flex flex-wrap gap-4 mb-6">
+        <div className="bg-white p-4 rounded-md border border-gray-200 flex-1 min-w-[160px]">
+          <div className="text-xl font-semibold">{stats.totalPartners}</div>
+          <div className="text-sm text-gray-500">Total Partners</div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-md border border-gray-200 flex-1 min-w-[160px]">
+          <div className="text-xl font-semibold">{stats.totalOpportunities}</div>
+          <div className="text-sm text-gray-500">Total Opportunities</div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-md border border-gray-200 flex-1 min-w-[160px]">
+          <div className="text-xl font-semibold">{stats.totalCustomers}</div>
+          <div className="text-sm text-gray-500">Total Customers</div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-md border border-gray-200 flex-1 min-w-[160px]">
+          <div className="text-xl font-semibold">{formatCurrency(stats.totalValue)}</div>
+          <div className="text-sm text-gray-500">Total Value Opportunities</div>
+        </div>
+        
+        <div className="bg-white p-4 rounded-md border border-gray-200 flex-1 min-w-[160px]">
+          <div className="text-xl font-semibold">{formatCurrency(Math.round(stats.weightedValue))}</div>
+          <div className="text-sm text-gray-500">Weighted Value Opportunities</div>
+        </div>
       </div>
 
       {/* Partners Table */}
@@ -437,36 +465,8 @@ export default function PartnersViewforPartner() {
           </div>
         </div>
 
-        {/* Statistics Cards */}
-        <div className="flex flex-wrap gap-4 mb-6">
-          <div className="bg-white p-4 rounded-md border border-gray-200 flex-1 min-w-[160px]">
-            <div className="text-xl font-semibold">{stats.totalPartners}</div>
-            <div className="text-sm text-gray-500">Total Partners</div>
-          </div>
-          
-          <div className="bg-white p-4 rounded-md border border-gray-200 flex-1 min-w-[160px]">
-            <div className="text-xl font-semibold">{stats.totalOpportunities}</div>
-            <div className="text-sm text-gray-500">Total Opportunities</div>
-          </div>
-          
-          <div className="bg-white p-4 rounded-md border border-gray-200 flex-1 min-w-[160px]">
-            <div className="text-xl font-semibold">{stats.totalCustomers}</div>
-            <div className="text-sm text-gray-500">Total Customers</div>
-          </div>
-          
-          <div className="bg-white p-4 rounded-md border border-gray-200 flex-1 min-w-[160px]">
-            <div className="text-xl font-semibold">{formatCurrency(stats.totalValue)}</div>
-            <div className="text-sm text-gray-500">Total Value Opportunities</div>
-          </div>
-          
-          <div className="bg-white p-4 rounded-md border border-gray-200 flex-1 min-w-[160px]">
-            <div className="text-xl font-semibold">{formatCurrency(Math.round(stats.weightedValue))}</div>
-            <div className="text-sm text-gray-500">Weighted Value Opportunities</div>
-          </div>
-        </div>
-
-        {/* Partners Table */}
-        <PartnerTable />
+        {/* Partners Table with Statistics Cards moved below bulk actions */}
+        <PartnerTable stats={stats} />
       </div>
     </div>
   );
