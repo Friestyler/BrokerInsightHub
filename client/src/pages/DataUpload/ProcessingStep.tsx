@@ -230,11 +230,13 @@ export default function ProcessingStep({
 
       let result = evaluatedCode;
 
-      // Handle Python functions
+      // Handle Python string functions
       // Handle upper() function
       if (result.includes('upper(')) {
+        result = result.replace(/(\w+)\.upper\(\)/g, (match, variable) => {
+          return `"${variable.toUpperCase()}"`;
+        });
         result = result.replace(/upper\(([^)]+)\)/g, (match, content) => {
-          // Remove any quotes and apply upper case
           const cleanContent = content.replace(/['"]/g, '');
           return `"${cleanContent.toUpperCase()}"`;
         });
@@ -243,11 +245,154 @@ export default function ProcessingStep({
       
       // Handle lower() function
       if (result.includes('lower(')) {
+        result = result.replace(/(\w+)\.lower\(\)/g, (match, variable) => {
+          return `"${variable.toLowerCase()}"`;
+        });
         result = result.replace(/lower\(([^)]+)\)/g, (match, content) => {
           const cleanContent = content.replace(/['"]/g, '');
           return `"${cleanContent.toLowerCase()}"`;
         });
         console.log('🔡 After lower() processing:', result);
+      }
+      
+      // Handle capitalize() function
+      if (result.includes('capitalize(')) {
+        result = result.replace(/(\w+)\.capitalize\(\)/g, (match, variable) => {
+          return `"${variable.charAt(0).toUpperCase() + variable.slice(1).toLowerCase()}"`;
+        });
+        result = result.replace(/capitalize\(([^)]+)\)/g, (match, content) => {
+          const cleanContent = content.replace(/['"]/g, '');
+          return `"${cleanContent.charAt(0).toUpperCase() + cleanContent.slice(1).toLowerCase()}"`;
+        });
+        console.log('🔤 After capitalize() processing:', result);
+      }
+      
+      // Handle title() function
+      if (result.includes('title(')) {
+        result = result.replace(/(\w+)\.title\(\)/g, (match, variable) => {
+          return `"${variable.replace(/\w\S*/g, (txt: any) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase())}"`;
+        });
+        result = result.replace(/title\(([^)]+)\)/g, (match, content) => {
+          const cleanContent = content.replace(/['"]/g, '');
+          return `"${cleanContent.replace(/\w\S*/g, (txt: any) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase())}"`;
+        });
+        console.log('🔢 After title() processing:', result);
+      }
+      
+      // Handle strip() function
+      if (result.includes('strip(')) {
+        result = result.replace(/(\w+)\.strip\(\)/g, (match, variable) => {
+          return `"${variable.trim()}"`;
+        });
+        result = result.replace(/strip\(([^)]+)\)/g, (match, content) => {
+          const cleanContent = content.replace(/['"]/g, '');
+          return `"${cleanContent.trim()}"`;
+        });
+        console.log('✂️ After strip() processing:', result);
+      }
+      
+      // Handle lstrip() function
+      if (result.includes('lstrip(')) {
+        result = result.replace(/(\w+)\.lstrip\(\)/g, (match, variable) => {
+          return `"${variable.replace(/^\s+/, '')}"`;
+        });
+        result = result.replace(/lstrip\(([^)]+)\)/g, (match, content) => {
+          const cleanContent = content.replace(/['"]/g, '');
+          return `"${cleanContent.replace(/^\s+/, '')}"`;
+        });
+        console.log('⬅️ After lstrip() processing:', result);
+      }
+      
+      // Handle rstrip() function
+      if (result.includes('rstrip(')) {
+        result = result.replace(/(\w+)\.rstrip\(\)/g, (match, variable) => {
+          return `"${variable.replace(/\s+$/, '')}"`;
+        });
+        result = result.replace(/rstrip\(([^)]+)\)/g, (match, content) => {
+          const cleanContent = content.replace(/['"]/g, '');
+          return `"${cleanContent.replace(/\s+$/, '')}"`;
+        });
+        console.log('➡️ After rstrip() processing:', result);
+      }
+      
+      // Handle replace() function
+      if (result.includes('replace(')) {
+        result = result.replace(/(\w+)\.replace\(['"]([^'"]*)['"]\s*,\s*['"]([^'"]*)['"]\)/g, (match, variable, oldStr, newStr) => {
+          return `"${variable.replace(new RegExp(oldStr, 'g'), newStr)}"`;
+        });
+        result = result.replace(/replace\(([^,]+),\s*['"]([^'"]*)['"]\s*,\s*['"]([^'"]*)['"]\)/g, (match, content, oldStr, newStr) => {
+          const cleanContent = content.replace(/['"]/g, '');
+          return `"${cleanContent.replace(new RegExp(oldStr, 'g'), newStr)}"`;
+        });
+        console.log('🔄 After replace() processing:', result);
+      }
+      
+      // Handle startswith() function
+      if (result.includes('startswith(')) {
+        result = result.replace(/(\w+)\.startswith\(['"]([^'"]*)['"]\)/g, (match, variable, prefix) => {
+          return variable.startsWith(prefix) ? 'True' : 'False';
+        });
+        console.log('🎯 After startswith() processing:', result);
+      }
+      
+      // Handle endswith() function
+      if (result.includes('endswith(')) {
+        result = result.replace(/(\w+)\.endswith\(['"]([^'"]*)['"]\)/g, (match, variable, suffix) => {
+          return variable.endsWith(suffix) ? 'True' : 'False';
+        });
+        console.log('🏁 After endswith() processing:', result);
+      }
+      
+      // Handle find() function
+      if (result.includes('find(')) {
+        result = result.replace(/(\w+)\.find\(['"]([^'"]*)['"]\)/g, (match, variable, searchStr) => {
+          return String(variable.indexOf(searchStr));
+        });
+        console.log('🔍 After find() processing:', result);
+      }
+      
+      // Handle count() function
+      if (result.includes('count(')) {
+        result = result.replace(/(\w+)\.count\(['"]([^'"]*)['"]\)/g, (match, variable, searchStr) => {
+          return String((variable.match(new RegExp(searchStr, 'g')) || []).length);
+        });
+        console.log('🔢 After count() processing:', result);
+      }
+      
+      // Handle split() function
+      if (result.includes('split(')) {
+        result = result.replace(/(\w+)\.split\(['"]([^'"]*)['"]\)/g, (match, variable, delimiter) => {
+          const parts = variable.split(delimiter);
+          return `"${parts.join(' | ')}"`;  // Join with separator for display
+        });
+        result = result.replace(/(\w+)\.split\(\)/g, (match, variable) => {
+          const parts = variable.split(' ');
+          return `"${parts.join(' | ')}"`;
+        });
+        console.log('✂️ After split() processing:', result);
+      }
+      
+      // Handle format() function (basic version)
+      if (result.includes('format(')) {
+        result = result.replace(/(['"])([^'"]*)\1\.format\(([^)]*)\)/g, (match, quote, template, args) => {
+          // Simple format handling - replace {} with arguments
+          let formatted = template;
+          const argsList = args.split(',').map(arg => arg.trim().replace(/['"]/g, ''));
+          argsList.forEach((arg, index) => {
+            formatted = formatted.replace('{}', arg);
+          });
+          return `"${formatted}"`;
+        });
+        console.log('📝 After format() processing:', result);
+      }
+      
+      // Handle join() function
+      if (result.includes('join(')) {
+        result = result.replace(/(['"])([^'"]*)\1\.join\(\[([^\]]*)\]\)/g, (match, quote, separator, arrayContent) => {
+          const items = arrayContent.split(',').map(item => item.trim().replace(/['"]/g, ''));
+          return `"${items.join(separator)}"`;
+        });
+        console.log('🔗 After join() processing:', result);
       }
       
       // Handle str() function
@@ -257,24 +402,6 @@ export default function ProcessingStep({
           return `"${String(cleanContent)}"`;
         });
         console.log('🔤 After str() processing:', result);
-      }
-
-      // Handle title() function for title case
-      if (result.includes('title(')) {
-        result = result.replace(/title\(([^)]+)\)/g, (match, content) => {
-          const cleanContent = content.replace(/['"]/g, '');
-          return `"${cleanContent.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase())}"`;
-        });
-        console.log('🔢 After title() processing:', result);
-      }
-
-      // Handle strip() function for trimming whitespace
-      if (result.includes('strip(')) {
-        result = result.replace(/strip\(([^)]+)\)/g, (match, content) => {
-          const cleanContent = content.replace(/['"]/g, '');
-          return `"${cleanContent.trim()}"`;
-        });
-        console.log('✂️ After strip() processing:', result);
       }
 
       // Handle string concatenation with +
