@@ -118,14 +118,16 @@ export default function CampaignsPage() {
 
   // Fetch existing shares for the template
   const { data: existingShares, refetch: refetchShares } = useQuery<any[]>({
-    queryKey: [`/api/campaign-templates/${selectedTemplate?.id}/shares`],
+    queryKey: ['/api/campaign-templates', selectedTemplate?.id, 'shares'],
+    queryFn: async () => {
+      if (!selectedTemplate?.id) return [];
+      const envId = environment?.id || environment || 'degoudse';
+      const response = await fetch(`/api/${envId}/campaign-templates/${selectedTemplate.id}/shares`);
+      if (!response.ok) throw new Error('Failed to fetch shares');
+      return response.json();
+    },
     enabled: shareDialogOpen && !!selectedTemplate?.id,
   });
-
-  // Debug log to check if shares are being fetched
-  console.log('Existing shares data:', existingShares);
-  console.log('Share dialog open:', shareDialogOpen);
-  console.log('Selected template:', selectedTemplate);
 
   // Filter campaigns based on ownership and sharing
   const myCampaigns = campaigns?.filter(c => !c.isTemplate && !c.isShared) || [];
@@ -315,8 +317,12 @@ export default function CampaignsPage() {
     if (!selectedTemplate) return;
     
     try {
-      const response = await fetch(`/api/campaign-templates/${selectedTemplate.id}/shares/${shareId}`, {
+      const envId = environment?.id || environment || 'degoudse';
+      const response = await fetch(`/api/${envId}/campaign-templates/${selectedTemplate.id}/shares/${shareId}`, {
         method: 'DELETE',
+        headers: {
+          'x-environment-id': envId.toString(),
+        },
       });
       
       if (!response.ok) {

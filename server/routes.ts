@@ -5303,10 +5303,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Get template shares endpoint
-  app.get('/api/campaign-templates/:templateId/shares', async (req, res) => {
+  app.get('/api/:envId/campaign-templates/:templateId/shares', async (req, res) => {
     try {
-      const envId = (req.headers['x-environment-id'] as string) || 'degoudse';
-      const { templateId } = req.params;
+      const { envId, templateId } = req.params;
       
       // For now, we'll simulate existing shares since we don't have campaign_shares table yet
       // In a real implementation, this would query the campaign_shares table
@@ -5335,10 +5334,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Remove template share endpoint
-  app.delete('/api/campaign-templates/:templateId/shares/:shareId', async (req, res) => {
+  app.delete('/api/:envId/campaign-templates/:templateId/shares/:shareId', async (req, res) => {
     try {
-      const envId = (req.headers['x-environment-id'] as string) || 'degoudse';
-      const { templateId, shareId } = req.params;
+      const { envId, templateId, shareId } = req.params;
       
       // In a real implementation, this would delete from campaign_shares table
       console.log(`Removing share ${shareId} for template ${templateId} in ${envId} environment`);
