@@ -108,6 +108,14 @@ function Router() {
                   />
                 )}
               </Route>
+              <Route path="/campaigns/template-builder">
+                {() => (
+                  <EnvironmentRouteGuard
+                    component={CampaignTemplateBuilder} 
+                    excludedEnvironments={["acme"]} 
+                  />
+                )}
+              </Route>
               <Route path="/campaigns/:id">
                 {() => (
                   <EnvironmentRouteGuard
