@@ -880,10 +880,15 @@ export const campaigns = pgTable("campaigns", {
   sponsorId: integer("sponsor_id"), // Optional sponsor (e.g., AXA)
   listId: integer("list_id"), // The list of entities this campaign targets
   subject: text("subject"),
+  heading: text("heading"), // Email heading/title
   emailBody: text("email_body"),
   emailLogo: text("email_logo"), // URL to the logo
   fromName: text("from_name"),
   fromEmail: text("from_email"),
+  buttonLink: text("button_link"), // CTA button URL
+  buttonText: text("button_text"), // CTA button text
+  buttonColor: text("button_color"), // CTA button color
+  followUpEmails: json("follow_up_emails"), // Array of follow-up email objects
   scheduledTime: timestamp("scheduled_time"),
   frequency: text("frequency").default("one_time"), // one_time, weekly, monthly
   isShared: boolean("is_shared").default(false),
@@ -975,10 +980,15 @@ export const insertCampaignSchema = createInsertSchema(campaigns).pick({
   sponsorId: true,
   listId: true,
   subject: true,
+  heading: true,
   emailBody: true,
   emailLogo: true,
   fromName: true,
   fromEmail: true,
+  buttonLink: true,
+  buttonText: true,
+  buttonColor: true,
+  followUpEmails: true,
   scheduledTime: true,
   frequency: true,
   isShared: true,

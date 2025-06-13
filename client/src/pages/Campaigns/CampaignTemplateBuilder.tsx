@@ -243,10 +243,10 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
   // Template creation mutation
   const createTemplateMutation = useMutation({
     mutationFn: (templateData: any) => {
-      return apiRequest('POST', '/api/campaign-templates', templateData);
+      return apiRequest('POST', '/api/degoudse/campaign-templates', templateData);
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/campaign-templates'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/degoudse/campaign-templates'] });
       toast({
         title: "Template saved",
         description: "Your campaign template has been saved successfully",
@@ -267,10 +267,10 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
 
   // Template loading query for editing
   const templateQuery = useQuery({
-    queryKey: ['/api/campaign-templates', templateId],
+    queryKey: ['/api/degoudse/campaign-templates', templateId],
     queryFn: () => {
       if (!templateId || isNaN(parseInt(templateId))) return null;
-      return apiRequest('GET', `/api/campaign-templates/${templateId}`);
+      return apiRequest('GET', `/api/degoudse/campaign-templates/${templateId}`);
     },
     enabled: !!templateId && !isNaN(parseInt(templateId))
   });
@@ -306,11 +306,15 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
       emailBody: data.emailBody,
       emailLogo: data.emailLogo || "",
       subject: data.subject,
+      heading: data.heading || "",
       frequency: data.frequency,
       fromName: data.fromName,
       fromEmail: data.fromEmail,
-      followUpEmails: data.enableFollowUp ? data.followUpEmails : [],
-      enableFollowUp: data.enableFollowUp,
+      buttonLink: data.buttonLink || "",
+      buttonText: data.buttonText || "",
+      buttonColor: data.buttonColor || "#3B82F6",
+      followUpEmails: data.followUpEmails || [],
+      enableFollowUp: data.enableFollowUp || false,
     };
     
     createTemplateMutation.mutate(templateData);
@@ -654,6 +658,7 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
                         form.setValue("followUpEmails", updatedFollowUps);
                       }}
                     />
+                    <p className="text-xs text-gray-500">Choose how many days after the previous email this follow-up should be sent.</p>
                   </div>
 
                   <div className="space-y-2">
