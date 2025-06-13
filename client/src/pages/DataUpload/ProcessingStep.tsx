@@ -199,32 +199,54 @@ export default function ProcessingStep({
             }
           });
 
-        // Check for duplicates based on unique identifiers
-        const uniqueFields = ['title', 'name', 'email']; // Common unique fields
-        uniqueFields.forEach(field => {
-          const mapping = attributeMappings.find(m => m.attribute === field);
-          if (mapping && mapping.csvColumn) {
+        // Check for duplicates based on ALL mandatory attributes
+        // A record is considered duplicate if ALL mandatory attributes match an existing record
+        const mandatoryMappings = attributeMappings.filter(mapping => mapping.isRequired && mapping.csvColumn);
+        
+        if (mandatoryMappings.length > 0) {
+          // Build the values for mandatory fields from current row
+          const currentRowMandatoryValues: Record<string, string> = {};
+          let hasAllMandatoryValues = true;
+          
+          mandatoryMappings.forEach(mapping => {
             const value = row[mapping.csvColumn];
             if (value && value.trim() !== '') {
-              const duplicate = existing.find((record: any) => 
-                record[field] && record[field].toLowerCase() === value.toLowerCase()
-              );
+              currentRowMandatoryValues[mapping.attribute] = value.trim().toLowerCase();
+            } else {
+              hasAllMandatoryValues = false;
+            }
+          });
+          
+          // Only check for duplicates if we have all mandatory values
+          if (hasAllMandatoryValues) {
+            const duplicate = existing.find((record: any) => {
+              // Check if ALL mandatory attributes match
+              return mandatoryMappings.every(mapping => {
+                const existingValue = record[mapping.attribute];
+                const currentValue = currentRowMandatoryValues[mapping.attribute];
+                return existingValue && 
+                       existingValue.toString().toLowerCase() === currentValue;
+              });
+            });
+            
+            if (duplicate) {
+              // Create a summary of the matching mandatory fields
+              const matchingFields = mandatoryMappings.map(m => m.attribute).join(', ');
+              const matchingValues = mandatoryMappings.map(m => currentRowMandatoryValues[m.attribute]).join(', ');
               
-              if (duplicate) {
-                issues.push({
-                  row: row._rowNumber,
-                  type: 'duplicate',
-                  field: mapping.attribute,
-                  value: value,
-                  message: `Duplicate ${field}: '${value}' already exists`,
-                  solution: 'skip',
-                  duplicateOf: duplicate,
-                  rowData: row
-                });
-              }
+              issues.push({
+                row: row._rowNumber,
+                type: 'duplicate',
+                field: matchingFields,
+                value: matchingValues,
+                message: `Duplicate record found - all mandatory fields match: ${matchingFields}`,
+                solution: 'skip',
+                duplicateOf: duplicate,
+                rowData: row
+              });
             }
           }
-        });
+        }
 
         // Note: ID conflicts are automatically handled by skipping ID field during insertion
 
