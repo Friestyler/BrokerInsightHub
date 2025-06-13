@@ -5143,6 +5143,26 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.delete('/api/:environmentId/transformation-scripts/:scriptId', async (req: Request, res: Response) => {
+    try {
+      const { environmentId, scriptId } = req.params;
+      
+      const deleted = await UploadSettingsService.deleteTransformationScript(
+        parseInt(scriptId), 
+        environmentId
+      );
+      
+      if (!deleted) {
+        return res.status(404).json({ error: 'Script not found' });
+      }
+      
+      res.json({ success: true, message: 'Transformation script deleted successfully' });
+    } catch (error) {
+      console.error('Failed to delete transformation script:', error);
+      res.status(500).json({ error: 'Failed to delete transformation script' });
+    }
+  });
+
   // Upload Templates Routes
   app.get('/api/:environmentId/upload-templates', async (req: Request, res: Response) => {
     try {

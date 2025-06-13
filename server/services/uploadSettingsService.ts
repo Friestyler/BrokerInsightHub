@@ -185,16 +185,17 @@ export class UploadSettingsService {
   /**
    * Delete a transformation script
    */
-  static async deleteTransformationScript(scriptId: number, environmentId: string): Promise<void> {
+  static async deleteTransformationScript(scriptId: number, environmentId: string): Promise<boolean> {
     const pool = getEnvironmentPool(environmentId);
     
     const query = `
-      UPDATE transformation_scripts 
-      SET is_active = false, updated_at = CURRENT_TIMESTAMP
+      DELETE FROM transformation_scripts 
       WHERE id = $1 AND environment_id = $2
+      RETURNING id
     `;
     
-    await pool.query(query, [scriptId, environmentId]);
+    const result = await pool.query(query, [scriptId, environmentId]);
+    return result.rows.length > 0;
   }
 
   /**
