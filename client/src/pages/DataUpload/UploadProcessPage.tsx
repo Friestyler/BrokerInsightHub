@@ -351,6 +351,14 @@ export default function UploadProcessPage() {
               currentStep={currentStep}
               onNext={goToNextStep}
               onBack={goToPreviousStep}
+              onProcessingComplete={(results) => {
+                setProcessingResults({
+                  recordsCreated: results.recordsCreated,
+                  recordsSkipped: results.recordsSkipped,
+                  recordsProcessed: results.recordsProcessed,
+                  errors: results.errors
+                });
+              }}
             />
           )}
 

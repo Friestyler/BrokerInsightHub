@@ -531,10 +531,7 @@ export default function ProcessingStep({
       }
       setPhase('completed');
 
-      toast({
-        title: 'Processing Complete',
-        description: `${createdCount} records created, ${skippedCount + skipRows.size} skipped`
-      });
+
 
     } catch (error) {
       toast({ title: 'Error', description: 'Processing failed', variant: 'destructive' });
@@ -885,8 +882,9 @@ export default function ProcessingStep({
                   <TableBody>
                     {filteredIssues.map((issue, filteredIndex) => {
                       const originalIndex = validationIssues.indexOf(issue);
+                      const uniqueKey = `${issue.row}-${issue.field}-${issue.type}-${filteredIndex}`;
                       return (
-                        <TableRow key={originalIndex}>
+                        <TableRow key={uniqueKey}>
                           <TableCell>
                             <Checkbox
                               checked={selectedIssues.has(originalIndex)}
