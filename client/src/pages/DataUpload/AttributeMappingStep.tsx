@@ -433,7 +433,7 @@ export default function AttributeMappingStep({
                     <SelectTrigger>
                       <SelectValue placeholder="Select CSV column" />
                     </SelectTrigger>
-                    <SelectContent className="max-h-[200px]">
+                    <SelectContent className="max-h-[270px]">
                       <div className="px-2 py-1">
                         <input
                           type="text"
@@ -486,7 +486,7 @@ export default function AttributeMappingStep({
                       <SelectTrigger>
                         <SelectValue placeholder="Choose an attribute to add" />
                       </SelectTrigger>
-                      <SelectContent className="max-h-[200px]">
+                      <SelectContent className="max-h-[270px]">
                         <div className="px-2 py-1">
                           <input
                             type="text"
