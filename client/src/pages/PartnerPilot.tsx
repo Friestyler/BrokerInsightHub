@@ -33,7 +33,11 @@ import {
   Truck,
   Contact,
   Cloud,
-  Database
+  Database,
+  Handshake,
+  UserCheck,
+  Phone,
+  Factory
 } from 'lucide-react';
 
 type ActivityItem = {
@@ -448,7 +452,7 @@ export default function PartnerPilot() {
                 <CardHeader className="flex-grow">
                   <div className="flex justify-between items-start">
                     <div className="h-10 w-10 rounded-full bg-green-100 flex items-center justify-center">
-                      <Users className="h-5 w-5 text-green-600" />
+                      <Handshake className="h-5 w-5 text-green-600" />
                     </div>
                   </div>
                   <CardTitle className="text-lg mt-2">Partners</CardTitle>
@@ -467,7 +471,7 @@ export default function PartnerPilot() {
                 <CardHeader className="flex-grow">
                   <div className="flex justify-between items-start">
                     <div className="h-10 w-10 rounded-full bg-purple-100 flex items-center justify-center">
-                      <Users className="h-5 w-5 text-purple-600" />
+                      <UserCheck className="h-5 w-5 text-purple-600" />
                     </div>
                   </div>
                   <CardTitle className="text-lg mt-2">Customers</CardTitle>
@@ -505,7 +509,7 @@ export default function PartnerPilot() {
                 <CardHeader className="flex-grow">
                   <div className="flex justify-between items-start">
                     <div className="h-10 w-10 rounded-full bg-red-100 flex items-center justify-center">
-                      <Upload className="h-5 w-5 text-red-600" />
+                      <Factory className="h-5 w-5 text-red-600" />
                     </div>
                   </div>
                   <CardTitle className="text-lg mt-2">Vendors</CardTitle>
@@ -524,7 +528,7 @@ export default function PartnerPilot() {
                 <CardHeader className="flex-grow">
                   <div className="flex justify-between items-start">
                     <div className="h-10 w-10 rounded-full bg-gray-100 flex items-center justify-center">
-                      <Users className="h-5 w-5 text-gray-600" />
+                      <Phone className="h-5 w-5 text-gray-600" />
                     </div>
                   </div>
                   <CardTitle className="text-lg mt-2">Contacts</CardTitle>
@@ -552,7 +556,7 @@ export default function PartnerPilot() {
                 <CardHeader className="flex-grow">
                   <div className="flex justify-between items-start">
                     <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
-                      <Upload className="h-5 w-5 text-blue-600" />
+                      <Cloud className="h-5 w-5 text-blue-600" />
                     </div>
                   </div>
                   <CardTitle className="text-lg mt-2">Salesforce Import</CardTitle>
