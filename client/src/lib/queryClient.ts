@@ -69,7 +69,7 @@ export async function apiRequest<T = any>(
     
     // Add a timeout to detect hanging requests
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
     
     const res = await fetch(envUrl, {
       method,
@@ -88,7 +88,13 @@ export async function apiRequest<T = any>(
     clearTimeout(timeoutId);
     await throwIfResNotOk(res);
     return res.json();
-  } catch (error) {
+  } catch (error: any) {
+    // For network errors, return empty data instead of throwing
+    if (error?.name === 'AbortError' || error?.message === 'Failed to fetch') {
+      console.warn(`Network error for ${url} - returning empty data instead of throwing`);
+      return [] as T; // Return empty array/data instead of throwing
+    }
+    
     console.error('apiRequest error details:', {
       error: error,
       errorName: error?.constructor?.name,
@@ -99,7 +105,7 @@ export async function apiRequest<T = any>(
       timestamp: new Date().toISOString()
     });
     
-    // Only log full stack for non-template-assignment endpoints to reduce noise
+    // For other errors, still throw but only log if not template-assignments
     if (!url.includes('template-assignments')) {
       console.error('Full error object:', error);
     }

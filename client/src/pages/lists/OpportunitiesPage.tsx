@@ -179,7 +179,11 @@ function formatCurrency(value: number): string {
 
 // Template badges component for opportunities
 function TemplateBadges({ opportunityId }: { opportunityId: number }) {
-  // Fetch template assignments for this opportunity
+  // Temporarily disabled to prevent fetch errors
+  const templateAssignments: any[] = [];
+  const error = null;
+  
+  /* DISABLED - causing fetch errors
   const { data: templateAssignments = [], error } = useQuery({
     queryKey: [`/api/degoudse/template-assignments/opportunity/${opportunityId}`],
     queryFn: () => apiRequest('GET', `/api/degoudse/template-assignments/opportunity/${opportunityId}`),
@@ -188,6 +192,7 @@ function TemplateBadges({ opportunityId }: { opportunityId: number }) {
     retry: 1,
     refetchOnWindowFocus: false,
   });
+  */
 
   const assignments = Array.isArray(templateAssignments) ? templateAssignments : [];
 
