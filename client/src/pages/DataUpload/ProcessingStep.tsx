@@ -568,7 +568,15 @@ export default function ProcessingStep({
                   <CheckCircle className="mx-auto h-6 w-6 text-green-600 mb-2" />
                   <h3 className="font-medium text-sm">To Process</h3>
                   <p className="text-2xl font-bold text-green-600">
-                    {csvData.length - validationIssues.filter(i => i.solution === 'skip').length}
+                    {(() => {
+                      // Get unique row numbers that should be skipped
+                      const skipRows = new Set(
+                        validationIssues
+                          .filter(issue => issue.solution === 'skip')
+                          .map(issue => issue.row)
+                      );
+                      return csvData.length - skipRows.size;
+                    })()}
                   </p>
                 </div>
               </div>
