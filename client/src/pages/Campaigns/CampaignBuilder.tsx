@@ -100,7 +100,9 @@ const campaignSettingsSchema = z.object({
   fromName: z.string().min(2, "Sender name is required"),
   fromEmail: z.string().email("Invalid email address"),
   isShared: z.boolean().default(false),
+  shareType: z.string().optional(),
   sharedPartnerIds: z.array(z.string()).optional(),
+  sharedUserIds: z.array(z.string()).optional(),
   shareAccessLevel: z.string().optional(),
   shareMessage: z.string().optional(),
   sharedContactIds: z.array(z.string()).optional(),
@@ -1253,77 +1255,157 @@ export default function CampaignBuilder() {
               
               {isShared && (
                 <div className="ml-6 space-y-4 border-l-2 border-gray-200 pl-4">
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium">Select Partners to Share With</Label>
-                    <div className="space-y-2 max-h-32 overflow-y-auto border rounded-md p-2">
-                      {Array.isArray(partners) && partners.map((partner: any) => (
-                        <div key={partner.id} className="flex items-center space-x-2">
-                          <input
-                            type="checkbox"
-                            id={`partner-${partner.id}`}
-                            checked={form.getValues("sharedPartnerIds")?.includes(partner.id.toString()) || false}
-                            onChange={(e) => {
-                              const currentIds = form.getValues("sharedPartnerIds") || [];
-                              const partnerId = partner.id.toString();
-                              if (e.target.checked) {
-                                form.setValue("sharedPartnerIds", [...currentIds, partnerId]);
-                              } else {
-                                form.setValue("sharedPartnerIds", currentIds.filter(id => id !== partnerId));
-                              }
-                            }}
-                            className="rounded text-indigo-600 focus:ring-indigo-500"
-                          />
-                          <Label htmlFor={`partner-${partner.id}`} className="text-sm">
-                            {partner.name}
-                          </Label>
-                        </div>
-                      ))}
+                  {/* Sharing type selection */}
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium">Share With</Label>
+                    
+                    <div className="space-y-2">
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          id="share-with-team"
+                          name="share-type"
+                          value="team"
+                          checked={(form.getValues as any)("shareType") === "team" || !(form.getValues as any)("shareType")}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              (form.setValue as any)("shareType", "team");
+                              form.setValue("sharedPartnerIds", []);
+                              form.setValue("sharedContactIds", []);
+                            }
+                          }}
+                          className="text-indigo-600 focus:ring-indigo-500"
+                        />
+                        <Label htmlFor="share-with-team" className="text-sm">Internal Team Members</Label>
+                      </div>
+                      
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="radio"
+                          id="share-with-partners"
+                          name="share-type"
+                          value="partners"
+                          checked={(form.getValues as any)("shareType") === "partners"}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              (form.setValue as any)("shareType", "partners");
+                              (form.setValue as any)("sharedUserIds", []);
+                            }
+                          }}
+                          className="text-indigo-600 focus:ring-indigo-500"
+                        />
+                        <Label htmlFor="share-with-partners" className="text-sm">External Partners</Label>
+                      </div>
                     </div>
                   </div>
-                  
-                  {/* Contact selection for selected partners */}
-                  {sharedPartnerIds && sharedPartnerIds.length > 0 && (
+
+                  {/* Team member selection */}
+                  {(!(form.getValues as any)("shareType") || (form.getValues as any)("shareType") === "team") && (
                     <div className="space-y-2">
-                      <Label className="text-sm font-medium">Select Contacts from Partners</Label>
+                      <Label className="text-sm font-medium">Select Team Members</Label>
                       <div className="space-y-2 max-h-32 overflow-y-auto border rounded-md p-2">
-                        {Array.isArray(contacts) && contacts
-                          .filter((contact: any) => 
-                            sharedPartnerIds.some((partnerId: string) => 
-                              contact.partner_id?.toString() === partnerId
-                            )
-                          )
-                          .map((contact: any) => (
-                            <div key={contact.id} className="flex items-center space-x-2">
+                        {/* Placeholder for users - will need to fetch users from API */}
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            id="user-1"
+                            className="rounded text-indigo-600 focus:ring-indigo-500"
+                          />
+                          <Label htmlFor="user-1" className="text-sm">
+                            John Doe (john.doe@degoudse.nl)
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <input
+                            type="checkbox"
+                            id="user-2"
+                            className="rounded text-indigo-600 focus:ring-indigo-500"
+                          />
+                          <Label htmlFor="user-2" className="text-sm">
+                            Jane Smith (jane.smith@degoudse.nl)
+                          </Label>
+                        </div>
+                        <p className="text-sm text-gray-500">Loading team members...</p>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Partner and contact selection */}
+                  {(form.getValues as any)("shareType") === "partners" && (
+                    <>
+                      <div className="space-y-2">
+                        <Label className="text-sm font-medium">Select Partners to Share With</Label>
+                        <div className="space-y-2 max-h-32 overflow-y-auto border rounded-md p-2">
+                          {Array.isArray(partners) && partners.map((partner: any) => (
+                            <div key={partner.id} className="flex items-center space-x-2">
                               <input
                                 type="checkbox"
-                                id={`contact-${contact.id}`}
-                                checked={form.getValues("sharedContactIds")?.includes(contact.id.toString()) || false}
+                                id={`partner-${partner.id}`}
+                                checked={form.getValues("sharedPartnerIds")?.includes(partner.id.toString()) || false}
                                 onChange={(e) => {
-                                  const currentIds = form.getValues("sharedContactIds") || [];
-                                  const contactId = contact.id.toString();
+                                  const currentIds = form.getValues("sharedPartnerIds") || [];
+                                  const partnerId = partner.id.toString();
                                   if (e.target.checked) {
-                                    form.setValue("sharedContactIds", [...currentIds, contactId]);
+                                    form.setValue("sharedPartnerIds", [...currentIds, partnerId]);
                                   } else {
-                                    form.setValue("sharedContactIds", currentIds.filter(id => id !== contactId));
+                                    form.setValue("sharedPartnerIds", currentIds.filter(id => id !== partnerId));
                                   }
                                 }}
                                 className="rounded text-indigo-600 focus:ring-indigo-500"
                               />
-                              <Label htmlFor={`contact-${contact.id}`} className="text-sm">
-                                {contact.first_name} {contact.last_name} ({contact.email})
+                              <Label htmlFor={`partner-${partner.id}`} className="text-sm">
+                                {partner.name}
                               </Label>
                             </div>
-                          ))
-                        }
-                        {(!contacts || !Array.isArray(contacts) || contacts.filter((contact: any) => 
-                          sharedPartnerIds.some((partnerId: string) => 
-                            contact.partner_id?.toString() === partnerId
-                          )
-                        ).length === 0) && (
-                          <p className="text-sm text-gray-500">No contacts found for selected partners</p>
-                        )}
+                          ))}
+                        </div>
                       </div>
-                    </div>
+                      
+                      {/* Contact selection for selected partners */}
+                      {sharedPartnerIds && sharedPartnerIds.length > 0 && (
+                        <div className="space-y-2">
+                          <Label className="text-sm font-medium">Select Contacts from Partners</Label>
+                          <div className="space-y-2 max-h-32 overflow-y-auto border rounded-md p-2">
+                            {Array.isArray(contacts) && contacts
+                              .filter((contact: any) => 
+                                sharedPartnerIds.some((partnerId: string) => 
+                                  contact.partner_id?.toString() === partnerId
+                                )
+                              )
+                              .map((contact: any) => (
+                                <div key={contact.id} className="flex items-center space-x-2">
+                                  <input
+                                    type="checkbox"
+                                    id={`contact-${contact.id}`}
+                                    checked={form.getValues("sharedContactIds")?.includes(contact.id.toString()) || false}
+                                    onChange={(e) => {
+                                      const currentIds = form.getValues("sharedContactIds") || [];
+                                      const contactId = contact.id.toString();
+                                      if (e.target.checked) {
+                                        form.setValue("sharedContactIds", [...currentIds, contactId]);
+                                      } else {
+                                        form.setValue("sharedContactIds", currentIds.filter(id => id !== contactId));
+                                      }
+                                    }}
+                                    className="rounded text-indigo-600 focus:ring-indigo-500"
+                                  />
+                                  <Label htmlFor={`contact-${contact.id}`} className="text-sm">
+                                    {contact.first_name} {contact.last_name} ({contact.email})
+                                  </Label>
+                                </div>
+                              ))
+                            }
+                            {(!contacts || !Array.isArray(contacts) || contacts.filter((contact: any) => 
+                              sharedPartnerIds.some((partnerId: string) => 
+                                contact.partner_id?.toString() === partnerId
+                              )
+                            ).length === 0) && (
+                              <p className="text-sm text-gray-500">No contacts found for selected partners</p>
+                            )}
+                          </div>
+                        </div>
+                      )}
+                    </>
                   )}
                   
                   <div className="space-y-2">

@@ -1483,6 +1483,37 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Users API endpoint for team member selection
+  app.get('/api/:envId/users', async (req, res) => {
+    try {
+      const envId = req.params.envId;
+      const envPool = getEnvironmentPool(envId);
+      
+      const result = await envPool.query(`
+        SELECT id, username, email, first_name, last_name, is_active, role
+        FROM ${envId}.users 
+        WHERE is_active = true 
+        ORDER BY first_name, last_name
+      `);
+      
+      const users = result.rows.map((user: any) => ({
+        id: user.id,
+        username: user.username,
+        email: user.email,
+        firstName: user.first_name,
+        lastName: user.last_name,
+        fullName: `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username,
+        isActive: user.is_active,
+        role: user.role || 'user'
+      }));
+      
+      res.json(users);
+    } catch (error) {
+      console.error('Error fetching users:', error);
+      res.status(500).json({ error: 'Failed to fetch users' });
+    }
+  });
+
   // Emergency fast partners endpoint - serves immediate response
   app.get('/api/degoudse/partners-fast', async (req, res) => {
     try {
