@@ -156,7 +156,35 @@ export default function AttributeMappingStep({
   const getEntityAttributes = () => {
     if (!Array.isArray(entityData) || !uploadType) return [];
     
-    // Try multiple matching strategies
+    // Check if this is a special format (contains hyphen) or special entity
+    const isSpecialFormat = uploadType.includes('-') || ['salesforce', 'brio', 'degoudse'].includes(uploadType);
+    
+    if (isSpecialFormat) {
+      // For special formats, return all attributes from all entities
+      const allAttributes: string[] = [];
+      entityData.forEach((entity: any) => {
+        if (entity.columns && Array.isArray(entity.columns)) {
+          entity.columns.forEach((col: any) => {
+            if (col.name && col.name.trim().length > 0) {
+              // Prefix with entity name to avoid conflicts and provide context
+              allAttributes.push(`${entity.tableName}.${col.name}`);
+            }
+          });
+        }
+      });
+      
+      console.log('Special format entity attributes:', {
+        uploadType,
+        isSpecialFormat,
+        availableSchemas: entityData.map((e: any) => e.tableName),
+        totalAttributes: allAttributes.length,
+        sampleAttributes: allAttributes.slice(0, 10)
+      });
+      
+      return allAttributes;
+    }
+    
+    // For regular entity uploads, try to match specific entity
     let entitySchema = entityData.find((e: any) => 
       e.tableName && e.tableName.toLowerCase().includes(uploadType.toLowerCase())
     );
@@ -184,8 +212,9 @@ export default function AttributeMappingStep({
       );
     }
     
-    console.log('Entity schema lookup:', {
+    console.log('Regular entity schema lookup:', {
       uploadType,
+      isSpecialFormat,
       availableSchemas: entityData.map((e: any) => e.tableName),
       foundSchema: entitySchema?.tableName,
       columns: entitySchema?.columns?.map((col: any) => col.name)
@@ -905,9 +934,17 @@ export default function AttributeMappingStep({
                             }}
                           />
                         </div>
-                        {getAvailableAttributesForAdding().map((attr: string) => (
-                          <SelectItem key={attr} value={attr}>{attr}</SelectItem>
-                        ))}
+                        {getAvailableAttributesForAdding().map((attr: string) => {
+                          // Format display name for better UX
+                          const displayName = attr.includes('.') 
+                            ? `${attr.split('.')[1]} (${attr.split('.')[0]})`
+                            : attr;
+                          return (
+                            <SelectItem key={attr} value={attr}>
+                              {displayName}
+                            </SelectItem>
+                          );
+                        })}
                       </SelectContent>
                     </Select>
                   </div>

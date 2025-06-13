@@ -182,10 +182,7 @@ export default function TransformationStep({
   // Query transformation scripts
   const { data: scripts = [], isLoading } = useQuery<TransformationScript[]>({
     queryKey: [`/api/${environmentId}/transformation-scripts`],
-    enabled: true,
-    onSuccess: (data) => {
-      console.log('Loaded transformation scripts:', data);
-    }
+    enabled: true
   });
 
   // Save script mutation
