@@ -864,16 +864,17 @@ export default function AttributeMappingStep({
                       <SelectTrigger>
                         <SelectValue placeholder="Select CSV column" />
                       </SelectTrigger>
-                      <SelectContent className="max-h-[270px]">
-                        <div className="sticky top-0 z-50 bg-white border-b px-2 py-1 shadow-sm">
+                      <SelectContent className="max-h-[270px] p-0">
+                        <div className="dropdown-search-sticky px-2 py-1 shadow-sm">
                           <input
                             type="text"
                             placeholder="Search columns..."
-                            className="w-full px-2 py-1 text-sm border rounded focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
+                            className="dropdown-search-input w-full px-2 py-1 text-sm border rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                             onClick={(e) => e.stopPropagation()}
                             onChange={(e) => {
                               const searchTerm = e.target.value.toLowerCase();
-                              const items = e.target.closest('[role="listbox"]')?.querySelectorAll('[role="option"]');
+                              const content = e.target.closest('[data-radix-select-content]');
+                              const items = content?.querySelectorAll('[data-radix-select-item]');
                               items?.forEach((item) => {
                                 const text = item.textContent?.toLowerCase() || '';
                                 const shouldShow = text.includes(searchTerm);
@@ -882,15 +883,17 @@ export default function AttributeMappingStep({
                             }}
                           />
                         </div>
-                        <SelectItem value="CODE" className="bg-purple-50 text-purple-700 font-medium">
-                          <div className="flex items-center gap-2">
-                            <span className="text-purple-500">&lt;/&gt;</span>
-                            Code (Custom Logic)
-                          </div>
-                        </SelectItem>
-                        {csvHeadersToUse.map(header => (
-                          <SelectItem key={header} value={header}>{header}</SelectItem>
-                        ))}
+                        <div className="p-1">
+                          <SelectItem value="CODE" className="bg-purple-50 text-purple-700 font-medium">
+                            <div className="flex items-center gap-2">
+                              <span className="text-purple-500">&lt;/&gt;</span>
+                              Code (Custom Logic)
+                            </div>
+                          </SelectItem>
+                          {csvHeadersToUse.map(header => (
+                            <SelectItem key={header} value={header}>{header}</SelectItem>
+                          ))}
+                        </div>
                       </SelectContent>
                     </Select>
                   </div>
@@ -1095,16 +1098,17 @@ export default function AttributeMappingStep({
                       <SelectTrigger>
                         <SelectValue placeholder="Choose an attribute to add" />
                       </SelectTrigger>
-                      <SelectContent className="max-h-[270px]">
-                        <div className="sticky top-0 z-50 bg-white border-b px-2 py-1 shadow-sm">
+                      <SelectContent className="max-h-[270px] p-0">
+                        <div className="dropdown-search-sticky px-2 py-1 shadow-sm">
                           <input
                             type="text"
                             placeholder="Search attributes..."
-                            className="w-full px-2 py-1 text-sm border rounded focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white"
+                            className="dropdown-search-input w-full px-2 py-1 text-sm border rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                             onClick={(e) => e.stopPropagation()}
                             onChange={(e) => {
                               const searchTerm = e.target.value.toLowerCase();
-                              const items = e.target.closest('[role="listbox"]')?.querySelectorAll('[role="option"]');
+                              const content = e.target.closest('[data-radix-select-content]');
+                              const items = content?.querySelectorAll('[data-radix-select-item]');
                               items?.forEach((item) => {
                                 const text = item.textContent?.toLowerCase() || '';
                                 const shouldShow = text.includes(searchTerm);
@@ -1113,17 +1117,19 @@ export default function AttributeMappingStep({
                             }}
                           />
                         </div>
-                        {getAvailableAttributesForAdding().map((attr: string) => {
-                          // Format display name for better UX
-                          const displayName = attr.includes('.') 
-                            ? `${attr.split('.')[1]} (${attr.split('.')[0]})`
-                            : attr;
-                          return (
-                            <SelectItem key={attr} value={attr}>
-                              {displayName}
-                            </SelectItem>
-                          );
-                        })}
+                        <div className="p-1">
+                          {getAvailableAttributesForAdding().map((attr: string) => {
+                            // Format display name for better UX
+                            const displayName = attr.includes('.') 
+                              ? `${attr.split('.')[1]} (${attr.split('.')[0]})`
+                              : attr;
+                            return (
+                              <SelectItem key={attr} value={attr}>
+                                {displayName}
+                              </SelectItem>
+                            );
+                          })}
+                        </div>
                       </SelectContent>
                     </Select>
                   </div>
