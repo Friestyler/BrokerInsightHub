@@ -390,166 +390,116 @@ export default function AttributeMappingStep({
         </CardContent>
       </Card>
 
-      {/* Main Mapping Section - 2 Columns */}
+      {/* Main Mapping Section - Row-based alignment */}
       <Card>
         <CardHeader className="pb-4">
           <CardTitle className="text-base">Column Mapping</CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 gap-8">
-            {/* Left Column - Entity Attributes */}
-            <div className="space-y-4">
-              <div>
-                <h4 className="font-medium text-sm text-muted-foreground mb-3">Entity Attributes</h4>
+          {/* Column Headers */}
+          <div className="grid grid-cols-2 gap-8 mb-3">
+            <h4 className="font-medium text-sm text-muted-foreground">Entity Attributes</h4>
+            <h4 className="font-medium text-sm text-muted-foreground">CSV Column Mapping</h4>
+          </div>
+          
+          {/* Mapping Rows */}
+          <div className="space-y-3">
+            {attributeMappings.map((mapping, index) => (
+              <div key={`mapping-row-${index}`} className="grid grid-cols-2 gap-8 items-center">
+                {/* Left: Entity Attribute */}
+                <div className={`p-3 rounded-lg border ${
+                  mapping.isRequired 
+                    ? 'bg-red-50 border-red-200' 
+                    : 'bg-blue-50 border-blue-200'
+                }`}>
+                  <div className="flex items-center gap-2">
+                    <span className="font-medium text-sm">{mapping.attribute}</span>
+                    {mapping.isRequired && (
+                      <Badge variant="destructive" className="text-xs">Required</Badge>
+                    )}
+                  </div>
+                </div>
                 
-                {/* Mandatory Attributes */}
-                <div className="space-y-3">
-                  {attributeMappings
-                    .filter(mapping => mapping.isRequired)
-                    .map((mapping, index) => (
-                      <div key={`mandatory-${index}`} className="flex items-center gap-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2">
-                            <span className="font-medium text-sm">{mapping.attribute}</span>
-                            <Badge variant="destructive" className="text-xs">Required</Badge>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
+                {/* Right: CSV Column Dropdown */}
+                <div className={`p-3 rounded-lg border ${
+                  mapping.isRequired 
+                    ? 'bg-red-50 border-red-200' 
+                    : 'bg-blue-50 border-blue-200'
+                }`}>
+                  <Select 
+                    value={mapping.csvColumn} 
+                    onValueChange={(value) => updateMapping(index, value)}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select CSV column" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {csvHeadersToUse.map(header => (
+                        <SelectItem key={header} value={header}>{header}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
+              </div>
+            ))}
+          </div>
 
-                {/* Optional Attributes */}
-                <div className="space-y-3 mt-4">
-                  {attributeMappings
-                    .filter(mapping => !mapping.isRequired)
-                    .map((mapping, index) => (
-                      <div key={`optional-${index}`} className="flex items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                        <div className="flex-1">
-                          <span className="font-medium text-sm">{mapping.attribute}</span>
-                        </div>
-                      </div>
-                    ))}
-                </div>
-
-                {/* Add Attribute Section */}
-                <div className="mt-4 space-y-3">
-                  {!showAddAttribute ? (
+          {/* Add Attribute Section */}
+          <div className="mt-6 grid grid-cols-2 gap-8">
+            <div>
+              {!showAddAttribute ? (
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowAddAttribute(true)}
+                  className="w-full"
+                  size="sm"
+                  disabled={getAvailableAttributesForAdding().length === 0}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Attribute
+                </Button>
+              ) : (
+                <div className="border rounded-lg p-3 bg-muted/50 space-y-3">
+                  <div>
+                    <Label className="text-sm font-medium">Select Attribute</Label>
+                    <Select 
+                      value={selectedNewAttribute} 
+                      onValueChange={setSelectedNewAttribute}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose an attribute to add" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {getAvailableAttributesForAdding().map((attr: string) => (
+                          <SelectItem key={attr} value={attr}>{attr}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={addSelectedAttribute}
+                      disabled={!selectedNewAttribute}
+                      size="sm"
+                    >
+                      Add
+                    </Button>
                     <Button 
                       variant="outline" 
-                      onClick={() => setShowAddAttribute(true)}
-                      className="w-full"
+                      onClick={() => {
+                        setShowAddAttribute(false);
+                        setSelectedNewAttribute('');
+                      }}
                       size="sm"
-                      disabled={getAvailableAttributesForAdding().length === 0}
                     >
-                      <Plus className="h-4 w-4 mr-2" />
-                      Add Attribute
+                      Cancel
                     </Button>
-                  ) : (
-                    <div className="border rounded-lg p-3 bg-muted/50 space-y-3">
-                      <div>
-                        <Label className="text-sm font-medium">Select Attribute</Label>
-                        <Select 
-                          value={selectedNewAttribute} 
-                          onValueChange={setSelectedNewAttribute}
-                        >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Choose an attribute to add" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {getAvailableAttributesForAdding().map((attr: string) => (
-                              <SelectItem key={attr} value={attr}>{attr}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
-                      <div className="flex gap-2">
-                        <Button 
-                          onClick={addSelectedAttribute}
-                          disabled={!selectedNewAttribute}
-                          size="sm"
-                        >
-                          Add
-                        </Button>
-                        <Button 
-                          variant="outline" 
-                          onClick={() => {
-                            setShowAddAttribute(false);
-                            setSelectedNewAttribute('');
-                          }}
-                          size="sm"
-                        >
-                          Cancel
-                        </Button>
-                      </div>
-                    </div>
-                  )}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
-
-            {/* Right Column - CSV Column Mapping */}
-            <div className="space-y-4">
-              <div>
-                <h4 className="font-medium text-sm text-muted-foreground mb-3">CSV Column Mapping</h4>
-                
-                {/* Mandatory Mappings */}
-                <div className="space-y-3">
-                  {attributeMappings
-                    .filter(mapping => mapping.isRequired)
-                    .map((mapping, index) => {
-                      const mappingIndex = attributeMappings.findIndex(m => m.attribute === mapping.attribute);
-                      return (
-                        <div key={`mapping-mandatory-${index}`} className="p-3 bg-red-50 border border-red-200 rounded-lg">
-                          <Select 
-                            value={mapping.csvColumn} 
-                            onValueChange={(value) => updateMapping(mappingIndex, value)}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select CSV column" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {csvHeadersToUse.map(header => (
-                                <SelectItem key={header} value={header}>{header}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      );
-                    })}
-                </div>
-
-                {/* Optional Mappings */}
-                <div className="space-y-3 mt-4">
-                  {attributeMappings
-                    .filter(mapping => !mapping.isRequired)
-                    .map((mapping, index) => {
-                      const mappingIndex = attributeMappings.findIndex(m => m.attribute === mapping.attribute);
-                      return (
-                        <div key={`mapping-optional-${index}`} className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                          <Select 
-                            value={mapping.csvColumn} 
-                            onValueChange={(value) => updateMapping(mappingIndex, value)}
-                          >
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select CSV column" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {csvHeadersToUse.map(header => (
-                                <SelectItem key={header} value={header}>{header}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                      );
-                    })}
-                </div>
-
-                {/* Empty space to align with Add Attribute button on the left */}
-                <div className="mt-4">
-                  <div className="h-10" /> {/* This creates the empty space matching the button height */}
-                </div>
-              </div>
-            </div>
+            {/* Empty space on the right to maintain alignment */}
+            <div></div>
           </div>
         </CardContent>
       </Card>
