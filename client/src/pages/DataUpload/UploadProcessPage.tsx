@@ -48,8 +48,13 @@ export default function UploadProcessPage() {
   const visibleSteps = isSpecialFormat ? steps : steps.slice(1); // Skip transformation for regular entities
   const totalSteps = visibleSteps.length;
   
-  const currentStepData = isSpecialFormat ? steps[currentStep - 1] : steps[currentStep]; // Adjust for hidden transformation step
+  const currentStepData = isSpecialFormat ? steps[currentStep - 1] : visibleSteps[currentStep - 1]; // Use visible steps for regular entities
   const progressPercentage = ((currentStep - 1) / (totalSteps - 1)) * 100;
+  
+  // Calculate display step number to match progress indicator
+  // For special formats: use currentStep directly (1,2,3,4,5)
+  // For regular entities: currentStep maps to visible step position (1=Upload, 2=Mapping, 3=Processing, 4=Complete)
+  const displayStepNumber = currentStep;
 
   const handleFileUpload = (file: File) => {
     if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
@@ -179,7 +184,7 @@ export default function UploadProcessPage() {
       {/* Step Content */}
       <Card>
         <CardHeader>
-          <CardTitle>Step {isSpecialFormat ? currentStep : currentStep + 1}: {currentStepData?.name}</CardTitle>
+          <CardTitle>Step {displayStepNumber}: {currentStepData?.name}</CardTitle>
           <CardDescription>{currentStepData?.description}</CardDescription>
         </CardHeader>
         <CardContent>
