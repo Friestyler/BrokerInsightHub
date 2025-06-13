@@ -15,7 +15,8 @@ import {
   FileUp,
   Cloud,
   Database,
-  RefreshCw
+  RefreshCw,
+  FileText
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
@@ -171,6 +172,11 @@ export default function CampaignsPage() {
     } else {
       setLocation("/campaigns/create");
     }
+  };
+
+  // Start from template - navigate to template selection
+  const startFromTemplate = () => {
+    setLocation("/campaigns/templates");
   };
 
   const renderCampaignCard = (campaign: Campaign) => (
@@ -353,7 +359,7 @@ export default function CampaignsPage() {
               ))}
             </div>
 
-            <div className="flex justify-center">
+            <div className="flex justify-center gap-4">
               <Button 
                 size="lg"
                 variant="outline" 
@@ -362,6 +368,14 @@ export default function CampaignsPage() {
               >
                 <Plus className="h-5 w-5 mr-2" />
                 Start from Scratch
+              </Button>
+              <Button 
+                size="lg"
+                className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                onClick={() => startFromTemplate()}
+              >
+                <FileText className="h-5 w-5 mr-2" />
+                Start from Template
               </Button>
             </div>
           </div>
