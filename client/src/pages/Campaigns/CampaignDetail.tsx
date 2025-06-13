@@ -213,9 +213,9 @@ export default function CampaignDetail() {
           <Button 
             variant="ghost" 
             className="pl-0 text-gray-500"
-            onClick={() => setLocation("/campaigns")}
+            onClick={goBack}
           >
-            <ArrowLeft className="h-4 w-4 mr-1" /> Back to Campaigns
+            <ArrowLeft className="h-4 w-4 mr-1" /> Back
           </Button>
         </div>
         <div className="text-center py-12">
@@ -223,9 +223,9 @@ export default function CampaignDetail() {
           <p className="text-gray-500">The campaign you're looking for doesn't exist or has been deleted.</p>
           <Button 
             className="mt-4 bg-indigo-600 hover:bg-indigo-700"
-            onClick={() => setLocation("/campaigns")}
+            onClick={goBack}
           >
-            Back to Campaigns
+            Back
           </Button>
         </div>
       </div>
@@ -239,9 +239,9 @@ export default function CampaignDetail() {
           <Button 
             variant="ghost" 
             className="pl-0 text-gray-500"
-            onClick={() => setLocation("/campaigns")}
+            onClick={goBack}
           >
-            <ArrowLeft className="h-4 w-4 mr-1" /> Back to Campaigns
+            <ArrowLeft className="h-4 w-4 mr-1" /> Back
           </Button>
           <div className="flex items-center mt-2">
             <h1 className="text-2xl font-bold">{campaign.name}</h1>
