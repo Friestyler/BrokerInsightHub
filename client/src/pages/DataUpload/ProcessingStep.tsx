@@ -215,7 +215,7 @@ export default function ProcessingStep({
                   field: mapping.attribute,
                   value: value,
                   message: `Duplicate ${field}: '${value}' already exists`,
-                  solution: 'skip',
+                  solution: 'ignore',
                   duplicateOf: duplicate,
                   rowData: row
                 });
@@ -418,9 +418,19 @@ export default function ProcessingStep({
             issue => issue.row === row._rowNumber && issue.type === 'duplicate'
           );
 
+          // Skip rows that are marked to be skipped
+          if (duplicateIssue && duplicateIssue.solution === 'skip') {
+            console.log('Skipping row due to duplicate with skip solution:', row._rowNumber);
+            skippedCount++;
+            continue;
+          }
+
+          // For 'ignore' solution, proceed with creating new record despite duplicate warning
+
           let response;
           if (duplicateIssue && duplicateIssue.solution === 'replace') {
             // Update existing record
+            console.log('Updating existing record:', duplicateIssue.duplicateOf.id);
             response = await fetch(`/api/degoudse/${uploadType}/${duplicateIssue.duplicateOf.id}`, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
@@ -428,6 +438,7 @@ export default function ProcessingStep({
             });
           } else {
             // Create new record
+            console.log('Creating new record for row:', row._rowNumber);
             response = await fetch(`/api/degoudse/create-record`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
