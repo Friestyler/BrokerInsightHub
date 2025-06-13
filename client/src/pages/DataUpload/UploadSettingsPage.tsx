@@ -62,6 +62,8 @@ export default function UploadSettingsPage() {
   const [selectedEnvironment, setSelectedEnvironment] = useState<string>('');
   const [selectedEntity, setSelectedEntity] = useState<string>('');
   const [activeTab, setActiveTab] = useState('settings');
+  const [editingScript, setEditingScript] = useState<TransformationScript | null>(null);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -96,6 +98,41 @@ export default function UploadSettingsPage() {
   });
 
 
+
+  // Update transformation script mutation
+  const updateScriptMutation = useMutation({
+    mutationFn: async (data: { scriptId: number; name: string; description: string; scriptContent: string }) => {
+      const response = await fetch(`/api/${selectedEnvironment}/transformation-scripts/${data.scriptId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          name: data.name,
+          description: data.description,
+          script_content: data.scriptContent
+        })
+      });
+      if (!response.ok) throw new Error('Failed to update script');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/${selectedEnvironment}/transformation-scripts`] });
+      setIsEditDialogOpen(false);
+      setEditingScript(null);
+      toast({
+        title: "Success",
+        description: "Transformation script updated successfully"
+      });
+    },
+    onError: () => {
+      toast({
+        title: "Error",
+        description: "Failed to update transformation script",
+        variant: "destructive"
+      });
+    }
+  });
 
   // Update upload settings mutation
   const updateSettingsMutation = useMutation({
@@ -294,45 +331,16 @@ export default function UploadSettingsPage() {
                     )}
                   </div>
                   <div className="flex items-center gap-2">
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button variant="ghost" size="sm">
-                          <Edit className="h-4 w-4" />
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-2xl">
-                        <DialogHeader>
-                          <DialogTitle>Edit Transformation Script</DialogTitle>
-                          <DialogDescription>
-                            Modify the transformation script for data processing
-                          </DialogDescription>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                          <div className="space-y-2">
-                            <Label htmlFor="edit-script-name">Script Name</Label>
-                            <Input id="edit-script-name" defaultValue={script.name} />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="edit-script-description">Description</Label>
-                            <Input id="edit-script-description" defaultValue={script.description || ''} />
-                          </div>
-                          <div className="space-y-2">
-                            <Label htmlFor="edit-script-content">Script Content</Label>
-                            <Textarea 
-                              id="edit-script-content" 
-                              defaultValue={script.script_content}
-                              className="font-mono text-sm min-h-[200px]"
-                            />
-                          </div>
-                        </div>
-                        <DialogFooter>
-                          <DialogTrigger asChild>
-                            <Button variant="outline">Cancel</Button>
-                          </DialogTrigger>
-                          <Button>Save Changes</Button>
-                        </DialogFooter>
-                      </DialogContent>
-                    </Dialog>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      onClick={() => {
+                        setEditingScript(script);
+                        setIsEditDialogOpen(true);
+                      }}
+                    >
+                      <Edit className="h-4 w-4" />
+                    </Button>
                     <Button variant="ghost" size="sm">
                       <Trash2 className="h-4 w-4" />
                     </Button>
@@ -359,6 +367,24 @@ export default function UploadSettingsPage() {
   );
 
 
+
+  // Handle save script changes
+  const handleSaveScript = () => {
+    if (!editingScript) return;
+    
+    const nameInput = document.getElementById('edit-script-name') as HTMLInputElement;
+    const descriptionInput = document.getElementById('edit-script-description') as HTMLInputElement;
+    const contentTextarea = document.getElementById('edit-script-content') as HTMLTextAreaElement;
+    
+    if (nameInput && contentTextarea) {
+      updateScriptMutation.mutate({
+        scriptId: editingScript.id,
+        name: nameInput.value,
+        description: descriptionInput?.value || '',
+        scriptContent: contentTextarea.value
+      });
+    }
+  };
 
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
