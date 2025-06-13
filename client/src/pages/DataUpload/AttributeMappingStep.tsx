@@ -543,6 +543,11 @@ export default function AttributeMappingStep({
                       );
                     })}
                 </div>
+
+                {/* Empty space to align with Add Attribute button on the left */}
+                <div className="mt-4">
+                  <div className="h-10" /> {/* This creates the empty space matching the button height */}
+                </div>
               </div>
             </div>
           </div>
