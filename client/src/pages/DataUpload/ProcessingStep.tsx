@@ -529,7 +529,11 @@ export default function ProcessingStep({
       if (onProcessingComplete) {
         onProcessingComplete(result);
       }
-      setPhase('completed');
+      
+      // Automatically advance to next step instead of showing completion phase
+      setTimeout(() => {
+        onNext();
+      }, 1000);
 
 
 
@@ -1061,34 +1065,7 @@ export default function ProcessingStep({
             </div>
           )}
 
-          {/* Completed Phase */}
-          {phase === 'completed' && processingResult && (
-            <div className="space-y-6">
-              <div className="text-center">
-                <CheckCircle className="mx-auto h-16 w-16 text-green-600 mb-4" />
-                <h3 className="text-lg font-medium">Processing Complete!</h3>
-                <p className="text-gray-600">
-                  {processingResult.recordsCreated} {uploadType} records have been successfully processed.
-                </p>
-              </div>
 
-              {processingResult.errors.length > 0 && (
-                <Alert variant="destructive">
-                  <AlertCircle className="h-4 w-4" />
-                  <AlertDescription className="text-red-600">
-                    <span className="text-red-600 font-medium">{processingResult.errors.length} rows had errors during processing.</span>
-                    <Button
-                      variant="link"
-                      className="p-0 h-auto font-normal underline ml-1 text-red-600 hover:text-red-700"
-                      onClick={downloadErrorReport}
-                    >
-                      Download error report
-                    </Button>
-                  </AlertDescription>
-                </Alert>
-              )}
-            </div>
-          )}
         </CardContent>
       </Card>
 
@@ -1098,12 +1075,7 @@ export default function ProcessingStep({
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back
         </Button>
-        {isCompleted && (
-          <Button onClick={onNext}>
-            Continue
-            <ArrowRight className="h-4 w-4 ml-2" />
-          </Button>
-        )}
+        {/* Processing automatically advances to next step when complete */}
       </div>
     </div>
   );
