@@ -45,7 +45,9 @@ import {
   Save, 
   Upload,
   Plus,
-  Users
+  Users,
+  Link,
+  Trash2
 } from "lucide-react";
 import { 
   useQuery,
@@ -72,6 +74,9 @@ const composeEmailSchema = z.object({
   emailBody: z.string().min(1, "Email content is required"),
   emailLogo: z.string().optional(),
   aiPrompt: z.string().optional(),
+  buttonText: z.string().optional(),
+  buttonLink: z.string().optional(),
+  buttonColor: z.string().optional(),
 });
 
 const followUpSchema = z.object({
@@ -142,6 +147,9 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
       heading: "",
       emailLogo: "",
       aiPrompt: "",
+      buttonText: "Click Here",
+      buttonLink: "",
+      buttonColor: "#3CA2E0",
       enableFollowUp: false,
       followUpEmails: [],
       frequency: "one_time",
@@ -505,6 +513,71 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
                 className="min-h-[200px]"
                 {...form.register("emailBody")}
               />
+            </div>
+
+            <div className="space-y-4 border rounded-lg p-4">
+              <div className="flex justify-between items-center">
+                <Label className="text-[#282A3F]">Button</Label>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  className="text-red-500 hover:text-red-700 hover:bg-red-50"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="button-link-type" className="text-[#282A3F]">Link to</Label>
+                <Select defaultValue="external">
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select link type" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="external">External link</SelectItem>
+                    <SelectItem value="internal">Internal page</SelectItem>
+                    <SelectItem value="email">Email address</SelectItem>
+                    <SelectItem value="phone">Phone number</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="button-link" className="text-[#282A3F]">Link</Label>
+                <div className="flex items-center space-x-2">
+                  <Link className="h-4 w-4 text-gray-400" />
+                  <Input
+                    id="button-link"
+                    placeholder="https://example.com"
+                    {...form.register("buttonLink")}
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="button-text" className="text-[#282A3F]">Button text</Label>
+                  <Input
+                    id="button-text"
+                    placeholder="Click Here"
+                    {...form.register("buttonText")}
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="button-color" className="text-[#282A3F]">Button color</Label>
+                  <div className="flex items-center space-x-2">
+                    <div className="w-8 h-8 bg-blue-500 rounded border border-gray-300"></div>
+                    <Input
+                      id="button-color"
+                      placeholder="#3CA2E0"
+                      defaultValue="#3CA2E0"
+                      {...form.register("buttonColor")}
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         );
