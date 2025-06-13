@@ -636,7 +636,13 @@ export default function ProcessingStep({
                       <TableHead className="cursor-pointer hover:bg-gray-50">
                         <div className="flex items-center gap-1">
                           <span>Issue Type</span>
-                          <ChevronDown className="h-3 w-3" />
+                          <button
+                            onClick={() => updateFilter('issueType', '')}
+                            className="text-gray-400 hover:text-blue-600 p-0.5"
+                            title="Filter by issue type"
+                          >
+                            <Filter className="h-3 w-3" />
+                          </button>
                         </div>
                         {filters.hasOwnProperty('issueType') && (
                           <Input
@@ -647,19 +653,17 @@ export default function ProcessingStep({
                             autoFocus
                           />
                         )}
-                        {!filters.hasOwnProperty('issueType') && (
-                          <button
-                            onClick={() => updateFilter('issueType', '')}
-                            className="text-xs text-blue-600 hover:underline mt-1 block w-full text-left"
-                          >
-                            Add filter
-                          </button>
-                        )}
                       </TableHead>
                       <TableHead className="cursor-pointer hover:bg-gray-50">
                         <div className="flex items-center gap-1">
                           <span>Field</span>
-                          <ChevronDown className="h-3 w-3" />
+                          <button
+                            onClick={() => updateFilter('field', '')}
+                            className="text-gray-400 hover:text-blue-600 p-0.5"
+                            title="Filter by field"
+                          >
+                            <Filter className="h-3 w-3" />
+                          </button>
                         </div>
                         {filters.hasOwnProperty('field') && (
                           <Input
@@ -670,19 +674,17 @@ export default function ProcessingStep({
                             autoFocus
                           />
                         )}
-                        {!filters.hasOwnProperty('field') && (
-                          <button
-                            onClick={() => updateFilter('field', '')}
-                            className="text-xs text-blue-600 hover:underline mt-1 block w-full text-left"
-                          >
-                            Add filter
-                          </button>
-                        )}
                       </TableHead>
                       <TableHead className="cursor-pointer hover:bg-gray-50">
                         <div className="flex items-center gap-1">
                           <span>Value</span>
-                          <ChevronDown className="h-3 w-3" />
+                          <button
+                            onClick={() => updateFilter('value', '')}
+                            className="text-gray-400 hover:text-blue-600 p-0.5"
+                            title="Filter by value"
+                          >
+                            <Filter className="h-3 w-3" />
+                          </button>
                         </div>
                         {filters.hasOwnProperty('value') && (
                           <Input
@@ -693,19 +695,17 @@ export default function ProcessingStep({
                             autoFocus
                           />
                         )}
-                        {!filters.hasOwnProperty('value') && (
-                          <button
-                            onClick={() => updateFilter('value', '')}
-                            className="text-xs text-blue-600 hover:underline mt-1 block w-full text-left"
-                          >
-                            Add filter
-                          </button>
-                        )}
                       </TableHead>
                       <TableHead className="cursor-pointer hover:bg-gray-50">
                         <div className="flex items-center gap-1">
                           <span>Message</span>
-                          <ChevronDown className="h-3 w-3" />
+                          <button
+                            onClick={() => updateFilter('message', '')}
+                            className="text-gray-400 hover:text-blue-600 p-0.5"
+                            title="Filter by message"
+                          >
+                            <Filter className="h-3 w-3" />
+                          </button>
                         </div>
                         {filters.hasOwnProperty('message') && (
                           <Input
@@ -716,14 +716,6 @@ export default function ProcessingStep({
                             autoFocus
                           />
                         )}
-                        {!filters.hasOwnProperty('message') && (
-                          <button
-                            onClick={() => updateFilter('message', '')}
-                            className="text-xs text-blue-600 hover:underline mt-1 block w-full text-left"
-                          >
-                            Add filter
-                          </button>
-                        )}
                       </TableHead>
                       {attributeMappings
                         .filter(mapping => mapping.csvColumn)
@@ -732,7 +724,13 @@ export default function ProcessingStep({
                           <TableHead key={mapping.attribute} className="cursor-pointer hover:bg-gray-50">
                             <div className="flex items-center gap-1">
                               <span>{mapping.attribute}</span>
-                              <ChevronDown className="h-3 w-3" />
+                              <button
+                                onClick={() => updateFilter(mapping.csvColumn, '')}
+                                className="text-gray-400 hover:text-blue-600 p-0.5"
+                                title={`Filter by ${mapping.attribute}`}
+                              >
+                                <Filter className="h-3 w-3" />
+                              </button>
                             </div>
                             {filters.hasOwnProperty(mapping.csvColumn) && (
                               <Input
@@ -742,14 +740,6 @@ export default function ProcessingStep({
                                 className="h-6 mt-1 text-xs"
                                 autoFocus
                               />
-                            )}
-                            {!filters.hasOwnProperty(mapping.csvColumn) && (
-                              <button
-                                onClick={() => updateFilter(mapping.csvColumn, '')}
-                                className="text-xs text-blue-600 hover:underline mt-1 block w-full text-left"
-                              >
-                                Add filter
-                              </button>
                             )}
                           </TableHead>
                         ))}
