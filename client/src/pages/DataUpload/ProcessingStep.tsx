@@ -38,7 +38,7 @@ interface ValidationIssue {
   field: string;
   value: string;
   message: string;
-  solution: 'skip' | 'replace' | 'create_duplicate' | 'delete_and_create';
+  solution: 'skip' | 'replace' | 'create_duplicate';
   duplicateOf?: any;
   rowData: any;
 }
@@ -555,7 +555,7 @@ export default function ProcessingStep({
     }
   };
 
-  const updateIssueSolution = (issueIndex: number, solution: 'skip' | 'replace' | 'create_duplicate' | 'delete_and_create') => {
+  const updateIssueSolution = (issueIndex: number, solution: 'skip' | 'replace' | 'create_duplicate') => {
     setValidationIssues(prev => 
       prev.map((issue, index) => 
         index === issueIndex ? { ...issue, solution } : issue
@@ -583,7 +583,7 @@ export default function ProcessingStep({
     }
   };
 
-  const bulkUpdateSolution = (solution: 'skip' | 'replace' | 'create_duplicate' | 'delete_and_create') => {
+  const bulkUpdateSolution = (solution: 'skip' | 'replace' | 'create_duplicate') => {
     setValidationIssues(prev => 
       prev.map((issue, index) => 
         selectedIssues.has(index) ? { ...issue, solution } : issue
@@ -714,29 +714,7 @@ export default function ProcessingStep({
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(transformedData)
             });
-          } else if (duplicateIssue && duplicateIssue.solution === 'delete_and_create') {
-            // Strategy 2: Delete Existing & Create New - Remove old record and create new one
-            console.log('Deleting existing record and creating new one:', duplicateIssue.duplicateOf.id);
-            
-            // First delete the existing record
-            const deleteResponse = await fetch(`/api/degoudse/${uploadType}/${duplicateIssue.duplicateOf.id}`, {
-              method: 'DELETE',
-              headers: { 'Content-Type': 'application/json' }
-            });
-            
-            if (deleteResponse.ok) {
-              // Then create the new record
-              response = await fetch(`/api/degoudse/create-record`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  entityType: uploadType,
-                  data: transformedData
-                })
-              });
-            } else {
-              throw new Error('Failed to delete existing record');
-            }
+
           } else {
             // Strategy 3: Create Duplicate - Allow multiple records with same values
             // This includes 'create_duplicate' solution and no duplicate issue
@@ -1221,7 +1199,7 @@ export default function ProcessingStep({
                           <TableCell>
                             <Select
                               value={issue.solution}
-                              onValueChange={(value: 'skip' | 'replace' | 'create_duplicate' | 'delete_and_create') => 
+                              onValueChange={(value: 'skip' | 'replace' | 'create_duplicate') => 
                                 updateIssueSolution(originalIndex, value)
                               }
                             >
@@ -1251,12 +1229,7 @@ export default function ProcessingStep({
                                         Create Duplicate
                                       </div>
                                     </SelectItem>
-                                    <SelectItem value="delete_and_create">
-                                      <div className="flex items-center gap-2">
-                                        <Trash2 className="h-3 w-3" />
-                                        Delete & Create
-                                      </div>
-                                    </SelectItem>
+
                                   </>
                                 )}
                               </SelectContent>
