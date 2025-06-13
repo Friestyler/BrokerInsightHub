@@ -302,7 +302,7 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
               <Label htmlFor="template-name">Campaign Name</Label>
               <Input
                 id="template-name"
-                placeholder="Enter template name"
+                placeholder="e.g. Health Coverage for Self-Employed - June"
                 {...form.register("name")}
               />
               <p className="text-xs text-gray-500">
