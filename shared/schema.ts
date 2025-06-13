@@ -873,12 +873,16 @@ export const campaigns = pgTable("campaigns", {
   id: serial("id").primaryKey(),
   name: text("name").notNull(),
   description: text("description"),
-  type: text("type").notNull(), // e.g., "cross_sell", "upsell", "custom"
   category: text("category"), // e.g., "Life + Pension", "Car + Legal", etc.
-  status: text("status").notNull().default("draft"), // draft, active, completed, paused
+  status: text("status").notNull().default("draft"), // on, off, draft
   createdById: integer("created_by_id").references(() => users.id),
   sponsorId: integer("sponsor_id"), // Optional sponsor (e.g., AXA)
   listId: integer("list_id"), // The list of entities this campaign targets
+  recipients: integer("recipients").default(0), // Number of recipients
+  delivered: integer("delivered").default(0), // Number of emails delivered
+  opened: integer("opened").default(0), // Number of emails opened
+  clicked: integer("clicked").default(0), // Number of clicks inside the email
+  replied: integer("replied").default(0), // Number of replies received
   subject: text("subject"),
   heading: text("heading"), // Email heading/title
   emailBody: text("email_body"),
@@ -973,12 +977,16 @@ export const campaignSharesRelations = relations(campaignShares, ({ one }) => ({
 export const insertCampaignSchema = createInsertSchema(campaigns).pick({
   name: true,
   description: true,
-  type: true,
   category: true,
   status: true,
   createdById: true,
   sponsorId: true,
   listId: true,
+  recipients: true,
+  delivered: true,
+  opened: true,
+  clicked: true,
+  replied: true,
   subject: true,
   heading: true,
   emailBody: true,

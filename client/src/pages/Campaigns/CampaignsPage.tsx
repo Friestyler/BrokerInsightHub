@@ -514,18 +514,19 @@ export default function CampaignsPage() {
                         <Checkbox />
                       </TableHead>
                       <TableHead className="min-w-[200px]">Campaign</TableHead>
-                      <TableHead>Type</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Created By</TableHead>
-                      <TableHead>Created</TableHead>
                       <TableHead>Recipients</TableHead>
-                      <TableHead>Open Rate</TableHead>
+                      <TableHead>Delivered</TableHead>
+                      <TableHead>Opened</TableHead>
+                      <TableHead>Clicked</TableHead>
+                      <TableHead>Replied</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
                     {/* Since we only have templates and no actual campaigns, show empty state */}
                     <TableRow>
-                      <TableCell colSpan={8} className="text-center py-12">
+                      <TableCell colSpan={9} className="text-center py-12">
                         <div className="flex flex-col items-center space-y-4">
                           <Send className="h-12 w-12 text-gray-400" />
                           <div>

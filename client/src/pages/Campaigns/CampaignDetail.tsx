@@ -292,17 +292,57 @@ export default function CampaignDetail() {
         </div>
       </div>
 
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm text-gray-500 font-normal">Recipients</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="font-medium text-lg">{campaign.recipients || 0}</div>
+            <div className="text-sm text-gray-500">Total recipients</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm text-gray-500 font-normal">Delivered</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="font-medium text-lg">{campaign.delivered || 0}</div>
+            <div className="text-sm text-gray-500">Emails sent</div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm text-gray-500 font-normal">Opened</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="font-medium text-lg">{campaign.opened || 0}</div>
+            <div className="text-sm text-gray-500">
+              {campaign.delivered > 0 ? `${Math.round((campaign.opened / campaign.delivered) * 100)}% rate` : '0% rate'}
+            </div>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm text-gray-500 font-normal">Clicked</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="font-medium text-lg">{campaign.clicked || 0}</div>
+            <div className="text-sm text-gray-500">
+              {campaign.opened > 0 ? `${Math.round((campaign.clicked / campaign.opened) * 100)}% rate` : '0% rate'}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
       <div className="grid grid-cols-3 gap-6 mb-6">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm text-gray-500 font-normal">Type</CardTitle>
+            <CardTitle className="text-sm text-gray-500 font-normal">Category</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="font-medium">
-              {campaign.type === "cross_sell" ? "Cross-Sell" : 
-               campaign.type === "upsell" ? "Upsell" : "Custom"}
-              {campaign.category && ` - ${campaign.category}`}
-            </div>
+            <div className="font-medium">{campaign.category || 'General'}</div>
+            <div className="text-sm text-gray-500">Campaign type</div>
           </CardContent>
         </Card>
         <Card>
