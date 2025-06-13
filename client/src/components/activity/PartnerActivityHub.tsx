@@ -116,7 +116,19 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
           authorId: 1,
           assignedById: 1
         })
-      }).then(res => res.json());
+      }).then(res => {
+        if (!res.ok) {
+          throw new Error(`HTTP error! status: ${res.status}`);
+        }
+        return res.text().then(text => {
+          try {
+            return text ? JSON.parse(text) : { success: true };
+          } catch (e) {
+            console.log('Response is not JSON:', text);
+            return { success: true, message: text };
+          }
+        });
+      });
     },
     onSuccess: (data) => {
       console.log('Task created successfully:', data);
