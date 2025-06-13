@@ -202,13 +202,13 @@ export default function UploadSettingsPage() {
 
       <Separator />
 
-      {settingsLoading ? (
+      {settingsLoading || schemasLoading ? (
         <div className="space-y-3">
           {[...Array(5)].map((_, i) => (
             <div key={i} className="h-12 bg-muted animate-pulse rounded" />
           ))}
         </div>
-      ) : selectedSchema ? (
+      ) : selectedSchema && selectedEntity ? (
         <div className="space-y-4">
           {selectedSchema.attributes.map((attribute) => {
             const setting = uploadSettings.find(s => s.attribute_name === attribute.name);
