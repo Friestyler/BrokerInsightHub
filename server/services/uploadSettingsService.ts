@@ -454,11 +454,15 @@ export class UploadSettingsService {
         }
       }
 
-      if (scriptContent.includes('columns.str.contains(\'Unnamed\')')) {
-        // Remove unnamed columns
+      if (scriptContent.includes('columns.str.contains(\'Unnamed\')') || scriptContent.includes('columns.str.contains(\'^Unnamed\')')) {
+        // Remove unnamed and empty columns
         const headerIndexesToKeep: number[] = [];
         transformedHeaders.forEach((header, index) => {
-          if (!header.toLowerCase().includes('unnamed') && header.trim().length > 0) {
+          const cleanHeader = header.trim();
+          if (!header.toLowerCase().includes('unnamed') && 
+              cleanHeader.length > 0 && 
+              cleanHeader !== '' &&
+              !cleanHeader.startsWith('Unnamed')) {
             headerIndexesToKeep.push(index);
           }
         });
@@ -508,6 +512,23 @@ export class UploadSettingsService {
             return headerIndexesToKeep.map(i => cells[i] || '').join(',');
           });
         }
+      }
+
+      // General empty column removal - always filter out completely empty headers
+      const finalHeaderIndexesToKeep: number[] = [];
+      transformedHeaders.forEach((header, index) => {
+        const cleanHeader = header.trim();
+        if (cleanHeader.length > 0 && cleanHeader !== '') {
+          finalHeaderIndexesToKeep.push(index);
+        }
+      });
+
+      if (finalHeaderIndexesToKeep.length !== transformedHeaders.length) {
+        transformedHeaders = finalHeaderIndexesToKeep.map(i => transformedHeaders[i]);
+        transformedLines = transformedLines.map(line => {
+          const cells = line.split(',');
+          return finalHeaderIndexesToKeep.map(i => cells[i] || '').join(',');
+        });
       }
 
       // Rebuild CSV
