@@ -38,8 +38,8 @@ import { SortableTableHead } from "@/components/ui/sortable-table-head";
 // Fetch opportunities from database
 const useOpportunitiesData = () => {
   return useQuery({
-    queryKey: ['/api/opportunities'],
-    queryFn: () => apiRequest('GET', '/api/opportunities'),
+    queryKey: ['/api/degoudse/opportunities'],
+    queryFn: () => apiRequest('GET', '/api/degoudse/opportunities'),
     staleTime: 2 * 60 * 1000,
   });
 };
