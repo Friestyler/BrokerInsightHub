@@ -5123,6 +5123,58 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get single campaign by ID
+  app.get('/api/:envId/campaigns/:id', async (req, res) => {
+    try {
+      const { envId, id } = req.params;
+      
+      if (envId === 'degoudse') {
+        try {
+          const result = await pool.query(`
+            SELECT * FROM ${envId}.campaigns WHERE id = $1
+          `, [id]);
+          
+          if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Campaign not found' });
+          }
+          
+          const campaign = result.rows[0];
+          
+          // Transform the campaign data to match frontend expectations
+          const transformedCampaign = {
+            ...campaign,
+            createdById: campaign.created_by_id,
+            isShared: campaign.is_shared || false,
+            isTemplate: campaign.is_template || false,
+            tags: campaign.tags || [],
+            sponsorId: campaign.sponsor_id,
+            createdAt: campaign.created_at,
+            emailBody: campaign.email_body,
+            emailLogo: campaign.email_logo,
+            fromName: campaign.from_name,
+            fromEmail: campaign.from_email,
+            scheduledTime: campaign.scheduled_time,
+            followUpEmails: campaign.follow_up_emails || []
+          };
+          
+          console.log(`Returning campaign ${campaign.name} from ${envId} environment`);
+          res.json(transformedCampaign);
+          return;
+        } catch (dbError) {
+          console.log('Campaign not found or table does not exist');
+          res.status(404).json({ error: 'Campaign not found' });
+          return;
+        }
+      }
+      
+      // For other environments, return 404
+      res.status(404).json({ error: 'Campaign not found' });
+    } catch (error) {
+      console.error('Error fetching campaign:', error);
+      res.status(500).json({ error: 'Failed to fetch campaign' });
+    }
+  });
+
   // Create new campaign
   app.post('/api/:envId/campaigns', async (req, res) => {
     try {
@@ -5172,6 +5224,63 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error creating campaign:', error);
       res.status(500).json({ error: 'Failed to create campaign' });
+    }
+  });
+
+  // Update existing campaign
+  app.put('/api/:envId/campaigns/:id', async (req, res) => {
+    try {
+      const { envId, id } = req.params;
+      const campaignData = req.body;
+      
+      // Update campaign in database
+      const result = await pool.query(`
+        UPDATE ${envId}.campaigns SET
+          name = $1, description = $2, type = $3, category = $4, status = $5,
+          sponsor_id = $6, list_id = $7, subject = $8, heading = $9, email_body = $10,
+          email_logo = $11, from_name = $12, from_email = $13, button_link = $14,
+          button_text = $15, button_color = $16, follow_up_emails = $17,
+          scheduled_time = $18, frequency = $19, is_shared = $20, is_template = $21,
+          tags = $22, updated_at = NOW()
+        WHERE id = $23
+        RETURNING *
+      `, [
+        campaignData.name,
+        campaignData.description || null,
+        campaignData.type,
+        campaignData.category || null,
+        campaignData.status || 'draft',
+        campaignData.sponsorId || null,
+        campaignData.listId || null,
+        campaignData.subject || null,
+        campaignData.heading || null,
+        campaignData.emailBody || null,
+        campaignData.emailLogo || null,
+        campaignData.fromName || null,
+        campaignData.fromEmail || null,
+        campaignData.buttonLink || null,
+        campaignData.buttonText || null,
+        campaignData.buttonColor || null,
+        campaignData.followUpEmails ? JSON.stringify(campaignData.followUpEmails) : null,
+        campaignData.scheduledTime || null,
+        campaignData.frequency || 'one_time',
+        campaignData.isShared || false,
+        campaignData.isTemplate || false,
+        campaignData.tags || null,
+        id
+      ]);
+      
+      if (result.rows.length === 0) {
+        return res.status(404).json({ error: 'Campaign not found' });
+      }
+      
+      const updatedCampaign = result.rows[0];
+      
+      console.log(`Updated campaign: ${updatedCampaign.name} in ${envId} environment`);
+      res.json(updatedCampaign);
+    } catch (error) {
+      console.error('Error updating campaign:', error);
+      res.status(500).json({ error: 'Failed to update campaign' });
     }
   });
 

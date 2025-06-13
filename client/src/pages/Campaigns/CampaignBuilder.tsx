@@ -197,14 +197,21 @@ export default function CampaignBuilder() {
   const [showContactDialog, setShowContactDialog] = useState(false);
   const [selectedRecord, setSelectedRecord] = useState<{ name: string; type: string; id: number } | null>(null);
 
-  // Get template from URL if any
+  // Get template or campaign from URL if any
   const searchParams = new URLSearchParams(window.location.search);
   const templateId = searchParams.get("template");
+  const campaignId = searchParams.get("campaign");
 
   // Fetch template data if templateId is provided
   const { data: templateData } = useQuery({
     queryKey: ['/api/campaign-templates', templateId],
     enabled: !!templateId,
+  });
+
+  // Fetch campaign data if campaignId is provided (for editing)
+  const { data: campaignData } = useQuery({
+    queryKey: ['/api/campaigns', campaignId],
+    enabled: !!campaignId,
   });
 
   const { data: entities } = useQuery({
@@ -290,6 +297,39 @@ export default function CampaignBuilder() {
       });
     }
   }, [templateData, form]);
+
+  // Initialize form with campaign data when editing existing campaign
+  useEffect(() => {
+    if (campaignData && campaignData.name) {
+      form.reset({
+        name: campaignData.name,
+        description: campaignData.description || "",
+        type: campaignData.type || "cross_sell",
+        listIds: campaignData.listIds || [],
+        emailBody: campaignData.emailBody || campaignData.email_body || "",
+        emailLogo: campaignData.emailLogo || campaignData.email_logo || "",
+        recipientIds: campaignData.recipientIds || [],
+        enableFollowUp: Array.isArray(campaignData.followUpEmails) && campaignData.followUpEmails.length > 0,
+        followUpEmails: campaignData.followUpEmails || campaignData.follow_up_emails || [{ delayDays: 3, subject: "", emailBody: "" }],
+        subject: campaignData.subject || "",
+        scheduledTime: campaignData.scheduledTime || campaignData.scheduled_time || "",
+        frequency: campaignData.frequency || "one_time",
+        fromName: campaignData.fromName || campaignData.from_name || "",
+        fromEmail: campaignData.fromEmail || campaignData.from_email || "",
+        isShared: campaignData.isShared || campaignData.is_shared || false,
+        shareType: "team",
+        sharedPartnerIds: [],
+        sharedUserIds: [],
+        shareAccessLevel: "view",
+        shareMessage: "",
+        sharedContactIds: [],
+        saveAsTemplate: false,
+        templateName: "",
+        templateDescription: "",
+        status: campaignData.status || "draft",
+      });
+    }
+  }, [campaignData, form]);
 
   const { data: contacts } = useQuery({
     queryKey: ['/api/contacts'],
@@ -500,49 +540,36 @@ export default function CampaignBuilder() {
     return groups;
   }, [contacts, partners, customers, opportunities, allSavedLists, searchQuery, form.watch("listIds")]);
 
-  // Campaign creation mutation
-  const createCampaignMutation = useMutation({
+  // Campaign creation/update mutation
+  const saveCampaignMutation = useMutation({
     mutationFn: (data: any) => {
-      return apiRequest('POST', '/api/degoudse/campaigns', data);
+      if (campaignId) {
+        // Update existing campaign
+        return apiRequest('PUT', `/api/degoudse/campaigns/${campaignId}`, data);
+      } else {
+        // Create new campaign
+        return apiRequest('POST', '/api/degoudse/campaigns', data);
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/campaigns'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/campaigns', campaignId] });
+      const actionText = campaignId ? "updated" : "created";
       toast({
-        title: "Campaign created",
-        description: "Your campaign has been created successfully",
+        title: `Campaign ${actionText}`,
+        description: `Your campaign has been ${actionText} successfully`,
       });
       setLocation("/campaigns");
     },
     onError: (error) => {
-      console.error("Error creating campaign:", error);
+      console.error("Error saving campaign:", error);
+      const actionText = campaignId ? "updating" : "creating";
       toast({
         title: "Error",
-        description: "Failed to create campaign. Please try again.",
+        description: `Failed to ${actionText} campaign. Please try again.`,
         variant: "destructive"
       });
       setIsSubmitting(false);
-    }
-  });
-
-  // Save draft mutation
-  const saveDraftMutation = useMutation({
-    mutationFn: (data: any) => {
-      return apiRequest('POST', '/api/degoudse/campaigns', { ...data, status: 'draft' });
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/campaigns'] });
-      toast({
-        title: "Draft saved",
-        description: "Your campaign draft has been saved successfully",
-      });
-    },
-    onError: (error) => {
-      console.error("Error saving draft:", error);
-      toast({
-        title: "Error",
-        description: "Failed to save draft. Please try again.",
-        variant: "destructive"
-      });
     }
   });
 
@@ -739,7 +766,7 @@ export default function CampaignBuilder() {
       }
     }
     
-    createCampaignMutation.mutate(cleanCampaignData);
+    saveCampaignMutation.mutate(cleanCampaignData);
   };
 
   // Save draft function
@@ -765,7 +792,7 @@ export default function CampaignBuilder() {
       tags: [],
     };
 
-    saveDraftMutation.mutate(draftData);
+    saveCampaignMutation.mutate(draftData);
   };
 
   // Render current step content
