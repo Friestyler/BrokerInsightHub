@@ -303,15 +303,6 @@ export default function AttributeMappingStep({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex justify-between items-center">
-        <div>
-          <h3 className="text-lg font-medium">Step {currentStep}: {stepName}</h3>
-          <p className="text-sm text-muted-foreground">
-            Map CSV columns to {uploadType} attributes
-          </p>
-        </div>
-      </div>
 
       {/* Template Management Section */}
       <Card>

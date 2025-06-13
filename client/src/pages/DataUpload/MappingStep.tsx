@@ -66,14 +66,6 @@ export default function MappingStep({
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
-        <div>
-          <h3 className="text-lg font-medium">Step {currentStep}: {stepName}</h3>
-          <p className="text-sm text-muted-foreground">
-            Review the column headers identified in your CSV file
-          </p>
-        </div>
-      </div>
 
       {/* File Info */}
       <Card>

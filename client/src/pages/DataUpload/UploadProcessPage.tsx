@@ -19,8 +19,8 @@ interface UploadProcessProps {
 const steps = [
   { id: 1, name: 'Transformation', description: 'Configure data transformation' },
   { id: 2, name: 'Upload', description: 'Upload your CSV file' },
-  { id: 3, name: 'Mapping', description: 'Map columns to attributes' },
-  { id: 4, name: 'Processing', description: 'Process and validate data' },
+  { id: 3, name: 'Mapping', description: 'Map CSV columns to opportunities attributes' },
+  { id: 4, name: 'Processing', description: 'Review and validate your data before processing' },
   { id: 5, name: 'Complete', description: 'Review results' }
 ];
 
@@ -179,7 +179,7 @@ export default function UploadProcessPage() {
       {/* Step Content */}
       <Card>
         <CardHeader>
-          <CardTitle>{currentStepData?.name}</CardTitle>
+          <CardTitle>Step {isSpecialFormat ? currentStep : currentStep + 1}: {currentStepData?.name}</CardTitle>
           <CardDescription>{currentStepData?.description}</CardDescription>
         </CardHeader>
         <CardContent>

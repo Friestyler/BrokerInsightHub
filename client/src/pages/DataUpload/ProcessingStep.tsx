@@ -491,16 +491,6 @@ export default function ProcessingStep({
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="text-center">
-        <h2 className="text-2xl font-bold mb-2">Step {currentStep}: {stepName}</h2>
-        <p className="text-gray-600">
-          {phase === 'initial' && 'Review and validate your data before processing'}
-          {phase === 'validation' && 'Validating data and checking for issues...'}
-          {phase === 'processing' && 'Processing records and creating entries...'}
-          {phase === 'completed' && 'Data processing completed successfully'}
-        </p>
-      </div>
 
       <Card>
         <CardContent className="pt-6">
