@@ -397,9 +397,17 @@ export default function ProcessingStep({
                 
                 if (existingValue !== null && existingValue !== undefined) {
                   if (mapping.attribute === 'probability') {
-                    // Handle probability: convert to decimal format for comparison
+                    // Handle probability: both should be in percentage format for comparison
                     const existingProb = parseFloat(existingValue.toString());
-                    const currentProb = parseFloat(currentValue);
+                    let currentProb = parseFloat(currentValue);
+                    
+                    // Convert decimal to percentage if needed for comparison
+                    if (currentProb <= 1) {
+                      currentProb = Math.round(currentProb * 100);
+                    } else {
+                      currentProb = Math.round(currentProb);
+                    }
+                    
                     normalizedExisting = existingProb.toString();
                     normalizedCurrent = currentProb.toString();
                   } else if (mapping.attribute === 'estimatedValue') {
@@ -657,9 +665,17 @@ export default function ProcessingStep({
             } else if (mapping.attribute === 'value' || mapping.attribute.includes('amount') || mapping.attribute.includes('Value')) {
               transformedData[mapping.attribute] = parseFloat(value) || 0;
             } else if (mapping.attribute === 'probability') {
-              // Handle probability as decimal (0.0 to 1.0)
+              // Handle probability: convert from decimal (0.95) to percentage (95) for storage
               const numValue = parseFloat(value);
-              transformedData[mapping.attribute] = isNaN(numValue) ? 0 : numValue;
+              if (isNaN(numValue)) {
+                transformedData[mapping.attribute] = 0;
+              } else if (numValue <= 1) {
+                // If value is decimal format (0.95), convert to percentage (95)
+                transformedData[mapping.attribute] = Math.round(numValue * 100);
+              } else {
+                // If value is already percentage format (95), keep as is
+                transformedData[mapping.attribute] = Math.round(numValue);
+              }
             } else if (mapping.attribute.includes('Id')) {
               // Handle ID fields as integers
               const numValue = parseFloat(value);
