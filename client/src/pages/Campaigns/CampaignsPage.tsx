@@ -285,9 +285,14 @@ export default function CampaignsPage() {
 
         <TabsContent value="templates" className="space-y-4">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">Campaign Templates</h2>
+            <div>
+              <h2 className="text-xl font-semibold">Campaign Templates</h2>
+              <p className="text-sm text-gray-600 mt-1">
+                Creating templates helps your brokers send campaigns faster and more effectively. With ready-made content that's compliant and on-brand, brokers can focus on reaching their clients instead of writing from scratch. It saves time, ensures consistency, and helps you scale product promotions across your network—all while strengthening your relationship with brokers.
+              </p>
+            </div>
             <Button 
-              className="bg-indigo-600 hover:bg-indigo-700"
+              className="bg-indigo-600 hover:bg-indigo-700 flex-shrink-0 ml-4"
               onClick={() => setLocation("/campaigns/template/create")}
             >
               <Plus className="h-4 w-4 mr-2" />
