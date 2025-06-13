@@ -329,20 +329,20 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="upsell" id="upsell" />
-                  <Label htmlFor="upsell">Upsell</Label>
+                  <Label htmlFor="upsell" className="text-[#282A3F]">Upsell</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="retention" id="retention" />
-                  <Label htmlFor="retention">Retention</Label>
+                  <Label htmlFor="retention" className="text-[#282A3F]">Retention</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="acquisition" id="acquisition" />
-                  <Label htmlFor="acquisition">New Customer Acquisition</Label>
+                  <Label htmlFor="acquisition" className="text-[#282A3F]">New Customer Acquisition</Label>
                 </div>
               </RadioGroup>
             </div>
             <div className="space-y-2">
-              <Label htmlFor="category">Category (Optional)</Label>
+              <Label htmlFor="category" className="text-[#282A3F]">Category (Optional)</Label>
               <Input
                 id="category"
                 placeholder="e.g., Property Insurance, Life Insurance"
@@ -356,7 +356,7 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
         return (
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="subject">Email Subject</Label>
+              <Label htmlFor="subject" className="text-[#282A3F]">Email Subject</Label>
               <Input
                 id="subject"
                 placeholder="Enter email subject"
@@ -365,7 +365,7 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="email-body">Email Content</Label>
+              <Label htmlFor="email-body" className="text-[#282A3F]">Email Content</Label>
               <Textarea
                 id="email-body"
                 placeholder="Enter your email content here..."
@@ -375,7 +375,7 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="ai-prompt">AI Prompt (Optional)</Label>
+              <Label htmlFor="ai-prompt" className="text-[#282A3F]">AI Prompt (Optional)</Label>
               <div className="flex gap-2">
                 <Input
                   id="ai-prompt"
@@ -406,7 +406,7 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
                 checked={form.watch("enableFollowUp")}
                 onCheckedChange={(checked) => form.setValue("enableFollowUp", !!checked)}
               />
-              <Label htmlFor="enable-followup">Enable follow-up emails</Label>
+              <Label htmlFor="enable-followup" className="text-[#282A3F]">Enable follow-up emails</Label>
             </div>
 
             {form.watch("enableFollowUp") && (
@@ -437,33 +437,33 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
         return (
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label>Frequency</Label>
+              <Label className="text-[#282A3F]">Frequency</Label>
               <RadioGroup 
                 value={form.watch("frequency")} 
                 onValueChange={(value) => form.setValue("frequency", value)}
               >
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="one_time" id="one_time" />
-                  <Label htmlFor="one_time">One-time campaign</Label>
+                  <Label htmlFor="one_time" className="text-[#282A3F]">One-time campaign</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="weekly" id="weekly" />
-                  <Label htmlFor="weekly">Weekly</Label>
+                  <Label htmlFor="weekly" className="text-[#282A3F]">Weekly</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="monthly" id="monthly" />
-                  <Label htmlFor="monthly">Monthly</Label>
+                  <Label htmlFor="monthly" className="text-[#282A3F]">Monthly</Label>
                 </div>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="quarterly" id="quarterly" />
-                  <Label htmlFor="quarterly">Quarterly</Label>
+                  <Label htmlFor="quarterly" className="text-[#282A3F]">Quarterly</Label>
                 </div>
               </RadioGroup>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label htmlFor="from-name">From Name</Label>
+                <Label htmlFor="from-name" className="text-[#282A3F]">From Name</Label>
                 <Input
                   id="from-name"
                   placeholder="Your Name"
@@ -472,7 +472,7 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
               </div>
               
               <div className="space-y-2">
-                <Label htmlFor="from-email">From Email</Label>
+                <Label htmlFor="from-email" className="text-[#282A3F]">From Email</Label>
                 <Input
                   id="from-email"
                   type="email"
