@@ -578,14 +578,6 @@ export default function CampaignsPage() {
                     <Button 
                       variant="ghost" 
                       size="sm" 
-                      className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 px-4 py-2 rounded-lg font-medium flex-1 transition-all duration-200"
-                      onClick={() => startNewCampaign(template.id.toString())}
-                    >
-                      Use Template
-                    </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
                       className="text-gray-600 hover:text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg font-medium flex-1 transition-all duration-200"
                       onClick={() => setLocation(`/campaigns/template-builder?template=${template.id}`)}
                     >
@@ -755,12 +747,6 @@ export default function CampaignsPage() {
                     </div>
                   </CardHeader>
                   <CardFooter className="pt-0">
-                    <Button 
-                      variant="outline" 
-                      className="w-full border-0 bg-[#5567E5]/10 text-[#5567E5] hover:bg-[#5567E5]/20 hover:text-[#4456D4] font-medium py-2.5 rounded-lg transition-all duration-200"
-                    >
-                      Use Template
-                    </Button>
                   </CardFooter>
                 </Card>
               ))}
