@@ -484,7 +484,7 @@ export default function CampaignsPage() {
                       <TableHead className="w-12">
                         <Checkbox />
                       </TableHead>
-                      <TableHead className="min-w-[200px]">Campaign Name</TableHead>
+                      <TableHead className="min-w-[200px]">Campaign</TableHead>
                       <TableHead>Type</TableHead>
                       <TableHead>Status</TableHead>
                       <TableHead>Created By</TableHead>
@@ -935,7 +935,6 @@ export default function CampaignsPage() {
           </Card>
         </TabsContent>
       </Tabs>
-
       {/* Share Template Dialog */}
       <Dialog open={shareDialogOpen} onOpenChange={setShareDialogOpen}>
         <DialogContent className="max-w-md">
