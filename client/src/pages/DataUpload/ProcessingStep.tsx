@@ -174,30 +174,49 @@ export default function ProcessingStep({
   const applyCustomCodeTransformations = (row: any) => {
     const transformedRow = { ...row };
     
+    console.log('🔍 Processing row for custom code transformations:', row);
+    
     attributeMappings.forEach(mapping => {
       if (mapping.csvColumn === 'CODE') {
         // Get custom code from mapping or try to access it via the any type
         const customCode = (mapping as any).customCode || mapping.customCode;
+        console.log(`🔧 Custom code mapping found for ${mapping.attribute}:`, {
+          attribute: mapping.attribute,
+          customCode: customCode,
+          csvColumn: mapping.csvColumn
+        });
+        
         if (customCode) {
           try {
             // Apply the custom code transformation
             const transformedValue = executeCustomCode(customCode, row);
             transformedRow[mapping.attribute] = transformedValue;
+            console.log(`✅ Transformed ${mapping.attribute}:`, {
+              originalRow: row,
+              customCode: customCode,
+              transformedValue: transformedValue
+            });
           } catch (error) {
-            console.warn(`Failed to apply custom code for ${mapping.attribute}:`, error);
+            console.warn(`❌ Failed to apply custom code for ${mapping.attribute}:`, error);
             transformedRow[mapping.attribute] = '';
           }
+        } else {
+          console.warn(`⚠️ No custom code found for CODE mapping ${mapping.attribute}`);
         }
       }
     });
     
+    console.log('🎯 Final transformed row:', transformedRow);
     return transformedRow;
   };
 
   // Helper function to execute custom Python-like code
   const executeCustomCode = (code: string, rowData: any) => {
+    console.log('🔄 Executing custom code:', { code, rowData });
+    
     try {
       let evaluatedCode = code.trim();
+      console.log('📝 Original code:', evaluatedCode);
       
       // Replace column references with actual CSV values
       Object.entries(rowData).forEach(([key, value]) => {
@@ -208,31 +227,71 @@ export default function ProcessingStep({
           evaluatedCode = evaluatedCode.replace(regex, String(value || ''));
         }
       });
+      
+      console.log('🔀 Code after column substitution:', evaluatedCode);
 
       // Handle simple operations
       if (evaluatedCode.includes('+') && !evaluatedCode.includes('if')) {
         // Simple addition/concatenation
         const parts = evaluatedCode.split('+').map(p => p.trim().replace(/"/g, ''));
-        return parts.join(' ');
+        const result = parts.join(' ');
+        console.log('➕ Concatenation result:', result);
+        return result;
       } else if (evaluatedCode.includes('if') && evaluatedCode.includes('else')) {
-        // Simple conditional - for now, return a placeholder
-        const match = evaluatedCode.match(/"([^"]*)" if .* else "([^"]*)"/);
-        if (match) {
-          // Simple evaluation - could be enhanced for more complex conditions
-          return match[1]; // Return first option for now
+        // Enhanced conditional handling
+        const conditionalMatch = evaluatedCode.match(/"([^"]*)" if (.+?) else "([^"]*)"/);
+        if (conditionalMatch) {
+          const [, trueValue, condition, falseValue] = conditionalMatch;
+          console.log('🔀 Conditional detected:', { trueValue, condition, falseValue });
+          
+          // Try to evaluate simple conditions
+          try {
+            // Simple equality checks
+            if (condition.includes('==')) {
+              const [left, right] = condition.split('==').map(s => s.trim().replace(/"/g, ''));
+              const result = left === right ? trueValue : falseValue;
+              console.log('🔍 Equality check result:', result);
+              return result;
+            }
+            
+            // Simple not-null/empty checks
+            if (condition.includes('is not') || condition.includes('!=')) {
+              const result = trueValue; // Default to true case for now
+              console.log('🔍 Not-null check result:', result);
+              return result;
+            }
+            
+            // Default to true case for complex conditions
+            console.log('🔍 Complex condition, defaulting to true case:', trueValue);
+            return trueValue;
+          } catch (conditionError) {
+            console.warn('⚠️ Condition evaluation failed, using true case:', conditionError);
+            return trueValue;
+          }
         }
       }
       
       // For simple string literals, return without quotes
       const stringMatch = evaluatedCode.match(/^"([^"]*)"$/);
       if (stringMatch) {
-        return stringMatch[1];
+        const result = stringMatch[1];
+        console.log('📄 String literal result:', result);
+        return result;
+      }
+      
+      // Handle direct column references
+      if (Object.keys(rowData).some(key => evaluatedCode.includes(key))) {
+        const result = evaluatedCode.replace(/"/g, '');
+        console.log('📊 Column reference result:', result);
+        return result;
       }
       
       // Return the evaluated code as fallback
-      return evaluatedCode.replace(/"/g, '');
+      const result = evaluatedCode.replace(/"/g, '');
+      console.log('🔄 Fallback result:', result);
+      return result;
     } catch (error) {
-      console.warn('Error executing custom code:', error);
+      console.warn('❌ Error executing custom code:', error);
       return '';
     }
   };
@@ -498,31 +557,50 @@ export default function ProcessingStep({
 
       for (const row of rowsToProcess) {
         try {
+          // Apply custom code transformations first
+          const transformedRow = applyCustomCodeTransformations(row);
+          
           // Transform row data according to attribute mappings
           const transformedData: any = {};
           
           attributeMappings.forEach(mapping => {
-            if (mapping.csvColumn && row[mapping.csvColumn] !== undefined) {
-              const value = row[mapping.csvColumn];
-              
-              // Skip ID field to avoid primary key conflicts - let database auto-generate
-              if (mapping.attribute === 'id') {
-                return;
-              }
-              
-              // Transform data types
-              if (mapping.attribute.includes('date') && value) {
-                transformedData[mapping.attribute] = new Date(value).toISOString();
-              } else if (mapping.attribute === 'value' || mapping.attribute.includes('amount') || mapping.attribute.includes('Value')) {
-                transformedData[mapping.attribute] = parseFloat(value) || 0;
-              } else if (mapping.attribute === 'probability' || mapping.attribute.includes('Id')) {
-                // Handle numeric fields that should be integers
-                const numValue = parseFloat(value);
-                transformedData[mapping.attribute] = isNaN(numValue) ? 0 : Math.round(numValue);
-              } else {
-                transformedData[mapping.attribute] = value;
-              }
+            let value;
+            
+            // Skip ID field to avoid primary key conflicts - let database auto-generate
+            if (mapping.attribute === 'id') {
+              return;
             }
+            
+            // Get value from appropriate source
+            if (mapping.csvColumn === 'CODE') {
+              // Use transformed value for CODE mappings
+              value = transformedRow[mapping.attribute];
+            } else if (mapping.csvColumn && row[mapping.csvColumn] !== undefined) {
+              // Use direct CSV value for regular mappings
+              value = row[mapping.csvColumn];
+            } else {
+              return; // Skip if no value available
+            }
+            
+            // Transform data types
+            if (mapping.attribute.includes('date') && value) {
+              transformedData[mapping.attribute] = new Date(value).toISOString();
+            } else if (mapping.attribute === 'value' || mapping.attribute.includes('amount') || mapping.attribute.includes('Value')) {
+              transformedData[mapping.attribute] = parseFloat(value) || 0;
+            } else if (mapping.attribute === 'probability' || mapping.attribute.includes('Id')) {
+              // Handle numeric fields that should be integers
+              const numValue = parseFloat(value);
+              transformedData[mapping.attribute] = isNaN(numValue) ? 0 : Math.round(numValue);
+            } else {
+              transformedData[mapping.attribute] = value;
+            }
+          });
+          
+          console.log('📦 Final transformed data for database:', {
+            row: row._rowNumber,
+            transformedData: transformedData,
+            hasTitle: 'title' in transformedData,
+            titleValue: transformedData.title
           });
 
           // Handle duplicates based on solution
