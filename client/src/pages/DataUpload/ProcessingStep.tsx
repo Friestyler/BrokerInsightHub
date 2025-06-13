@@ -86,6 +86,7 @@ export default function ProcessingStep({
   const [filters, setFilters] = useState<Record<string, string>>({});
   const [filteredIssues, setFilteredIssues] = useState<ValidationIssue[]>([]);
   const [activeFilters, setActiveFilters] = useState<Array<{key: string, value: string, label: string}>>([]);
+  const [targetEntityType, setTargetEntityType] = useState<string>(uploadType);
   const { toast } = useToast();
 
   // Parse CSV data when component mounts
@@ -315,23 +316,33 @@ export default function ProcessingStep({
         throw new Error('No attribute mappings configured');
       }
       
-      // For special formats like salesforce, skip duplicate detection since they can contain mixed entities
-      let existing = [];
-      
-      if (uploadType !== 'salesforce') {
-        console.log('📡 Fetching existing records for duplicate detection...');
-        const response = await fetch(`/api/degoudse/${uploadType}`);
-        
-        if (!response.ok) {
-          console.error('Failed to fetch existing records:', response.status, response.statusText);
-          throw new Error(`Failed to fetch existing records: ${response.status} ${response.statusText}`);
+      // Determine target entity type from attribute mappings
+      let entityType = uploadType;
+      if (uploadType === 'salesforce') {
+        // For special formats, determine entity type from the mapped attributes
+        const hasOpportunityFields = attributeMappings.some(m => 
+          ['title', 'probability', 'stage', 'estimatedValue', 'clientId'].includes(m.attribute)
+        );
+        if (hasOpportunityFields) {
+          entityType = 'opportunities';
         }
-        
-        existing = await response.json();
-        console.log('✅ Fetched existing records:', existing.length);
-      } else {
-        console.log('⏭️ Skipping duplicate detection for special format:', uploadType);
       }
+      
+      // Store the determined entity type for processing
+      setTargetEntityType(entityType);
+      
+      console.log('📡 Fetching existing records for duplicate detection...');
+      console.log('Target entity type determined:', entityType);
+      
+      const response = await fetch(`/api/degoudse/${entityType}`);
+      
+      if (!response.ok) {
+        console.error('Failed to fetch existing records:', response.status, response.statusText);
+        throw new Error(`Failed to fetch existing records: ${response.status} ${response.statusText}`);
+      }
+      
+      const existing = await response.json();
+      console.log('✅ Fetched existing records:', existing.length);
       setExistingRecords(existing);
 
       const issues: ValidationIssue[] = [];
@@ -743,7 +754,7 @@ export default function ProcessingStep({
           if (duplicateIssue && duplicateIssue.solution === 'replace') {
             // Strategy 1: Replace Existing - Update the existing record with new data
             console.log('Updating existing record:', duplicateIssue.duplicateOf.id);
-            response = await fetch(`/api/degoudse/${uploadType}/${duplicateIssue.duplicateOf.id}`, {
+            response = await fetch(`/api/degoudse/${targetEntityType}/${duplicateIssue.duplicateOf.id}`, {
               method: 'PUT',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify(transformedData)
@@ -753,11 +764,12 @@ export default function ProcessingStep({
             // Strategy 3: Create Duplicate - Allow multiple records with same values
             // This includes 'create_duplicate' solution and no duplicate issue
             console.log('Creating new record for row:', row._rowNumber);
+            console.log('Using target entity type:', targetEntityType);
             response = await fetch(`/api/degoudse/create-record`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
               body: JSON.stringify({
-                entityType: uploadType,
+                entityType: targetEntityType,
                 data: transformedData
               })
             });
