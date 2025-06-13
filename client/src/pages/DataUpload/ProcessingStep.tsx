@@ -893,7 +893,7 @@ export default function ProcessingStep({
               </div>
 
               {/* Summary Stats - Moved to top */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
                 <div className="text-center p-4 bg-orange-50 rounded-lg border border-orange-200">
                   <AlertTriangle className="mx-auto h-6 w-6 text-orange-600 mb-2" />
                   <h3 className="font-medium text-sm">Total Issues</h3>
@@ -911,6 +911,13 @@ export default function ProcessingStep({
                   <h3 className="font-medium text-sm">To Replace</h3>
                   <p className="text-2xl font-bold text-blue-600">
                     {validationIssues.filter(i => i.solution === 'replace').length}
+                  </p>
+                </div>
+                <div className="text-center p-4 bg-yellow-50 rounded-lg border border-yellow-200">
+                  <CheckCircle className="mx-auto h-6 w-6 text-yellow-600 mb-2" />
+                  <h3 className="font-medium text-sm">Create Duplicate</h3>
+                  <p className="text-2xl font-bold text-yellow-600">
+                    {validationIssues.filter(i => i.solution === 'create_duplicate').length}
                   </p>
                 </div>
                 <div className="text-center p-4 bg-green-50 rounded-lg border border-green-200">
