@@ -8,6 +8,7 @@ import { EnvironmentProvider } from "./contexts/EnvironmentContext";
 import Layout from "@/components/Layout";
 import PartnerPilot from "@/pages/PartnerPilot";
 import CampaignsPage from "@/pages/Campaigns/CampaignsPage";
+import CampaignsSharedWithBroker from "@/pages/Campaigns/CampaignsSharedWithBroker";
 import CampaignBuilder from "@/pages/Campaigns/CampaignBuilder";
 import CampaignTemplateBuilder from "@/pages/Campaigns/CampaignTemplateBuilder";
 import CampaignDetail from "@/pages/Campaigns/CampaignDetail";
@@ -89,6 +90,14 @@ function Router() {
                   <EnvironmentRouteGuard
                     component={CampaignsPage} 
                     excludedEnvironments={["acme"]} 
+                  />
+                )}
+              </Route>
+              <Route path="/campaigns-shared">
+                {() => (
+                  <EnvironmentRouteGuard
+                    component={CampaignsSharedWithBroker} 
+                    requiredEnvironments={["myqollabi"]} 
                   />
                 )}
               </Route>

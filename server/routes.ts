@@ -5124,6 +5124,98 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Get campaigns shared with broker users (for Regional Insurance Partners environment)
+  app.get('/api/campaigns/shared-with-broker', async (req, res) => {
+    try {
+      const envId = req.headers['x-environment-id'] || 'myqollabi';
+      
+      if (envId === 'myqollabi') {
+        // Return mock shared campaigns data for broker view
+        const sharedCampaigns = [
+          {
+            id: 1,
+            name: "Cross-Sell Campaign Template",
+            description: "Template for cross-selling property insurance to existing auto customers",
+            type: "cross_sell",
+            category: "cross_sell",
+            status: "template",
+            sharedAt: "2024-06-10T09:00:00Z",
+            sharedBy: "De Goudse Marketing Team",
+            accessLevel: "view",
+            isTemplate: true,
+            sponsorName: "De Goudse Insurance",
+            tags: ["property", "cross-sell", "automotive"]
+          },
+          {
+            id: 2,
+            name: "Customer Retention Campaign",
+            description: "Active campaign to retain customers approaching renewal",
+            type: "retention",
+            category: "retention",
+            status: "active",
+            sharedAt: "2024-06-08T14:30:00Z",
+            sharedBy: "De Goudse Retention Team",
+            accessLevel: "view",
+            isTemplate: false,
+            sponsorName: "De Goudse Insurance",
+            tags: ["retention", "renewal", "loyalty"]
+          },
+          {
+            id: 3,
+            name: "New Product Launch Template",
+            description: "Template for introducing new insurance products to broker networks",
+            type: "product_launch",
+            category: "cross_sell",
+            status: "template",
+            sharedAt: "2024-06-05T11:15:00Z",
+            sharedBy: "De Goudse Product Team",
+            accessLevel: "view",
+            isTemplate: true,
+            sponsorName: "De Goudse Insurance",
+            tags: ["product-launch", "brokers", "new-products"]
+          },
+          {
+            id: 4,
+            name: "Q3 Growth Initiative",
+            description: "Active campaign focused on expanding market share in Q3",
+            type: "growth",
+            category: "cross_sell",
+            status: "active",
+            sharedAt: "2024-06-12T16:45:00Z",
+            sharedBy: "De Goudse Growth Team",
+            accessLevel: "view",
+            isTemplate: false,
+            sponsorName: "De Goudse Insurance",
+            tags: ["growth", "Q3", "market-expansion"]
+          },
+          {
+            id: 5,
+            name: "Digital Transformation Campaign",
+            description: "Template for promoting digital insurance solutions",
+            type: "digital",
+            category: "retention",
+            status: "template",
+            sharedAt: "2024-06-07T13:20:00Z",
+            sharedBy: "De Goudse Digital Team",
+            accessLevel: "view",
+            isTemplate: true,
+            sponsorName: "De Goudse Insurance",
+            tags: ["digital", "transformation", "technology"]
+          }
+        ];
+        
+        console.log(`Returning ${sharedCampaigns.length} shared campaigns for broker view`);
+        res.json(sharedCampaigns);
+      } else {
+        // For other environments, return empty array
+        res.json([]);
+      }
+    } catch (error) {
+      console.error('Error fetching shared campaigns:', error);
+      res.status(500).json({ error: 'Failed to fetch shared campaigns' });
+    }
+  });
+
   app.get('/api/campaigns/:id', async (req, res) => {
     try {
       const id = parseInt(req.params.id);
