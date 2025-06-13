@@ -235,6 +235,7 @@ export default function AttributeMappingStep({
           ...prev, 
           [index]: { isValid: false, error: 'Code cannot be empty' }
         }));
+        setCodePreview(prev => ({ ...prev, [index]: [] }));
         return false;
       }
 
@@ -245,6 +246,39 @@ export default function AttributeMappingStep({
           ...prev, 
           [index]: { isValid: false, error: 'Please add some code logic' }
         }));
+        setCodePreview(prev => ({ ...prev, [index]: [] }));
+        return false;
+      }
+
+      // Check for Python syntax patterns
+      const invalidPatterns = [
+        /^\s*if\s+.*:\s*$/, // if statement without body
+        /^\s*for\s+.*:\s*$/, // for loop without body
+        /^\s*while\s+.*:\s*$/, // while loop without body
+        /^\s*def\s+.*:\s*$/, // function definition without body
+      ];
+
+      const hasInvalidPattern = lines.some(line => 
+        invalidPatterns.some(pattern => pattern.test(line))
+      );
+
+      if (hasInvalidPattern) {
+        setCodeValidation(prev => ({ 
+          ...prev, 
+          [index]: { isValid: false, error: 'Incomplete Python syntax - missing function body or logic' }
+        }));
+        setCodePreview(prev => ({ ...prev, [index]: [] }));
+        return false;
+      }
+
+      // Check for basic expression validity
+      const mainLine = lines[lines.length - 1]; // Last non-comment line should be the expression
+      if (!mainLine || mainLine.trim().length < 3) {
+        setCodeValidation(prev => ({ 
+          ...prev, 
+          [index]: { isValid: false, error: 'Please add a valid Python expression' }
+        }));
+        setCodePreview(prev => ({ ...prev, [index]: [] }));
         return false;
       }
 
@@ -262,23 +296,91 @@ export default function AttributeMappingStep({
         ...prev, 
         [index]: { isValid: false, error: 'Invalid Python syntax' }
       }));
+      setCodePreview(prev => ({ ...prev, [index]: [] }));
       return false;
     }
   };
 
   // Generate code preview
   const generateCodePreview = (code: string, index: number) => {
-    // Mock preview data - in real implementation, this would run the code against sample data
-    const sampleResults = [
-      'Preview row 1: Custom logic result',
-      'Preview row 2: Custom logic result',
-      'Preview row 3: Custom logic result'
-    ];
-    
-    setCodePreview(prev => ({ 
-      ...prev, 
-      [index]: sampleResults
-    }));
+    try {
+      // Create sample data based on extracted headers
+      const sampleData = [
+        { row: 1, data: {} as Record<string, any> },
+        { row: 2, data: {} as Record<string, any> },
+        { row: 3, data: {} as Record<string, any> }
+      ];
+
+      // Generate sample values for each header
+      extractedHeaders.forEach(header => {
+        const columnVar = `column_${header.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+        sampleData.forEach((sample, idx) => {
+          // Generate different sample values based on header name patterns
+          if (header.toLowerCase().includes('name')) {
+            (sample.data as any)[columnVar] = [`John Doe`, `Jane Smith`, `Bob Johnson`][idx];
+          } else if (header.toLowerCase().includes('email')) {
+            (sample.data as any)[columnVar] = [`john@example.com`, `jane@example.com`, `bob@example.com`][idx];
+          } else if (header.toLowerCase().includes('price') || header.toLowerCase().includes('amount') || header.toLowerCase().includes('value')) {
+            (sample.data as any)[columnVar] = [100, 250, 75][idx];
+          } else if (header.toLowerCase().includes('date')) {
+            (sample.data as any)[columnVar] = [`2024-01-15`, `2024-02-20`, `2024-03-10`][idx];
+          } else if (header.toLowerCase().includes('status')) {
+            (sample.data as any)[columnVar] = [`Active`, `Inactive`, `Pending`][idx];
+          } else {
+            (sample.data as any)[columnVar] = [`Sample ${idx + 1}`, `Test ${idx + 1}`, `Demo ${idx + 1}`][idx];
+          }
+        });
+      });
+
+      // Try to evaluate the code with sample data
+      const previews = sampleData.map(sample => {
+        try {
+          // Simple evaluation for basic expressions
+          let evaluatedCode = code.trim();
+          
+          // Replace column references with sample values
+          Object.entries(sample.data).forEach(([key, value]) => {
+            const regex = new RegExp(`\\b${key}\\b`, 'g');
+            if (typeof value === 'string') {
+              evaluatedCode = evaluatedCode.replace(regex, `"${value}"`);
+            } else {
+              evaluatedCode = evaluatedCode.replace(regex, String(value));
+            }
+          });
+
+          // Handle simple operations
+          if (evaluatedCode.includes('+') && !evaluatedCode.includes('if')) {
+            // Simple addition/concatenation
+            const parts = evaluatedCode.split('+').map(p => p.trim().replace(/"/g, ''));
+            const result = parts.join(' ');
+            return `Row ${sample.row}: ${result}`;
+          } else if (evaluatedCode.includes('if') && evaluatedCode.includes('else')) {
+            // Simple conditional
+            const match = evaluatedCode.match(/"([^"]*)" if .* else "([^"]*)"/);
+            if (match) {
+              // For demo, randomly choose true/false
+              const condition = sample.row % 2 === 1;
+              return `Row ${sample.row}: ${condition ? match[1] : match[2]}`;
+            }
+          }
+          
+          // Fallback to showing the code structure
+          return `Row ${sample.row}: ${evaluatedCode.slice(0, 30)}${evaluatedCode.length > 30 ? '...' : ''}`;
+        } catch (error) {
+          return `Row ${sample.row}: Error evaluating code`;
+        }
+      });
+
+      setCodePreview(prev => ({ 
+        ...prev, 
+        [index]: previews
+      }));
+    } catch (error) {
+      setCodePreview(prev => ({ 
+        ...prev, 
+        [index]: ['Error generating preview']
+      }));
+    }
   };
 
   // Handle code editor changes
@@ -290,8 +392,15 @@ export default function AttributeMappingStep({
       i === index && mapping.isCodeBased ? { ...mapping, customCode: code } : mapping
     ));
 
-    // Debounced validation
-    setTimeout(() => validatePythonCode(code, index), 500);
+    // Clear previous validation timeout
+    if (typeof window !== 'undefined') {
+      (window as any)[`validationTimeout_${index}`] && clearTimeout((window as any)[`validationTimeout_${index}`]);
+      
+      // Set new validation timeout
+      (window as any)[`validationTimeout_${index}`] = setTimeout(() => {
+        validatePythonCode(code, index);
+      }, 800);
+    }
   };
 
   // Get available attributes for adding (excluding already used ones)
@@ -334,6 +443,17 @@ export default function AttributeMappingStep({
           : template.column_mappings;
         
         setAttributeMappings(mappings);
+        
+        // Load code editor states and content for code-based mappings
+        mappings.forEach((mapping: AttributeMapping, index: number) => {
+          if (mapping.isCodeBased && mapping.customCode) {
+            setShowCodeEditor(prev => ({ ...prev, [index]: true }));
+            setCodeEditorContent(prev => ({ ...prev, [index]: mapping.customCode || '' }));
+            // Validate the loaded code
+            setTimeout(() => validatePythonCode(mapping.customCode || '', index), 100);
+          }
+        });
+        
         toast({ title: `Template "${template.name}" loaded` });
       } catch (error) {
         toast({ title: 'Failed to load template', variant: 'destructive' });
@@ -382,7 +502,15 @@ export default function AttributeMappingStep({
 
   const canProceed = attributeMappings
     .filter(m => m.isRequired)
-    .every(mapping => mapping.csvColumn);
+    .every(mapping => {
+      if (mapping.csvColumn === 'CODE') {
+        // For code-based mappings, check if code is valid
+        return mapping.customCode && 
+               mapping.customCode.trim().length > 0 && 
+               codeValidation[attributeMappings.indexOf(mapping)]?.isValid;
+      }
+      return mapping.csvColumn;
+    });
 
   const csvHeadersToUse = extractedHeaders.length > 0 ? extractedHeaders : csvHeaders;
 
