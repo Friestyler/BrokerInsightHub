@@ -16,10 +16,15 @@ interface UploadProcessProps {
   formatType?: string;
 }
 
-const steps = [
+const capitalizeUploadType = (type: string) => {
+  if (!type) return '';
+  return type.charAt(0).toUpperCase() + type.slice(1);
+};
+
+const getSteps = (uploadType: string) => [
   { id: 1, name: 'Transformation', description: 'Configure data transformation' },
   { id: 2, name: 'Upload', description: 'Upload your CSV file' },
-  { id: 3, name: 'Mapping', description: 'Map CSV columns to opportunities attributes' },
+  { id: 3, name: 'Mapping', description: `Map CSV columns to ${uploadType ? capitalizeUploadType(uploadType) : 'entity'} attributes` },
   { id: 4, name: 'Processing', description: 'Review and validate your data before processing' },
   { id: 5, name: 'Complete', description: 'Review results' }
 ];
@@ -29,6 +34,9 @@ export default function UploadProcessPage() {
   const [match, params] = useRoute('/data-upload-2/process/:type');
   
   const uploadType = params?.type;
+  
+  // Get dynamic steps based on upload type
+  const steps = getSteps(uploadType || '');
   
   // Determine if this is a special format (contains hyphen) or entity
   const isSpecialFormat = uploadType?.includes('-') || ['salesforce', 'brio', 'degoudse'].includes(uploadType || '');
