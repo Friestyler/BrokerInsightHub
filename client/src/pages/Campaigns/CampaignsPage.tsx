@@ -89,10 +89,10 @@ export default function CampaignsPage() {
     enabled: true,
   });
 
-  // Fetch users for internal sharing
+  // Fetch users for both internal and external sharing (partner users appear in external)
   const { data: users } = useQuery<any[]>({
     queryKey: ['/api/users'],
-    enabled: shareDialogOpen && shareMode === 'internal',
+    enabled: shareDialogOpen,
   });
 
   // Fetch contacts for external sharing
