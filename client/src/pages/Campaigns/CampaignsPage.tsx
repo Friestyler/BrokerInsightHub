@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 import { useQuery } from "@tanstack/react-query";
 import { 
@@ -452,12 +453,72 @@ export default function CampaignsPage() {
     <div className="container mx-auto px-4 py-6">
       <h1 className="text-2xl font-bold mb-6">Campaigns</h1>
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
+          <TabsTrigger value="campaigns">Campaigns</TabsTrigger>
           <TabsTrigger value="my">My Campaigns</TabsTrigger>
           <TabsTrigger value="shared">Shared Campaigns</TabsTrigger>
           <TabsTrigger value="templates">Templates</TabsTrigger>
           <TabsTrigger value="new">New Campaign</TabsTrigger>
         </TabsList>
+
+        <TabsContent value="campaigns" className="space-y-4">
+          <div className="flex justify-between items-center mb-4">
+            <h2 className="text-xl font-semibold">All Campaigns</h2>
+            <Button 
+              className="bg-indigo-600 hover:bg-indigo-700" 
+              onClick={() => startNewCampaign()}
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              New Campaign
+            </Button>
+          </div>
+
+          {isLoadingCampaigns ? (
+            <div className="text-center py-12">Loading campaigns...</div>
+          ) : (
+            <div className="bg-white rounded-lg shadow-sm overflow-hidden">
+              <div className="overflow-x-auto">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-12">
+                        <Checkbox />
+                      </TableHead>
+                      <TableHead className="min-w-[200px]">Campaign Name</TableHead>
+                      <TableHead>Type</TableHead>
+                      <TableHead>Status</TableHead>
+                      <TableHead>Created By</TableHead>
+                      <TableHead>Created</TableHead>
+                      <TableHead>Recipients</TableHead>
+                      <TableHead>Open Rate</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {/* Since we only have templates and no actual campaigns, show empty state */}
+                    <TableRow>
+                      <TableCell colSpan={8} className="text-center py-12">
+                        <div className="flex flex-col items-center space-y-4">
+                          <Send className="h-12 w-12 text-gray-400" />
+                          <div>
+                            <h3 className="text-sm font-medium text-gray-900">No campaigns yet</h3>
+                            <p className="text-sm text-gray-500">Create your first campaign to get started.</p>
+                          </div>
+                          <Button 
+                            className="bg-indigo-600 hover:bg-indigo-700" 
+                            onClick={() => startNewCampaign()}
+                          >
+                            <Plus className="h-4 w-4 mr-2" />
+                            New Campaign
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                </Table>
+              </div>
+            </div>
+          )}
+        </TabsContent>
 
         <TabsContent value="my" className="space-y-4">
           <div className="flex justify-between items-center mb-4">
