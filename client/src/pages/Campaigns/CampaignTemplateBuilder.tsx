@@ -176,7 +176,7 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
     {
       id: "compose",
       title: "Build the email content for this campaign",
-      description: "This template will be used by your internal team or shared with brokers. Fill in each section below to define the email content. They'll be able to personalize it before sending.",
+      description: "Fill in each section below to define the email content. They'll be able to personalize it before sending.",
       icon: <FormInput className="h-5 w-5" />,
     },
     {
@@ -445,7 +445,8 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
 
       case "compose":
         return (
-          <div className="space-y-4">
+          <TooltipProvider>
+            <div className="space-y-4">
             <div className="flex justify-between items-start mb-2">
               <div className="flex space-x-2 items-center">
                 <Checkbox
@@ -489,16 +490,14 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
             )}
 
             <div className="space-y-2">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Label htmlFor="subject" className="text-[#282A3F] cursor-help">Email Subject</Label>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>This is the email subject clients will see in their inbox.</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Label htmlFor="subject" className="text-[#282A3F] cursor-help">Email Subject</Label>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>This is the email subject clients will see in their inbox.</p>
+                </TooltipContent>
+              </Tooltip>
               <Input
                 id="subject"
                 placeholder='e.g. "Health Coverage for the Self-Employed – Now Available"'
@@ -507,16 +506,14 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
             </div>
 
             <div className="space-y-2">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Label htmlFor="heading" className="text-[#282A3F] cursor-help">Heading</Label>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>A strong, clear headline helps draw attention.</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Label htmlFor="heading" className="text-[#282A3F] cursor-help">Heading</Label>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>A strong, clear headline helps draw attention.</p>
+                </TooltipContent>
+              </Tooltip>
               <Input
                 id="heading"
                 placeholder='e.g. "Protect Your Business with Flexible Health Insurance"'
@@ -525,16 +522,14 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
             </div>
 
             <div className="space-y-2">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Label htmlFor="email-body" className="text-[#282A3F] cursor-help">Email Content</Label>
-                  </TooltipTrigger>
-                  <TooltipContent>
-                    <p>Keep it clear and benefit-driven. Use {"{{customer_name}}"} or other placeholders if needed.</p>
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <Label htmlFor="email-body" className="text-[#282A3F] cursor-help">Email Content</Label>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>Keep it clear and benefit-driven. Use {"{{customer_name}}"} or other placeholders if needed.</p>
+                </TooltipContent>
+              </Tooltip>
               <Textarea
                 id="email-body"
                 placeholder="Write your email content here..."
@@ -594,7 +589,8 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
                 </div>
               </div>
             </div>
-          </div>
+            </div>
+          </TooltipProvider>
         );
 
       case "follow-up":
