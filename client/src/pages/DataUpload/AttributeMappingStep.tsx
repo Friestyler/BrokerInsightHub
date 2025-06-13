@@ -57,19 +57,32 @@ export default function AttributeMappingStep({
   const [codeEditorContent, setCodeEditorContent] = useState<{ [key: number]: string }>({});
   const [codeValidation, setCodeValidation] = useState<{ [key: number]: { isValid: boolean; error?: string } }>({});
   const [codePreview, setCodePreview] = useState<{ [key: number]: string[] }>({});
+  const [csvData, setCsvData] = useState<any[]>([]);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Extract CSV headers from uploaded file
+  // Extract CSV headers and data from uploaded file
   useEffect(() => {
     if (uploadedFile && uploadedFile.type === 'text/csv') {
       const reader = new FileReader();
       reader.onload = (e) => {
         const content = e.target?.result as string;
-        const lines = content.split('\n');
+        const lines = content.split('\n').filter(line => line.trim());
         if (lines.length > 0) {
           const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
           setExtractedHeaders(headers);
+          
+          // Parse CSV data (first 5 rows for preview)
+          const dataRows = lines.slice(1, 6).map(line => {
+            const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
+            const row: Record<string, any> = {};
+            headers.forEach((header, index) => {
+              const columnVar = `column_${header.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+              row[columnVar] = values[index] || '';
+            });
+            return row;
+          });
+          setCsvData(dataRows);
         }
       };
       reader.readAsText(uploadedFile);
@@ -304,42 +317,25 @@ export default function AttributeMappingStep({
   // Generate code preview
   const generateCodePreview = (code: string, index: number) => {
     try {
-      // Create sample data based on extracted headers
-      const sampleData = [
-        { row: 1, data: {} as Record<string, any> },
-        { row: 2, data: {} as Record<string, any> },
-        { row: 3, data: {} as Record<string, any> }
-      ];
+      // Use actual CSV data if available, otherwise create minimal sample data
+      let dataToUse = csvData;
+      if (!dataToUse || dataToUse.length === 0) {
+        // Create minimal sample data only if no CSV data is available
+        dataToUse = [
+          { column_placeholder: 'No CSV data available' },
+          { column_placeholder: 'Please upload CSV file' },
+          { column_placeholder: 'To see actual preview' }
+        ];
+      }
 
-      // Generate sample values for each header
-      extractedHeaders.forEach(header => {
-        const columnVar = `column_${header.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
-        sampleData.forEach((sample, idx) => {
-          // Generate different sample values based on header name patterns
-          if (header.toLowerCase().includes('name')) {
-            (sample.data as any)[columnVar] = [`John Doe`, `Jane Smith`, `Bob Johnson`][idx];
-          } else if (header.toLowerCase().includes('email')) {
-            (sample.data as any)[columnVar] = [`john@example.com`, `jane@example.com`, `bob@example.com`][idx];
-          } else if (header.toLowerCase().includes('price') || header.toLowerCase().includes('amount') || header.toLowerCase().includes('value')) {
-            (sample.data as any)[columnVar] = [100, 250, 75][idx];
-          } else if (header.toLowerCase().includes('date')) {
-            (sample.data as any)[columnVar] = [`2024-01-15`, `2024-02-20`, `2024-03-10`][idx];
-          } else if (header.toLowerCase().includes('status')) {
-            (sample.data as any)[columnVar] = [`Active`, `Inactive`, `Pending`][idx];
-          } else {
-            (sample.data as any)[columnVar] = [`Sample ${idx + 1}`, `Test ${idx + 1}`, `Demo ${idx + 1}`][idx];
-          }
-        });
-      });
-
-      // Try to evaluate the code with sample data
-      const previews = sampleData.map(sample => {
+      // Try to evaluate the code with actual CSV data
+      const previews = dataToUse.slice(0, 3).map((rowData, idx) => {
         try {
           // Simple evaluation for basic expressions
           let evaluatedCode = code.trim();
           
-          // Replace column references with sample values
-          Object.entries(sample.data).forEach(([key, value]) => {
+          // Replace column references with actual CSV values
+          Object.entries(rowData).forEach(([key, value]) => {
             const regex = new RegExp(`\\b${key}\\b`, 'g');
             if (typeof value === 'string') {
               evaluatedCode = evaluatedCode.replace(regex, `"${value}"`);
@@ -353,21 +349,30 @@ export default function AttributeMappingStep({
             // Simple addition/concatenation
             const parts = evaluatedCode.split('+').map(p => p.trim().replace(/"/g, ''));
             const result = parts.join(' ');
-            return `Row ${sample.row}: ${result}`;
+            return `Row ${idx + 1}: ${result}`;
           } else if (evaluatedCode.includes('if') && evaluatedCode.includes('else')) {
             // Simple conditional
             const match = evaluatedCode.match(/"([^"]*)" if .* else "([^"]*)"/);
             if (match) {
-              // For demo, randomly choose true/false
-              const condition = sample.row % 2 === 1;
-              return `Row ${sample.row}: ${condition ? match[1] : match[2]}`;
+              // For demo, randomly choose true/false based on row
+              const condition = idx % 2 === 0;
+              return `Row ${idx + 1}: ${condition ? match[1] : match[2]}`;
             }
           }
           
-          // Fallback to showing the code structure
-          return `Row ${sample.row}: ${evaluatedCode.slice(0, 30)}${evaluatedCode.length > 30 ? '...' : ''}`;
+          // For simple column references, show the actual value
+          if (evaluatedCode.includes('column_') && !evaluatedCode.includes('+') && !evaluatedCode.includes('if')) {
+            // Find the column being referenced
+            const columnMatch = evaluatedCode.match(/column_\w+/);
+            if (columnMatch && rowData[columnMatch[0]]) {
+              return `Row ${idx + 1}: ${rowData[columnMatch[0]]}`;
+            }
+          }
+          
+          // Fallback to showing the evaluated code
+          return `Row ${idx + 1}: ${evaluatedCode.slice(0, 50)}${evaluatedCode.length > 50 ? '...' : ''}`;
         } catch (error) {
-          return `Row ${sample.row}: Error evaluating code`;
+          return `Row ${idx + 1}: Error evaluating code`;
         }
       });
 
