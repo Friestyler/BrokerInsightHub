@@ -438,16 +438,13 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
         return (
           <div className="space-y-4">
             <div className="flex justify-between items-start mb-2">
-              <div className="space-y-2">
-                <Label className="text-[#282A3F]">Email Content</Label>
-                <div className="flex space-x-2 items-center">
-                  <Checkbox
-                    id="use-ai"
-                    checked={showAiPrompt}
-                    onCheckedChange={(checked) => setShowAiPrompt(!!checked)}
-                  />
-                  <Label htmlFor="use-ai" className="text-sm font-normal text-[#282A3F]">Use AI to help write content</Label>
-                </div>
+              <div className="flex space-x-2 items-center">
+                <Checkbox
+                  id="use-ai"
+                  checked={showAiPrompt}
+                  onCheckedChange={(checked) => setShowAiPrompt(!!checked)}
+                />
+                <Label htmlFor="use-ai" className="text-sm font-normal text-[#282A3F]">Use AI to help write content</Label>
               </div>
               <Button 
                 variant="outline" 
