@@ -407,13 +407,7 @@ export default function UploadProcessPage() {
                 <Button variant="outline" onClick={() => setCurrentStep(1)}>
                   Process Another File
                 </Button>
-                <Button onClick={() => {
-                  // Navigate back to main page
-                  setLocation('/');
-                  setTimeout(() => {
-                    window.dispatchEvent(new CustomEvent('navigate-to-section', { detail: 'data-upload-2' }));
-                  }, 100);
-                }}>
+                <Button onClick={goBack}>
                   Back to Upload Options
                 </Button>
               </div>
