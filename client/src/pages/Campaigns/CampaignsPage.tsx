@@ -632,6 +632,30 @@ export default function CampaignsPage() {
 
         <TabsContent value="new" className="space-y-4">
           <div>
+            <Card className="p-8 border border-gray-200/40 bg-gradient-to-br from-gray-50/50 to-white backdrop-blur-sm mb-6">
+              <CardContent className="p-0">
+                <div className="flex flex-col sm:flex-row justify-center gap-4">
+                  <Button 
+                    size="lg"
+                    variant="outline" 
+                    className="border-2 border-dashed border-gray-200 hover:border-[#5567E5] hover:bg-[#5567E5]/10 text-gray-600 hover:text-[#5567E5] px-8 py-3 rounded-xl font-medium transition-all duration-200 min-w-[200px]"
+                    onClick={() => startNewCampaign()}
+                  >
+                    <Plus className="h-5 w-5 mr-2" />
+                    Start from Scratch
+                  </Button>
+                  <Button 
+                    size="lg"
+                    className="bg-[#5567E5] hover:bg-[#4456D4] text-white px-8 py-3 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-200 min-w-[200px]"
+                    onClick={() => startFromTemplate()}
+                  >
+                    <FileText className="h-5 w-5 mr-2" />
+                    Start from Template
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+
             <h2 className="text-xl font-semibold mb-4">Do what works and try out some of our predesigned campaigns</h2>
             
             <Card className="p-4 mb-6 border border-gray-200/40 bg-white/60 backdrop-blur-sm shadow-sm">
@@ -742,29 +766,7 @@ export default function CampaignsPage() {
               ))}
             </div>
 
-            <Card className="p-8 border border-gray-200/40 bg-gradient-to-br from-gray-50/50 to-white backdrop-blur-sm">
-              <CardContent className="p-0">
-                <div className="flex flex-col sm:flex-row justify-center gap-4">
-                  <Button 
-                    size="lg"
-                    variant="outline" 
-                    className="border-2 border-dashed border-gray-200 hover:border-[#5567E5] hover:bg-[#5567E5]/10 text-gray-600 hover:text-[#5567E5] px-8 py-3 rounded-xl font-medium transition-all duration-200 min-w-[200px]"
-                    onClick={() => startNewCampaign()}
-                  >
-                    <Plus className="h-5 w-5 mr-2" />
-                    Start from Scratch
-                  </Button>
-                  <Button 
-                    size="lg"
-                    className="bg-[#5567E5] hover:bg-[#4456D4] text-white px-8 py-3 rounded-xl font-medium shadow-lg hover:shadow-xl transition-all duration-200 min-w-[200px]"
-                    onClick={() => startFromTemplate()}
-                  >
-                    <FileText className="h-5 w-5 mr-2" />
-                    Start from Template
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
+
           </div>
         </TabsContent>
         
