@@ -67,6 +67,10 @@ export async function apiRequest<T = any>(
     const envUrl = getEnvironmentUrl(url);
     console.log('apiRequest - Fetching from URL:', envUrl);
     
+    // Add a timeout to detect hanging requests
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
+    
     const res = await fetch(envUrl, {
       method,
       headers: {
@@ -78,16 +82,26 @@ export async function apiRequest<T = any>(
       },
       body: data ? JSON.stringify(data) : undefined,
       credentials: "include",
+      signal: controller.signal,
     });
 
+    clearTimeout(timeoutId);
     await throwIfResNotOk(res);
     return res.json();
   } catch (error) {
-    // Only log errors for non-template-assignment endpoints to reduce noise
+    console.error('apiRequest error details:', {
+      error: error,
+      errorName: error?.constructor?.name,
+      errorMessage: error?.message,
+      url: url,
+      envUrl: getEnvironmentUrl(url),
+      method: method,
+      timestamp: new Date().toISOString()
+    });
+    
+    // Only log full stack for non-template-assignment endpoints to reduce noise
     if (!url.includes('template-assignments')) {
-      console.error('apiRequest error:', error);
-      console.error('URL:', url);
-      console.error('Method:', method);
+      console.error('Full error object:', error);
     }
     throw error;
   }

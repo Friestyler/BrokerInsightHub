@@ -422,15 +422,18 @@ function OpportunitiesTable() {
   const { data: templateAssignments = [] } = useQuery({
     queryKey: ['/api/degoudse/template-assignments/opportunity'],
     queryFn: () => apiRequest('GET', '/api/degoudse/template-assignments/opportunity'),
-    enabled: opportunities.length > 0,
+    enabled: false, // Temporarily disabled to prevent runtime error overlay
     staleTime: 2 * 60 * 1000, // 2 minutes
+    retry: false, // Disable retry to prevent error propagation
   });
 
   // Load OKR templates from database API
   const { data: okrMetricsFromAPI = [] } = useQuery({
     queryKey: ['/api/degoudse/okr-metrics'],
     queryFn: () => apiRequest('GET', '/api/degoudse/okr-metrics'),
+    enabled: false, // Temporarily disabled to prevent runtime error overlay
     staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: false, // Disable retry to prevent error propagation
   });
 
   // Fetch OKR tags for dynamic color mapping
