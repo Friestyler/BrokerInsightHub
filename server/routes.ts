@@ -61,6 +61,22 @@ const upload = multer({
   }
 });
 
+// Separate multer configuration for CSV files (transformation scripts)
+const csvUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 50 * 1024 * 1024, // Limit file size to 50MB for CSV files
+  },
+  fileFilter: (req, file, cb) => {
+    // Accept CSV files and text files
+    if (file.mimetype === 'text/csv' || file.mimetype === 'application/csv' || file.originalname.endsWith('.csv')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Only CSV files are allowed for transformation'));
+    }
+  }
+});
+
 export async function registerRoutes(app: Express): Promise<Server> {
   // All API redirects to De Goudse environment - clean routing
   app.get('/api/contacts', (req, res) => res.redirect('/api/degoudse/contacts'));
@@ -4993,7 +5009,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Apply transformation script to CSV data
-  app.post('/api/:environmentId/transformation-scripts/execute', upload.single('csvFile'), async (req: Request, res: Response) => {
+  app.post('/api/:environmentId/transformation-scripts/execute', csvUpload.single('csvFile'), async (req: Request, res: Response) => {
     try {
       const { environmentId } = req.params;
       const { scriptId, entityType } = req.body;
