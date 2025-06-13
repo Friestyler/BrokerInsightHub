@@ -294,7 +294,7 @@ export default function CampaignsPage() {
                 </Button>
               </DialogTrigger>
               <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
-                <CampaignTemplateBuilder />
+                <CampaignTemplateBuilder onClose={() => setShowTemplateBuilder(false)} />
               </DialogContent>
             </Dialog>
           </div>
