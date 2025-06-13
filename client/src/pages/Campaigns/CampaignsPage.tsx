@@ -739,7 +739,7 @@ export default function CampaignsPage() {
                   <CardFooter className="pt-0">
                     <Button 
                       variant="outline" 
-                      className="w-full border-0 bg-gradient-to-r from-orange-50 to-orange-100 text-orange-600 hover:from-orange-100 hover:to-orange-200 hover:text-orange-700 py-2.5 rounded-lg font-medium transition-all duration-200"
+                      className="w-full border-0 bg-[#5567E5]/10 text-[#5567E5] hover:bg-[#5567E5]/20 hover:text-[#4456D4] py-2.5 rounded-lg font-medium transition-all duration-200"
                     >
                       Connect
                     </Button>
@@ -765,7 +765,7 @@ export default function CampaignsPage() {
                   <CardFooter className="pt-0">
                     <Button 
                       variant="outline" 
-                      className="w-full border-0 bg-gradient-to-r from-green-50 to-green-50 text-green-600 hover:from-green-100 hover:to-green-100 hover:text-green-700 py-2.5 rounded-lg font-medium transition-all duration-200"
+                      className="w-full border-0 bg-[#5567E5]/10 text-[#5567E5] hover:bg-[#5567E5]/20 hover:text-[#4456D4] py-2.5 rounded-lg font-medium transition-all duration-200"
                     >
                       Select Source
                     </Button>
@@ -791,7 +791,7 @@ export default function CampaignsPage() {
                   <CardFooter className="pt-0">
                     <Button 
                       variant="outline" 
-                      className="w-full border-0 bg-gradient-to-r from-purple-50 to-purple-50 text-purple-600 hover:from-purple-100 hover:to-purple-100 hover:text-purple-700 py-2.5 rounded-lg font-medium transition-all duration-200"
+                      className="w-full border-0 bg-[#5567E5]/10 text-[#5567E5] hover:bg-[#5567E5]/20 hover:text-[#4456D4] py-2.5 rounded-lg font-medium transition-all duration-200"
                     >
                       Set Up Sync
                     </Button>
