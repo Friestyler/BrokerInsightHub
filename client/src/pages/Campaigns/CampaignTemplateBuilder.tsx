@@ -67,7 +67,6 @@ const selectListSchema = z.object({
   description: z.string().optional(),
   type: z.string().min(1, "Campaign type is required"),
   category: z.string().optional(),
-  listIds: z.array(z.string()).optional(),
 });
 
 const composeEmailSchema = z.object({
@@ -135,11 +134,6 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
     enabled: currentStep === "select-list"
   });
 
-  const { data: allSavedLists } = useQuery({
-    queryKey: ['/api/saved-lists'],
-    enabled: currentStep === "select-list" || currentStep === "target-list"
-  });
-
   // Form definition
   const form = useForm<TemplateFormValues>({
     resolver: zodResolver(templateFormSchema),
@@ -147,7 +141,6 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
       name: "",
       description: "",
       type: "cross_sell",
-      listIds: [],
       emailBody: "",
       subject: "",
       heading: "",
@@ -171,12 +164,6 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
       title: "Campaign Details",
       description: "Define campaign name and targeting criteria",
       icon: <ListChecks className="h-5 w-5" />,
-    },
-    {
-      id: "target-list",
-      title: "Target List",
-      description: "Select saved lists or entities to target",
-      icon: <Users className="h-5 w-5" />,
     },
     {
       id: "compose",
@@ -380,77 +367,6 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
           </div>
         );
 
-      case "target-list":
-        return (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label className="text-[#282A3F]">Target Lists</Label>
-              <p className="text-sm text-gray-600">
-                Select saved lists to target with this campaign template. When using this template, 
-                these lists will be pre-selected but can be modified.
-              </p>
-              
-              {allSavedLists && Array.isArray(allSavedLists) && allSavedLists.length > 0 ? (
-                <div className="space-y-3">
-                  {['partners', 'customers', 'opportunities'].map(entityType => {
-                    const listsForType = allSavedLists.filter((list: any) => 
-                      list.entity_type === entityType || 
-                      (entityType === 'partners' && !list.entity_type)
-                    );
-                    
-                    if (listsForType.length === 0) return null;
-                    
-                    return (
-                      <div key={entityType} className="space-y-2">
-                        <Label className="text-[#282A3F] capitalize">{entityType} Lists</Label>
-                        <div className="grid grid-cols-1 gap-2">
-                          {listsForType.map((list: any) => (
-                            <div key={list.id} className="flex items-center space-x-2">
-                              <Checkbox
-                                id={`list-${list.id}`}
-                                checked={form.watch("listIds")?.includes(list.id.toString()) || false}
-                                onCheckedChange={(checked) => {
-                                  const currentIds = form.getValues("listIds") || [];
-                                  const listId = list.id.toString();
-                                  if (checked) {
-                                    form.setValue("listIds", [...currentIds, listId]);
-                                  } else {
-                                    form.setValue("listIds", currentIds.filter(id => id !== listId));
-                                  }
-                                }}
-                              />
-                              <Label htmlFor={`list-${list.id}`} className="text-[#282A3F] cursor-pointer">
-                                {list.name}
-                                {list.description && (
-                                  <span className="text-sm text-gray-500 ml-2">
-                                    - {list.description}
-                                  </span>
-                                )}
-                              </Label>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              ) : (
-                <div className="text-center py-8 text-gray-500">
-                  <p>No saved lists available.</p>
-                  <p className="text-sm">Create saved lists from the main dashboard to use them in templates.</p>
-                </div>
-              )}
-              
-              <div className="mt-4 p-4 bg-blue-50 rounded-lg">
-                <Label className="text-[#282A3F] font-medium">Template Targeting</Label>
-                <p className="text-sm text-gray-600 mt-1">
-                  Selected lists will be pre-configured in this template. Users can still modify 
-                  the target lists when creating campaigns from this template.
-                </p>
-              </div>
-            </div>
-          </div>
-        );
 
       case "compose":
         return (
