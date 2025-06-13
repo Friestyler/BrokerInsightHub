@@ -223,18 +223,18 @@ export default function AttributeMappingStep({
 
   // Auto-select last used template for special format uploads
   useEffect(() => {
-    if (templates.length > 0 && isSpecialFormat && mappings.length === 0) {
+    if (templates.length > 0 && isSpecialFormat && attributeMappings.length === 0) {
       const lastUsedTemplateId = getLastUsedTemplate(uploadType);
       
       if (lastUsedTemplateId) {
         const lastUsedTemplate = templates.find(template => template.id.toString() === lastUsedTemplateId);
         if (lastUsedTemplate && lastUsedTemplate.entity_type === uploadType) {
           console.log(`Auto-loading last used template for ${uploadType}:`, lastUsedTemplate.name);
-          loadTemplate(lastUsedTemplate);
+          loadTemplate(lastUsedTemplate.id.toString());
         }
       }
     }
-  }, [templates, uploadType, isSpecialFormat, mappings.length]);
+  }, [templates, uploadType, isSpecialFormat, attributeMappings.length]);
 
   // Save template mutation
   const saveTemplateMutation = useMutation({
@@ -593,9 +593,17 @@ export default function AttributeMappingStep({
   };
 
   // Load template
-  const loadTemplate = (templateId: string) => {
-    const template = templates.find((t) => t.id.toString() === templateId);
+  const loadTemplate = (templateId: string | Template) => {
+    const template = typeof templateId === 'string' 
+      ? templates.find((t) => t.id.toString() === templateId)
+      : templateId;
+      
     if (template && template.column_mappings) {
+      // Save template selection for special format uploads
+      if (isSpecialFormat) {
+        saveLastUsedTemplate(template.id, uploadType);
+      }
+      
       let mappings;
       try {
         mappings = typeof template.column_mappings === 'string' 
