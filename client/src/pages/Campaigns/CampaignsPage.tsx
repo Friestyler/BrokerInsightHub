@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 
 import { useQuery } from "@tanstack/react-query";
 import { 
@@ -28,7 +29,10 @@ import {
   FileText,
   Share2,
   Check,
-  Mail
+  Mail,
+  MoreHorizontal,
+  Edit,
+  Trash2
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
@@ -283,6 +287,46 @@ export default function CampaignsPage() {
     setLocation(`/campaigns/create?template=${templateId}`);
   };
 
+  // Campaign action handlers
+  const handleEditCampaign = (campaign: Campaign) => {
+    setLocation(`/campaigns/create?campaign=${campaign.id}`);
+  };
+
+  const handleShareCampaign = (campaign: Campaign) => {
+    openShareDialog(campaign);
+  };
+
+  const handleDeleteCampaign = async (campaign: Campaign) => {
+    if (!confirm(`Are you sure you want to delete "${campaign.name}"?`)) {
+      return;
+    }
+    
+    try {
+      const envId = environment?.id || 'degoudse';
+      const response = await fetch(`/api/${envId}/campaigns/${campaign.id}`, {
+        method: 'DELETE',
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to delete campaign');
+      }
+      
+      toast({
+        title: "Success",
+        description: "Campaign deleted successfully",
+      });
+      
+      // Refetch campaigns
+      window.location.reload();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete campaign",
+        variant: "destructive",
+      });
+    }
+  };
+
   // Open share dialog
   const openShareDialog = (template: Campaign) => {
     setSelectedTemplate(template);
@@ -520,6 +564,7 @@ export default function CampaignsPage() {
                       <TableHead>Opened</TableHead>
                       <TableHead>Clicked</TableHead>
                       <TableHead>Replied</TableHead>
+                      <TableHead className="w-12">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -553,11 +598,37 @@ export default function CampaignsPage() {
                           <TableCell className="text-gray-600">-</TableCell>
                           <TableCell className="text-gray-600">-</TableCell>
                           <TableCell className="text-gray-600">-</TableCell>
+                          <TableCell>
+                            <DropdownMenu>
+                              <DropdownMenuTrigger asChild>
+                                <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                                  <MoreHorizontal className="h-4 w-4" />
+                                </Button>
+                              </DropdownMenuTrigger>
+                              <DropdownMenuContent align="end" className="w-48">
+                                <DropdownMenuItem onClick={() => handleShareCampaign(campaign)}>
+                                  <Share2 className="h-4 w-4 mr-2" />
+                                  Share
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => handleEditCampaign(campaign)}>
+                                  <Edit className="h-4 w-4 mr-2" />
+                                  Edit
+                                </DropdownMenuItem>
+                                <DropdownMenuItem 
+                                  onClick={() => handleDeleteCampaign(campaign)}
+                                  className="text-red-600 hover:text-red-700"
+                                >
+                                  <Trash2 className="h-4 w-4 mr-2" />
+                                  Delete
+                                </DropdownMenuItem>
+                              </DropdownMenuContent>
+                            </DropdownMenu>
+                          </TableCell>
                         </TableRow>
                       ))
                     ) : (
                       <TableRow>
-                        <TableCell colSpan={9} className="text-center py-12">
+                        <TableCell colSpan={10} className="text-center py-12">
                           <div className="flex flex-col items-center space-y-4">
                             <Send className="h-12 w-12 text-gray-400" />
                             <div>
