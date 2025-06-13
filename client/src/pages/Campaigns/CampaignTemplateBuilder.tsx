@@ -753,11 +753,11 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
           <Button
             variant="ghost"
             size="sm"
-            onClick={() => setLocation('/campaigns?tab=templates')}
+            onClick={goBack}
             className="flex items-center gap-2 text-gray-600 hover:text-gray-900"
           >
             <ArrowLeft className="h-4 w-4" />
-            Back to Campaign Templates
+            Back
           </Button>
         </div>
         <h1 className="text-2xl font-bold text-[#282A3F]">Create Campaign Template</h1>

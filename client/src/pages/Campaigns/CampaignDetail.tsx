@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useRoute, useLocation } from "wouter";
+import { useNavigationHistory } from "@/hooks/useNavigationHistory";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -91,6 +92,7 @@ type FollowUp = {
 export default function CampaignDetail() {
   const [, params] = useRoute("/campaigns/:id");
   const [, setLocation] = useLocation();
+  const { goBack } = useNavigationHistory("/campaigns");
   const { environment } = useEnvironment();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -194,9 +196,9 @@ export default function CampaignDetail() {
           <Button 
             variant="ghost" 
             className="pl-0 text-gray-500"
-            onClick={() => setLocation("/campaigns")}
+            onClick={goBack}
           >
-            <ArrowLeft className="h-4 w-4 mr-1" /> Back to Campaigns
+            <ArrowLeft className="h-4 w-4 mr-1" /> Back
           </Button>
         </div>
         <div className="text-center py-12">Loading campaign details...</div>
