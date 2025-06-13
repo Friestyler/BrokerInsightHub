@@ -24,6 +24,8 @@ const capitalizeUploadType = (type: string) => {
   const specialCases: { [key: string]: string } = {
     'degoudse': 'De Goudse',
     'de-goudse': 'De Goudse',
+    'salesforce': 'Salesforce',
+    'brio': 'Brio',
     'axa-verzekeringen': 'AXA Verzekeringen',
     'ing-bank': 'ING Bank'
   };

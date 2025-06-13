@@ -568,33 +568,39 @@ export default function PartnerPilot() {
                 </CardFooter>
               </Card>
 
-              <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-blue-100 opacity-75">
+              <Card 
+                className="hover:shadow-md transition-shadow cursor-pointer border-2 border-blue-100"
+                onClick={() => setLocation('/data-upload-2/process/salesforce')}
+              >
                 <CardHeader>
                   <div className="flex justify-between items-start">
                     <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center">
                       <Upload className="h-5 w-5 text-blue-600" />
                     </div>
-                    <Badge variant="secondary" className="text-xs">Coming Soon</Badge>
+                    <Badge variant="outline" className="text-xs">Active</Badge>
                   </div>
                   <CardTitle className="text-lg mt-2">Salesforce Import</CardTitle>
                   <CardDescription>
-                    Direct integration with Salesforce CRM data export formats
+                    Specialized CSV import for Salesforce CRM data export formats
                   </CardDescription>
                 </CardHeader>
                 <CardFooter>
-                  <Button className="w-full" variant="outline" disabled>
-                    Salesforce Import
+                  <Button className="w-full bg-blue-600 hover:bg-blue-700">
+                    Upload Salesforce File
                   </Button>
                 </CardFooter>
               </Card>
 
-              <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-indigo-100 opacity-75">
+              <Card 
+                className="hover:shadow-md transition-shadow cursor-pointer border-2 border-indigo-100"
+                onClick={() => setLocation('/data-upload-2/process/brio')}
+              >
                 <CardHeader>
                   <div className="flex justify-between items-start">
                     <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
                       <FileSpreadsheet className="h-5 w-5 text-indigo-600" />
                     </div>
-                    <Badge variant="secondary" className="text-xs">Coming Soon</Badge>
+                    <Badge variant="outline" className="text-xs">Active</Badge>
                   </div>
                   <CardTitle className="text-lg mt-2">Brio Format</CardTitle>
                   <CardDescription>
@@ -602,8 +608,8 @@ export default function PartnerPilot() {
                   </CardDescription>
                 </CardHeader>
                 <CardFooter>
-                  <Button className="w-full" variant="outline" disabled>
-                    Brio Import
+                  <Button className="w-full bg-indigo-600 hover:bg-indigo-700">
+                    Upload Brio File
                   </Button>
                 </CardFooter>
               </Card>
