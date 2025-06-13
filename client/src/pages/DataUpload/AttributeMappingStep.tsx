@@ -220,7 +220,7 @@ export default function AttributeMappingStep({
 
   // Auto-select last used template for ALL entity types
   useEffect(() => {
-    if (templates.length > 0 && attributeMappings.length === 0) {
+    if (templates.length > 0 && !isLoadingUploadSettings && attributeMappings.length === 0) {
       const lastUsedTemplateId = getLastUsedTemplate(uploadType);
       
       if (lastUsedTemplateId) {
@@ -232,7 +232,7 @@ export default function AttributeMappingStep({
         }
       }
     }
-  }, [templates, uploadType, attributeMappings.length]);
+  }, [templates, uploadType, attributeMappings.length, isLoadingUploadSettings]);
 
   // Save template mutation
   const saveTemplateMutation = useMutation({
@@ -376,10 +376,10 @@ export default function AttributeMappingStep({
       .map((setting: any) => setting.attribute_name);
   };
 
-  // Initialize mandatory attributes
+  // Initialize mandatory attributes (only if no mappings exist to avoid overwriting templates)
   useEffect(() => {
     const mandatoryAttrs = getMandatoryAttributes();
-    if (mandatoryAttrs.length > 0) {
+    if (mandatoryAttrs.length > 0 && attributeMappings.length === 0) {
       const mappings = mandatoryAttrs.map((attr: string) => ({
         attribute: attr,
         csvColumn: '',
@@ -387,7 +387,7 @@ export default function AttributeMappingStep({
       }));
       setAttributeMappings(mappings);
     }
-  }, [uploadSettings]);
+  }, [uploadSettings, attributeMappings.length]);
 
   // Update attribute mapping
   const updateMapping = (index: number, csvColumn: string) => {
