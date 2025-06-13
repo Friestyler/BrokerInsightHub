@@ -68,6 +68,7 @@ const selectListSchema = z.object({
 
 const composeEmailSchema = z.object({
   subject: z.string().min(1, "Subject is required"),
+  heading: z.string().optional(),
   emailBody: z.string().min(1, "Email content is required"),
   emailLogo: z.string().optional(),
   aiPrompt: z.string().optional(),
@@ -138,6 +139,7 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
       listIds: [],
       emailBody: "",
       subject: "",
+      heading: "",
       emailLogo: "",
       aiPrompt: "",
       enableFollowUp: false,
@@ -486,6 +488,15 @@ export default function CampaignTemplateBuilder({}: CampaignTemplateBuilderProps
                 id="subject"
                 placeholder="Enter email subject"
                 {...form.register("subject")}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="heading" className="text-[#282A3F]">Heading</Label>
+              <Input
+                id="heading"
+                placeholder="Enter email heading"
+                {...form.register("heading")}
               />
             </div>
 
