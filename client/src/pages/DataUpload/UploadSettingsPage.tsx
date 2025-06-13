@@ -88,7 +88,7 @@ export default function UploadSettingsPage() {
 
   // Fetch entity schemas for current environment
   const { data: entitySchemas = [], isLoading: schemasLoading, error: schemasError } = useQuery<EntitySchema[]>({
-    queryKey: ['/api/upload/entities', environment.id],
+    queryKey: [`/api/${environment.id}/upload/entities`, environment.id],
     enabled: !!environment.id
   });
 
