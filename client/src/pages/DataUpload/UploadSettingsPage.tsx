@@ -186,6 +186,22 @@ export default function UploadSettingsPage() {
         </Badge>
       </div>
 
+      <div className="space-y-2">
+        <Label htmlFor="entity-select">Entity Type</Label>
+        <Select value={selectedEntity} onValueChange={setSelectedEntity}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select entity" />
+          </SelectTrigger>
+          <SelectContent>
+            {supportedEntities.map(entity => (
+              <SelectItem key={entity} value={entity}>{entity}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <Separator />
+
       {settingsLoading ? (
         <div className="space-y-3">
           {[...Array(5)].map((_, i) => (
@@ -235,7 +251,7 @@ export default function UploadSettingsPage() {
         <Alert>
           <Info className="h-4 w-4" />
           <AlertDescription>
-            Select an environment and entity to configure upload settings.
+            Select an entity type to configure upload settings.
           </AlertDescription>
         </Alert>
       )}
