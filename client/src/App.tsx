@@ -85,22 +85,7 @@ function Router() {
               <Route path="/contacts" component={ContactsPage} />
               
               {/* Campaign routes */}
-              <Route path="/campaigns">
-                {() => (
-                  <EnvironmentRouteGuard
-                    component={CampaignsPage} 
-                    excludedEnvironments={["acme"]} 
-                  />
-                )}
-              </Route>
-              <Route path="/campaigns-shared">
-                {() => (
-                  <EnvironmentRouteGuard
-                    component={CampaignsSharedWithBroker} 
-                    requiredEnvironments={["myqollabi"]} 
-                  />
-                )}
-              </Route>
+              <Route path="/campaigns" component={CampaignsPage} />
               <Route path="/campaigns/create">
                 {() => (
                   <EnvironmentRouteGuard
