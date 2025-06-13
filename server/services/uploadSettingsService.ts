@@ -101,7 +101,8 @@ export class UploadSettingsService {
     const result = await pool.query(query, params);
     return result.rows.map(row => ({
       ...row,
-      name: row.name || row.script_name // Ensure consistent naming
+      name: row.name || row.script_name, // Ensure consistent naming
+      scriptContent: row.script_content // Map database field to frontend field
     }));
   }
 
@@ -394,7 +395,8 @@ export class UploadSettingsService {
     
     return {
       ...result.rows[0],
-      name: result.rows[0].name || result.rows[0].script_name
+      name: result.rows[0].name || result.rows[0].script_name,
+      scriptContent: result.rows[0].script_content
     };
   }
 

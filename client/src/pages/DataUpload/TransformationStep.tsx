@@ -182,7 +182,10 @@ export default function TransformationStep({
   // Query transformation scripts
   const { data: scripts = [], isLoading } = useQuery<TransformationScript[]>({
     queryKey: [`/api/${environmentId}/transformation-scripts`],
-    enabled: true
+    enabled: true,
+    onSuccess: (data) => {
+      console.log('Loaded transformation scripts:', data);
+    }
   });
 
   // Save script mutation
@@ -280,10 +283,11 @@ export default function TransformationStep({
       setIsModified(false);
     } else {
       const script = scripts.find(s => s.id.toString() === scriptId);
+      console.log('Selected script:', script);
       if (script) {
         setScriptName(script.name);
         setScriptDescription(script.description || '');
-        setScriptContent(script.scriptContent);
+        setScriptContent(script.scriptContent || '');
         setIsModified(false);
       }
     }
