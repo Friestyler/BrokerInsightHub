@@ -215,6 +215,11 @@ export default function CampaignBuilder() {
     enabled: currentStep === "recipients" || currentStep === "settings"
   });
 
+  const { data: users } = useQuery({
+    queryKey: ['/api/users'],
+    enabled: currentStep === "settings"
+  });
+
   const { data: partners } = useQuery({
     queryKey: ['/api/partners'],
     enabled: currentStep === "recipients" || currentStep === "settings"
@@ -1304,28 +1309,38 @@ export default function CampaignBuilder() {
                     <div className="space-y-2">
                       <Label className="text-sm font-medium">Select Team Members</Label>
                       <div className="space-y-2 max-h-32 overflow-y-auto border rounded-md p-2">
-                        {/* Placeholder for users - will need to fetch users from API */}
-                        <div className="flex items-center space-x-2">
-                          <input
-                            type="checkbox"
-                            id="user-1"
-                            className="rounded text-indigo-600 focus:ring-indigo-500"
-                          />
-                          <Label htmlFor="user-1" className="text-sm">
-                            John Doe (john.doe@degoudse.nl)
-                          </Label>
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <input
-                            type="checkbox"
-                            id="user-2"
-                            className="rounded text-indigo-600 focus:ring-indigo-500"
-                          />
-                          <Label htmlFor="user-2" className="text-sm">
-                            Jane Smith (jane.smith@degoudse.nl)
-                          </Label>
-                        </div>
-                        <p className="text-sm text-gray-500">Loading team members...</p>
+                        {users && users.length > 0 ? (
+                          users.map((user: any) => {
+                            const currentSharedUserIds = (form.getValues as any)("sharedUserIds") || [];
+                            const isChecked = currentSharedUserIds.includes(user.id);
+                            
+                            return (
+                              <div key={user.id} className="flex items-center space-x-2">
+                                <input
+                                  type="checkbox"
+                                  id={`team-member-${user.id}`}
+                                  checked={isChecked}
+                                  onChange={(e) => {
+                                    const currentIds = (form.getValues as any)("sharedUserIds") || [];
+                                    if (e.target.checked) {
+                                      (form.setValue as any)("sharedUserIds", [...currentIds, user.id]);
+                                    } else {
+                                      (form.setValue as any)("sharedUserIds", currentIds.filter((id: number) => id !== user.id));
+                                    }
+                                  }}
+                                  className="rounded text-indigo-600 focus:ring-indigo-500"
+                                />
+                                <Label htmlFor={`team-member-${user.id}`} className="text-sm">
+                                  {user.fullName} ({user.email || user.role})
+                                </Label>
+                              </div>
+                            );
+                          })
+                        ) : (
+                          <div className="text-sm text-gray-500 py-2">
+                            Loading team members...
+                          </div>
+                        )}
                       </div>
                     </div>
                   )}

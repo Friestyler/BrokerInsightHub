@@ -1490,21 +1490,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const envPool = getEnvironmentPool(envId);
       
       const result = await envPool.query(`
-        SELECT id, username, email, first_name, last_name, is_active, role
+        SELECT id, name, email, role, partner_id, created_at, updated_at
         FROM ${envId}.users 
-        WHERE is_active = true 
-        ORDER BY first_name, last_name
+        ORDER BY name
       `);
       
       const users = result.rows.map((user: any) => ({
         id: user.id,
-        username: user.username,
+        name: user.name,
         email: user.email,
-        firstName: user.first_name,
-        lastName: user.last_name,
-        fullName: `${user.first_name || ''} ${user.last_name || ''}`.trim() || user.username,
-        isActive: user.is_active,
-        role: user.role || 'user'
+        fullName: user.name,
+        role: user.role || 'Team Member',
+        partnerId: user.partner_id,
+        createdAt: user.created_at,
+        updatedAt: user.updated_at
       }));
       
       res.json(users);
