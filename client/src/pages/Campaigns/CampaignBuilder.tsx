@@ -111,17 +111,26 @@ const campaignSettingsSchema = z.object({
   templateDescription: z.string().optional(),
 });
 
-// Combined campaign schema
-const campaignFormSchema = selectListSchema
-  .merge(composeEmailSchema)
-  .merge(selectRecipientsSchema)
-  .merge(followUpSchema)
-  .merge(campaignSettingsSchema)
-  .extend({
-    status: z.string().optional(),
-  });
+// Create conditional recipients schema
+const createRecipientsSchema = (isTemplate: boolean) => {
+  return isTemplate 
+    ? z.object({ recipientIds: z.array(z.string()).optional() })
+    : selectRecipientsSchema;
+};
 
-type CampaignFormValues = z.infer<typeof campaignFormSchema>;
+// Combined campaign schema - will be created dynamically based on mode
+const createCampaignFormSchema = (isTemplate: boolean) => {
+  return selectListSchema
+    .merge(composeEmailSchema)
+    .merge(createRecipientsSchema(isTemplate))
+    .merge(followUpSchema)
+    .merge(campaignSettingsSchema)
+    .extend({
+      status: z.string().optional(),
+    });
+};
+
+type CampaignFormValues = z.infer<ReturnType<typeof createCampaignFormSchema>>;
 
 // Contact creation schema
 const contactFormSchema = z.object({
@@ -162,6 +171,7 @@ export default function CampaignBuilder() {
   // Get template from URL if any
   const searchParams = new URLSearchParams(window.location.search);
   const templateId = searchParams.get("template");
+  const isTemplateMode = searchParams.get("mode") === "template";
 
   const { data: entities } = useQuery({
     queryKey: ['/api/entities'],
@@ -495,8 +505,8 @@ export default function CampaignBuilder() {
     }
   }, [templateQuery.data, form]);
 
-  // Step definitions
-  const steps: BuilderStep[] = [
+  // Step definitions - exclude recipients step for templates
+  const allSteps: BuilderStep[] = [
     {
       id: "select-list",
       title: "Select List",
@@ -528,6 +538,11 @@ export default function CampaignBuilder() {
       icon: <Settings className="h-5 w-5" />,
     }
   ];
+
+  // Filter out recipients step for template mode
+  const steps = isTemplateMode 
+    ? allSteps.filter(step => step.id !== "recipients")
+    : allSteps;
 
   // Navigate between steps
   const goToStep = (stepId: string) => {
