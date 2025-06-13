@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Separator } from "@/components/ui/separator";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 import { useQuery } from "@tanstack/react-query";
 import { 
@@ -704,33 +705,23 @@ export default function CampaignsPage() {
             {/* Share Mode Selection */}
             <div className="space-y-3">
               <Label className="text-[#282A3F] font-medium">Share with:</Label>
-              <div className="space-y-2">
-                <label className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="shareMode"
-                    value="internal"
-                    checked={shareMode === 'internal'}
-                    onChange={() => setShareMode('internal')}
-                    className="text-blue-600"
-                  />
-                  <span className="text-sm font-medium text-[#282A3F]">Internal Team Members</span>
-                </label>
+              <RadioGroup value={shareMode} onValueChange={(value: 'internal' | 'external') => setShareMode(value)}>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="internal" id="internal" />
+                  <Label htmlFor="internal" className="text-sm font-medium text-[#282A3F] cursor-pointer">
+                    Internal Team Members
+                  </Label>
+                </div>
                 <p className="text-xs text-gray-500 ml-6">Platform users who are not guests or partners</p>
                 
-                <label className="flex items-center space-x-2 cursor-pointer">
-                  <input
-                    type="radio"
-                    name="shareMode"
-                    value="external"
-                    checked={shareMode === 'external'}
-                    onChange={() => setShareMode('external')}
-                    className="text-blue-600"
-                  />
-                  <span className="text-sm font-medium text-[#282A3F]">External Parties</span>
-                </label>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="external" id="external" />
+                  <Label htmlFor="external" className="text-sm font-medium text-[#282A3F] cursor-pointer">
+                    External Parties
+                  </Label>
+                </div>
                 <p className="text-xs text-gray-500 ml-6">Contacts and guest or partner users</p>
-              </div>
+              </RadioGroup>
             </div>
 
             <Separator />
