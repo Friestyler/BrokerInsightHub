@@ -174,9 +174,9 @@ export default function TransformationStep({
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Determine environment ID - for special formats like 'degoudse', use that as environment
+  // Determine environment ID - all special formats should use 'degoudse' environment for transformation scripts
   const environmentId = uploadType.includes('-') || ['salesforce', 'brio', 'degoudse'].includes(uploadType) 
-    ? uploadType 
+    ? 'degoudse'  // All special formats use degoudse environment for scripts
     : 'degoudse'; // Default environment
 
   // Check if this is a special format upload (should pre-select last used script)
