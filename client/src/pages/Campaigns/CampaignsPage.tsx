@@ -91,21 +91,27 @@ export default function CampaignsPage() {
 
 
   // Fetch campaigns
-  const { data: campaigns, isLoading: isLoadingCampaigns } = useQuery<Campaign[]>({
+  const { data: campaigns, isLoading: isLoadingCampaigns, error } = useQuery<Campaign[]>({
     queryKey: ['/api/campaigns'],
     enabled: true,
     queryFn: async () => {
       const envId = environment?.id || 'degoudse';
+      console.log('Fetching campaigns with envId:', envId);
       const response = await fetch(`/api/${envId}/campaigns`, {
         credentials: "include",
         headers: {
           'X-Environment': envId
         }
       });
+      console.log('Campaigns response status:', response.status);
       if (!response.ok) throw new Error('Failed to fetch campaigns');
-      return response.json();
+      const data = await response.json();
+      console.log('Campaigns response data:', data);
+      return data;
     }
   });
+
+  console.log('Campaigns state:', { campaigns, isLoadingCampaigns, error });
 
   // Fetch campaign templates separately
   const { data: userTemplates, isLoading: isLoadingTemplates } = useQuery<Campaign[]>({
