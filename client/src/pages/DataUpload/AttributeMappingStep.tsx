@@ -655,6 +655,11 @@ export default function AttributeMappingStep({
               const cleanVariable = variable.replace(/['"]/g, '');
               return String((cleanVariable.match(new RegExp(searchStr, 'g')) || []).length);
             });
+            // Handle single parameter count - return string length
+            result = result.replace(/count\(([^)]+)\)/g, (match, variable) => {
+              const cleanVariable = variable.replace(/['"]/g, '');
+              return String(cleanVariable.length);
+            });
           }
           
           // Handle split() function
