@@ -23,6 +23,7 @@ import {
   Cloud,
   Database,
   RefreshCw,
+  X,
   FileText,
   Share2,
   Check,
@@ -882,9 +883,53 @@ export default function CampaignsPage() {
           </DialogHeader>
           
           <div className="space-y-4">
+            {/* Existing Shares Section - Google Docs Style */}
+            {existingShares && existingShares.length > 0 && (
+              <>
+                <div className="space-y-3">
+                  <Label className="text-[#282A3F] font-medium">People with access</Label>
+                  <div className="space-y-2">
+                    {existingShares.map((share) => (
+                      <div key={share.id} className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          <div className="h-8 w-8 rounded-full bg-blue-100 flex items-center justify-center">
+                            <span className="text-sm font-medium text-blue-600">
+                              {share.contactName?.charAt(0).toUpperCase() || share.userName?.charAt(0).toUpperCase() || '?'}
+                            </span>
+                          </div>
+                          <div>
+                            <p className="text-sm font-medium text-[#282A3F]">
+                              {share.contactName || share.userName}
+                            </p>
+                            <p className="text-xs text-gray-500">
+                              {share.contactEmail || share.userEmail} • {share.shareType === 'external' ? 'External' : 'Internal'}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">
+                            Can view
+                          </span>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => handleUnshare(share.id)}
+                            className="text-gray-400 hover:text-red-500 h-8 w-8 p-0"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <Separator />
+              </>
+            )}
+
             {/* Share Mode Selection */}
             <div className="space-y-3">
-              <Label className="text-[#282A3F] font-medium">Share with:</Label>
+              <Label className="text-[#282A3F] font-medium">Add people</Label>
               <RadioGroup value={shareMode} onValueChange={(value: 'internal' | 'external') => setShareMode(value)}>
                 <div className="flex items-center space-x-2">
                   <RadioGroupItem value="internal" id="internal" />
