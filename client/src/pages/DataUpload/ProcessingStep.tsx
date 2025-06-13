@@ -182,8 +182,9 @@ export default function ProcessingStep({
       
       csvData.forEach((row, index) => {
         // Check for empty required fields - only validate mandatory attributes
+        // Skip validation for attributes that use custom code (CODE mapping) since they will be populated by code logic
         attributeMappings
-          .filter(mapping => mapping.isRequired && mapping.csvColumn)
+          .filter(mapping => mapping.isRequired && mapping.csvColumn && mapping.csvColumn !== 'CODE')
           .forEach(mapping => {
             const value = row[mapping.csvColumn];
             if (!value || value.trim() === '') {
@@ -201,7 +202,8 @@ export default function ProcessingStep({
 
         // Check for duplicates based on ALL mandatory attributes
         // A record is considered duplicate if ALL mandatory attributes match an existing record
-        const mandatoryMappings = attributeMappings.filter(mapping => mapping.isRequired && mapping.csvColumn);
+        // Skip custom code attributes for duplicate checking since they haven't been processed yet
+        const mandatoryMappings = attributeMappings.filter(mapping => mapping.isRequired && mapping.csvColumn && mapping.csvColumn !== 'CODE');
         
         if (mandatoryMappings.length > 0) {
           // Build the values for mandatory fields from current row
