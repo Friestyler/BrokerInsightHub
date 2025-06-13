@@ -199,21 +199,13 @@ export default function UploadProcessPage() {
         <CardContent>
           {/* Transformation Step (Special Formats Only) */}
           {currentStep === 1 && isSpecialFormat && (
-            <div className="space-y-6">
-              <Alert>
-                <AlertDescription>
-                  Transformation scripts will be implemented in the next phase. 
-                  For now, proceed directly to file upload.
-                </AlertDescription>
-              </Alert>
-              
-              <div className="flex justify-end">
-                <Button onClick={goToNextStep}>
-                  Skip to Upload
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
-              </div>
-            </div>
+            <TransformationStep 
+              uploadType={uploadType}
+              stepName={currentStepData?.name || 'Transformation'}
+              currentStep={currentStep}
+              onNext={goToNextStep}
+              onBack={goToPreviousStep}
+            />
           )}
 
           {/* Upload Step */}

@@ -320,7 +320,7 @@ export default function TransformationStep({
 
   // Update existing script
   const handleUpdateScript = () => {
-    const script = scripts.find((s: TransformationScript) => s.id.toString() === selectedScriptId);
+    const script = scripts.find(s => s.id.toString() === selectedScriptId);
     if (!script) return;
     
     if (!validateScript()) {

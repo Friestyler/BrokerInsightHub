@@ -4976,6 +4976,46 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  app.patch('/api/:environmentId/transformation-scripts/:scriptId', async (req: Request, res: Response) => {
+    try {
+      const { environmentId, scriptId } = req.params;
+      const { name, description, scriptContent } = req.body;
+      
+      if (!name && !description && !scriptContent) {
+        return res.status(400).json({ error: 'At least one field must be provided for update' });
+      }
+      
+      const updates: any = {};
+      if (name) updates.name = name;
+      if (description !== undefined) updates.description = description;
+      if (scriptContent) {
+        // Validate script content if provided
+        const validation = UploadSettingsService.validateScriptSyntax(scriptContent);
+        if (!validation.isValid) {
+          return res.status(400).json({ 
+            error: 'Invalid script syntax', 
+            details: validation.errors 
+          });
+        }
+        updates.script_content = scriptContent;
+      }
+      
+      const script = await UploadSettingsService.updateTransformationScript(
+        parseInt(scriptId), 
+        environmentId, 
+        updates
+      );
+      
+      res.json(script);
+    } catch (error) {
+      if (error instanceof Error && error.message === 'Script not found') {
+        return res.status(404).json({ error: 'Script not found' });
+      }
+      console.error('Failed to update transformation script:', error);
+      res.status(500).json({ error: 'Failed to update transformation script' });
+    }
+  });
+
   // Upload Templates Routes
   app.get('/api/:environmentId/upload-templates', async (req: Request, res: Response) => {
     try {
