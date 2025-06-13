@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { useLocation, useRoute } from "wouter";
+import { useLocation } from "wouter";
 import { 
   Card, 
   CardContent, 
@@ -103,7 +103,11 @@ interface BuilderStep {
   icon: React.ReactNode;
 }
 
-export default function CampaignTemplateBuilder() {
+interface CampaignTemplateBuilderProps {
+  onClose?: () => void;
+}
+
+export default function CampaignTemplateBuilder({ onClose }: CampaignTemplateBuilderProps) {
   const [, setLocation] = useLocation();
   const [currentStep, setCurrentStep] = useState("select-list");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -225,8 +229,8 @@ export default function CampaignTemplateBuilder() {
         title: "Template saved",
         description: "Your campaign template has been saved successfully",
       });
-      setLocation("/campaigns?tab=templates");
       setIsSubmitting(false);
+      onClose?.();
     },
     onError: (error) => {
       console.error("Error creating template:", error);

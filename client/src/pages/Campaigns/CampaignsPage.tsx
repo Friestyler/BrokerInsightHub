@@ -3,6 +3,7 @@ import { Link, useLocation } from "wouter";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
 import { useQuery } from "@tanstack/react-query";
 import { 
   Send, 
@@ -20,6 +21,7 @@ import {
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
+import CampaignTemplateBuilder from "./CampaignTemplateBuilder";
 
 type Campaign = {
   id: number;
@@ -49,6 +51,7 @@ export default function CampaignsPage() {
   const [, setLocation] = useLocation();
   const { environment } = useEnvironment();
   const [activeFilter, setActiveFilter] = useState("popular");
+  const [showTemplateBuilder, setShowTemplateBuilder] = useState(false);
 
   // Fetch campaigns
   const { data: campaigns, isLoading: isLoadingCampaigns } = useQuery<Campaign[]>({
@@ -283,13 +286,17 @@ export default function CampaignsPage() {
         <TabsContent value="templates" className="space-y-4">
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold">Campaign Templates</h2>
-            <Button 
-              className="bg-indigo-600 hover:bg-indigo-700" 
-              onClick={() => setLocation("/campaigns/create?mode=template")}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Create Template
-            </Button>
+            <Dialog open={showTemplateBuilder} onOpenChange={setShowTemplateBuilder}>
+              <DialogTrigger asChild>
+                <Button className="bg-indigo-600 hover:bg-indigo-700">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Create Template
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+                <CampaignTemplateBuilder />
+              </DialogContent>
+            </Dialog>
           </div>
 
           {isLoadingCampaigns ? (
