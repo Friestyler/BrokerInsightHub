@@ -118,11 +118,27 @@ export default function PartnerActivityHub({ partnerId, partnerName }: PartnerAc
         })
       }).then(res => res.json());
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log('Task created successfully:', data);
+      // Invalidate all related queries
       queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/partners/${partnerId}/activities`] });
       queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/partners/${partnerId}/timeline`] });
+      queryClient.invalidateQueries({ queryKey: [`/api/${currentEnv}/partners`] });
+      
+      // Force refetch the data
+      queryClient.refetchQueries({ queryKey: [`/api/${currentEnv}/partners/${partnerId}/activities`] });
+      queryClient.refetchQueries({ queryKey: [`/api/${currentEnv}/partners/${partnerId}/timeline`] });
+      
       resetForm();
       toast({ title: `${selectedActivityType.charAt(0).toUpperCase() + selectedActivityType.slice(1)} created successfully` });
+    },
+    onError: (error) => {
+      console.error('Failed to create task:', error);
+      toast({ 
+        title: 'Failed to create task', 
+        description: 'Please try again',
+        variant: 'destructive' 
+      });
     }
   });
 
