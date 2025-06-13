@@ -554,7 +554,6 @@ export default function PartnerPilot() {
                     <div className="h-10 w-10 rounded-full bg-orange-100 flex items-center justify-center">
                       <FileSpreadsheet className="h-5 w-5 text-orange-600" />
                     </div>
-                    <Badge variant="outline" className="text-xs">Active</Badge>
                   </div>
                   <CardTitle className="text-lg mt-2">De Goudse Format</CardTitle>
                   <CardDescription>
@@ -600,7 +599,6 @@ export default function PartnerPilot() {
                     <div className="h-10 w-10 rounded-full bg-indigo-100 flex items-center justify-center">
                       <FileSpreadsheet className="h-5 w-5 text-indigo-600" />
                     </div>
-                    <Badge variant="outline" className="text-xs">Active</Badge>
                   </div>
                   <CardTitle className="text-lg mt-2">Brio Format</CardTitle>
                   <CardDescription>
