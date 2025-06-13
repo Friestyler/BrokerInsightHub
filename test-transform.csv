@@ -1,0 +1,5 @@
+,,,,,,,,,
+id,title,clientId,productId,status,value,notes,date,category,priority
+1,Project Alpha,100,200,active,50000,Important project,2024-01-15,development,high
+2,Project Beta,101,201,pending,30000,Secondary project,2024-02-20,marketing,medium
+3,Project Gamma,102,202,completed,75000,Completed successfully,2024-03-10,sales,high

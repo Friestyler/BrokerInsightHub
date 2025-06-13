@@ -5039,11 +5039,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
   });
 
   // Apply transformation script to CSV data
-  app.post('/api/:environmentId/transformation-scripts/execute', csvUpload.single('csvFile'), async (req: Request, res: Response) => {
+  app.post('/api/:environmentId/transformation-scripts/execute', csvUpload.any(), async (req: Request, res: Response) => {
     try {
       const { environmentId } = req.params;
       const { scriptId, entityType } = req.body;
-      const file = req.file;
+      // Handle both single file and multiple files upload
+      const files = req.files as Express.Multer.File[];
+      const file = files?.[0] || req.file;
 
       console.log('🔄 SERVER TRANSFORMATION DEBUG: Received request');
       console.log('🔄 Environment ID:', environmentId);

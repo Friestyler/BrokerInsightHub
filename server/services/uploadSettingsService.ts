@@ -413,29 +413,48 @@ export class UploadSettingsService {
     rowCount: number;
   }> {
     try {
+      console.log('🔍 DEBUG: Starting transformation with script:', scriptContent.substring(0, 100));
+      
       // Parse the original CSV
       const lines = csvData.trim().split('\n');
       if (lines.length === 0) {
         throw new Error('Empty CSV data');
       }
 
+      console.log('🔍 DEBUG: Original lines:', {
+        totalLines: lines.length,
+        line0: lines[0],
+        line1: lines[1],
+        line2: lines[2]
+      });
+
       // Extract headers and data lines
       let headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
       let dataLines = lines.slice(1);
       
+      console.log('🔍 DEBUG: Initial headers:', headers);
+      console.log('🔍 DEBUG: Initial data lines count:', dataLines.length);
+      
       // Check if first row is all empty and second row has actual headers
       const firstRowIsEmpty = headers.every(h => h === '' || h.trim() === '');
+      console.log('🔍 DEBUG: First row is empty:', firstRowIsEmpty);
+      
       if (firstRowIsEmpty && lines.length > 1) {
         const secondRowHeaders = lines[1].split(',').map(h => h.trim().replace(/"/g, ''));
         const secondRowHasContent = secondRowHeaders.some(h => h !== '' && h.trim() !== '');
+        
+        console.log('🔍 DEBUG: Second row headers:', secondRowHeaders);
+        console.log('🔍 DEBUG: Second row has content:', secondRowHasContent);
         
         if (secondRowHasContent) {
           // Use second row as headers and start data from third row
           headers = secondRowHeaders;
           dataLines = lines.slice(2);
+          console.log('🔍 DEBUG: Using second row as headers, data starts from line 3');
         } else {
           // Skip the empty first row, treat second as headers
           dataLines = lines.slice(2);
+          console.log('🔍 DEBUG: Skipping empty first row');
         }
       }
 
@@ -449,6 +468,12 @@ export class UploadSettingsService {
         });
       }
 
+      console.log('🔍 DEBUG: Headers before column filtering:', headers);
+      console.log('🔍 DEBUG: Script content check:', {
+        hasDropna: scriptContent.includes('dropna(axis=1, how=\'all\')'),
+        hasColumnsContains: scriptContent.includes('columns.str.contains(')
+      });
+
       // Remove empty columns and unnamed columns
       if (scriptContent.includes('dropna(axis=1, how=\'all\')') || 
           scriptContent.includes('columns.str.contains(')) {
@@ -456,13 +481,21 @@ export class UploadSettingsService {
         const validColumnIndices: number[] = [];
         headers.forEach((header, index) => {
           const cleanHeader = header.trim();
+          console.log(`🔍 DEBUG: Checking header ${index}: "${header}" -> "${cleanHeader}"`);
+          
           // Keep columns that are not empty and not unnamed
           if (cleanHeader.length > 0 && 
               cleanHeader !== '' && 
               !cleanHeader.toLowerCase().includes('unnamed')) {
             validColumnIndices.push(index);
+            console.log(`🔍 DEBUG: Keeping column ${index}: "${cleanHeader}"`);
+          } else {
+            console.log(`🔍 DEBUG: Removing column ${index}: "${cleanHeader}"`);
           }
         });
+
+        console.log('🔍 DEBUG: Valid column indices:', validColumnIndices);
+        console.log('🔍 DEBUG: Original headers count:', headers.length);
 
         // Filter headers and data to keep only valid columns
         headers = validColumnIndices.map(i => headers[i]);
@@ -470,6 +503,9 @@ export class UploadSettingsService {
           const cells = line.split(',');
           return validColumnIndices.map(i => cells[i] || '').join(',');
         });
+        
+        console.log('🔍 DEBUG: Filtered headers count:', headers.length);
+        console.log('🔍 DEBUG: Filtered headers:', headers);
       }
 
       // Rebuild CSV
