@@ -45,7 +45,7 @@ export default function CampaignsOverview() {
             <TemplatesPage />
           </TabsContent>
           <TabsContent value="campaigns" className="h-full m-0">
-            <CampaignsPlaceholder />
+            <CampaignsList />
           </TabsContent>
         </Tabs>
       </div>
