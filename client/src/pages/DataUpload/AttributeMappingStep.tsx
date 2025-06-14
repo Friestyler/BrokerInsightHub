@@ -371,54 +371,64 @@ export default function AttributeMappingStep({
         </div>
 
         <div className="space-y-6">
-          {/* Column Headers */}
-          <div className="grid grid-cols-2 gap-8 mb-3">
-            <h4 className="font-medium text-sm text-muted-foreground">Entity Attributes</h4>
-            <h4 className="font-medium text-sm text-muted-foreground">CSV Column Mapping</h4>
-          </div>
-          
-          {/* Mapping Rows */}
-          <div className="space-y-3">
+          {/* Mapping Cards */}
+          <div className="space-y-4">
             {attributeMappings.length === 0 && (
-              <div className="text-center py-8 text-gray-500">
-                <p>No attributes configured for this upload type.</p>
-                <p className="text-sm mt-1">You can add optional attributes using the button below.</p>
+              <div className="text-center py-12 bg-gray-50 rounded-2xl">
+                <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                  <span className="text-gray-400 text-2xl">📊</span>
+                </div>
+                <p className="text-gray-600 font-medium">No attributes configured</p>
+                <p className="text-sm text-gray-500 mt-1">Select a template or configure mapping manually</p>
               </div>
             )}
             
             {attributeMappings.map((mapping, index) => (
               <div key={`mapping-row-${index}`} className="space-y-4">
-                <div className="grid grid-cols-2 gap-8 items-stretch">
-                  {/* Left: Entity Attribute */}
-                  <div className={`p-3 rounded-lg border flex items-center justify-between ${
-                    mapping.isRequired 
-                      ? 'bg-red-50 border-red-200' 
-                      : 'bg-blue-50 border-blue-200'
-                  }`}>
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium text-sm">{mapping.attribute}</span>
-                      {mapping.isRequired && (
-                        <Badge variant="destructive" className="text-xs">Required</Badge>
-                      )}
+                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
+                  <div className="flex items-center justify-between">
+                    {/* Attribute Info */}
+                    <div className="flex items-center gap-3">
+                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-sm ${
+                        mapping.isRequired 
+                          ? 'bg-gradient-to-br from-red-100 to-orange-100 text-red-600' 
+                          : 'bg-gradient-to-br from-blue-100 to-purple-100 text-blue-600'
+                      }`}>
+                        {mapping.isRequired ? '⚡' : '📊'}
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold text-gray-900">{mapping.attribute}</span>
+                          {mapping.isRequired && (
+                            <span className="px-2 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-full">Required</span>
+                          )}
+                        </div>
+                        <p className="text-sm text-gray-500 mt-1">
+                          {mapping.isRequired ? 'This field is mandatory for processing' : 'Optional field - can be skipped'}
+                        </p>
+                      </div>
                     </div>
+                    
+                    {/* Remove button for optional fields */}
                     {!mapping.isRequired && (
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-6 w-6 p-0 text-gray-400 hover:text-red-500 hover:bg-red-50"
+                        className="h-8 w-8 p-0 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
+                        onClick={() => {
+                          const newMappings = attributeMappings.filter((_, i) => i !== index);
+                          setAttributeMappings(newMappings);
+                        }}
                       >
-                        <Minus className="h-3 w-3" />
+                        <Minus className="h-4 w-4" />
                       </Button>
                     )}
                   </div>
                   
-                  {/* Right: CSV Column Dropdown */}
-                  <div className={`p-3 rounded-lg border ${
-                    mapping.isRequired 
-                      ? 'bg-red-50 border-red-200' 
-                      : 'bg-blue-50 border-blue-200'
-                  }`}>
-                    <div className="flex items-center gap-2">
+                  {/* CSV Column Selection */}
+                  <div className="space-y-3">
+                    <Label className="text-sm font-medium text-gray-700">Map to CSV Column</Label>
+                    <div className="flex items-center gap-3">
                       <div className="flex-1">
                         <Select 
                           value={mapping.csvColumn} 
@@ -444,16 +454,16 @@ export default function AttributeMappingStep({
                             setAttributeMappings(newMappings);
                           }}
                         >
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select CSV column" />
+                          <SelectTrigger className="h-12 bg-white border-gray-200 hover:border-blue-400 transition-all rounded-xl">
+                            <SelectValue placeholder="Choose a CSV column..." />
                           </SelectTrigger>
                           <SelectContent className="max-h-[270px] p-0">
                             <div className="p-1">
-                              <SelectItem value="CODE" className="bg-purple-50 text-purple-700 font-medium">
+                              <SelectItem value="CODE" className="bg-purple-50 text-purple-700 font-medium rounded-lg m-1">
                                 <div className="flex items-center justify-between w-full">
                                   <div className="flex items-center gap-2">
                                     <span className="text-purple-500">&lt;/&gt;</span>
-                                    Code (Custom Logic)
+                                    Custom Code Logic
                                   </div>
                                   {mapping.customCode && mapping.customCode.trim() && (
                                     <div className="flex items-center gap-1 text-green-600">
@@ -464,22 +474,22 @@ export default function AttributeMappingStep({
                                 </div>
                               </SelectItem>
                               {csvHeaders.filter(header => header && header.trim().length > 0).map(header => (
-                                <SelectItem key={header} value={header}>{header}</SelectItem>
+                                <SelectItem key={header} value={header} className="rounded-lg m-1">{header}</SelectItem>
                               ))}
                             </div>
                           </SelectContent>
                         </Select>
                       </div>
                       
-                      {/* Edit Code Button - shows when CODE is selected and has custom code */}
+                      {/* Edit Code Button */}
                       {mapping.csvColumn === 'CODE' && mapping.customCode && mapping.customCode.trim() && (
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => setShowCodeEditor(prev => ({ ...prev, [index]: true }))}
-                          className="shrink-0 gap-1"
+                          className="h-12 px-4 border-purple-200 text-purple-700 hover:bg-purple-50 rounded-xl transition-all"
                         >
-                          <Edit className="h-3 w-3" />
+                          <Edit className="h-4 w-4 mr-2" />
                           Edit Code
                         </Button>
                       )}
@@ -895,16 +905,21 @@ Examples:
       </div>
 
       {/* Actions */}
-      <div className="flex justify-between">
-        <Button variant="outline" onClick={onBack}>
+      <div className="flex justify-between items-center pt-6">
+        <Button 
+          variant="outline" 
+          onClick={onBack}
+          className="h-12 px-6 border-gray-200 hover:bg-gray-50 rounded-xl transition-all"
+        >
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back
         </Button>
         <Button 
           onClick={() => onNext(attributeMappings)} 
           disabled={attributeMappings.length === 0}
+          className="h-12 px-8 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Continue to Processing
+          Process Data
           <ArrowRight className="h-4 w-4 ml-2" />
         </Button>
       </div>
