@@ -3001,6 +3001,87 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // AI Code Generation API endpoint
+  app.post('/api/:envId/generate-transformation-code', async (req, res) => {
+    try {
+      const { prompt, uploadType, context } = req.body;
+      
+      if (!prompt) {
+        return res.status(400).json({ error: 'Prompt is required' });
+      }
+
+      if (!process.env.OPENAI_API_KEY) {
+        return res.status(400).json({ 
+          error: 'OpenAI API key is required for AI code generation. Please provide OPENAI_API_KEY in environment variables.' 
+        });
+      }
+
+      // Import OpenAI dynamically
+      const { default: OpenAI } = await import('openai');
+      const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
+
+      // Create system prompt for code generation
+      const systemPrompt = `You are an expert Python developer specializing in CSV data transformation. Your job is to generate clean, efficient Python code based on user descriptions.
+
+Key requirements:
+1. Always use pandas for CSV operations
+2. The main function should be called 'transform_csv' and take a DataFrame as input
+3. Return the transformed DataFrame
+4. Include proper error handling
+5. Add helpful comments explaining the transformation
+6. Keep code simple and readable
+7. Handle common edge cases (empty values, missing columns, etc.)
+
+The user is working with ${uploadType} data transformation. The file context: ${JSON.stringify(context)}
+
+Generate Python code that transforms CSV data according to the user's request. Also provide a clear explanation of what the code does.
+
+Respond with a JSON object containing:
+{
+  "code": "the complete Python transformation code",
+  "explanation": "a clear, non-technical explanation of what the code does"
+}`;
+
+      const response = await openai.chat.completions.create({
+        model: "gpt-4o", // the newest OpenAI model is "gpt-4o" which was released May 13, 2024. do not change this unless explicitly requested by the user
+        messages: [
+          {
+            role: "system",
+            content: systemPrompt
+          },
+          {
+            role: "user",
+            content: `Generate Python code for this transformation: ${prompt}`
+          }
+        ],
+        max_tokens: 2000,
+        temperature: 0.3
+      });
+
+      const result = response.choices[0].message.content;
+      
+      try {
+        const parsedResult = JSON.parse(result);
+        res.json(parsedResult);
+      } catch (parseError) {
+        // If JSON parsing fails, extract code and create explanation
+        const codeMatch = result.match(/```python\n([\s\S]*?)\n```/);
+        const code = codeMatch ? codeMatch[1] : result;
+        
+        res.json({
+          code: code,
+          explanation: "AI generated transformation code based on your description. The code uses pandas to process your CSV data and applies the requested transformations."
+        });
+      }
+
+    } catch (error) {
+      console.error('AI code generation error:', error);
+      res.status(500).json({ 
+        error: 'Failed to generate transformation code. Please check your OpenAI API key and try again.' 
+      });
+    }
+  });
+
   // OKR Metrics API endpoints
   
   // Get all OKR metrics

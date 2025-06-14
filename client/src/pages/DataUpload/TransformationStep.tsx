@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { ArrowLeft, ArrowRight, Code, Play, Save, FileCode, AlertCircle, CheckCircle, ChevronDown, ChevronRight, Copy } from 'lucide-react';
+import { ArrowLeft, ArrowRight, Code, Play, Save, FileCode, AlertCircle, CheckCircle, ChevronDown, ChevronRight, Copy, Sparkles, Loader2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 
@@ -171,6 +171,11 @@ export default function TransformationStep({
     errors?: string[];
   } | null>(null);
   const [showExamples, setShowExamples] = useState(false);
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [isGeneratingCode, setIsGeneratingCode] = useState(false);
+  const [generatedCode, setGeneratedCode] = useState('');
+  const [codeExplanation, setCodeExplanation] = useState('');
+  const [showAiInterface, setShowAiInterface] = useState(false);
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -205,6 +210,64 @@ export default function TransformationStep({
     queryKey: [`/api/${environmentId}/transformation-scripts`],
     enabled: true
   });
+
+  // AI Code Generation mutation
+  const generateCodeMutation = useMutation({
+    mutationFn: async (prompt: string) => {
+      const response = await fetch(`/api/${environmentId}/generate-transformation-code`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt,
+          uploadType,
+          context: {
+            entityType: uploadType,
+            fileName: 'sample_file.csv'
+          }
+        })
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to generate code');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setGeneratedCode(data.code);
+      setCodeExplanation(data.explanation);
+      setScriptContent(data.code);
+      setIsModified(true);
+      setIsGeneratingCode(false);
+      toast({
+        title: "Code Generated",
+        description: "AI has generated your transformation code based on your description."
+      });
+    },
+    onError: (error: Error) => {
+      setIsGeneratingCode(false);
+      toast({
+        title: "Failed to generate code",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleGenerateCode = () => {
+    if (!aiPrompt.trim()) {
+      toast({
+        title: "Please enter a description",
+        description: "Describe what you want the transformation to do.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setIsGeneratingCode(true);
+    generateCodeMutation.mutate(aiPrompt);
+  };
 
   // Auto-select last used script for special format uploads
   useEffect(() => {
@@ -618,6 +681,80 @@ export default function TransformationStep({
                 placeholder="Brief description of the transformation"
               />
             </div>
+          </div>
+
+          <Separator />
+
+          {/* AI Code Generator */}
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <Label className="text-sm font-medium">AI Code Generator</Label>
+                <p className="text-xs text-gray-600">Describe what you want the transformation to do in plain English</p>
+              </div>
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => setShowAiInterface(!showAiInterface)}
+                className="gap-2"
+              >
+                <Sparkles className="h-4 w-4" />
+                {showAiInterface ? 'Hide AI' : 'Use AI'}
+              </Button>
+            </div>
+
+            {showAiInterface && (
+              <Card className="border-blue-200 bg-blue-50/30">
+                <CardContent className="p-4 space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="ai-prompt">Describe your transformation</Label>
+                    <Textarea
+                      id="ai-prompt"
+                      value={aiPrompt}
+                      onChange={(e) => setAiPrompt(e.target.value)}
+                      placeholder="Example: I want this column to take the name of the file and the name of the customer"
+                      className="min-h-[80px]"
+                    />
+                  </div>
+                  
+                  <div className="flex items-center justify-between">
+                    <div className="text-xs text-gray-600">
+                      Examples: "Add file name to each row", "Combine first and last name columns", "Convert currency format"
+                    </div>
+                    <Button
+                      onClick={handleGenerateCode}
+                      disabled={isGeneratingCode || !aiPrompt.trim()}
+                      className="gap-2"
+                    >
+                      {isGeneratingCode ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                          Generating...
+                        </>
+                      ) : (
+                        <>
+                          <Sparkles className="h-4 w-4" />
+                          Generate Code
+                        </>
+                      )}
+                    </Button>
+                  </div>
+
+                  {/* Generated Code Explanation */}
+                  {codeExplanation && (
+                    <Alert className="border-green-200 bg-green-50">
+                      <CheckCircle className="h-4 w-4" />
+                      <AlertDescription>
+                        <div className="space-y-2">
+                          <p className="font-medium">Code Explanation:</p>
+                          <p className="text-sm">{codeExplanation}</p>
+                        </div>
+                      </AlertDescription>
+                    </Alert>
+                  )}
+                </CardContent>
+              </Card>
+            )}
           </div>
 
           <Separator />
