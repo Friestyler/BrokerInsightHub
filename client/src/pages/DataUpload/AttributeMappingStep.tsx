@@ -554,12 +554,22 @@ export default function AttributeMappingStep({
         return false;
       }
 
-      // Check for Python syntax patterns
+      // For function-based code, try to extract the main transformation logic
+      if (code.includes('def ') || code.includes('return ')) {
+        // Mark as valid but extract logic for preview
+        setCodeValidation(prev => ({ 
+          ...prev, 
+          [index]: { isValid: true }
+        }));
+        generateCodePreview(code, index);
+        return true;
+      }
+
+      // Check for incomplete Python syntax patterns only for simple expressions
       const invalidPatterns = [
         /^\s*if\s+.*:\s*$/, // if statement without body
         /^\s*for\s+.*:\s*$/, // for loop without body
         /^\s*while\s+.*:\s*$/, // while loop without body
-        /^\s*def\s+.*:\s*$/, // function definition without body
       ];
 
       const hasInvalidPattern = lines.some(line => 
@@ -571,7 +581,7 @@ export default function AttributeMappingStep({
           ...prev, 
           [index]: { isValid: false, error: 'Incomplete Python syntax - missing function body or logic' }
         }));
-        setCodePreview(prev => ({ ...prev, [index]: [] }));
+        setCodePreview(prev => ({ ...prev, [index]: ['Error: Incomplete Python syntax'] }));
         return false;
       }
 
@@ -637,29 +647,47 @@ export default function AttributeMappingStep({
       
       // For function-based code, extract the main logic/return statement
       if (cleanCode.includes('def ') && cleanCode.includes('return ')) {
-        // Try to extract the return statement or main transformation logic
-        const lines = cleanCode.split('\n');
-        let transformationLogic = '';
-        
-        // Look for the main transformation line (usually the return statement or column assignment)
-        for (let i = lines.length - 1; i >= 0; i--) {
-          const line = lines[i].trim();
-          if (line.startsWith('return ') || line.includes('=') && !line.startsWith('if ') && !line.startsWith('def ')) {
+        try {
+          // Try to extract the return statement or main transformation logic
+          const lines = cleanCode.split('\n');
+          let transformationLogic = '';
+          
+          // Look for the main transformation line (usually the return statement or column assignment)
+          for (let i = lines.length - 1; i >= 0; i--) {
+            const line = lines[i].trim();
             if (line.startsWith('return ')) {
               transformationLogic = line.replace('return ', '');
-            } else if (line.includes('=')) {
-              // Extract the right side of assignment
-              const assignmentMatch = line.match(/=\s*(.+)$/);
+              break;
+            } else if (line.includes('df[') && line.includes('=')) {
+              // Extract DataFrame column assignment like: df['clientId'] = df['First Name'] + ' ' + df['Last Name']
+              const assignmentMatch = line.match(/df\[['"].*?['"]\]\s*=\s*(.+)$/);
               if (assignmentMatch) {
                 transformationLogic = assignmentMatch[1];
+                // Replace df['column'] with column_ format
+                transformationLogic = transformationLogic.replace(/df\[['"]([^'"]*)['"]\]/g, (match, columnName) => {
+                  return `column_${columnName.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+                });
+                break;
               }
             }
-            break;
           }
-        }
-        
-        if (transformationLogic) {
-          cleanCode = transformationLogic;
+          
+          if (transformationLogic) {
+            cleanCode = transformationLogic;
+          } else {
+            // If we can't extract logic, show a helpful message
+            setCodePreview(prev => ({ 
+              ...prev, 
+              [index]: ['Function-based code detected', 'Add simple expression for preview', 'e.g., column_name1 + " " + column_name2'] 
+            }));
+            return;
+          }
+        } catch (e) {
+          setCodePreview(prev => ({ 
+            ...prev, 
+            [index]: ['Error parsing function code', 'Try using simple expressions', 'e.g., column_name1 + column_name2'] 
+          }));
+          return;
         }
       }
 
@@ -896,7 +924,7 @@ export default function AttributeMappingStep({
           // Show only the transformed value, not "Row X:"
           return result || 'Empty';
         } catch (error) {
-          return `Row ${idx + 1}: Error evaluating code`;
+          return 'Error evaluating expression';
         }
       });
 
@@ -1347,17 +1375,12 @@ export default function AttributeMappingStep({
                       <div className="flex items-center justify-between">
                         <h4 className="font-medium text-sm">Python Code Editor</h4>
                         <div className="flex items-center gap-2">
-                          {codeValidation[index]?.isValid ? (
+                          {codeValidation[index]?.isValid && (
                             <div className="flex items-center gap-1 text-green-600">
                               <CheckCircle className="h-4 w-4" />
                               <span className="text-xs">Valid</span>
                             </div>
-                          ) : codeValidation[index]?.error ? (
-                            <div className="flex items-center gap-1 text-red-600">
-                              <X className="h-4 w-4" />
-                              <span className="text-xs">Error</span>
-                            </div>
-                          ) : null}
+                          )}
                         </div>
                       </div>
                       
@@ -1444,11 +1467,7 @@ export default function AttributeMappingStep({
                         />
                       </div>
                       
-                      {codeValidation[index]?.error && (
-                        <div className="text-red-600 text-xs bg-red-50 p-2 rounded border">
-                          {codeValidation[index].error}
-                        </div>
-                      )}
+
                       
                       {/* Quick Insert Helper Buttons */}
                       <div className="space-y-2">
@@ -1535,15 +1554,30 @@ export default function AttributeMappingStep({
                         {codePreview[index] && codePreview[index].length > 0 ? (
                           <div className="space-y-2">
                             <div className="text-xs font-medium text-gray-600 mb-2">Sample results from first 3 rows:</div>
-                            {codePreview[index].map((preview, previewIndex) => (
-                              <div key={previewIndex} className="flex items-center justify-between p-2 bg-green-50 rounded border-l-4 border-green-400">
-                                <div className="flex items-center gap-2">
-                                  <span className="text-xs font-medium text-green-700">Row {previewIndex + 1}:</span>
-                                  <span className="text-sm text-gray-800 font-medium">{preview}</span>
+                            {codePreview[index].map((preview, previewIndex) => {
+                              const isError = preview.includes('Error') || preview.includes('Function-based') || preview.includes('Add simple');
+                              return (
+                                <div key={previewIndex} className={`flex items-center justify-between p-2 rounded border-l-4 ${
+                                  isError 
+                                    ? 'bg-yellow-50 border-yellow-400' 
+                                    : 'bg-green-50 border-green-400'
+                                }`}>
+                                  <div className="flex items-center gap-2">
+                                    <span className={`text-xs font-medium ${
+                                      isError ? 'text-yellow-700' : 'text-green-700'
+                                    }`}>
+                                      {isError ? 'Info:' : `Row ${previewIndex + 1}:`}
+                                    </span>
+                                    <span className="text-sm text-gray-800 font-medium">{preview}</span>
+                                  </div>
+                                  {isError ? (
+                                    <AlertCircle className="h-4 w-4 text-yellow-500" />
+                                  ) : (
+                                    <CheckCircle className="h-4 w-4 text-green-500" />
+                                  )}
                                 </div>
-                                <CheckCircle className="h-4 w-4 text-green-500" />
-                              </div>
-                            ))}
+                              );
+                            })}
                           </div>
                         ) : (
                           <div className="flex items-center justify-center h-20 text-gray-400 text-sm">
