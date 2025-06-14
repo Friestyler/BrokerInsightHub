@@ -630,7 +630,7 @@ export default function PartnerPilot() {
 
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-emerald-100 flex flex-col" onClick={() => setLocation('/data-upload-3/entities')}>
+            <Card className="hover:shadow-md transition-shadow cursor-pointer border-2 border-emerald-100 flex flex-col" onClick={() => setLocation('/data-upload-3/process/entity-upload')}>
               <CardHeader className="flex-grow">
                 <div className="flex justify-between items-start">
                   <div className="h-10 w-10 rounded-full bg-emerald-100 flex items-center justify-center">

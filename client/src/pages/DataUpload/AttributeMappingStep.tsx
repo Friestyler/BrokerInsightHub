@@ -60,8 +60,12 @@ export default function AttributeMappingStep({
   const [codeValidation, setCodeValidation] = useState<{ [key: number]: { isValid: boolean; error?: string } }>({});
   const [codePreview, setCodePreview] = useState<{ [key: number]: string[] }>({});
   const [csvData, setCsvData] = useState<any[]>([]);
+  const [selectedEntityType, setSelectedEntityType] = useState<string>('');
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // Check if this is the general entity upload flow
+  const isEntityUpload = uploadType === 'entity-upload';
 
   // Check if this is a special format upload (should pre-select last used template)
   const isSpecialFormat = uploadType.includes('-') || ['salesforce', 'brio', 'degoudse'].includes(uploadType);
@@ -201,9 +205,11 @@ export default function AttributeMappingStep({
   const environmentId = localStorage.getItem('currentEnvironment') || 'degoudse';
 
   // Get upload settings to determine mandatory attributes
+  // For entity-upload, use the selected entity type; otherwise use the upload type
+  const effectiveUploadType = isEntityUpload ? selectedEntityType : uploadType;
   const { data: uploadSettings = [], isLoading: isLoadingUploadSettings } = useQuery({
-    queryKey: [`/api/${environmentId}/upload-settings/${uploadType}`],
-    enabled: !!environmentId && !!uploadType,
+    queryKey: [`/api/${environmentId}/upload-settings/${effectiveUploadType}`],
+    enabled: !!environmentId && (isEntityUpload ? !!selectedEntityType : !!uploadType),
   });
 
   // Get entity schema to get all available attributes
@@ -213,6 +219,7 @@ export default function AttributeMappingStep({
   });
 
   // Fetch templates for this entity type
+  // For entity-upload, use the selected entity type; otherwise use the upload type
   const { data: templates = [], isLoading: isLoadingTemplates } = useQuery<Template[]>({
     queryKey: [`/api/${environmentId}/upload-templates`],
     enabled: !!environmentId,
@@ -221,20 +228,24 @@ export default function AttributeMappingStep({
   // Auto-select last used template for ALL entity types
   useEffect(() => {
     if (templates.length > 0 && !isLoadingUploadSettings && attributeMappings.length === 0) {
-      const lastUsedTemplateId = getLastUsedTemplate(uploadType);
+      // For entity-upload, skip auto-loading until entity is selected
+      if (isEntityUpload && !selectedEntityType) return;
+      
+      const targetUploadType = isEntityUpload ? selectedEntityType : uploadType;
+      const lastUsedTemplateId = getLastUsedTemplate(targetUploadType);
       
       if (lastUsedTemplateId) {
         const lastUsedTemplate = templates.find(template => template.id.toString() === lastUsedTemplateId);
         
         // Check if template is compatible with the current upload type
         const isTemplateCompatible = lastUsedTemplate && (
-          lastUsedTemplate.entity_type === uploadType || 
+          lastUsedTemplate.entity_type === targetUploadType || 
           // For special formats, allow any template since they can map to various entities
           (isSpecialFormat && ['opportunities', 'customers', 'partners', 'products', 'vendors', 'contacts'].includes(lastUsedTemplate.entity_type))
         );
 
         if (isTemplateCompatible) {
-          console.log(`Auto-loading last used template for ${uploadType}:`, lastUsedTemplate.name);
+          console.log(`Auto-loading last used template for ${targetUploadType}:`, lastUsedTemplate.name);
           setSelectedTemplateId(lastUsedTemplateId);
           setTemplateLoaded(true); // Set this BEFORE loading to prevent interference
           loadTemplate(lastUsedTemplate.id.toString());
@@ -252,7 +263,7 @@ export default function AttributeMappingStep({
         }
       }
     }
-  }, [templates, uploadType, attributeMappings.length, isLoadingUploadSettings]);
+  }, [templates, uploadType, selectedEntityType, attributeMappings.length, isLoadingUploadSettings]);
 
   // Save template mutation
   const saveTemplateMutation = useMutation({
