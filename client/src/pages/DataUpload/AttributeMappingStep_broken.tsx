@@ -1,0 +1,1697 @@
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Badge } from '@/components/ui/badge';
+import { Plus, Save, Edit, ArrowLeft, ArrowRight, CheckCircle, X, Trash2, Minus, Sparkles, Loader2, AlertCircle } from 'lucide-react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useToast } from '@/hooks/use-toast';
+
+interface AttributeMappingStepProps {
+  uploadedFile: File | null;
+  csvHeaders: string[];
+  uploadType: string;
+  stepName: string;
+  currentStep: number;
+  selectedTransformationScript?: { id: number; name: string } | null;
+  onNext: (mappings: AttributeMapping[]) => void;
+  onBack: () => void;
+}
+
+interface AttributeMapping {
+  attribute: string;
+  csvColumn: string;
+  isRequired: boolean;
+  customCode?: string;
+  isCodeBased?: boolean;
+}
+
+interface Template {
+  id: number;
+  name: string;
+  description?: string;
+  entity_type: string;
+  column_mappings: any;
+  isShared?: boolean;
+  createdBy?: number;
+}
+
+export default function AttributeMappingStep({ 
+  uploadedFile, 
+  csvHeaders,
+  uploadType, 
+  stepName, 
+  currentStep,
+  selectedTransformationScript,
+  onNext, 
+  onBack 
+}: AttributeMappingStepProps) {
+  const [attributeMappings, setAttributeMappings] = useState<AttributeMapping[]>([]);
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
+  const [templateName, setTemplateName] = useState('');
+  const [showSaveTemplate, setShowSaveTemplate] = useState(false);
+  const [showAddAttribute, setShowAddAttribute] = useState(false);
+  const [selectedNewAttribute, setSelectedNewAttribute] = useState<string>('');
+  const [extractedHeaders, setExtractedHeaders] = useState<string[]>([]);
+  const [showCodeEditor, setShowCodeEditor] = useState<{ [key: number]: boolean }>({});
+  const [codeEditorContent, setCodeEditorContent] = useState<{ [key: number]: string }>({});
+  const [codeValidation, setCodeValidation] = useState<{ [key: number]: { isValid: boolean; error?: string } }>({});
+  const [codePreview, setCodePreview] = useState<{ [key: number]: string[] }>({});
+  const [csvData, setCsvData] = useState<any[]>([]);
+  const [selectedEntityType, setSelectedEntityType] = useState<string>('');
+  const [aiPrompt, setAiPrompt] = useState<{ [key: number]: string }>({});
+  const [isGeneratingCode, setIsGeneratingCode] = useState<{ [key: number]: boolean }>({});
+  const [codeExplanation, setCodeExplanation] = useState<{ [key: number]: string }>({});
+  const [showAiInterface, setShowAiInterface] = useState<{ [key: number]: boolean }>({});
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  // AI Code Generation mutation
+  const generateCodeMutation = useMutation({
+    mutationFn: async ({ prompt, index }: { prompt: string; index: number }) => {
+      const response = await fetch(`/api/degoudse/generate-transformation-code`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt,
+          uploadType: selectedEntityType || uploadType,
+          context: {
+            attributeName: attributeMappings[index]?.attribute,
+            csvHeaders: extractedHeaders.length > 0 ? extractedHeaders : csvHeaders,
+            fileName: uploadedFile?.name || 'uploaded_file.csv'
+          }
+        })
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to generate code');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data, { index }) => {
+      // Clean up the generated code if it's wrapped in JSON or markdown
+      let cleanCode = data.code;
+      
+      // Remove JSON wrapper if present
+      if (cleanCode.startsWith('```json')) {
+        try {
+          const jsonMatch = cleanCode.match(/```json\s*\n?\s*{\s*"code":\s*"([^"]*(?:\\.[^"]*)*)"/);
+          if (jsonMatch) {
+            cleanCode = jsonMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+          }
+        } catch (e) {
+          // If parsing fails, try to extract code between markdown blocks
+          const codeMatch = cleanCode.match(/```(?:python)?\s*\n([\s\S]*?)\n```/);
+          if (codeMatch) {
+            cleanCode = codeMatch[1];
+          }
+        }
+      }
+      
+      // Remove markdown code blocks if present
+      if (cleanCode.includes('```')) {
+        const codeMatch = cleanCode.match(/```(?:python)?\s*\n([\s\S]*?)\n```/);
+        if (codeMatch) {
+          cleanCode = codeMatch[1];
+        }
+      }
+      
+      setCodeEditorContent(prev => ({ ...prev, [index]: cleanCode }));
+      setCodeExplanation(prev => ({ ...prev, [index]: data.explanation }));
+      setIsGeneratingCode(prev => ({ ...prev, [index]: false }));
+      
+      // Update the mapping with the clean code
+      setAttributeMappings(prev => prev.map((mapping, i) => 
+        i === index ? { ...mapping, customCode: cleanCode } : mapping
+      ));
+      
+      // Validate the generated code
+      validatePythonCode(cleanCode, index);
+      
+      toast({
+        title: "Code Generated",
+        description: "AI has generated your transformation code based on your description."
+      });
+    },
+    onError: (error: Error, { index }) => {
+      setIsGeneratingCode(prev => ({ ...prev, [index]: false }));
+      toast({
+        title: "Failed to generate code",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleGenerateCode = (index: number) => {
+    const prompt = aiPrompt[index];
+    if (!prompt?.trim()) {
+      toast({
+        title: "Please enter a description",
+        description: "Describe what you want the transformation to do.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setIsGeneratingCode(prev => ({ ...prev, [index]: true }));
+    generateCodeMutation.mutate({ prompt, index });
+  };
+
+  // Check if this is the general entity upload flow
+  const isEntityUpload = uploadType === 'entity-upload';
+
+  // Check if this is a special format upload (should pre-select last used template)
+  const isSpecialFormat = uploadType.includes('-') || ['salesforce', 'brio', 'degoudse'].includes(uploadType);
+
+  // Storage functions for last used template
+  const getLastUsedTemplateKey = (uploadType: string) => `lastUsedTemplate_${uploadType}`;
+  
+  const saveLastUsedTemplate = (templateId: number, uploadType: string) => {
+    // Save last used template for ALL entity types, not just special formats
+    localStorage.setItem(getLastUsedTemplateKey(uploadType), templateId.toString());
+  };
+
+  const getLastUsedTemplate = (uploadType: string): string | null => {
+    // Get last used template for ALL entity types, not just special formats
+    return localStorage.getItem(getLastUsedTemplateKey(uploadType));
+  };
+
+  // Extract CSV headers and data from uploaded file with transformation
+  useEffect(() => {
+    if (uploadedFile && uploadedFile.type === 'text/csv') {
+      processCSVFile();
+    }
+  }, [uploadedFile, selectedTransformationScript]);
+
+  const processCSVFile = async () => {
+    if (!uploadedFile) return;
+
+    try {
+      // Check if we need to apply transformation script
+      const isSpecialFormat = uploadType.includes('-') || ['salesforce', 'brio', 'degoudse'].includes(uploadType);
+      
+      if (isSpecialFormat && selectedTransformationScript) {
+        // Apply transformation script first
+        console.log('🔄 TRANSFORMATION DEBUG: Starting transformation process');
+        console.log('🔄 Selected transformation script:', selectedTransformationScript);
+        console.log('🔄 Upload type:', uploadType);
+        console.log('🔄 Is special format:', isSpecialFormat);
+        console.log('🔄 Environment ID:', environmentId);
+        console.log('🔄 Original file size:', uploadedFile.size, 'bytes');
+        
+        const formData = new FormData();
+        formData.append('csvFile', uploadedFile);
+        formData.append('scriptId', selectedTransformationScript.id.toString());
+        formData.append('entityType', uploadType);
+
+        console.log('🔄 Making transformation API call to:', `/api/${environmentId}/transformation-scripts/execute`);
+        
+        const response = await fetch(`/api/${environmentId}/transformation-scripts/execute`, {
+          method: 'POST',
+          body: formData
+        });
+
+        console.log('🔄 Transformation API response status:', response.status);
+        
+        if (response.ok) {
+          const result = await response.json();
+          console.log('✅ TRANSFORMATION SUCCESS:', {
+            originalHeaders: 'N/A (will extract from original file for comparison)',
+            transformedHeaders: result.headers,
+            transformedRowCount: result.rowCount,
+            transformedCsvLength: result.transformedCsv?.length || 0
+          });
+          
+          // Also log a sample of the transformed CSV for debugging
+          const transformedLines = result.transformedCsv.split('\n').filter((line: string) => line.trim());
+          console.log('✅ First few lines of transformed CSV:');
+          transformedLines.slice(0, 3).forEach((line: string, index: number) => {
+            console.log(`   Line ${index + 1}: ${line.substring(0, 100)}${line.length > 100 ? '...' : ''}`);
+          });
+          
+          // Use the transformed headers and data
+          setExtractedHeaders(result.headers);
+          
+          // Parse transformed CSV data for preview
+          const dataRows = transformedLines.slice(1, 6).map((line: string) => {
+            const values = line.split(',').map((v: string) => v.trim().replace(/"/g, ''));
+            const row: Record<string, any> = {};
+            result.headers.forEach((header: string, index: number) => {
+              const columnVar = `column_${header.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+              row[columnVar] = values[index] || '';
+            });
+            return row;
+          });
+          setCsvData(dataRows);
+          
+          console.log('✅ Transformed data preview:', dataRows.slice(0, 2));
+          
+        } else {
+          const errorText = await response.text();
+          console.error('❌ TRANSFORMATION FAILED:', {
+            status: response.status,
+            statusText: response.statusText,
+            errorText: errorText
+          });
+          // Fall back to original CSV processing
+          processOriginalCSV();
+        }
+      } else {
+        // No transformation needed, process original CSV
+        processOriginalCSV();
+      }
+    } catch (error) {
+      console.error('Error processing CSV with transformation:', error);
+      // Fall back to original CSV processing
+      processOriginalCSV();
+    }
+  };
+
+  const processOriginalCSV = () => {
+    if (!uploadedFile) return;
+    
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target?.result as string;
+      const lines = content.split('\n').filter(line => line.trim());
+      if (lines.length > 0) {
+        const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+        setExtractedHeaders(headers);
+        
+        // Parse CSV data (first 5 rows for preview)
+        const dataRows = lines.slice(1, 6).map(line => {
+          const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
+          const row: Record<string, any> = {};
+          headers.forEach((header, index) => {
+            const columnVar = `column_${header.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+            row[columnVar] = values[index] || '';
+          });
+          return row;
+        });
+        setCsvData(dataRows);
+      }
+    };
+    reader.readAsText(uploadedFile);
+  };
+
+  // Get environment ID from localStorage
+  const environmentId = localStorage.getItem('currentEnvironment') || 'degoudse';
+
+  // Get upload settings to determine mandatory attributes
+  // For entity-upload, use the selected entity type; otherwise use the upload type
+  const effectiveUploadType = isEntityUpload ? selectedEntityType : uploadType;
+  const { data: uploadSettings = [], isLoading: isLoadingUploadSettings } = useQuery({
+    queryKey: [`/api/${environmentId}/upload-settings/${effectiveUploadType}`],
+    enabled: !!environmentId && (isEntityUpload ? !!selectedEntityType : !!uploadType),
+  });
+
+  // Get entity schema to get all available attributes
+  const { data: entityData = [], isLoading: isLoadingEntityData } = useQuery({
+    queryKey: ['/api/admin/entity-schemas'],
+    enabled: true,
+  });
+
+  // Fetch templates for this entity type
+  // For entity-upload, use the selected entity type; otherwise use the upload type
+  const { data: templates = [], isLoading: isLoadingTemplates } = useQuery<Template[]>({
+    queryKey: [`/api/${environmentId}/upload-templates`],
+    enabled: !!environmentId,
+  });
+
+  // Auto-select last used template for ALL entity types
+  useEffect(() => {
+    if (templates.length > 0 && !isLoadingUploadSettings && attributeMappings.length === 0) {
+      // For entity-upload, skip auto-loading until entity is selected
+      if (isEntityUpload && !selectedEntityType) return;
+      
+      const targetUploadType = isEntityUpload ? selectedEntityType : uploadType;
+      const lastUsedTemplateId = getLastUsedTemplate(targetUploadType);
+      
+      if (lastUsedTemplateId) {
+        const lastUsedTemplate = templates.find(template => template.id.toString() === lastUsedTemplateId);
+        
+        // Check if template is compatible with the current upload type
+        const isTemplateCompatible = lastUsedTemplate && (
+          lastUsedTemplate.entity_type === targetUploadType || 
+          // For special formats, allow any template since they can map to various entities
+          (isSpecialFormat && ['opportunities', 'customers', 'partners', 'products', 'vendors', 'contacts'].includes(lastUsedTemplate.entity_type))
+        );
+
+        if (isTemplateCompatible) {
+          console.log(`Auto-loading last used template for ${targetUploadType}:`, lastUsedTemplate.name);
+          setSelectedTemplateId(lastUsedTemplateId);
+          setTemplateLoaded(true); // Set this BEFORE loading to prevent interference
+          loadTemplate(lastUsedTemplate.id.toString());
+        }
+      } else {
+        // Only initialize mandatory attributes if no template is available
+        const mandatoryAttrs = getMandatoryAttributes();
+        if (mandatoryAttrs.length > 0) {
+          const mappings = mandatoryAttrs.map((attr: string) => ({
+            attribute: attr,
+            csvColumn: '',
+            isRequired: true,
+          }));
+          setAttributeMappings(mappings);
+        }
+      }
+    }
+  }, [templates, uploadType, selectedEntityType, attributeMappings.length, isLoadingUploadSettings]);
+
+  // Save template mutation
+  const saveTemplateMutation = useMutation({
+    mutationFn: async (templateData: any) => {
+      const response = await fetch(`/api/${environmentId}/upload-templates`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(templateData),
+      });
+      if (!response.ok) throw new Error('Failed to save template');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/${environmentId}/upload-templates`] });
+      toast({ title: 'Template saved successfully' });
+      setShowSaveTemplate(false);
+      setTemplateName('');
+    },
+    onError: () => {
+      toast({ title: 'Failed to save template', variant: 'destructive' });
+    },
+  });
+
+  // Update template mutation
+  const updateTemplateMutation = useMutation({
+    mutationFn: async ({ templateId, templateData }: { templateId: string, templateData: any }) => {
+      const response = await fetch(`/api/${environmentId}/upload-templates/${templateId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(templateData),
+      });
+      if (!response.ok) throw new Error('Failed to update template');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/${environmentId}/upload-templates`] });
+      toast({ title: 'Template updated successfully' });
+    },
+    onError: () => {
+      toast({ title: 'Failed to update template', variant: 'destructive' });
+    },
+  });
+
+  // Delete template mutation
+  const deleteTemplateMutation = useMutation({
+    mutationFn: async (templateId: string) => {
+      const response = await fetch(`/api/${environmentId}/upload/templates/${templateId}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) throw new Error('Failed to delete template');
+      return response.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [`/api/${environmentId}/upload-templates`] });
+      toast({ title: 'Template deleted successfully' });
+      setSelectedTemplateId('');
+    },
+    onError: () => {
+      toast({ title: 'Failed to delete template', variant: 'destructive' });
+    },
+  });
+
+  // Get available entity attributes
+  const getEntityAttributes = () => {
+    if (!Array.isArray(entityData) || !uploadType) return [];
+    
+    // Check if this is a special format (contains hyphen) or special entity
+    const isSpecialFormat = uploadType.includes('-') || ['salesforce', 'brio', 'degoudse'].includes(uploadType);
+    
+    if (isSpecialFormat) {
+      // For special formats, return all attributes from all entities
+      const allAttributes: string[] = [];
+      entityData.forEach((entity: any) => {
+        if (entity.columns && Array.isArray(entity.columns)) {
+          entity.columns.forEach((col: any) => {
+            if (col.name && col.name.trim().length > 0) {
+              // Prefix with entity name to avoid conflicts and provide context
+              allAttributes.push(`${entity.tableName}.${col.name}`);
+            }
+          });
+        }
+      });
+      
+      console.log('Special format entity attributes:', {
+        uploadType,
+        isSpecialFormat,
+        availableSchemas: entityData.map((e: any) => e.tableName),
+        totalAttributes: allAttributes.length,
+        sampleAttributes: allAttributes.slice(0, 10)
+      });
+      
+      return allAttributes;
+    }
+    
+    // For regular entity uploads, try to match specific entity
+    let entitySchema = entityData.find((e: any) => 
+      e.tableName && e.tableName.toLowerCase().includes(uploadType.toLowerCase())
+    );
+    
+    // If not found, try exact match
+    if (!entitySchema) {
+      entitySchema = entityData.find((e: any) => 
+        e.tableName && e.tableName.toLowerCase() === uploadType.toLowerCase()
+      );
+    }
+    
+    // If still not found, try plural/singular variations
+    if (!entitySchema) {
+      const variations = [
+        uploadType + 's',
+        uploadType.endsWith('s') ? uploadType.slice(0, -1) : uploadType + 's',
+        uploadType.replace('ies', 'y'),
+        uploadType.replace('y', 'ies')
+      ];
+      
+      entitySchema = entityData.find((e: any) => 
+        e.tableName && variations.some(v => 
+          e.tableName.toLowerCase().includes(v.toLowerCase())
+        )
+      );
+    }
+    
+    console.log('Regular entity schema lookup:', {
+      uploadType,
+      isSpecialFormat,
+      availableSchemas: entityData.map((e: any) => e.tableName),
+      foundSchema: entitySchema?.tableName,
+      columns: entitySchema?.columns?.map((col: any) => col.name)
+    });
+    
+    return entitySchema?.columns
+      ?.map((col: any) => col.name)
+      ?.filter((name: string) => name && name.trim().length > 0) || [];
+  };
+
+  // Get mandatory attributes from upload settings
+  const getMandatoryAttributes = () => {
+    if (!Array.isArray(uploadSettings)) return [];
+    return uploadSettings
+      .filter((setting: any) => setting.is_mandatory === true)
+      .map((setting: any) => setting.attribute_name);
+  };
+
+  // Track if template has been loaded to prevent overwriting
+  const [templateLoaded, setTemplateLoaded] = useState(false);
+
+  // Update attribute mapping
+  const updateMapping = (index: number, csvColumn: string) => {
+    setAttributeMappings(prev => prev.map((mapping, i) => 
+      i === index ? { 
+        ...mapping, 
+        csvColumn,
+        isCodeBased: csvColumn === 'CODE',
+        customCode: csvColumn === 'CODE' ? (codeEditorContent[index] || '') : undefined
+      } : mapping
+    ));
+
+    // Show/hide code editor based on selection
+    if (csvColumn === 'CODE') {
+      setShowCodeEditor(prev => ({ ...prev, [index]: true }));
+      if (!codeEditorContent[index]) {
+        setCodeEditorContent(prev => ({ ...prev, [index]: '' }));
+      }
+    } else {
+      setShowCodeEditor(prev => ({ ...prev, [index]: false }));
+    }
+  };
+
+  // Validate Python code
+  const validatePythonCode = (code: string, index: number) => {
+    try {
+      // Basic Python syntax validation
+      if (!code.trim()) {
+        setCodeValidation(prev => ({ 
+          ...prev, 
+          [index]: { isValid: false, error: 'Code cannot be empty' }
+        }));
+        setCodePreview(prev => ({ ...prev, [index]: [] }));
+        return false;
+      }
+
+      // Check for basic Python syntax issues
+      const lines = code.split('\n').filter(line => line.trim() && !line.trim().startsWith('#'));
+      if (lines.length === 0) {
+        setCodeValidation(prev => ({ 
+          ...prev, 
+          [index]: { isValid: false, error: 'Please add some code logic' }
+        }));
+        setCodePreview(prev => ({ ...prev, [index]: [] }));
+        return false;
+      }
+
+      // For function-based code, try to extract the main transformation logic
+      if (code.includes('def ') || code.includes('return ')) {
+        // Mark as valid but extract logic for preview
+        setCodeValidation(prev => ({ 
+          ...prev, 
+          [index]: { isValid: true }
+        }));
+        generateCodePreview(code, index);
+        return true;
+      }
+
+      // Check for incomplete Python syntax patterns only for simple expressions
+      const invalidPatterns = [
+        /^\s*if\s+.*:\s*$/, // if statement without body
+        /^\s*for\s+.*:\s*$/, // for loop without body
+        /^\s*while\s+.*:\s*$/, // while loop without body
+      ];
+
+      const hasInvalidPattern = lines.some(line => 
+        invalidPatterns.some(pattern => pattern.test(line))
+      );
+
+      if (hasInvalidPattern) {
+        setCodeValidation(prev => ({ 
+          ...prev, 
+          [index]: { isValid: false, error: 'Incomplete Python syntax - missing function body or logic' }
+        }));
+        setCodePreview(prev => ({ ...prev, [index]: ['Error: Incomplete Python syntax'] }));
+        return false;
+      }
+
+      // Check for basic expression validity
+      const mainLine = lines[lines.length - 1]; // Last non-comment line should be the expression
+      if (!mainLine || mainLine.trim().length < 3) {
+        setCodeValidation(prev => ({ 
+          ...prev, 
+          [index]: { isValid: false, error: 'Please add a valid Python expression' }
+        }));
+        setCodePreview(prev => ({ ...prev, [index]: [] }));
+        return false;
+      }
+
+      // Basic validation passed
+      setCodeValidation(prev => ({ 
+        ...prev, 
+        [index]: { isValid: true }
+      }));
+      
+      // Generate preview
+      generateCodePreview(code, index);
+      return true;
+    } catch (error) {
+      setCodeValidation(prev => ({ 
+        ...prev, 
+        [index]: { isValid: false, error: 'Invalid Python syntax' }
+      }));
+      setCodePreview(prev => ({ ...prev, [index]: [] }));
+      return false;
+    }
+  };
+
+  // Generate code preview
+  const generateCodePreview = (code: string, index: number) => {
+    try {
+      // Clean up the code if it's wrapped in JSON or contains function definitions
+      let cleanCode = code.trim();
+      
+      // Remove JSON wrapper if present
+      if (cleanCode.startsWith('```json')) {
+        try {
+          const jsonMatch = cleanCode.match(/```json\s*\n?\s*{\s*"code":\s*"([^"]*(?:\\.[^"]*)*)"/);
+          if (jsonMatch) {
+            cleanCode = jsonMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+          }
+        } catch (e) {
+          // If parsing fails, try to extract code between markdown blocks
+          const codeMatch = cleanCode.match(/```(?:python)?\s*\n([\s\S]*?)\n```/);
+          if (codeMatch) {
+            cleanCode = codeMatch[1];
+          }
+        }
+      }
+      
+      // Remove markdown code blocks if present
+      if (cleanCode.includes('```')) {
+        const codeMatch = cleanCode.match(/```(?:python)?\s*\n([\s\S]*?)\n```/);
+        if (codeMatch) {
+          cleanCode = codeMatch[1];
+        }
+      }
+      
+      // For function-based code, extract the main logic/return statement
+      if (cleanCode.includes('def ') || cleanCode.includes('import pandas')) {
+        try {
+          // Extract transformation logic from function-based code
+          const lines = cleanCode.split('\n');
+          let transformationLogic = '';
+          
+          // Look for DataFrame column assignments or return statements
+          for (const line of lines) {
+            const trimmedLine = line.trim();
+            
+            // Look for df['column'] = expression patterns
+            const dfAssignmentMatch = trimmedLine.match(/df\[['"]([^'"]*)['"]\]\s*=\s*(.+)$/);
+            if (dfAssignmentMatch) {
+              let expression = dfAssignmentMatch[2];
+              // Replace df['column'] references with column_ format
+              expression = expression.replace(/df\[['"]([^'"]*)['"]\]/g, (match, columnName) => {
+                return `column_${columnName.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+              });
+              transformationLogic = expression;
+              break;
+            }
+            
+            // Look for return statements
+            if (trimmedLine.startsWith('return ')) {
+              transformationLogic = trimmedLine.replace('return ', '');
+              // Replace df['column'] references if present
+              transformationLogic = transformationLogic.replace(/df\[['"]([^'"]*)['"]\]/g, (match, columnName) => {
+                return `column_${columnName.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+              });
+              break;
+            }
+          }
+          
+          if (transformationLogic && transformationLogic.length > 0) {
+            cleanCode = transformationLogic;
+          } else {
+            // Show a helpful message for complex functions
+            setCodePreview(prev => ({ 
+              ...prev, 
+              [index]: ['AI generated complex function', 'Extracting logic for preview...', 'Use simple expressions for better preview'] 
+            }));
+            return;
+          }
+        } catch (e) {
+          setCodePreview(prev => ({ 
+            ...prev, 
+            [index]: ['Could not extract preview logic', 'Try simpler expressions like:', 'column_first_name + " " + column_last_name'] 
+          }));
+          return;
+        }
+      }
+
+      // Use actual CSV data if available, otherwise show error
+      let dataToUse = csvData;
+      if (!dataToUse || dataToUse.length === 0) {
+        setCodePreview(prev => ({ 
+          ...prev, 
+          [index]: ['No CSV data loaded', 'Please upload a CSV file first', 'to see preview results'] 
+        }));
+        return;
+      }
+
+      // Try to evaluate the code with actual CSV data
+      const previews = dataToUse.slice(0, 3).map((rowData, idx) => {
+        try {
+          // Simple evaluation for basic expressions
+          let evaluatedCode = cleanCode.trim();
+          
+          // Replace column references with actual CSV values (with proper quoting for strings)
+          Object.entries(rowData).forEach(([key, value]) => {
+            const regex = new RegExp(`\\bcolumn_${key.toLowerCase().replace(/[^a-z0-9]/g, '_')}\\b`, 'g');
+            const stringValue = typeof value === 'string' ? `"${value}"` : String(value);
+            evaluatedCode = evaluatedCode.replace(regex, stringValue);
+            
+            // Also try direct column name matching
+            const directRegex = new RegExp(`\\b${key}\\b`, 'g');
+            evaluatedCode = evaluatedCode.replace(directRegex, stringValue);
+          });
+
+          let result = evaluatedCode;
+
+          // Handle Python string functions
+          // Handle upper() function
+          if (result.includes('upper(')) {
+            result = result.replace(/(\w+)\.upper\(\)/g, (match, variable) => {
+              return `"${variable.toUpperCase()}"`;
+            });
+            result = result.replace(/upper\(([^)]+)\)/g, (match, content) => {
+              const cleanContent = content.replace(/['"]/g, '');
+              return `"${cleanContent.toUpperCase()}"`;
+            });
+          }
+          
+          // Handle lower() function
+          if (result.includes('lower(')) {
+            result = result.replace(/(\w+)\.lower\(\)/g, (match, variable) => {
+              return `"${variable.toLowerCase()}"`;
+            });
+            result = result.replace(/lower\(([^)]+)\)/g, (match, content) => {
+              const cleanContent = content.replace(/['"]/g, '');
+              return `"${cleanContent.toLowerCase()}"`;
+            });
+          }
+          
+          // Handle capitalize() function
+          if (result.includes('capitalize(')) {
+            result = result.replace(/(\w+)\.capitalize\(\)/g, (match, variable) => {
+              return `"${variable.charAt(0).toUpperCase() + variable.slice(1).toLowerCase()}"`;
+            });
+            result = result.replace(/capitalize\(([^)]+)\)/g, (match, content) => {
+              const cleanContent = content.replace(/['"]/g, '');
+              return `"${cleanContent.charAt(0).toUpperCase() + cleanContent.slice(1).toLowerCase()}"`;
+            });
+          }
+          
+          // Handle title() function
+          if (result.includes('title(')) {
+            result = result.replace(/(\w+)\.title\(\)/g, (match, variable) => {
+              return `"${variable.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase())}"`;
+            });
+            result = result.replace(/title\(([^)]+)\)/g, (match, content) => {
+              const cleanContent = content.replace(/['"]/g, '');
+              return `"${cleanContent.replace(/\w\S*/g, (txt) => txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase())}"`;
+            });
+          }
+          
+          // Handle strip() function
+          if (result.includes('strip(')) {
+            result = result.replace(/(\w+)\.strip\(\)/g, (match, variable) => {
+              return `"${variable.trim()}"`;
+            });
+            result = result.replace(/strip\(([^)]+)\)/g, (match, content) => {
+              const cleanContent = content.replace(/['"]/g, '');
+              return `"${cleanContent.trim()}"`;
+            });
+          }
+          
+          // Handle lstrip() function
+          if (result.includes('lstrip(')) {
+            result = result.replace(/(\w+)\.lstrip\(\)/g, (match, variable) => {
+              return `"${variable.replace(/^\s+/, '')}"`;
+            });
+            result = result.replace(/lstrip\(([^)]+)\)/g, (match, content) => {
+              const cleanContent = content.replace(/['"]/g, '');
+              return `"${cleanContent.replace(/^\s+/, '')}"`;
+            });
+          }
+          
+          // Handle rstrip() function
+          if (result.includes('rstrip(')) {
+            result = result.replace(/(\w+)\.rstrip\(\)/g, (match, variable) => {
+              return `"${variable.replace(/\s+$/, '')}"`;
+            });
+            result = result.replace(/rstrip\(([^)]+)\)/g, (match, content) => {
+              const cleanContent = content.replace(/['"]/g, '');
+              return `"${cleanContent.replace(/\s+$/, '')}"`;
+            });
+          }
+          
+          // Handle replace() function
+          if (result.includes('replace(')) {
+            result = result.replace(/(\w+)\.replace\(['"]([^'"]*)['"]\s*,\s*['"]([^'"]*)['"]\)/g, (match, variable, oldStr, newStr) => {
+              return `"${variable.replace(new RegExp(oldStr, 'g'), newStr)}"`;
+            });
+            result = result.replace(/replace\(([^,]+),\s*['"]([^'"]*)['"]\s*,\s*['"]([^'"]*)['"]\)/g, (match, content, oldStr, newStr) => {
+              const cleanContent = content.replace(/['"]/g, '');
+              return `"${cleanContent.replace(new RegExp(oldStr, 'g'), newStr)}"`;
+            });
+          }
+          
+          // Handle startswith() function
+          if (result.includes('startswith(')) {
+            // Handle method syntax: variable.startswith("prefix")
+            result = result.replace(/(\w+)\.startswith\(['"]([^'"]*)['"]\)/g, (match, variable, prefix) => {
+              return variable.startsWith(prefix) ? 'True' : 'False';
+            });
+            // Handle function syntax: startswith(variable, "prefix")
+            result = result.replace(/startswith\(([^,]+),\s*['"]([^'"]*)['"]\)/g, (match, variable, prefix) => {
+              const cleanVariable = variable.replace(/['"]/g, '');
+              return cleanVariable.startsWith(prefix) ? 'True' : 'False';
+            });
+          }
+          
+          // Handle endswith() function
+          if (result.includes('endswith(')) {
+            // Handle method syntax: variable.endswith("suffix")
+            result = result.replace(/(\w+)\.endswith\(['"]([^'"]*)['"]\)/g, (match, variable, suffix) => {
+              return variable.endsWith(suffix) ? 'True' : 'False';
+            });
+            // Handle function syntax: endswith(variable, "suffix")
+            result = result.replace(/endswith\(([^,]+),\s*['"]([^'"]*)['"]\)/g, (match, variable, suffix) => {
+              const cleanVariable = variable.replace(/['"]/g, '');
+              return cleanVariable.endsWith(suffix) ? 'True' : 'False';
+            });
+          }
+          
+          // Handle find() function
+          if (result.includes('find(')) {
+            // Handle method syntax: variable.find("search")
+            result = result.replace(/(\w+)\.find\(['"]([^'"]*)['"]\)/g, (match, variable, searchStr) => {
+              return String(variable.indexOf(searchStr));
+            });
+            // Handle function syntax: find(variable, "search")
+            result = result.replace(/find\(([^,]+),\s*['"]([^'"]*)['"]\)/g, (match, variable, searchStr) => {
+              const cleanVariable = variable.replace(/['"]/g, '');
+              return String(cleanVariable.indexOf(searchStr));
+            });
+          }
+          
+          // Handle count() function
+          if (result.includes('count(')) {
+            // Handle method syntax: variable.count("search")
+            result = result.replace(/(\w+)\.count\(['"]([^'"]*)['"]\)/g, (match, variable, searchStr) => {
+              return String((variable.match(new RegExp(searchStr, 'g')) || []).length);
+            });
+            // Handle function syntax: count(variable, "search")
+            result = result.replace(/count\(([^,]+),\s*['"]([^'"]*)['"]\)/g, (match, variable, searchStr) => {
+              const cleanVariable = variable.replace(/['"]/g, '');
+              return String((cleanVariable.match(new RegExp(searchStr, 'g')) || []).length);
+            });
+          }
+          
+          // Handle split() function
+          if (result.includes('split(')) {
+            result = result.replace(/(\w+)\.split\(['"]([^'"]*)['"]\)/g, (match, variable, delimiter) => {
+              const parts = variable.split(delimiter);
+              return `"${parts.join(' | ')}"`;  // Join with separator for display
+            });
+            result = result.replace(/(\w+)\.split\(\)/g, (match, variable) => {
+              const parts = variable.split(' ');
+              return `"${parts.join(' | ')}"`;
+            });
+          }
+          
+          // Handle str() function
+          if (result.includes('str(')) {
+            result = result.replace(/str\(([^)]+)\)/g, (match, content) => {
+              const cleanContent = content.replace(/['"]/g, '');
+              return `"${String(cleanContent)}"`;
+            });
+          }
+
+          // Handle string concatenation with +
+          if (result.includes('+') && !result.includes('if')) {
+            try {
+              // Try to evaluate the expression using eval in a safe context
+              const safeResult = eval(result);
+              result = String(safeResult);
+            } catch (e) {
+              // Fallback to manual parsing
+              const parts = result.split('+').map(p => p.trim().replace(/^["']|["']$/g, ''));
+              result = parts.join('');
+            }
+          }
+          
+          // Handle conditional expressions (if/else)
+          if (result.includes('if') && result.includes('else')) {
+            try {
+              // Try to evaluate using eval for JavaScript-like syntax
+              const jsExpression = result.replace(/if\s+(.+?)\s+else/g, '? $1 :');
+              const safeResult = eval(jsExpression);
+              result = String(safeResult);
+            } catch (e) {
+              // Fallback to manual parsing
+              const match = result.match(/"?([^"]*)"?\s+if\s+(.+?)\s+else\s+"?([^"]*)"?/);
+              if (match) {
+                const [, trueValue, condition, falseValue] = match;
+                let conditionResult = false;
+                if (condition.includes('==')) {
+                  const [left, right] = condition.split('==').map(s => s.trim().replace(/['"]/g, ''));
+                  conditionResult = left === right;
+                } else {
+                  conditionResult = idx % 2 === 0;
+                }
+                result = conditionResult ? trueValue : falseValue;
+              }
+            }
+          }
+          
+          // Clean up quotes for final display
+          result = result.replace(/^["']|["']$/g, '');
+          
+          // Show only the transformed value, not "Row X:"
+          return result || 'Empty';
+        } catch (error) {
+          return 'Error evaluating expression';
+        }
+      });
+
+      setCodePreview(prev => ({ 
+        ...prev, 
+        [index]: previews
+      }));
+    } catch (error) {
+      setCodePreview(prev => ({ 
+        ...prev, 
+        [index]: ['Error generating preview']
+      }));
+    }
+  };
+
+  // Handle code editor changes
+  const handleCodeChange = (index: number, code: string) => {
+    setCodeEditorContent(prev => ({ ...prev, [index]: code }));
+    
+    // Update the mapping with the new code
+    setAttributeMappings(prev => prev.map((mapping, i) => 
+      i === index && mapping.isCodeBased ? { ...mapping, customCode: code } : mapping
+    ));
+
+    // Clear previous validation timeout
+    if (typeof window !== 'undefined') {
+      (window as any)[`validationTimeout_${index}`] && clearTimeout((window as any)[`validationTimeout_${index}`]);
+      
+      // Set new validation timeout
+      (window as any)[`validationTimeout_${index}`] = setTimeout(() => {
+        validatePythonCode(code, index);
+      }, 800);
+    }
+  };
+
+  // Get available attributes for adding (excluding already used ones)
+  const getAvailableAttributesForAdding = () => {
+    const allAttributes = getEntityAttributes();
+    const usedAttributes = attributeMappings.map(m => m.attribute);
+    const availableAttributes = allAttributes.filter((attr: string) => !usedAttributes.includes(attr));
+    
+    console.log('Available attributes for adding:', {
+      allAttributes,
+      usedAttributes,
+      availableAttributes,
+      attributeMappings
+    });
+    
+    return availableAttributes;
+  };
+
+  // Add selected optional attribute
+  const addSelectedAttribute = () => {
+    if (selectedNewAttribute) {
+      setAttributeMappings(prev => [...prev, {
+        attribute: selectedNewAttribute,
+        csvColumn: '',
+        isRequired: false,
+      }]);
+      setSelectedNewAttribute('');
+      setShowAddAttribute(false);
+    }
+  };
+
+  // Remove attribute mapping (only for non-mandatory attributes)
+  const removeAttributeMapping = (index: number) => {
+    const mapping = attributeMappings[index];
+    if (!mapping.isRequired) {
+      setAttributeMappings(prev => prev.filter((_, i) => i !== index));
+      // Clean up associated states
+      setShowCodeEditor(prev => {
+        const newState = { ...prev };
+        delete newState[index];
+        return newState;
+      });
+      setCodeEditorContent(prev => {
+        const newState = { ...prev };
+        delete newState[index];
+        return newState;
+      });
+      setCodeValidation(prev => {
+        const newState = { ...prev };
+        delete newState[index];
+        return newState;
+      });
+      setCodePreview(prev => {
+        const newState = { ...prev };
+        delete newState[index];
+        return newState;
+      });
+    }
+  };
+
+  // Load template
+  const loadTemplate = (templateId: string | Template) => {
+    const template = typeof templateId === 'string' 
+      ? templates.find((t) => t.id.toString() === templateId)
+      : templateId;
+      
+    if (template && template.column_mappings) {
+      // Save template selection for ALL entity types (not just special formats)
+      // Use effective upload type for entity-upload flow
+      const targetUploadType = isEntityUpload ? selectedEntityType : uploadType;
+      saveLastUsedTemplate(template.id, targetUploadType);
+      
+      let mappings;
+      try {
+        mappings = typeof template.column_mappings === 'string' 
+          ? JSON.parse(template.column_mappings) 
+          : template.column_mappings;
+        
+        console.log('Loading template mappings:', mappings);
+        setAttributeMappings(mappings);
+        setTemplateLoaded(true); // Mark template as loaded to prevent mandatory attrs from overwriting
+        
+        // Load code editor states and content for code-based mappings
+        mappings.forEach((mapping: AttributeMapping, index: number) => {
+          if (mapping.isCodeBased && mapping.customCode) {
+            setShowCodeEditor(prev => ({ ...prev, [index]: true }));
+            setCodeEditorContent(prev => ({ ...prev, [index]: mapping.customCode || '' }));
+            // Validate the loaded code
+            setTimeout(() => validatePythonCode(mapping.customCode || '', index), 100);
+          }
+        });
+        
+        toast({ 
+          title: `Template "${template.name}" loaded`,
+          description: `Auto-loaded with ${mappings.length} column mappings`
+        });
+      } catch (error) {
+        toast({ title: 'Failed to load template', variant: 'destructive' });
+      }
+    }
+  };
+
+  // Save current mapping as template
+  const saveAsTemplate = () => {
+    if (!templateName.trim()) {
+      toast({ title: 'Please enter a template name', variant: 'destructive' });
+      return;
+    }
+
+    // Use effective upload type for entity-upload flow
+    const targetUploadType = isEntityUpload ? selectedEntityType : uploadType;
+    saveTemplateMutation.mutate({
+      name: templateName,
+      description: `Template for ${targetUploadType}`,
+      entityType: targetUploadType,
+      environmentId: environmentId,
+      columnMappings: attributeMappings,
+      isShared: false,
+      createdBy: 1,
+    });
+  };
+
+  // Update existing template
+  const updateTemplate = () => {
+    if (!selectedTemplateId) return;
+    
+    const template = templates.find((t) => t.id.toString() === selectedTemplateId);
+    if (!template) return;
+
+    updateTemplateMutation.mutate({
+      templateId: selectedTemplateId,
+      templateData: {
+        name: template.name,
+        description: template.description,
+        entityType: uploadType,
+        environmentId: environmentId,
+        columnMappings: attributeMappings,
+        isShared: template.isShared || false,
+        createdBy: template.createdBy || 1,
+      }
+    });
+  };
+
+  const canProceed = attributeMappings
+    .filter(m => m.isRequired)
+    .every(mapping => {
+      if (mapping.csvColumn === 'CODE') {
+        // For code-based mappings, check if code is valid
+        return mapping.customCode && 
+               mapping.customCode.trim().length > 0 && 
+               codeValidation[attributeMappings.indexOf(mapping)]?.isValid;
+      }
+      return mapping.csvColumn;
+    });
+
+  const csvHeadersToUse = extractedHeaders.length > 0 ? extractedHeaders : csvHeaders;
+
+  const handleNext = () => {
+    onNext(attributeMappings);
+  };
+
+  // Check if we're still loading critical data
+  const isLoadingCriticalData = isLoadingUploadSettings || isLoadingEntityData;
+
+  return (
+    <div className="space-y-6">
+      {/* Loading state for mandatory attributes */}
+      {isLoadingCriticalData && (
+        <Card>
+          <CardContent className="pt-6">
+            <div className="flex items-center justify-center space-x-2">
+              <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+              <span className="text-gray-600">Loading column mapping requirements...</span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+
+
+      {/* Template Management Section */}
+      <Card>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-base">Template Management</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex gap-4 items-end">
+              {/* Use Template Dropdown */}
+              <div className="flex-1">
+                <Label className="text-sm font-medium">Use Template</Label>
+                <Select 
+                  value={selectedTemplateId} 
+                  onValueChange={(value) => {
+                    setSelectedTemplateId(value);
+                    if (value && value !== 'none') {
+                      loadTemplate(value);
+                    } else if (value === 'none') {
+                      // Clear current mappings to reset to default state
+                      const mandatoryAttrs = getMandatoryAttributes();
+                      const mappings = mandatoryAttrs.map((attr: string) => ({
+                        attribute: attr,
+                        csvColumn: '',
+                        isRequired: true,
+                      }));
+                      setAttributeMappings(mappings);
+                      toast({ title: 'Template cleared' });
+                    }
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a template" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Create New Template</SelectItem>
+                    {templates
+                      .filter(template => {
+                        // For entity-upload, filter by selected entity type
+                        if (isEntityUpload && selectedEntityType) {
+                          return template.entity_type === selectedEntityType;
+                        }
+                        // For other flows, show all templates (existing logic)
+                        return true;
+                      })
+                      .map((template) => (
+                        <SelectItem key={template.id} value={template.id.toString()}>
+                          {template.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+            {/* Save Template Button */}
+            <Button 
+              variant="outline" 
+              onClick={() => setShowSaveTemplate(true)}
+              className="shrink-0"
+            >
+              <Save className="h-4 w-4 mr-2" />
+              Save Template
+            </Button>
+
+            {/* Update Template Button */}
+            {selectedTemplateId && selectedTemplateId !== 'none' && (
+              <Button 
+                variant="outline" 
+                onClick={updateTemplate}
+                disabled={updateTemplateMutation.isPending}
+                className="shrink-0"
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                {updateTemplateMutation.isPending ? 'Updating...' : 'Update Template'}
+              </Button>
+            )}
+
+            {/* Delete Template Button */}
+            {selectedTemplateId && selectedTemplateId !== 'none' && (
+              <Button 
+                variant="outline" 
+                onClick={() => deleteTemplateMutation.mutate(selectedTemplateId)}
+                disabled={deleteTemplateMutation.isPending}
+                className="shrink-0 text-red-600 hover:text-red-700 hover:bg-red-50"
+              >
+                <Trash2 className="h-4 w-4 mr-2" />
+                {deleteTemplateMutation.isPending ? 'Deleting...' : 'Delete Template'}
+              </Button>
+            )}
+          </div>
+
+          {/* Save Template Form */}
+          {showSaveTemplate && (
+            <div className="border rounded-lg p-4 space-y-3 bg-muted/50">
+              <div>
+                <Label className="text-sm font-medium">Template Name</Label>
+                <Input
+                  value={templateName}
+                  onChange={(e) => setTemplateName(e.target.value)}
+                  placeholder="Enter template name"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={saveAsTemplate}
+                  disabled={saveTemplateMutation.isPending}
+                  size="sm"
+                >
+                  {saveTemplateMutation.isPending ? 'Saving...' : 'Save'}
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowSaveTemplate(false)}
+                  size="sm"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Main Mapping Section - Row-based alignment */}
+      <Card>
+        <CardHeader className="pb-4">
+          <CardTitle className="text-base">Column Mapping</CardTitle>
+        </CardHeader>
+          <CardContent>
+          {/* Column Headers */}
+          <div className="grid grid-cols-2 gap-8 mb-3">
+            <h4 className="font-medium text-sm text-muted-foreground">Entity Attributes</h4>
+            <h4 className="font-medium text-sm text-muted-foreground">CSV Column Mapping</h4>
+          </div>
+          
+          {/* Mapping Rows */}
+          <div className="space-y-3">
+            {/* Show loading state when upload settings are loading and no mappings exist yet */}
+            {isLoadingUploadSettings && attributeMappings.length === 0 && (
+              <div className="flex items-center justify-center py-8">
+                <div className="flex items-center space-x-2">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-600"></div>
+                  <span className="text-gray-600">Loading mandatory attributes...</span>
+                </div>
+              </div>
+            )}
+            
+            {/* Show message when no mandatory attributes are configured */}
+            {!isLoadingUploadSettings && attributeMappings.length === 0 && (
+              <div className="text-center py-8 text-gray-500">
+                <p>No mandatory attributes configured for this upload type.</p>
+                <p className="text-sm mt-1">You can add optional attributes using the button below.</p>
+              </div>
+            )}
+            
+            {attributeMappings.map((mapping, index) => (
+              <div key={`mapping-row-${index}`} className="space-y-4">
+                <div className="grid grid-cols-2 gap-8 items-stretch">
+                  {/* Left: Entity Attribute */}
+                  <div className={`p-3 rounded-lg border flex items-center justify-between ${
+                    mapping.isRequired 
+                      ? 'bg-red-50 border-red-200' 
+                      : 'bg-blue-50 border-blue-200'
+                  }`}>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-sm">{mapping.attribute}</span>
+                      {mapping.isRequired && (
+                        <Badge variant="destructive" className="text-xs">Required</Badge>
+                      )}
+                    </div>
+                    {!mapping.isRequired && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeAttributeMapping(index)}
+                        className="h-6 w-6 p-0 text-gray-400 hover:text-red-500 hover:bg-red-50"
+                      >
+                        <Minus className="h-3 w-3" />
+                      </Button>
+                    )}
+                  </div>
+                  
+                  {/* Right: CSV Column Dropdown */}
+                  <div className={`p-3 rounded-lg border ${
+                    mapping.isRequired 
+                      ? 'bg-red-50 border-red-200' 
+                      : 'bg-blue-50 border-blue-200'
+                  }`}>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1">
+                        <Select 
+                          value={mapping.csvColumn} 
+                          onValueChange={(value) => updateMapping(index, value)}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select CSV column" />
+                          </SelectTrigger>
+                      <SelectContent className="max-h-[270px] p-0">
+                        <div className="dropdown-search-sticky px-2 py-1 shadow-sm">
+                          <input
+                            type="text"
+                            placeholder="Search columns..."
+                            className="dropdown-search-input w-full px-2 py-1 text-sm border rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            onClick={(e) => e.stopPropagation()}
+                            onChange={(e) => {
+                              const searchTerm = e.target.value.toLowerCase();
+                              const content = e.target.closest('[data-radix-select-content]');
+                              const items = content?.querySelectorAll('[data-radix-select-item]');
+                              items?.forEach((item) => {
+                                const text = item.textContent?.toLowerCase() || '';
+                                const shouldShow = text.includes(searchTerm);
+                                (item as HTMLElement).style.display = shouldShow ? 'flex' : 'none';
+                              });
+                            }}
+                          />
+                        </div>
+                        <div className="p-1">
+                          <SelectItem value="CODE" className="bg-purple-50 text-purple-700 font-medium">
+                            <div className="flex items-center justify-between w-full">
+                              <div className="flex items-center gap-2">
+                                <span className="text-purple-500">&lt;/&gt;</span>
+                                Code (Custom Logic)
+                              </div>
+                              {mapping.customCode && mapping.customCode.trim() && (
+                                <div className="flex items-center gap-1 text-green-600">
+                                  <CheckCircle className="h-3 w-3" />
+                                  <span className="text-xs">Applied</span>
+                                </div>
+                              )}
+                            </div>
+                          </SelectItem>
+                          {csvHeadersToUse.filter(header => header && header.trim().length > 0).map(header => (
+                            <SelectItem key={header} value={header}>{header}</SelectItem>
+                          ))}
+                        </div>
+                      </SelectContent>
+                        </Select>
+                      </div>
+                      
+                      {/* Edit Code Button - shows when CODE is selected and has custom code */}
+                      {mapping.csvColumn === 'CODE' && mapping.customCode && mapping.customCode.trim() && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => setShowCodeEditor(prev => ({ ...prev, [index]: true }))}
+                          className="shrink-0 gap-1"
+                        >
+                          <Edit className="h-3 w-3" />
+                          Edit Code
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Code Editor Section - appears when "Code" is selected */}
+                {showCodeEditor[index] && mapping.csvColumn === 'CODE' && (
+                  <div className="mt-4 bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+                    {/* Clean Header */}
+                    <div className="px-6 py-4 bg-gradient-to-r from-purple-50 to-blue-50 border-b border-gray-100">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center">
+                            <span className="text-purple-600 text-lg font-bold">&lt;/&gt;</span>
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-gray-900">Custom Logic</h3>
+                            <p className="text-sm text-gray-600">Transform data with AI or code</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
+                          {codeValidation[index]?.isValid && (
+                            <div className="flex items-center gap-2 text-green-600 bg-green-50 px-4 py-2 rounded-full border border-green-200">
+                              <CheckCircle className="h-4 w-4" />
+                              <span className="font-medium">Applied</span>
+                            </div>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setShowCodeEditor(prev => ({ ...prev, [index]: false }))}
+                            className="rounded-full h-8 w-8 p-0"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="p-6 space-y-6">
+                      {/* AI Assistant */}
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                              <Sparkles className="h-4 w-4 text-blue-600" />
+                            </div>
+                            <div>
+                              <h4 className="font-medium text-gray-900">AI Assistant</h4>
+                              <p className="text-sm text-gray-600">Describe what you want</p>
+                            </div>
+                          </div>
+                          <Button
+                            variant={showAiInterface[index] ? "default" : "outline"}
+                            onClick={() => setShowAiInterface(prev => ({ ...prev, [index]: !prev[index] }))}
+                            className="rounded-full"
+                          >
+                            {showAiInterface[index] ? 'Close' : 'Use AI'}
+                          </Button>
+                        </div>
+
+                        {showAiInterface[index] && (
+                          <div className="bg-blue-50 rounded-xl p-4 border border-blue-100 space-y-4">
+                            <textarea
+                              value={aiPrompt[index] || ''}
+                              onChange={(e) => setAiPrompt(prev => ({ ...prev, [index]: e.target.value }))}
+                              placeholder="Example: Combine first and last name with an underscore"
+                              className="w-full h-20 p-4 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                            />
+                            
+                            <div className="flex items-center justify-between">
+                              <div className="text-sm text-gray-600">
+                                Try: "Combine columns", "Add prefix", "Make uppercase"
+                              </div>
+                              <Button
+                                onClick={() => handleGenerateCode(index)}
+                                disabled={isGeneratingCode[index] || !aiPrompt[index]?.trim()}
+                                className="rounded-full bg-blue-600 hover:bg-blue-700"
+                              >
+                                {isGeneratingCode[index] ? (
+                                  <>
+                                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                    Generating...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Sparkles className="h-4 w-4 mr-2" />
+                                    Generate
+                                  </>
+                                )}
+                              </Button>
+                            </div>
+
+                            {/* Success feedback */}
+                            {codeExplanation[index] && (
+                              <div className="bg-white rounded-lg border border-green-200 p-4">
+                                <div className="flex items-start gap-3">
+                                  <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
+                                  <div>
+                                    <p className="font-medium text-green-800">Generated successfully!</p>
+                                    <p className="text-sm text-green-700 mt-1">{codeExplanation[index]}</p>
+                                  </div>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Code Editor */}
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+                              <Edit className="h-4 w-4 text-gray-600" />
+                            </div>
+                            <div>
+                              <h4 className="font-medium text-gray-900">Code Editor</h4>
+                              <p className="text-sm text-gray-600">Edit transformation code</p>
+                            </div>
+                          </div>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setCodeEditorContent(prev => ({ ...prev, [index]: '' }));
+                              setAttributeMappings(prev => prev.map((mapping, i) => 
+                                i === index ? { ...mapping, customCode: '' } : mapping
+                              ));
+                            }}
+                            className="rounded-full"
+                          >
+                            Clear
+                          </Button>
+                        </div>
+                        
+                        <div className="bg-gray-50 rounded-xl p-1">
+                          <textarea
+                            value={codeEditorContent[index] || ''}
+                            onChange={(e) => handleCodeChange(index, e.target.value)}
+                            className="w-full h-32 p-4 bg-white border-0 rounded-lg font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            placeholder="Write transformation code here...
+Example: column_first_name + ' ' + column_last_name"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Preview */}
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                            <span className="text-green-600 text-sm font-bold">◎</span>
+                          </div>
+                          <div>
+                            <h4 className="font-medium text-gray-900">Preview</h4>
+                            <p className="text-sm text-gray-600">Sample results from your data</p>
+                          </div>
+                        </div>
+                        
+                        <div className="bg-gray-50 rounded-xl p-4 min-h-24">
+                          {codePreview[index] && codePreview[index].length > 0 ? (
+                            <div className="space-y-2">
+                              {codePreview[index].map((preview, previewIndex) => {
+                                const isError = preview.includes('Error') || preview.includes('Function-based') || preview.includes('Add simple');
+                                return (
+                                  <div key={previewIndex} className={`flex items-center gap-3 p-3 rounded-lg ${
+                                    isError ? 'bg-yellow-50' : 'bg-white border border-gray-200'
+                                  }`}>
+                                    {isError ? (
+                                      <AlertCircle className="h-4 w-4 text-yellow-500" />
+                                    ) : (
+                                      <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+                                        <span className="text-green-600 text-xs font-bold">{previewIndex + 1}</span>
+                                      </div>
+                                    )}
+                                    <span className="text-sm font-medium">{preview}</span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-center h-16 text-gray-400">
+                              <div className="text-center">
+                                <div className="text-sm">Preview will appear here</div>
+                                <div className="text-xs mt-1">Write code or use AI to see results</div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ))}
+          </div>
+
+          {/* Add Attribute Section */}
+          <div className="mt-6 grid grid-cols-2 gap-8">
+            <div>
+              {!showAddAttribute ? (
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowAddAttribute(true)}
+                  className="w-full"
+                  size="sm"
+                  disabled={getAvailableAttributesForAdding().length === 0}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Attribute
+                </Button>
+              ) : (
+                <div className="border rounded-lg p-3 bg-muted/50 space-y-3">
+                  <div>
+                    <Label className="text-sm font-medium">Select Attribute</Label>
+                    <Select 
+                      value={selectedNewAttribute} 
+                      onValueChange={setSelectedNewAttribute}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Choose an attribute to add" />
+                      </SelectTrigger>
+                      <SelectContent className="max-h-[270px] p-0">
+                        <div className="dropdown-search-sticky px-2 py-1 shadow-sm">
+                          <input
+                            type="text"
+                            placeholder="Search attributes..."
+                            className="dropdown-search-input w-full px-2 py-1 text-sm border rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            onClick={(e) => e.stopPropagation()}
+                            onChange={(e) => {
+                              const searchTerm = e.target.value.toLowerCase();
+                              const content = e.target.closest('[data-radix-select-content]');
+                              const items = content?.querySelectorAll('[data-radix-select-item]');
+                              items?.forEach((item) => {
+                                const text = item.textContent?.toLowerCase() || '';
+                                const shouldShow = text.includes(searchTerm);
+                                (item as HTMLElement).style.display = shouldShow ? 'flex' : 'none';
+                              });
+                            }}
+                          />
+                        </div>
+                        <div className="p-1">
+                          {getAvailableAttributesForAdding().map((attr: string) => {
+                            // Format display name for better UX
+                            const displayName = attr.includes('.') 
+                              ? `${attr.split('.')[1]} (${attr.split('.')[0]})`
+                              : attr;
+                            return (
+                              <SelectItem key={attr} value={attr}>
+                                {displayName}
+                              </SelectItem>
+                            );
+                          })}
+                        </div>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button 
+                      onClick={addSelectedAttribute}
+                      disabled={!selectedNewAttribute}
+                      size="sm"
+                    >
+                      Add
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      onClick={() => {
+                        setShowAddAttribute(false);
+                        setSelectedNewAttribute('');
+                      }}
+                      size="sm"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
+            {/* Empty space on the right to maintain alignment */}
+            <div></div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Actions */}
+      <div className="flex justify-between">
+        <Button variant="outline" onClick={onBack}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
+          Back
+        </Button>
+        <Button 
+          onClick={handleNext} 
+          disabled={!canProceed}
+        >
+          Continue to Processing
+          <ArrowRight className="h-4 w-4 ml-2" />
+        </Button>
+      </div>
+    </div>
+  );
+}
