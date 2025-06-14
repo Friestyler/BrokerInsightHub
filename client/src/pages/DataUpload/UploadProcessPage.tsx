@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Upload, FileSpreadsheet, ArrowLeft, ArrowRight, CheckCircle } from 'lucide-react';
+import { Upload, FileSpreadsheet, ArrowLeft, ArrowRight, CheckCircle, Target, Handshake, Users, Package, Building2, Phone } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import MappingStep from './MappingStep';
 import AttributeMappingStep from './AttributeMappingStep';
@@ -331,41 +331,74 @@ export default function UploadProcessPage() {
                 <p className="text-gray-600">Select the type of data you want to upload</p>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-5xl mx-auto">
                 {[
-                  { value: 'opportunities', label: 'Opportunities', icon: '🎯', color: 'blue', description: 'Sales opportunities and deals' },
-                  { value: 'partners', label: 'Partners', icon: '🤝', color: 'green', description: 'Business partners and relationships' },
-                  { value: 'customers', label: 'Customers', icon: '👥', color: 'purple', description: 'Customer information and contacts' },
-                  { value: 'products', label: 'Products', icon: '📦', color: 'orange', description: 'Product catalog and inventory' },
-                  { value: 'vendors', label: 'Vendors', icon: '🏭', color: 'red', description: 'Vendor and supplier information' },
-                  { value: 'contacts', label: 'Contacts', icon: '📞', color: 'gray', description: 'Contact details and communication' }
-                ].map((entity) => (
-                  <div
-                    key={entity.value}
-                    onClick={() => setSelectedEntityType(entity.value)}
-                    className={`p-4 border-2 rounded-lg cursor-pointer transition-all hover:shadow-md ${
-                      selectedEntityType === entity.value
-                        ? `border-${entity.color}-500 bg-${entity.color}-50`
-                        : 'border-gray-200 hover:border-gray-300'
-                    }`}
-                  >
-                    <div className="text-center">
-                      <div className="text-2xl mb-2">{entity.icon}</div>
-                      <h4 className="font-medium mb-1">{entity.label}</h4>
-                      <p className="text-sm text-gray-600">{entity.description}</p>
+                  { value: 'opportunities', label: 'Opportunities', icon: Target, color: 'blue', description: 'Sales opportunities and deals' },
+                  { value: 'partners', label: 'Partners', icon: Handshake, color: 'green', description: 'Business partners and relationships' },
+                  { value: 'customers', label: 'Customers', icon: Users, color: 'purple', description: 'Customer information and contacts' },
+                  { value: 'products', label: 'Products', icon: Package, color: 'orange', description: 'Product catalog and inventory' },
+                  { value: 'vendors', label: 'Vendors', icon: Building2, color: 'red', description: 'Vendor and supplier information' },
+                  { value: 'contacts', label: 'Contacts', icon: Phone, color: 'gray', description: 'Contact details and communication' }
+                ].map((entity) => {
+                  const IconComponent = entity.icon;
+                  const isSelected = selectedEntityType === entity.value;
+                  
+                  return (
+                    <div
+                      key={entity.value}
+                      onClick={() => setSelectedEntityType(entity.value)}
+                      className={`group relative p-6 rounded-2xl cursor-pointer transition-all duration-200 hover:scale-105 hover:shadow-lg ${
+                        isSelected
+                          ? `bg-gradient-to-br from-${entity.color}-50 to-${entity.color}-100 border-2 border-${entity.color}-200 shadow-md`
+                          : 'bg-white border border-gray-200 hover:border-gray-300 hover:shadow-md'
+                      }`}
+                    >
+                      <div className="text-center space-y-3">
+                        <div className={`mx-auto w-12 h-12 rounded-xl flex items-center justify-center transition-colors ${
+                          isSelected 
+                            ? `bg-${entity.color}-500 text-white` 
+                            : 'bg-gray-100 text-gray-600 group-hover:bg-gray-200'
+                        }`}>
+                          <IconComponent className="h-6 w-6" strokeWidth={2} />
+                        </div>
+                        <div>
+                          <h4 className={`font-semibold text-sm transition-colors ${
+                            isSelected ? `text-${entity.color}-900` : 'text-gray-900'
+                          }`}>
+                            {entity.label}
+                          </h4>
+                          <p className={`text-xs mt-1 transition-colors ${
+                            isSelected ? `text-${entity.color}-700` : 'text-gray-500'
+                          }`}>
+                            {entity.description}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {isSelected && (
+                        <div className={`absolute -top-1 -right-1 w-6 h-6 bg-${entity.color}-500 rounded-full flex items-center justify-center`}>
+                          <CheckCircle className="h-4 w-4 text-white" strokeWidth={2} />
+                        </div>
+                      )}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
               
-              <div className="flex justify-between">
-                <Button variant="outline" onClick={goToPreviousStep} disabled={currentStep <= 1}>
+              <div className="flex justify-between pt-4">
+                <Button 
+                  variant="outline" 
+                  onClick={goToPreviousStep} 
+                  disabled={currentStep <= 1}
+                  className="rounded-xl px-6 py-3 border-gray-300 hover:bg-gray-50 disabled:opacity-50"
+                >
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back
                 </Button>
                 <Button 
                   onClick={goToNextStep}
                   disabled={!selectedEntityType}
+                  className="rounded-xl px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   Continue to Upload
                   <ArrowRight className="h-4 w-4 ml-2" />
@@ -390,42 +423,52 @@ export default function UploadProcessPage() {
 
           {/* Upload Step */}
           {((currentStep === 2 && (isSpecialFormat || isEntityUpload)) || (currentStep === 1 && !isSpecialFormat && !isEntityUpload)) && (
-            <div className="space-y-6">
+            <div className="space-y-8">
               <div 
-                className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
+                className={`relative border-2 border-dashed rounded-2xl p-12 text-center transition-all duration-300 ${
                   dragOver 
-                    ? 'border-blue-400 bg-blue-50' 
+                    ? 'border-blue-400 bg-gradient-to-br from-blue-50 to-blue-100 scale-105' 
                     : uploadedFile 
-                      ? 'border-green-400 bg-green-50' 
-                      : 'border-gray-300 hover:border-gray-400'
+                      ? 'border-green-400 bg-gradient-to-br from-green-50 to-green-100 shadow-lg' 
+                      : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
                 }`}
                 onDrop={handleDrop}
                 onDragOver={handleDragOver}
                 onDragLeave={handleDragLeave}
               >
                 {uploadedFile ? (
-                  <div className="space-y-4">
-                    <FileSpreadsheet className="mx-auto h-12 w-12 text-green-600" />
-                    <div>
-                      <h3 className="text-lg font-medium text-green-800">{uploadedFile.name}</h3>
-                      <p className="text-sm text-green-600">
-                        File size: {(uploadedFile.size / 1024 / 1024).toFixed(2)} MB
+                  <div className="space-y-6">
+                    <div className="mx-auto w-16 h-16 bg-green-500 rounded-2xl flex items-center justify-center shadow-lg">
+                      <FileSpreadsheet className="h-8 w-8 text-white" strokeWidth={2} />
+                    </div>
+                    <div className="space-y-2">
+                      <h3 className="text-xl font-semibold text-green-800">{uploadedFile.name}</h3>
+                      <p className="text-green-600 font-medium">
+                        {(uploadedFile.size / 1024 / 1024).toFixed(1)} MB • Ready to process
                       </p>
                     </div>
                     <Button 
                       variant="outline" 
                       onClick={() => setUploadedFile(null)}
-                      className="text-green-700 border-green-300 hover:bg-green-100"
+                      className="text-green-700 border-green-300 hover:bg-green-100 rounded-xl px-6"
                     >
                       Choose Different File
                     </Button>
+                    
+                    <div className="absolute top-4 right-4">
+                      <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
+                        <CheckCircle className="h-5 w-5 text-white" strokeWidth={2} />
+                      </div>
+                    </div>
                   </div>
                 ) : (
-                  <div className="space-y-4">
-                    <Upload className="mx-auto h-12 w-12 text-gray-400" />
-                    <div>
-                      <h3 className="text-lg font-medium">Upload your CSV file</h3>
-                      <p className="text-gray-600">Drag and drop your file here, or click to browse</p>
+                  <div className="space-y-6">
+                    <div className="mx-auto w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center">
+                      <Upload className="h-8 w-8 text-gray-400" strokeWidth={2} />
+                    </div>
+                    <div className="space-y-2">
+                      <h3 className="text-xl font-semibold text-gray-900">Upload your CSV file</h3>
+                      <p className="text-gray-500">Drag and drop your file here, or click to browse</p>
                     </div>
                     <Button 
                       onClick={() => {
@@ -438,6 +481,7 @@ export default function UploadProcessPage() {
                         };
                         input.click();
                       }}
+                      className="rounded-xl px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium"
                     >
                       Choose File
                     </Button>
@@ -446,12 +490,20 @@ export default function UploadProcessPage() {
               </div>
 
               {uploadedFile && (
-                <div className="flex justify-between">
-                  <Button variant="outline" onClick={goToPreviousStep} disabled={currentStep <= 1}>
+                <div className="flex justify-between pt-4">
+                  <Button 
+                    variant="outline" 
+                    onClick={goToPreviousStep} 
+                    disabled={currentStep <= 1}
+                    className="rounded-xl px-6 py-3 border-gray-300 hover:bg-gray-50 disabled:opacity-50"
+                  >
                     <ArrowLeft className="h-4 w-4 mr-2" />
                     Previous
                   </Button>
-                  <Button onClick={goToNextStep}>
+                  <Button 
+                    onClick={goToNextStep}
+                    className="rounded-xl px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium"
+                  >
                     Continue to Mapping
                     <ArrowRight className="h-4 w-4 ml-2" />
                   </Button>
@@ -501,42 +553,51 @@ export default function UploadProcessPage() {
 
           {/* Results Step */}
           {((currentStep === 5 && (isSpecialFormat || isEntityUpload)) || (currentStep === 4 && !isSpecialFormat && !isEntityUpload)) && (
-            <div className="text-center py-12">
-              <CheckCircle className="mx-auto h-16 w-16 text-green-600 mb-4" />
-              <h3 className="text-lg font-medium mb-2">Processing Complete!</h3>
+            <div className="text-center py-16">
+              <div className="mx-auto w-20 h-20 bg-green-500 rounded-full flex items-center justify-center shadow-lg mb-6">
+                <CheckCircle className="h-10 w-10 text-white" strokeWidth={2} />
+              </div>
+              <h3 className="text-2xl font-semibold text-gray-900 mb-3">Processing Complete!</h3>
               
               {processingResults && (
-                <div className="mb-6">
-                  <p className="text-gray-600 mb-4">
+                <div className="mb-8">
+                  <p className="text-gray-600 mb-8 text-lg">
                     {processingResults.recordsCreated} {isEntityUpload ? selectedEntityType : uploadType} records have been successfully processed.
                   </p>
                   
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-md mx-auto mb-4">
-                    <div className="text-center p-4 bg-green-50 rounded-lg">
-                      <div className="text-2xl font-bold text-green-600">{processingResults.recordsCreated}</div>
-                      <div className="text-sm text-gray-600">Created</div>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-lg mx-auto mb-6">
+                    <div className="text-center p-6 bg-gradient-to-br from-green-50 to-green-100 rounded-2xl border border-green-200">
+                      <div className="text-3xl font-bold text-green-600 mb-1">{processingResults.recordsCreated}</div>
+                      <div className="text-sm font-medium text-green-700">Created</div>
                     </div>
-                    <div className="text-center p-4 bg-gray-50 rounded-lg">
-                      <div className="text-2xl font-bold text-gray-600">{processingResults.recordsSkipped}</div>
-                      <div className="text-sm text-gray-600">Skipped</div>
+                    <div className="text-center p-6 bg-gradient-to-br from-gray-50 to-gray-100 rounded-2xl border border-gray-200">
+                      <div className="text-3xl font-bold text-gray-600 mb-1">{processingResults.recordsSkipped}</div>
+                      <div className="text-sm font-medium text-gray-700">Skipped</div>
                     </div>
-                    <div className="text-center p-4 bg-blue-50 rounded-lg">
-                      <div className="text-2xl font-bold text-blue-600">{processingResults.recordsProcessed}</div>
-                      <div className="text-sm text-gray-600">Total Processed</div>
+                    <div className="text-center p-6 bg-gradient-to-br from-blue-50 to-blue-100 rounded-2xl border border-blue-200">
+                      <div className="text-3xl font-bold text-blue-600 mb-1">{processingResults.recordsProcessed}</div>
+                      <div className="text-sm font-medium text-blue-700">Total Processed</div>
                     </div>
                   </div>
                 </div>
               )}
               
               {!processingResults && (
-                <p className="text-gray-600 mb-6">Your {isEntityUpload ? selectedEntityType : uploadType} data has been successfully processed and imported.</p>
+                <p className="text-gray-600 mb-8 text-lg">Your {isEntityUpload ? selectedEntityType : uploadType} data has been successfully processed and imported.</p>
               )}
               
               <div className="flex justify-center gap-4">
-                <Button variant="outline" onClick={() => setCurrentStep(1)}>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setCurrentStep(1)}
+                  className="rounded-xl px-6 py-3 border-gray-300 hover:bg-gray-50"
+                >
                   Process Another File
                 </Button>
-                <Button onClick={goBack}>
+                <Button 
+                  onClick={goBack}
+                  className="rounded-xl px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white font-medium"
+                >
                   Back to Upload Options
                 </Button>
               </div>
