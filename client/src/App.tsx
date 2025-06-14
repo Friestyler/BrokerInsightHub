@@ -40,7 +40,7 @@ import PartnerView from "@/pages/PartnerView";
 
 
 // Import campaign components
-import TemplatesPage from "@/pages/campaigns/TemplatesPage";
+import CampaignsOverview from "@/pages/campaigns/CampaignsOverview";
 import CampaignCreator from "@/pages/campaigns/CampaignCreator";
 
 // Temporary placeholder components for other list pages
@@ -87,7 +87,7 @@ function Router() {
               <Route path="/contacts" component={ContactsPage} />
               
               {/* Campaigns routes */}
-              <Route path="/campaigns" component={TemplatesPage} />
+              <Route path="/campaigns" component={CampaignsOverview} />
               <Route path="/campaigns/create" component={CampaignCreator} />
               
               {/* Data Upload routes */}

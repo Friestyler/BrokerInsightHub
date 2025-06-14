@@ -67,93 +67,76 @@ export default function TemplatesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">Campaigns & Updates</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Email Templates</h1>
           <p className="text-sm text-muted-foreground">
-            Create targeted communications for partners, customers, and opportunities
+            Create reusable email sequences and campaign blueprints
           </p>
         </div>
         <Button onClick={handleCreateTemplate} className="gap-2">
           <Plus className="h-4 w-4" />
-          Create Campaign
+          Create New Template
         </Button>
       </div>
 
       {/* Templates Grid */}
       {templateList.length === 0 ? (
-        <Card className="text-center py-12">
-          <CardContent className="space-y-4">
-            <div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center">
-              <FileText className="h-8 w-8 text-muted-foreground" />
-            </div>
-            <div className="space-y-2">
-              <h3 className="text-lg font-medium">No campaigns yet</h3>
-              <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-                Create targeted communications for partners, customers, and opportunities
-              </p>
-            </div>
-            <Button onClick={handleCreateTemplate} className="gap-2">
-              <Plus className="h-4 w-4" />
-              Create Your First Campaign
-            </Button>
-          </CardContent>
-        </Card>
+        <div className="text-center py-12">
+          <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+            <FileText className="h-8 w-8 text-gray-400" />
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">No templates yet</h3>
+          <p className="text-gray-600 mb-6 max-w-md mx-auto">
+            Create your first email template to start building targeted campaigns for partners, customers, and opportunities.
+          </p>
+          <Button onClick={handleCreateTemplate} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Create New Template
+          </Button>
+        </div>
       ) : (
-        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {templateList.map((template: EmailTemplate) => (
-            <Card key={template.id} className="group hover:shadow-lg transition-shadow duration-200">
-              <CardHeader className="space-y-3">
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {templateList.map((template) => (
+            <Card key={template.id} className="hover:shadow-md transition-shadow">
+              <CardHeader className="pb-3">
                 <div className="flex items-start justify-between">
                   <div className="space-y-1 flex-1">
-                    <CardTitle className="text-lg leading-tight">{template.name}</CardTitle>
+                    <CardTitle className="text-lg">{template.name}</CardTitle>
                     <p className="text-sm text-muted-foreground line-clamp-2">
                       {template.description}
                     </p>
                   </div>
-                  <Badge 
-                    variant={template.status === 'published' ? 'default' : 'secondary'}
-                    className="ml-2 shrink-0"
-                  >
+                  <Badge variant={template.status === 'published' ? 'default' : 'secondary'}>
                     {template.status}
                   </Badge>
                 </div>
-                
+              </CardHeader>
+              <CardContent className="space-y-4">
                 <div className="space-y-2">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <Mail className="h-4 w-4" />
-                    <span>{template.emailCount} emails in sequence</span>
+                    <span>{template.emailCount} email{template.emailCount !== 1 ? 's' : ''}</span>
                   </div>
-                  <div className="text-sm">
-                    <span className="font-medium">Objective:</span>
-                    <p className="text-muted-foreground mt-1">{template.objective}</p>
-                  </div>
+                  <p className="text-sm font-medium">{template.objective}</p>
                 </div>
-              </CardHeader>
-              
-              <CardContent className="pt-0">
-                <div className="flex items-center justify-between">
-                  <div className="text-xs text-muted-foreground">
-                    Updated {new Date(template.updatedAt).toLocaleDateString()}
-                  </div>
-                  <div className="flex gap-2">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handlePreviewTemplate(template.id)}
-                      className="gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <Eye className="h-3 w-3" />
-                      Preview
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleEditTemplate(template.id)}
-                      className="gap-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                    >
-                      <Settings className="h-3 w-3" />
-                      Edit
-                    </Button>
-                  </div>
+                
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePreviewTemplate(template.id)}
+                    className="flex-1 gap-1"
+                  >
+                    <Eye className="h-3 w-3" />
+                    Preview
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => handleEditTemplate(template.id)}
+                    className="flex-1 gap-1"
+                  >
+                    <Settings className="h-3 w-3" />
+                    Edit
+                  </Button>
                 </div>
               </CardContent>
             </Card>
