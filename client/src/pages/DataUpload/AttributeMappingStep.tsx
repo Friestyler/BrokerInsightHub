@@ -215,18 +215,23 @@ export default function AttributeMappingStep({
     
     const { csvColumn, customCode, isCodeBased } = mapping;
     
-    if (isCodeBased && customCode) {
-      // For custom code, show that it needs to be executed
-      return ['Custom transformation code will be applied'];
-    }
-    
     if (csvColumn && csvColumn !== '') {
       // Show actual data from the CSV column
       const samples = csvData.map((row, idx) => {
         const value = row[csvColumn] || 'Empty';
         return `Row ${idx + 1}: ${value}`;
       }).slice(0, 3);
+      
+      if (isCodeBased && customCode) {
+        // Show original data + transformation note
+        return [...samples, '↓ Custom transformation will be applied'];
+      }
+      
       return samples.length > 0 ? samples : ['No data in selected column'];
+    }
+    
+    if (isCodeBased && customCode) {
+      return ['Custom transformation code will be applied', 'Select a CSV column to see input data'];
     }
     
     return ['Select a CSV column to see preview'];
@@ -670,6 +675,40 @@ export default function AttributeMappingStep({
                           </Button>
                         </div>
                         
+                        {/* Operator Buttons */}
+                        <div className="flex flex-wrap gap-1.5 p-3 bg-gray-50 rounded-lg mb-3">
+                          <div className="text-xs font-medium text-gray-500 w-full mb-2">Quick operators:</div>
+                          {[
+                            { label: '+', desc: 'Combine', code: ' + ' },
+                            { label: '.upper()', desc: 'Uppercase', code: '.upper()' },
+                            { label: '.lower()', desc: 'Lowercase', code: '.lower()' },
+                            { label: '.strip()', desc: 'Remove spaces', code: '.strip()' },
+                            { label: '.replace()', desc: 'Replace text', code: '.replace("old", "new")' },
+                            { label: 'float()', desc: 'To number', code: 'float(' },
+                            { label: 'str()', desc: 'To text', code: 'str(' },
+                            { label: 'len()', desc: 'Length', code: 'len(' }
+                          ].map((op, opIndex) => (
+                            <button
+                              key={opIndex}
+                              onClick={() => {
+                                const currentCode = codeEditorContent[index] || '';
+                                const newCode = currentCode + op.code;
+                                setCodeEditorContent(prev => ({ ...prev, [index]: newCode }));
+                                setAttributeMappings(prev => prev.map((mapping, i) => 
+                                  i === index ? { ...mapping, customCode: newCode, isCodeBased: true } : mapping
+                                ));
+                              }}
+                              className="group relative px-2 py-1 text-xs bg-white border border-gray-200 rounded hover:border-blue-300 hover:bg-blue-50 transition-colors"
+                              title={op.desc}
+                            >
+                              <span className="font-mono">{op.label}</span>
+                              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-2 py-1 text-xs bg-gray-800 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
+                                {op.desc}
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+
                         <div className="bg-gray-50 rounded-xl p-1">
                           <textarea
                             value={codeEditorContent[index] || ''}
@@ -680,9 +719,23 @@ export default function AttributeMappingStep({
                               ));
                             }}
                             className="w-full h-32 p-4 bg-white border-0 rounded-lg font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-purple-500"
-                            placeholder="Write transformation code here...
-Example: column_first_name + ' ' + column_last_name"
+                            placeholder="Python code: column_name.upper() + '_suffix'
+Examples:
+• column_name.replace(' ', '_').lower()
+• float(column_price.replace('$', '')) * 1.2
+• column_first + ' ' + column_last"
                           />
+                        </div>
+                        
+                        {/* Python Help */}
+                        <div className="text-xs text-gray-500 bg-blue-50 border border-blue-200 rounded-lg p-3 mt-3">
+                          <div className="font-medium text-blue-800 mb-1">Python syntax supported:</div>
+                          <div className="grid grid-cols-2 gap-2 text-xs">
+                            <div>• Reference columns: <code className="bg-blue-100 px-1 rounded">column_name</code></div>
+                            <div>• String methods: <code className="bg-blue-100 px-1 rounded">.upper() .lower() .strip()</code></div>
+                            <div>• Type conversion: <code className="bg-blue-100 px-1 rounded">float() str() int()</code></div>
+                            <div>• Math operations: <code className="bg-blue-100 px-1 rounded">+ - * / **</code></div>
+                          </div>
                         </div>
                       </div>
 
