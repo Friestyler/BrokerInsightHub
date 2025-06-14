@@ -5,7 +5,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { Plus, Save, Edit, ArrowLeft, ArrowRight, CheckCircle, X, Trash2, Minus } from 'lucide-react';
+import { Plus, Save, Edit, ArrowLeft, ArrowRight, CheckCircle, X, Trash2, Minus, Sparkles, Loader2 } from 'lucide-react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 
@@ -61,8 +61,79 @@ export default function AttributeMappingStep({
   const [codePreview, setCodePreview] = useState<{ [key: number]: string[] }>({});
   const [csvData, setCsvData] = useState<any[]>([]);
   const [selectedEntityType, setSelectedEntityType] = useState<string>('');
+  const [aiPrompt, setAiPrompt] = useState<{ [key: number]: string }>({});
+  const [isGeneratingCode, setIsGeneratingCode] = useState<{ [key: number]: boolean }>({});
+  const [codeExplanation, setCodeExplanation] = useState<{ [key: number]: string }>({});
+  const [showAiInterface, setShowAiInterface] = useState<{ [key: number]: boolean }>({});
   const { toast } = useToast();
   const queryClient = useQueryClient();
+
+  // AI Code Generation mutation
+  const generateCodeMutation = useMutation({
+    mutationFn: async ({ prompt, index }: { prompt: string; index: number }) => {
+      const response = await fetch(`/api/degoudse/generate-transformation-code`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt,
+          uploadType: selectedEntityType || uploadType,
+          context: {
+            attributeName: attributeMappings[index]?.attribute,
+            csvHeaders: extractedHeaders.length > 0 ? extractedHeaders : csvHeaders,
+            fileName: uploadedFile?.name || 'uploaded_file.csv'
+          }
+        })
+      });
+      
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || 'Failed to generate code');
+      }
+      
+      return response.json();
+    },
+    onSuccess: (data, { index }) => {
+      setCodeEditorContent(prev => ({ ...prev, [index]: data.code }));
+      setCodeExplanation(prev => ({ ...prev, [index]: data.explanation }));
+      setIsGeneratingCode(prev => ({ ...prev, [index]: false }));
+      
+      // Update the mapping with the new code
+      setAttributeMappings(prev => prev.map((mapping, i) => 
+        i === index ? { ...mapping, customCode: data.code } : mapping
+      ));
+      
+      // Validate the generated code
+      validatePythonCode(data.code, index);
+      
+      toast({
+        title: "Code Generated",
+        description: "AI has generated your transformation code based on your description."
+      });
+    },
+    onError: (error: Error, { index }) => {
+      setIsGeneratingCode(prev => ({ ...prev, [index]: false }));
+      toast({
+        title: "Failed to generate code",
+        description: error.message,
+        variant: "destructive"
+      });
+    }
+  });
+
+  const handleGenerateCode = (index: number) => {
+    const prompt = aiPrompt[index];
+    if (!prompt?.trim()) {
+      toast({
+        title: "Please enter a description",
+        description: "Describe what you want the transformation to do.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setIsGeneratingCode(prev => ({ ...prev, [index]: true }));
+    generateCodeMutation.mutate({ prompt, index });
+  };
 
   // Check if this is the general entity upload flow
   const isEntityUpload = uploadType === 'entity-upload';
@@ -1192,6 +1263,74 @@ export default function AttributeMappingStep({
                       <p className="text-xs text-gray-600">
                         Define custom logic using column references (Python)
                       </p>
+
+                      {/* AI Code Generator */}
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <Label className="text-xs font-medium">AI Code Generator</Label>
+                            <p className="text-xs text-gray-500">Describe what you want this field to contain</p>
+                          </div>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setShowAiInterface(prev => ({ ...prev, [index]: !prev[index] }))}
+                            className="gap-1 text-xs h-7"
+                          >
+                            <Sparkles className="h-3 w-3" />
+                            {showAiInterface[index] ? 'Hide AI' : 'Use AI'}
+                          </Button>
+                        </div>
+
+                        {showAiInterface[index] && (
+                          <div className="border rounded-lg p-3 bg-blue-50/30 space-y-3">
+                            <div className="space-y-2">
+                              <Label htmlFor={`ai-prompt-${index}`} className="text-xs">Describe your transformation</Label>
+                              <textarea
+                                id={`ai-prompt-${index}`}
+                                value={aiPrompt[index] || ''}
+                                onChange={(e) => setAiPrompt(prev => ({ ...prev, [index]: e.target.value }))}
+                                placeholder="Example: I want this column to take the name of the file and the name of the customer"
+                                className="w-full h-16 p-2 text-xs border rounded resize-none focus:outline-none focus:ring-1 focus:ring-blue-500"
+                              />
+                            </div>
+                            
+                            <div className="flex items-center justify-between">
+                              <div className="text-xs text-gray-600">
+                                Examples: "Add file name to each row", "Combine first and last name", "Convert to uppercase"
+                              </div>
+                              <Button
+                                size="sm"
+                                onClick={() => handleGenerateCode(index)}
+                                disabled={isGeneratingCode[index] || !aiPrompt[index]?.trim()}
+                                className="gap-1 text-xs h-7"
+                              >
+                                {isGeneratingCode[index] ? (
+                                  <>
+                                    <Loader2 className="h-3 w-3 animate-spin" />
+                                    Generating...
+                                  </>
+                                ) : (
+                                  <>
+                                    <Sparkles className="h-3 w-3" />
+                                    Generate Code
+                                  </>
+                                )}
+                              </Button>
+                            </div>
+
+                            {/* Generated Code Explanation */}
+                            {codeExplanation[index] && (
+                              <div className="border-l-4 border-green-400 bg-green-50 p-2">
+                                <div className="space-y-1">
+                                  <p className="text-xs font-medium text-green-800">Code Explanation:</p>
+                                  <p className="text-xs text-green-700">{codeExplanation[index]}</p>
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </div>
                       
                       <div className="relative">
                         <textarea
