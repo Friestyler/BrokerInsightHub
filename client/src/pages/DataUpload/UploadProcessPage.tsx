@@ -129,6 +129,22 @@ export default function UploadProcessPage() {
   const handleFileUpload = (file: File) => {
     if (file.type === 'text/csv' || file.name.endsWith('.csv')) {
       setUploadedFile(file);
+      
+      // Extract CSV headers
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const text = e.target?.result as string;
+        if (text) {
+          const lines = text.split('\n');
+          if (lines.length > 0) {
+            const headers = lines[0].split(',').map(header => 
+              header.trim().replace(/"/g, '')
+            ).filter(header => header.length > 0);
+            setCsvHeaders(headers);
+          }
+        }
+      };
+      reader.readAsText(file);
     } else {
       alert('Please upload a CSV file');
     }
