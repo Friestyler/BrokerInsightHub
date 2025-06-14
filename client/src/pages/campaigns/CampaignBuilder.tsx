@@ -24,7 +24,7 @@ interface CampaignStep {
   completed: boolean;
 }
 
-interface Email {
+interface CampaignEmail {
   id: string;
   subject: string;
   blocks: any[];
@@ -47,7 +47,7 @@ interface CampaignData {
   scheduledAt: Date | null;
   frequency: 'one_time' | 'weekly' | 'monthly' | 'recurring';
   selectedContacts: number[];
-  emails: Email[];
+  emails: CampaignEmail[];
 }
 
 export default function CampaignBuilder() {
@@ -448,7 +448,7 @@ export default function CampaignBuilder() {
                     <div className="flex items-center gap-3">
                       <Checkbox 
                         checked={campaignData.selectedContacts.includes(contact.id)} 
-                        readOnly 
+                        disabled 
                       />
                       <div className="flex-1">
                         <div className="font-medium text-sm">{contact.fullName}</div>
@@ -488,9 +488,11 @@ export default function CampaignBuilder() {
       </CardHeader>
       <CardContent>
         <CleanEmailBuilder
-          emails={campaignData.emails}
-          onEmailsChange={(emails) => setCampaignData(prev => ({ ...prev, emails }))}
+          emails={campaignData.emails as any}
+          onEmailsChange={(emails) => setCampaignData(prev => ({ ...prev, emails: emails as CampaignEmail[] }))}
           entityType={campaignData.targetEntityType}
+          activeEmailIndex={0}
+          onActiveEmailChange={() => {}}
         />
       </CardContent>
     </Card>
