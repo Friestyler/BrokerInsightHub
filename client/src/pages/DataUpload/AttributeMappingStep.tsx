@@ -74,6 +74,16 @@ export default function AttributeMappingStep({
   // Environment and entity detection
   const environmentId = 'degoudse'; // Default environment
   const isEntityUpload = uploadType === 'entity-upload';
+  
+  // Extract actual entity type from uploadType
+  const actualEntityType = isEntityUpload ? selectedEntityType || uploadType : uploadType;
+  
+  // Initialize selectedEntityType from uploadType if it's not set
+  useEffect(() => {
+    if (isEntityUpload && !selectedEntityType && uploadType && uploadType !== 'entity-upload') {
+      setSelectedEntityType(uploadType);
+    }
+  }, [isEntityUpload, selectedEntityType, uploadType]);
 
   // Fetch templates
   const { data: templates = [], isLoading: isLoadingTemplates } = useQuery({
@@ -89,8 +99,8 @@ export default function AttributeMappingStep({
 
   // Fetch upload settings for mandatory attributes
   const { data: uploadSettings = [], isLoading: isLoadingUploadSettings } = useQuery({
-    queryKey: ['/api/degoudse/upload-settings', isEntityUpload ? selectedEntityType : uploadType],
-    enabled: !!(isEntityUpload ? selectedEntityType : uploadType)
+    queryKey: ['/api/degoudse/upload-settings', actualEntityType],
+    enabled: !!actualEntityType
   });
 
   // Initialize attribute mappings based on upload settings

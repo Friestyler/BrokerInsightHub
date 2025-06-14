@@ -420,7 +420,7 @@ export default function UploadProcessPage() {
           {((currentStep === 3 && (isSpecialFormat || isEntityUpload)) || (currentStep === 2 && !isSpecialFormat && !isEntityUpload)) && (
             <AttributeMappingStep 
               uploadedFile={uploadedFile}
-              csvHeaders={[]} // Will be extracted from file in the component
+              csvHeaders={csvHeaders}
               uploadType={isEntityUpload ? selectedEntityType : uploadType || ''}
               stepName={currentStepData?.name || 'Attribute Mapping'}
               currentStep={currentStep}
