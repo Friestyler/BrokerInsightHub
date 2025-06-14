@@ -287,6 +287,19 @@ export default function CampaignCreator() {
                 />
               </div>
 
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Template Objective</label>
+                <div className="flex items-start gap-2">
+                  <Target className="h-4 w-4 mt-3 text-muted-foreground" />
+                  <Textarea
+                    placeholder="What outcome should this template achieve? (e.g., 25% increase in engagement, introduce new services)"
+                    value={campaignData.objective}
+                    onChange={(e) => setCampaignData({ ...campaignData, objective: e.target.value })}
+                    className="min-h-[80px] resize-none"
+                  />
+                </div>
+              </div>
+
               <div className="space-y-3">
                 <label className="text-sm font-medium">Template Icon</label>
                 <div className="grid grid-cols-6 gap-3">
@@ -338,19 +351,6 @@ export default function CampaignCreator() {
                     <span>Icon selected for template tile</span>
                   </div>
                 )}
-              </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Template Objective</label>
-                <div className="flex items-start gap-2">
-                  <Target className="h-4 w-4 mt-3 text-muted-foreground" />
-                  <Textarea
-                    placeholder="What outcome should this template achieve? (e.g., 25% increase in engagement, introduce new services)"
-                    value={campaignData.objective}
-                    onChange={(e) => setCampaignData({ ...campaignData, objective: e.target.value })}
-                    className="min-h-[80px] resize-none"
-                  />
-                </div>
               </div>
             </div>
           </div>
