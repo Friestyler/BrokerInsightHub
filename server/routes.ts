@@ -5072,20 +5072,13 @@ Respond with a JSON object containing:
       const settings = await UploadSettingsService.getUploadSettings(environmentId, entityType);
       
       // If no settings exist, return default mandatory attributes based on entity type
-      if (Object.keys(settings).length === 0) {
+      if (!settings || settings.length === 0) {
         const defaultSettings = getDefaultMandatoryAttributes(entityType);
         return res.json(defaultSettings);
       }
       
-      // Convert settings object to array format expected by frontend
-      const settingsArray = Object.keys(settings).map(attributeName => ({
-        attribute_name: attributeName,
-        is_mandatory: settings[attributeName],
-        entity_type: entityType,
-        environment_id: environmentId
-      }));
-      
-      res.json(settingsArray);
+      // Return settings in the format expected by frontend
+      res.json(settings);
     } catch (error) {
       console.error('Failed to get upload settings:', error);
       res.status(500).json({ error: 'Failed to get upload settings' });
