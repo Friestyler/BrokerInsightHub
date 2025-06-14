@@ -42,12 +42,6 @@ export default function TemplatesPage() {
   if (isLoading) {
     return (
       <div className="p-6 space-y-6">
-        <div className="flex items-center justify-between">
-          <div className="space-y-1">
-            <h1 className="text-2xl font-semibold tracking-tight">Email Templates</h1>
-            <p className="text-sm text-muted-foreground">Create reusable email sequences and campaign blueprints</p>
-          </div>
-        </div>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3].map((i) => (
             <Card key={i} className="animate-pulse">
