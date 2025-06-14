@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, ArrowRight, Check, Users, Target, Mail, Send, Settings, Sparkles, TrendingUp, Zap, Star, Heart, Gift, Megaphone, Coffee, Briefcase, Globe, Award, Rocket, Shield, Diamond, Plus, Type, Image, Quote, Minus, AlignLeft, Bold, Italic, Link, Eye, FileText, X, Heading2 as Heading } from "lucide-react";
 import { useLocation } from 'wouter';
-import CleanEmailBuilder from './CleanEmailBuilder';
+import ImprovedEmailBuilder from './ImprovedEmailBuilder';
 
 interface StepProps {
   isActive: boolean;
@@ -106,11 +106,10 @@ export default function CampaignCreator() {
     emails: [{ 
       id: '1',
       subject: '', 
-      preheader: '',
       blocks: [] as EmailBlock[],
       followUpDays: 0,
-      leftLogo: '',
-      rightLogo: ''
+      leftLogo: null,
+      rightLogo: null
     }]
   });
   
@@ -196,8 +195,8 @@ export default function CampaignCreator() {
       preheader: '',
       blocks: [],
       followUpDays: 7,
-      leftLogo: '',
-      rightLogo: ''
+      leftLogo: null,
+      rightLogo: null
     });
     setCampaignData({ ...campaignData, emails: newEmails });
     setActiveEmailIndex(newEmails.length - 1);
@@ -550,7 +549,7 @@ export default function CampaignCreator() {
       
       case 3:
         return (
-          <CleanEmailBuilder
+          <ImprovedEmailBuilder
             emails={campaignData.emails}
             activeEmailIndex={activeEmailIndex}
             entityType={campaignData.entity}

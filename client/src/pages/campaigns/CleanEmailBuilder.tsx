@@ -8,7 +8,7 @@ import {
   Lightbulb, Rocket, Heading2 as Heading, ChevronDown,
   ChevronUp, Mail, Sparkles, BarChart3, AlertTriangle, 
   UserPlus, HelpCircle, Trophy, DollarSign, Paperclip,
-  Upload, Edit3
+  Upload, Edit3, Eye
 } from "lucide-react";
 
 interface EmailBlock {
@@ -32,11 +32,10 @@ interface EmailBlock {
 interface Email {
   id: string;
   subject: string;
-  preheader: string;
   blocks: EmailBlock[];
   followUpDays: number;
-  leftLogo: string;
-  rightLogo: string;
+  leftLogo: File | null;
+  rightLogo: File | null;
 }
 
 interface CleanEmailBuilderProps {
@@ -54,7 +53,7 @@ export default function CleanEmailBuilder({
   onEmailsChange, 
   onActiveEmailChange 
 }: CleanEmailBuilderProps) {
-  const [expandedEmailIndex, setExpandedEmailIndex] = useState(0);
+  const [expandedEmailIndex, setExpandedEmailIndex] = useState(-1); // Start collapsed
   const [draggedBlock, setDraggedBlock] = useState<number | null>(null);
   
   const currentEmail = emails[activeEmailIndex];
