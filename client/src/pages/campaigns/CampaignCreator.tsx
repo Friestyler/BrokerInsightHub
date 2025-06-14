@@ -361,13 +361,13 @@ export default function CampaignCreator() {
     switch (currentStep) {
       case 1:
         return (
-          <div className="space-y-8">
+          <div className="space-y-12">
             <div className="text-center">
-              <h2 className="text-xl font-medium text-gray-900 mb-2">Choose Target Group</h2>
-              <p className="text-gray-600">Select the type of audience you want to create a template for</p>
+              <h2 className="text-2xl font-medium text-gray-900 mb-3">Choose Target Group</h2>
+              <p className="text-gray-600 text-lg">Select the type of audience you want to create a template for</p>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
               {entityOptions.map((option) => {
                 const isSelected = campaignData.entity === option.id;
                 
@@ -632,10 +632,8 @@ export default function CampaignCreator() {
       </div>
 
       {/* Content */}
-      <div className="max-w-6xl mx-auto px-6 py-8">
-        <div className="bg-white rounded-lg shadow-sm border p-8">
-          {renderStepContent()}
-        </div>
+      <div className="max-w-6xl mx-auto px-6 py-4">
+        {renderStepContent()}
 
         {/* Navigation */}
         <div className="flex justify-between mt-8">
