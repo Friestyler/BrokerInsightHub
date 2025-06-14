@@ -247,122 +247,130 @@ export default function AttributeMappingStep({
   }, [attributeMappings, csvData]);
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8 max-w-4xl mx-auto">
       {/* Templates Section */}
-      <Card>
-        <CardHeader className="pb-4">
-          <CardTitle className="text-base">Template Management</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex gap-4 items-end">
-            {/* Use Template Dropdown */}
-            <div className="flex-1">
-              <Label className="text-sm font-medium">Use Template</Label>
-              <Select 
-                value={selectedTemplateId} 
-                onValueChange={(value) => {
-                  setSelectedTemplateId(value);
-                  if (value && value !== 'none') {
-                    const template = templates.find((t: any) => t.id.toString() === value);
-                    if (template) {
-                      try {
-                        const mappings = typeof template.column_mappings === 'string' 
-                          ? JSON.parse(template.column_mappings) 
-                          : template.column_mappings;
-                        setAttributeMappings(mappings);
-                        setTemplateLoaded(true);
-                        toast({ 
-                          title: `Template "${template.name}" loaded`,
-                          description: `Auto-loaded with ${mappings.length} column mappings`
-                        });
-                      } catch (error) {
-                        toast({ title: 'Failed to load template', variant: 'destructive' });
-                      }
-                    }
-                  } else if (value === 'none') {
-                    setAttributeMappings([]);
-                    toast({ title: 'Template cleared' });
-                  }
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a template" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">Create New Template</SelectItem>
-                  {templates
-                    .filter((template: any) => {
-                      if (isEntityUpload && selectedEntityType) {
-                        return template.entity_type === selectedEntityType;
-                      }
-                      return true;
-                    })
-                    .map((template: any) => (
-                      <SelectItem key={template.id} value={template.id.toString()}>
-                        {template.name}
-                      </SelectItem>
-                    ))}
-                </SelectContent>
-              </Select>
-            </div>
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-6">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
+            <Save className="h-6 w-6 text-white" />
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">Templates</h3>
+            <p className="text-sm text-gray-500">Load existing or create new mapping templates</p>
+          </div>
+        </div>
 
-            {/* Save Template Button */}
-            <Button 
-              variant="outline" 
-              onClick={() => setShowSaveTemplate(true)}
-              className="shrink-0"
+        <div className="flex gap-4 items-center">
+          <div className="flex-1">
+            <Select 
+              value={selectedTemplateId} 
+              onValueChange={(value) => {
+                setSelectedTemplateId(value);
+                if (value && value !== 'none') {
+                  const template = templates.find((t: any) => t.id.toString() === value);
+                  if (template) {
+                    try {
+                      const mappings = typeof template.column_mappings === 'string' 
+                        ? JSON.parse(template.column_mappings) 
+                        : template.column_mappings;
+                      setAttributeMappings(mappings);
+                      setTemplateLoaded(true);
+                      toast({ 
+                        title: `Template "${template.name}" loaded`,
+                        description: `Auto-loaded with ${mappings.length} column mappings`
+                      });
+                    } catch (error) {
+                      toast({ title: 'Failed to load template', variant: 'destructive' });
+                    }
+                  }
+                } else if (value === 'none') {
+                  setAttributeMappings([]);
+                  toast({ title: 'Template cleared' });
+                }
+              }}
             >
-              <Save className="h-4 w-4 mr-2" />
-              Save Template
-            </Button>
+              <SelectTrigger className="h-12 bg-white border-gray-200 hover:border-blue-400 transition-all rounded-xl">
+                <SelectValue placeholder="Choose a template..." />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">Create New Template</SelectItem>
+                {templates
+                  .filter((template: any) => {
+                    if (isEntityUpload && selectedEntityType) {
+                      return template.entity_type === selectedEntityType;
+                    }
+                    return true;
+                  })
+                  .map((template: any) => (
+                    <SelectItem key={template.id} value={template.id.toString()}>
+                      {template.name}
+                    </SelectItem>
+                  ))}
+              </SelectContent>
+            </Select>
           </div>
 
-          {/* Save Template Form */}
-          {showSaveTemplate && (
-            <div className="border rounded-lg p-4 space-y-3 bg-muted/50">
-              <div>
-                <Label className="text-sm font-medium">Template Name</Label>
-                <Input
-                  value={templateName}
-                  onChange={(e) => setTemplateName(e.target.value)}
-                  placeholder="Enter template name"
-                />
-              </div>
-              <div className="flex gap-2">
-                <Button 
-                  onClick={() => {
-                    if (!templateName.trim()) {
-                      toast({ title: 'Please enter a template name', variant: 'destructive' });
-                      return;
-                    }
-                    // Save template logic would go here
-                    toast({ title: 'Template saved successfully' });
-                    setShowSaveTemplate(false);
-                    setTemplateName('');
-                  }}
-                  size="sm"
-                >
-                  Save
-                </Button>
-                <Button 
-                  variant="outline" 
-                  onClick={() => setShowSaveTemplate(false)}
-                  size="sm"
-                >
-                  Cancel
-                </Button>
-              </div>
+          <Button 
+            variant="outline" 
+            onClick={() => setShowSaveTemplate(true)}
+            className="h-12 px-6 border-gray-200 hover:bg-blue-50 hover:border-blue-400 rounded-xl transition-all"
+          >
+            <Save className="h-4 w-4 mr-2" />
+            Save Template
+          </Button>
+        </div>
+
+        {showSaveTemplate && (
+          <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 space-y-4">
+            <div>
+              <Label className="text-sm font-medium text-blue-800">Template Name</Label>
+              <Input
+                value={templateName}
+                onChange={(e) => setTemplateName(e.target.value)}
+                placeholder="Enter template name"
+                className="mt-2 border-blue-200 focus:ring-blue-500 rounded-lg"
+              />
             </div>
-          )}
-        </CardContent>
-      </Card>
+            <div className="flex gap-3">
+              <Button 
+                onClick={() => {
+                  if (!templateName.trim()) {
+                    toast({ title: 'Please enter a template name', variant: 'destructive' });
+                    return;
+                  }
+                  toast({ title: 'Template saved successfully' });
+                  setShowSaveTemplate(false);
+                  setTemplateName('');
+                }}
+                className="bg-blue-600 hover:bg-blue-700 rounded-lg"
+              >
+                Save
+              </Button>
+              <Button 
+                variant="outline" 
+                onClick={() => setShowSaveTemplate(false)}
+                className="border-blue-200 text-blue-700 hover:bg-blue-100 rounded-lg"
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        )}
+      </div>
 
       {/* Main Mapping Section */}
-      <Card>
-        <CardHeader className="pb-4">
-          <CardTitle className="text-base">Column Mapping</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-6">
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
+            <span className="text-white text-lg font-bold">⚡</span>
+          </div>
+          <div>
+            <h3 className="text-lg font-semibold text-gray-900">Column Mapping</h3>
+            <p className="text-sm text-gray-500">Map your CSV columns to entity attributes</p>
+          </div>
+        </div>
+
+        <div className="space-y-6">
           {/* Column Headers */}
           <div className="grid grid-cols-2 gap-8 mb-3">
             <h4 className="font-medium text-sm text-muted-foreground">Entity Attributes</h4>
@@ -883,8 +891,8 @@ Examples:
             {/* Empty space on the right to maintain alignment */}
             <div></div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Actions */}
       <div className="flex justify-between">
