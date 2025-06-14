@@ -418,11 +418,11 @@ export default function UploadProcessPage() {
           )}
 
           {/* Processing Step */}
-          {((currentStep === 4 && isSpecialFormat) || (currentStep === 3 && !isSpecialFormat)) && (
+          {((currentStep === 4 && (isSpecialFormat || isEntityUpload)) || (currentStep === 3 && !isSpecialFormat && !isEntityUpload)) && (
             <ProcessingStep 
               uploadedFile={uploadedFile}
               attributeMappings={attributeMappings}
-              uploadType={uploadType || ''}
+              uploadType={isEntityUpload ? selectedEntityType : uploadType || ''}
               stepName={currentStepData?.name || 'Processing'}
               currentStep={currentStep}
               onNext={goToNextStep}
@@ -439,7 +439,7 @@ export default function UploadProcessPage() {
           )}
 
           {/* Results Step */}
-          {((currentStep === 5 && isSpecialFormat) || (currentStep === 4 && !isSpecialFormat)) && (
+          {((currentStep === 5 && (isSpecialFormat || isEntityUpload)) || (currentStep === 4 && !isSpecialFormat && !isEntityUpload)) && (
             <div className="text-center py-12">
               <CheckCircle className="mx-auto h-16 w-16 text-green-600 mb-4" />
               <h3 className="text-lg font-medium mb-2">Processing Complete!</h3>
@@ -447,7 +447,7 @@ export default function UploadProcessPage() {
               {processingResults && (
                 <div className="mb-6">
                   <p className="text-gray-600 mb-4">
-                    {processingResults.recordsCreated} {uploadType} records have been successfully processed.
+                    {processingResults.recordsCreated} {isEntityUpload ? selectedEntityType : uploadType} records have been successfully processed.
                   </p>
                   
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4 max-w-md mx-auto mb-4">
@@ -468,7 +468,7 @@ export default function UploadProcessPage() {
               )}
               
               {!processingResults && (
-                <p className="text-gray-600 mb-6">Your {uploadType} data has been successfully processed and imported.</p>
+                <p className="text-gray-600 mb-6">Your {isEntityUpload ? selectedEntityType : uploadType} data has been successfully processed and imported.</p>
               )}
               
               <div className="flex justify-center gap-4">
