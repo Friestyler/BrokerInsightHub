@@ -936,50 +936,10 @@ export default function AttributeMappingStep({
         </Card>
       )}
 
-      {/* Entity Selection Section (for entity-upload flow) */}
-      {isEntityUpload && (
-        <Card>
-          <CardHeader className="pb-4">
-            <CardTitle className="text-base">Select Entity Type</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex-1">
-              <Label className="text-sm font-medium">Entity Type</Label>
-              <Select 
-                value={selectedEntityType} 
-                onValueChange={(value) => {
-                  setSelectedEntityType(value);
-                  // Reset mappings when entity type changes
-                  setAttributeMappings([]);
-                  setSelectedTemplateId('');
-                }}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Choose the type of data you're uploading" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="opportunities">Opportunities</SelectItem>
-                  <SelectItem value="partners">Partners</SelectItem>
-                  <SelectItem value="customers">Customers</SelectItem>
-                  <SelectItem value="products">Products</SelectItem>
-                  <SelectItem value="vendors">Vendors</SelectItem>
-                  <SelectItem value="contacts">Contacts</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            
-            {!selectedEntityType && (
-              <div className="text-sm text-gray-500 bg-blue-50 p-3 rounded-lg">
-                <strong>Note:</strong> Please select an entity type to continue with the mapping process. This determines which attributes are available for your data.
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
+
 
       {/* Template Management Section */}
-      {(!isEntityUpload || selectedEntityType) && (
-        <Card>
+      <Card>
           <CardHeader className="pb-4">
             <CardTitle className="text-base">Template Management</CardTitle>
           </CardHeader>
@@ -1098,14 +1058,12 @@ export default function AttributeMappingStep({
           )}
         </CardContent>
       </Card>
-      )}
 
       {/* Main Mapping Section - Row-based alignment */}
-      {(!isEntityUpload || selectedEntityType) && (
-        <Card>
-          <CardHeader className="pb-4">
-            <CardTitle className="text-base">Column Mapping</CardTitle>
-          </CardHeader>
+      <Card>
+        <CardHeader className="pb-4">
+          <CardTitle className="text-base">Column Mapping</CardTitle>
+        </CardHeader>
           <CardContent>
           {/* Column Headers */}
           <div className="grid grid-cols-2 gap-8 mb-3">
@@ -1470,7 +1428,6 @@ export default function AttributeMappingStep({
           </div>
         </CardContent>
       </Card>
-      )}
 
       {/* Actions */}
       <div className="flex justify-between">

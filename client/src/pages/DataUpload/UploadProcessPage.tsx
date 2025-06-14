@@ -54,7 +54,7 @@ const capitalizeUploadType = (type: string) => {
 };
 
 const getSteps = (uploadType: string) => {
-  // For entity-upload flow, use different steps
+  // For entity-upload flow, skip transformation and go directly from entity selection to upload
   if (uploadType === 'entity-upload') {
     return [
       { id: 1, name: 'Entity Selection', description: 'Choose the type of data you want to upload' },
