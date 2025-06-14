@@ -28,6 +28,8 @@ import { discoverEntitySchemas, getAvailableEnvironments, isSupportedEntityType 
 import { UploadSettingsService } from './services/uploadSettingsService';
 import { insertUploadSettingSchema, insertTransformationScriptSchema, insertUploadTemplateSchema } from '@shared/schema';
 
+
+
 // Setup multer storage for file uploads
 const storage_config = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -5005,6 +5007,50 @@ Respond with a JSON object containing:
     }
   });
 
+  // Helper function to get default mandatory attributes for each entity type
+  function getDefaultMandatoryAttributes(entityType: string) {
+    const defaultAttributes: Record<string, any[]> = {
+      opportunities: [
+        { attribute_name: 'title', is_mandatory: true, entity_type: entityType },
+        { attribute_name: 'clientId', is_mandatory: true, entity_type: entityType },
+        { attribute_name: 'productId', is_mandatory: true, entity_type: entityType },
+        { attribute_name: 'probability', is_mandatory: false, entity_type: entityType },
+        { attribute_name: 'estimatedValue', is_mandatory: false, entity_type: entityType }
+      ],
+      partners: [
+        { attribute_name: 'name', is_mandatory: true, entity_type: entityType },
+        { attribute_name: 'email', is_mandatory: true, entity_type: entityType },
+        { attribute_name: 'phone', is_mandatory: false, entity_type: entityType },
+        { attribute_name: 'company', is_mandatory: false, entity_type: entityType }
+      ],
+      customers: [
+        { attribute_name: 'name', is_mandatory: true, entity_type: entityType },
+        { attribute_name: 'email', is_mandatory: true, entity_type: entityType },
+        { attribute_name: 'phone', is_mandatory: false, entity_type: entityType },
+        { attribute_name: 'address', is_mandatory: false, entity_type: entityType }
+      ],
+      products: [
+        { attribute_name: 'name', is_mandatory: true, entity_type: entityType },
+        { attribute_name: 'price', is_mandatory: false, entity_type: entityType },
+        { attribute_name: 'category', is_mandatory: false, entity_type: entityType },
+        { attribute_name: 'sku', is_mandatory: false, entity_type: entityType }
+      ],
+      vendors: [
+        { attribute_name: 'name', is_mandatory: true, entity_type: entityType },
+        { attribute_name: 'contact_email', is_mandatory: false, entity_type: entityType },
+        { attribute_name: 'contact_phone', is_mandatory: false, entity_type: entityType }
+      ],
+      contacts: [
+        { attribute_name: 'first_name', is_mandatory: true, entity_type: entityType },
+        { attribute_name: 'last_name', is_mandatory: true, entity_type: entityType },
+        { attribute_name: 'email', is_mandatory: false, entity_type: entityType },
+        { attribute_name: 'phone', is_mandatory: false, entity_type: entityType }
+      ]
+    };
+    
+    return defaultAttributes[entityType] || [];
+  }
+
   // Upload Settings Routes
   app.get('/api/:environmentId/upload-settings/:entityType', async (req: Request, res: Response) => {
     try {
@@ -5022,8 +5068,24 @@ Respond with a JSON object containing:
         return res.json([]);
       }
       
+      // Get settings from database
       const settings = await UploadSettingsService.getUploadSettings(environmentId, entityType);
-      res.json(settings);
+      
+      // If no settings exist, return default mandatory attributes based on entity type
+      if (Object.keys(settings).length === 0) {
+        const defaultSettings = getDefaultMandatoryAttributes(entityType);
+        return res.json(defaultSettings);
+      }
+      
+      // Convert settings object to array format expected by frontend
+      const settingsArray = Object.keys(settings).map(attributeName => ({
+        attribute_name: attributeName,
+        is_mandatory: settings[attributeName],
+        entity_type: entityType,
+        environment_id: environmentId
+      }));
+      
+      res.json(settingsArray);
     } catch (error) {
       console.error('Failed to get upload settings:', error);
       res.status(500).json({ error: 'Failed to get upload settings' });
