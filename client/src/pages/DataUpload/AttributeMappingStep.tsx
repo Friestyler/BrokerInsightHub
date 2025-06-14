@@ -932,48 +932,99 @@ export default function AttributeMappingStep({
         </Card>
       )}
 
-      {/* Template Management Section */}
-      <Card>
-        <CardHeader className="pb-4">
-          <CardTitle className="text-base">Template Management</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex gap-4 items-end">
-            {/* Use Template Dropdown */}
+      {/* Entity Selection Section (for entity-upload flow) */}
+      {isEntityUpload && (
+        <Card>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-base">Select Entity Type</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
             <div className="flex-1">
-              <Label className="text-sm font-medium">Use Template</Label>
+              <Label className="text-sm font-medium">Entity Type</Label>
               <Select 
-                value={selectedTemplateId} 
+                value={selectedEntityType} 
                 onValueChange={(value) => {
-                  setSelectedTemplateId(value);
-                  if (value && value !== 'none') {
-                    loadTemplate(value);
-                  } else if (value === 'none') {
-                    // Clear current mappings to reset to default state
-                    const mandatoryAttrs = getMandatoryAttributes();
-                    const mappings = mandatoryAttrs.map((attr: string) => ({
-                      attribute: attr,
-                      csvColumn: '',
-                      isRequired: true,
-                    }));
-                    setAttributeMappings(mappings);
-                    toast({ title: 'Template cleared' });
-                  }
+                  setSelectedEntityType(value);
+                  // Reset mappings when entity type changes
+                  setAttributeMappings([]);
+                  setSelectedTemplateId('');
                 }}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="Select a template" />
+                  <SelectValue placeholder="Choose the type of data you're uploading" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Create New Template</SelectItem>
-                  {templates.map((template) => (
-                    <SelectItem key={template.id} value={template.id.toString()}>
-                      {template.name}
-                    </SelectItem>
-                  ))}
+                  <SelectItem value="opportunities">Opportunities</SelectItem>
+                  <SelectItem value="partners">Partners</SelectItem>
+                  <SelectItem value="customers">Customers</SelectItem>
+                  <SelectItem value="products">Products</SelectItem>
+                  <SelectItem value="vendors">Vendors</SelectItem>
+                  <SelectItem value="contacts">Contacts</SelectItem>
                 </SelectContent>
               </Select>
             </div>
+            
+            {!selectedEntityType && (
+              <div className="text-sm text-gray-500 bg-blue-50 p-3 rounded-lg">
+                <strong>Note:</strong> Please select an entity type to continue with the mapping process. This determines which attributes are available for your data.
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Template Management Section */}
+      {(!isEntityUpload || selectedEntityType) && (
+        <Card>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-base">Template Management</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="flex gap-4 items-end">
+              {/* Use Template Dropdown */}
+              <div className="flex-1">
+                <Label className="text-sm font-medium">Use Template</Label>
+                <Select 
+                  value={selectedTemplateId} 
+                  onValueChange={(value) => {
+                    setSelectedTemplateId(value);
+                    if (value && value !== 'none') {
+                      loadTemplate(value);
+                    } else if (value === 'none') {
+                      // Clear current mappings to reset to default state
+                      const mandatoryAttrs = getMandatoryAttributes();
+                      const mappings = mandatoryAttrs.map((attr: string) => ({
+                        attribute: attr,
+                        csvColumn: '',
+                        isRequired: true,
+                      }));
+                      setAttributeMappings(mappings);
+                      toast({ title: 'Template cleared' });
+                    }
+                  }}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select a template" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="none">Create New Template</SelectItem>
+                    {templates
+                      .filter(template => {
+                        // For entity-upload, filter by selected entity type
+                        if (isEntityUpload && selectedEntityType) {
+                          return template.entity_type === selectedEntityType;
+                        }
+                        // For other flows, show all templates (existing logic)
+                        return true;
+                      })
+                      .map((template) => (
+                        <SelectItem key={template.id} value={template.id.toString()}>
+                          {template.name}
+                        </SelectItem>
+                      ))}
+                  </SelectContent>
+                </Select>
+              </div>
 
             {/* Save Template Button */}
             <Button 
@@ -1043,13 +1094,15 @@ export default function AttributeMappingStep({
           )}
         </CardContent>
       </Card>
+      )}
 
       {/* Main Mapping Section - Row-based alignment */}
-      <Card>
-        <CardHeader className="pb-4">
-          <CardTitle className="text-base">Column Mapping</CardTitle>
-        </CardHeader>
-        <CardContent>
+      {(!isEntityUpload || selectedEntityType) && (
+        <Card>
+          <CardHeader className="pb-4">
+            <CardTitle className="text-base">Column Mapping</CardTitle>
+          </CardHeader>
+          <CardContent>
           {/* Column Headers */}
           <div className="grid grid-cols-2 gap-8 mb-3">
             <h4 className="font-medium text-sm text-muted-foreground">Entity Attributes</h4>
@@ -1413,6 +1466,7 @@ export default function AttributeMappingStep({
           </div>
         </CardContent>
       </Card>
+      )}
 
       {/* Actions */}
       <div className="flex justify-between">
@@ -1422,7 +1476,7 @@ export default function AttributeMappingStep({
         </Button>
         <Button 
           onClick={handleNext} 
-          disabled={!canProceed}
+          disabled={!canProceed || (isEntityUpload && !selectedEntityType)}
         >
           Continue to Processing
           <ArrowRight className="h-4 w-4 ml-2" />
