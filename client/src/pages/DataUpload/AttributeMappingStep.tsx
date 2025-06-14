@@ -675,38 +675,71 @@ export default function AttributeMappingStep({
                           </Button>
                         </div>
                         
-                        {/* Operator Buttons */}
-                        <div className="flex flex-wrap gap-1.5 p-3 bg-gray-50 rounded-lg mb-3">
-                          <div className="text-xs font-medium text-gray-500 w-full mb-2">Quick operators:</div>
-                          {[
-                            { label: '+', desc: 'Combine', code: ' + ' },
-                            { label: '.upper()', desc: 'Uppercase', code: '.upper()' },
-                            { label: '.lower()', desc: 'Lowercase', code: '.lower()' },
-                            { label: '.strip()', desc: 'Remove spaces', code: '.strip()' },
-                            { label: '.replace()', desc: 'Replace text', code: '.replace("old", "new")' },
-                            { label: 'float()', desc: 'To number', code: 'float(' },
-                            { label: 'str()', desc: 'To text', code: 'str(' },
-                            { label: 'len()', desc: 'Length', code: 'len(' }
-                          ].map((op, opIndex) => (
-                            <button
-                              key={opIndex}
-                              onClick={() => {
-                                const currentCode = codeEditorContent[index] || '';
-                                const newCode = currentCode + op.code;
-                                setCodeEditorContent(prev => ({ ...prev, [index]: newCode }));
-                                setAttributeMappings(prev => prev.map((mapping, i) => 
-                                  i === index ? { ...mapping, customCode: newCode, isCodeBased: true } : mapping
-                                ));
-                              }}
-                              className="group relative px-2 py-1 text-xs bg-white border border-gray-200 rounded hover:border-blue-300 hover:bg-blue-50 transition-colors"
-                              title={op.desc}
-                            >
-                              <span className="font-mono">{op.label}</span>
-                              <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-2 py-1 text-xs bg-gray-800 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
-                                {op.desc}
-                              </div>
-                            </button>
-                          ))}
+                        {/* Column Selection and Operators */}
+                        <div className="space-y-3 p-3 bg-gray-50 rounded-lg mb-3">
+                          {/* CSV Columns */}
+                          <div>
+                            <div className="text-xs font-medium text-gray-500 mb-2">Your CSV columns:</div>
+                            <div className="flex flex-wrap gap-1.5">
+                              {csvHeaders.map((header, headerIndex) => (
+                                <button
+                                  key={headerIndex}
+                                  onClick={() => {
+                                    const columnRef = `column_${header.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '')}`;
+                                    const currentCode = codeEditorContent[index] || '';
+                                    const newCode = currentCode + columnRef;
+                                    setCodeEditorContent(prev => ({ ...prev, [index]: newCode }));
+                                    setAttributeMappings(prev => prev.map((mapping, i) => 
+                                      i === index ? { ...mapping, customCode: newCode, isCodeBased: true } : mapping
+                                    ));
+                                  }}
+                                  className="group relative px-2 py-1 text-xs bg-green-50 border border-green-200 rounded hover:border-green-300 hover:bg-green-100 transition-colors"
+                                  title={`Insert column reference: ${header}`}
+                                >
+                                  <span className="font-mono text-green-700">{header}</span>
+                                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-2 py-1 text-xs bg-gray-800 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
+                                    Click to add: column_{header.toLowerCase().replace(/\s+/g, '_')}
+                                  </div>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+
+                          {/* Operators */}
+                          <div>
+                            <div className="text-xs font-medium text-gray-500 mb-2">Quick operators:</div>
+                            <div className="flex flex-wrap gap-1.5">
+                              {[
+                                { label: '+', desc: 'Combine', code: ' + ' },
+                                { label: '.upper()', desc: 'Uppercase', code: '.upper()' },
+                                { label: '.lower()', desc: 'Lowercase', code: '.lower()' },
+                                { label: '.strip()', desc: 'Remove spaces', code: '.strip()' },
+                                { label: '.replace()', desc: 'Replace text', code: '.replace("old", "new")' },
+                                { label: 'float()', desc: 'To number', code: 'float(' },
+                                { label: 'str()', desc: 'To text', code: 'str(' },
+                                { label: 'len()', desc: 'Length', code: 'len(' }
+                              ].map((op, opIndex) => (
+                                <button
+                                  key={opIndex}
+                                  onClick={() => {
+                                    const currentCode = codeEditorContent[index] || '';
+                                    const newCode = currentCode + op.code;
+                                    setCodeEditorContent(prev => ({ ...prev, [index]: newCode }));
+                                    setAttributeMappings(prev => prev.map((mapping, i) => 
+                                      i === index ? { ...mapping, customCode: newCode, isCodeBased: true } : mapping
+                                    ));
+                                  }}
+                                  className="group relative px-2 py-1 text-xs bg-white border border-gray-200 rounded hover:border-blue-300 hover:bg-blue-50 transition-colors"
+                                  title={op.desc}
+                                >
+                                  <span className="font-mono">{op.label}</span>
+                                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-2 py-1 text-xs bg-gray-800 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
+                                    {op.desc}
+                                  </div>
+                                </button>
+                              ))}
+                            </div>
+                          </div>
                         </div>
 
                         <div className="bg-gray-50 rounded-xl p-1">
