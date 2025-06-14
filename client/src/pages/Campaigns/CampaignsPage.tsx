@@ -32,7 +32,11 @@ import {
   Mail,
   MoreHorizontal,
   Edit,
-  Trash2
+  Trash2,
+  ListChecks,
+  FormInput,
+  MessageSquare,
+  Settings
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
@@ -68,6 +72,74 @@ type TemplateCard = {
   isSponsored: boolean;
   sponsor?: string;
   icon: React.ReactNode;
+};
+
+// Campaign builder steps (matching CampaignBuilder.tsx)
+const campaignSteps = [
+  { id: "select-list", title: "Select List", icon: <ListChecks className="h-4 w-4" /> },
+  { id: "compose", title: "Compose", icon: <FormInput className="h-4 w-4" /> },
+  { id: "recipients", title: "Recipients", icon: <Users className="h-4 w-4" /> },
+  { id: "follow-up", title: "Follow-Up", icon: <MessageSquare className="h-4 w-4" /> },
+  { id: "settings", title: "Settings", icon: <Settings className="h-4 w-4" /> }
+];
+
+// Function to check if a step is completed for a campaign
+const isStepCompleted = (campaign: Campaign, stepId: string): boolean => {
+  switch (stepId) {
+    case "select-list":
+      return !!(campaign.name && campaign.type);
+    case "compose":
+      return !!(campaign.subject || campaign.emailBody || campaign.email_body);
+    case "recipients":
+      return !!(campaign.listIds && campaign.listIds.length > 0) || 
+             !!(campaign.recipientIds && campaign.recipientIds.length > 0);
+    case "follow-up":
+      return true; // Optional step, always considered complete
+    case "settings":
+      return !!(campaign.fromName || campaign.from_name) && 
+             !!(campaign.fromEmail || campaign.from_email);
+    default:
+      return false;
+  }
+};
+
+// Chevron Process Diagram Component
+const ChevronProcessDiagram = ({ campaign }: { campaign: Campaign }) => {
+  return (
+    <div className="flex items-center mt-3 space-x-1 overflow-x-auto">
+      {campaignSteps.map((step, index) => {
+        const isCompleted = isStepCompleted(campaign, step.id);
+        const isLast = index === campaignSteps.length - 1;
+        
+        return (
+          <div key={step.id} className="flex items-center relative">
+            <div
+              className={`
+                relative px-2 py-1 text-xs font-medium flex items-center space-x-1 min-w-0 whitespace-nowrap
+                ${isCompleted 
+                  ? 'bg-green-500 text-white' 
+                  : 'bg-red-500 text-white'
+                }
+              `}
+              style={{
+                clipPath: !isLast 
+                  ? 'polygon(0% 0%, calc(100% - 6px) 0%, 100% 50%, calc(100% - 6px) 100%, 0% 100%, 6px 50%)'
+                  : 'polygon(0% 0%, 100% 0%, 100% 100%, 0% 100%, 6px 50%)',
+                marginRight: !isLast ? '-6px' : '0'
+              }}
+            >
+              {isCompleted ? (
+                <Check className="h-3 w-3 flex-shrink-0" />
+              ) : (
+                <div className="h-3 w-3 border border-white rounded-full flex-shrink-0" />
+              )}
+              <span className="truncate">{step.title}</span>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
 };
 
 export default function CampaignsPage() {
@@ -570,14 +642,16 @@ export default function CampaignsPage() {
                   <TableBody>
                     {campaigns && campaigns.length > 0 ? (
                       campaigns.map(campaign => (
-                        <TableRow key={campaign.id} className="hover:bg-gray-50">
+                        <TableRow key={campaign.id} className={`hover:bg-gray-50 ${campaign.status === 'draft' ? 'h-20' : ''}`}>
                           <TableCell>
                             <Checkbox />
                           </TableCell>
                           <TableCell>
                             <div className="flex flex-col">
                               <span className="font-medium text-gray-900">{campaign.name}</span>
-                              <span className="text-sm text-gray-500">{campaign.type}</span>
+                              {campaign.status === 'draft' && (
+                                <ChevronProcessDiagram campaign={campaign} />
+                              )}
                             </div>
                           </TableCell>
                           <TableCell>
