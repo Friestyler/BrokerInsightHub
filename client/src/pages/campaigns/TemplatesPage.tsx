@@ -20,9 +20,11 @@ interface EmailTemplate {
 export default function TemplatesPage() {
   const [, setLocation] = useLocation();
   
-  const { data: templates = [], isLoading } = useQuery({
+  const { data: templates, isLoading } = useQuery<EmailTemplate[]>({
     queryKey: ['/api/campaign-templates']
   });
+
+  const templateList = templates || [];
 
   const handleCreateTemplate = () => {
     setLocation('/campaigns/templates/create');
@@ -82,7 +84,7 @@ export default function TemplatesPage() {
       </div>
 
       {/* Templates Grid */}
-      {templates.length === 0 ? (
+      {templateList.length === 0 ? (
         <Card className="text-center py-12">
           <CardContent className="space-y-4">
             <div className="mx-auto w-16 h-16 bg-muted rounded-full flex items-center justify-center">
@@ -102,7 +104,7 @@ export default function TemplatesPage() {
         </Card>
       ) : (
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-          {templates.map((template: EmailTemplate) => (
+          {templateList.map((template: EmailTemplate) => (
             <Card key={template.id} className="group hover:shadow-lg transition-shadow duration-200">
               <CardHeader className="space-y-3">
                 <div className="flex items-start justify-between">

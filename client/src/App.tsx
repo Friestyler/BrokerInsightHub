@@ -39,9 +39,12 @@ import SharedListView from "@/pages/shared/SharedListView";
 import PartnerView from "@/pages/PartnerView";
 
 
+// Import campaign components
+import TemplatesPage from "@/pages/campaigns/TemplatesPage";
+import TemplateCreator from "@/pages/campaigns/TemplateCreator";
+
 // Temporary placeholder components for other list pages
 const ProjectsPage = () => <div className="p-6"><h1 className="text-2xl font-bold">Projects List (Coming Soon)</h1></div>;
-const CampaignsPage = () => <div className="p-6"><h1 className="text-2xl font-bold">Campaigns Section (Ready for Redesign)</h1></div>;
 
 function Router() {
   return (
@@ -83,8 +86,11 @@ function Router() {
               <Route path="/projects" component={ProjectsPage} />
               <Route path="/contacts" component={ContactsPage} />
               
-              {/* Campaigns route */}
-              <Route path="/campaigns" component={CampaignsPage} />
+              {/* Campaigns routes */}
+              <Route path="/campaigns" component={TemplatesPage} />
+              <Route path="/campaigns/templates/create" component={TemplateCreator} />
+              <Route path="/campaigns/templates/:id/edit" component={TemplateCreator} />
+              <Route path="/campaigns/templates/:id/preview" component={TemplateCreator} />
               
               {/* Data Upload routes */}
               <Route path="/data-upload">

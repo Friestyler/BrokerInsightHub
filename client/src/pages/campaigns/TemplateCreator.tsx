@@ -94,14 +94,14 @@ export default function TemplateCreator() {
     setLocation('/campaigns');
   };
 
-  const isStepCompleted = (stepNum: number) => {
-    if (stepNum === 1) return templateData.name && templateData.description && templateData.objective;
-    if (stepNum === 2) return templateData.emails[0].subject && templateData.emails[0].content;
+  const isStepCompleted = (stepNum: number): boolean => {
+    if (stepNum === 1) return Boolean(templateData.name && templateData.description && templateData.objective);
+    if (stepNum === 2) return Boolean(templateData.emails[0].subject && templateData.emails[0].content);
     return stepNum < currentStep;
   };
 
-  const canProceed = () => {
-    return isStepCompleted(currentStep);
+  const canProceed = (): boolean => {
+    return Boolean(isStepCompleted(currentStep));
   };
 
   const renderStepContent = () => {
@@ -201,7 +201,7 @@ export default function TemplateCreator() {
               
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Info className="h-3 w-3" />
-                Use placeholders like {{first_name}}, {{company_name}}, {{product_name}} for dynamic content
+                Use placeholders like {'{{first_name}}'}, {'{{company_name}}'}, {'{{product_name}}'} for dynamic content
               </div>
             </div>
           </div>
