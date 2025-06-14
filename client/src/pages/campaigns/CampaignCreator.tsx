@@ -680,10 +680,10 @@ export default function CampaignCreator() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="h-screen bg-background flex flex-col">
       {/* Header */}
-      <div className="border-b bg-card/50">
-        <div className="max-w-6xl mx-auto px-6 py-4">
+      <div className="flex-shrink-0 border-b bg-card/50">
+        <div className="max-w-full mx-auto px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Button variant="ghost" size="sm" onClick={handleBack} className="gap-2">
@@ -703,10 +703,10 @@ export default function CampaignCreator() {
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto px-6 py-8">
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+      <div className="flex-1 max-w-full mx-auto px-8 py-6 min-h-0">
+        <div className="h-full grid grid-cols-1 lg:grid-cols-5 gap-8 min-h-0">
           {/* Steps Sidebar */}
-          <div className="space-y-2">
+          <div className="space-y-3">
             {steps.map((step) => (
               <div 
                 key={step.number}
@@ -726,15 +726,15 @@ export default function CampaignCreator() {
           </div>
 
           {/* Main Content */}
-          <div className="lg:col-span-3">
-            <Card>
-              <CardHeader>
+          <div className="lg:col-span-4 flex flex-col min-h-0">
+            <Card className="flex-1 flex flex-col">
+              <CardHeader className="flex-shrink-0">
                 <CardTitle>{steps[currentStep - 1].title}</CardTitle>
                 <p className="text-sm text-muted-foreground">
                   {steps[currentStep - 1].description}
                 </p>
               </CardHeader>
-              <CardContent>
+              <CardContent className="flex-1 min-h-0">
                 {renderStepContent()}
               </CardContent>
             </Card>
