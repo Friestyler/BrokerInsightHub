@@ -152,23 +152,47 @@ export default function CampaignCreator() {
     }
   ];
 
+  // Dynamic step descriptions based on user selections
+  const getStepDescription = (stepNumber: number) => {
+    switch (stepNumber) {
+      case 1:
+        if (campaignData.entity) {
+          const selectedEntity = entityOptions.find(opt => opt.id === campaignData.entity);
+          return `Selected: ${selectedEntity?.title}`;
+        }
+        return 'Select your target audience';
+      case 2:
+        if (campaignData.name) {
+          return `Template: ${campaignData.name}`;
+        }
+        return 'Configure template settings';
+      case 3:
+        if (campaignData.emails[0].subject) {
+          return `Subject: ${campaignData.emails[0].subject.substring(0, 30)}${campaignData.emails[0].subject.length > 30 ? '...' : ''}`;
+        }
+        return 'Create email content';
+      default:
+        return '';
+    }
+  };
+
   const steps = [
     {
       number: 1,
-      title: 'Choose Target',
-      description: 'Select your audience and communication type',
+      title: 'Choose Target Group',
+      description: getStepDescription(1),
       component: 'entity'
     },
     {
       number: 2,
       title: 'Template Details',
-      description: 'Name, description and objectives',
+      description: getStepDescription(2),
       component: 'details'
     },
     {
       number: 3,
       title: 'Email Builder',
-      description: 'Create your email template',
+      description: getStepDescription(3),
       component: 'builder'
     }
   ];
