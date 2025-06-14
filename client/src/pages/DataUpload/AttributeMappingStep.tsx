@@ -677,32 +677,31 @@ export default function AttributeMappingStep({
                         
                         {/* Column Selection and Operators */}
                         <div className="space-y-3 p-3 bg-gray-50 rounded-lg mb-3">
-                          {/* CSV Columns */}
-                          <div>
-                            <div className="text-xs font-medium text-gray-500 mb-2">Your CSV columns:</div>
-                            <div className="flex flex-wrap gap-1.5">
-                              {csvHeaders.map((header, headerIndex) => (
-                                <button
-                                  key={headerIndex}
-                                  onClick={() => {
-                                    const columnRef = `column_${header.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '')}`;
-                                    const currentCode = codeEditorContent[index] || '';
-                                    const newCode = currentCode + columnRef;
-                                    setCodeEditorContent(prev => ({ ...prev, [index]: newCode }));
-                                    setAttributeMappings(prev => prev.map((mapping, i) => 
-                                      i === index ? { ...mapping, customCode: newCode, isCodeBased: true } : mapping
-                                    ));
-                                  }}
-                                  className="group relative px-2 py-1 text-xs bg-green-50 border border-green-200 rounded hover:border-green-300 hover:bg-green-100 transition-colors"
-                                  title={`Insert column reference: ${header}`}
-                                >
-                                  <span className="font-mono text-green-700">{header}</span>
-                                  <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-1 px-2 py-1 text-xs bg-gray-800 text-white rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none z-10">
-                                    Click to add: column_{header.toLowerCase().replace(/\s+/g, '_')}
-                                  </div>
-                                </button>
-                              ))}
-                            </div>
+                          {/* CSV Columns Dropdown */}
+                          <div className="flex items-center gap-3">
+                            <div className="text-xs font-medium text-gray-500">Insert column:</div>
+                            <Select
+                              onValueChange={(selectedHeader) => {
+                                const columnRef = `column_${selectedHeader.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '')}`;
+                                const currentCode = codeEditorContent[index] || '';
+                                const newCode = currentCode + columnRef;
+                                setCodeEditorContent(prev => ({ ...prev, [index]: newCode }));
+                                setAttributeMappings(prev => prev.map((mapping, i) => 
+                                  i === index ? { ...mapping, customCode: newCode, isCodeBased: true } : mapping
+                                ));
+                              }}
+                            >
+                              <SelectTrigger className="w-48 h-8 text-xs bg-green-50 border-green-200 hover:border-green-300">
+                                <SelectValue placeholder="Choose column..." />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {csvHeaders.map((header, headerIndex) => (
+                                  <SelectItem key={headerIndex} value={header}>
+                                    <span className="font-mono text-green-700">{header}</span>
+                                  </SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
                           </div>
 
                           {/* Operators */}
