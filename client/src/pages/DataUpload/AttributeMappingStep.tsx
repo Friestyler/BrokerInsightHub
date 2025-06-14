@@ -826,7 +826,9 @@ export default function AttributeMappingStep({
       
     if (template && template.column_mappings) {
       // Save template selection for ALL entity types (not just special formats)
-      saveLastUsedTemplate(template.id, uploadType);
+      // Use effective upload type for entity-upload flow
+      const targetUploadType = isEntityUpload ? selectedEntityType : uploadType;
+      saveLastUsedTemplate(template.id, targetUploadType);
       
       let mappings;
       try {
@@ -865,10 +867,12 @@ export default function AttributeMappingStep({
       return;
     }
 
+    // Use effective upload type for entity-upload flow
+    const targetUploadType = isEntityUpload ? selectedEntityType : uploadType;
     saveTemplateMutation.mutate({
       name: templateName,
-      description: `Template for ${uploadType}`,
-      entityType: uploadType,
+      description: `Template for ${targetUploadType}`,
+      entityType: targetUploadType,
       environmentId: environmentId,
       columnMappings: attributeMappings,
       isShared: false,
