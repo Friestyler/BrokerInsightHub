@@ -646,46 +646,53 @@ export default function AttributeMappingStep({
       }
       
       // For function-based code, extract the main logic/return statement
-      if (cleanCode.includes('def ') && cleanCode.includes('return ')) {
+      if (cleanCode.includes('def ') || cleanCode.includes('import pandas')) {
         try {
-          // Try to extract the return statement or main transformation logic
+          // Extract transformation logic from function-based code
           const lines = cleanCode.split('\n');
           let transformationLogic = '';
           
-          // Look for the main transformation line (usually the return statement or column assignment)
-          for (let i = lines.length - 1; i >= 0; i--) {
-            const line = lines[i].trim();
-            if (line.startsWith('return ')) {
-              transformationLogic = line.replace('return ', '');
+          // Look for DataFrame column assignments or return statements
+          for (const line of lines) {
+            const trimmedLine = line.trim();
+            
+            // Look for df['column'] = expression patterns
+            const dfAssignmentMatch = trimmedLine.match(/df\[['"]([^'"]*)['"]\]\s*=\s*(.+)$/);
+            if (dfAssignmentMatch) {
+              let expression = dfAssignmentMatch[2];
+              // Replace df['column'] references with column_ format
+              expression = expression.replace(/df\[['"]([^'"]*)['"]\]/g, (match, columnName) => {
+                return `column_${columnName.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+              });
+              transformationLogic = expression;
               break;
-            } else if (line.includes('df[') && line.includes('=')) {
-              // Extract DataFrame column assignment like: df['clientId'] = df['First Name'] + ' ' + df['Last Name']
-              const assignmentMatch = line.match(/df\[['"].*?['"]\]\s*=\s*(.+)$/);
-              if (assignmentMatch) {
-                transformationLogic = assignmentMatch[1];
-                // Replace df['column'] with column_ format
-                transformationLogic = transformationLogic.replace(/df\[['"]([^'"]*)['"]\]/g, (match, columnName) => {
-                  return `column_${columnName.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
-                });
-                break;
-              }
+            }
+            
+            // Look for return statements
+            if (trimmedLine.startsWith('return ')) {
+              transformationLogic = trimmedLine.replace('return ', '');
+              // Replace df['column'] references if present
+              transformationLogic = transformationLogic.replace(/df\[['"]([^'"]*)['"]\]/g, (match, columnName) => {
+                return `column_${columnName.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
+              });
+              break;
             }
           }
           
-          if (transformationLogic) {
+          if (transformationLogic && transformationLogic.length > 0) {
             cleanCode = transformationLogic;
           } else {
-            // If we can't extract logic, show a helpful message
+            // Show a helpful message for complex functions
             setCodePreview(prev => ({ 
               ...prev, 
-              [index]: ['Function-based code detected', 'Add simple expression for preview', 'e.g., column_name1 + " " + column_name2'] 
+              [index]: ['AI generated complex function', 'Extracting logic for preview...', 'Use simple expressions for better preview'] 
             }));
             return;
           }
         } catch (e) {
           setCodePreview(prev => ({ 
             ...prev, 
-            [index]: ['Error parsing function code', 'Try using simple expressions', 'e.g., column_name1 + column_name2'] 
+            [index]: ['Could not extract preview logic', 'Try simpler expressions like:', 'column_first_name + " " + column_last_name'] 
           }));
           return;
         }

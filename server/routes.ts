@@ -3021,25 +3021,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
       // Create system prompt for code generation
-      const systemPrompt = `You are an expert Python developer specializing in CSV data transformation. Your job is to generate clean, efficient Python code based on user descriptions.
+      const systemPrompt = `You are an expert at creating simple Python expressions for CSV data transformation. Generate ONLY the transformation expression, not a full function.
 
 Key requirements:
-1. Always use pandas for CSV operations
-2. The main function should be called 'transform_csv' and take a DataFrame as input
-3. Return the transformed DataFrame
-4. Include proper error handling
-5. Add helpful comments explaining the transformation
-6. Keep code simple and readable
-7. Handle common edge cases (empty values, missing columns, etc.)
+1. Generate a SINGLE LINE expression that can be used in a preview system
+2. Use column references in format: column_name (lowercase, underscores for spaces)
+3. For combining columns, use: column_first_name + " " + column_last_name
+4. For conditional logic, use: "Yes" if column_status == "Active" else "No"
+5. Keep expressions simple and easy to preview
+6. NO function definitions, NO imports, NO pandas DataFrame operations
+7. Just the transformation expression itself
 
-The user is working with ${uploadType} data transformation. The file context: ${JSON.stringify(context)}
+Available columns from CSV: ${context.csvHeaders ? context.csvHeaders.join(', ') : 'Not provided'}
+Target attribute: ${context.attributeName || uploadType}
 
-Generate Python code that transforms CSV data according to the user's request. Also provide a clear explanation of what the code does.
+Examples:
+- Combine names: column_first_name + " " + column_last_name
+- Add prefix: "CLIENT_" + column_id
+- Conditional: "Active" if column_status == "Y" else "Inactive"
+- Uppercase: column_name.upper()
 
 Respond with a JSON object containing:
 {
-  "code": "the complete Python transformation code",
-  "explanation": "a clear, non-technical explanation of what the code does"
+  "code": "single line expression only",
+  "explanation": "a clear, non-technical explanation of what the expression does"
 }`;
 
       const response = await openai.chat.completions.create({
