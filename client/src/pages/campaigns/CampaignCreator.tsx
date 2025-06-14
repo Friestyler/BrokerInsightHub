@@ -127,27 +127,15 @@ export default function CampaignCreator() {
     },
     {
       number: 2,
-      title: 'Campaign Details',
+      title: 'Template Details',
       description: 'Name, description and objectives',
       component: 'details'
     },
     {
       number: 3,
       title: 'Email Builder',
-      description: 'Create your email sequence',
+      description: 'Create your email template',
       component: 'builder'
-    },
-    {
-      number: 4,
-      title: 'Recipients',
-      description: 'Select specific contacts',
-      component: 'recipients'
-    },
-    {
-      number: 5,
-      title: 'Review & Launch',
-      description: 'Final review and send campaign',
-      component: 'launch'
     }
   ];
 
@@ -187,8 +175,6 @@ export default function CampaignCreator() {
     if (stepNum === 1) return true;
     if (stepNum === 2) return isStepCompleted(1);
     if (stepNum === 3) return isStepCompleted(2);
-    if (stepNum === 4) return isStepCompleted(3);
-    if (stepNum === 5) return isStepCompleted(4);
     return false;
   };
 
@@ -275,15 +261,15 @@ export default function CampaignCreator() {
             <div className="text-center space-y-2">
               <div className="inline-flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-green-50 to-blue-50 rounded-full border border-green-200">
                 <Settings className="h-4 w-4 text-green-600" />
-                <span className="text-sm font-medium text-green-700">Campaign Configuration</span>
+                <span className="text-sm font-medium text-green-700">Template Configuration</span>
               </div>
             </div>
 
             <div className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Campaign Name</label>
+                <label className="text-sm font-medium">Template Name</label>
                 <Input
-                  placeholder={`e.g., Q3 ${entityOptions.find(opt => opt.id === campaignData.entity)?.title} Outreach`}
+                  placeholder={`e.g., ${entityOptions.find(opt => opt.id === campaignData.entity)?.title} Engagement Template`}
                   value={campaignData.name}
                   onChange={(e) => setCampaignData({ ...campaignData, name: e.target.value })}
                   className="h-11"
@@ -293,7 +279,7 @@ export default function CampaignCreator() {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Description</label>
                 <Textarea
-                  placeholder="Brief description of this campaign's purpose..."
+                  placeholder="Brief description of this template's purpose..."
                   value={campaignData.description}
                   onChange={(e) => setCampaignData({ ...campaignData, description: e.target.value })}
                   className="min-h-[80px] resize-none"
@@ -301,11 +287,11 @@ export default function CampaignCreator() {
               </div>
               
               <div className="space-y-2">
-                <label className="text-sm font-medium">Campaign Objective</label>
+                <label className="text-sm font-medium">Template Objective</label>
                 <div className="flex items-start gap-2">
                   <Target className="h-4 w-4 mt-3 text-muted-foreground" />
                   <Textarea
-                    placeholder="What specific outcome do you want to achieve? (e.g., 25% increase in engagement, close 10 deals)"
+                    placeholder="What outcome should this template achieve? (e.g., 25% increase in engagement, introduce new services)"
                     value={campaignData.objective}
                     onChange={(e) => setCampaignData({ ...campaignData, objective: e.target.value })}
                     className="min-h-[80px] resize-none"
@@ -322,7 +308,7 @@ export default function CampaignCreator() {
             <div className="text-center space-y-2">
               <div className="inline-flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-purple-50 to-pink-50 rounded-full border border-purple-200">
                 <Mail className="h-4 w-4 text-purple-600" />
-                <span className="text-sm font-medium text-purple-700">Email Sequence Builder</span>
+                <span className="text-sm font-medium text-purple-700">Email Template Builder</span>
               </div>
             </div>
             
@@ -340,9 +326,9 @@ export default function CampaignCreator() {
             
             <div className="space-y-4">
               <div className="space-y-2">
-                <label className="text-sm font-medium">Email Subject</label>
+                <label className="text-sm font-medium">Email Subject Template</label>
                 <Input
-                  placeholder="Enter a compelling subject line..."
+                  placeholder="Enter a compelling subject line with placeholders..."
                   value={campaignData.emails[0].subject}
                   onChange={(e) => {
                     const newEmails = [...campaignData.emails];
@@ -354,9 +340,9 @@ export default function CampaignCreator() {
               </div>
               
               <div className="space-y-2">
-                <label className="text-sm font-medium">Email Content</label>
+                <label className="text-sm font-medium">Email Content Template</label>
                 <Textarea
-                  placeholder="Write your email content here..."
+                  placeholder="Write your email template content here..."
                   value={campaignData.emails[0].content}
                   onChange={(e) => {
                     const newEmails = [...campaignData.emails];
@@ -366,80 +352,29 @@ export default function CampaignCreator() {
                   className="min-h-[200px] resize-none"
                 />
               </div>
-            </div>
-          </div>
-        );
-      
-      case 4:
-        return (
-          <div className="space-y-6">
-            <div className="text-center space-y-2">
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-orange-50 to-yellow-50 rounded-full border border-orange-200">
-                <Users className="h-4 w-4 text-orange-600" />
-                <span className="text-sm font-medium text-orange-700">Select Recipients</span>
-              </div>
-            </div>
-            
-            <Card>
-              <CardContent className="pt-6">
-                <div className="text-center space-y-4">
-                  <div className="mx-auto w-16 h-16 bg-orange-100 rounded-full flex items-center justify-center">
-                    <Users className="h-8 w-8 text-orange-600" />
+              
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <h4 className="text-sm font-medium text-blue-800 mb-2">Template Preview</h4>
+                <div className="bg-white border rounded p-3 space-y-2">
+                  <div className="text-sm font-medium text-gray-700">
+                    Subject: {campaignData.emails[0].subject || 'Your subject line will appear here...'}
                   </div>
-                  <div className="space-y-2">
-                    <h4 className="font-medium">Recipient Selection</h4>
-                    <p className="text-sm text-muted-foreground">
-                      Smart recipient filtering and selection tools coming soon
-                    </p>
+                  <div className="text-sm text-gray-600 whitespace-pre-wrap">
+                    {campaignData.emails[0].content || 'Your email content will appear here...'}
                   </div>
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-        );
-      
-      case 5:
-        return (
-          <div className="space-y-6">
-            <div className="text-center space-y-2">
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-green-50 to-emerald-50 rounded-full border border-green-200">
-                <Send className="h-4 w-4 text-green-600" />
-                <span className="text-sm font-medium text-green-700">Ready to Launch</span>
               </div>
-            </div>
-            
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center justify-between">
-                  <span>{campaignData.name}</span>
-                  <Badge variant="secondary">Draft</Badge>
-                </CardTitle>
-                <p className="text-sm text-muted-foreground">{campaignData.description}</p>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <div className="text-sm font-medium">Target Audience</div>
-                  <p className="text-sm text-muted-foreground">
-                    {entityOptions.find(opt => opt.id === campaignData.entity)?.title}
-                  </p>
-                </div>
-                
-                <div className="space-y-2">
-                  <div className="text-sm font-medium">Objective</div>
-                  <p className="text-sm text-muted-foreground">{campaignData.objective}</p>
-                </div>
-              </CardContent>
-            </Card>
-            
-            <div className="flex gap-3">
-              <Button variant="outline" className="flex-1 gap-2">
-                <Settings className="h-4 w-4" />
-                Save as Draft
-              </Button>
-              <Button className="flex-1 gap-2">
-                <Send className="h-4 w-4" />
-                Launch Campaign
-              </Button>
+              
+              <div className="flex gap-3">
+                <Button variant="outline" className="flex-1 gap-2" onClick={handleBack}>
+                  <Settings className="h-4 w-4" />
+                  Save as Draft
+                </Button>
+                <Button className="flex-1 gap-2" onClick={handleBack}>
+                  <Check className="h-4 w-4" />
+                  Save Template
+                </Button>
+              </div>
             </div>
           </div>
         );
@@ -461,7 +396,7 @@ export default function CampaignCreator() {
                 Back
               </Button>
               <div>
-                <h1 className="text-xl font-semibold">Create Campaign</h1>
+                <h1 className="text-xl font-semibold">Create Template</h1>
                 <p className="text-sm text-muted-foreground">Step {currentStep} of {totalSteps}</p>
               </div>
             </div>
@@ -522,12 +457,12 @@ export default function CampaignCreator() {
               </Button>
               
               <Button
-                onClick={handleNext}
-                disabled={currentStep === totalSteps || !canProceed()}
+                onClick={currentStep === totalSteps ? handleBack : handleNext}
+                disabled={!canProceed()}
                 className="gap-2"
               >
-                {currentStep === totalSteps ? 'Complete' : 'Next'}
-                <ArrowRight className="h-4 w-4" />
+                {currentStep === totalSteps ? 'Save Template' : 'Next'}
+                {currentStep === totalSteps ? <Check className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
               </Button>
             </div>
           </div>
