@@ -549,126 +549,13 @@ export default function CampaignCreator() {
       
       case 3:
         return (
-          <div className="space-y-8">
-            <div className="text-center">
-              <h2 className="text-xl font-medium text-gray-900 mb-2">Email Builder</h2>
-              <p className="text-gray-600">Create your email template with dynamic content</p>
-            </div>
-            
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
-              {/* Email Builder */}
-              <div className="lg:col-span-3 space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Subject Line</label>
-                  <Input
-                    placeholder="Enter email subject..."
-                    value={campaignData.emails[0].subject}
-                    onChange={(e) => updateEmailSubject(e.target.value)}
-                    className="h-12"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Email Content</label>
-                  <div className="border rounded-lg bg-white min-h-[400px] p-6">
-                    {campaignData.emails[0].blocks.map((block, index) => (
-                      <div key={index} className="group relative mb-4 p-4 border border-gray-100 rounded-lg hover:border-gray-200">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => removeEmailBlock(index)}
-                          className="absolute top-1 right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
-                        >
-                          <X className="h-3 w-3" />
-                        </Button>
-                        
-                        {block.type === 'text' && (
-                          <Textarea
-                            value={block.content}
-                            onChange={(e) => updateEmailBlock(index, 'content', e.target.value)}
-                            placeholder="Enter paragraph text..."
-                            className="border-none p-0 resize-none min-h-[80px] focus:ring-0"
-                          />
-                        )}
-                        {block.type === 'heading' && (
-                          <Input
-                            value={block.content}
-                            onChange={(e) => updateEmailBlock(index, 'content', e.target.value)}
-                            placeholder="Enter heading..."
-                            className="border-none p-0 text-lg font-semibold focus:ring-0"
-                          />
-                        )}
-                        {block.type === 'quote' && (
-                          <div className="border-l-4 border-blue-500 pl-4">
-                            <Textarea
-                              value={block.content}
-                              onChange={(e) => updateEmailBlock(index, 'content', e.target.value)}
-                              placeholder="Enter quote..."
-                              className="border-none p-0 resize-none min-h-[80px] italic focus:ring-0"
-                            />
-                          </div>
-                        )}
-                        {block.type === 'divider' && (
-                          <div className="w-full h-px bg-gray-300"></div>
-                        )}
-                      </div>
-                    ))}
-                    
-                    {campaignData.emails[0].blocks.length === 0 && (
-                      <div className="text-center py-16 text-gray-500">
-                        <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                        <p>Add content blocks to build your email</p>
-                      </div>
-                    )}
-                  </div>
-                </div>
-              </div>
-
-              {/* Sidebar Tools */}
-              <div className="space-y-6">
-                <div>
-                  <h3 className="text-sm font-medium text-gray-700 mb-3">Add Content</h3>
-                  <div className="space-y-2">
-                    {[
-                      { type: 'text', icon: Type, label: 'Text' },
-                      { type: 'heading', icon: Heading, label: 'Heading' },
-                      { type: 'quote', icon: Quote, label: 'Quote' },
-                      { type: 'divider', icon: Minus, label: 'Divider' }
-                    ].map((blockType) => {
-                      const IconComponent = blockType.icon;
-                      return (
-                        <Button
-                          key={blockType.type}
-                          variant="outline"
-                          size="sm"
-                          className="w-full justify-start gap-2"
-                          onClick={() => addEmailBlock(blockType.type as EmailBlock['type'])}
-                        >
-                          <IconComponent className="h-4 w-4" />
-                          {blockType.label}
-                        </Button>
-                      );
-                    })}
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="text-sm font-medium text-gray-700 mb-3">Dynamic Fields</h3>
-                  <div className="space-y-1 text-xs">
-                    {['name', 'email', 'company', 'phone', 'product_names', 'total_value'].map((field) => (
-                      <div
-                        key={field}
-                        className="p-2 bg-gray-50 rounded cursor-pointer hover:bg-gray-100"
-                        onClick={() => copyToClipboard(`{{${field}}}`)}
-                      >
-                        <code>{'{{' + field + '}}'}</code>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <EnhancedEmailBuilder
+            emails={campaignData.emails}
+            activeEmailIndex={activeEmailIndex}
+            entityType={campaignData.entity}
+            onEmailsChange={(newEmails) => setCampaignData({ ...campaignData, emails: newEmails })}
+            onActiveEmailChange={setActiveEmailIndex}
+          />
         );
       
       default:
@@ -677,41 +564,6 @@ export default function CampaignCreator() {
   };
 
   // Helper functions
-  const updateEmailSubject = (subject: string) => {
-    const newEmails = [...campaignData.emails];
-    newEmails[0].subject = subject;
-    setCampaignData({ ...campaignData, emails: newEmails });
-  };
-
-  const updateEmailBlock = (index: number, field: string, value: string) => {
-    const newEmails = [...campaignData.emails];
-    const newBlocks = [...newEmails[0].blocks];
-    newBlocks[index] = { ...newBlocks[index], [field]: value };
-    newEmails[0].blocks = newBlocks;
-    setCampaignData({ ...campaignData, emails: newEmails });
-  };
-
-  const addEmailBlock = (type: EmailBlock['type']) => {
-    const newEmails = [...campaignData.emails];
-    const newBlock: EmailBlock = { 
-      id: generateBlockId(),
-      type, 
-      content: '',
-      properties: {}
-    };
-    newEmails[0].blocks = [...newEmails[0].blocks, newBlock];
-    setCampaignData({ ...campaignData, emails: newEmails });
-  };
-
-  const removeEmailBlock = (index: number) => {
-    const newEmails = [...campaignData.emails];
-    newEmails[0].blocks = newEmails[0].blocks.filter((_, i) => i !== index);
-    setCampaignData({ ...campaignData, emails: newEmails });
-  };
-
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text);
-  };
 
   return (
     <div className="min-h-screen bg-gray-50">
