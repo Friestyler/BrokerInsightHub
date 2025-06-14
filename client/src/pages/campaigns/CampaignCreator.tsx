@@ -391,16 +391,16 @@ export default function CampaignCreator() {
       
       case 3:
         return (
-          <div className="space-y-6">
-            <div className="text-center space-y-2">
+          <div className="h-full flex flex-col space-y-4">
+            <div className="text-center">
               <div className="inline-flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-purple-50 to-pink-50 rounded-full border border-purple-200">
                 <Mail className="h-4 w-4 text-purple-600" />
                 <span className="text-sm font-medium text-purple-700">Email Template Builder</span>
               </div>
             </div>
             
-            <div className="space-y-4">
-              <div className="flex gap-2">
+            <div className="flex-1 flex flex-col space-y-4">
+              <div className="flex gap-4">
                 <div className="flex-1">
                   <label className="text-sm font-medium">Subject Line</label>
                   <Input
@@ -411,7 +411,7 @@ export default function CampaignCreator() {
                       newEmails[0].subject = e.target.value;
                       setCampaignData({ ...campaignData, emails: newEmails });
                     }}
-                    className="h-11 mt-1"
+                    className="h-12 mt-2"
                   />
                 </div>
                 <div>
@@ -420,7 +420,7 @@ export default function CampaignCreator() {
                     variant="outline"
                     size="sm"
                     onClick={() => setShowPreview(!showPreview)}
-                    className="h-11 gap-2 mt-1"
+                    className="h-12 gap-2 mt-2"
                   >
                     <Eye className="h-4 w-4" />
                     {showPreview ? 'Hide' : 'Preview'}
@@ -428,28 +428,28 @@ export default function CampaignCreator() {
                 </div>
               </div>
 
-              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+              <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-8 min-h-0">
                 {/* Email Builder */}
-                <div className="lg:col-span-8">
-                  <div className="space-y-4">
+                <div className="lg:col-span-2 flex flex-col">
+                  <div className="flex-1 flex flex-col space-y-6">
                     {/* Logo Section */}
-                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-                      <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 bg-white border-2 border-dashed border-gray-300 rounded flex items-center justify-center cursor-pointer hover:border-blue-400 transition-colors">
-                          <Image className="h-5 w-5 text-gray-400" />
+                    <div className="flex items-center justify-between p-6 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-4">
+                        <div className="w-16 h-16 bg-white border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-400 transition-colors">
+                          <Image className="h-6 w-6 text-gray-400" />
                         </div>
-                        <span className="text-sm text-gray-600">Left Logo</span>
+                        <span className="text-sm font-medium text-gray-600">Left Logo</span>
                       </div>
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm text-gray-600">Right Logo</span>
-                        <div className="w-12 h-12 bg-white border-2 border-dashed border-gray-300 rounded flex items-center justify-center cursor-pointer hover:border-blue-400 transition-colors">
-                          <Image className="h-5 w-5 text-gray-400" />
+                      <div className="flex items-center gap-4">
+                        <span className="text-sm font-medium text-gray-600">Right Logo</span>
+                        <div className="w-16 h-16 bg-white border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-400 transition-colors">
+                          <Image className="h-6 w-6 text-gray-400" />
                         </div>
                       </div>
                     </div>
 
                     {/* Email Content Builder */}
-                    <div className="border rounded-lg bg-white min-h-[400px]">
+                    <div className="flex-1 border rounded-lg bg-white min-h-[500px] flex flex-col">
                       <div className="p-4 border-b bg-gray-50 rounded-t-lg">
                         <div className="flex items-center justify-between">
                           <h4 className="font-medium text-gray-900">Email Content</h4>
@@ -457,10 +457,10 @@ export default function CampaignCreator() {
                         </div>
                       </div>
                       
-                      <div className="p-4 space-y-3">
+                      <div className="flex-1 p-6 space-y-4 overflow-y-auto">
                         {campaignData.emails[0].blocks && campaignData.emails[0].blocks.length > 0 ? (
                           campaignData.emails[0].blocks.map((block, index) => (
-                            <div key={index} className="group relative border border-gray-200 rounded-lg p-3 hover:border-blue-300 transition-colors">
+                            <div key={index} className="group relative border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors">
                               <div className="absolute -right-2 -top-2 opacity-0 group-hover:opacity-100 transition-opacity">
                                 <Button 
                                   size="sm" 
@@ -525,10 +525,12 @@ export default function CampaignCreator() {
                             </div>
                           ))
                         ) : (
-                          <div className="text-center py-12 text-gray-500">
-                            <Mail className="h-12 w-12 mx-auto mb-3 text-gray-300" />
-                            <p className="text-sm">Add content blocks to build your email</p>
-                            <p className="text-xs text-gray-400 mt-1">Use the blocks panel on the right to get started</p>
+                          <div className="flex-1 flex items-center justify-center text-gray-500">
+                            <div className="text-center">
+                              <Mail className="h-16 w-16 mx-auto mb-4 text-gray-300" />
+                              <p className="text-lg font-medium">Add content blocks to build your email</p>
+                              <p className="text-sm text-gray-400 mt-2">Use the blocks panel on the right to get started</p>
+                            </div>
                           </div>
                         )}
                       </div>
@@ -537,14 +539,15 @@ export default function CampaignCreator() {
                 </div>
 
                 {/* Blocks Panel */}
-                <div className="lg:col-span-4">
-                  <div className="space-y-4">
+                <div className="lg:col-span-1 flex flex-col">
+                  <div className="flex-1 space-y-6">
                     {/* Content Blocks */}
-                    <Card>
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-sm font-medium">Content Blocks</CardTitle>
+                    <Card className="flex-1 flex flex-col">
+                      <CardHeader className="pb-4">
+                        <CardTitle className="font-medium">Content Blocks</CardTitle>
+                        <p className="text-xs text-gray-500">Drag and drop to build your email</p>
                       </CardHeader>
-                      <CardContent className="space-y-2">
+                      <CardContent className="flex-1 space-y-3">
                         {[
                           { id: 'text' as const, icon: Type, label: 'Text', desc: 'Add paragraphs and content' },
                           { id: 'heading' as const, icon: AlignLeft, label: 'Heading', desc: 'Section titles' },
@@ -553,15 +556,15 @@ export default function CampaignCreator() {
                         ].map(block => (
                           <button
                             key={block.id}
-                            className="w-full p-3 text-left border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors group"
+                            className="w-full p-4 text-left border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors group"
                             onClick={() => addBlock(block.id)}
                           >
                             <div className="flex items-start gap-3">
-                              <div className="w-8 h-8 bg-gray-100 rounded flex items-center justify-center group-hover:bg-blue-100 transition-colors">
-                                <block.icon className="h-4 w-4 text-gray-600 group-hover:text-blue-600" />
+                              <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center group-hover:bg-blue-100 transition-colors">
+                                <block.icon className="h-5 w-5 text-gray-600 group-hover:text-blue-600" />
                               </div>
                               <div className="flex-1 min-w-0">
-                                <div className="text-sm font-medium text-gray-900">{block.label}</div>
+                                <div className="text-sm font-medium text-gray-900 mb-1">{block.label}</div>
                                 <div className="text-xs text-gray-500">{block.desc}</div>
                               </div>
                             </div>
@@ -571,25 +574,25 @@ export default function CampaignCreator() {
                     </Card>
 
                     {/* Entity Variables */}
-                    <Card>
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-sm font-medium">Entity Variables</CardTitle>
+                    <Card className="flex-1 flex flex-col">
+                      <CardHeader className="pb-4">
+                        <CardTitle className="font-medium">Entity Variables</CardTitle>
                         <p className="text-xs text-gray-500">Click to insert into content</p>
                       </CardHeader>
-                      <CardContent className="space-y-3">
+                      <CardContent className="flex-1 space-y-4 overflow-y-auto">
                         {[
                           { category: 'Contact', items: ['{{name}}', '{{email}}', '{{company}}', '{{phone}}'] },
                           { category: 'Products', items: ['{{product_names}}', '{{product_categories}}', '{{latest_product}}'] },
                           { category: 'OKR Metrics', items: ['{{metric_value}}', '{{metric_target}}', '{{metric_progress}}'] },
                           { category: 'Tasks', items: ['{{open_tasks}}', '{{completed_tasks}}', '{{due_tasks}}'] }
                         ].map(group => (
-                          <div key={group.category} className="space-y-2">
-                            <div className="text-xs font-medium text-gray-700 uppercase tracking-wider">{group.category}</div>
-                            <div className="grid grid-cols-1 gap-1">
+                          <div key={group.category} className="space-y-3">
+                            <div className="text-xs font-semibold text-gray-700 uppercase tracking-wider border-b border-gray-200 pb-1">{group.category}</div>
+                            <div className="space-y-2">
                               {group.items.map(item => (
                                 <button
                                   key={item}
-                                  className="text-left text-xs px-2 py-1 bg-gray-100 rounded hover:bg-blue-100 hover:text-blue-700 transition-colors"
+                                  className="w-full text-left text-xs px-3 py-2 bg-gray-50 rounded-lg hover:bg-blue-100 hover:text-blue-700 transition-colors border border-gray-200 hover:border-blue-300"
                                   onClick={() => {
                                     // Logic to insert variable at cursor position
                                     console.log('Insert variable:', item);
