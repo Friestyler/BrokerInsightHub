@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, ArrowRight, Check, Users, Target, Mail, Send, Settings, Sparkles } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Users, Target, Mail, Send, Settings, Sparkles, TrendingUp, Zap, Star, Heart, Gift, Megaphone, Coffee, Briefcase, Globe, Award, Rocket, Shield, Diamond } from "lucide-react";
 import { useLocation } from 'wouter';
 
 interface StepProps {
@@ -76,6 +76,7 @@ export default function CampaignCreator() {
     name: '',
     description: '',
     objective: '',
+    icon: '',
     emails: [{ subject: '', content: '' }]
   });
 
@@ -166,7 +167,7 @@ export default function CampaignCreator() {
 
   const isStepCompleted = (stepNum: number): boolean => {
     if (stepNum === 1) return Boolean(campaignData.entity);
-    if (stepNum === 2) return Boolean(campaignData.name && campaignData.description && campaignData.objective);
+    if (stepNum === 2) return Boolean(campaignData.name && campaignData.description && campaignData.objective && campaignData.icon);
     if (stepNum === 3) return Boolean(campaignData.emails[0].subject && campaignData.emails[0].content);
     return stepNum < currentStep;
   };
@@ -284,6 +285,59 @@ export default function CampaignCreator() {
                   onChange={(e) => setCampaignData({ ...campaignData, description: e.target.value })}
                   className="min-h-[80px] resize-none"
                 />
+              </div>
+
+              <div className="space-y-3">
+                <label className="text-sm font-medium">Template Icon</label>
+                <div className="grid grid-cols-6 gap-3">
+                  {[
+                    { id: 'target', icon: Target, color: 'from-blue-500 to-blue-600' },
+                    { id: 'trending-up', icon: TrendingUp, color: 'from-green-500 to-emerald-600' },
+                    { id: 'zap', icon: Zap, color: 'from-yellow-500 to-orange-500' },
+                    { id: 'star', icon: Star, color: 'from-purple-500 to-violet-600' },
+                    { id: 'heart', icon: Heart, color: 'from-pink-500 to-rose-600' },
+                    { id: 'gift', icon: Gift, color: 'from-red-500 to-pink-600' },
+                    { id: 'megaphone', icon: Megaphone, color: 'from-indigo-500 to-blue-600' },
+                    { id: 'coffee', icon: Coffee, color: 'from-amber-600 to-yellow-600' },
+                    { id: 'briefcase', icon: Briefcase, color: 'from-gray-600 to-slate-700' },
+                    { id: 'globe', icon: Globe, color: 'from-cyan-500 to-blue-500' },
+                    { id: 'award', icon: Award, color: 'from-yellow-500 to-amber-600' },
+                    { id: 'rocket', icon: Rocket, color: 'from-violet-500 to-purple-600' },
+                    { id: 'shield', icon: Shield, color: 'from-emerald-500 to-green-600' },
+                    { id: 'diamond', icon: Diamond, color: 'from-blue-400 to-cyan-500' },
+                    { id: 'mail', icon: Mail, color: 'from-slate-500 to-gray-600' },
+                    { id: 'sparkles', icon: Sparkles, color: 'from-pink-400 to-purple-500' }
+                  ].map((iconOption) => {
+                    const IconComponent = iconOption.icon;
+                    return (
+                      <button
+                        key={iconOption.id}
+                        type="button"
+                        onClick={() => setCampaignData({ ...campaignData, icon: iconOption.id })}
+                        className={`relative p-3 rounded-xl transition-all duration-200 hover:scale-105 ${
+                          campaignData.icon === iconOption.id 
+                            ? 'ring-2 ring-blue-500 ring-offset-2' 
+                            : 'hover:shadow-md'
+                        }`}
+                      >
+                        <div className={`w-10 h-10 bg-gradient-to-br ${iconOption.color} rounded-lg flex items-center justify-center shadow-sm`}>
+                          <IconComponent className="h-5 w-5 text-white" />
+                        </div>
+                        {campaignData.icon === iconOption.id && (
+                          <div className="absolute -top-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
+                            <Check className="h-3 w-3 text-white" />
+                          </div>
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+                {campaignData.icon && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                    <Check className="h-4 w-4 text-green-600" />
+                    <span>Icon selected for template tile</span>
+                  </div>
+                )}
               </div>
               
               <div className="space-y-2">
