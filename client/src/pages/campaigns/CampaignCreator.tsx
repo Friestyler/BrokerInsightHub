@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, ArrowRight, Check, Users, Target, Mail, Send, Settings, Sparkles, TrendingUp, Zap, Star, Heart, Gift, Megaphone, Coffee, Briefcase, Globe, Award, Rocket, Shield, Diamond } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, Users, Target, Mail, Send, Settings, Sparkles, TrendingUp, Zap, Star, Heart, Gift, Megaphone, Coffee, Briefcase, Globe, Award, Rocket, Shield, Diamond, Plus, Type, Image, Quote, Minus, AlignLeft, Bold, Italic, Link, Eye } from "lucide-react";
 import { useLocation } from 'wouter';
 
 interface StepProps {
@@ -68,6 +68,11 @@ interface EntityOption {
   category: 'campaign' | 'update';
 }
 
+interface EmailBlock {
+  type: 'text' | 'heading' | 'quote' | 'divider';
+  content: string;
+}
+
 export default function CampaignCreator() {
   const [, setLocation] = useLocation();
   const [currentStep, setCurrentStep] = useState(1);
@@ -77,8 +82,36 @@ export default function CampaignCreator() {
     description: '',
     objective: '',
     icon: '',
-    emails: [{ subject: '', content: '' }]
+    emails: [{ 
+      subject: '', 
+      content: '',
+      blocks: [] as EmailBlock[],
+      leftLogo: '',
+      rightLogo: ''
+    }]
   });
+  
+  const [showPreview, setShowPreview] = useState(false);
+
+  const updateBlockContent = (blockIndex: number, content: string) => {
+    const newEmails = [...campaignData.emails];
+    if (newEmails[0].blocks[blockIndex]) {
+      newEmails[0].blocks[blockIndex].content = content;
+      setCampaignData({ ...campaignData, emails: newEmails });
+    }
+  };
+
+  const addBlock = (type: EmailBlock['type']) => {
+    const newEmails = [...campaignData.emails];
+    newEmails[0].blocks.push({ type, content: '' });
+    setCampaignData({ ...campaignData, emails: newEmails });
+  };
+
+  const removeBlock = (blockIndex: number) => {
+    const newEmails = [...campaignData.emails];
+    newEmails[0].blocks.splice(blockIndex, 1);
+    setCampaignData({ ...campaignData, emails: newEmails });
+  };
 
   const entityOptions: EntityOption[] = [
     {
@@ -168,7 +201,7 @@ export default function CampaignCreator() {
   const isStepCompleted = (stepNum: number): boolean => {
     if (stepNum === 1) return Boolean(campaignData.entity);
     if (stepNum === 2) return Boolean(campaignData.name && campaignData.description && campaignData.objective && campaignData.icon);
-    if (stepNum === 3) return Boolean(campaignData.emails[0].subject && campaignData.emails[0].content);
+    if (stepNum === 3) return Boolean(campaignData.emails[0].subject && campaignData.emails[0].blocks && campaignData.emails[0].blocks.length > 0);
     return stepNum < currentStep;
   };
 
@@ -366,59 +399,264 @@ export default function CampaignCreator() {
               </div>
             </div>
             
-            <Card className="border-dashed border-2">
-              <CardHeader className="text-center py-8">
-                <div className="mx-auto w-12 h-12 bg-muted rounded-full flex items-center justify-center mb-3">
-                  <Mail className="h-6 w-6 text-muted-foreground" />
-                </div>
-                <CardTitle className="text-base">Visual Email Builder</CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  Drag-and-drop editor coming soon. Use the simple editor below for now.
-                </p>
-              </CardHeader>
-            </Card>
-            
             <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Email Subject Template</label>
-                <Input
-                  placeholder="Enter a compelling subject line with placeholders..."
-                  value={campaignData.emails[0].subject}
-                  onChange={(e) => {
-                    const newEmails = [...campaignData.emails];
-                    newEmails[0].subject = e.target.value;
-                    setCampaignData({ ...campaignData, emails: newEmails });
-                  }}
-                  className="h-11"
-                />
+              <div className="flex gap-2">
+                <div className="flex-1">
+                  <label className="text-sm font-medium">Subject Line</label>
+                  <Input
+                    placeholder="Enter subject with variables like {{name}} or {{company}}"
+                    value={campaignData.emails[0].subject}
+                    onChange={(e) => {
+                      const newEmails = [...campaignData.emails];
+                      newEmails[0].subject = e.target.value;
+                      setCampaignData({ ...campaignData, emails: newEmails });
+                    }}
+                    className="h-11 mt-1"
+                  />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">&nbsp;</label>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowPreview(!showPreview)}
+                    className="h-11 gap-2 mt-1"
+                  >
+                    <Eye className="h-4 w-4" />
+                    {showPreview ? 'Hide' : 'Preview'}
+                  </Button>
+                </div>
               </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Email Content Template</label>
-                <Textarea
-                  placeholder="Write your email template content here..."
-                  value={campaignData.emails[0].content}
-                  onChange={(e) => {
-                    const newEmails = [...campaignData.emails];
-                    newEmails[0].content = e.target.value;
-                    setCampaignData({ ...campaignData, emails: newEmails });
-                  }}
-                  className="min-h-[200px] resize-none"
-                />
-              </div>
-              
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <h4 className="text-sm font-medium text-blue-800 mb-2">Template Preview</h4>
-                <div className="bg-white border rounded p-3 space-y-2">
-                  <div className="text-sm font-medium text-gray-700">
-                    Subject: {campaignData.emails[0].subject || 'Your subject line will appear here...'}
+
+              <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                {/* Email Builder */}
+                <div className="lg:col-span-8">
+                  <div className="space-y-4">
+                    {/* Logo Section */}
+                    <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+                      <div className="flex items-center gap-3">
+                        <div className="w-12 h-12 bg-white border-2 border-dashed border-gray-300 rounded flex items-center justify-center cursor-pointer hover:border-blue-400 transition-colors">
+                          <Image className="h-5 w-5 text-gray-400" />
+                        </div>
+                        <span className="text-sm text-gray-600">Left Logo</span>
+                      </div>
+                      <div className="flex items-center gap-3">
+                        <span className="text-sm text-gray-600">Right Logo</span>
+                        <div className="w-12 h-12 bg-white border-2 border-dashed border-gray-300 rounded flex items-center justify-center cursor-pointer hover:border-blue-400 transition-colors">
+                          <Image className="h-5 w-5 text-gray-400" />
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Email Content Builder */}
+                    <div className="border rounded-lg bg-white min-h-[400px]">
+                      <div className="p-4 border-b bg-gray-50 rounded-t-lg">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-medium text-gray-900">Email Content</h4>
+                          <div className="text-sm text-gray-500">Press '/' for menu, select text to format</div>
+                        </div>
+                      </div>
+                      
+                      <div className="p-4 space-y-3">
+                        {campaignData.emails[0].blocks && campaignData.emails[0].blocks.length > 0 ? (
+                          campaignData.emails[0].blocks.map((block, index) => (
+                            <div key={index} className="group relative border border-gray-200 rounded-lg p-3 hover:border-blue-300 transition-colors">
+                              <div className="absolute -right-2 -top-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                                <Button 
+                                  size="sm" 
+                                  variant="outline" 
+                                  className="h-6 w-6 p-0 bg-white border-red-200 hover:bg-red-50"
+                                  onClick={() => removeBlock(index)}
+                                >
+                                  <Minus className="h-3 w-3 text-red-500" />
+                                </Button>
+                              </div>
+                              {block.type === 'text' && (
+                                <div className="space-y-2">
+                                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                                    <Type className="h-4 w-4" />
+                                    Text Block
+                                  </div>
+                                  <Textarea
+                                    placeholder="Enter your text content..."
+                                    value={block.content || ''}
+                                    onChange={(e) => updateBlockContent(index, e.target.value)}
+                                    className="min-h-[80px] resize-none"
+                                  />
+                                </div>
+                              )}
+                              {block.type === 'heading' && (
+                                <div className="space-y-2">
+                                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                                    <AlignLeft className="h-4 w-4" />
+                                    Heading Block
+                                  </div>
+                                  <Input
+                                    placeholder="Enter heading text..."
+                                    value={block.content || ''}
+                                    onChange={(e) => updateBlockContent(index, e.target.value)}
+                                    className="font-semibold"
+                                  />
+                                </div>
+                              )}
+                              {block.type === 'quote' && (
+                                <div className="space-y-2">
+                                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                                    <Quote className="h-4 w-4" />
+                                    Quote Block
+                                  </div>
+                                  <Textarea
+                                    placeholder="Enter quote text..."
+                                    value={block.content || ''}
+                                    onChange={(e) => updateBlockContent(index, e.target.value)}
+                                    className="min-h-[60px] resize-none italic"
+                                  />
+                                </div>
+                              )}
+                              {block.type === 'divider' && (
+                                <div className="space-y-2">
+                                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                                    <Minus className="h-4 w-4" />
+                                    Divider Block
+                                  </div>
+                                  <hr className="border-gray-300" />
+                                </div>
+                              )}
+                            </div>
+                          ))
+                        ) : (
+                          <div className="text-center py-12 text-gray-500">
+                            <Mail className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                            <p className="text-sm">Add content blocks to build your email</p>
+                            <p className="text-xs text-gray-400 mt-1">Use the blocks panel on the right to get started</p>
+                          </div>
+                        )}
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-sm text-gray-600 whitespace-pre-wrap">
-                    {campaignData.emails[0].content || 'Your email content will appear here...'}
+                </div>
+
+                {/* Blocks Panel */}
+                <div className="lg:col-span-4">
+                  <div className="space-y-4">
+                    {/* Content Blocks */}
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-sm font-medium">Content Blocks</CardTitle>
+                      </CardHeader>
+                      <CardContent className="space-y-2">
+                        {[
+                          { id: 'text' as const, icon: Type, label: 'Text', desc: 'Add paragraphs and content' },
+                          { id: 'heading' as const, icon: AlignLeft, label: 'Heading', desc: 'Section titles' },
+                          { id: 'quote' as const, icon: Quote, label: 'Quote', desc: 'Highlight important text' },
+                          { id: 'divider' as const, icon: Minus, label: 'Divider', desc: 'Separate content sections' }
+                        ].map(block => (
+                          <button
+                            key={block.id}
+                            className="w-full p-3 text-left border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors group"
+                            onClick={() => addBlock(block.id)}
+                          >
+                            <div className="flex items-start gap-3">
+                              <div className="w-8 h-8 bg-gray-100 rounded flex items-center justify-center group-hover:bg-blue-100 transition-colors">
+                                <block.icon className="h-4 w-4 text-gray-600 group-hover:text-blue-600" />
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="text-sm font-medium text-gray-900">{block.label}</div>
+                                <div className="text-xs text-gray-500">{block.desc}</div>
+                              </div>
+                            </div>
+                          </button>
+                        ))}
+                      </CardContent>
+                    </Card>
+
+                    {/* Entity Variables */}
+                    <Card>
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-sm font-medium">Entity Variables</CardTitle>
+                        <p className="text-xs text-gray-500">Click to insert into content</p>
+                      </CardHeader>
+                      <CardContent className="space-y-3">
+                        {[
+                          { category: 'Contact', items: ['{{name}}', '{{email}}', '{{company}}', '{{phone}}'] },
+                          { category: 'Products', items: ['{{product_names}}', '{{product_categories}}', '{{latest_product}}'] },
+                          { category: 'OKR Metrics', items: ['{{metric_value}}', '{{metric_target}}', '{{metric_progress}}'] },
+                          { category: 'Tasks', items: ['{{open_tasks}}', '{{completed_tasks}}', '{{due_tasks}}'] }
+                        ].map(group => (
+                          <div key={group.category} className="space-y-2">
+                            <div className="text-xs font-medium text-gray-700 uppercase tracking-wider">{group.category}</div>
+                            <div className="grid grid-cols-1 gap-1">
+                              {group.items.map(item => (
+                                <button
+                                  key={item}
+                                  className="text-left text-xs px-2 py-1 bg-gray-100 rounded hover:bg-blue-100 hover:text-blue-700 transition-colors"
+                                  onClick={() => {
+                                    // Logic to insert variable at cursor position
+                                    console.log('Insert variable:', item);
+                                  }}
+                                >
+                                  {item}
+                                </button>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </CardContent>
+                    </Card>
                   </div>
                 </div>
               </div>
-              
+
+              {/* Preview Panel */}
+              {showPreview && (
+                <Card className="border-blue-200 bg-blue-50">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center justify-between">
+                      <CardTitle className="text-sm font-medium text-blue-800">Email Preview</CardTitle>
+                      <Button variant="ghost" size="sm" onClick={() => setShowPreview(false)}>
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="bg-white border rounded-lg p-6 shadow-sm">
+                      <div className="space-y-4">
+                        <div className="text-sm font-medium text-gray-700">
+                          Subject: {campaignData.emails[0].subject || 'Your subject line will appear here...'}
+                        </div>
+                        <hr />
+                        <div className="space-y-3">
+                          {campaignData.emails[0].blocks && campaignData.emails[0].blocks.length > 0 ? (
+                            campaignData.emails[0].blocks.map((block, index) => (
+                              <div key={index}>
+                                {block.type === 'text' && (
+                                  <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                                    {block.content || 'Text content will appear here...'}
+                                  </p>
+                                )}
+                                {block.type === 'heading' && (
+                                  <h3 className="text-lg font-semibold text-gray-900">
+                                    {block.content || 'Heading will appear here...'}
+                                  </h3>
+                                )}
+                                {block.type === 'quote' && (
+                                  <blockquote className="border-l-4 border-blue-400 pl-4 italic text-gray-600">
+                                    {block.content || 'Quote will appear here...'}
+                                  </blockquote>
+                                )}
+                                {block.type === 'divider' && <hr className="my-4" />}
+                              </div>
+                            ))
+                          ) : (
+                            <p className="text-gray-500 italic">Add content blocks to see preview</p>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+
               <div className="flex gap-3">
                 <Button variant="outline" className="flex-1 gap-2" onClick={handleBack}>
                   <Settings className="h-4 w-4" />
