@@ -371,47 +371,57 @@ export default function CampaignCreator() {
               {entityOptions.map((option) => {
                 const isSelected = campaignData.entity === option.id;
                 
-                // Define specific color classes for each entity type
+                // Define specific color classes for each entity type - grey by default, colors on hover/select
                 const getEntityStyles = (entityId: string, selected: boolean) => {
                   switch (entityId) {
                     case 'opportunities':
                       return {
                         border: selected ? 'border-green-500 ring-2 ring-green-200' : 'border-gray-200 hover:border-green-300',
-                        bg: selected ? 'bg-green-50' : 'hover:bg-green-25',
-                        text: selected ? 'text-green-900' : 'text-gray-900 hover:text-green-800',
+                        bg: selected ? 'bg-green-50' : 'bg-gray-50 hover:bg-green-50',
+                        text: selected ? 'text-green-900' : 'text-gray-600 hover:text-green-800',
                         subtitle: selected ? 'text-green-600' : 'text-gray-500 hover:text-green-600',
+                        icon: selected ? 'bg-gradient-to-r from-green-500 to-emerald-600' : 'bg-gray-200 hover:bg-gradient-to-r hover:from-green-500 hover:to-emerald-600',
+                        iconText: selected ? 'text-white' : 'text-gray-400 hover:text-white',
                         checkBg: 'bg-green-500'
                       };
                     case 'customers':
                       return {
                         border: selected ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200 hover:border-blue-300',
-                        bg: selected ? 'bg-blue-50' : 'hover:bg-blue-25',
-                        text: selected ? 'text-blue-900' : 'text-gray-900 hover:text-blue-800',
+                        bg: selected ? 'bg-blue-50' : 'bg-gray-50 hover:bg-blue-50',
+                        text: selected ? 'text-blue-900' : 'text-gray-600 hover:text-blue-800',
                         subtitle: selected ? 'text-blue-600' : 'text-gray-500 hover:text-blue-600',
+                        icon: selected ? 'bg-gradient-to-r from-blue-500 to-indigo-600' : 'bg-gray-200 hover:bg-gradient-to-r hover:from-blue-500 hover:to-indigo-600',
+                        iconText: selected ? 'text-white' : 'text-gray-400 hover:text-white',
                         checkBg: 'bg-blue-500'
                       };
                     case 'partners':
                       return {
                         border: selected ? 'border-purple-500 ring-2 ring-purple-200' : 'border-gray-200 hover:border-purple-300',
-                        bg: selected ? 'bg-purple-50' : 'hover:bg-purple-25',
-                        text: selected ? 'text-purple-900' : 'text-gray-900 hover:text-purple-800',
+                        bg: selected ? 'bg-purple-50' : 'bg-gray-50 hover:bg-purple-50',
+                        text: selected ? 'text-purple-900' : 'text-gray-600 hover:text-purple-800',
                         subtitle: selected ? 'text-purple-600' : 'text-gray-500 hover:text-purple-600',
+                        icon: selected ? 'bg-gradient-to-r from-purple-500 to-violet-600' : 'bg-gray-200 hover:bg-gradient-to-r hover:from-purple-500 hover:to-violet-600',
+                        iconText: selected ? 'text-white' : 'text-gray-400 hover:text-white',
                         checkBg: 'bg-purple-500'
                       };
                     case 'internal':
                       return {
                         border: selected ? 'border-orange-500 ring-2 ring-orange-200' : 'border-gray-200 hover:border-orange-300',
-                        bg: selected ? 'bg-orange-50' : 'hover:bg-orange-25',
-                        text: selected ? 'text-orange-900' : 'text-gray-900 hover:text-orange-800',
+                        bg: selected ? 'bg-orange-50' : 'bg-gray-50 hover:bg-orange-50',
+                        text: selected ? 'text-orange-900' : 'text-gray-600 hover:text-orange-800',
                         subtitle: selected ? 'text-orange-600' : 'text-gray-500 hover:text-orange-600',
+                        icon: selected ? 'bg-gradient-to-r from-orange-500 to-red-600' : 'bg-gray-200 hover:bg-gradient-to-r hover:from-orange-500 hover:to-red-600',
+                        iconText: selected ? 'text-white' : 'text-gray-400 hover:text-white',
                         checkBg: 'bg-orange-500'
                       };
                     default:
                       return {
                         border: selected ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200 hover:border-blue-300',
-                        bg: selected ? 'bg-blue-50' : 'hover:bg-blue-25',
-                        text: selected ? 'text-blue-900' : 'text-gray-900 hover:text-blue-800',
+                        bg: selected ? 'bg-blue-50' : 'bg-gray-50 hover:bg-blue-50',
+                        text: selected ? 'text-blue-900' : 'text-gray-600 hover:text-blue-800',
                         subtitle: selected ? 'text-blue-600' : 'text-gray-500 hover:text-blue-600',
+                        icon: selected ? 'bg-gradient-to-r from-blue-500 to-indigo-600' : 'bg-gray-200 hover:bg-gradient-to-r hover:from-blue-500 hover:to-indigo-600',
+                        iconText: selected ? 'text-white' : 'text-gray-400 hover:text-white',
                         checkBg: 'bg-blue-500'
                       };
                   }
@@ -429,10 +439,12 @@ export default function CampaignCreator() {
                       isSelected ? 'shadow-lg scale-105' : 'hover:shadow-md hover:scale-102'
                     }`}
                   >
-                    <div className={`w-12 h-12 mx-auto mb-4 rounded-lg bg-gradient-to-r ${option.color} flex items-center justify-center transition-all duration-300 ${
+                    <div className={`w-12 h-12 mx-auto mb-4 rounded-lg flex items-center justify-center transition-all duration-300 ${
+                      styles.icon
+                    } ${
                       isSelected ? 'shadow-md' : 'group-hover:shadow-sm'
                     }`}>
-                      <div className="text-white">
+                      <div className={`transition-colors duration-300 ${styles.iconText}`}>
                         {option.icon}
                       </div>
                     </div>
