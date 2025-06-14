@@ -21,13 +21,14 @@ export default function TemplatesPage() {
   const [, setLocation] = useLocation();
   
   const { data: templates, isLoading } = useQuery<EmailTemplate[]>({
-    queryKey: ['/api/campaign-templates']
+    queryKey: ['/api/campaign-templates'],
+    enabled: false // Disable until backend is ready
   });
 
   const templateList = templates || [];
 
   const handleCreateTemplate = () => {
-    setLocation('/campaigns/templates/create');
+    setLocation('/campaigns/create');
   };
 
   const handleEditTemplate = (templateId: string) => {
@@ -72,14 +73,14 @@ export default function TemplatesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">Email Templates</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Campaigns & Updates</h1>
           <p className="text-sm text-muted-foreground">
-            Create reusable email sequences and campaign blueprints
+            Create targeted communications for partners, customers, and opportunities
           </p>
         </div>
         <Button onClick={handleCreateTemplate} className="gap-2">
           <Plus className="h-4 w-4" />
-          Create Template
+          Create Campaign
         </Button>
       </div>
 
@@ -98,7 +99,7 @@ export default function TemplatesPage() {
             </div>
             <Button onClick={handleCreateTemplate} className="gap-2">
               <Plus className="h-4 w-4" />
-              Create Your First Template
+              Create Your First Campaign
             </Button>
           </CardContent>
         </Card>

@@ -41,7 +41,7 @@ import PartnerView from "@/pages/PartnerView";
 
 // Import campaign components
 import TemplatesPage from "@/pages/campaigns/TemplatesPage";
-import TemplateCreator from "@/pages/campaigns/TemplateCreator";
+import CampaignCreator from "@/pages/campaigns/CampaignCreator";
 
 // Temporary placeholder components for other list pages
 const ProjectsPage = () => <div className="p-6"><h1 className="text-2xl font-bold">Projects List (Coming Soon)</h1></div>;
@@ -88,9 +88,7 @@ function Router() {
               
               {/* Campaigns routes */}
               <Route path="/campaigns" component={TemplatesPage} />
-              <Route path="/campaigns/templates/create" component={TemplateCreator} />
-              <Route path="/campaigns/templates/:id/edit" component={TemplateCreator} />
-              <Route path="/campaigns/templates/:id/preview" component={TemplateCreator} />
+              <Route path="/campaigns/create" component={CampaignCreator} />
               
               {/* Data Upload routes */}
               <Route path="/data-upload">
