@@ -50,7 +50,7 @@ export default function AttributeMappingStep({
   onBack 
 }: AttributeMappingStepProps) {
   const [attributeMappings, setAttributeMappings] = useState<AttributeMapping[]>([]);
-  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
+  const [selectedTemplateId, setSelectedTemplateId] = useState<string>('none');
   const [templateName, setTemplateName] = useState('');
   const [showSaveTemplate, setShowSaveTemplate] = useState(false);
   const [showAddAttribute, setShowAddAttribute] = useState(false);
@@ -95,7 +95,7 @@ export default function AttributeMappingStep({
 
   // Initialize attribute mappings based on upload settings
   useEffect(() => {
-    if (uploadSettings.length > 0 && attributeMappings.length === 0) {
+    if (uploadSettings.length > 0 && attributeMappings.length === 0 && selectedTemplateId === 'none') {
       const mandatoryAttributes = uploadSettings.filter((setting: any) => setting.is_mandatory);
       const mappings = mandatoryAttributes.map((setting: any) => ({
         attribute: setting.attribute_name,
@@ -105,7 +105,7 @@ export default function AttributeMappingStep({
       }));
       setAttributeMappings(mappings);
     }
-  }, [uploadSettings, attributeMappings.length]);
+  }, [uploadSettings, attributeMappings.length, selectedTemplateId]);
 
   // Auto-load templates for entity uploads
   useEffect(() => {
