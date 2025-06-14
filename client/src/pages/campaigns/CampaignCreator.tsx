@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, ArrowRight, Check, Users, Target, Mail, Send, Settings, Sparkles, TrendingUp, Zap, Star, Heart, Gift, Megaphone, Coffee, Briefcase, Globe, Award, Rocket, Shield, Diamond, Plus, Type, Image, Quote, Minus, AlignLeft, Bold, Italic, Link, Eye, FileText, X, Heading2 as Heading } from "lucide-react";
 import { useLocation } from 'wouter';
-import EnhancedEmailBuilder from './EnhancedEmailBuilder';
+import CleanEmailBuilder from './CleanEmailBuilder';
 
 interface StepProps {
   isActive: boolean;
@@ -72,7 +72,7 @@ interface EntityOption {
 
 interface EmailBlock {
   id: string;
-  type: 'text' | 'heading' | 'quote' | 'divider' | 'image' | 'button' | 'spacer';
+  type: 'text' | 'heading' | 'quote' | 'divider' | 'image' | 'button' | 'spacer' | 'ai';
   content: string;
   properties?: {
     alignment?: 'left' | 'center' | 'right';
@@ -84,6 +84,7 @@ interface EmailBlock {
     imageUrl?: string;
     imageAlt?: string;
     spacerHeight?: number;
+    aiType?: string;
   };
 }
 
@@ -549,11 +550,11 @@ export default function CampaignCreator() {
       
       case 3:
         return (
-          <EnhancedEmailBuilder
+          <CleanEmailBuilder
             emails={campaignData.emails}
             activeEmailIndex={activeEmailIndex}
             entityType={campaignData.entity}
-            onEmailsChange={(newEmails) => setCampaignData({ ...campaignData, emails: newEmails })}
+            onEmailsChange={(newEmails: any[]) => setCampaignData({ ...campaignData, emails: newEmails })}
             onActiveEmailChange={setActiveEmailIndex}
           />
         );

@@ -2,12 +2,13 @@ import { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
-  Type, Image, Quote, Minus, Link, Eye, FileText, X, 
-  GripVertical, Paperclip, Wand2, BarChart3, AlertTriangle, 
-  UserPlus, HelpCircle, Trophy, DollarSign, Copy, Trash2, 
-  Plus as PlusIcon, Lightbulb, Rocket, Heading2 as Heading 
+  Type, Image, Quote, Minus, Link, FileText, X, 
+  GripVertical, Copy, Trash2, Plus as PlusIcon, 
+  Lightbulb, Rocket, Heading2 as Heading, ChevronDown,
+  ChevronUp, Mail, Sparkles, BarChart3, AlertTriangle, 
+  UserPlus, HelpCircle, Trophy, DollarSign, Paperclip,
+  Wand2, Upload
 } from "lucide-react";
 
 interface EmailBlock {
@@ -33,6 +34,8 @@ interface Email {
   preheader: string;
   blocks: EmailBlock[];
   followUpDays: number;
+  leftLogo: string;
+  rightLogo: string;
 }
 
 interface EnhancedEmailBuilderProps {
