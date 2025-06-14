@@ -53,13 +53,27 @@ const capitalizeUploadType = (type: string) => {
   return type.charAt(0).toUpperCase() + type.slice(1);
 };
 
-const getSteps = (uploadType: string) => [
-  { id: 1, name: 'Transformation', description: 'Configure data transformation' },
-  { id: 2, name: 'Upload', description: 'Upload your CSV file' },
-  { id: 3, name: 'Mapping', description: `Map CSV columns to ${uploadType ? capitalizeUploadType(uploadType) : 'entity'} attributes` },
-  { id: 4, name: 'Processing', description: 'Review and validate your data before processing' },
-  { id: 5, name: 'Complete', description: 'Review results' }
-];
+const getSteps = (uploadType: string) => {
+  // For entity-upload flow, use different steps
+  if (uploadType === 'entity-upload') {
+    return [
+      { id: 1, name: 'Entity Selection', description: 'Choose the type of data you want to upload' },
+      { id: 2, name: 'Upload', description: 'Upload your CSV file' },
+      { id: 3, name: 'Mapping', description: 'Map CSV columns to entity attributes' },
+      { id: 4, name: 'Processing', description: 'Review and validate your data before processing' },
+      { id: 5, name: 'Complete', description: 'Review results' }
+    ];
+  }
+  
+  // For special formats with transformation
+  return [
+    { id: 1, name: 'Transformation', description: 'Configure data transformation' },
+    { id: 2, name: 'Upload', description: 'Upload your CSV file' },
+    { id: 3, name: 'Mapping', description: `Map CSV columns to ${uploadType ? capitalizeUploadType(uploadType) : 'entity'} attributes` },
+    { id: 4, name: 'Processing', description: 'Review and validate your data before processing' },
+    { id: 5, name: 'Complete', description: 'Review results' }
+  ];
+};
 
 export default function UploadProcessPage() {
   const [location, setLocation] = useLocation();
@@ -72,6 +86,7 @@ export default function UploadProcessPage() {
   
   // Determine if this is a special format (contains hyphen) or entity
   const isSpecialFormat = uploadType.includes('-') || ['salesforce', 'brio', 'degoudse'].includes(uploadType);
+  const isEntityUpload = uploadType === 'entity-upload';
   const entityType = isSpecialFormat ? undefined : uploadType;
   const formatType = isSpecialFormat ? uploadType : undefined;
   
@@ -91,6 +106,7 @@ export default function UploadProcessPage() {
     id: number;
     name: string;
   } | null>(null);
+  const [selectedEntityType, setSelectedEntityType] = useState<string>('');
   const [processingResults, setProcessingResults] = useState<{
     recordsCreated: number;
     recordsSkipped: number;
@@ -98,10 +114,11 @@ export default function UploadProcessPage() {
     errors: any[];
   } | null>(null);
 
-  const visibleSteps = isSpecialFormat ? steps : steps.slice(1); // Skip transformation for regular entities
+  // For entity-upload, show all steps. For special formats, show all steps. For regular entities, skip transformation.
+  const visibleSteps = isEntityUpload || isSpecialFormat ? steps : steps.slice(1);
   const totalSteps = visibleSteps.length;
   
-  const currentStepData = isSpecialFormat ? steps[currentStep - 1] : visibleSteps[currentStep - 1]; // Use visible steps for regular entities
+  const currentStepData = (isEntityUpload || isSpecialFormat) ? steps[currentStep - 1] : visibleSteps[currentStep - 1];
   const progressPercentage = ((currentStep - 1) / (totalSteps - 1)) * 100;
   
   // Calculate display step number to match progress indicator
@@ -246,6 +263,57 @@ export default function UploadProcessPage() {
           <CardDescription>{currentStepData?.description}</CardDescription>
         </CardHeader>
         <CardContent>
+          {/* Entity Selection Step (Entity Upload Only) */}
+          {currentStep === 1 && isEntityUpload && (
+            <div className="space-y-6">
+              <div className="text-center mb-6">
+                <h3 className="text-lg font-medium mb-2">Choose Entity Type</h3>
+                <p className="text-gray-600">Select the type of data you want to upload</p>
+              </div>
+              
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto">
+                {[
+                  { value: 'opportunities', label: 'Opportunities', icon: '🎯', color: 'blue', description: 'Sales opportunities and deals' },
+                  { value: 'partners', label: 'Partners', icon: '🤝', color: 'green', description: 'Business partners and relationships' },
+                  { value: 'customers', label: 'Customers', icon: '👥', color: 'purple', description: 'Customer information and contacts' },
+                  { value: 'products', label: 'Products', icon: '📦', color: 'orange', description: 'Product catalog and inventory' },
+                  { value: 'vendors', label: 'Vendors', icon: '🏭', color: 'red', description: 'Vendor and supplier information' },
+                  { value: 'contacts', label: 'Contacts', icon: '📞', color: 'gray', description: 'Contact details and communication' }
+                ].map((entity) => (
+                  <div
+                    key={entity.value}
+                    onClick={() => setSelectedEntityType(entity.value)}
+                    className={`p-4 border-2 rounded-lg cursor-pointer transition-all hover:shadow-md ${
+                      selectedEntityType === entity.value
+                        ? `border-${entity.color}-500 bg-${entity.color}-50`
+                        : 'border-gray-200 hover:border-gray-300'
+                    }`}
+                  >
+                    <div className="text-center">
+                      <div className="text-2xl mb-2">{entity.icon}</div>
+                      <h4 className="font-medium mb-1">{entity.label}</h4>
+                      <p className="text-sm text-gray-600">{entity.description}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+              
+              <div className="flex justify-between">
+                <Button variant="outline" onClick={goToPreviousStep} disabled={currentStep <= 1}>
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back
+                </Button>
+                <Button 
+                  onClick={goToNextStep}
+                  disabled={!selectedEntityType}
+                >
+                  Continue to Upload
+                  <ArrowRight className="h-4 w-4 ml-2" />
+                </Button>
+              </div>
+            </div>
+          )}
+
           {/* Transformation Step (Special Formats Only) */}
           {currentStep === 1 && isSpecialFormat && (
             <TransformationStep 
@@ -261,7 +329,7 @@ export default function UploadProcessPage() {
           )}
 
           {/* Upload Step */}
-          {((currentStep === 2 && isSpecialFormat) || (currentStep === 1 && !isSpecialFormat)) && (
+          {((currentStep === 2 && (isSpecialFormat || isEntityUpload)) || (currentStep === 1 && !isSpecialFormat && !isEntityUpload)) && (
             <div className="space-y-6">
               <div 
                 className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors ${
@@ -333,11 +401,11 @@ export default function UploadProcessPage() {
           )}
 
           {/* Attribute Mapping Step */}
-          {((currentStep === 3 && isSpecialFormat) || (currentStep === 2 && !isSpecialFormat)) && (
+          {((currentStep === 3 && (isSpecialFormat || isEntityUpload)) || (currentStep === 2 && !isSpecialFormat && !isEntityUpload)) && (
             <AttributeMappingStep 
               uploadedFile={uploadedFile}
               csvHeaders={[]} // Will be extracted from file in the component
-              uploadType={uploadType || ''}
+              uploadType={isEntityUpload ? selectedEntityType : uploadType || ''}
               stepName={currentStepData?.name || 'Attribute Mapping'}
               currentStep={currentStep}
               selectedTransformationScript={selectedTransformationScript}
