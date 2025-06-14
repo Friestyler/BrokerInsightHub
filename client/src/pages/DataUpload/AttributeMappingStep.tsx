@@ -1437,7 +1437,7 @@ export default function AttributeMappingStep({
         </Button>
         <Button 
           onClick={handleNext} 
-          disabled={!canProceed || (isEntityUpload && !selectedEntityType)}
+          disabled={!canProceed}
         >
           Continue to Processing
           <ArrowRight className="h-4 w-4 ml-2" />
