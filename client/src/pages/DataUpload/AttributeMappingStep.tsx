@@ -1375,255 +1375,190 @@ export default function AttributeMappingStep({
 
                 {/* Code Editor Section - appears when "Code" is selected */}
                 {showCodeEditor[index] && mapping.csvColumn === 'CODE' && (
-                  <div className="border rounded-lg p-4 bg-gray-50">
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                    {/* Code Editor Section */}
-                    <div className="space-y-3">
+                  <div className="mt-4 bg-white border border-gray-200 rounded-2xl shadow-sm overflow-hidden">
+                    {/* Clean Header */}
+                    <div className="px-6 py-4 bg-gradient-to-r from-purple-50 to-blue-50 border-b border-gray-100">
                       <div className="flex items-center justify-between">
-                        <h4 className="font-medium text-sm">Python Code Editor</h4>
-                        <div className="flex items-center gap-2">
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-white rounded-xl shadow-sm flex items-center justify-center">
+                            <span className="text-purple-600 text-lg font-bold">&lt;/&gt;</span>
+                          </div>
+                          <div>
+                            <h3 className="font-semibold text-gray-900">Custom Logic</h3>
+                            <p className="text-sm text-gray-600">Transform data with AI or code</p>
+                          </div>
+                        </div>
+                        <div className="flex items-center gap-3">
                           {codeValidation[index]?.isValid && (
-                            <div className="flex items-center gap-1 text-green-600">
+                            <div className="flex items-center gap-2 text-green-600 bg-green-50 px-4 py-2 rounded-full border border-green-200">
                               <CheckCircle className="h-4 w-4" />
-                              <span className="text-xs">Valid</span>
+                              <span className="font-medium">Applied</span>
                             </div>
                           )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setShowCodeEditor(prev => ({ ...prev, [index]: false }))}
+                            className="rounded-full h-8 w-8 p-0"
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
                         </div>
                       </div>
-                      
-                      <p className="text-xs text-gray-600">
-                        Define custom logic using column references (Python)
-                      </p>
+                    </div>
 
-                      {/* AI Code Generator */}
-                      <div className="space-y-3">
+                    <div className="p-6 space-y-6">
+                      {/* AI Assistant */}
+                      <div className="space-y-4">
                         <div className="flex items-center justify-between">
-                          <div>
-                            <Label className="text-xs font-medium">AI Code Generator</Label>
-                            <p className="text-xs text-gray-500">Describe what you want this field to contain</p>
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                              <Sparkles className="h-4 w-4 text-blue-600" />
+                            </div>
+                            <div>
+                              <h4 className="font-medium text-gray-900">AI Assistant</h4>
+                              <p className="text-sm text-gray-600">Describe what you want</p>
+                            </div>
                           </div>
                           <Button
-                            size="sm"
-                            variant="outline"
+                            variant={showAiInterface[index] ? "default" : "outline"}
                             onClick={() => setShowAiInterface(prev => ({ ...prev, [index]: !prev[index] }))}
-                            className="gap-1 text-xs h-7"
+                            className="rounded-full"
                           >
-                            <Sparkles className="h-3 w-3" />
-                            {showAiInterface[index] ? 'Hide AI' : 'Use AI'}
+                            {showAiInterface[index] ? 'Close' : 'Use AI'}
                           </Button>
                         </div>
 
                         {showAiInterface[index] && (
-                          <div className="border rounded-lg p-3 bg-blue-50/30 space-y-3">
-                            <div className="space-y-2">
-                              <Label htmlFor={`ai-prompt-${index}`} className="text-xs">Describe your transformation</Label>
-                              <textarea
-                                id={`ai-prompt-${index}`}
-                                value={aiPrompt[index] || ''}
-                                onChange={(e) => setAiPrompt(prev => ({ ...prev, [index]: e.target.value }))}
-                                placeholder="Example: I want this column to take the name of the file and the name of the customer"
-                                className="w-full h-16 p-2 text-xs border rounded resize-none focus:outline-none focus:ring-1 focus:ring-blue-500"
-                              />
-                            </div>
+                          <div className="bg-blue-50 rounded-xl p-4 border border-blue-100 space-y-4">
+                            <textarea
+                              value={aiPrompt[index] || ''}
+                              onChange={(e) => setAiPrompt(prev => ({ ...prev, [index]: e.target.value }))}
+                              placeholder="Example: Combine first and last name with an underscore"
+                              className="w-full h-20 p-4 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
+                            />
                             
                             <div className="flex items-center justify-between">
-                              <div className="text-xs text-gray-600">
-                                Examples: "Add file name to each row", "Combine first and last name", "Convert to uppercase"
+                              <div className="text-sm text-gray-600">
+                                Try: "Combine columns", "Add prefix", "Make uppercase"
                               </div>
                               <Button
-                                size="sm"
                                 onClick={() => handleGenerateCode(index)}
                                 disabled={isGeneratingCode[index] || !aiPrompt[index]?.trim()}
-                                className="gap-1 text-xs h-7"
+                                className="rounded-full bg-blue-600 hover:bg-blue-700"
                               >
                                 {isGeneratingCode[index] ? (
                                   <>
-                                    <Loader2 className="h-3 w-3 animate-spin" />
+                                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
                                     Generating...
                                   </>
                                 ) : (
                                   <>
-                                    <Sparkles className="h-3 w-3" />
-                                    Generate Code
+                                    <Sparkles className="h-4 w-4 mr-2" />
+                                    Generate
                                   </>
                                 )}
                               </Button>
                             </div>
 
-                            {/* Generated Code Explanation */}
+                            {/* Success feedback */}
                             {codeExplanation[index] && (
-                              <div className="border-l-4 border-green-400 bg-green-50 p-2">
-                                <div className="space-y-1">
-                                  <p className="text-xs font-medium text-green-800">Code Explanation:</p>
-                                  <p className="text-xs text-green-700">{codeExplanation[index]}</p>
+                              <div className="bg-white rounded-lg border border-green-200 p-4">
+                                <div className="flex items-start gap-3">
+                                  <CheckCircle className="h-5 w-5 text-green-600 mt-0.5" />
+                                  <div>
+                                    <p className="font-medium text-green-800">Generated successfully!</p>
+                                    <p className="text-sm text-green-700 mt-1">{codeExplanation[index]}</p>
+                                  </div>
                                 </div>
                               </div>
                             )}
                           </div>
                         )}
                       </div>
-                      
-                      <div className="relative">
-                        <textarea
-                          value={codeEditorContent[index] || ''}
-                          onChange={(e) => handleCodeChange(index, e.target.value)}
-                          className="w-full h-32 p-3 border rounded-md font-mono text-sm bg-white resize-none focus:outline-none focus:ring-2 focus:ring-purple-500"
-                          placeholder="# Write your Python code here
-# Example: column_first_name + ' ' + column_last_name
-# Available columns: column_name1, column_name2, etc."
-                        />
-                      </div>
-                      
 
-                      
-                      {/* Quick Insert Helper Buttons */}
-                      <div className="space-y-2">
-                        <p className="text-xs font-medium text-gray-700">Quick Insert:</p>
-                        <div className="flex flex-wrap gap-1">
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const currentCode = codeEditorContent[index] || '';
-                              handleCodeChange(index, currentCode + ' + ');
-                            }}
-                            className="px-2 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded"
-                          >
-                            +
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const currentCode = codeEditorContent[index] || '';
-                              handleCodeChange(index, currentCode + ' - ');
-                            }}
-                            className="px-2 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded"
-                          >
-                            -
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const currentCode = codeEditorContent[index] || '';
-                              handleCodeChange(index, currentCode + '"Yes" if column_name == "Active" else "No"');
-                            }}
-                            className="px-2 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded"
-                          >
-                            Conditional
-                          </button>
-                          <button
-                            type="button"
-                            onClick={() => {
-                              const currentCode = codeEditorContent[index] || '';
-                              handleCodeChange(index, currentCode + 'str(column_name1) + " " + str(column_name2)');
-                            }}
-                            className="px-2 py-1 text-xs bg-gray-200 hover:bg-gray-300 rounded"
-                          >
-                            Concatenate
-                          </button>
-                        </div>
-                      </div>
-                      
-                      {/* Available Columns with Plus Icons */}
-                      {extractedHeaders.length > 0 && (
-                        <div className="space-y-2">
-                          <p className="text-xs font-medium text-gray-700">Insert Column Reference:</p>
-                          <div className="max-h-32 overflow-y-auto border rounded-md p-2 bg-white space-y-1">
-                            {extractedHeaders.filter(header => header && header.trim().length > 0).map((header, headerIndex) => (
-                              <div key={headerIndex} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded group">
-                                <span className="text-sm text-gray-700 font-mono">{header}</span>
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    const currentCode = codeEditorContent[index] || '';
-                                    const columnRef = `column_${header.toLowerCase().replace(/[^a-z0-9]/g, '_')}`;
-                                    handleCodeChange(index, currentCode + columnRef);
-                                  }}
-                                  className="opacity-0 group-hover:opacity-100 transition-opacity w-6 h-6 flex items-center justify-center text-purple-600 hover:text-purple-800 hover:bg-purple-100 rounded"
-                                  title={`Add ${header} column reference`}
-                                >
-                                  <span className="text-sm font-bold">+</span>
-                                </button>
-                              </div>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-                    </div>
-                    
-                    {/* Preview Section */}
-                    <div className="space-y-3">
-                      <h4 className="font-medium text-sm">Preview</h4>
-                      <p className="text-xs text-gray-600">
-                        Sample output from your Python code
-                      </p>
-                      
-                      <div className="border rounded-md p-3 bg-white min-h-32">
-                        {codePreview[index] && codePreview[index].length > 0 ? (
-                          <div className="space-y-2">
-                            <div className="text-xs font-medium text-gray-600 mb-2">Sample results from first 3 rows:</div>
-                            {codePreview[index].map((preview, previewIndex) => {
-                              const isError = preview.includes('Error') || preview.includes('Function-based') || preview.includes('Add simple');
-                              return (
-                                <div key={previewIndex} className={`flex items-center justify-between p-2 rounded border-l-4 ${
-                                  isError 
-                                    ? 'bg-yellow-50 border-yellow-400' 
-                                    : 'bg-green-50 border-green-400'
-                                }`}>
-                                  <div className="flex items-center gap-2">
-                                    <span className={`text-xs font-medium ${
-                                      isError ? 'text-yellow-700' : 'text-green-700'
-                                    }`}>
-                                      {isError ? 'Info:' : `Row ${previewIndex + 1}:`}
-                                    </span>
-                                    <span className="text-sm text-gray-800 font-medium">{preview}</span>
-                                  </div>
-                                  {isError ? (
-                                    <AlertCircle className="h-4 w-4 text-yellow-500" />
-                                  ) : (
-                                    <CheckCircle className="h-4 w-4 text-green-500" />
-                                  )}
-                                </div>
-                              );
-                            })}
-                          </div>
-                        ) : (
-                          <div className="flex items-center justify-center h-20 text-gray-400 text-sm">
-                            <div className="text-center">
-                              <div className="mb-1">Preview will appear here</div>
-                              <div className="text-xs">Write Python code or use AI to generate transformations</div>
+                      {/* Code Editor */}
+                      <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-gray-100 rounded-lg flex items-center justify-center">
+                              <Edit className="h-4 w-4 text-gray-600" />
+                            </div>
+                            <div>
+                              <h4 className="font-medium text-gray-900">Code Editor</h4>
+                              <p className="text-sm text-gray-600">Edit transformation code</p>
                             </div>
                           </div>
-                        )}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setCodeEditorContent(prev => ({ ...prev, [index]: '' }));
+                              setAttributeMappings(prev => prev.map((mapping, i) => 
+                                i === index ? { ...mapping, customCode: '' } : mapping
+                              ));
+                            }}
+                            className="rounded-full"
+                          >
+                            Clear
+                          </Button>
+                        </div>
+                        
+                        <div className="bg-gray-50 rounded-xl p-1">
+                          <textarea
+                            value={codeEditorContent[index] || ''}
+                            onChange={(e) => handleCodeChange(index, e.target.value)}
+                            className="w-full h-32 p-4 bg-white border-0 rounded-lg font-mono text-sm resize-none focus:outline-none focus:ring-2 focus:ring-purple-500"
+                            placeholder="Write transformation code here...
+Example: column_first_name + ' ' + column_last_name"
+                          />
+                        </div>
+                      </div>
+
+                      {/* Preview */}
+                      <div className="space-y-4">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-green-100 rounded-lg flex items-center justify-center">
+                            <span className="text-green-600 text-sm font-bold">◎</span>
+                          </div>
+                          <div>
+                            <h4 className="font-medium text-gray-900">Preview</h4>
+                            <p className="text-sm text-gray-600">Sample results from your data</p>
+                          </div>
+                        </div>
+                        
+                        <div className="bg-gray-50 rounded-xl p-4 min-h-24">
+                          {codePreview[index] && codePreview[index].length > 0 ? (
+                            <div className="space-y-2">
+                              {codePreview[index].map((preview, previewIndex) => {
+                                const isError = preview.includes('Error') || preview.includes('Function-based') || preview.includes('Add simple');
+                                return (
+                                  <div key={previewIndex} className={`flex items-center gap-3 p-3 rounded-lg ${
+                                    isError ? 'bg-yellow-50' : 'bg-white border border-gray-200'
+                                  }`}>
+                                    {isError ? (
+                                      <AlertCircle className="h-4 w-4 text-yellow-500" />
+                                    ) : (
+                                      <div className="w-6 h-6 bg-green-100 rounded-full flex items-center justify-center">
+                                        <span className="text-green-600 text-xs font-bold">{previewIndex + 1}</span>
+                                      </div>
+                                    )}
+                                    <span className="text-sm font-medium">{preview}</span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          ) : (
+                            <div className="flex items-center justify-center h-16 text-gray-400">
+                              <div className="text-center">
+                                <div className="text-sm">Preview will appear here</div>
+                                <div className="text-xs mt-1">Write code or use AI to see results</div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                  
-                  {/* Example Code Section */}
-                  <div className="mt-4 pt-4 border-t">
-                    <details className="space-y-2">
-                      <summary className="text-xs font-medium text-gray-700 cursor-pointer hover:text-gray-900">
-                        View Example Python Code
-                      </summary>
-                      <div className="bg-gray-100 p-3 rounded text-xs font-mono space-y-2">
-                        <div>
-                          <div className="text-gray-600"># Combine first and last name</div>
-                          <div>column_first_name + " " + column_last_name</div>
-                        </div>
-                        <div>
-                          <div className="text-gray-600"># Add 20 to price</div>
-                          <div>column_price + 20</div>
-                        </div>
-                        <div>
-                          <div className="text-gray-600"># Conditional logic</div>
-                          <div>"Yes" if column_status == "Active" else "No"</div>
-                        </div>
-                        <div>
-                          <div className="text-gray-600"># Sum multiple columns</div>
-                          <div>column_amount1 + column_amount2 + column_amount3</div>
-                        </div>
-                      </div>
-                    </details>
-                  </div>
                   </div>
                 )}
               </div>
