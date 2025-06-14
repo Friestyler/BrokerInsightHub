@@ -134,7 +134,8 @@ Each environment maintains its own data isolation while sharing the same applica
 - **Seeding**: Initial data population for development environments
 
 ## Changelog
-- June 14, 2025. Initial setup
+- June 14, 2025: Initial setup
+- June 14, 2025: Completed tabbed campaigns interface with Templates and Campaigns tabs, updated entity selection styling to grey default with color on hover/selection, removed heavy frames for seamless design
 
 ## User Preferences
 
