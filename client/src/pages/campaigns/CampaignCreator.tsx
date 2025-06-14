@@ -693,7 +693,12 @@ export default function CampaignCreator() {
 
   const addEmailBlock = (type: EmailBlock['type']) => {
     const newEmails = [...campaignData.emails];
-    const newBlock: EmailBlock = { type, content: '' };
+    const newBlock: EmailBlock = { 
+      id: generateBlockId(),
+      type, 
+      content: '',
+      properties: {}
+    };
     newEmails[0].blocks = [...newEmails[0].blocks, newBlock];
     setCampaignData({ ...campaignData, emails: newEmails });
   };
