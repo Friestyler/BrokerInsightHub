@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
-import { ArrowLeft, ArrowRight, Check, Users, Target, Mail, Send, Settings, Sparkles, TrendingUp, Zap, Star, Heart, Gift, Megaphone, Coffee, Briefcase, Globe, Award, Rocket, Shield, Diamond, Plus, Type, Image, Quote, Minus, AlignLeft, Bold, Italic, Link, Eye, FileText, X, Heading2 as Heading } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ArrowLeft, ArrowRight, Check, Users, Target, Mail, Send, Settings, Sparkles, TrendingUp, Zap, Star, Heart, Gift, Megaphone, Coffee, Briefcase, Globe, Award, Rocket, Shield, Diamond, Plus, Type, Image, Quote, Minus, AlignLeft, Bold, Italic, Link, Eye, FileText, X, Heading2 as Heading, GripVertical, Paperclip, Wand2, BarChart3, AlertTriangle, UserPlus, HelpCircle, Trophy, DollarSign, Copy, Trash2, Plus as PlusIcon, MessageSquare, Calendar, ChevronDown, ChevronUp, Lightbulb } from "lucide-react";
 import { useLocation } from 'wouter';
 
 interface StepProps {
@@ -70,23 +71,43 @@ interface EntityOption {
 }
 
 interface EmailBlock {
-  type: 'text' | 'heading' | 'quote' | 'divider';
+  id: string;
+  type: 'text' | 'heading' | 'quote' | 'divider' | 'image' | 'button' | 'spacer';
   content: string;
+  properties?: {
+    alignment?: 'left' | 'center' | 'right';
+    fontSize?: 'small' | 'medium' | 'large';
+    color?: string;
+    backgroundColor?: string;
+    url?: string;
+    buttonText?: string;
+    imageUrl?: string;
+    imageAlt?: string;
+    spacerHeight?: number;
+  };
 }
 
 export default function CampaignCreator() {
   const [, setLocation] = useLocation();
   const [currentStep, setCurrentStep] = useState(1);
+  const [activeEmailIndex, setActiveEmailIndex] = useState(0);
+  const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile'>('desktop');
+  const [showAIPanel, setShowAIPanel] = useState(false);
+  const [draggedBlock, setDraggedBlock] = useState<number | null>(null);
+  
   const [campaignData, setCampaignData] = useState({
     entity: '',
     name: '',
     description: '',
     objective: '',
     icon: '',
+    attachments: [] as Array<{id: string, name: string, type: string, size: number}>,
     emails: [{ 
+      id: '1',
       subject: '', 
-      content: '',
+      preheader: '',
       blocks: [] as EmailBlock[],
+      followUpDays: 0,
       leftLogo: '',
       rightLogo: ''
     }]
@@ -94,24 +115,111 @@ export default function CampaignCreator() {
   
   const [showPreview, setShowPreview] = useState(false);
 
+  // AI content generation function
+  const generateAIContent = (entityType: string, blockType: string): string => {
+    const entityMap = {
+      'opportunities': 'sales opportunities',
+      'customers': 'existing customers', 
+      'partners': 'business partners',
+      'internal': 'internal team'
+    };
+    
+    const entityName = entityMap[entityType as keyof typeof entityMap] || 'contacts';
+    
+    const contentTemplates = {
+      'highlights': `Great news to share with our ${entityName}! We've achieved significant milestones this quarter that demonstrate our continued growth and success.`,
+      'lowlights': `We want to be transparent about some challenges we've faced recently. While these areas need improvement, we're committed to addressing them.`,
+      'product-launches': `We're excited to announce new product developments that will benefit our ${entityName}. These innovations represent our commitment to excellence.`,
+      'kpis': `Here's a summary of our key performance indicators for this period. These metrics show our progress toward our shared goals.`,
+      'fundraising': `We have important updates regarding our funding and investment activities that will strengthen our partnership.`,
+      'team': `We're growing our team with talented individuals who share our vision and commitment to serving our ${entityName}.`,
+      'asks': `We'd like to request your support in several areas where your expertise and partnership can make a meaningful difference.`
+    };
+    
+    return contentTemplates[blockType as keyof typeof contentTemplates] || `Content for ${entityName} regarding ${blockType}.`;
+  };
+
+  // Email management functions
+  const generateBlockId = () => Math.random().toString(36).substr(2, 9);
+
   const updateBlockContent = (blockIndex: number, content: string) => {
     const newEmails = [...campaignData.emails];
-    if (newEmails[0].blocks[blockIndex]) {
-      newEmails[0].blocks[blockIndex].content = content;
+    if (newEmails[activeEmailIndex].blocks[blockIndex]) {
+      newEmails[activeEmailIndex].blocks[blockIndex].content = content;
+      setCampaignData({ ...campaignData, emails: newEmails });
+    }
+  };
+
+  const updateBlockProperties = (blockIndex: number, properties: EmailBlock['properties']) => {
+    const newEmails = [...campaignData.emails];
+    if (newEmails[activeEmailIndex].blocks[blockIndex]) {
+      newEmails[activeEmailIndex].blocks[blockIndex].properties = {
+        ...newEmails[activeEmailIndex].blocks[blockIndex].properties,
+        ...properties
+      };
       setCampaignData({ ...campaignData, emails: newEmails });
     }
   };
 
   const addBlock = (type: EmailBlock['type']) => {
     const newEmails = [...campaignData.emails];
-    newEmails[0].blocks.push({ type, content: '' });
+    const newBlock: EmailBlock = {
+      id: generateBlockId(),
+      type,
+      content: '',
+      properties: {}
+    };
+    newEmails[activeEmailIndex].blocks.push(newBlock);
     setCampaignData({ ...campaignData, emails: newEmails });
   };
 
   const removeBlock = (blockIndex: number) => {
     const newEmails = [...campaignData.emails];
-    newEmails[0].blocks.splice(blockIndex, 1);
+    newEmails[activeEmailIndex].blocks.splice(blockIndex, 1);
     setCampaignData({ ...campaignData, emails: newEmails });
+  };
+
+  const moveBlock = (fromIndex: number, toIndex: number) => {
+    const newEmails = [...campaignData.emails];
+    const blocks = newEmails[activeEmailIndex].blocks;
+    const [removed] = blocks.splice(fromIndex, 1);
+    blocks.splice(toIndex, 0, removed);
+    setCampaignData({ ...campaignData, emails: newEmails });
+  };
+
+  const addNewEmail = () => {
+    const newEmails = [...campaignData.emails];
+    newEmails.push({
+      id: (newEmails.length + 1).toString(),
+      subject: '',
+      preheader: '',
+      blocks: [],
+      followUpDays: 7,
+      leftLogo: '',
+      rightLogo: ''
+    });
+    setCampaignData({ ...campaignData, emails: newEmails });
+    setActiveEmailIndex(newEmails.length - 1);
+  };
+
+  const duplicateEmail = (emailIndex: number) => {
+    const newEmails = [...campaignData.emails];
+    const emailToDuplicate = { ...newEmails[emailIndex] };
+    emailToDuplicate.id = (newEmails.length + 1).toString();
+    emailToDuplicate.subject = `${emailToDuplicate.subject} (Copy)`;
+    newEmails.push(emailToDuplicate);
+    setCampaignData({ ...campaignData, emails: newEmails });
+  };
+
+  const deleteEmail = (emailIndex: number) => {
+    if (campaignData.emails.length > 1) {
+      const newEmails = [...campaignData.emails];
+      newEmails.splice(emailIndex, 1);
+      setCampaignData({ ...campaignData, emails: newEmails });
+      if (activeEmailIndex >= newEmails.length) {
+        setActiveEmailIndex(newEmails.length - 1);
+      }
+    }
   };
 
   const entityOptions: EntityOption[] = [
