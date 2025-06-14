@@ -228,14 +228,14 @@ export default function UploadProcessPage() {
       </div>
 
       {/* Progress Steps */}
-      <Card className="mb-6">
-        <CardContent className="p-6">
-          <div className="mb-4">
-            <div className="flex justify-between text-sm font-medium text-gray-700 mb-2">
+      <Card className="mb-6 shadow-sm border-0 bg-white/80 backdrop-blur-sm">
+        <CardContent className="p-8">
+          <div className="mb-6">
+            <div className="flex justify-between text-sm font-medium text-gray-700 mb-3">
               <span>Step {currentStep} of {isSpecialFormat ? 5 : 4}</span>
-              <span>{Math.round(progressPercentage)}% Complete</span>
+              <span className="text-blue-600 font-semibold">{Math.round(progressPercentage)}% Complete</span>
             </div>
-            <Progress value={progressPercentage} className="h-2" />
+            <Progress value={progressPercentage} className="h-3 bg-gray-100" />
           </div>
           
           <div className="flex justify-between">
@@ -244,25 +244,69 @@ export default function UploadProcessPage() {
               const isActive = stepNumber === currentStep;
               const isCompleted = stepNumber < currentStep;
               
+              // Generate metadata for completed steps
+              const getStepMetadata = () => {
+                if (!isCompleted) return step.description;
+                
+                switch (step.id) {
+                  case 1:
+                    if (isEntityUpload && selectedEntityType) {
+                      const entityLabels: Record<string, string> = {
+                        'opportunities': 'Opportunities',
+                        'partners': 'Partners', 
+                        'customers': 'Customers',
+                        'products': 'Products',
+                        'vendors': 'Vendors',
+                        'contacts': 'Contacts'
+                      };
+                      return entityLabels[selectedEntityType as keyof typeof entityLabels] || selectedEntityType;
+                    }
+                    if (selectedTransformationScript) {
+                      return selectedTransformationScript.name;
+                    }
+                    return step.description;
+                  case 2:
+                    if (uploadedFile) {
+                      const sizeInMB = (uploadedFile.size / 1024 / 1024).toFixed(1);
+                      return `${uploadedFile.name.split('.')[0]} (${sizeInMB}MB)`;
+                    }
+                    return step.description;
+                  case 3:
+                    if (csvHeaders.length > 0 && attributeMappings.length > 0) {
+                      return `${csvHeaders.length} columns, ${attributeMappings.length} mapped`;
+                    }
+                    return step.description;
+                  case 4:
+                    if (processingResults) {
+                      return `${processingResults.recordsCreated} records created`;
+                    }
+                    return step.description;
+                  default:
+                    return step.description;
+                }
+              };
+              
               return (
                 <div key={step.id} className="flex flex-col items-center text-center flex-1">
-                  <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium mb-2 ${
+                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-medium mb-3 transition-all duration-200 ${
                     isCompleted 
-                      ? 'bg-green-500 text-white' 
+                      ? 'bg-green-500 text-white shadow-lg shadow-green-200' 
                       : isActive 
-                        ? 'bg-blue-500 text-white' 
+                        ? 'bg-blue-500 text-white shadow-lg shadow-blue-200 scale-110' 
                         : 'bg-gray-200 text-gray-600'
                   }`}>
-                    {isCompleted ? <CheckCircle className="h-4 w-4" /> : stepNumber}
+                    {isCompleted ? <CheckCircle className="h-5 w-5" /> : stepNumber}
                   </div>
-                  <div>
-                    <div className={`text-sm font-medium ${
+                  <div className="min-h-[3rem] flex flex-col justify-center">
+                    <div className={`text-sm font-medium transition-colors ${
                       isActive ? 'text-blue-600' : isCompleted ? 'text-green-600' : 'text-gray-500'
                     }`}>
                       {step.name}
                     </div>
-                    <div className="text-xs text-gray-500 mt-1 max-w-24">
-                      {step.description}
+                    <div className={`text-xs mt-1 max-w-28 transition-colors ${
+                      isCompleted ? 'text-green-600 font-medium' : 'text-gray-500'
+                    }`}>
+                      {getStepMetadata()}
                     </div>
                   </div>
                 </div>
@@ -273,12 +317,12 @@ export default function UploadProcessPage() {
       </Card>
 
       {/* Step Content */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Step {displayStepNumber}: {currentStepData?.name}</CardTitle>
-          <CardDescription>{currentStepData?.description}</CardDescription>
+      <Card className="shadow-sm border-0 bg-white/90 backdrop-blur-sm">
+        <CardHeader className="pb-6">
+          <CardTitle className="text-xl font-semibold text-gray-900">Step {displayStepNumber}: {currentStepData?.name}</CardTitle>
+          <CardDescription className="text-gray-600 text-base">{currentStepData?.description}</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="pt-0">
           {/* Entity Selection Step (Entity Upload Only) */}
           {currentStep === 1 && isEntityUpload && (
             <div className="space-y-6">
