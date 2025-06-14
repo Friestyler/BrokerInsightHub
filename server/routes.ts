@@ -80,6 +80,10 @@ const csvUpload = multer({
 });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Add environment middleware for environment-specific routes
+  const { environmentMiddleware } = await import('./middleware/environmentMiddleware');
+  app.use('/api/:environmentId', environmentMiddleware);
+  
   // All API redirects to De Goudse environment - clean routing
   app.get('/api/contacts', (req, res) => res.redirect('/api/degoudse/contacts'));
   app.post('/api/contacts', (req, res) => res.redirect(307, '/api/degoudse/contacts'));
@@ -5408,6 +5412,26 @@ Respond with a JSON object containing:
   });
 
   app.get('/api/upload/supported-entities', async (req: Request, res: Response) => {
+    try {
+      const supportedEntities = [
+        'opportunities',
+        'partners', 
+        'customers',
+        'vendors',
+        'products',
+        'users',
+        'contacts'
+      ];
+      
+      res.json(supportedEntities);
+    } catch (error) {
+      console.error('Failed to get supported entities:', error);
+      res.status(500).json({ error: 'Failed to get supported entities' });
+    }
+  });
+
+  // Environment-specific supported entities endpoint
+  app.get('/api/:environmentId/upload/supported-entities', async (req: Request, res: Response) => {
     try {
       const supportedEntities = [
         'opportunities',
