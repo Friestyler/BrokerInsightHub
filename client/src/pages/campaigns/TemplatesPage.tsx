@@ -21,14 +21,14 @@ export default function TemplatesPage() {
   const [, setLocation] = useLocation();
   
   const { data: templates, isLoading } = useQuery<EmailTemplate[]>({
-    queryKey: ['/api/templates'],
-    enabled: true
+    queryKey: ['/api/campaign-templates'],
+    enabled: false // Disable until backend is ready
   });
 
   const templateList = templates || [];
 
   const handleCreateTemplate = () => {
-    setLocation('/campaigns/templates/create');
+    setLocation('/campaigns/create');
   };
 
   const handleEditTemplate = (templateId: string) => {
