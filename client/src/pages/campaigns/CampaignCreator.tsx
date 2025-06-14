@@ -65,6 +65,7 @@ interface EntityOption {
   description: string;
   icon: React.ReactNode;
   color: string;
+  hoverColor: string;
   category: 'campaign' | 'update';
 }
 
@@ -121,6 +122,7 @@ export default function CampaignCreator() {
       description: 'Target specific sales opportunities with personalized outreach to close deals faster',
       icon: <Target className="h-6 w-6" />,
       color: 'from-green-500 to-emerald-600',
+      hoverColor: 'green',
       category: 'campaign'
     },
     {
@@ -130,6 +132,7 @@ export default function CampaignCreator() {
       description: 'Engage existing customers with upsell, cross-sell, or retention campaigns',
       icon: <Users className="h-6 w-6" />,
       color: 'from-blue-500 to-indigo-600',
+      hoverColor: 'blue',
       category: 'campaign'
     },
     {
@@ -139,6 +142,7 @@ export default function CampaignCreator() {
       description: 'Send business updates, announcements, and collaboration invites to partners',
       icon: <Send className="h-6 w-6" />,
       color: 'from-purple-500 to-violet-600',
+      hoverColor: 'purple',
       category: 'update'
     },
     {
@@ -148,6 +152,7 @@ export default function CampaignCreator() {
       description: 'Share company news, policy updates, and internal communications',
       icon: <Mail className="h-6 w-6" />,
       color: 'from-orange-500 to-red-600',
+      hoverColor: 'orange',
       category: 'update'
     }
   ];
@@ -255,41 +260,89 @@ export default function CampaignCreator() {
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
-              {entityOptions.map((option) => (
-                <button
-                  key={option.id}
-                  onClick={() => setCampaignData({ ...campaignData, entity: option.id })}
-                  className={`relative p-6 rounded-xl border-2 transition-all duration-300 text-center transform ${
-                    campaignData.entity === option.id
-                      ? 'border-blue-500 bg-blue-50 shadow-lg scale-105 ring-2 ring-blue-200'
-                      : 'border-gray-200 hover:border-blue-300 hover:bg-blue-25 hover:shadow-md hover:scale-102'
-                  }`}
-                >
-                  <div className={`w-12 h-12 mx-auto mb-4 rounded-lg ${option.color} flex items-center justify-center transition-all duration-300 ${
-                    campaignData.entity === option.id 
-                      ? 'shadow-md' 
-                      : 'group-hover:shadow-sm'
-                  }`}>
-                    {option.icon}
-                  </div>
-                  <h3 className={`font-medium mb-1 transition-colors duration-200 ${
-                    campaignData.entity === option.id 
-                      ? 'text-blue-900' 
-                      : 'text-gray-900 hover:text-blue-800'
-                  }`}>{option.title}</h3>
-                  <p className={`text-sm transition-colors duration-200 ${
-                    campaignData.entity === option.id 
-                      ? 'text-blue-600' 
-                      : 'text-gray-500 hover:text-blue-600'
-                  }`}>{option.subtitle}</p>
-                  
-                  {campaignData.entity === option.id && (
-                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center shadow-lg animate-in zoom-in duration-200">
-                      <Check className="h-4 w-4 text-white" />
+              {entityOptions.map((option) => {
+                const isSelected = campaignData.entity === option.id;
+                
+                // Define specific color classes for each entity type
+                const getEntityStyles = (entityId: string, selected: boolean) => {
+                  switch (entityId) {
+                    case 'opportunities':
+                      return {
+                        border: selected ? 'border-green-500 ring-2 ring-green-200' : 'border-gray-200 hover:border-green-300',
+                        bg: selected ? 'bg-green-50' : 'hover:bg-green-25',
+                        text: selected ? 'text-green-900' : 'text-gray-900 hover:text-green-800',
+                        subtitle: selected ? 'text-green-600' : 'text-gray-500 hover:text-green-600',
+                        checkBg: 'bg-green-500'
+                      };
+                    case 'customers':
+                      return {
+                        border: selected ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200 hover:border-blue-300',
+                        bg: selected ? 'bg-blue-50' : 'hover:bg-blue-25',
+                        text: selected ? 'text-blue-900' : 'text-gray-900 hover:text-blue-800',
+                        subtitle: selected ? 'text-blue-600' : 'text-gray-500 hover:text-blue-600',
+                        checkBg: 'bg-blue-500'
+                      };
+                    case 'partners':
+                      return {
+                        border: selected ? 'border-purple-500 ring-2 ring-purple-200' : 'border-gray-200 hover:border-purple-300',
+                        bg: selected ? 'bg-purple-50' : 'hover:bg-purple-25',
+                        text: selected ? 'text-purple-900' : 'text-gray-900 hover:text-purple-800',
+                        subtitle: selected ? 'text-purple-600' : 'text-gray-500 hover:text-purple-600',
+                        checkBg: 'bg-purple-500'
+                      };
+                    case 'internal':
+                      return {
+                        border: selected ? 'border-orange-500 ring-2 ring-orange-200' : 'border-gray-200 hover:border-orange-300',
+                        bg: selected ? 'bg-orange-50' : 'hover:bg-orange-25',
+                        text: selected ? 'text-orange-900' : 'text-gray-900 hover:text-orange-800',
+                        subtitle: selected ? 'text-orange-600' : 'text-gray-500 hover:text-orange-600',
+                        checkBg: 'bg-orange-500'
+                      };
+                    default:
+                      return {
+                        border: selected ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200 hover:border-blue-300',
+                        bg: selected ? 'bg-blue-50' : 'hover:bg-blue-25',
+                        text: selected ? 'text-blue-900' : 'text-gray-900 hover:text-blue-800',
+                        subtitle: selected ? 'text-blue-600' : 'text-gray-500 hover:text-blue-600',
+                        checkBg: 'bg-blue-500'
+                      };
+                  }
+                };
+
+                const styles = getEntityStyles(option.id, isSelected);
+                
+                return (
+                  <button
+                    key={option.id}
+                    onClick={() => setCampaignData({ ...campaignData, entity: option.id })}
+                    className={`relative p-6 rounded-xl border-2 transition-all duration-300 text-center transform ${
+                      styles.border
+                    } ${styles.bg} ${
+                      isSelected ? 'shadow-lg scale-105' : 'hover:shadow-md hover:scale-102'
+                    }`}
+                  >
+                    <div className={`w-12 h-12 mx-auto mb-4 rounded-lg bg-gradient-to-r ${option.color} flex items-center justify-center transition-all duration-300 ${
+                      isSelected ? 'shadow-md' : 'group-hover:shadow-sm'
+                    }`}>
+                      <div className="text-white">
+                        {option.icon}
+                      </div>
                     </div>
-                  )}
-                </button>
-              ))}
+                    <h3 className={`font-medium mb-1 transition-colors duration-200 ${styles.text}`}>
+                      {option.title}
+                    </h3>
+                    <p className={`text-sm transition-colors duration-200 ${styles.subtitle}`}>
+                      {option.subtitle}
+                    </p>
+                    
+                    {isSelected && (
+                      <div className={`absolute -top-2 -right-2 w-6 h-6 ${styles.checkBg} rounded-full flex items-center justify-center shadow-lg animate-in zoom-in duration-200`}>
+                        <Check className="h-4 w-4 text-white" />
+                      </div>
+                    )}
+                  </button>
+                );
+              })}
             </div>
 
             {campaignData.entity && (
