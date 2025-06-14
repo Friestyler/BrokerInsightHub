@@ -16,6 +16,7 @@ interface AttributeMappingStepProps {
   stepName: string;
   currentStep: number;
   selectedTransformationScript?: { id: number; name: string } | null;
+  selectedEntityType?: string;
   onNext: (mappings: AttributeMapping[]) => void;
   onBack: () => void;
 }
@@ -46,6 +47,7 @@ export default function AttributeMappingStep({
   stepName, 
   currentStep,
   selectedTransformationScript,
+  selectedEntityType: propSelectedEntityType,
   onNext, 
   onBack 
 }: AttributeMappingStepProps) {
@@ -76,14 +78,14 @@ export default function AttributeMappingStep({
   const isEntityUpload = uploadType === 'entity-upload';
   
   // Extract actual entity type from uploadType
-  const actualEntityType = isEntityUpload ? selectedEntityType || uploadType : uploadType;
+  const actualEntityType = isEntityUpload ? (propSelectedEntityType || selectedEntityType) : uploadType;
   
-  // Initialize selectedEntityType from uploadType if it's not set
+  // Initialize selectedEntityType from prop if it's not set
   useEffect(() => {
-    if (isEntityUpload && !selectedEntityType && uploadType && uploadType !== 'entity-upload') {
-      setSelectedEntityType(uploadType);
+    if (propSelectedEntityType && propSelectedEntityType !== selectedEntityType) {
+      setSelectedEntityType(propSelectedEntityType);
     }
-  }, [isEntityUpload, selectedEntityType, uploadType]);
+  }, [propSelectedEntityType, selectedEntityType]);
 
   // Fetch templates
   const { data: templates = [], isLoading: isLoadingTemplates } = useQuery({
@@ -99,8 +101,8 @@ export default function AttributeMappingStep({
 
   // Fetch upload settings for mandatory attributes
   const { data: uploadSettings = [], isLoading: isLoadingUploadSettings } = useQuery({
-    queryKey: ['/api/degoudse/upload-settings', actualEntityType],
-    enabled: !!actualEntityType
+    queryKey: [`/api/${environmentId}/upload-settings/${actualEntityType}`],
+    enabled: !!actualEntityType && !!environmentId
   });
 
   // Initialize attribute mappings based on upload settings

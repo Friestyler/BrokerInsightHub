@@ -425,6 +425,7 @@ export default function UploadProcessPage() {
               stepName={currentStepData?.name || 'Attribute Mapping'}
               currentStep={currentStep}
               selectedTransformationScript={selectedTransformationScript}
+              selectedEntityType={selectedEntityType}
               onNext={(mappings) => {
                 setAttributeMappings(mappings);
                 goToNextStep();
