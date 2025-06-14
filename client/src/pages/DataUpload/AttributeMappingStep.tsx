@@ -247,188 +247,170 @@ export default function AttributeMappingStep({
   }, [attributeMappings, csvData]);
 
   return (
-    <div className="space-y-8 max-w-4xl mx-auto">
+    <div className="space-y-6">
       {/* Templates Section */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-6">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg">
-            <Save className="h-6 w-6 text-white" />
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">Templates</h3>
-            <p className="text-sm text-gray-500">Load existing or create new mapping templates</p>
-          </div>
-        </div>
-
-        <div className="flex gap-4 items-center">
-          <div className="flex-1">
-            <Select 
-              value={selectedTemplateId} 
-              onValueChange={(value) => {
-                setSelectedTemplateId(value);
-                if (value && value !== 'none') {
-                  const template = templates.find((t: any) => t.id.toString() === value);
-                  if (template) {
-                    try {
-                      const mappings = typeof template.column_mappings === 'string' 
-                        ? JSON.parse(template.column_mappings) 
-                        : template.column_mappings;
-                      setAttributeMappings(mappings);
-                      setTemplateLoaded(true);
-                      toast({ 
-                        title: `Template "${template.name}" loaded`,
-                        description: `Auto-loaded with ${mappings.length} column mappings`
-                      });
-                    } catch (error) {
-                      toast({ title: 'Failed to load template', variant: 'destructive' });
+      <Card>
+        <CardHeader className="pb-4">
+          <CardTitle className="text-base">Template Management</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex gap-4 items-end">
+            {/* Use Template Dropdown */}
+            <div className="flex-1">
+              <Label className="text-sm font-medium">Use Template</Label>
+              <Select 
+                value={selectedTemplateId} 
+                onValueChange={(value) => {
+                  setSelectedTemplateId(value);
+                  if (value && value !== 'none') {
+                    const template = templates.find((t: any) => t.id.toString() === value);
+                    if (template) {
+                      try {
+                        const mappings = typeof template.column_mappings === 'string' 
+                          ? JSON.parse(template.column_mappings) 
+                          : template.column_mappings;
+                        setAttributeMappings(mappings);
+                        setTemplateLoaded(true);
+                        toast({ 
+                          title: `Template "${template.name}" loaded`,
+                          description: `Auto-loaded with ${mappings.length} column mappings`
+                        });
+                      } catch (error) {
+                        toast({ title: 'Failed to load template', variant: 'destructive' });
+                      }
                     }
+                  } else if (value === 'none') {
+                    setAttributeMappings([]);
+                    toast({ title: 'Template cleared' });
                   }
-                } else if (value === 'none') {
-                  setAttributeMappings([]);
-                  toast({ title: 'Template cleared' });
-                }
-              }}
-            >
-              <SelectTrigger className="h-12 bg-white border-gray-200 hover:border-blue-400 transition-all rounded-xl">
-                <SelectValue placeholder="Choose a template..." />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="none">Create New Template</SelectItem>
-                {templates
-                  .filter((template: any) => {
-                    if (isEntityUpload && selectedEntityType) {
-                      return template.entity_type === selectedEntityType;
-                    }
-                    return true;
-                  })
-                  .map((template: any) => (
-                    <SelectItem key={template.id} value={template.id.toString()}>
-                      {template.name}
-                    </SelectItem>
-                  ))}
-              </SelectContent>
-            </Select>
-          </div>
-
-          <Button 
-            variant="outline" 
-            onClick={() => setShowSaveTemplate(true)}
-            className="h-12 px-6 border-gray-200 hover:bg-blue-50 hover:border-blue-400 rounded-xl transition-all"
-          >
-            <Save className="h-4 w-4 mr-2" />
-            Save Template
-          </Button>
-        </div>
-
-        {showSaveTemplate && (
-          <div className="bg-blue-50 border border-blue-200 rounded-xl p-6 space-y-4">
-            <div>
-              <Label className="text-sm font-medium text-blue-800">Template Name</Label>
-              <Input
-                value={templateName}
-                onChange={(e) => setTemplateName(e.target.value)}
-                placeholder="Enter template name"
-                className="mt-2 border-blue-200 focus:ring-blue-500 rounded-lg"
-              />
-            </div>
-            <div className="flex gap-3">
-              <Button 
-                onClick={() => {
-                  if (!templateName.trim()) {
-                    toast({ title: 'Please enter a template name', variant: 'destructive' });
-                    return;
-                  }
-                  toast({ title: 'Template saved successfully' });
-                  setShowSaveTemplate(false);
-                  setTemplateName('');
                 }}
-                className="bg-blue-600 hover:bg-blue-700 rounded-lg"
               >
-                Save
-              </Button>
-              <Button 
-                variant="outline" 
-                onClick={() => setShowSaveTemplate(false)}
-                className="border-blue-200 text-blue-700 hover:bg-blue-100 rounded-lg"
-              >
-                Cancel
-              </Button>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a template" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="none">Create New Template</SelectItem>
+                  {templates
+                    .filter((template: any) => {
+                      if (isEntityUpload && selectedEntityType) {
+                        return template.entity_type === selectedEntityType;
+                      }
+                      return true;
+                    })
+                    .map((template: any) => (
+                      <SelectItem key={template.id} value={template.id.toString()}>
+                        {template.name}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
             </div>
+
+            {/* Save Template Button */}
+            <Button 
+              variant="outline" 
+              onClick={() => setShowSaveTemplate(true)}
+              className="shrink-0"
+            >
+              <Save className="h-4 w-4 mr-2" />
+              Save Template
+            </Button>
           </div>
-        )}
-      </div>
+
+          {/* Save Template Form */}
+          {showSaveTemplate && (
+            <div className="border rounded-lg p-4 space-y-3 bg-muted/50">
+              <div>
+                <Label className="text-sm font-medium">Template Name</Label>
+                <Input
+                  value={templateName}
+                  onChange={(e) => setTemplateName(e.target.value)}
+                  placeholder="Enter template name"
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button 
+                  onClick={() => {
+                    if (!templateName.trim()) {
+                      toast({ title: 'Please enter a template name', variant: 'destructive' });
+                      return;
+                    }
+                    // Save template logic would go here
+                    toast({ title: 'Template saved successfully' });
+                    setShowSaveTemplate(false);
+                    setTemplateName('');
+                  }}
+                  size="sm"
+                >
+                  Save
+                </Button>
+                <Button 
+                  variant="outline" 
+                  onClick={() => setShowSaveTemplate(false)}
+                  size="sm"
+                >
+                  Cancel
+                </Button>
+              </div>
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Main Mapping Section */}
-      <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-6">
-        <div className="flex items-center gap-4">
-          <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-blue-600 rounded-xl flex items-center justify-center shadow-lg">
-            <span className="text-white text-lg font-bold">⚡</span>
+      <Card>
+        <CardHeader className="pb-4">
+          <CardTitle className="text-base">Column Mapping</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {/* Column Headers */}
+          <div className="grid grid-cols-2 gap-8 mb-3">
+            <h4 className="font-medium text-sm text-muted-foreground">Entity Attributes</h4>
+            <h4 className="font-medium text-sm text-muted-foreground">CSV Column Mapping</h4>
           </div>
-          <div>
-            <h3 className="text-lg font-semibold text-gray-900">Column Mapping</h3>
-            <p className="text-sm text-gray-500">Map your CSV columns to entity attributes</p>
-          </div>
-        </div>
-
-        <div className="space-y-6">
-          {/* Mapping Cards */}
-          <div className="space-y-4">
+          
+          {/* Mapping Rows */}
+          <div className="space-y-3">
             {attributeMappings.length === 0 && (
-              <div className="text-center py-12 bg-gray-50 rounded-2xl">
-                <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <span className="text-gray-400 text-2xl">📊</span>
-                </div>
-                <p className="text-gray-600 font-medium">No attributes configured</p>
-                <p className="text-sm text-gray-500 mt-1">Select a template or configure mapping manually</p>
+              <div className="text-center py-8 text-gray-500">
+                <p>No attributes configured for this upload type.</p>
+                <p className="text-sm mt-1">You can add optional attributes using the button below.</p>
               </div>
             )}
             
             {attributeMappings.map((mapping, index) => (
               <div key={`mapping-row-${index}`} className="space-y-4">
-                <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 space-y-4">
-                  <div className="flex items-center justify-between">
-                    {/* Attribute Info */}
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 rounded-xl flex items-center justify-center shadow-sm ${
-                        mapping.isRequired 
-                          ? 'bg-gradient-to-br from-red-100 to-orange-100 text-red-600' 
-                          : 'bg-gradient-to-br from-blue-100 to-purple-100 text-blue-600'
-                      }`}>
-                        {mapping.isRequired ? '⚡' : '📊'}
-                      </div>
-                      <div>
-                        <div className="flex items-center gap-2">
-                          <span className="font-semibold text-gray-900">{mapping.attribute}</span>
-                          {mapping.isRequired && (
-                            <span className="px-2 py-1 bg-red-100 text-red-700 text-xs font-medium rounded-full">Required</span>
-                          )}
-                        </div>
-                        <p className="text-sm text-gray-500 mt-1">
-                          {mapping.isRequired ? 'This field is mandatory for processing' : 'Optional field - can be skipped'}
-                        </p>
-                      </div>
+                <div className="grid grid-cols-2 gap-8 items-stretch">
+                  {/* Left: Entity Attribute */}
+                  <div className={`p-3 rounded-lg border flex items-center justify-between ${
+                    mapping.isRequired 
+                      ? 'bg-red-50 border-red-200' 
+                      : 'bg-blue-50 border-blue-200'
+                  }`}>
+                    <div className="flex items-center gap-2">
+                      <span className="font-medium text-sm">{mapping.attribute}</span>
+                      {mapping.isRequired && (
+                        <Badge variant="destructive" className="text-xs">Required</Badge>
+                      )}
                     </div>
-                    
-                    {/* Remove button for optional fields */}
                     {!mapping.isRequired && (
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-8 w-8 p-0 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-all"
-                        onClick={() => {
-                          const newMappings = attributeMappings.filter((_, i) => i !== index);
-                          setAttributeMappings(newMappings);
-                        }}
+                        className="h-6 w-6 p-0 text-gray-400 hover:text-red-500 hover:bg-red-50"
                       >
-                        <Minus className="h-4 w-4" />
+                        <Minus className="h-3 w-3" />
                       </Button>
                     )}
                   </div>
                   
-                  {/* CSV Column Selection */}
-                  <div className="space-y-3">
-                    <Label className="text-sm font-medium text-gray-700">Map to CSV Column</Label>
-                    <div className="flex items-center gap-3">
+                  {/* Right: CSV Column Dropdown */}
+                  <div className={`p-3 rounded-lg border ${
+                    mapping.isRequired 
+                      ? 'bg-red-50 border-red-200' 
+                      : 'bg-blue-50 border-blue-200'
+                  }`}>
+                    <div className="flex items-center gap-2">
                       <div className="flex-1">
                         <Select 
                           value={mapping.csvColumn} 
@@ -454,16 +436,16 @@ export default function AttributeMappingStep({
                             setAttributeMappings(newMappings);
                           }}
                         >
-                          <SelectTrigger className="h-12 bg-white border-gray-200 hover:border-blue-400 transition-all rounded-xl">
-                            <SelectValue placeholder="Choose a CSV column..." />
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select CSV column" />
                           </SelectTrigger>
                           <SelectContent className="max-h-[270px] p-0">
                             <div className="p-1">
-                              <SelectItem value="CODE" className="bg-purple-50 text-purple-700 font-medium rounded-lg m-1">
+                              <SelectItem value="CODE" className="bg-purple-50 text-purple-700 font-medium">
                                 <div className="flex items-center justify-between w-full">
                                   <div className="flex items-center gap-2">
                                     <span className="text-purple-500">&lt;/&gt;</span>
-                                    Custom Code Logic
+                                    Code (Custom Logic)
                                   </div>
                                   {mapping.customCode && mapping.customCode.trim() && (
                                     <div className="flex items-center gap-1 text-green-600">
@@ -474,22 +456,22 @@ export default function AttributeMappingStep({
                                 </div>
                               </SelectItem>
                               {csvHeaders.filter(header => header && header.trim().length > 0).map(header => (
-                                <SelectItem key={header} value={header} className="rounded-lg m-1">{header}</SelectItem>
+                                <SelectItem key={header} value={header}>{header}</SelectItem>
                               ))}
                             </div>
                           </SelectContent>
                         </Select>
                       </div>
                       
-                      {/* Edit Code Button */}
+                      {/* Edit Code Button - shows when CODE is selected and has custom code */}
                       {mapping.csvColumn === 'CODE' && mapping.customCode && mapping.customCode.trim() && (
                         <Button
                           variant="outline"
                           size="sm"
                           onClick={() => setShowCodeEditor(prev => ({ ...prev, [index]: true }))}
-                          className="h-12 px-4 border-purple-200 text-purple-700 hover:bg-purple-50 rounded-xl transition-all"
+                          className="shrink-0 gap-1"
                         >
-                          <Edit className="h-4 w-4 mr-2" />
+                          <Edit className="h-3 w-3" />
                           Edit Code
                         </Button>
                       )}
@@ -901,25 +883,20 @@ Examples:
             {/* Empty space on the right to maintain alignment */}
             <div></div>
           </div>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
 
       {/* Actions */}
-      <div className="flex justify-between items-center pt-6">
-        <Button 
-          variant="outline" 
-          onClick={onBack}
-          className="h-12 px-6 border-gray-200 hover:bg-gray-50 rounded-xl transition-all"
-        >
+      <div className="flex justify-between">
+        <Button variant="outline" onClick={onBack}>
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back
         </Button>
         <Button 
           onClick={() => onNext(attributeMappings)} 
           disabled={attributeMappings.length === 0}
-          className="h-12 px-8 bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
-          Process Data
+          Continue to Processing
           <ArrowRight className="h-4 w-4 ml-2" />
         </Button>
       </div>
