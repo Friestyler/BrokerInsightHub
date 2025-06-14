@@ -192,11 +192,11 @@ export default function CampaignCreator() {
     newEmails.push({
       id: (newEmails.length + 1).toString(),
       subject: '',
-      preheader: '',
       blocks: [],
       followUpDays: 7,
       leftLogo: null,
-      rightLogo: null
+      rightLogo: null,
+      condition: { type: 'always' }
     });
     setCampaignData({ ...campaignData, emails: newEmails });
     setActiveEmailIndex(newEmails.length - 1);

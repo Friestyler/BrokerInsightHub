@@ -8,7 +8,8 @@ import {
   Lightbulb, Rocket, Heading2 as Heading, ChevronDown,
   ChevronUp, Mail, Sparkles, BarChart3, AlertTriangle, 
   UserPlus, HelpCircle, Trophy, DollarSign, Paperclip,
-  Upload, Edit3, Eye
+  Upload, Edit3, Eye, GitBranch, Clock, MousePointer,
+  Code, Zap
 } from "lucide-react";
 
 interface EmailBlock {
@@ -29,6 +30,12 @@ interface EmailBlock {
   };
 }
 
+interface EmailCondition {
+  type: 'not_clicked' | 'always' | 'not_opened' | 'custom';
+  customPrompt?: string;
+  generatedLogic?: string;
+}
+
 interface Email {
   id: string;
   subject: string;
@@ -36,6 +43,7 @@ interface Email {
   followUpDays: number;
   leftLogo: File | null;
   rightLogo: File | null;
+  condition?: EmailCondition;
 }
 
 interface ImprovedEmailBuilderProps {
@@ -155,11 +163,48 @@ export default function ImprovedEmailBuilder({
       blocks: [],
       followUpDays: 7,
       leftLogo: null,
-      rightLogo: null
+      rightLogo: null,
+      condition: { type: 'always' }
     });
     onEmailsChange(newEmails);
     onActiveEmailChange(newEmails.length - 1);
     setExpandedEmailIndex(newEmails.length - 1);
+  };
+
+  const generateCustomLogic = (prompt: string): string => {
+    // AI-powered logic generation based on user prompt
+    const logicTemplates = {
+      'engagement': 'if contact_engagement_score < 50 and days_since_last_open > 3:',
+      'industry': 'if contact_industry in ["finance", "insurance"] and company_size > 100:',
+      'behavior': 'if email_opened and not link_clicked and days_since_send >= 2:',
+      'timing': 'if current_day in ["tuesday", "wednesday", "thursday"] and current_hour between 9 and 17:',
+      'geographic': 'if contact_timezone in ["EST", "PST"] and local_time between 9 and 16:'
+    };
+
+    // Simple AI logic: match keywords to templates
+    const keywords = prompt.toLowerCase();
+    if (keywords.includes('engagement') || keywords.includes('active')) {
+      return logicTemplates.engagement;
+    } else if (keywords.includes('industry') || keywords.includes('company')) {
+      return logicTemplates.industry;
+    } else if (keywords.includes('click') || keywords.includes('behavior')) {
+      return logicTemplates.behavior;
+    } else if (keywords.includes('time') || keywords.includes('day')) {
+      return logicTemplates.timing;
+    } else if (keywords.includes('location') || keywords.includes('timezone')) {
+      return logicTemplates.geographic;
+    } else {
+      return `# Generated logic based on: "${prompt}"\nif contact_meets_criteria("${prompt}"):`;
+    }
+  };
+
+  const updateEmailCondition = (emailIndex: number, condition: EmailCondition) => {
+    const newEmails = [...emails];
+    if (condition.type === 'custom' && condition.customPrompt) {
+      condition.generatedLogic = generateCustomLogic(condition.customPrompt);
+    }
+    newEmails[emailIndex].condition = condition;
+    onEmailsChange(newEmails);
   };
 
   const saveEmail = (emailIndex: number) => {
@@ -222,35 +267,135 @@ export default function ImprovedEmailBuilder({
       {expandedEmailIndex === -1 && (
         <div className="space-y-3 mb-8">
           {emails.map((email, index) => (
-            <div key={email.id} className="border rounded-lg bg-white hover:shadow-sm transition-shadow">
-              <div className="p-6 flex items-center justify-between cursor-pointer" 
-                   onClick={() => setExpandedEmailIndex(index)}>
-                <div className="flex items-center gap-4">
-                  <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                    <Mail className="h-5 w-5 text-blue-600" />
+            <div key={email.id}>
+              {/* Email Card */}
+              <div className="border rounded-lg bg-white hover:shadow-sm transition-shadow">
+                <div className="p-6 flex items-center justify-between cursor-pointer" 
+                     onClick={() => setExpandedEmailIndex(index)}>
+                  <div className="flex items-center gap-4">
+                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                      <Mail className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-medium text-gray-900">
+                        Email {index + 1}
+                        {email.followUpDays > 0 && (
+                          <span className="ml-2 text-sm text-gray-500">
+                            (+{email.followUpDays} days)
+                          </span>
+                        )}
+                      </h3>
+                      <p className="text-gray-500">
+                        {email.subject || 'No subject set'} • {email.blocks.length} blocks
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-lg font-medium text-gray-900">
-                      Email {index + 1}
-                      {email.followUpDays > 0 && (
-                        <span className="ml-2 text-sm text-gray-500">
-                          (+{email.followUpDays} days)
-                        </span>
-                      )}
-                    </h3>
-                    <p className="text-gray-500">
-                      {email.subject || 'No subject set'} • {email.blocks.length} blocks
-                    </p>
+                  <div className="flex items-center gap-3">
+                    <Button variant="ghost" size="sm" className="gap-2">
+                      <Edit3 className="h-4 w-4" />
+                      Edit
+                    </Button>
+                    <ChevronDown className="h-5 w-5 text-gray-400" />
                   </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <Button variant="ghost" size="sm" className="gap-2">
-                    <Edit3 className="h-4 w-4" />
-                    Edit
-                  </Button>
-                  <ChevronDown className="h-5 w-5 text-gray-400" />
                 </div>
               </div>
+
+              {/* Logic Condition - Only show between emails (not after the last one) */}
+              {index < emails.length - 1 && (
+                <div className="relative py-4">
+                  <div className="absolute left-1/2 top-0 bottom-0 w-px bg-gray-300 transform -translate-x-1/2"></div>
+                  <div className="relative bg-white max-w-md mx-auto border rounded-lg p-4 shadow-sm">
+                    <div className="flex items-center gap-2 mb-3">
+                      <GitBranch className="h-4 w-4 text-orange-600" />
+                      <span className="text-sm font-medium text-gray-900">Send Logic</span>
+                    </div>
+                    
+                    <div className="space-y-3">
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          onClick={() => updateEmailCondition(index + 1, { type: 'not_clicked' })}
+                          className={`p-2 text-xs border rounded transition-colors ${
+                            emails[index + 1]?.condition?.type === 'not_clicked'
+                              ? 'bg-orange-50 border-orange-200 text-orange-700'
+                              : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
+                          }`}
+                        >
+                          <MousePointer className="h-3 w-3 mx-auto mb-1" />
+                          Not clicked
+                        </button>
+                        <button
+                          onClick={() => updateEmailCondition(index + 1, { type: 'always' })}
+                          className={`p-2 text-xs border rounded transition-colors ${
+                            emails[index + 1]?.condition?.type === 'always'
+                              ? 'bg-orange-50 border-orange-200 text-orange-700'
+                              : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
+                          }`}
+                        >
+                          <Clock className="h-3 w-3 mx-auto mb-1" />
+                          Always
+                        </button>
+                        <button
+                          onClick={() => updateEmailCondition(index + 1, { type: 'not_opened' })}
+                          className={`p-2 text-xs border rounded transition-colors ${
+                            emails[index + 1]?.condition?.type === 'not_opened'
+                              ? 'bg-orange-50 border-orange-200 text-orange-700'
+                              : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
+                          }`}
+                        >
+                          <Eye className="h-3 w-3 mx-auto mb-1" />
+                          Not opened
+                        </button>
+                        <button
+                          onClick={() => updateEmailCondition(index + 1, { type: 'custom', customPrompt: '' })}
+                          className={`p-2 text-xs border rounded transition-colors ${
+                            emails[index + 1]?.condition?.type === 'custom'
+                              ? 'bg-orange-50 border-orange-200 text-orange-700'
+                              : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
+                          }`}
+                        >
+                          <Code className="h-3 w-3 mx-auto mb-1" />
+                          Custom
+                        </button>
+                      </div>
+
+                      {/* Custom Logic Input */}
+                      {emails[index + 1]?.condition?.type === 'custom' && (
+                        <div className="space-y-2">
+                          <Textarea
+                            placeholder="Describe when this email should be sent... e.g., 'Send if user is from finance industry and hasn't clicked previous links'"
+                            value={emails[index + 1]?.condition?.customPrompt || ''}
+                            onChange={(e) => updateEmailCondition(index + 1, {
+                              type: 'custom',
+                              customPrompt: e.target.value
+                            })}
+                            className="text-xs resize-none"
+                            rows={2}
+                          />
+                          {emails[index + 1]?.condition?.generatedLogic && (
+                            <div className="bg-gray-50 rounded p-2">
+                              <div className="flex items-center gap-1 mb-1">
+                                <Zap className="h-3 w-3 text-purple-600" />
+                                <span className="text-xs font-medium text-purple-700">Generated Logic</span>
+                              </div>
+                              <code className="text-xs text-gray-700 font-mono">
+                                {emails[index + 1]?.condition?.generatedLogic}
+                              </code>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Logic Description */}
+                      <div className="text-xs text-gray-600">
+                        {emails[index + 1]?.condition?.type === 'not_clicked' && 'Send if recipient didn\'t click any links in previous email'}
+                        {emails[index + 1]?.condition?.type === 'always' && 'Send automatically after delay period'}
+                        {emails[index + 1]?.condition?.type === 'not_opened' && 'Send if recipient didn\'t open previous email'}
+                        {emails[index + 1]?.condition?.type === 'custom' && 'Send based on custom conditions using AI logic'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           ))}
 
