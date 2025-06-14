@@ -93,17 +93,44 @@ export default function AttributeMappingStep({
       return response.json();
     },
     onSuccess: (data, { index }) => {
-      setCodeEditorContent(prev => ({ ...prev, [index]: data.code }));
+      // Clean up the generated code if it's wrapped in JSON or markdown
+      let cleanCode = data.code;
+      
+      // Remove JSON wrapper if present
+      if (cleanCode.startsWith('```json')) {
+        try {
+          const jsonMatch = cleanCode.match(/```json\s*\n?\s*{\s*"code":\s*"([^"]*(?:\\.[^"]*)*)"/);
+          if (jsonMatch) {
+            cleanCode = jsonMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+          }
+        } catch (e) {
+          // If parsing fails, try to extract code between markdown blocks
+          const codeMatch = cleanCode.match(/```(?:python)?\s*\n([\s\S]*?)\n```/);
+          if (codeMatch) {
+            cleanCode = codeMatch[1];
+          }
+        }
+      }
+      
+      // Remove markdown code blocks if present
+      if (cleanCode.includes('```')) {
+        const codeMatch = cleanCode.match(/```(?:python)?\s*\n([\s\S]*?)\n```/);
+        if (codeMatch) {
+          cleanCode = codeMatch[1];
+        }
+      }
+      
+      setCodeEditorContent(prev => ({ ...prev, [index]: cleanCode }));
       setCodeExplanation(prev => ({ ...prev, [index]: data.explanation }));
       setIsGeneratingCode(prev => ({ ...prev, [index]: false }));
       
-      // Update the mapping with the new code
+      // Update the mapping with the clean code
       setAttributeMappings(prev => prev.map((mapping, i) => 
-        i === index ? { ...mapping, customCode: data.code } : mapping
+        i === index ? { ...mapping, customCode: cleanCode } : mapping
       ));
       
       // Validate the generated code
-      validatePythonCode(data.code, index);
+      validatePythonCode(cleanCode, index);
       
       toast({
         title: "Code Generated",
@@ -581,27 +608,86 @@ export default function AttributeMappingStep({
   // Generate code preview
   const generateCodePreview = (code: string, index: number) => {
     try {
-      // Use actual CSV data if available, otherwise create minimal sample data
+      // Clean up the code if it's wrapped in JSON or contains function definitions
+      let cleanCode = code.trim();
+      
+      // Remove JSON wrapper if present
+      if (cleanCode.startsWith('```json')) {
+        try {
+          const jsonMatch = cleanCode.match(/```json\s*\n?\s*{\s*"code":\s*"([^"]*(?:\\.[^"]*)*)"/);
+          if (jsonMatch) {
+            cleanCode = jsonMatch[1].replace(/\\n/g, '\n').replace(/\\"/g, '"').replace(/\\\\/g, '\\');
+          }
+        } catch (e) {
+          // If parsing fails, try to extract code between markdown blocks
+          const codeMatch = cleanCode.match(/```(?:python)?\s*\n([\s\S]*?)\n```/);
+          if (codeMatch) {
+            cleanCode = codeMatch[1];
+          }
+        }
+      }
+      
+      // Remove markdown code blocks if present
+      if (cleanCode.includes('```')) {
+        const codeMatch = cleanCode.match(/```(?:python)?\s*\n([\s\S]*?)\n```/);
+        if (codeMatch) {
+          cleanCode = codeMatch[1];
+        }
+      }
+      
+      // For function-based code, extract the main logic/return statement
+      if (cleanCode.includes('def ') && cleanCode.includes('return ')) {
+        // Try to extract the return statement or main transformation logic
+        const lines = cleanCode.split('\n');
+        let transformationLogic = '';
+        
+        // Look for the main transformation line (usually the return statement or column assignment)
+        for (let i = lines.length - 1; i >= 0; i--) {
+          const line = lines[i].trim();
+          if (line.startsWith('return ') || line.includes('=') && !line.startsWith('if ') && !line.startsWith('def ')) {
+            if (line.startsWith('return ')) {
+              transformationLogic = line.replace('return ', '');
+            } else if (line.includes('=')) {
+              // Extract the right side of assignment
+              const assignmentMatch = line.match(/=\s*(.+)$/);
+              if (assignmentMatch) {
+                transformationLogic = assignmentMatch[1];
+              }
+            }
+            break;
+          }
+        }
+        
+        if (transformationLogic) {
+          cleanCode = transformationLogic;
+        }
+      }
+
+      // Use actual CSV data if available, otherwise show error
       let dataToUse = csvData;
       if (!dataToUse || dataToUse.length === 0) {
-        // Create minimal sample data only if no CSV data is available
-        dataToUse = [
-          { column_placeholder: 'No CSV data available' },
-          { column_placeholder: 'Please upload CSV file' },
-          { column_placeholder: 'To see actual preview' }
-        ];
+        setCodePreview(prev => ({ 
+          ...prev, 
+          [index]: ['No CSV data loaded', 'Please upload a CSV file first', 'to see preview results'] 
+        }));
+        return;
       }
 
       // Try to evaluate the code with actual CSV data
       const previews = dataToUse.slice(0, 3).map((rowData, idx) => {
         try {
           // Simple evaluation for basic expressions
-          let evaluatedCode = code.trim();
+          let evaluatedCode = cleanCode.trim();
           
-          // Replace column references with actual CSV values (without quotes initially)
+          // Replace column references with actual CSV values (with proper quoting for strings)
           Object.entries(rowData).forEach(([key, value]) => {
-            const regex = new RegExp(`\\b${key}\\b`, 'g');
-            evaluatedCode = evaluatedCode.replace(regex, String(value));
+            const regex = new RegExp(`\\bcolumn_${key.toLowerCase().replace(/[^a-z0-9]/g, '_')}\\b`, 'g');
+            const stringValue = typeof value === 'string' ? `"${value}"` : String(value);
+            evaluatedCode = evaluatedCode.replace(regex, stringValue);
+            
+            // Also try direct column name matching
+            const directRegex = new RegExp(`\\b${key}\\b`, 'g');
+            evaluatedCode = evaluatedCode.replace(directRegex, stringValue);
           });
 
           let result = evaluatedCode;
@@ -769,31 +855,46 @@ export default function AttributeMappingStep({
 
           // Handle string concatenation with +
           if (result.includes('+') && !result.includes('if')) {
-            const parts = result.split('+').map(p => p.trim().replace(/^["']|["']$/g, ''));
-            result = parts.join('');
+            try {
+              // Try to evaluate the expression using eval in a safe context
+              const safeResult = eval(result);
+              result = String(safeResult);
+            } catch (e) {
+              // Fallback to manual parsing
+              const parts = result.split('+').map(p => p.trim().replace(/^["']|["']$/g, ''));
+              result = parts.join('');
+            }
           }
           
           // Handle conditional expressions (if/else)
           if (result.includes('if') && result.includes('else')) {
-            const match = result.match(/"?([^"]*)"?\s+if\s+(.+?)\s+else\s+"?([^"]*)"?/);
-            if (match) {
-              const [, trueValue, condition, falseValue] = match;
-              // Simple condition evaluation
-              let conditionResult = false;
-              if (condition.includes('==')) {
-                const [left, right] = condition.split('==').map(s => s.trim().replace(/['"]/g, ''));
-                conditionResult = left === right;
-              } else {
-                conditionResult = idx % 2 === 0; // fallback for demo
+            try {
+              // Try to evaluate using eval for JavaScript-like syntax
+              const jsExpression = result.replace(/if\s+(.+?)\s+else/g, '? $1 :');
+              const safeResult = eval(jsExpression);
+              result = String(safeResult);
+            } catch (e) {
+              // Fallback to manual parsing
+              const match = result.match(/"?([^"]*)"?\s+if\s+(.+?)\s+else\s+"?([^"]*)"?/);
+              if (match) {
+                const [, trueValue, condition, falseValue] = match;
+                let conditionResult = false;
+                if (condition.includes('==')) {
+                  const [left, right] = condition.split('==').map(s => s.trim().replace(/['"]/g, ''));
+                  conditionResult = left === right;
+                } else {
+                  conditionResult = idx % 2 === 0;
+                }
+                result = conditionResult ? trueValue : falseValue;
               }
-              result = conditionResult ? trueValue : falseValue;
             }
           }
           
           // Clean up quotes for final display
           result = result.replace(/^["']|["']$/g, '');
           
-          return `Row ${idx + 1}: ${result}`;
+          // Show only the transformed value, not "Row X:"
+          return result || 'Empty';
         } catch (error) {
           return `Row ${idx + 1}: Error evaluating code`;
         }
@@ -1432,16 +1533,24 @@ export default function AttributeMappingStep({
                       
                       <div className="border rounded-md p-3 bg-white min-h-32">
                         {codePreview[index] && codePreview[index].length > 0 ? (
-                          <div className="space-y-1">
+                          <div className="space-y-2">
+                            <div className="text-xs font-medium text-gray-600 mb-2">Sample results from first 3 rows:</div>
                             {codePreview[index].map((preview, previewIndex) => (
-                              <div key={previewIndex} className="text-sm font-mono text-gray-700 py-1 px-2 bg-gray-50 rounded">
-                                {preview}
+                              <div key={previewIndex} className="flex items-center justify-between p-2 bg-green-50 rounded border-l-4 border-green-400">
+                                <div className="flex items-center gap-2">
+                                  <span className="text-xs font-medium text-green-700">Row {previewIndex + 1}:</span>
+                                  <span className="text-sm text-gray-800 font-medium">{preview}</span>
+                                </div>
+                                <CheckCircle className="h-4 w-4 text-green-500" />
                               </div>
                             ))}
                           </div>
                         ) : (
-                          <div className="text-gray-400 text-sm">
-                            Preview will appear here when you write valid Python code
+                          <div className="flex items-center justify-center h-20 text-gray-400 text-sm">
+                            <div className="text-center">
+                              <div className="mb-1">Preview will appear here</div>
+                              <div className="text-xs">Write Python code or use AI to generate transformations</div>
+                            </div>
                           </div>
                         )}
                       </div>
