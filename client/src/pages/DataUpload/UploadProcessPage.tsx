@@ -85,8 +85,8 @@ export default function UploadProcessPage() {
   const uploadType = params?.type || '';
   
   // Determine if this is a special format (contains hyphen) or entity
-  const isSpecialFormat = uploadType.includes('-') || ['salesforce', 'brio', 'degoudse'].includes(uploadType);
   const isEntityUpload = uploadType === 'entity-upload';
+  const isSpecialFormat = !isEntityUpload && (uploadType.includes('-') || ['salesforce', 'brio', 'degoudse'].includes(uploadType));
   const entityType = isSpecialFormat ? undefined : uploadType;
   const formatType = isSpecialFormat ? uploadType : undefined;
   
