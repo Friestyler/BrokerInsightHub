@@ -113,6 +113,22 @@ Broker Copilot is a comprehensive multi-environment broker portal powered by AI 
 - **Environment-specific schemas** for data isolation
 - **Backup and restore** capabilities through admin panel
 
+## Recent Changes
+
+### June 14, 2025 - Data Upload Enhancements
+- **Streamlined Entity Upload Flow**: Removed CSV transformation step from entity-upload workflow
+- **Entity Selection Integration**: Step 1 now features visual entity selection cards (Opportunities, Partners, Customers, Products, Vendors, Contacts)
+- **AI-Powered Custom Logic**: Added natural language code generation for transformation scripts
+- **Template Auto-loading**: Implemented cross-compatible template system with auto-selection
+- **Navigation Fixes**: Resolved routing issues between upload sections
+
+### AI Code Generation Features
+- **Natural Language Processing**: Users can describe transformations in plain English
+- **Automatic Code Generation**: OpenAI GPT-4o generates Python pandas code based on descriptions
+- **Code Explanations**: AI provides clear, non-technical explanations of generated code
+- **Real-time Validation**: Built-in code validation with error reporting
+- **Smart Templates**: Generated code automatically populates script editor
+
 ## Changelog
 
 - June 14, 2025. Initial setup
