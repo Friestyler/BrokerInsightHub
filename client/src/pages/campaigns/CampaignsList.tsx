@@ -61,8 +61,7 @@ export default function CampaignsList() {
     mutationFn: async ({ id, status }: { id: number; status: string }) => {
       return apiRequest(`/api/comm-flows/${id}`, {
         method: 'PATCH',
-        body: JSON.stringify({ status }),
-        headers: { 'Content-Type': 'application/json' },
+        body: { status },
       });
     },
     onSuccess: () => {
@@ -77,7 +76,9 @@ export default function CampaignsList() {
   // Delete campaign mutation
   const deleteCampaignMutation = useMutation({
     mutationFn: async (id: number) => {
-      return apiRequest(`/api/comm-flows/${id}`, { method: 'DELETE' });
+      return apiRequest(`/api/comm-flows/${id}`, {
+        method: 'DELETE',
+      });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/comm-flows'] });

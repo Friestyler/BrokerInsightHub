@@ -108,18 +108,14 @@ export default function CampaignBuilder() {
   // Create campaign mutation
   const createCampaignMutation = useMutation({
     mutationFn: async (data: InsertCommFlow) => {
-      return apiRequest('/api/comm-flows', {
-        method: 'POST',
-        body: JSON.stringify(data),
-        headers: { 'Content-Type': 'application/json' },
-      });
+      return apiRequest('POST', '/api/comm-flows', data);
     },
     onSuccess: () => {
       toast({ title: 'Campaign created successfully!' });
       queryClient.invalidateQueries({ queryKey: ['/api/comm-flows'] });
-      navigate('/campaigns');
+      setLocation('/campaigns');
     },
-    onError: (error) => {
+    onError: (error: any) => {
       toast({ title: 'Failed to create campaign', description: error.message, variant: 'destructive' });
     },
   });
@@ -622,7 +618,7 @@ export default function CampaignBuilder() {
   return (
     <div className="p-6 max-w-6xl mx-auto">
       <div className="flex items-center gap-4 mb-6">
-        <Button variant="ghost" size="sm" onClick={() => navigate('/campaigns')}>
+        <Button variant="ghost" size="sm" onClick={() => setLocation('/campaigns')}>
           <ChevronLeft size={16} />
           Back to Campaigns
         </Button>
