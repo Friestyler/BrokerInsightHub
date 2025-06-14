@@ -224,55 +224,35 @@ export default function CampaignCreator() {
     switch (currentStep) {
       case 1:
         return (
-          <div className="space-y-6">
-            <div className="text-center space-y-2">
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-blue-50 to-purple-50 rounded-full border border-blue-200">
-                <Sparkles className="h-4 w-4 text-blue-600" />
-                <span className="text-sm font-medium text-blue-700">Choose Your Communication Type</span>
-              </div>
-              <p className="text-sm text-muted-foreground max-w-2xl mx-auto">
-                Different audiences require different approaches. Select your target to get the right tools and templates.
-              </p>
+          <div className="space-y-8">
+            <div className="text-center">
+              <h2 className="text-xl font-medium text-gray-900 mb-2">Choose Entity Type</h2>
+              <p className="text-gray-600">Select the type of data you want to create a template for</p>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
               {entityOptions.map((option) => (
-                <Card 
+                <button
                   key={option.id}
-                  className={`cursor-pointer transition-all duration-200 hover:shadow-lg group ${
-                    campaignData.entity === option.id 
-                      ? 'ring-2 ring-blue-500 bg-blue-50/50 border-blue-200' 
-                      : 'hover:border-border/60'
+                  onClick={() => setCampaignData({ ...campaignData, entity: option.id })}
+                  className={`relative p-6 rounded-xl border-2 transition-all duration-200 text-center hover:shadow-md ${
+                    campaignData.entity === option.id
+                      ? 'border-green-500 bg-green-50'
+                      : 'border-gray-200 hover:border-gray-300'
                   }`}
-                  onClick={() => handleEntitySelect(option.id)}
                 >
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start gap-3">
-                      <div className={`p-3 rounded-lg bg-gradient-to-br ${option.color} text-white shadow-sm`}>
-                        {option.icon}
-                      </div>
-                      <div className="flex-1">
-                        <CardTitle className="text-lg leading-tight">{option.title}</CardTitle>
-                        <Badge 
-                          variant={option.category === 'campaign' ? 'default' : 'secondary'}
-                          className="mt-1 text-xs"
-                        >
-                          {option.subtitle}
-                        </Badge>
-                      </div>
-                      {campaignData.entity === option.id && (
-                        <div className="text-blue-600">
-                          <Check className="h-5 w-5" />
-                        </div>
-                      )}
+                  <div className={`w-12 h-12 mx-auto mb-4 rounded-lg ${option.color} flex items-center justify-center`}>
+                    {option.icon}
+                  </div>
+                  <h3 className="font-medium text-gray-900 mb-1">{option.title}</h3>
+                  <p className="text-sm text-gray-500">{option.subtitle}</p>
+                  
+                  {campaignData.entity === option.id && (
+                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                      <Check className="h-4 w-4 text-white" />
                     </div>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <p className="text-sm text-muted-foreground leading-relaxed">
-                      {option.description}
-                    </p>
-                  </CardContent>
-                </Card>
+                  )}
+                </button>
               ))}
             </div>
 
@@ -291,68 +271,55 @@ export default function CampaignCreator() {
       
       case 2:
         return (
-          <div className="space-y-6">
-            <div className="text-center space-y-2">
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-green-50 to-blue-50 rounded-full border border-green-200">
-                <Settings className="h-4 w-4 text-green-600" />
-                <span className="text-sm font-medium text-green-700">Template Configuration</span>
-              </div>
+          <div className="space-y-8">
+            <div className="text-center">
+              <h2 className="text-xl font-medium text-gray-900 mb-2">Template Details</h2>
+              <p className="text-gray-600">Configure your template settings</p>
             </div>
 
-            <div className="space-y-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Template Name</label>
+            <div className="max-w-2xl mx-auto space-y-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Template Name</label>
                 <Input
-                  placeholder={`e.g., ${entityOptions.find(opt => opt.id === campaignData.entity)?.title} Engagement Template`}
+                  placeholder={`${entityOptions.find(opt => opt.id === campaignData.entity)?.title} Template`}
                   value={campaignData.name}
                   onChange={(e) => setCampaignData({ ...campaignData, name: e.target.value })}
-                  className="h-11"
+                  className="h-12"
                 />
               </div>
               
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Description</label>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
                 <Textarea
                   placeholder="Brief description of this template's purpose..."
                   value={campaignData.description}
                   onChange={(e) => setCampaignData({ ...campaignData, description: e.target.value })}
-                  className="min-h-[80px] resize-none"
+                  className="min-h-[100px]"
                 />
               </div>
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Template Objective</label>
-                <div className="flex items-start gap-2">
-                  <Target className="h-4 w-4 mt-3 text-muted-foreground" />
-                  <Textarea
-                    placeholder="What outcome should this template achieve? (e.g., 25% increase in engagement, introduce new services)"
-                    value={campaignData.objective}
-                    onChange={(e) => setCampaignData({ ...campaignData, objective: e.target.value })}
-                    className="min-h-[80px] resize-none"
-                  />
-                </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Template Objective</label>
+                <Textarea
+                  placeholder="What outcome should this template achieve?"
+                  value={campaignData.objective}
+                  onChange={(e) => setCampaignData({ ...campaignData, objective: e.target.value })}
+                  className="min-h-[100px]"
+                />
               </div>
 
-              <div className="space-y-3">
-                <label className="text-sm font-medium">Template Icon</label>
-                <div className="grid grid-cols-6 gap-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-3">Choose Icon</label>
+                <div className="grid grid-cols-8 gap-3">
                   {[
-                    { id: 'target', icon: Target, color: 'from-blue-500 to-blue-600' },
-                    { id: 'trending-up', icon: TrendingUp, color: 'from-green-500 to-emerald-600' },
-                    { id: 'zap', icon: Zap, color: 'from-yellow-500 to-orange-500' },
-                    { id: 'star', icon: Star, color: 'from-purple-500 to-violet-600' },
-                    { id: 'heart', icon: Heart, color: 'from-pink-500 to-rose-600' },
-                    { id: 'gift', icon: Gift, color: 'from-red-500 to-pink-600' },
-                    { id: 'megaphone', icon: Megaphone, color: 'from-indigo-500 to-blue-600' },
-                    { id: 'coffee', icon: Coffee, color: 'from-amber-600 to-yellow-600' },
-                    { id: 'briefcase', icon: Briefcase, color: 'from-gray-600 to-slate-700' },
-                    { id: 'globe', icon: Globe, color: 'from-cyan-500 to-blue-500' },
-                    { id: 'award', icon: Award, color: 'from-yellow-500 to-amber-600' },
-                    { id: 'rocket', icon: Rocket, color: 'from-violet-500 to-purple-600' },
-                    { id: 'shield', icon: Shield, color: 'from-emerald-500 to-green-600' },
-                    { id: 'diamond', icon: Diamond, color: 'from-blue-400 to-cyan-500' },
-                    { id: 'mail', icon: Mail, color: 'from-slate-500 to-gray-600' },
-                    { id: 'sparkles', icon: Sparkles, color: 'from-pink-400 to-purple-500' }
+                    { id: 'target', icon: Target, color: 'bg-blue-500' },
+                    { id: 'trending-up', icon: TrendingUp, color: 'bg-green-500' },
+                    { id: 'zap', icon: Zap, color: 'bg-yellow-500' },
+                    { id: 'star', icon: Star, color: 'bg-purple-500' },
+                    { id: 'heart', icon: Heart, color: 'bg-pink-500' },
+                    { id: 'gift', icon: Gift, color: 'bg-red-500' },
+                    { id: 'mail', icon: Mail, color: 'bg-gray-500' },
+                    { id: 'rocket', icon: Rocket, color: 'bg-indigo-500' }
                   ].map((iconOption) => {
                     const IconComponent = iconOption.icon;
                     return (
@@ -360,30 +327,24 @@ export default function CampaignCreator() {
                         key={iconOption.id}
                         type="button"
                         onClick={() => setCampaignData({ ...campaignData, icon: iconOption.id })}
-                        className={`relative p-3 rounded-xl transition-all duration-200 hover:scale-105 ${
+                        className={`relative p-3 rounded-lg transition-all duration-200 ${
                           campaignData.icon === iconOption.id 
-                            ? 'ring-2 ring-blue-500 ring-offset-2' 
-                            : 'hover:shadow-md'
+                            ? 'ring-2 ring-blue-500' 
+                            : 'hover:bg-gray-50'
                         }`}
                       >
-                        <div className={`w-10 h-10 bg-gradient-to-br ${iconOption.color} rounded-lg flex items-center justify-center shadow-sm`}>
-                          <IconComponent className="h-5 w-5 text-white" />
+                        <div className={`w-8 h-8 ${iconOption.color} rounded flex items-center justify-center`}>
+                          <IconComponent className="h-4 w-4 text-white" />
                         </div>
                         {campaignData.icon === iconOption.id && (
-                          <div className="absolute -top-1 -right-1 w-5 h-5 bg-blue-500 rounded-full flex items-center justify-center">
-                            <Check className="h-3 w-3 text-white" />
+                          <div className="absolute -top-1 -right-1 w-4 h-4 bg-green-500 rounded-full flex items-center justify-center">
+                            <Check className="h-2 w-2 text-white" />
                           </div>
                         )}
                       </button>
                     );
                   })}
                 </div>
-                {campaignData.icon && (
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Check className="h-4 w-4 text-green-600" />
-                    <span>Icon selected for template tile</span>
-                  </div>
-                )}
               </div>
             </div>
           </div>
@@ -391,12 +352,10 @@ export default function CampaignCreator() {
       
       case 3:
         return (
-          <div className="h-full flex flex-col space-y-4">
+          <div className="space-y-8">
             <div className="text-center">
-              <div className="inline-flex items-center gap-2 px-3 py-1 bg-gradient-to-r from-purple-50 to-pink-50 rounded-full border border-purple-200">
-                <Mail className="h-4 w-4 text-purple-600" />
-                <span className="text-sm font-medium text-purple-700">Email Template Builder</span>
-              </div>
+              <h2 className="text-xl font-medium text-gray-900 mb-2">Email Builder</h2>
+              <p className="text-gray-600">Create your email template with dynamic content</p>
             </div>
             
             <div className="flex-1 flex flex-col space-y-4">
@@ -680,10 +639,10 @@ export default function CampaignCreator() {
   };
 
   return (
-    <div className="h-screen bg-background flex flex-col">
+    <div className="min-h-screen bg-gray-50">
       {/* Header */}
-      <div className="flex-shrink-0 border-b bg-card/50">
-        <div className="max-w-full mx-auto px-8 py-4">
+      <div className="bg-white border-b">
+        <div className="max-w-6xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <Button variant="ghost" size="sm" onClick={handleBack} className="gap-2">
@@ -691,76 +650,74 @@ export default function CampaignCreator() {
                 Back
               </Button>
               <div>
-                <h1 className="text-xl font-semibold">Create Template</h1>
-                <p className="text-sm text-muted-foreground">Step {currentStep} of {totalSteps}</p>
+                <h1 className="text-lg font-medium text-gray-900">Step {currentStep} of {totalSteps}</h1>
+                <p className="text-sm text-gray-600">{Math.round(progress)}% Complete</p>
               </div>
-            </div>
-            <div className="text-right">
-              <div className="text-sm font-medium">{Math.round(progress)}% Complete</div>
-              <Progress value={progress} className="w-32 h-2 mt-1" />
             </div>
           </div>
         </div>
       </div>
 
-      <div className="flex-1 max-w-full mx-auto px-8 py-6 min-h-0">
-        <div className="h-full grid grid-cols-1 lg:grid-cols-5 gap-8 min-h-0">
-          {/* Steps Sidebar */}
-          <div className="space-y-3">
-            {steps.map((step) => (
-              <div 
-                key={step.number}
-                onClick={() => handleStepClick(step.number)}
-                className={isStepAccessible(step.number) ? 'cursor-pointer' : 'cursor-not-allowed'}
-              >
-                <StepIndicator
-                  stepNumber={step.number}
-                  title={step.title}
-                  description={step.description}
-                  isActive={currentStep === step.number}
-                  isCompleted={isStepCompleted(step.number)}
-                  isAccessible={isStepAccessible(step.number)}
-                />
+      {/* Steps Progress */}
+      <div className="bg-white border-b">
+        <div className="max-w-6xl mx-auto px-6 py-6">
+          <div className="flex justify-between items-center">
+            {steps.map((step, index) => (
+              <div key={step.number} className="flex flex-col items-center flex-1">
+                <div className="flex items-center w-full">
+                  <div className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium ${
+                    isStepCompleted(step.number) 
+                      ? 'bg-blue-600 text-white' 
+                      : currentStep === step.number 
+                        ? 'bg-blue-100 text-blue-600 ring-4 ring-blue-50' 
+                        : 'bg-gray-200 text-gray-500'
+                  }`}>
+                    {isStepCompleted(step.number) ? <Check className="h-4 w-4" /> : step.number}
+                  </div>
+                  {index < steps.length - 1 && (
+                    <div className={`flex-1 h-0.5 mx-4 ${
+                      isStepCompleted(step.number) ? 'bg-blue-600' : 'bg-gray-200'
+                    }`} />
+                  )}
+                </div>
+                <div className="mt-3 text-center">
+                  <p className={`text-sm font-medium ${
+                    currentStep === step.number ? 'text-blue-600' : 'text-gray-900'
+                  }`}>{step.title}</p>
+                  <p className="text-xs text-gray-500 mt-1">{step.description}</p>
+                </div>
               </div>
             ))}
           </div>
+        </div>
+      </div>
 
-          {/* Main Content */}
-          <div className="lg:col-span-4 flex flex-col min-h-0">
-            <Card className="flex-1 flex flex-col">
-              <CardHeader className="flex-shrink-0">
-                <CardTitle>{steps[currentStep - 1].title}</CardTitle>
-                <p className="text-sm text-muted-foreground">
-                  {steps[currentStep - 1].description}
-                </p>
-              </CardHeader>
-              <CardContent className="flex-1 min-h-0">
-                {renderStepContent()}
-              </CardContent>
-            </Card>
+      {/* Content */}
+      <div className="max-w-6xl mx-auto px-6 py-8">
+        <div className="bg-white rounded-lg shadow-sm border p-8">
+          {renderStepContent()}
+        </div>
 
-            {/* Navigation */}
-            <div className="flex justify-between mt-6">
-              <Button
-                variant="outline"
-                onClick={handlePrevious}
-                disabled={currentStep === 1}
-                className="gap-2"
-              >
-                <ArrowLeft className="h-4 w-4" />
-                Previous
-              </Button>
-              
-              <Button
-                onClick={currentStep === totalSteps ? handleBack : handleNext}
-                disabled={!canProceed()}
-                className="gap-2"
-              >
-                {currentStep === totalSteps ? 'Save Template' : 'Next'}
-                {currentStep === totalSteps ? <Check className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
-              </Button>
-            </div>
-          </div>
+        {/* Navigation */}
+        <div className="flex justify-between mt-8">
+          <Button
+            variant="outline"
+            onClick={handlePrevious}
+            disabled={currentStep === 1}
+            className="gap-2"
+          >
+            <ArrowLeft className="h-4 w-4" />
+            Back
+          </Button>
+          
+          <Button
+            onClick={currentStep === totalSteps ? handleBack : handleNext}
+            disabled={!canProceed()}
+            className="gap-2 bg-blue-600 hover:bg-blue-700"
+          >
+            {currentStep === totalSteps ? 'Save Template' : 'Continue to ' + steps.find(s => s.number === currentStep + 1)?.title}
+            <ArrowRight className="h-4 w-4" />
+          </Button>
         </div>
       </div>
     </div>
