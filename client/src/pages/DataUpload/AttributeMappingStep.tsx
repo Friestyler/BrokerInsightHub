@@ -157,6 +157,90 @@ export default function AttributeMappingStep({
     localStorage.setItem(`lastUsedTemplate_${uploadType}`, templateId.toString());
   };
 
+  // Parse CSV data for preview
+  useEffect(() => {
+    if (uploadedFile && (uploadedFile.type === 'text/csv' || uploadedFile.name.endsWith('.csv'))) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const text = e.target?.result as string;
+        const lines = text.split('\n').filter(line => line.trim());
+        if (lines.length > 1) {
+          // Handle CSV parsing with proper quote handling
+          const parseCSVLine = (line: string) => {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < line.length; i++) {
+              const char = line[i];
+              const nextChar = line[i + 1];
+              
+              if (char === '"') {
+                if (inQuotes && nextChar === '"') {
+                  current += '"';
+                  i++; // Skip next quote
+                } else {
+                  inQuotes = !inQuotes;
+                }
+              } else if (char === ',' && !inQuotes) {
+                result.push(current.trim());
+                current = '';
+              } else {
+                current += char;
+              }
+            }
+            result.push(current.trim());
+            return result;
+          };
+          
+          const headers = parseCSVLine(lines[0]);
+          const dataRows = lines.slice(1, 4).map(line => {
+            const values = parseCSVLine(line);
+            const row: any = {};
+            headers.forEach((header, index) => {
+              row[header] = values[index] || '';
+            });
+            return row;
+          });
+          setCsvData(dataRows);
+        }
+      };
+      reader.readAsText(uploadedFile);
+    }
+  }, [uploadedFile]);
+
+  // Generate preview data for attribute mappings
+  const generatePreview = (mapping: AttributeMapping, index: number) => {
+    if (!csvData.length) return ['No sample data available'];
+    
+    const { csvColumn, customCode, isCodeBased } = mapping;
+    
+    if (isCodeBased && customCode) {
+      // For custom code, show that it needs to be executed
+      return ['Custom transformation code will be applied'];
+    }
+    
+    if (csvColumn && csvColumn !== '') {
+      // Show actual data from the CSV column
+      const samples = csvData.map((row, idx) => {
+        const value = row[csvColumn] || 'Empty';
+        return `Row ${idx + 1}: ${value}`;
+      }).slice(0, 3);
+      return samples.length > 0 ? samples : ['No data in selected column'];
+    }
+    
+    return ['Select a CSV column to see preview'];
+  };
+
+  // Update preview when mappings change
+  useEffect(() => {
+    const newPreview: { [key: number]: string[] } = {};
+    attributeMappings.forEach((mapping, index) => {
+      newPreview[index] = generatePreview(mapping, index);
+    });
+    setCodePreview(newPreview);
+  }, [attributeMappings, csvData]);
+
   return (
     <div className="space-y-6">
       {/* Templates Section */}
