@@ -1041,6 +1041,206 @@ export type CampaignFollowUp = typeof campaignFollowUps.$inferSelect;
 export type InsertCampaignShare = z.infer<typeof insertCampaignShareSchema>;
 export type CampaignShare = typeof campaignShares.$inferSelect;
 
+// CommFlow Tables - New unified communication flow system
+export const commFlows = pgTable("comm_flows", {
+  id: serial("id").primaryKey(),
+  type: text("type").notNull(), // 'campaign', 'update', 'reminder', 'alert', etc.
+  name: text("name").notNull(),
+  description: text("description"),
+  targetEntityType: text("target_entity_type").notNull(), // 'partner', 'customer', 'opportunity', 'user'
+  targetEntityId: integer("target_entity_id").notNull(),
+  templateId: integer("template_id"), // Optional link to a predefined template
+  status: text("status").notNull().default("draft"), // 'draft', 'scheduled', 'in_progress', 'sent', 'archived'
+  senderType: text("sender_type").notNull().default("qollabi"), // 'qollabi' or 'custom'
+  senderEmail: text("sender_email"), // Custom sender email if senderType is 'custom'
+  senderName: text("sender_name"), // Custom sender name
+  scheduledAt: timestamp("scheduled_at"),
+  frequency: text("frequency").default("one_time"), // 'one_time', 'weekly', 'monthly', 'recurring'
+  isShared: boolean("is_shared").default(false),
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const commFlowEmails = pgTable("comm_flow_emails", {
+  id: serial("id").primaryKey(),
+  commFlowId: integer("comm_flow_id").notNull().references(() => commFlows.id),
+  stepOrder: integer("step_order").notNull(), // Order in sequence (1, 2, 3…)
+  subject: text("subject").notNull(),
+  contentBlocks: json("content_blocks").notNull(), // Email structure with dynamic fields and layout
+  leftLogo: text("left_logo"), // File path or URL for left logo
+  rightLogo: text("right_logo"), // File path or URL for right logo
+  aiGenerated: boolean("ai_generated").default(false),
+  sendAt: timestamp("send_at"), // Scheduled send time (optional)
+  followUpDays: integer("follow_up_days").default(7), // Days until next email
+  condition: json("condition").default('{"type": "always"}'), // Email logic condition
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const commFlowRecipients = pgTable("comm_flow_recipients", {
+  id: serial("id").primaryKey(),
+  commFlowId: integer("comm_flow_id").notNull().references(() => commFlows.id),
+  contactId: integer("contact_id").notNull().references(() => contacts.id),
+  emailStep: integer("email_step").notNull(), // Email step this engagement refers to (1, 2, 3…)
+  status: text("status").notNull().default("pending"), // 'pending', 'sent', 'bounced', 'opened', 'clicked'
+  sentAt: timestamp("sent_at"),
+  openedAt: timestamp("opened_at"), // When recipient opened email
+  clickedAt: timestamp("clicked_at"), // When a CTA was clicked
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+export const templates = pgTable("templates", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  description: text("description"),
+  entityType: text("entity_type").notNull(), // 'partners', 'customers', 'opportunities', 'internal'
+  objective: text("objective"),
+  icon: text("icon"),
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+export const templateEmails = pgTable("template_emails", {
+  id: serial("id").primaryKey(),
+  templateId: integer("template_id").notNull().references(() => templates.id),
+  stepOrder: integer("step_order").notNull(), // Position in sequence
+  subject: text("subject").notNull(),
+  contentBlocks: json("content_blocks").notNull(), // Layout/content structure (with optional AI fields)
+  leftLogo: text("left_logo"), // File path or URL for left logo
+  rightLogo: text("right_logo"), // File path or URL for right logo
+  followUpDays: integer("follow_up_days").default(7), // Days until next email
+  condition: json("condition").default('{"type": "always"}'), // Email logic condition
+  aiGenerated: boolean("ai_generated").default(false),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Relations for CommFlow tables
+export const commFlowsRelations = relations(commFlows, ({ one, many }) => ({
+  createdByUser: one(users, {
+    fields: [commFlows.createdBy],
+    references: [users.id],
+  }),
+  template: one(templates, {
+    fields: [commFlows.templateId],
+    references: [templates.id],
+  }),
+  emails: many(commFlowEmails),
+  recipients: many(commFlowRecipients),
+}));
+
+export const commFlowEmailsRelations = relations(commFlowEmails, ({ one }) => ({
+  commFlow: one(commFlows, {
+    fields: [commFlowEmails.commFlowId],
+    references: [commFlows.id],
+  }),
+}));
+
+export const commFlowRecipientsRelations = relations(commFlowRecipients, ({ one }) => ({
+  commFlow: one(commFlows, {
+    fields: [commFlowRecipients.commFlowId],
+    references: [commFlows.id],
+  }),
+  contact: one(contacts, {
+    fields: [commFlowRecipients.contactId],
+    references: [contacts.id],
+  }),
+}));
+
+export const templatesRelations = relations(templates, ({ one, many }) => ({
+  createdByUser: one(users, {
+    fields: [templates.createdBy],
+    references: [users.id],
+  }),
+  emails: many(templateEmails),
+  commFlows: many(commFlows),
+}));
+
+export const templateEmailsRelations = relations(templateEmails, ({ one }) => ({
+  template: one(templates, {
+    fields: [templateEmails.templateId],
+    references: [templates.id],
+  }),
+}));
+
+// Insert schemas for CommFlow tables
+export const insertCommFlowSchema = createInsertSchema(commFlows).pick({
+  type: true,
+  name: true,
+  description: true,
+  targetEntityType: true,
+  targetEntityId: true,
+  templateId: true,
+  status: true,
+  senderType: true,
+  senderEmail: true,
+  senderName: true,
+  scheduledAt: true,
+  frequency: true,
+  isShared: true,
+  createdBy: true,
+});
+
+export const insertCommFlowEmailSchema = createInsertSchema(commFlowEmails).pick({
+  commFlowId: true,
+  stepOrder: true,
+  subject: true,
+  contentBlocks: true,
+  leftLogo: true,
+  rightLogo: true,
+  aiGenerated: true,
+  sendAt: true,
+  followUpDays: true,
+  condition: true,
+});
+
+export const insertCommFlowRecipientSchema = createInsertSchema(commFlowRecipients).pick({
+  commFlowId: true,
+  contactId: true,
+  emailStep: true,
+  status: true,
+  sentAt: true,
+  openedAt: true,
+  clickedAt: true,
+});
+
+export const insertTemplateSchema = createInsertSchema(templates).pick({
+  name: true,
+  description: true,
+  entityType: true,
+  objective: true,
+  icon: true,
+  createdBy: true,
+});
+
+export const insertTemplateEmailSchema = createInsertSchema(templateEmails).pick({
+  templateId: true,
+  stepOrder: true,
+  subject: true,
+  contentBlocks: true,
+  leftLogo: true,
+  rightLogo: true,
+  followUpDays: true,
+  condition: true,
+  aiGenerated: true,
+});
+
+// Type exports for CommFlow tables
+export type InsertCommFlow = z.infer<typeof insertCommFlowSchema>;
+export type CommFlow = typeof commFlows.$inferSelect;
+
+export type InsertCommFlowEmail = z.infer<typeof insertCommFlowEmailSchema>;
+export type CommFlowEmail = typeof commFlowEmails.$inferSelect;
+
+export type InsertCommFlowRecipient = z.infer<typeof insertCommFlowRecipientSchema>;
+export type CommFlowRecipient = typeof commFlowRecipients.$inferSelect;
+
+export type InsertTemplate = z.infer<typeof insertTemplateSchema>;
+export type Template = typeof templates.$inferSelect;
+
+export type InsertTemplateEmail = z.infer<typeof insertTemplateEmailSchema>;
+export type TemplateEmail = typeof templateEmails.$inferSelect;
+
 // Activity tables type exports
 export const insertActivityTaskSchema = createInsertSchema(activityTasks).omit({
   id: true,
