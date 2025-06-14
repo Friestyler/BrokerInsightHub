@@ -358,276 +358,117 @@ export default function CampaignCreator() {
               <p className="text-gray-600">Create your email template with dynamic content</p>
             </div>
             
-            <div className="flex-1 flex flex-col space-y-4">
-              <div className="flex gap-4">
-                <div className="flex-1">
-                  <label className="text-sm font-medium">Subject Line</label>
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+              {/* Email Builder */}
+              <div className="lg:col-span-3 space-y-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Subject Line</label>
                   <Input
-                    placeholder="Enter subject with variables like {{name}} or {{company}}"
+                    placeholder="Enter email subject..."
                     value={campaignData.emails[0].subject}
-                    onChange={(e) => {
-                      const newEmails = [...campaignData.emails];
-                      newEmails[0].subject = e.target.value;
-                      setCampaignData({ ...campaignData, emails: newEmails });
-                    }}
-                    className="h-12 mt-2"
+                    onChange={(e) => updateEmailSubject(e.target.value)}
+                    className="h-12"
                   />
                 </div>
+
                 <div>
-                  <label className="text-sm font-medium">&nbsp;</label>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowPreview(!showPreview)}
-                    className="h-12 gap-2 mt-2"
-                  >
-                    <Eye className="h-4 w-4" />
-                    {showPreview ? 'Hide' : 'Preview'}
-                  </Button>
-                </div>
-              </div>
-
-              <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-8 min-h-0">
-                {/* Email Builder */}
-                <div className="lg:col-span-2 flex flex-col">
-                  <div className="flex-1 flex flex-col space-y-6">
-                    {/* Logo Section */}
-                    <div className="flex items-center justify-between p-6 bg-gray-50 rounded-lg">
-                      <div className="flex items-center gap-4">
-                        <div className="w-16 h-16 bg-white border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-400 transition-colors">
-                          <Image className="h-6 w-6 text-gray-400" />
-                        </div>
-                        <span className="text-sm font-medium text-gray-600">Left Logo</span>
-                      </div>
-                      <div className="flex items-center gap-4">
-                        <span className="text-sm font-medium text-gray-600">Right Logo</span>
-                        <div className="w-16 h-16 bg-white border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-blue-400 transition-colors">
-                          <Image className="h-6 w-6 text-gray-400" />
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Email Content Builder */}
-                    <div className="flex-1 border rounded-lg bg-white min-h-[500px] flex flex-col">
-                      <div className="p-4 border-b bg-gray-50 rounded-t-lg">
-                        <div className="flex items-center justify-between">
-                          <h4 className="font-medium text-gray-900">Email Content</h4>
-                          <div className="text-sm text-gray-500">Press '/' for menu, select text to format</div>
-                        </div>
-                      </div>
-                      
-                      <div className="flex-1 p-6 space-y-4 overflow-y-auto">
-                        {campaignData.emails[0].blocks && campaignData.emails[0].blocks.length > 0 ? (
-                          campaignData.emails[0].blocks.map((block, index) => (
-                            <div key={index} className="group relative border border-gray-200 rounded-lg p-4 hover:border-blue-300 transition-colors">
-                              <div className="absolute -right-2 -top-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                <Button 
-                                  size="sm" 
-                                  variant="outline" 
-                                  className="h-6 w-6 p-0 bg-white border-red-200 hover:bg-red-50"
-                                  onClick={() => removeBlock(index)}
-                                >
-                                  <Minus className="h-3 w-3 text-red-500" />
-                                </Button>
-                              </div>
-                              {block.type === 'text' && (
-                                <div className="space-y-2">
-                                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                                    <Type className="h-4 w-4" />
-                                    Text Block
-                                  </div>
-                                  <Textarea
-                                    placeholder="Enter your text content..."
-                                    value={block.content || ''}
-                                    onChange={(e) => updateBlockContent(index, e.target.value)}
-                                    className="min-h-[80px] resize-none"
-                                  />
-                                </div>
-                              )}
-                              {block.type === 'heading' && (
-                                <div className="space-y-2">
-                                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                                    <AlignLeft className="h-4 w-4" />
-                                    Heading Block
-                                  </div>
-                                  <Input
-                                    placeholder="Enter heading text..."
-                                    value={block.content || ''}
-                                    onChange={(e) => updateBlockContent(index, e.target.value)}
-                                    className="font-semibold"
-                                  />
-                                </div>
-                              )}
-                              {block.type === 'quote' && (
-                                <div className="space-y-2">
-                                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                                    <Quote className="h-4 w-4" />
-                                    Quote Block
-                                  </div>
-                                  <Textarea
-                                    placeholder="Enter quote text..."
-                                    value={block.content || ''}
-                                    onChange={(e) => updateBlockContent(index, e.target.value)}
-                                    className="min-h-[60px] resize-none italic"
-                                  />
-                                </div>
-                              )}
-                              {block.type === 'divider' && (
-                                <div className="space-y-2">
-                                  <div className="flex items-center gap-2 text-sm text-gray-600">
-                                    <Minus className="h-4 w-4" />
-                                    Divider Block
-                                  </div>
-                                  <hr className="border-gray-300" />
-                                </div>
-                              )}
-                            </div>
-                          ))
-                        ) : (
-                          <div className="flex-1 flex items-center justify-center text-gray-500">
-                            <div className="text-center">
-                              <Mail className="h-16 w-16 mx-auto mb-4 text-gray-300" />
-                              <p className="text-lg font-medium">Add content blocks to build your email</p>
-                              <p className="text-sm text-gray-400 mt-2">Use the blocks panel on the right to get started</p>
-                            </div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Email Content</label>
+                  <div className="border rounded-lg bg-white min-h-[400px] p-6">
+                    {campaignData.emails[0].blocks.map((block, index) => (
+                      <div key={index} className="group relative mb-4 p-4 border border-gray-100 rounded-lg hover:border-gray-200">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeEmailBlock(index)}
+                          className="absolute top-1 right-1 h-6 w-6 p-0 opacity-0 group-hover:opacity-100"
+                        >
+                          <X className="h-3 w-3" />
+                        </Button>
+                        
+                        {block.type === 'text' && (
+                          <Textarea
+                            value={block.content}
+                            onChange={(e) => updateEmailBlock(index, 'content', e.target.value)}
+                            placeholder="Enter paragraph text..."
+                            className="border-none p-0 resize-none min-h-[80px] focus:ring-0"
+                          />
+                        )}
+                        {block.type === 'heading' && (
+                          <Input
+                            value={block.content}
+                            onChange={(e) => updateEmailBlock(index, 'content', e.target.value)}
+                            placeholder="Enter heading..."
+                            className="border-none p-0 text-lg font-semibold focus:ring-0"
+                          />
+                        )}
+                        {block.type === 'quote' && (
+                          <div className="border-l-4 border-blue-500 pl-4">
+                            <Textarea
+                              value={block.content}
+                              onChange={(e) => updateEmailBlock(index, 'content', e.target.value)}
+                              placeholder="Enter quote..."
+                              className="border-none p-0 resize-none min-h-[80px] italic focus:ring-0"
+                            />
                           </div>
                         )}
+                        {block.type === 'divider' && (
+                          <div className="w-full h-px bg-gray-300"></div>
+                        )}
                       </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Blocks Panel */}
-                <div className="lg:col-span-1 flex flex-col">
-                  <div className="flex-1 space-y-6">
-                    {/* Content Blocks */}
-                    <Card className="flex-1 flex flex-col">
-                      <CardHeader className="pb-4">
-                        <CardTitle className="font-medium">Content Blocks</CardTitle>
-                        <p className="text-xs text-gray-500">Drag and drop to build your email</p>
-                      </CardHeader>
-                      <CardContent className="flex-1 space-y-3">
-                        {[
-                          { id: 'text' as const, icon: Type, label: 'Text', desc: 'Add paragraphs and content' },
-                          { id: 'heading' as const, icon: AlignLeft, label: 'Heading', desc: 'Section titles' },
-                          { id: 'quote' as const, icon: Quote, label: 'Quote', desc: 'Highlight important text' },
-                          { id: 'divider' as const, icon: Minus, label: 'Divider', desc: 'Separate content sections' }
-                        ].map(block => (
-                          <button
-                            key={block.id}
-                            className="w-full p-4 text-left border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors group"
-                            onClick={() => addBlock(block.id)}
-                          >
-                            <div className="flex items-start gap-3">
-                              <div className="w-10 h-10 bg-gray-100 rounded-lg flex items-center justify-center group-hover:bg-blue-100 transition-colors">
-                                <block.icon className="h-5 w-5 text-gray-600 group-hover:text-blue-600" />
-                              </div>
-                              <div className="flex-1 min-w-0">
-                                <div className="text-sm font-medium text-gray-900 mb-1">{block.label}</div>
-                                <div className="text-xs text-gray-500">{block.desc}</div>
-                              </div>
-                            </div>
-                          </button>
-                        ))}
-                      </CardContent>
-                    </Card>
-
-                    {/* Entity Variables */}
-                    <Card className="flex-1 flex flex-col">
-                      <CardHeader className="pb-4">
-                        <CardTitle className="font-medium">Entity Variables</CardTitle>
-                        <p className="text-xs text-gray-500">Click to insert into content</p>
-                      </CardHeader>
-                      <CardContent className="flex-1 space-y-4 overflow-y-auto">
-                        {[
-                          { category: 'Contact', items: ['{{name}}', '{{email}}', '{{company}}', '{{phone}}'] },
-                          { category: 'Products', items: ['{{product_names}}', '{{product_categories}}', '{{latest_product}}'] },
-                          { category: 'OKR Metrics', items: ['{{metric_value}}', '{{metric_target}}', '{{metric_progress}}'] },
-                          { category: 'Tasks', items: ['{{open_tasks}}', '{{completed_tasks}}', '{{due_tasks}}'] }
-                        ].map(group => (
-                          <div key={group.category} className="space-y-3">
-                            <div className="text-xs font-semibold text-gray-700 uppercase tracking-wider border-b border-gray-200 pb-1">{group.category}</div>
-                            <div className="space-y-2">
-                              {group.items.map(item => (
-                                <button
-                                  key={item}
-                                  className="w-full text-left text-xs px-3 py-2 bg-gray-50 rounded-lg hover:bg-blue-100 hover:text-blue-700 transition-colors border border-gray-200 hover:border-blue-300"
-                                  onClick={() => {
-                                    // Logic to insert variable at cursor position
-                                    console.log('Insert variable:', item);
-                                  }}
-                                >
-                                  {item}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                      </CardContent>
-                    </Card>
+                    ))}
+                    
+                    {campaignData.emails[0].blocks.length === 0 && (
+                      <div className="text-center py-16 text-gray-500">
+                        <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                        <p>Add content blocks to build your email</p>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
 
-              {/* Preview Panel */}
-              {showPreview && (
-                <Card className="border-blue-200 bg-blue-50">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-center justify-between">
-                      <CardTitle className="text-sm font-medium text-blue-800">Email Preview</CardTitle>
-                      <Button variant="ghost" size="sm" onClick={() => setShowPreview(false)}>
-                        <Minus className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="bg-white border rounded-lg p-6 shadow-sm">
-                      <div className="space-y-4">
-                        <div className="text-sm font-medium text-gray-700">
-                          Subject: {campaignData.emails[0].subject || 'Your subject line will appear here...'}
-                        </div>
-                        <hr />
-                        <div className="space-y-3">
-                          {campaignData.emails[0].blocks && campaignData.emails[0].blocks.length > 0 ? (
-                            campaignData.emails[0].blocks.map((block, index) => (
-                              <div key={index}>
-                                {block.type === 'text' && (
-                                  <p className="text-sm text-gray-700 whitespace-pre-wrap">
-                                    {block.content || 'Text content will appear here...'}
-                                  </p>
-                                )}
-                                {block.type === 'heading' && (
-                                  <h3 className="text-lg font-semibold text-gray-900">
-                                    {block.content || 'Heading will appear here...'}
-                                  </h3>
-                                )}
-                                {block.type === 'quote' && (
-                                  <blockquote className="border-l-4 border-blue-400 pl-4 italic text-gray-600">
-                                    {block.content || 'Quote will appear here...'}
-                                  </blockquote>
-                                )}
-                                {block.type === 'divider' && <hr className="my-4" />}
-                              </div>
-                            ))
-                          ) : (
-                            <p className="text-gray-500 italic">Add content blocks to see preview</p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+              {/* Sidebar Tools */}
+              <div className="space-y-6">
+                <div>
+                  <h3 className="text-sm font-medium text-gray-700 mb-3">Add Content</h3>
+                  <div className="space-y-2">
+                    {[
+                      { type: 'text', icon: Type, label: 'Text' },
+                      { type: 'heading', icon: Heading, label: 'Heading' },
+                      { type: 'quote', icon: Quote, label: 'Quote' },
+                      { type: 'divider', icon: Minus, label: 'Divider' }
+                    ].map((blockType) => {
+                      const IconComponent = blockType.icon;
+                      return (
+                        <Button
+                          key={blockType.type}
+                          variant="outline"
+                          size="sm"
+                          className="w-full justify-start gap-2"
+                          onClick={() => addEmailBlock(blockType.type as EmailBlock['type'])}
+                        >
+                          <IconComponent className="h-4 w-4" />
+                          {blockType.label}
+                        </Button>
+                      );
+                    })}
+                  </div>
+                </div>
 
-              <div className="flex gap-3">
-                <Button variant="outline" className="flex-1 gap-2" onClick={handleBack}>
-                  <Settings className="h-4 w-4" />
-                  Save as Draft
-                </Button>
-                <Button className="flex-1 gap-2" onClick={handleBack}>
-                  <Check className="h-4 w-4" />
-                  Save Template
-                </Button>
+                <div>
+                  <h3 className="text-sm font-medium text-gray-700 mb-3">Dynamic Fields</h3>
+                  <div className="space-y-1 text-xs">
+                    {['name', 'email', 'company', 'phone', 'product_names', 'total_value'].map((field) => (
+                      <div
+                        key={field}
+                        className="p-2 bg-gray-50 rounded cursor-pointer hover:bg-gray-100"
+                        onClick={() => copyToClipboard(`{{${field}}}`)}
+                      >
+                        <code>{'{{' + field + '}}'}</code>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -636,6 +477,38 @@ export default function CampaignCreator() {
       default:
         return null;
     }
+  };
+
+  // Helper functions
+  const updateEmailSubject = (subject: string) => {
+    const newEmails = [...campaignData.emails];
+    newEmails[0].subject = subject;
+    setCampaignData({ ...campaignData, emails: newEmails });
+  };
+
+  const updateEmailBlock = (index: number, field: string, value: string) => {
+    const newEmails = [...campaignData.emails];
+    const newBlocks = [...newEmails[0].blocks];
+    newBlocks[index] = { ...newBlocks[index], [field]: value };
+    newEmails[0].blocks = newBlocks;
+    setCampaignData({ ...campaignData, emails: newEmails });
+  };
+
+  const addEmailBlock = (type: EmailBlock['type']) => {
+    const newEmails = [...campaignData.emails];
+    const newBlock: EmailBlock = { type, content: '' };
+    newEmails[0].blocks = [...newEmails[0].blocks, newBlock];
+    setCampaignData({ ...campaignData, emails: newEmails });
+  };
+
+  const removeEmailBlock = (index: number) => {
+    const newEmails = [...campaignData.emails];
+    newEmails[0].blocks = newEmails[0].blocks.filter((_, i) => i !== index);
+    setCampaignData({ ...campaignData, emails: newEmails });
+  };
+
+  const copyToClipboard = (text: string) => {
+    navigator.clipboard.writeText(text);
   };
 
   return (
