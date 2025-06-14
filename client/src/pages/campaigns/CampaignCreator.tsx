@@ -250,8 +250,8 @@ export default function CampaignCreator() {
         return (
           <div className="space-y-8">
             <div className="text-center">
-              <h2 className="text-xl font-medium text-gray-900 mb-2">Choose Entity Type</h2>
-              <p className="text-gray-600">Select the type of data you want to create a template for</p>
+              <h2 className="text-xl font-medium text-gray-900 mb-2">Choose Target Group</h2>
+              <p className="text-gray-600">Select the type of audience you want to create a template for</p>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-3 gap-6 max-w-4xl mx-auto">
@@ -259,20 +259,32 @@ export default function CampaignCreator() {
                 <button
                   key={option.id}
                   onClick={() => setCampaignData({ ...campaignData, entity: option.id })}
-                  className={`relative p-6 rounded-xl border-2 transition-all duration-200 text-center hover:shadow-md ${
+                  className={`relative p-6 rounded-xl border-2 transition-all duration-300 text-center transform ${
                     campaignData.entity === option.id
-                      ? 'border-green-500 bg-green-50'
-                      : 'border-gray-200 hover:border-gray-300'
+                      ? 'border-blue-500 bg-blue-50 shadow-lg scale-105 ring-2 ring-blue-200'
+                      : 'border-gray-200 hover:border-blue-300 hover:bg-blue-25 hover:shadow-md hover:scale-102'
                   }`}
                 >
-                  <div className={`w-12 h-12 mx-auto mb-4 rounded-lg ${option.color} flex items-center justify-center`}>
+                  <div className={`w-12 h-12 mx-auto mb-4 rounded-lg ${option.color} flex items-center justify-center transition-all duration-300 ${
+                    campaignData.entity === option.id 
+                      ? 'shadow-md' 
+                      : 'group-hover:shadow-sm'
+                  }`}>
                     {option.icon}
                   </div>
-                  <h3 className="font-medium text-gray-900 mb-1">{option.title}</h3>
-                  <p className="text-sm text-gray-500">{option.subtitle}</p>
+                  <h3 className={`font-medium mb-1 transition-colors duration-200 ${
+                    campaignData.entity === option.id 
+                      ? 'text-blue-900' 
+                      : 'text-gray-900 hover:text-blue-800'
+                  }`}>{option.title}</h3>
+                  <p className={`text-sm transition-colors duration-200 ${
+                    campaignData.entity === option.id 
+                      ? 'text-blue-600' 
+                      : 'text-gray-500 hover:text-blue-600'
+                  }`}>{option.subtitle}</p>
                   
                   {campaignData.entity === option.id && (
-                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center shadow-lg animate-in zoom-in duration-200">
                       <Check className="h-4 w-4 text-white" />
                     </div>
                   )}
