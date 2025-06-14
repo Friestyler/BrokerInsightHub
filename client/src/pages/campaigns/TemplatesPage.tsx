@@ -92,9 +92,9 @@ export default function TemplatesPage() {
               <FileText className="h-8 w-8 text-muted-foreground" />
             </div>
             <div className="space-y-2">
-              <h3 className="text-lg font-medium">No templates yet</h3>
+              <h3 className="text-lg font-medium">No campaigns yet</h3>
               <p className="text-sm text-muted-foreground max-w-sm mx-auto">
-                Create your first email template to get started with campaign building
+                Create targeted communications for partners, customers, and opportunities
               </p>
             </div>
             <Button onClick={handleCreateTemplate} className="gap-2">
