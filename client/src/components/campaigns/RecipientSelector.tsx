@@ -132,7 +132,7 @@ export default function RecipientSelector({
     queryKey: [`/api/degoudse/saved-lists?entity_type=${entityType}`]
   });
 
-  // Build entity-contact relationships for drill-down
+  // Build entity-contact relationships for drill-down (include all entity types for hierarchical relationships)
   const { data: entityContacts = {}, isLoading: entityContactsLoading } = useQuery({
     queryKey: [`/api/degoudse/contacts`],
     select: (data: Contact[]) => {
@@ -142,14 +142,11 @@ export default function RecipientSelector({
         const entityTypeFromDb = contact.linkedEntityType || contact.linked_entity_type;
         
         if (entityId && entityTypeFromDb) {
-          // Filter by entity type (remove 's' from plural)
-          const entityTypeSingular = entityType.slice(0, -1);
-          if (entityTypeFromDb === entityTypeSingular) {
-            if (!contactsByEntity[entityId]) {
-              contactsByEntity[entityId] = [];
-            }
-            contactsByEntity[entityId].push(contact);
+          // Include contacts for all entity types to support drill-down relationships
+          if (!contactsByEntity[entityId]) {
+            contactsByEntity[entityId] = [];
           }
+          contactsByEntity[entityId].push(contact);
         }
       });
       return contactsByEntity;
@@ -237,8 +234,8 @@ export default function RecipientSelector({
 
   const getCustomerForOpportunity = (opportunityId: number) => {
     const opportunity = (entities as any[] || []).find((e: any) => e.id === opportunityId);
-    if (opportunity?.customerId) {
-      return (customers as any[] || []).find((c: Customer) => c.id === opportunity.customerId);
+    if (opportunity?.clientId) {
+      return (customers as any[] || []).find((c: Customer) => c.id === opportunity.clientId);
     }
     return null;
   };
