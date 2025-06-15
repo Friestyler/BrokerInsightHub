@@ -595,7 +595,7 @@ export default function RecipientSelector({
                                       </div>
                                       <div className="flex-1">
                                         <p className="font-medium text-gray-900">
-                                          {contact.fullName || `${contact.first_name || contact.firstName || ''} ${contact.last_name || contact.lastName || ''}`.trim()}
+                                          {getContactDisplayName(contact)}
                                         </p>
                                         <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
                                           {contact.email && (
@@ -604,10 +604,10 @@ export default function RecipientSelector({
                                               {contact.email}
                                             </span>
                                           )}
-                                          {(contact.jobTitle || contact.job_title) && (
+                                          {getContactJobTitle(contact) && (
                                             <span className="flex items-center gap-1">
                                               <Briefcase className="h-3 w-3" />
-                                              {contact.jobTitle || contact.job_title}
+                                              {getContactJobTitle(contact)}
                                             </span>
                                           )}
                                         </div>
@@ -706,41 +706,38 @@ export default function RecipientSelector({
                               {/* Entity contacts within list */}
                               {expandedItems.has(`list-entity-${entity.id}`) && entityContacts[entity.id] && (
                                 <div className="ml-6 space-y-2">
-                                  {entityContacts[entity.id].map((contact: any) => {
-                                    const displayName = contact.fullName || `${contact.first_name || contact.firstName || ''} ${contact.last_name || contact.lastName || ''}`.trim();
-                                    return (
-                                      <div key={contact.id} className="flex items-center gap-3 p-3 bg-white border rounded-lg">
-                                        <input
-                                          type="checkbox"
-                                          className="rounded border-gray-300"
-                                          onChange={() => handleSelectRecipient(contact, 'contact')}
-                                          checked={selectedRecipients.some(r => 
-                                            r.type === 'contact' && r.id === contact.id
+                                  {entityContacts[entity.id].map((contact: any) => (
+                                    <div key={contact.id} className="flex items-center gap-3 p-3 bg-white border rounded-lg">
+                                      <input
+                                        type="checkbox"
+                                        className="rounded border-gray-300"
+                                        onChange={() => handleSelectRecipient(contact, 'contact')}
+                                        checked={selectedRecipients.some(r => 
+                                          r.type === 'contact' && r.id === contact.id
+                                        )}
+                                      />
+                                      <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+                                        <Users className="h-4 w-4 text-gray-600" />
+                                      </div>
+                                      <div className="flex-1">
+                                        <p className="font-medium text-gray-900">{getContactDisplayName(contact)}</p>
+                                        <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
+                                          {contact.email && (
+                                            <span className="flex items-center gap-1">
+                                              <Mail className="h-3 w-3" />
+                                              {contact.email}
+                                            </span>
                                           )}
-                                        />
-                                        <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
-                                          <Users className="h-4 w-4 text-gray-600" />
-                                        </div>
-                                        <div className="flex-1">
-                                          <p className="font-medium text-gray-900">{displayName}</p>
-                                          <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
-                                            {contact.email && (
-                                              <span className="flex items-center gap-1">
-                                                <Mail className="h-3 w-3" />
-                                                {contact.email}
-                                              </span>
-                                            )}
-                                            {(contact.jobTitle || contact.job_title) && (
-                                              <span className="flex items-center gap-1">
-                                                <Briefcase className="h-3 w-3" />
-                                                {contact.jobTitle || contact.job_title}
-                                              </span>
-                                            )}
-                                          </div>
+                                          {getContactJobTitle(contact) && (
+                                            <span className="flex items-center gap-1">
+                                              <Briefcase className="h-3 w-3" />
+                                              {getContactJobTitle(contact)}
+                                            </span>
+                                          )}
                                         </div>
                                       </div>
-                                    );
-                                  })}
+                                    </div>
+                                  ))}
                                 </div>
                               )}
                             </div>
@@ -784,7 +781,7 @@ export default function RecipientSelector({
                     </div>
                     <div className="flex-1">
                       <h4 className="font-medium text-gray-900">
-                        {contact.fullName || `${contact.first_name || contact.firstName || ''} ${contact.last_name || contact.lastName || ''}`.trim()}
+                        {getContactDisplayName(contact)}
                       </h4>
                       <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
                         {contact.email && (
@@ -799,10 +796,10 @@ export default function RecipientSelector({
                             {contact.phone}
                           </span>
                         )}
-                        {(contact.jobTitle || contact.job_title) && (
+                        {getContactJobTitle(contact) && (
                           <span className="flex items-center gap-1">
                             <Briefcase className="h-3 w-3" />
-                            {contact.jobTitle || contact.job_title}
+                            {getContactJobTitle(contact)}
                           </span>
                         )}
                       </div>
