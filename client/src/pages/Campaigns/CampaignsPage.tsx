@@ -74,12 +74,12 @@ type TemplateCard = {
   icon: React.ReactNode;
 };
 
-// Campaign builder steps (matching CampaignBuilder.tsx)
+// Campaign builder steps (matching user feedback)
 const campaignSteps = [
-  { id: "select-list", title: "Select List", icon: <ListChecks className="h-4 w-4" /> },
-  { id: "compose", title: "Compose", icon: <FormInput className="h-4 w-4" /> },
+  { id: "select-list", title: "Details", icon: <ListChecks className="h-4 w-4" /> },
+  { id: "compose", title: "Content", icon: <FormInput className="h-4 w-4" /> },
   { id: "recipients", title: "Recipients", icon: <Users className="h-4 w-4" /> },
-  { id: "follow-up", title: "Follow-Up", icon: <MessageSquare className="h-4 w-4" /> },
+  { id: "follow-up", title: "Follow-ups", icon: <MessageSquare className="h-4 w-4" /> },
   { id: "settings", title: "Settings", icon: <Settings className="h-4 w-4" /> }
 ];
 
