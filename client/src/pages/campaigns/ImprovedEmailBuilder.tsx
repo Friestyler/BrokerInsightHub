@@ -322,7 +322,7 @@ Status: Ready for deployment`;
       {/* Header */}
       <div className="text-center mb-8">
         <h2 className="text-2xl font-medium text-gray-900 mb-2">Flow Builder</h2>
-        <p className="text-gray-600">Create your email sequence step by step</p>
+        <p className="text-gray-600">Create your flow sequence step by step</p>
       </div>
 
       {/* Email Cards - Collapsed View */}
