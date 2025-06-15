@@ -123,9 +123,12 @@ export default function CampaignCreator() {
   // Save template mutation
   const saveTemplateMutation = useMutation({
     mutationFn: (templateData: any) => {
+      console.log('Template save mutation called with data:', templateData);
       // Get current environment
       const envId = window.localStorage.getItem('environment') || 'degoudse';
-      return apiRequest(`/api/${envId}/campaign-templates`, 'POST', templateData);
+      const url = `/api/${envId}/campaign-templates`;
+      console.log('Making API request to:', url);
+      return apiRequest('POST', url, templateData);
     },
     onSuccess: () => {
       toast({
@@ -365,6 +368,9 @@ export default function CampaignCreator() {
   };
 
   const handleSaveTemplate = () => {
+    console.log('handleSaveTemplate called');
+    console.log('Campaign data:', campaignData);
+    
     const templateData = {
       name: campaignData.name,
       description: campaignData.description,
@@ -380,6 +386,7 @@ export default function CampaignCreator() {
       icon: campaignData.icon
     };
 
+    console.log('Template data to be saved:', templateData);
     saveTemplateMutation.mutate(templateData);
   };
 
