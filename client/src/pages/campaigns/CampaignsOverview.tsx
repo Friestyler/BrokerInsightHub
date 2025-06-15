@@ -28,26 +28,19 @@ export default function CampaignsOverview() {
   return (
     <div className="h-full flex flex-col">
       <div className="border-b bg-white">
-        <div className="max-w-6xl mx-auto px-6 py-4">
-          <div className="space-y-4">
-            <div>
-              <h1 className="text-2xl font-semibold tracking-tight">Campaigns and Updates</h1>
-              <p className="text-sm text-muted-foreground">Create email templates and manage active campaigns</p>
-            </div>
-            
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full max-w-md grid-cols-2">
-                <TabsTrigger value="templates" className="flex items-center gap-2">
-                  <FileText className="h-4 w-4" />
-                  Templates
-                </TabsTrigger>
-                <TabsTrigger value="campaigns" className="flex items-center gap-2">
-                  <Send className="h-4 w-4" />
-                  Campaigns
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
+        <div className="max-w-6xl mx-auto px-6">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full max-w-md grid-cols-2 bg-gray-100">
+              <TabsTrigger value="templates" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                <FileText className="h-4 w-4" />
+                Templates
+              </TabsTrigger>
+              <TabsTrigger value="campaigns" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+                <Send className="h-4 w-4" />
+                Campaigns
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
       </div>
       <div className="flex-1 bg-gray-50">
