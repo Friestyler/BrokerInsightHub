@@ -123,11 +123,7 @@ export default function CampaignCreator() {
   // Save template mutation
   const saveTemplateMutation = useMutation({
     mutationFn: (templateData: any) => 
-      apiRequest('/api/campaign-templates', {
-        method: 'POST',
-        body: JSON.stringify(templateData),
-        headers: { 'Content-Type': 'application/json' }
-      }),
+      apiRequest('/api/campaign-templates', 'POST', templateData),
     onSuccess: () => {
       toast({
         title: "Template saved successfully",
@@ -363,6 +359,27 @@ export default function CampaignCreator() {
 
   const handleBack = () => {
     setLocation('/campaigns');
+  };
+
+  const handleSaveTemplate = () => {
+    const templateData = {
+      name: campaignData.name,
+      description: campaignData.description,
+      objective: campaignData.objective,
+      type: campaignData.entity,
+      category: 'template',
+      status: 'published',
+      isTemplate: true,
+      emails: campaignData.emails.map(email => ({
+        subject: email.subject,
+        content: JSON.stringify(email.blocks),
+        followUpDays: email.followUpDays || 0
+      })),
+      attachments: campaignData.attachments,
+      icon: campaignData.icon
+    };
+
+    saveTemplateMutation.mutate(templateData);
   };
 
   const isStepCompleted = (stepNum: number): boolean => {
@@ -678,11 +695,14 @@ export default function CampaignCreator() {
           </Button>
           
           <Button
-            onClick={currentStep === totalSteps ? handleBack : handleNext}
-            disabled={!canProceed()}
+            onClick={currentStep === totalSteps ? handleSaveTemplate : handleNext}
+            disabled={!canProceed() || saveTemplateMutation.isPending}
             className="gap-2 bg-blue-600 hover:bg-blue-700"
           >
-            {currentStep === totalSteps ? 'Save Template' : 'Continue to ' + steps.find(s => s.number === currentStep + 1)?.title}
+            {currentStep === totalSteps ? 
+              (saveTemplateMutation.isPending ? 'Saving...' : 'Save Template') : 
+              'Continue to ' + steps.find(s => s.number === currentStep + 1)?.title
+            }
             <ArrowRight className="h-4 w-4" />
           </Button>
         </div>
