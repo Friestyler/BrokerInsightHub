@@ -51,11 +51,41 @@ export default function TemplatesPage() {
 
   const getEntityTypeIcon = (entityType: string) => {
     switch (entityType) {
-      case 'opportunities': return { icon: Target, color: 'text-emerald-500', bg: 'bg-emerald-50' };
-      case 'customers': return { icon: Users, color: 'text-blue-500', bg: 'bg-blue-50' };
-      case 'partners': return { icon: Building2, color: 'text-violet-500', bg: 'bg-violet-50' };
-      case 'internal': return { icon: Briefcase, color: 'text-orange-500', bg: 'bg-orange-50' };
-      default: return { icon: FileText, color: 'text-gray-500', bg: 'bg-gray-50' };
+      case 'opportunities': return { 
+        icon: Target, 
+        color: 'text-emerald-600', 
+        bg: 'bg-emerald-100', 
+        badge: 'bg-emerald-500 text-white',
+        description: 'Sales opportunities and cross-sell campaigns'
+      };
+      case 'customers': return { 
+        icon: Users, 
+        color: 'text-blue-600', 
+        bg: 'bg-blue-100', 
+        badge: 'bg-blue-500 text-white',
+        description: 'Client portfolio reviews and updates'
+      };
+      case 'partners': return { 
+        icon: Building2, 
+        color: 'text-violet-600', 
+        bg: 'bg-violet-100', 
+        badge: 'bg-violet-500 text-white',
+        description: 'Partner communications and performance updates'
+      };
+      case 'internal': return { 
+        icon: Briefcase, 
+        color: 'text-orange-600', 
+        bg: 'bg-orange-100', 
+        badge: 'bg-orange-500 text-white',
+        description: 'Management reports and internal communications'
+      };
+      default: return { 
+        icon: FileText, 
+        color: 'text-gray-500', 
+        bg: 'bg-gray-50', 
+        badge: 'bg-gray-500 text-white',
+        description: 'General purpose templates'
+      };
     }
   };
 
@@ -102,21 +132,35 @@ export default function TemplatesPage() {
             Create reusable email sequences and campaign blueprints
           </p>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-4">
+          {/* Horizontal Filter Buttons */}
           <div className="flex items-center gap-2">
-            <Filter className="h-4 w-4 text-muted-foreground" />
-            <Select value={selectedEntityFilter} onValueChange={setSelectedEntityFilter}>
-              <SelectTrigger className="w-40">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Types</SelectItem>
-                <SelectItem value="opportunities">Opportunities</SelectItem>
-                <SelectItem value="customers">Customers</SelectItem>
-                <SelectItem value="partners">Partners</SelectItem>
-                <SelectItem value="internal">Internal</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-lg">
+              {[
+                { value: 'all', label: 'All', icon: Filter, color: 'text-gray-600', bg: 'bg-white' },
+                { value: 'opportunities', label: 'Opportunities', icon: Target, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+                { value: 'customers', label: 'Customers', icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
+                { value: 'partners', label: 'Partners', icon: Building2, color: 'text-violet-600', bg: 'bg-violet-50' },
+                { value: 'internal', label: 'Internal', icon: Briefcase, color: 'text-orange-600', bg: 'bg-orange-50' }
+              ].map((filter) => {
+                const IconComponent = filter.icon;
+                const isActive = selectedEntityFilter === filter.value;
+                return (
+                  <button
+                    key={filter.value}
+                    onClick={() => setSelectedEntityFilter(filter.value)}
+                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${
+                      isActive 
+                        ? `${filter.bg} ${filter.color} shadow-sm` 
+                        : 'text-gray-600 hover:text-gray-800 hover:bg-white/50'
+                    }`}
+                  >
+                    <IconComponent className="h-4 w-4" />
+                    {filter.label}
+                  </button>
+                );
+              })}
+            </div>
           </div>
           <Button onClick={handleCreateTemplate} className="gap-2">
             <Plus className="h-4 w-4" />
@@ -152,7 +196,7 @@ export default function TemplatesPage() {
                 className="group hover:shadow-lg transition-all duration-200 cursor-pointer border-0 bg-white/60 backdrop-blur-sm hover:bg-white/80"
                 onClick={() => handleEditTemplate(template.id)}
               >
-                <CardContent className="p-6">
+                <CardContent className="p-5">
                   <div className="flex flex-col items-center text-center space-y-3">
                     {/* Colorful Icon */}
                     <div className={`w-12 h-12 rounded-xl ${entityIcon.bg} flex items-center justify-center group-hover:scale-110 transition-transform duration-200`}>
@@ -164,10 +208,15 @@ export default function TemplatesPage() {
                       {template.name}
                     </h3>
                     
-                    {/* Entity Type Badge */}
-                    <Badge variant="secondary" className="text-xs px-2 py-1">
+                    {/* Colorful Entity Type Badge */}
+                    <div className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${entityIcon.badge}`}>
                       {getEntityTypeLabel(template.entity_type)}
-                    </Badge>
+                    </div>
+                    
+                    {/* Small Description */}
+                    <p className="text-xs text-gray-500 line-clamp-2 px-1 leading-relaxed">
+                      {entityIcon.description}
+                    </p>
                   </div>
                   
                   {/* Quick Actions */}
