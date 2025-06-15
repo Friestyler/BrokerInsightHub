@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,7 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, ArrowRight, Check, Users, Target, Mail, Send, Settings, Sparkles, TrendingUp, Zap, Star, Heart, Gift, Megaphone, Coffee, Briefcase, Globe, Award, Rocket, Shield, Diamond, Plus, Type, Image, Quote, Minus, AlignLeft, Bold, Italic, Link, Eye, FileText, X, Heading2 as Heading } from "lucide-react";
 import { useLocation } from 'wouter';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import ImprovedEmailBuilder from './ImprovedEmailBuilder';
@@ -92,7 +92,7 @@ interface EmailBlock {
 }
 
 export default function CampaignCreator() {
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
   const [currentStep, setCurrentStep] = useState(1);
   const [activeEmailIndex, setActiveEmailIndex] = useState(0);
   const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile'>('desktop');
@@ -100,6 +100,11 @@ export default function CampaignCreator() {
   const [draggedBlock, setDraggedBlock] = useState<number | null>(null);
   const queryClient = useQueryClient();
   const { toast } = useToast();
+  
+  // Extract URL parameters for editing
+  const urlParams = new URLSearchParams(location.split('?')[1] || '');
+  const editTemplateId = urlParams.get('edit');
+  const isEditMode = !!editTemplateId;
   
   const [campaignData, setCampaignData] = useState({
     entity: '',
@@ -120,22 +125,74 @@ export default function CampaignCreator() {
   
   const [showPreview, setShowPreview] = useState(false);
 
+  // Load existing template data for editing
+  const { data: templateData, isLoading: templateLoading } = useQuery({
+    queryKey: [`/api/campaign-templates/${editTemplateId}`],
+    enabled: isEditMode && !!editTemplateId,
+  });
+
+  // Load template data into form when available
+  useEffect(() => {
+    if (templateData && isEditMode) {
+      const emails = templateData.emails?.map((email: any, index: number) => ({
+        id: (index + 1).toString(),
+        subject: email.subject || '',
+        blocks: email.content ? JSON.parse(email.content) : [],
+        followUpDays: email.followUpDays || 0,
+        leftLogo: null,
+        rightLogo: null,
+        condition: email.condition || (index > 0 ? { type: 'always' } : undefined)
+      })) || [{
+        id: '1',
+        subject: '',
+        blocks: [],
+        followUpDays: 0,
+        leftLogo: null,
+        rightLogo: null
+      }];
+
+      setCampaignData({
+        entity: templateData.entity || '',
+        name: templateData.name || '',
+        description: templateData.description || '',
+        objective: templateData.objective || '',
+        icon: templateData.icon || '',
+        attachments: templateData.attachments || [],
+        emails: emails
+      });
+    }
+  }, [templateData, isEditMode]);
+
   // Save template mutation
   const saveTemplateMutation = useMutation({
     mutationFn: (templateData: any) => {
       console.log('Template save mutation called with data:', templateData);
       // Get current environment
       const envId = window.localStorage.getItem('environment') || 'degoudse';
-      const url = `/api/${envId}/campaign-templates`;
-      console.log('Making API request to:', url);
-      return apiRequest('POST', url, templateData);
+      
+      if (isEditMode && editTemplateId) {
+        // Update existing template
+        const url = `/api/${envId}/campaign-templates/${editTemplateId}`;
+        console.log('Making API request to update template:', url);
+        return apiRequest('PUT', url, templateData);
+      } else {
+        // Create new template
+        const url = `/api/${envId}/campaign-templates`;
+        console.log('Making API request to create template:', url);
+        return apiRequest('POST', url, templateData);
+      }
     },
     onSuccess: () => {
       toast({
-        title: "Template saved successfully",
-        description: "Your campaign template has been saved and is now available in the templates library.",
+        title: isEditMode ? "Template updated successfully" : "Template saved successfully",
+        description: isEditMode 
+          ? "Your changes have been saved and the template has been updated."
+          : "Your campaign template has been saved and is now available in the templates library.",
       });
       queryClient.invalidateQueries({ queryKey: ['/api/campaign-templates'] });
+      if (isEditMode) {
+        queryClient.invalidateQueries({ queryKey: [`/api/campaign-templates/${editTemplateId}`] });
+      }
       setLocation('/campaigns/templates');
     },
     onError: (error: any) => {
@@ -401,6 +458,10 @@ export default function CampaignCreator() {
   };
 
   const isStepAccessible = (stepNum: number): boolean => {
+    // In edit mode, all steps are accessible for navigation
+    if (isEditMode) return true;
+    
+    // In create mode, follow the original validation flow
     if (stepNum === 1) return true;
     if (stepNum === 2) return isStepCompleted(1);
     if (stepNum === 3) return isStepCompleted(2);
