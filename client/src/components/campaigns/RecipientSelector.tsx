@@ -775,9 +775,8 @@ export default function RecipientSelector({
                                 );
                               })()}
 
-                              {/* Direct entity contacts (only for partners, customers, and internal - NOT opportunities) */}
-                              {entityType !== 'opportunities' && (
-                                <div className="space-y-2">
+                              {/* Direct entity contacts for all entity types */}
+                              <div className="space-y-2">
                                   {/* Existing contacts */}
                                   {entityContacts[entity.id] && entityContacts[entity.id].map((contact: Contact) => (
                                     <div key={contact.id} className="flex items-center gap-3 p-3 bg-white border rounded-lg">
@@ -962,7 +961,6 @@ export default function RecipientSelector({
                                     </div>
                                   )}
                                 </div>
-                              )}
                             </div>
                           )}
                         </div>
