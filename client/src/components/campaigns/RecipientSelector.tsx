@@ -293,8 +293,87 @@ export default function RecipientSelector({
     entities: selectedRecipients.filter(r => r.type === 'entity' || r.type === 'customer').length
   };
 
+  // Calculate summary statistics
+  const summaryStats = (() => {
+    const totalSelectedEntities = selectedRecipients.filter(r => r.type === 'entity' || r.type === 'customer').length;
+    const totalSelectedContacts = selectedRecipients.filter(r => r.type === 'contact').length;
+    
+    // Calculate entities without contacts
+    const entitiesWithoutContacts = selectedRecipients
+      .filter(r => r.type === 'entity' || r.type === 'customer')
+      .filter(entity => {
+        const entityContactsList = entityContacts[entity.id] || [];
+        return entityContactsList.length === 0;
+      }).length;
+
+    return {
+      totalSelectedEntities,
+      totalSelectedContacts,
+      entitiesWithoutContacts,
+      totalRecipients: totalSelectedEntities + totalSelectedContacts
+    };
+  })();
+
   return (
     <div className="space-y-6">
+      {/* Summary Cards */}
+      {selectedRecipients.length > 0 && (
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Total Selection Summary */}
+          <div className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
+                <Users className="h-5 w-5 text-white" />
+              </div>
+              <div>
+                <h3 className="font-semibold text-blue-900">Total Recipients Selected</h3>
+                <div className="flex items-center gap-4 text-sm text-blue-700 mt-1">
+                  <span className="font-medium">{summaryStats.totalRecipients} total</span>
+                  <span>{summaryStats.totalSelectedEntities} organizations</span>
+                  <span>{summaryStats.totalSelectedContacts} individual contacts</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Missing Contacts Alert */}
+          {summaryStats.entitiesWithoutContacts > 0 && (
+            <div className="bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200 rounded-lg p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-orange-600 rounded-full flex items-center justify-center">
+                  <UserPlus className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-orange-900">Missing Contacts</h3>
+                  <div className="text-sm text-orange-700 mt-1">
+                    <span className="font-medium">{summaryStats.entitiesWithoutContacts} organization{summaryStats.entitiesWithoutContacts !== 1 ? 's' : ''}</span> without contact information
+                  </div>
+                  <p className="text-xs text-orange-600 mt-1">Add contacts to ensure delivery</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Success State - All have contacts */}
+          {summaryStats.totalSelectedEntities > 0 && summaryStats.entitiesWithoutContacts === 0 && (
+            <div className="bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-lg p-4">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center">
+                  <CheckCircle2 className="h-5 w-5 text-white" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-green-900">Ready for Delivery</h3>
+                  <div className="text-sm text-green-700 mt-1">
+                    All selected organizations have contact information
+                  </div>
+                  <p className="text-xs text-green-600 mt-1">Campaign can be sent successfully</p>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       {/* Header with search and tabs */}
       <div className="space-y-4">
         <div className="flex gap-4 items-center">
