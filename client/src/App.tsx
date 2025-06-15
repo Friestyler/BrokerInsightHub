@@ -7,11 +7,7 @@ import { EnvironmentProvider } from "./contexts/EnvironmentContext";
 
 import Layout from "@/components/Layout";
 import PartnerPilot from "@/pages/PartnerPilot";
-import CampaignsPage from "@/pages/Campaigns/CampaignsPage";
-import CampaignsSharedWithBroker from "@/pages/Campaigns/CampaignsSharedWithBroker";
-import CampaignBuilder from "@/pages/Campaigns/CampaignBuilder";
-import CampaignTemplateBuilder from "@/pages/Campaigns/CampaignTemplateBuilder";
-import CampaignDetail from "@/pages/Campaigns/CampaignDetail";
+
 import DataUploadOptions from "@/pages/DataUpload/DataUploadOptions";
 import BrioUploadFlow from "@/pages/DataUpload/BrioUploadFlow";
 import DeGoudseUploadWizard from "@/pages/DataUpload/DeGoudseUploadWizard";
@@ -41,7 +37,14 @@ import NotFound from "@/pages/not-found";
 import EnvironmentRouteGuard from "@/components/EnvironmentRouteGuard";
 import SharedListView from "@/pages/shared/SharedListView";
 import PartnerView from "@/pages/PartnerView";
-import BrokerCampaignsPage from "@/pages/broker-view/BrokerCampaignsPage";
+
+
+// Import campaign components
+import CampaignsOverview from "@/pages/campaigns/CampaignsOverview";
+import CampaignCreator from "@/pages/campaigns/CampaignCreator";
+import TemplatesPage from "@/pages/campaigns/TemplatesPage";
+import CampaignFromTemplate from "@/pages/campaigns/CampaignFromTemplate";
+import NewCampaign from "@/pages/campaigns/NewCampaign";
 
 // Temporary placeholder components for other list pages
 const ProjectsPage = () => <div className="p-6"><h1 className="text-2xl font-bold">Projects List (Coming Soon)</h1></div>;
@@ -61,7 +64,7 @@ function Router() {
       <Route path="/broker-view/list/:listId" component={PartnerView} />
       <Route path="/broker-view/partners" component={PartnerView} />
       <Route path="/broker-view/opportunities" component={PartnerView} />
-      <Route path="/broker-view/campaigns" component={BrokerCampaignsPage} />
+      <Route path="/broker-view/campaigns" component={PartnerView} />
       <Route path="/broker-view/opportunity/:opportunityId" component={OpportunityDetailBrokerPOV} />
       <Route path="/broker-view/partner/:partnerId" component={PartnerDetailBrokerPOV} />
       
@@ -86,40 +89,13 @@ function Router() {
               <Route path="/projects" component={ProjectsPage} />
               <Route path="/contacts" component={ContactsPage} />
               
-              {/* Campaign routes */}
-              <Route path="/campaigns" component={CampaignsPage} />
-              <Route path="/campaigns/create">
-                {() => (
-                  <EnvironmentRouteGuard
-                    component={CampaignBuilder} 
-                    excludedEnvironments={["acme"]} 
-                  />
-                )}
-              </Route>
-              <Route path="/campaigns/template/create">
-                {() => (
-                  <EnvironmentRouteGuard
-                    component={CampaignTemplateBuilder} 
-                    excludedEnvironments={["acme"]} 
-                  />
-                )}
-              </Route>
-              <Route path="/campaigns/template-builder">
-                {() => (
-                  <EnvironmentRouteGuard
-                    component={CampaignTemplateBuilder} 
-                    excludedEnvironments={["acme"]} 
-                  />
-                )}
-              </Route>
-              <Route path="/campaigns/:id">
-                {() => (
-                  <EnvironmentRouteGuard
-                    component={CampaignDetail} 
-                    excludedEnvironments={["acme"]} 
-                  />
-                )}
-              </Route>
+              {/* Campaigns routes */}
+              <Route path="/campaigns" component={CampaignsOverview} />
+              <Route path="/campaigns/new" component={CampaignFromTemplate} />
+              <Route path="/campaigns/edit/:campaignId" component={CampaignFromTemplate} />
+              <Route path="/campaigns/create-template" component={CampaignCreator} />
+              <Route path="/campaigns/templates" component={TemplatesPage} />
+              <Route path="/campaigns/create-from-template/:templateId" component={CampaignFromTemplate} />
               
               {/* Data Upload routes */}
               <Route path="/data-upload">

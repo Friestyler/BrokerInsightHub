@@ -105,35 +105,39 @@ export const getQueryFn: <T>(options: {
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
   async ({ queryKey }) => {
-    try {
-      // Get the base URL from the query key
-      const baseUrl = queryKey[0] as string;
+    const baseUrl = queryKey[0] as string;
+    const envUrl = getEnvironmentUrl(baseUrl);
+    
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+      xhr.open('GET', envUrl, true);
+      xhr.withCredentials = true;
+      xhr.setRequestHeader('Accept', 'application/json');
       
-      // Apply environment to URL
-      const envUrl = getEnvironmentUrl(baseUrl);
-      
-      const res = await fetch(envUrl, {
-        credentials: "include",
-        headers: {
-          // Add environment header as an alternative way to specify environment
-          'X-Environment': getCurrentEnvironmentId()
+      xhr.onload = function() {
+        if (xhr.status === 401 && unauthorizedBehavior === "returnNull") {
+          resolve(null as any);
+          return;
         }
-      });
-
-      if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-        return null;
-      }
-
-      await throwIfResNotOk(res);
-      return await res.json();
-    } catch (error: any) {
-      // Handle AbortError and other network errors gracefully
-      if (error.name === 'AbortError') {
-        console.warn('Query aborted:', queryKey[0]);
-        throw new Error('Request timeout');
-      }
-      throw error;
-    }
+        
+        if (xhr.status >= 200 && xhr.status < 300) {
+          try {
+            const data = JSON.parse(xhr.responseText);
+            resolve(data);
+          } catch (e) {
+            reject(new Error('Invalid JSON response'));
+          }
+        } else {
+          reject(new Error(`HTTP ${xhr.status}: ${xhr.statusText}`));
+        }
+      };
+      
+      xhr.onerror = function() {
+        reject(new Error('Network error'));
+      };
+      
+      xhr.send();
+    });
   };
 
 export const queryClient = new QueryClient({
@@ -146,8 +150,6 @@ export const queryClient = new QueryClient({
       gcTime: CACHE_TIME, // 10 minutes - keep in cache
       retry: 1,
       retryDelay: 500,
-      // Network mode for instant navigation
-      networkMode: 'online',
     },
     mutations: {
       retry: false,

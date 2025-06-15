@@ -40,6 +40,8 @@ const useOpportunitiesData = () => {
   return useQuery({
     queryKey: ['/api/opportunities'],
     staleTime: 2 * 60 * 1000,
+    retry: 3,
+    retryDelay: 1000,
   });
 };
 
@@ -793,7 +795,7 @@ function OpportunitiesTable() {
   };
   
   return (
-    <div className="space-y-4">
+    <div className="p-6 space-y-6">
       {/* Enhanced unified toolbar */}
       <div className="bg-white p-4 rounded-lg shadow-sm">
         <div className="flex flex-col gap-4">

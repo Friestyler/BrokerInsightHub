@@ -13,3 +13,12 @@ if (!process.env.DATABASE_URL) {
 
 export const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 export const db = drizzle(pool, { schema });
+
+// Add missing exports for environment support
+export function getEnvironmentDb(envId: string) {
+  return db;
+}
+
+export function getEnvironmentPool(envId: string) {
+  return pool;
+}

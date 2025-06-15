@@ -5003,6 +5003,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const envId = environmentId as string;
       const envPool = pool;
       
+      // Check if entity_logos table exists first
+      const tableCheckResult = await envPool.query(`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_schema = $1 AND table_name = 'entity_logos'
+        )
+      `, [envId]);
+      
+      if (!tableCheckResult.rows[0].exists) {
+        // Return empty result instead of error for missing table
+        return res.json(null);
+      }
+      
       const result = await envPool.query(`
         SELECT * FROM ${envId}.entity_logos 
         WHERE entity_type = $1 AND entity_id = $2 AND environment_id = $3
@@ -5010,14 +5023,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       `, [entityType, parseInt(entityId as string), envId]);
 
       if (result.rows.length === 0) {
-        return res.status(404).json({ error: 'Logo not found' });
+        return res.json(null);
       }
 
       setCache(cacheKey, result.rows[0]);
       res.json(result.rows[0]);
     } catch (error) {
       console.error('Error fetching entity logo:', error);
-      res.status(500).json({ error: 'Failed to fetch entity logo' });
+      res.json(null); // Return null instead of 500 error
     }
   });
 
@@ -5079,28 +5092,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const userId = 1; // John Smith's user ID
         
         try {
-          // Check if campaigns table exists and get all campaigns (including drafts)
+          // Get all campaigns with user info
           const result = await pool.query(`
-            SELECT c.*, 'campaign' as campaign_type
+            SELECT c.*, u.full_name as created_by_name 
             FROM ${envId}.campaigns c
-            WHERE c.is_template = false
+            LEFT JOIN ${envId}.users u ON c.created_by = u.id
             ORDER BY c.created_at DESC
           `);
           
-          // Return actual campaigns with proper data structure
+          // Return campaigns with proper data structure matching frontend expectations
           const campaigns = result.rows.map(campaign => ({
-            ...campaign,
             id: campaign.id,
-            name: campaign.name,
-            type: campaign.type,
-            category: campaign.category,
-            status: campaign.status,
-            createdById: campaign.created_by_id,
-            isShared: campaign.is_shared || false,
-            isTemplate: campaign.is_template || false,
-            tags: campaign.tags || [],
-            sponsorId: campaign.sponsor_id,
-            createdAt: campaign.created_at
+            name: campaign.name || 'Untitled Campaign',
+            type: campaign.type || 'email',
+            description: campaign.description || '',
+            template_id: campaign.template_id,
+            target_entity_type: campaign.target_entity_type || 'partners',
+            target_entity_id: campaign.target_entity_id,
+            status: campaign.status || 'draft',
+            created_by: campaign.created_by,
+            created_by_name: campaign.created_by_name || 'Unknown User',
+            created_at: campaign.created_at,
+            updated_at: campaign.updated_at,
+            send_at: campaign.send_at,
+            shared_with: campaign.shared_with || [],
+            is_ai_generated: campaign.is_ai_generated || false,
+            engagement_summary: campaign.engagement_summary || {
+              email1: { sent: 0, opened: 0, clicked: 0, replied: 0, bounced: 0 },
+              email2: { sent: 0, opened: 0, clicked: 0, replied: 0, bounced: 0 }
+            },
+            last_sent_at: campaign.last_sent_at,
+            emails: campaign.emails || [],
+            recipients: campaign.recipients || [],
+            settings: campaign.settings || {},
+            icon: campaign.icon || 'mail',
+            objective: campaign.objective,
+            attachments: campaign.attachments || []
           }));
           
           console.log(`Returning ${campaigns.length} campaigns from ${envId} environment:`, campaigns);
@@ -5120,6 +5147,125 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error fetching campaigns:', error);
       res.status(500).json({ error: 'Failed to fetch campaigns' });
+    }
+  });
+
+  // Create new campaign using new campaigns table
+  app.post('/api/:envId/campaigns', async (req, res) => {
+    try {
+      const { envId } = req.params;
+      const campaignData = req.body;
+      
+      if (envId === 'degoudse') {
+        try {
+          const result = await pool.query(`
+            INSERT INTO ${envId}.campaigns (
+              name, type, description, template_id, target_entity_type, target_entity_id,
+              status, created_by, emails, recipients, settings, icon, objective, 
+              is_ai_generated, engagement_summary
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
+            RETURNING *
+          `, [
+            campaignData.name,
+            campaignData.type || 'email',
+            campaignData.description,
+            campaignData.template_id || null,
+            campaignData.target_entity_type,
+            campaignData.target_entity_id || null,
+            campaignData.status || 'draft',
+            campaignData.created_by || 1,
+            JSON.stringify(campaignData.emails || []),
+            JSON.stringify(campaignData.recipients || []),
+            JSON.stringify(campaignData.settings || {}),
+            campaignData.icon || 'mail',
+            campaignData.objective,
+            campaignData.is_ai_generated || false,
+            JSON.stringify({
+              email1: { sent: 0, opened: 0, clicked: 0, replied: 0, bounced: 0 },
+              email2: { sent: 0, opened: 0, clicked: 0, replied: 0, bounced: 0 }
+            })
+          ]);
+          
+          const campaign = result.rows[0];
+          console.log('Campaign created successfully:', campaign);
+          res.status(201).json(campaign);
+          return;
+        } catch (dbError) {
+          console.error('Database error creating campaign:', dbError);
+          res.status(500).json({ error: 'Failed to create campaign' });
+          return;
+        }
+      }
+      
+      res.status(400).json({ error: 'Campaign creation not supported for this environment' });
+    } catch (error) {
+      console.error('Error creating campaign:', error);
+      res.status(500).json({ error: 'Failed to create campaign' });
+    }
+  });
+
+  // Update existing campaign
+  app.put('/api/:envId/campaigns/:id', async (req, res) => {
+    try {
+      const { envId, id } = req.params;
+      const campaignData = req.body;
+      
+      if (envId === 'degoudse') {
+        try {
+          const result = await pool.query(`
+            UPDATE ${envId}.campaigns SET
+              name = $1,
+              type = $2,
+              description = $3,
+              template_id = $4,
+              target_entity_type = $5,
+              target_entity_id = $6,
+              status = $7,
+              emails = $8,
+              recipients = $9,
+              settings = $10,
+              icon = $11,
+              objective = $12,
+              is_ai_generated = $13,
+              updated_at = CURRENT_TIMESTAMP
+            WHERE id = $14
+            RETURNING *
+          `, [
+            campaignData.name,
+            campaignData.type || 'email',
+            campaignData.description,
+            campaignData.template_id || null,
+            campaignData.target_entity_type,
+            campaignData.target_entity_id || null,
+            campaignData.status || 'draft',
+            JSON.stringify(campaignData.emails || []),
+            JSON.stringify(campaignData.recipients || []),
+            JSON.stringify(campaignData.settings || {}),
+            campaignData.icon || 'mail',
+            campaignData.objective,
+            campaignData.is_ai_generated || false,
+            parseInt(id)
+          ]);
+          
+          if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Campaign not found' });
+          }
+          
+          const campaign = result.rows[0];
+          console.log('Campaign updated successfully:', campaign);
+          res.json(campaign);
+          return;
+        } catch (dbError) {
+          console.error('Database error updating campaign:', dbError);
+          res.status(500).json({ error: 'Failed to update campaign' });
+          return;
+        }
+      }
+      
+      res.status(400).json({ error: 'Campaign update not supported for this environment' });
+    } catch (error) {
+      console.error('Error updating campaign:', error);
+      res.status(500).json({ error: 'Failed to update campaign' });
     }
   });
 
@@ -5304,6 +5450,93 @@ export async function registerRoutes(app: Express): Promise<Server> {
     } catch (error) {
       console.error('Error deleting campaign:', error);
       res.status(500).json({ error: 'Failed to delete campaign' });
+    }
+  });
+
+  // Bulk delete campaigns
+  app.delete('/api/:envId/campaigns/bulk-delete', async (req, res) => {
+    try {
+      const { envId } = req.params;
+      const { campaignIds } = req.body;
+      
+      if (!campaignIds || !Array.isArray(campaignIds) || campaignIds.length === 0) {
+        return res.status(400).json({ error: 'Campaign IDs are required' });
+      }
+      
+      if (envId === 'degoudse') {
+        try {
+          const placeholders = campaignIds.map((_, index) => `$${index + 1}`).join(', ');
+          const result = await pool.query(`
+            DELETE FROM ${envId}.campaigns WHERE id IN (${placeholders}) RETURNING *
+          `, campaignIds);
+          
+          console.log(`Bulk deleted ${result.rows.length} campaigns from ${envId} environment`);
+          res.json({ 
+            message: `${result.rows.length} campaigns deleted successfully`, 
+            deletedCampaigns: result.rows 
+          });
+          return;
+        } catch (dbError) {
+          console.error('Database error during bulk delete:', dbError);
+          res.status(500).json({ error: 'Failed to delete campaigns' });
+          return;
+        }
+      }
+      
+      res.status(400).json({ error: 'Bulk delete not supported for this environment' });
+    } catch (error) {
+      console.error('Error bulk deleting campaigns:', error);
+      res.status(500).json({ error: 'Failed to delete campaigns' });
+    }
+  });
+
+  // Bulk status change for campaigns
+  app.patch('/api/:envId/campaigns/bulk-status', async (req, res) => {
+    try {
+      const { envId } = req.params;
+      const { campaignIds, status } = req.body;
+      
+      if (!campaignIds || !Array.isArray(campaignIds) || campaignIds.length === 0) {
+        return res.status(400).json({ error: 'Campaign IDs are required' });
+      }
+      
+      if (!status) {
+        return res.status(400).json({ error: 'Status is required' });
+      }
+      
+      // Validate status
+      const validStatuses = ['draft', 'scheduled', 'in_progress', 'sent_once', 'sent_open', 'stopped', 'archived'];
+      if (!validStatuses.includes(status)) {
+        return res.status(400).json({ error: 'Invalid status value' });
+      }
+      
+      if (envId === 'degoudse') {
+        try {
+          const placeholders = campaignIds.map((_, index) => `$${index + 2}`).join(', ');
+          const result = await pool.query(`
+            UPDATE ${envId}.campaigns 
+            SET status = $1, updated_at = NOW() 
+            WHERE id IN (${placeholders}) 
+            RETURNING *
+          `, [status, ...campaignIds]);
+          
+          console.log(`Bulk updated ${result.rows.length} campaigns to status "${status}" in ${envId} environment`);
+          res.json({ 
+            message: `${result.rows.length} campaigns updated to ${status} successfully`, 
+            updatedCampaigns: result.rows 
+          });
+          return;
+        } catch (dbError) {
+          console.error('Database error during bulk status update:', dbError);
+          res.status(500).json({ error: 'Failed to update campaign status' });
+          return;
+        }
+      }
+      
+      res.status(400).json({ error: 'Bulk status update not supported for this environment' });
+    } catch (error) {
+      console.error('Error bulk updating campaign status:', error);
+      res.status(500).json({ error: 'Failed to update campaign status' });
     }
   });
 
@@ -5521,204 +5754,220 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { envId } = req.params;
       
       const result = await pool.query(`
-        SELECT * FROM ${envId}.campaigns 
-        WHERE is_template = true 
-        ORDER BY created_at DESC
+        SELECT 
+          ct.*,
+          COUNT(ce.id) as email_count,
+          u.full_name as created_by_name
+        FROM campaign_templates ct
+        LEFT JOIN campaign_emails ce ON ct.id = ce.template_id
+        LEFT JOIN users u ON ct.created_by = u.id
+        GROUP BY ct.id, u.full_name
+        ORDER BY ct.created_at DESC
       `);
       
-      res.json(result.rows);
+      const templates = result.rows.map(template => ({
+        id: template.id.toString(),
+        name: template.name,
+        description: template.description || '',
+        objective: template.objective || '',
+        emailCount: parseInt(template.email_count) || 0,
+        status: template.status,
+        entity: template.entity,
+        icon: template.icon,
+        attachments: template.attachments || [],
+        createdAt: template.created_at,
+        updatedAt: template.updated_at,
+        createdBy: template.created_by_name
+      }));
+      
+      res.json(templates);
     } catch (error) {
       console.error('Error fetching campaign templates:', error);
       res.status(500).json({ error: 'Failed to fetch campaign templates' });
     }
   });
 
-  app.post('/api/:envId/campaign-templates', async (req, res) => {
+  // Get single campaign template by ID
+  app.get('/api/:envId/campaign-templates/:id', async (req, res) => {
     try {
-      const { envId } = req.params;
-      const envDb = db;
+      const { envId, id } = req.params;
       
-      const templateData = {
-        ...req.body,
-        isTemplate: true,
-        status: 'template',
-        createdById: 1 // Default user for now
-      };
-      
-      // Execute raw SQL query
-      const result = await pool.query(`
-        INSERT INTO ${envId}.campaigns (
-          name, description, type, category, subject, heading, email_body, email_logo,
-          from_name, from_email, button_link, button_text, button_color, follow_up_emails,
-          frequency, is_shared, is_template, status, created_by_id, created_at, updated_at
-        ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, NOW(), NOW()
-        ) RETURNING *
-      `, [
-        templateData.name, templateData.description, templateData.type, templateData.category,
-        templateData.subject, templateData.heading, templateData.emailBody, templateData.emailLogo,
-        templateData.fromName, templateData.fromEmail, templateData.buttonLink, templateData.buttonText,
-        templateData.buttonColor, JSON.stringify(templateData.followUpEmails), templateData.frequency,
-        templateData.isShared || false, templateData.isTemplate, templateData.status, templateData.createdById
-      ]);
-      
-      const template = result.rows[0];
-      
-      res.status(201).json(template);
-    } catch (error) {
-      console.error('Error creating campaign template:', error);
-      res.status(500).json({ error: 'Failed to create campaign template' });
-    }
-  });
-
-  app.get('/api/:envId/campaign-templates/:templateId', async (req, res) => {
-    try {
-      const { envId, templateId } = req.params;
-      
-      const result = await pool.query(`
-        SELECT * FROM ${envId}.campaigns 
-        WHERE id = $1 AND is_template = true
-      `, [parseInt(templateId)]);
-      
-      if (result.rows.length === 0) {
-        return res.status(404).json({ error: 'Template not found' });
-      }
-      
-      res.json(result.rows[0]);
-    } catch (error) {
-      console.error('Error fetching campaign template:', error);
-      res.status(500).json({ error: 'Failed to fetch campaign template' });
-    }
-  });
-
-  // Get template shares endpoint
-  app.get('/api/:envId/campaign-templates/:templateId/shares', async (req, res) => {
-    try {
-      const { envId, templateId } = req.params;
-      
-      // For now, we'll simulate existing shares since we don't have campaign_shares table yet
-      // In a real implementation, this would query the campaign_shares table
-      const mockShares = [
-        {
-          id: 1,
-          templateId: parseInt(templateId),
-          shareType: 'external',
-          userId: null,
-          contactId: 5,
-          contactName: 'John Smith',
-          contactEmail: 'john.smith@abcinsurance.com',
-          accessLevel: 'view',
-          sharedAt: '2024-06-13T10:30:00Z',
-          sharedBy: 'De Goudse Admin'
-        }
-      ];
-      
-      console.log(`Fetching shares for template ${templateId} in ${envId} environment`);
-      res.json(mockShares);
-      
-    } catch (error) {
-      console.error('Error fetching template shares:', error);
-      res.status(500).json({ error: 'Failed to fetch template shares' });
-    }
-  });
-
-  // Remove template share endpoint
-  app.delete('/api/:envId/campaign-templates/:templateId/shares/:shareId', async (req, res) => {
-    try {
-      const { envId, templateId, shareId } = req.params;
-      
-      // In a real implementation, this would delete from campaign_shares table
-      console.log(`Removing share ${shareId} for template ${templateId} in ${envId} environment`);
-      
-      res.json({ 
-        success: true, 
-        message: 'Share removed successfully' 
-      });
-      
-    } catch (error) {
-      console.error('Error removing template share:', error);
-      res.status(500).json({ error: 'Failed to remove template share' });
-    }
-  });
-
-  // Template sharing endpoint
-  app.post('/api/:envId/campaign-templates/share', async (req, res) => {
-    try {
-      const { envId } = req.params;
-      const { templateId, shareMode, userIds, contactIds } = req.body;
-      
-      // Validate required fields
-      if (!templateId || !shareMode) {
-        return res.status(400).json({ error: 'Missing required fields: templateId and shareMode' });
-      }
-      
-      if (shareMode === 'internal' && (!userIds || userIds.length === 0)) {
-        return res.status(400).json({ error: 'User IDs required for internal sharing' });
-      }
-      
-      if (shareMode === 'external' && (!contactIds || contactIds.length === 0)) {
-        return res.status(400).json({ error: 'Contact IDs required for external sharing' });
-      }
-      
-      // Verify template exists
+      // Get template
       const templateResult = await pool.query(`
-        SELECT id, name FROM ${envId}.campaigns 
-        WHERE id = $1 AND is_template = true
-      `, [templateId]);
+        SELECT * FROM campaign_templates WHERE id = $1
+      `, [id]);
       
       if (templateResult.rows.length === 0) {
         return res.status(404).json({ error: 'Template not found' });
       }
       
       const template = templateResult.rows[0];
-      const shareRecords = [];
       
-      if (shareMode === 'internal') {
-        // Share with internal users
-        for (const userId of userIds) {
-          const shareRecord = {
-            campaign_id: templateId,
-            user_id: userId,
-            share_type: 'internal',
-            access_level: 'view',
-            shared_at: new Date().toISOString(),
-            shared_by_id: 1 // Default user for now
-          };
-          shareRecords.push(shareRecord);
+      // Get emails
+      const emailsResult = await pool.query(`
+        SELECT * FROM campaign_emails WHERE template_id = $1 ORDER BY email_order
+      `, [id]);
+      
+      // Get blocks for each email
+      const emails = [];
+      for (const email of emailsResult.rows) {
+        const blocksResult = await pool.query(`
+          SELECT * FROM email_blocks WHERE email_id = $1 ORDER BY block_order
+        `, [email.id]);
+        
+        emails.push({
+          id: email.id.toString(),
+          subject: email.subject,
+          followUpDays: email.follow_up_days,
+          leftLogo: email.left_logo,
+          rightLogo: email.right_logo,
+          blocks: blocksResult.rows.map(block => ({
+            id: block.id.toString(),
+            type: block.type,
+            content: block.content,
+            properties: block.properties || {}
+          }))
+        });
+      }
+      
+      const templateData = {
+        id: template.id.toString(),
+        name: template.name,
+        description: template.description || '',
+        objective: template.objective || '',
+        entity: template.entity,
+        icon: template.icon || '',
+        status: template.status,
+        attachments: template.attachments || [],
+        emails: emails,
+        createdAt: template.created_at,
+        updatedAt: template.updated_at
+      };
+      
+      res.json(templateData);
+    } catch (error) {
+      console.error('Error fetching campaign template:', error);
+      res.status(500).json({ error: 'Failed to fetch campaign template' });
+    }
+  });
+
+  // Create campaign template
+  app.post('/api/:envId/campaign-templates', async (req, res) => {
+    try {
+      const { envId } = req.params;
+      const { name, description, objective, entity, icon, status, attachments, emails } = req.body;
+      
+      console.log('Campaign template creation request:', { name, description, objective, entity, icon, status, emails: emails?.length });
+      
+      // Validate required fields
+      if (!name || !entity || !emails || !Array.isArray(emails)) {
+        return res.status(400).json({ error: 'Missing required fields: name, entity, and emails array' });
+      }
+      
+      // For now, use user ID 1 as default creator
+      const createdBy = 1;
+      
+      await pool.query('BEGIN');
+      
+      // Insert template
+      const templateResult = await pool.query(`
+        INSERT INTO campaign_templates (name, description, objective, entity, icon, status, attachments, created_by)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        RETURNING id
+      `, [name, description, objective, entity, icon, status || 'draft', JSON.stringify(attachments || []), createdBy]);
+      
+      const templateId = templateResult.rows[0].id;
+      
+      // Insert emails and blocks
+      for (let emailIndex = 0; emailIndex < emails.length; emailIndex++) {
+        const email = emails[emailIndex];
+        
+        const emailResult = await pool.query(`
+          INSERT INTO campaign_emails (template_id, subject, follow_up_days, left_logo, right_logo, email_order)
+          VALUES ($1, $2, $3, $4, $5, $6)
+          RETURNING id
+        `, [templateId, email.subject, email.followUpDays || 0, email.leftLogo || null, email.rightLogo || null, emailIndex]);
+        
+        const emailId = emailResult.rows[0].id;
+        
+        // Parse blocks from content string
+        let blocks = [];
+        try {
+          blocks = JSON.parse(email.content || '[]');
+        } catch (e) {
+          console.log('Failed to parse email content as JSON, treating as empty blocks array');
+          blocks = [];
         }
-      } else if (shareMode === 'external') {
-        // Share with external contacts
-        for (const contactId of contactIds) {
-          const shareRecord = {
-            campaign_id: templateId,
-            contact_id: contactId,
-            share_type: 'external',
-            access_level: 'view',
-            shared_at: new Date().toISOString(),
-            shared_by_id: 1 // Default user for now
-          };
-          shareRecords.push(shareRecord);
+        
+        // Insert blocks
+        for (let blockIndex = 0; blockIndex < blocks.length; blockIndex++) {
+          const block = blocks[blockIndex];
+          
+          await pool.query(`
+            INSERT INTO email_blocks (email_id, type, content, properties, block_order)
+            VALUES ($1, $2, $3, $4, $5)
+          `, [emailId, block.type || 'text', block.content || '', JSON.stringify(block.properties || {}), blockIndex]);
         }
       }
       
-      // Insert sharing records (we'll store these in campaign_shares table when it exists)
-      // For now, we'll just log the sharing action
-      console.log(`Template "${template.name}" (ID: ${templateId}) shared with:`, {
-        shareMode,
-        userIds: shareMode === 'internal' ? userIds : [],
-        contactIds: shareMode === 'external' ? contactIds : [],
-        shareRecords
-      });
+      await pool.query('COMMIT');
       
-      res.json({ 
-        success: true, 
-        message: `Template shared successfully with ${shareRecords.length} recipient(s)`,
-        shareRecords 
-      });
-      
+      res.json({ id: templateId, message: 'Template created successfully' });
     } catch (error) {
-      console.error('Error sharing template:', error);
-      res.status(500).json({ error: 'Failed to share template' });
+      await pool.query('ROLLBACK');
+      console.error('Error creating campaign template:', error);
+      res.status(500).json({ error: 'Failed to create campaign template' });
+    }
+  });
+
+  // Update campaign template
+  app.put('/api/:envId/campaign-templates/:id', async (req, res) => {
+    try {
+      const { envId, id } = req.params;
+      const { name, description, objective, entity, icon, status, attachments, emails } = req.body;
+      
+      await pool.query('BEGIN');
+      
+      // Update template
+      await pool.query(`
+        UPDATE campaign_templates 
+        SET name = $1, description = $2, objective = $3, entity = $4, icon = $5, status = $6, attachments = $7, updated_at = NOW()
+        WHERE id = $8
+      `, [name, description, objective, entity, icon, status || 'draft', JSON.stringify(attachments || []), id]);
+      
+      // Delete existing emails and blocks (cascade will handle blocks)
+      await pool.query('DELETE FROM campaign_emails WHERE template_id = $1', [id]);
+      
+      // Insert new emails and blocks
+      for (let emailIndex = 0; emailIndex < emails.length; emailIndex++) {
+        const email = emails[emailIndex];
+        
+        const emailResult = await pool.query(`
+          INSERT INTO campaign_emails (template_id, subject, follow_up_days, left_logo, right_logo, email_order)
+          VALUES ($1, $2, $3, $4, $5, $6)
+          RETURNING id
+        `, [id, email.subject, email.followUpDays || 0, email.leftLogo, email.rightLogo, emailIndex]);
+        
+        const emailId = emailResult.rows[0].id;
+        
+        // Insert blocks
+        for (let blockIndex = 0; blockIndex < email.blocks.length; blockIndex++) {
+          const block = email.blocks[blockIndex];
+          
+          await pool.query(`
+            INSERT INTO email_blocks (email_id, type, content, properties, block_order)
+            VALUES ($1, $2, $3, $4, $5)
+          `, [emailId, block.type, block.content, JSON.stringify(block.properties || {}), blockIndex]);
+        }
+      }
+      
+      await pool.query('COMMIT');
+      
+      res.json({ message: 'Template updated successfully' });
+    } catch (error) {
+      await pool.query('ROLLBACK');
+      console.error('Error updating campaign template:', error);
+      res.status(500).json({ error: 'Failed to update campaign template' });
     }
   });
 

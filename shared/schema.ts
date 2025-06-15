@@ -448,6 +448,84 @@ export const savedViewsRelations = relations(savedViews, ({ one }) => ({
   }),
 }));
 
+// Campaign Templates table
+export const campaignTemplates = pgTable("campaign_templates", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  objective: text("objective"),
+  entity: text("entity").notNull(), // 'partners', 'customers', 'opportunities'
+  icon: text("icon"),
+  status: text("status").notNull().default("draft"), // 'draft', 'published'
+  attachments: json("attachments").$type<Array<{id: string, name: string, type: string, size: number}>>().default([]),
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Campaign Emails table (templates can have multiple emails)
+export const campaignEmails = pgTable("campaign_emails", {
+  id: serial("id").primaryKey(),
+  templateId: integer("template_id").notNull().references(() => campaignTemplates.id, { onDelete: 'cascade' }),
+  subject: text("subject").notNull(),
+  followUpDays: integer("follow_up_days").notNull().default(0),
+  leftLogo: text("left_logo"),
+  rightLogo: text("right_logo"),
+  emailOrder: integer("email_order").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Email Blocks table (each email can have multiple blocks)
+export const emailBlocks = pgTable("email_blocks", {
+  id: serial("id").primaryKey(),
+  emailId: integer("email_id").notNull().references(() => campaignEmails.id, { onDelete: 'cascade' }),
+  type: text("type").notNull(), // 'text', 'heading', 'quote', 'divider', 'image', 'button', 'spacer', 'ai'
+  content: text("content").notNull(),
+  properties: json("properties").$type<{
+    alignment?: 'left' | 'center' | 'right';
+    fontSize?: 'small' | 'medium' | 'large';
+    color?: string;
+    backgroundColor?: string;
+    url?: string;
+    buttonText?: string;
+    imageUrl?: string;
+    imageAlt?: string;
+    spacerHeight?: number;
+    aiType?: string;
+  }>(),
+  blockOrder: integer("block_order").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Removed duplicate schemas - using the ones defined later in the file
+
+// Campaign template relations
+export const campaignTemplatesRelations = relations(campaignTemplates, ({ one, many }) => ({
+  createdBy: one(users, {
+    fields: [campaignTemplates.createdBy],
+    references: [users.id],
+  }),
+  emails: many(campaignEmails),
+}));
+
+export const campaignEmailsRelations = relations(campaignEmails, ({ one, many }) => ({
+  template: one(campaignTemplates, {
+    fields: [campaignEmails.templateId],
+    references: [campaignTemplates.id],
+  }),
+  blocks: many(emailBlocks),
+}));
+
+export const emailBlocksRelations = relations(emailBlocks, ({ one }) => ({
+  email: one(campaignEmails, {
+    fields: [emailBlocks.emailId],
+    references: [campaignEmails.id],
+  }),
+}));
+
+
+
 // Insert schemas for saved lists and views
 export const insertSavedListSchema = createInsertSchema(savedLists).pick({
   name: true,
@@ -470,6 +548,29 @@ export const insertSavedViewSchema = createInsertSchema(savedViews).pick({
   is_default: true,
   created_by: true,
 });
+
+// Campaign template insert schemas
+export const insertCampaignTemplateSchema = createInsertSchema(campaignTemplates).pick({
+  name: true,
+  description: true,
+  objective: true,
+  entity: true,
+  icon: true,
+  status: true,
+  attachments: true,
+  createdBy: true,
+});
+
+export const insertCampaignEmailSchema = createInsertSchema(campaignEmails).pick({
+  templateId: true,
+  subject: true,
+  followUpDays: true,
+  leftLogo: true,
+  rightLogo: true,
+  emailOrder: true,
+});
+
+// Template schemas defined later in file to avoid duplicates
 
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
@@ -766,6 +867,53 @@ export const okrCommentsRelations = relations(okrComments, ({ one }) => ({
   }),
 }));
 
+// Campaigns table for active marketing campaigns
+export const campaigns = pgTable("campaigns", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  type: text("type").notNull().default("email"), // email, sms, mixed
+  description: text("description"),
+  template_id: integer("template_id"), // reference to campaign template if created from one
+  target_entity_type: text("target_entity_type").notNull(), // partners, customers, opportunities, internal
+  target_entity_id: integer("target_entity_id"), // specific entity if targeting single entity
+  status: text("status").notNull().default("draft"), // draft, scheduled, in_progress, sent, archived
+  created_by: integer("created_by").notNull().references(() => users.id),
+  created_at: timestamp("created_at").notNull().defaultNow(),
+  updated_at: timestamp("updated_at").notNull().defaultNow(),
+  send_at: timestamp("send_at"), // scheduled datetime for sending
+  shared_with: text("shared_with").array().default([]), // list of user or partner IDs
+  is_ai_generated: boolean("is_ai_generated").notNull().default(false),
+  engagement_summary: json("engagement_summary"), // aggregated stats object
+  last_sent_at: timestamp("last_sent_at"), // timestamp of last email sent
+  
+  // Campaign content and configuration
+  emails: json("emails").notNull(), // array of email objects with content
+  recipients: json("recipients").notNull(), // array of selected recipients
+  settings: json("settings").notNull(), // campaign settings like timing, tracking options
+  
+  // Additional metadata
+  icon: text("icon").notNull().default("mail"),
+  objective: text("objective"),
+  attachments: json("attachments").default([]),
+});
+
+export const campaignsRelations = relations(campaigns, ({ one }) => ({
+  createdBy: one(users, {
+    fields: [campaigns.created_by],
+    references: [users.id],
+  }),
+}));
+
+// Campaign insert schema and types
+export const insertCampaignSchema = createInsertSchema(campaigns).omit({
+  id: true,
+  created_at: true,
+  updated_at: true,
+});
+
+export type Campaign = typeof campaigns.$inferSelect;
+export type InsertCampaign = z.infer<typeof insertCampaignSchema>;
+
 // Activity tables relations
 export const activityTasksRelations = relations(activityTasks, ({ one, many }) => ({
   assignedTo: one(users, {
@@ -868,85 +1016,43 @@ export type OkrTemplateAssignment = typeof okrTemplateAssignments.$inferSelect;
 export type InsertVendor = z.infer<typeof insertVendorSchema>;
 export type Vendor = typeof vendors.$inferSelect;
 
-// Campaign model
-export const campaigns = pgTable("campaigns", {
-  id: serial("id").primaryKey(),
-  name: text("name").notNull(),
-  description: text("description"),
-  category: text("category"), // e.g., "Life + Pension", "Car + Legal", etc.
-  status: text("status").notNull().default("draft"), // on, off, draft
-  createdById: integer("created_by_id").references(() => users.id),
-  sponsorId: integer("sponsor_id"), // Optional sponsor (e.g., AXA)
-  listId: integer("list_id"), // The list of entities this campaign targets
-  recipients: integer("recipients").default(0), // Number of recipients
-  delivered: integer("delivered").default(0), // Number of emails delivered
-  opened: integer("opened").default(0), // Number of emails opened
-  clicked: integer("clicked").default(0), // Number of clicks inside the email
-  replied: integer("replied").default(0), // Number of replies received
-  subject: text("subject"),
-  heading: text("heading"), // Email heading/title
-  emailBody: text("email_body"),
-  emailLogo: text("email_logo"), // URL to the logo
-  fromName: text("from_name"),
-  fromEmail: text("from_email"),
-  buttonLink: text("button_link"), // CTA button URL
-  buttonText: text("button_text"), // CTA button text
-  buttonColor: text("button_color"), // CTA button color
-  followUpEmails: json("follow_up_emails"), // Array of follow-up email objects
-  scheduledTime: timestamp("scheduled_time"),
-  frequency: text("frequency").default("one_time"), // one_time, weekly, monthly
-  isShared: boolean("is_shared").default(false),
-  isTemplate: boolean("is_template").default(false),
-  tags: text("tags").array(),
-  createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
-});
-
-// Campaign recipients
+// Campaign Recipients, Follow-ups, and Shares tables
 export const campaignRecipients = pgTable("campaign_recipients", {
   id: serial("id").primaryKey(),
   campaignId: integer("campaign_id").notNull().references(() => campaigns.id),
-  contactId: integer("contact_id").notNull(), // Reference to a contact
+  contactId: integer("contact_id").notNull(),
+  email: text("email").notNull(),
+  name: text("name").notNull(),
   status: text("status").notNull().default("pending"), // pending, sent, opened, clicked, responded
+  sentAt: timestamp("sent_at"),
+  openedAt: timestamp("opened_at"),
+  clickedAt: timestamp("clicked_at"),
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// Campaign follow-ups
 export const campaignFollowUps = pgTable("campaign_follow_ups", {
   id: serial("id").primaryKey(),
   campaignId: integer("campaign_id").notNull().references(() => campaigns.id),
-  subject: text("subject"),
-  emailBody: text("email_body"),
-  delayDays: integer("delay_days").notNull(), // Days after the initial campaign
+  subject: text("subject").notNull(),
+  emailBody: text("email_body").notNull(),
+  delayDays: integer("delay_days").notNull(),
   status: text("status").notNull().default("pending"), // pending, sent, completed
-  attachment: text("attachment"), // URL to attachment
   createdAt: timestamp("created_at").defaultNow().notNull(),
 });
 
-// Campaign shares - for sharing campaigns with partners and contacts
 export const campaignShares = pgTable("campaign_shares", {
   id: serial("id").primaryKey(),
   campaignId: integer("campaign_id").notNull().references(() => campaigns.id),
   sharedWithType: text("shared_with_type").notNull(), // partner, contact, user
-  sharedWithId: integer("shared_with_id").notNull(), // ID of partner, contact, or user
+  sharedWithId: integer("shared_with_id").notNull(),
   accessLevel: text("access_level").notNull().default("view"), // view, comment, edit, admin
   shareMessage: text("share_message"),
   sharedById: integer("shared_by_id").references(() => users.id),
   isActive: boolean("is_active").notNull().default(true),
   createdAt: timestamp("created_at").defaultNow().notNull(),
-  updatedAt: timestamp("updated_at").defaultNow().notNull(),
 });
 
-// Define relationships
-export const campaignsRelations = relations(campaigns, ({ one, many }) => ({
-  createdBy: one(users, {
-    fields: [campaigns.createdById],
-    references: [users.id],
-  }),
-  recipients: many(campaignRecipients),
-  followUps: many(campaignFollowUps),
-  shares: many(campaignShares),
-}));
+// Update existing campaigns relations to include the new tables
 
 export const campaignRecipientsRelations = relations(campaignRecipients, ({ one }) => ({
   campaign: one(campaigns, {
@@ -973,40 +1079,12 @@ export const campaignSharesRelations = relations(campaignShares, ({ one }) => ({
   }),
 }));
 
-// Insert schemas
-export const insertCampaignSchema = createInsertSchema(campaigns).pick({
-  name: true,
-  description: true,
-  category: true,
-  status: true,
-  createdById: true,
-  sponsorId: true,
-  listId: true,
-  recipients: true,
-  delivered: true,
-  opened: true,
-  clicked: true,
-  replied: true,
-  subject: true,
-  heading: true,
-  emailBody: true,
-  emailLogo: true,
-  fromName: true,
-  fromEmail: true,
-  buttonLink: true,
-  buttonText: true,
-  buttonColor: true,
-  followUpEmails: true,
-  scheduledTime: true,
-  frequency: true,
-  isShared: true,
-  isTemplate: true,
-  tags: true,
-});
-
+// Updated insert schemas
 export const insertCampaignRecipientSchema = createInsertSchema(campaignRecipients).pick({
   campaignId: true,
   contactId: true,
+  email: true,
+  name: true,
   status: true,
 });
 
@@ -1016,7 +1094,6 @@ export const insertCampaignFollowUpSchema = createInsertSchema(campaignFollowUps
   emailBody: true,
   delayDays: true,
   status: true,
-  attachment: true,
 });
 
 export const insertCampaignShareSchema = createInsertSchema(campaignShares).pick({
@@ -1028,9 +1105,6 @@ export const insertCampaignShareSchema = createInsertSchema(campaignShares).pick
   sharedById: true,
   isActive: true,
 });
-
-export type InsertCampaign = z.infer<typeof insertCampaignSchema>;
-export type Campaign = typeof campaigns.$inferSelect;
 
 export type InsertCampaignRecipient = z.infer<typeof insertCampaignRecipientSchema>;
 export type CampaignRecipient = typeof campaignRecipients.$inferSelect;
