@@ -19,18 +19,22 @@ interface StepProps {
   stepNumber: number;
   title: string;
   description: string;
+  onClick?: () => void;
 }
 
-const StepIndicator = ({ isActive, isCompleted, isAccessible, stepNumber, title, description }: StepProps) => (
-  <div className={`flex items-start gap-4 p-4 rounded-lg border transition-all duration-200 ${
-    !isAccessible 
-      ? 'bg-muted/30 border-muted cursor-not-allowed opacity-60' 
-      : isActive 
-        ? 'bg-blue-50 border-blue-200 shadow-sm' 
-        : isCompleted 
-          ? 'bg-green-50 border-green-200' 
-          : 'bg-card border-border hover:border-border/80'
-  }`}>
+const StepIndicator = ({ isActive, isCompleted, isAccessible, stepNumber, title, description, onClick }: StepProps) => (
+  <div 
+    className={`flex items-start gap-4 p-4 rounded-lg border transition-all duration-200 ${
+      !isAccessible 
+        ? 'bg-muted/30 border-muted cursor-not-allowed opacity-60' 
+        : isActive 
+          ? 'bg-blue-50 border-blue-200 shadow-sm' 
+          : isCompleted 
+            ? 'bg-green-50 border-green-200 hover:bg-green-100 cursor-pointer' 
+            : 'bg-card border-border hover:border-border/80 cursor-pointer'
+    }`}
+    onClick={isAccessible && onClick ? onClick : undefined}
+  >
     <div className={`flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center text-sm font-medium transition-colors ${
       isCompleted 
         ? 'bg-green-100 text-green-700 border border-green-200' 
@@ -723,13 +727,18 @@ export default function CampaignCreator() {
             {steps.map((step, index) => (
               <div key={step.number} className="flex flex-col items-center flex-1">
                 <div className="flex items-center w-full">
-                  <div className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium ${
-                    isStepCompleted(step.number) 
-                      ? 'bg-blue-600 text-white' 
-                      : currentStep === step.number 
-                        ? 'bg-blue-100 text-blue-600 ring-4 ring-blue-50' 
-                        : 'bg-gray-200 text-gray-500'
-                  }`}>
+                  <div 
+                    className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition-all cursor-pointer ${
+                      isStepCompleted(step.number) 
+                        ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                        : currentStep === step.number 
+                          ? 'bg-blue-100 text-blue-600 ring-4 ring-blue-50' 
+                          : isStepAccessible(step.number)
+                            ? 'bg-gray-200 text-gray-500 hover:bg-gray-300'
+                            : 'bg-gray-200 text-gray-500 cursor-not-allowed opacity-60'
+                    }`}
+                    onClick={() => isStepAccessible(step.number) ? setCurrentStep(step.number) : undefined}
+                  >
                     {isStepCompleted(step.number) ? <Check className="h-4 w-4" /> : step.number}
                   </div>
                   {index < steps.length - 1 && (
@@ -766,17 +775,40 @@ export default function CampaignCreator() {
             Back
           </Button>
           
-          <Button
-            onClick={currentStep === totalSteps ? handleSaveTemplate : handleNext}
-            disabled={!canProceed() || saveTemplateMutation.isPending}
-            className="gap-2 bg-blue-600 hover:bg-blue-700"
-          >
-            {currentStep === totalSteps ? 
-              (saveTemplateMutation.isPending ? 'Saving...' : 'Save Template') : 
-              'Continue to ' + steps.find(s => s.number === currentStep + 1)?.title
-            }
-            <ArrowRight className="h-4 w-4" />
-          </Button>
+          <div className="flex gap-3">
+            {isEditMode && (
+              <Button
+                onClick={handleSaveTemplate}
+                disabled={saveTemplateMutation.isPending}
+                variant="outline"
+                className="gap-2 border-blue-600 text-blue-600 hover:bg-blue-50"
+              >
+                {saveTemplateMutation.isPending ? 'Saving...' : 'Save Changes'}
+              </Button>
+            )}
+            
+            {currentStep < totalSteps && (
+              <Button
+                onClick={handleNext}
+                disabled={!canProceed()}
+                className="gap-2 bg-blue-600 hover:bg-blue-700"
+              >
+                Continue to {steps.find(s => s.number === currentStep + 1)?.title}
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            )}
+            
+            {currentStep === totalSteps && !isEditMode && (
+              <Button
+                onClick={handleSaveTemplate}
+                disabled={!canProceed() || saveTemplateMutation.isPending}
+                className="gap-2 bg-blue-600 hover:bg-blue-700"
+              >
+                {saveTemplateMutation.isPending ? 'Saving...' : 'Save Template'}
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            )}
+          </div>
         </div>
       </div>
     </div>
