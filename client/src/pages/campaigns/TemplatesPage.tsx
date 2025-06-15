@@ -33,7 +33,7 @@ export default function TemplatesPage() {
   };
 
   const handleEditTemplate = (templateId: string) => {
-    setLocation(`/campaigns/create-template?edit=${templateId}`);
+    setLocation(`/campaigns/create?edit=${templateId}`);
   };
 
   const handleUseTemplate = (templateId: string) => {
@@ -226,23 +226,24 @@ export default function TemplatesPage() {
                   </div>
                   
                   {/* Action Buttons - Only visible on hover */}
-                  <div className="flex gap-1 justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  <div className="flex gap-2 justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                     <Button
                       variant="ghost"
-                      size="sm"
+                      size="default"
                       onClick={() => handleUseTemplate(template.id)}
-                      className="text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-3 py-1"
+                      className="text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-4 py-2"
                     >
-                      <Rocket className="h-3 w-3 mr-1" />
+                      <Rocket className="h-4 w-4 mr-1" />
                       Use
                     </Button>
                     <Button
                       variant="ghost"
-                      size="sm"
+                      size="default"
                       onClick={() => handleEditTemplate(template.id)}
-                      className="text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-2 py-1"
+                      className="text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-4 py-2"
                     >
-                      <Settings className="h-3 w-3" />
+                      <Settings className="h-4 w-4 mr-1" />
+                      Edit
                     </Button>
                   </div>
                 </div>

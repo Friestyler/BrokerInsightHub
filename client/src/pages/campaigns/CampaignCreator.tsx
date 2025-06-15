@@ -187,18 +187,29 @@ export default function CampaignCreator() {
   const saveTemplateMutation = useMutation({
     mutationFn: (templateData: any) => {
       console.log('Template save mutation called with data:', templateData);
+      
+      // Validate required fields
+      if (!templateData.name || !templateData.entity || !templateData.emails || !Array.isArray(templateData.emails)) {
+        throw new Error('Missing required fields: name, entity, and emails array');
+      }
+      
+      // Validate emails have content
+      if (templateData.emails.length === 0) {
+        throw new Error('At least one email is required');
+      }
+      
       // Get current environment
       const envId = window.localStorage.getItem('environment') || 'degoudse';
       
       if (isEditMode && editTemplateId) {
         // Update existing template
         const url = `/api/${envId}/campaign-templates/${editTemplateId}`;
-        console.log('Making API request to update template:', url);
+        console.log('Making API request to update template:', url, templateData);
         return apiRequest('PUT', url, templateData);
       } else {
         // Create new template
         const url = `/api/${envId}/campaign-templates`;
-        console.log('Making API request to create template:', url);
+        console.log('Making API request to create template:', url, templateData);
         return apiRequest('POST', url, templateData);
       }
     },
@@ -216,9 +227,10 @@ export default function CampaignCreator() {
       setLocation('/campaigns/templates');
     },
     onError: (error: any) => {
+      console.error('Template save error:', error);
       toast({
         title: "Error saving template",
-        description: error.message || "Failed to save template. Please try again.",
+        description: error.message || "Failed to save template. Please check your data and try again.",
         variant: "destructive",
       });
     }
