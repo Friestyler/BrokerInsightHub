@@ -41,7 +41,7 @@ export default function CampaignsOverview() {
       </div>
 
       <div className="flex-1">
-        {activeTab === 'campaigns' && <CampaignsPage />}
+        {activeTab === 'campaigns' && <CampaignsTable />}
         {activeTab === 'templates' && <TemplatesPage />}
       </div>
     </div>
