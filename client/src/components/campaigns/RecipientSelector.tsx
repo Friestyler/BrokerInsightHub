@@ -439,34 +439,78 @@ export default function RecipientSelector({
 
   return (
     <div className="space-y-6">
-      {/* Summary Cards */}
-      {selectedRecipients.length > 0 && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Total Selection Summary */}
-          <div className="bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200 rounded-lg p-4">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-blue-600 rounded-full flex items-center justify-center">
-                <Users className="h-5 w-5 text-white" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-blue-900">Total Recipients Selected</h3>
-                <div className="flex items-center gap-4 text-sm text-blue-700 mt-1">
-                  <span className="font-medium">{summaryStats.totalRecipients} total</span>
-                  <span>{summaryStats.totalSelectedEntities} organizations</span>
-                  <span>{summaryStats.totalSelectedContacts} individual contacts</span>
-                </div>
+      {/* Summary Cards - Always Present with Placeholders */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        {/* Total Selection Summary */}
+        <div className={`rounded-lg p-4 transition-all duration-200 ${
+          selectedRecipients.length > 0 
+            ? 'bg-gradient-to-r from-blue-50 to-blue-100 border border-blue-200' 
+            : 'bg-gray-50 border border-gray-200'
+        }`}>
+          <div className="flex items-center gap-3">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
+              selectedRecipients.length > 0 ? 'bg-blue-600' : 'bg-gray-400'
+            }`}>
+              <Users className="h-5 w-5 text-white" />
+            </div>
+            <div>
+              <h3 className={`font-semibold ${
+                selectedRecipients.length > 0 ? 'text-blue-900' : 'text-gray-600'
+              }`}>
+                {selectedRecipients.length > 0 ? 'Total Recipients Selected' : 'No Recipients Selected'}
+              </h3>
+              <div className={`flex items-center gap-4 text-sm mt-1 ${
+                selectedRecipients.length > 0 ? 'text-blue-700' : 'text-gray-500'
+              }`}>
+                {selectedRecipients.length > 0 ? (
+                  <>
+                    <span className="font-medium">{summaryStats.totalRecipients} total</span>
+                    <span>{summaryStats.totalSelectedEntities} organizations</span>
+                    <span>{summaryStats.totalSelectedContacts} individual contacts</span>
+                  </>
+                ) : (
+                  <span>Select entities or contacts to begin campaign targeting</span>
+                )}
               </div>
             </div>
           </div>
+        </div>
 
-          {/* Missing Contacts Alert */}
-          {summaryStats.entitiesWithoutContacts > 0 && (
-            <div className="bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200 rounded-lg p-4">
-              <div className="flex items-start gap-3">
-                <div className="w-10 h-10 bg-orange-600 rounded-full flex items-center justify-center flex-shrink-0">
-                  <UserPlus className="h-5 w-5 text-white" />
-                </div>
-                <div className="flex-1">
+        {/* Status Card - Changes based on selection state */}
+        <div className={`rounded-lg p-4 transition-all duration-200 ${
+          selectedRecipients.length === 0 
+            ? 'bg-gray-50 border border-gray-200'
+            : summaryStats.entitiesWithoutContacts > 0 
+              ? 'bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200'
+              : 'bg-gradient-to-r from-green-50 to-green-100 border border-green-200'
+        }`}>
+          <div className="flex items-start gap-3">
+            <div className={`w-10 h-10 rounded-full flex items-center justify-center flex-shrink-0 ${
+              selectedRecipients.length === 0 
+                ? 'bg-gray-400'
+                : summaryStats.entitiesWithoutContacts > 0 
+                  ? 'bg-orange-600'
+                  : 'bg-green-600'
+            }`}>
+              {selectedRecipients.length === 0 ? (
+                <Users className="h-5 w-5 text-white" />
+              ) : summaryStats.entitiesWithoutContacts > 0 ? (
+                <UserPlus className="h-5 w-5 text-white" />
+              ) : (
+                <CheckCircle2 className="h-5 w-5 text-white" />
+              )}
+            </div>
+            <div className="flex-1">
+              {selectedRecipients.length === 0 ? (
+                <>
+                  <h3 className="font-semibold text-gray-600">Campaign Status</h3>
+                  <div className="text-sm text-gray-500 mt-1">
+                    Ready to configure recipients
+                  </div>
+                  <p className="text-xs text-gray-400 mt-1">Start by selecting entities or individual contacts</p>
+                </>
+              ) : summaryStats.entitiesWithoutContacts > 0 ? (
+                <>
                   <h3 className="font-semibold text-orange-900">Missing Contacts</h3>
                   <div className="text-sm text-orange-700 mt-1">
                     <span className="font-medium">{summaryStats.entitiesWithoutContacts} {entityType.slice(0, -1)}{summaryStats.entitiesWithoutContacts !== 1 ? 's' : ''}</span> without contact information
@@ -486,30 +530,20 @@ export default function RecipientSelector({
                     )}
                   </div>
                   <p className="text-xs text-orange-600 mt-2 font-medium">Check the "Selected" tab to add missing contacts</p>
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* Success State - All have contacts */}
-          {summaryStats.totalSelectedEntities > 0 && summaryStats.entitiesWithoutContacts === 0 && (
-            <div className="bg-gradient-to-r from-green-50 to-green-100 border border-green-200 rounded-lg p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-green-600 rounded-full flex items-center justify-center">
-                  <CheckCircle2 className="h-5 w-5 text-white" />
-                </div>
-                <div>
+                </>
+              ) : (
+                <>
                   <h3 className="font-semibold text-green-900">Ready for Delivery</h3>
                   <div className="text-sm text-green-700 mt-1">
                     All selected organizations have contact information
                   </div>
                   <p className="text-xs text-green-600 mt-1">Campaign can be sent successfully</p>
-                </div>
-              </div>
+                </>
+              )}
             </div>
-          )}
+          </div>
         </div>
-      )}
+      </div>
 
       {/* Header with search and tabs */}
       <div className="space-y-4">
