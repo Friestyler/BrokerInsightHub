@@ -52,11 +52,7 @@ export default function CampaignsOverview() {
     if (selectedCampaigns.length === 0) return;
     
     try {
-      await apiRequest(`/api/${environment.id}/campaigns/bulk-delete`, {
-        method: 'DELETE',
-        body: JSON.stringify({ campaignIds: selectedCampaigns }),
-        headers: { 'Content-Type': 'application/json' }
-      });
+      await apiRequest('DELETE', `/api/${environment.id}/campaigns/bulk-delete`, { campaignIds: selectedCampaigns });
       
       // Invalidate campaigns query to refresh the list
       queryClient.invalidateQueries({ queryKey: [`/api/${environment.id}/campaigns`] });
@@ -80,13 +76,9 @@ export default function CampaignsOverview() {
     if (selectedCampaigns.length === 0) return;
     
     try {
-      await apiRequest(`/api/${environment.id}/campaigns/bulk-status`, {
-        method: 'PATCH',
-        body: JSON.stringify({ 
-          campaignIds: selectedCampaigns, 
-          status: newStatus 
-        }),
-        headers: { 'Content-Type': 'application/json' }
+      await apiRequest('PATCH', `/api/${environment.id}/campaigns/bulk-status`, { 
+        campaignIds: selectedCampaigns, 
+        status: newStatus 
       });
       
       // Invalidate campaigns query to refresh the list
