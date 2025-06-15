@@ -251,14 +251,16 @@ export default function TemplatesPage() {
                 </div>
 
                 {/* Template Custom Icon */}
-                <div className="flex justify-center mb-3">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-white transition-transform duration-200 group-hover:scale-105 ${getIconColor(template.icon)}`}>
-                    {getTemplateIcon(template.icon)}
+                <div className="flex justify-center mb-2">
+                  <div className={`w-14 h-14 rounded-xl flex items-center justify-center text-white transition-transform duration-200 group-hover:scale-105 ${getIconColor(template.icon)}`}>
+                    <div className="text-lg">
+                      {getTemplateIcon(template.icon)}
+                    </div>
                   </div>
                 </div>
                 
                 {/* Template Info */}
-                <div className="text-center space-y-2 flex-1 flex flex-col justify-between">
+                <div className="text-center space-y-1 flex-1 flex flex-col justify-between">
                   <div className="space-y-1">
                     <h3 className="font-semibold text-base leading-tight text-gray-900 line-clamp-2">
                       {template.name}
