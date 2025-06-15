@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, FileText, Mail, Settings, Eye, Target, Users, Send, Briefcase, Check, Heart, Star, Zap, Globe, Shield, Trophy, Clock, Calendar, Building2, Phone, MessageSquare, Gift } from "lucide-react";
+import { Plus, FileText, Mail, Settings, Eye, Target, Users, Send, Briefcase, Check, Heart, Star, Zap, Globe, Shield, Trophy, Clock, Calendar, Building2, Phone, MessageSquare, Gift, TrendingUp, Lightbulb, Settings as SettingsIcon } from "lucide-react";
 import { useLocation } from 'wouter';
 
 interface EmailTemplate {
@@ -44,14 +44,18 @@ export default function TemplatesPage() {
   const getTemplateIcon = (iconName: string) => {
     const iconProps = { className: "h-6 w-6" };
     switch (iconName) {
+      case 'settings': return <SettingsIcon {...iconProps} />;
+      case 'trending-up': return <TrendingUp {...iconProps} />;
+      case 'zap': return <Zap {...iconProps} />;
+      case 'star': return <Star {...iconProps} />;
+      case 'heart': return <Heart {...iconProps} />;
+      case 'gift': return <Gift {...iconProps} />;
       case 'mail': return <Mail {...iconProps} />;
+      case 'sparkles': return <Star {...iconProps} />;
       case 'target': return <Target {...iconProps} />;
       case 'users': return <Users {...iconProps} />;
       case 'send': return <Send {...iconProps} />;
       case 'briefcase': return <Briefcase {...iconProps} />;
-      case 'heart': return <Heart {...iconProps} />;
-      case 'star': return <Star {...iconProps} />;
-      case 'zap': return <Zap {...iconProps} />;
       case 'globe': return <Globe {...iconProps} />;
       case 'shield': return <Shield {...iconProps} />;
       case 'trophy': return <Trophy {...iconProps} />;
@@ -60,8 +64,23 @@ export default function TemplatesPage() {
       case 'building2': return <Building2 {...iconProps} />;
       case 'phone': return <Phone {...iconProps} />;
       case 'message-square': return <MessageSquare {...iconProps} />;
-      case 'gift': return <Gift {...iconProps} />;
+      case 'lightbulb': return <Lightbulb {...iconProps} />;
       default: return <FileText {...iconProps} />;
+    }
+  };
+
+  // Get icon color based on icon type (matching the icon selector colors)
+  const getIconColor = (iconName: string) => {
+    switch (iconName) {
+      case 'settings': return 'bg-blue-500';
+      case 'trending-up': return 'bg-green-500';
+      case 'zap': return 'bg-yellow-500';
+      case 'star': return 'bg-purple-500';
+      case 'heart': return 'bg-pink-500';
+      case 'gift': return 'bg-red-500';
+      case 'mail': return 'bg-gray-500';
+      case 'sparkles': return 'bg-indigo-500';
+      default: return 'bg-gray-500';
     }
   };
 
@@ -184,7 +203,7 @@ export default function TemplatesPage() {
 
                 {/* Template Custom Icon */}
                 <div className="flex justify-center mb-4">
-                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-white transition-transform duration-200 group-hover:scale-105 ${entityConfig.bgColor}`}>
+                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-white transition-transform duration-200 group-hover:scale-105 ${getIconColor(template.icon)}`}>
                     {getTemplateIcon(template.icon)}
                   </div>
                 </div>
