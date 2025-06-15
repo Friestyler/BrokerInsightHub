@@ -46,8 +46,8 @@ export default function TemplatesPage() {
   };
 
   const handleUseTemplate = (templateId: number) => {
-    // Navigate to campaign builder with template pre-selected
-    setLocation(`/campaigns/create?template=${templateId}`);
+    // TODO: Implement template usage functionality later
+    console.log('Use template functionality will be implemented later');
   };
 
   const getEntityTypeIcon = (entityType: string) => {
