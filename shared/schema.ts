@@ -498,39 +498,7 @@ export const emailBlocks = pgTable("email_blocks", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
-// Campaigns table - actual campaign instances created from templates
-export const campaigns = pgTable("campaigns", {
-  id: serial("id").primaryKey(),
-  name: varchar("name", { length: 255 }).notNull(),
-  description: text("description"),
-  templateId: integer("template_id").notNull().references(() => campaignTemplates.id),
-  entity: text("entity").notNull(), // 'partners', 'customers', 'opportunities'
-  targetGroup: text("target_group"), // JSON string of target group criteria
-  recipients: json("recipients").$type<Array<{id: number, name: string, email: string, type: string}>>().default([]),
-  status: text("status").notNull().default("draft"), // 'draft', 'scheduled', 'active', 'paused', 'completed'
-  scheduledAt: timestamp("scheduled_at"),
-  startedAt: timestamp("started_at"),
-  completedAt: timestamp("completed_at"),
-  settings: json("settings").$type<{
-    sendTime?: string;
-    timezone?: string;
-    trackOpens?: boolean;
-    trackClicks?: boolean;
-    unsubscribeLink?: boolean;
-    replyTo?: string;
-  }>().default({}),
-  stats: json("stats").$type<{
-    totalSent?: number;
-    delivered?: number;
-    opened?: number;
-    clicked?: number;
-    bounced?: number;
-    unsubscribed?: number;
-  }>().default({}),
-  createdBy: integer("created_by").notNull().references(() => users.id),
-  createdAt: timestamp("created_at").notNull().defaultNow(),
-  updatedAt: timestamp("updated_at").notNull().defaultNow(),
-});
+// Removed duplicate schemas - using the ones defined later in the file
 
 // Campaign template relations
 export const campaignTemplatesRelations = relations(campaignTemplates, ({ one, many }) => ({
@@ -927,6 +895,53 @@ export const okrCommentsRelations = relations(okrComments, ({ one }) => ({
     references: [users.id],
   }),
 }));
+
+// Campaigns table for active marketing campaigns
+export const campaigns = pgTable("campaigns", {
+  id: serial("id").primaryKey(),
+  name: text("name").notNull(),
+  type: text("type").notNull().default("email"), // email, sms, mixed
+  description: text("description"),
+  template_id: integer("template_id"), // reference to campaign template if created from one
+  target_entity_type: text("target_entity_type").notNull(), // partners, customers, opportunities, internal
+  target_entity_id: integer("target_entity_id"), // specific entity if targeting single entity
+  status: text("status").notNull().default("draft"), // draft, scheduled, in_progress, sent, archived
+  created_by: integer("created_by").notNull().references(() => users.id),
+  created_at: timestamp("created_at").notNull().defaultNow(),
+  updated_at: timestamp("updated_at").notNull().defaultNow(),
+  send_at: timestamp("send_at"), // scheduled datetime for sending
+  shared_with: text("shared_with").array().default([]), // list of user or partner IDs
+  is_ai_generated: boolean("is_ai_generated").notNull().default(false),
+  engagement_summary: json("engagement_summary"), // aggregated stats object
+  last_sent_at: timestamp("last_sent_at"), // timestamp of last email sent
+  
+  // Campaign content and configuration
+  emails: json("emails").notNull(), // array of email objects with content
+  recipients: json("recipients").notNull(), // array of selected recipients
+  settings: json("settings").notNull(), // campaign settings like timing, tracking options
+  
+  // Additional metadata
+  icon: text("icon").notNull().default("mail"),
+  objective: text("objective"),
+  attachments: json("attachments").default([]),
+});
+
+export const campaignsRelations = relations(campaigns, ({ one }) => ({
+  createdBy: one(users, {
+    fields: [campaigns.created_by],
+    references: [users.id],
+  }),
+}));
+
+// Campaign insert schema and types
+export const insertCampaignSchema = createInsertSchema(campaigns).omit({
+  id: true,
+  created_at: true,
+  updated_at: true,
+});
+
+export type Campaign = typeof campaigns.$inferSelect;
+export type InsertCampaign = z.infer<typeof insertCampaignSchema>;
 
 // Activity tables relations
 export const activityTasksRelations = relations(activityTasks, ({ one, many }) => ({
