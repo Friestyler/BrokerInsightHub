@@ -27,7 +27,7 @@ export default function CampaignsOverview() {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="bg-white border-b">
+      <div className="bg-white">
         <div className="max-w-6xl mx-auto px-6 py-3">
           <div className="flex space-x-2">
             <button
