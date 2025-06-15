@@ -5388,6 +5388,93 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Bulk delete campaigns
+  app.delete('/api/:envId/campaigns/bulk-delete', async (req, res) => {
+    try {
+      const { envId } = req.params;
+      const { campaignIds } = req.body;
+      
+      if (!campaignIds || !Array.isArray(campaignIds) || campaignIds.length === 0) {
+        return res.status(400).json({ error: 'Campaign IDs are required' });
+      }
+      
+      if (envId === 'degoudse') {
+        try {
+          const placeholders = campaignIds.map((_, index) => `$${index + 1}`).join(', ');
+          const result = await pool.query(`
+            DELETE FROM ${envId}.campaigns WHERE id IN (${placeholders}) RETURNING *
+          `, campaignIds);
+          
+          console.log(`Bulk deleted ${result.rows.length} campaigns from ${envId} environment`);
+          res.json({ 
+            message: `${result.rows.length} campaigns deleted successfully`, 
+            deletedCampaigns: result.rows 
+          });
+          return;
+        } catch (dbError) {
+          console.error('Database error during bulk delete:', dbError);
+          res.status(500).json({ error: 'Failed to delete campaigns' });
+          return;
+        }
+      }
+      
+      res.status(400).json({ error: 'Bulk delete not supported for this environment' });
+    } catch (error) {
+      console.error('Error bulk deleting campaigns:', error);
+      res.status(500).json({ error: 'Failed to delete campaigns' });
+    }
+  });
+
+  // Bulk status change for campaigns
+  app.patch('/api/:envId/campaigns/bulk-status', async (req, res) => {
+    try {
+      const { envId } = req.params;
+      const { campaignIds, status } = req.body;
+      
+      if (!campaignIds || !Array.isArray(campaignIds) || campaignIds.length === 0) {
+        return res.status(400).json({ error: 'Campaign IDs are required' });
+      }
+      
+      if (!status) {
+        return res.status(400).json({ error: 'Status is required' });
+      }
+      
+      // Validate status
+      const validStatuses = ['draft', 'scheduled', 'in_progress', 'sent_once', 'sent_open', 'stopped', 'archived'];
+      if (!validStatuses.includes(status)) {
+        return res.status(400).json({ error: 'Invalid status value' });
+      }
+      
+      if (envId === 'degoudse') {
+        try {
+          const placeholders = campaignIds.map((_, index) => `$${index + 2}`).join(', ');
+          const result = await pool.query(`
+            UPDATE ${envId}.campaigns 
+            SET status = $1, updated_at = NOW() 
+            WHERE id IN (${placeholders}) 
+            RETURNING *
+          `, [status, ...campaignIds]);
+          
+          console.log(`Bulk updated ${result.rows.length} campaigns to status "${status}" in ${envId} environment`);
+          res.json({ 
+            message: `${result.rows.length} campaigns updated to ${status} successfully`, 
+            updatedCampaigns: result.rows 
+          });
+          return;
+        } catch (dbError) {
+          console.error('Database error during bulk status update:', dbError);
+          res.status(500).json({ error: 'Failed to update campaign status' });
+          return;
+        }
+      }
+      
+      res.status(400).json({ error: 'Bulk status update not supported for this environment' });
+    } catch (error) {
+      console.error('Error bulk updating campaign status:', error);
+      res.status(500).json({ error: 'Failed to update campaign status' });
+    }
+  });
+
   // Get campaigns shared with broker users (for Regional Insurance Partners environment)
   app.get('/api/broker/shared-campaigns', async (req, res) => {
     try {

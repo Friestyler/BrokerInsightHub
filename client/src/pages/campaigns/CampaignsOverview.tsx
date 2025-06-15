@@ -2,10 +2,29 @@ import { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from "@/components/ui/button";
 import { useEnvironment } from "@/contexts/EnvironmentContext";
+import { useToast } from '@/hooks/use-toast';
+import { apiRequest, queryClient } from '@/lib/queryClient';
 import TemplatesPage from './TemplatesPage';
 import CampaignsTable from './CampaignsTable';
 import CampaignsSummaryCards from './CampaignsSummaryCards';
-import { FileText, Send, Trash2 } from 'lucide-react';
+import { 
+  FileText, 
+  Send, 
+  Trash2, 
+  Edit2, 
+  Clock, 
+  Play, 
+  CheckCircle, 
+  RefreshCw, 
+  Pause, 
+  Archive 
+} from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export default function CampaignsOverview() {
   const { environment } = useEnvironment();
@@ -27,16 +46,75 @@ export default function CampaignsOverview() {
     });
   }, [campaigns, selectedFilter]);
 
-  const handleBulkDelete = () => {
-    // TODO: Implement bulk delete functionality
-    console.log('Bulk delete campaigns:', selectedCampaigns);
-    setSelectedCampaigns([]);
+  const { toast } = useToast();
+
+  const handleBulkDelete = async () => {
+    if (selectedCampaigns.length === 0) return;
+    
+    try {
+      await apiRequest(`/api/${environment.id}/campaigns/bulk-delete`, {
+        method: 'DELETE',
+        body: JSON.stringify({ campaignIds: selectedCampaigns }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      // Invalidate campaigns query to refresh the list
+      queryClient.invalidateQueries({ queryKey: [`/api/${environment.id}/campaigns`] });
+      
+      toast({
+        title: "Success",
+        description: `${selectedCampaigns.length} campaign(s) deleted successfully`,
+      });
+      
+      setSelectedCampaigns([]);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete campaigns",
+        variant: "destructive",
+      });
+    }
   };
 
-  const handleBulkStatusChange = (newStatus: string) => {
-    // TODO: Implement bulk status change functionality
-    console.log('Bulk status change:', selectedCampaigns, newStatus);
-    setSelectedCampaigns([]);
+  const handleBulkStatusChange = async (newStatus: string) => {
+    if (selectedCampaigns.length === 0) return;
+    
+    try {
+      await apiRequest(`/api/${environment.id}/campaigns/bulk-status`, {
+        method: 'PATCH',
+        body: JSON.stringify({ 
+          campaignIds: selectedCampaigns, 
+          status: newStatus 
+        }),
+        headers: { 'Content-Type': 'application/json' }
+      });
+      
+      // Invalidate campaigns query to refresh the list
+      queryClient.invalidateQueries({ queryKey: [`/api/${environment.id}/campaigns`] });
+      
+      const statusLabels: Record<string, string> = {
+        'draft': 'Draft',
+        'scheduled': 'Scheduled',
+        'in_progress': 'In Progress',
+        'sent_once': 'Sent Once',
+        'sent_open': 'Sent & Open',
+        'stopped': 'Stopped',
+        'archived': 'Archived'
+      };
+      
+      toast({
+        title: "Success",
+        description: `${selectedCampaigns.length} campaign(s) marked as ${statusLabels[newStatus] || newStatus}`,
+      });
+      
+      setSelectedCampaigns([]);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to update campaign status",
+        variant: "destructive",
+      });
+    }
   };
 
   if (isLoading) {
@@ -160,20 +238,47 @@ export default function CampaignsOverview() {
                 </div>
                 
                 <div className="flex items-center gap-2 flex-wrap">
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => handleBulkStatusChange('draft')}
-                  >
-                    Mark as Draft
-                  </Button>
-                  <Button 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => handleBulkStatusChange('scheduled')}
-                  >
-                    Schedule
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="outline" size="sm">
+                        Change Status
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
+                          <path d="M6 9l6 6 6-6"></path>
+                        </svg>
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="start" className="w-48">
+                      <DropdownMenuItem onClick={() => handleBulkStatusChange('draft')} className="flex items-center gap-2">
+                        <Edit2 className="w-4 h-4" />
+                        Mark as Draft
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleBulkStatusChange('scheduled')} className="flex items-center gap-2">
+                        <Clock className="w-4 h-4" />
+                        Schedule
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleBulkStatusChange('in_progress')} className="flex items-center gap-2">
+                        <Play className="w-4 h-4" />
+                        Start Campaign
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleBulkStatusChange('sent_once')} className="flex items-center gap-2">
+                        <CheckCircle className="w-4 h-4" />
+                        Mark Complete
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleBulkStatusChange('sent_open')} className="flex items-center gap-2">
+                        <RefreshCw className="w-4 h-4" />
+                        Keep Open
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleBulkStatusChange('stopped')} className="flex items-center gap-2">
+                        <Pause className="w-4 h-4" />
+                        Stop Campaign
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleBulkStatusChange('archived')} className="flex items-center gap-2">
+                        <Archive className="w-4 h-4" />
+                        Archive
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                  
                   <Button 
                     variant="outline" 
                     size="sm"
