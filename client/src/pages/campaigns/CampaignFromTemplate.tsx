@@ -869,10 +869,13 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
             ) : (
               <Button
                 onClick={handleSave}
-                disabled={!canSave() || createCampaignMutation.isPending}
+                disabled={!canSave() || createCampaignMutation.isPending || updateCampaignMutation.isPending}
                 className="gap-2"
               >
-                {createCampaignMutation.isPending ? 'Creating...' : 'Create Campaign'}
+                {isEditingCampaign 
+                  ? (updateCampaignMutation.isPending ? 'Updating...' : 'Update Campaign')
+                  : (createCampaignMutation.isPending ? 'Creating...' : 'Create Campaign')
+                }
               </Button>
             )}
           </div>
