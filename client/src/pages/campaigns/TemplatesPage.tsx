@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, FileText, Mail, Settings, Eye, Filter, Target, Users, Building2, Briefcase } from "lucide-react";
+import { Plus, FileText, Mail, Settings, Eye, Filter, Target, Users, Building2, Briefcase, Rocket } from "lucide-react";
 import { useLocation } from 'wouter';
 
 interface EmailTemplate {
@@ -45,8 +45,9 @@ export default function TemplatesPage() {
     setLocation(`/campaigns/templates/${templateId}/edit`);
   };
 
-  const handlePreviewTemplate = (templateId: number) => {
-    setLocation(`/campaigns/templates/${templateId}/preview`);
+  const handleUseTemplate = (templateId: number) => {
+    // Navigate to campaign builder with template pre-selected
+    setLocation(`/campaigns/create?template=${templateId}`);
   };
 
   const getEntityTypeIcon = (entityType: string) => {
@@ -132,40 +133,39 @@ export default function TemplatesPage() {
             Create reusable email sequences and campaign blueprints
           </p>
         </div>
-        <div className="flex items-center gap-4">
-          {/* Horizontal Filter Buttons */}
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-lg">
-              {[
-                { value: 'all', label: 'All', icon: Filter, color: 'text-gray-600', bg: 'bg-white' },
-                { value: 'opportunities', label: 'Opportunities', icon: Target, color: 'text-emerald-600', bg: 'bg-emerald-50' },
-                { value: 'customers', label: 'Customers', icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
-                { value: 'partners', label: 'Partners', icon: Building2, color: 'text-violet-600', bg: 'bg-violet-50' },
-                { value: 'internal', label: 'Internal', icon: Briefcase, color: 'text-orange-600', bg: 'bg-orange-50' }
-              ].map((filter) => {
-                const IconComponent = filter.icon;
-                const isActive = selectedEntityFilter === filter.value;
-                return (
-                  <button
-                    key={filter.value}
-                    onClick={() => setSelectedEntityFilter(filter.value)}
-                    className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${
-                      isActive 
-                        ? `${filter.bg} ${filter.color} shadow-sm` 
-                        : 'text-gray-600 hover:text-gray-800 hover:bg-white/50'
-                    }`}
-                  >
-                    <IconComponent className="h-4 w-4" />
-                    {filter.label}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-          <Button onClick={handleCreateTemplate} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Create New Template
-          </Button>
+        <Button onClick={handleCreateTemplate} className="gap-2">
+          <Plus className="h-4 w-4" />
+          Create New Template
+        </Button>
+      </div>
+
+      {/* Horizontal Filter Buttons */}
+      <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-lg">
+          {[
+            { value: 'all', label: 'All', icon: Filter, color: 'text-gray-600', bg: 'bg-white' },
+            { value: 'opportunities', label: 'Opportunities', icon: Target, color: 'text-emerald-600', bg: 'bg-emerald-50' },
+            { value: 'customers', label: 'Customers', icon: Users, color: 'text-blue-600', bg: 'bg-blue-50' },
+            { value: 'partners', label: 'Partners', icon: Building2, color: 'text-violet-600', bg: 'bg-violet-50' },
+            { value: 'internal', label: 'Internal', icon: Briefcase, color: 'text-orange-600', bg: 'bg-orange-50' }
+          ].map((filter) => {
+            const IconComponent = filter.icon;
+            const isActive = selectedEntityFilter === filter.value;
+            return (
+              <button
+                key={filter.value}
+                onClick={() => setSelectedEntityFilter(filter.value)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-md text-sm font-medium transition-all duration-200 ${
+                  isActive 
+                    ? `${filter.bg} ${filter.color} shadow-sm` 
+                    : 'text-gray-600 hover:text-gray-800 hover:bg-white/50'
+                }`}
+              >
+                <IconComponent className="h-4 w-4" />
+                {filter.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -226,12 +226,12 @@ export default function TemplatesPage() {
                       size="sm"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handlePreviewTemplate(template.id);
+                        handleUseTemplate(template.id);
                       }}
                       className="flex-1 h-8 text-xs"
                     >
-                      <Eye className="h-3 w-3 mr-1" />
-                      Preview
+                      <Rocket className="h-3 w-3 mr-1" />
+                      Use Template
                     </Button>
                     <Button
                       variant="ghost"
