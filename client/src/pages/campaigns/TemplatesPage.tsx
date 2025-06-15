@@ -289,7 +289,7 @@ export default function TemplatesPage() {
                       className="text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-3 py-1"
                     >
                       <Rocket className="h-3 w-3 mr-1" />
-                      Create Campaign
+                      Use
                     </Button>
                     <Button
                       variant="ghost"

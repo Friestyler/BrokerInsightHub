@@ -146,6 +146,7 @@ Each environment maintains its own data isolation while sharing the same applica
 - June 15, 2025: Added entity filter selector to templates page with button-style filters (All Templates, Partners, Customers, Opportunities, Internal) using Partner Copilot styling and real-time filtering functionality
 - June 15, 2025: Enhanced template tiles with larger icons (14x14) and tighter spacing for more proportionate Google/Apple-style design
 - June 15, 2025: Redesigned Campaign Creator step progress indicator with vertical layout placing step text below check marker icons, improved connecting lines, and proper visual hierarchy for both new and existing template workflows
+- June 15, 2025: Completed campaign creation flow from templates with database integration, API routes, step-by-step wizard (campaign naming, recipient selection, settings), and simplified template action button text to "Use"
 
 ## User Preferences
 
