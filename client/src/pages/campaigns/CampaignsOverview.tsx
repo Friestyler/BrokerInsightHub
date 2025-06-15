@@ -27,35 +27,31 @@ export default function CampaignsOverview() {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="bg-white">
-        <div className="max-w-6xl mx-auto px-6 py-3">
-          <div className="flex space-x-2">
-            <button
-              onClick={() => setActiveTab("templates")}
-              className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md flex items-center gap-2 ${
-                activeTab === "templates"
-                  ? "bg-[#E1E4FB] text-[#3E4DC4]"
-                  : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
-              }`}
-            >
-              <FileText className="h-4 w-4" />
-              Templates
-            </button>
-            <button
-              onClick={() => setActiveTab("campaigns")}
-              className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md flex items-center gap-2 ${
-                activeTab === "campaigns"
-                  ? "bg-[#E1E4FB] text-[#3E4DC4]"
-                  : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
-              }`}
-            >
-              <Send className="h-4 w-4" />
-              Campaigns
-            </button>
+      <div className="border-b bg-white">
+        <div className="max-w-6xl mx-auto px-6 py-4">
+          <div className="space-y-4">
+            <div>
+              <h1 className="text-2xl font-semibold tracking-tight">Templates for Campaigns and Updates</h1>
+              <p className="text-sm text-muted-foreground">Create email templates and manage active campaigns</p>
+            </div>
+            
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+              <TabsList className="grid w-full max-w-md grid-cols-2">
+                <TabsTrigger value="templates" className="flex items-center gap-2">
+                  <FileText className="h-4 w-4" />
+                  Templates
+                </TabsTrigger>
+                <TabsTrigger value="campaigns" className="flex items-center gap-2">
+                  <Send className="h-4 w-4" />
+                  Campaigns
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
           </div>
         </div>
       </div>
-      <div className="flex-1 bg-white">
+
+      <div className="flex-1 bg-gray-50">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
           <TabsContent value="templates" className="h-full m-0">
             <TemplatesPage />

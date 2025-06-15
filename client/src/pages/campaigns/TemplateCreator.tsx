@@ -7,9 +7,6 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, ArrowRight, Check, Info, Target, Mail, Wand2, Save, Eye } from "lucide-react";
 import { useLocation } from 'wouter';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { apiRequest } from '@/lib/queryClient';
-import { useToast } from '@/hooks/use-toast';
 
 interface StepProps {
   isActive: boolean;
@@ -49,30 +46,6 @@ export default function TemplateCreator() {
     description: '',
     objective: '',
     emails: [{ subject: '', content: '' }]
-  });
-
-  const { toast } = useToast();
-  const queryClient = useQueryClient();
-
-  const saveTemplateMutation = useMutation({
-    mutationFn: async (templatePayload: any) => {
-      return apiRequest('/api/templates', 'POST', templatePayload);
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/templates'] });
-      toast({
-        title: "Template saved successfully",
-        description: "Your template has been saved and is ready to use."
-      });
-      setLocation('/campaigns');
-    },
-    onError: (error: any) => {
-      toast({
-        title: "Error saving template",
-        description: error.message || "Failed to save template. Please try again.",
-        variant: "destructive"
-      });
-    }
   });
 
   const steps = [
@@ -129,26 +102,6 @@ export default function TemplateCreator() {
 
   const canProceed = (): boolean => {
     return Boolean(isStepCompleted(currentStep));
-  };
-
-  const handleSaveTemplate = (status: 'draft' | 'published') => {
-    const templatePayload = {
-      name: templateData.name,
-      description: templateData.description,
-      entityType: 'general', // Default entity type for templates
-      status: status,
-      emails: templateData.emails.map((email, index) => ({
-        subject: email.subject,
-        content: email.content,
-        order: index + 1
-      })),
-      metadata: {
-        objective: templateData.objective,
-        createdAt: new Date().toISOString()
-      }
-    };
-    
-    saveTemplateMutation.mutate(templatePayload);
   };
 
   const renderStepContent = () => {
@@ -317,22 +270,13 @@ export default function TemplateCreator() {
             </Card>
             
             <div className="flex gap-3">
-              <Button 
-                variant="outline" 
-                className="flex-1 gap-2"
-                onClick={() => handleSaveTemplate('draft')}
-                disabled={saveTemplateMutation.isPending}
-              >
+              <Button variant="outline" className="flex-1 gap-2">
                 <Save className="h-4 w-4" />
-                {saveTemplateMutation.isPending ? 'Saving...' : 'Save as Draft'}
+                Save as Draft
               </Button>
-              <Button 
-                className="flex-1 gap-2"
-                onClick={() => handleSaveTemplate('published')}
-                disabled={saveTemplateMutation.isPending}
-              >
+              <Button className="flex-1 gap-2">
                 <Eye className="h-4 w-4" />
-                {saveTemplateMutation.isPending ? 'Publishing...' : 'Publish Template'}
+                Publish Template
               </Button>
             </div>
           </div>
