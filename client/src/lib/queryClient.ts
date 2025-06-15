@@ -116,7 +116,7 @@ export const getQueryFn: <T>(options: {
       
       xhr.onload = function() {
         if (xhr.status === 401 && unauthorizedBehavior === "returnNull") {
-          resolve(null);
+          resolve(null as any);
           return;
         }
         

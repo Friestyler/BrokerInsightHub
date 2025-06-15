@@ -40,6 +40,8 @@ const useOpportunitiesData = () => {
   return useQuery({
     queryKey: ['/api/opportunities'],
     staleTime: 2 * 60 * 1000,
+    retry: 3,
+    retryDelay: 1000,
   });
 };
 
