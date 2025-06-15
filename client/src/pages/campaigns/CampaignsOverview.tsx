@@ -27,28 +27,24 @@ export default function CampaignsOverview() {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="border-b bg-white">
+      <div className="bg-white">
         <div className="max-w-6xl mx-auto px-6 py-4">
-          <div className="space-y-4">
-
-            
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-              <TabsList className="grid w-full max-w-md grid-cols-2">
-                <TabsTrigger value="templates" className="flex items-center gap-2">
-                  <FileText className="h-4 w-4" />
-                  Templates
-                </TabsTrigger>
-                <TabsTrigger value="campaigns" className="flex items-center gap-2">
-                  <Send className="h-4 w-4" />
-                  Campaigns
-                </TabsTrigger>
-              </TabsList>
-            </Tabs>
-          </div>
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+            <TabsList className="grid w-full max-w-md grid-cols-2">
+              <TabsTrigger value="templates" className="flex items-center gap-2">
+                <FileText className="h-4 w-4" />
+                Templates
+              </TabsTrigger>
+              <TabsTrigger value="campaigns" className="flex items-center gap-2">
+                <Send className="h-4 w-4" />
+                Campaigns
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
         </div>
       </div>
 
-      <div className="flex-1 bg-gray-50">
+      <div className="flex-1">
         <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
           <TabsContent value="templates" className="h-full m-0">
             <TemplatesPage />
