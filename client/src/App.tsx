@@ -90,6 +90,7 @@ function Router() {
               {/* Campaigns routes */}
               <Route path="/campaigns" component={CampaignsOverview} />
               <Route path="/campaigns/create" component={CampaignCreator} />
+              <Route path="/campaigns/templates/create" component={TemplateEditor} />
               <Route path="/campaigns/templates/:templateId/edit" component={TemplateEditor} />
               
               {/* Data Upload routes */}

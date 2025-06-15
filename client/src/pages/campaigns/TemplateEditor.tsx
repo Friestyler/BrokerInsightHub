@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
-import { ArrowLeft, Target, Users, Building2, Mail, Save, Eye } from 'lucide-react';
+import { ArrowLeft, Target, Users, Building2, Mail, Save, Eye, Plus, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 
 interface EmailTemplate {
@@ -32,6 +32,9 @@ export default function TemplateEditor() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
+  // Determine if we're in creation or editing mode
+  const isCreating = !templateId || templateId === 'create';
+  
   const [currentStep, setCurrentStep] = useState(1);
   const [selectedEntityType, setSelectedEntityType] = useState<string>('');
   const [templateData, setTemplateData] = useState({
@@ -45,11 +48,11 @@ export default function TemplateEditor() {
     tags: [] as string[]
   });
 
-  // Fetch existing template data
+  // Fetch existing template data only when editing
   const { data: template, isLoading } = useQuery<EmailTemplate>({
     queryKey: ['/api/campaign-templates', templateId],
     queryFn: () => fetch(`/api/campaign-templates/${templateId}`).then(res => res.json()),
-    enabled: !!templateId
+    enabled: !!templateId && !isCreating
   });
 
   // Initialize form with template data
@@ -69,6 +72,23 @@ export default function TemplateEditor() {
     }
   }, [template]);
 
+  const createTemplateMutation = useMutation({
+    mutationFn: (data: any) => 
+      fetch('/api/campaign-templates', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['/api/campaign-templates'] });
+      toast({ title: "Template created successfully" });
+      setLocation('/campaigns');
+    },
+    onError: () => {
+      toast({ title: "Failed to create template", variant: "destructive" });
+    }
+  });
+
   const updateTemplateMutation = useMutation({
     mutationFn: (data: any) => 
       fetch(`/api/campaign-templates/${templateId}`, {
@@ -79,6 +99,7 @@ export default function TemplateEditor() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/campaign-templates'] });
       toast({ title: "Template updated successfully" });
+      setLocation('/campaigns');
     },
     onError: () => {
       toast({ title: "Failed to update template", variant: "destructive" });
@@ -106,13 +127,34 @@ export default function TemplateEditor() {
     }
   };
 
+  const handleAddEmail = () => {
+    const newEmails = [...templateData.emails, { 
+      subject: '', 
+      content: '', 
+      delay_days: templateData.emails.length === 0 ? 0 : 3 
+    }];
+    setTemplateData(prev => ({ ...prev, emails: newEmails }));
+  };
+
+  const handleRemoveEmail = (index: number) => {
+    if (templateData.emails.length > 1) {
+      const newEmails = templateData.emails.filter((_, i) => i !== index);
+      setTemplateData(prev => ({ ...prev, emails: newEmails }));
+    }
+  };
+
   const handleSave = (status: 'draft' | 'published') => {
-    const updatedData = {
+    const dataToSave = {
       ...templateData,
       status,
-      updated_at: new Date().toISOString()
+      category: templateData.category || 'campaign'
     };
-    updateTemplateMutation.mutate(updatedData);
+    
+    if (isCreating) {
+      createTemplateMutation.mutate(dataToSave);
+    } else {
+      updateTemplateMutation.mutate(dataToSave);
+    }
   };
 
   if (isLoading) {
@@ -348,7 +390,9 @@ export default function TemplateEditor() {
                 Back
               </Button>
               <div>
-                <h1 className="text-lg font-semibold">Step {currentStep} of 3</h1>
+                <h1 className="text-lg font-semibold">
+                  {isCreating ? 'Create Template' : 'Edit Template'} - Step {currentStep} of 3
+                </h1>
                 <p className="text-sm text-gray-600">{Math.round(progress)}% Complete</p>
               </div>
             </div>
