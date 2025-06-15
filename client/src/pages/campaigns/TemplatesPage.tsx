@@ -157,60 +157,57 @@ export default function TemplatesPage() {
             return (
               <div
                 key={template.id}
-                className={`relative bg-white rounded-2xl border-2 aspect-square p-6 transition-all duration-300 hover:shadow-xl hover:scale-105 cursor-pointer group ${entityConfig.borderColor}`}
+                className={`bg-white rounded-2xl border-2 p-6 transition-all duration-200 hover:shadow-md group ${entityConfig.borderColor}`}
               >
                 {/* Entity Type Tag */}
-                <div className="absolute top-4 right-4">
+                <div className="flex justify-between items-start mb-4">
                   <Badge className={`text-xs font-medium ${entityConfig.badgeColor}`}>
                     {entityConfig.label}
                   </Badge>
+                  {template.status === 'published' && (
+                    <div className={`w-2 h-2 rounded-full ${entityConfig.bgColor}`} />
+                  )}
                 </div>
 
-                {/* Status Indicator - Small dot */}
-                <div className={`absolute top-4 left-4 w-3 h-3 rounded-full ${template.status === 'published' ? entityConfig.bgColor : 'bg-gray-300'}`} />
-
-                {/* Content - Centered */}
-                <div className="flex flex-col items-center justify-center h-full space-y-4">
-                  {/* Entity Icon */}
-                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-white transition-all duration-300 group-hover:scale-110 ${entityConfig.bgColor}`}>
+                {/* Entity Icon */}
+                <div className="flex justify-center mb-4">
+                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-white transition-transform duration-200 group-hover:scale-105 ${entityConfig.bgColor}`}>
                     {entityConfig.icon}
                   </div>
-                  
-                  {/* Template Info */}
-                  <div className="text-center space-y-2">
-                    <h3 className={`font-semibold text-lg leading-tight transition-colors duration-300 ${entityConfig.textColor} line-clamp-2`}>
-                      {template.name}
-                    </h3>
-                    <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
-                      {template.description}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      {template.emailCount} email{template.emailCount !== 1 ? 's' : ''}
-                    </p>
-                  </div>
+                </div>
+                
+                {/* Template Info */}
+                <div className="text-center space-y-3 mb-6">
+                  <h3 className={`font-semibold text-lg leading-tight ${entityConfig.textColor} line-clamp-2`}>
+                    {template.name}
+                  </h3>
+                  <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
+                    {template.description}
+                  </p>
+                  <p className="text-xs text-gray-500">
+                    {template.emailCount} email{template.emailCount !== 1 ? 's' : ''}
+                  </p>
                 </div>
 
-                {/* Hover Actions - Only visible on hover */}
-                <div className="absolute inset-0 bg-black/50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                  <div className="flex gap-3">
-                    <Button
-                      variant="secondary"
-                      size="sm"
-                      onClick={() => handlePreviewTemplate(template.id)}
-                      className="text-xs bg-white/90 hover:bg-white"
-                    >
-                      <Eye className="h-3 w-3 mr-1" />
-                      Preview
-                    </Button>
-                    <Button
-                      size="sm"
-                      onClick={() => handleEditTemplate(template.id)}
-                      className={`text-xs text-white border-0 ${entityConfig.bgColor} hover:opacity-90`}
-                    >
-                      <Settings className="h-3 w-3 mr-1" />
-                      Edit
-                    </Button>
-                  </div>
+                {/* Action Buttons */}
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handlePreviewTemplate(template.id)}
+                    className="flex-1 text-xs"
+                  >
+                    <Eye className="h-3 w-3 mr-1" />
+                    Preview
+                  </Button>
+                  <Button
+                    size="sm"
+                    onClick={() => handleEditTemplate(template.id)}
+                    className={`flex-1 text-xs text-white border-0 ${entityConfig.bgColor} hover:opacity-90`}
+                  >
+                    <Settings className="h-3 w-3 mr-1" />
+                    Edit
+                  </Button>
                 </div>
               </div>
             );

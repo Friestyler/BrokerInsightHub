@@ -142,6 +142,7 @@ Each environment maintains its own data isolation while sharing the same applica
 - June 15, 2025: Added custom AI blocks - AI Paragraph Generator and AI Data Fetching blocks with specialized editing interfaces, removed Fundraising content option, fixed redundancy issues where content appeared twice
 - June 15, 2025: Completed comprehensive rebranding from "Email Builder" to "Flow Builder" throughout the entire application - updated component names, UI text, step terminology, header titles, preview labels, empty state messages, and all user-facing references for consistent terminology
 - June 15, 2025: Redesigned entity selection and template tiles with modern Apple/Google style approach featuring entity-specific color coding (green for opportunities, blue for customers, purple for partners, orange for internal), animated gradient icons, selection checkmarks, smooth hover transitions, and premium visual effects for enhanced UX
+- June 15, 2025: Refined template tiles design with subtle interactions - removed heavy hover overlays, positioned action buttons below content, minimized status indicators, and created balanced layout with entity type tags for improved user experience
 
 ## User Preferences
 
