@@ -44,6 +44,7 @@ import CampaignsOverview from "@/pages/campaigns/CampaignsOverview";
 import CampaignCreator from "@/pages/campaigns/CampaignCreator";
 import TemplatesPage from "@/pages/campaigns/TemplatesPage";
 import CampaignFromTemplate from "@/pages/campaigns/CampaignFromTemplate";
+import NewCampaign from "@/pages/campaigns/NewCampaign";
 
 // Temporary placeholder components for other list pages
 const ProjectsPage = () => <div className="p-6"><h1 className="text-2xl font-bold">Projects List (Coming Soon)</h1></div>;

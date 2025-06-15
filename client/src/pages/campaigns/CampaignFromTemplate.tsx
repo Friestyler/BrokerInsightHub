@@ -116,14 +116,19 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   // Create campaign mutation
   const createCampaignMutation = useMutation({
     mutationFn: async (data: any) => {
-      const response = await apiRequest('/api/degoudse/campaigns', {
+      const response = await fetch('/api/degoudse/campaigns', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(data)
       });
-      return response;
+      
+      if (!response.ok) {
+        throw new Error(`Failed to create campaign: ${response.statusText}`);
+      }
+      
+      return response.json();
     },
     onSuccess: () => {
       toast({
@@ -149,18 +154,24 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   const handleSave = () => {
     const campaignPayload = {
       name: campaignData.name,
-      templateId: templateId,
-      entity: campaignData.entity,
+      type: 'email',
       description: campaignData.description,
-      objective: campaignData.objective,
+      template_id: parseInt(templateId),
+      target_entity_type: campaignData.entity,
+      target_entity_id: null,
+      status: 'draft',
+      created_by: 1,
       emails: campaignData.emails.map(email => ({
         subject: email.subject,
         content: JSON.stringify(email.blocks),
         followUpDays: email.followUpDays
       })),
       recipients: campaignData.recipients,
-      settings: campaignData.settings,
-      status: 'draft'
+      settings: campaignData.settings || {},
+      icon: 'mail',
+      objective: campaignData.objective,
+      is_ai_generated: false,
+      attachments: campaignData.attachments || []
     };
     
     console.log('Campaign payload to be saved:', campaignPayload);

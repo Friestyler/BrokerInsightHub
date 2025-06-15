@@ -5079,28 +5079,42 @@ export async function registerRoutes(app: Express): Promise<Server> {
         const userId = 1; // John Smith's user ID
         
         try {
-          // Check if campaigns table exists and get all campaigns (including drafts)
+          // Get all campaigns with user info
           const result = await pool.query(`
-            SELECT c.*, 'campaign' as campaign_type
+            SELECT c.*, u.full_name as created_by_name 
             FROM ${envId}.campaigns c
-            WHERE c.is_template = false
+            LEFT JOIN ${envId}.users u ON c.created_by = u.id
             ORDER BY c.created_at DESC
           `);
           
-          // Return actual campaigns with proper data structure
+          // Return campaigns with proper data structure matching frontend expectations
           const campaigns = result.rows.map(campaign => ({
-            ...campaign,
             id: campaign.id,
-            name: campaign.name,
-            type: campaign.type,
-            category: campaign.category,
-            status: campaign.status,
-            createdById: campaign.created_by_id,
-            isShared: campaign.is_shared || false,
-            isTemplate: campaign.is_template || false,
-            tags: campaign.tags || [],
-            sponsorId: campaign.sponsor_id,
-            createdAt: campaign.created_at
+            name: campaign.name || 'Untitled Campaign',
+            type: campaign.type || 'email',
+            description: campaign.description || '',
+            template_id: campaign.template_id,
+            target_entity_type: campaign.target_entity_type || 'partners',
+            target_entity_id: campaign.target_entity_id,
+            status: campaign.status || 'draft',
+            created_by: campaign.created_by,
+            created_by_name: campaign.created_by_name || 'Unknown User',
+            created_at: campaign.created_at,
+            updated_at: campaign.updated_at,
+            send_at: campaign.send_at,
+            shared_with: campaign.shared_with || [],
+            is_ai_generated: campaign.is_ai_generated || false,
+            engagement_summary: campaign.engagement_summary || {
+              email1: { sent: 0, opened: 0, clicked: 0, replied: 0, bounced: 0 },
+              email2: { sent: 0, opened: 0, clicked: 0, replied: 0, bounced: 0 }
+            },
+            last_sent_at: campaign.last_sent_at,
+            emails: campaign.emails || [],
+            recipients: campaign.recipients || [],
+            settings: campaign.settings || {},
+            icon: campaign.icon || 'mail',
+            objective: campaign.objective,
+            attachments: campaign.attachments || []
           }));
           
           console.log(`Returning ${campaigns.length} campaigns from ${envId} environment:`, campaigns);
