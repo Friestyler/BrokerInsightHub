@@ -27,15 +27,21 @@ export default function CampaignsOverview() {
 
   return (
     <div className="h-full flex flex-col">
-      <div className="border-b bg-white">
-        <div className="max-w-6xl mx-auto px-6">
+      <div className="bg-white border-b">
+        <div className="max-w-6xl mx-auto px-6 py-3">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full max-w-md grid-cols-2 bg-gray-100">
-              <TabsTrigger value="templates" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+            <TabsList className="h-auto p-0 bg-transparent">
+              <TabsTrigger 
+                value="templates" 
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:border-blue-600 data-[state=inactive]:hover:bg-blue-100 transition-all mr-2"
+              >
                 <FileText className="h-4 w-4" />
                 Templates
               </TabsTrigger>
-              <TabsTrigger value="campaigns" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:shadow-sm">
+              <TabsTrigger 
+                value="campaigns" 
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-50 text-gray-600 border border-gray-200 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:border-blue-600 data-[state=inactive]:hover:bg-gray-100 transition-all"
+              >
                 <Send className="h-4 w-4" />
                 Campaigns
               </TabsTrigger>
