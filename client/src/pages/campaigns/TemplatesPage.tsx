@@ -102,10 +102,27 @@ export default function TemplatesPage() {
             Create reusable email sequences and campaign blueprints
           </p>
         </div>
-        <Button onClick={handleCreateTemplate} className="gap-2">
-          <Plus className="h-4 w-4" />
-          Create New Template
-        </Button>
+        <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <Filter className="h-4 w-4 text-muted-foreground" />
+            <Select value={selectedEntityFilter} onValueChange={setSelectedEntityFilter}>
+              <SelectTrigger className="w-40">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Types</SelectItem>
+                <SelectItem value="opportunities">Opportunities</SelectItem>
+                <SelectItem value="customers">Customers</SelectItem>
+                <SelectItem value="partners">Partners</SelectItem>
+                <SelectItem value="internal">Internal</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <Button onClick={handleCreateTemplate} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Create New Template
+          </Button>
+        </div>
       </div>
 
       {/* Templates Grid */}
@@ -142,9 +159,14 @@ export default function TemplatesPage() {
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <Mail className="h-4 w-4" />
-                    <span>{template.emailCount} email{template.emailCount !== 1 ? 's' : ''}</span>
+                  <div className="flex items-center justify-between mb-2">
+                    <Badge className={getEntityTypeColor(template.entity_type)}>
+                      {getEntityTypeLabel(template.entity_type)}
+                    </Badge>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Mail className="h-4 w-4" />
+                      <span>{template.emails?.length || 0} email{(template.emails?.length || 0) !== 1 ? 's' : ''}</span>
+                    </div>
                   </div>
                   <p className="text-sm font-medium">{template.objective}</p>
                 </div>
