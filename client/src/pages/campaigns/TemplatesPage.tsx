@@ -69,18 +69,18 @@ export default function TemplatesPage() {
     }
   };
 
-  // Get icon color based on icon type (matching the exact icon selector colors from the screenshot)
+  // Get icon color based on icon type (matching the exact database mapping from CampaignCreator)
   const getIconColor = (iconName: string) => {
     switch (iconName) {
-      case 'settings': return 'bg-blue-500';      // Blue from screenshot
-      case 'trending-up': return 'bg-green-500';  // Green from screenshot  
-      case 'zap': return 'bg-orange-500';         // Orange from screenshot
-      case 'star': return 'bg-purple-500';        // Purple from screenshot
-      case 'heart': return 'bg-pink-500';         // Pink from screenshot
-      case 'gift': return 'bg-red-500';           // Red from screenshot
-      case 'mail': return 'bg-slate-500';         // Slate gray from screenshot
-      case 'sparkles': return 'bg-indigo-500';    // Indigo from screenshot
-      default: return 'bg-slate-500';
+      case 'target': return 'bg-blue-500';
+      case 'trending-up': return 'bg-green-500';  
+      case 'zap': return 'bg-yellow-500';
+      case 'star': return 'bg-purple-500';
+      case 'heart': return 'bg-pink-500';
+      case 'gift': return 'bg-red-500';
+      case 'mail': return 'bg-gray-500';
+      case 'rocket': return 'bg-indigo-500';
+      default: return 'bg-gray-500';
     }
   };
 
@@ -222,8 +222,8 @@ export default function TemplatesPage() {
                   </div>
                 </div>
 
-                {/* Action Buttons */}
-                <div className="flex gap-2">
+                {/* Action Buttons - Only visible on hover */}
+                <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
                   <Button
                     variant="ghost"
                     size="sm"
