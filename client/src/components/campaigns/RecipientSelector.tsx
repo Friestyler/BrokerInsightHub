@@ -24,18 +24,26 @@ import { apiRequest } from '@/lib/queryClient';
 
 interface Contact {
   id: number;
-  firstName: string;
-  lastName: string;
-  fullName: string;
+  firstName?: string;
+  lastName?: string;
+  first_name?: string;
+  last_name?: string;
+  fullName?: string;
+  full_name?: string;
   email: string;
   phone?: string;
   jobTitle?: string;
+  job_title?: string;
   department?: string;
   company?: string;
   linkedEntityType?: string;
+  linked_entity_type?: string;
   linkedEntityId?: number;
-  isPrimary: boolean;
-  isActive: boolean;
+  linked_entity_id?: number;
+  isPrimary?: boolean;
+  is_primary?: boolean;
+  isActive?: boolean;
+  is_active?: boolean;
 }
 
 interface Entity {
@@ -227,30 +235,42 @@ export default function RecipientSelector({
   };
 
   const getCustomerForOpportunity = (opportunityId: number) => {
-    const opportunity = entities.find((e: any) => e.id === opportunityId);
+    const opportunity = (entities as any[] || []).find((e: any) => e.id === opportunityId);
     if (opportunity?.customerId) {
-      return customers.find((c: Customer) => c.id === opportunity.customerId);
+      return (customers as any[] || []).find((c: Customer) => c.id === opportunity.customerId);
     }
     return null;
   };
 
-  const filteredEntities = entities.filter((entity: Entity) => 
+  const filteredEntities = (entities as any[] || []).filter((entity: Entity) => 
     entity.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const filteredContacts = allContacts.filter((contact: Contact) => {
-    const fullName = contact.fullName || `${contact.firstName} ${contact.lastName}`.trim();
+  const filteredContacts = (allContacts as any[] || []).filter((contact: Contact) => {
+    const fullName = contact.fullName || `${contact.firstName || (contact as any).first_name || ''} ${contact.lastName || (contact as any).last_name || ''}`.trim();
     const email = contact.email || '';
     return fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
            email.toLowerCase().includes(searchQuery.toLowerCase());
   });
 
-  const filteredLists = savedLists.filter((list: SavedList) => 
+  const filteredLists = (savedLists as any[] || []).filter((list: SavedList) => 
     list.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const handleAddContact = () => {
     addContactMutation.mutate(newContact);
+  };
+
+  // Helper function to get contact display name
+  const getContactDisplayName = (contact: Contact) => {
+    return contact.fullName || contact.full_name || 
+           `${contact.firstName || contact.first_name || ''} ${contact.lastName || contact.last_name || ''}`.trim() || 
+           'Unknown Contact';
+  };
+
+  // Helper function to get contact job title
+  const getContactJobTitle = (contact: Contact) => {
+    return contact.jobTitle || contact.job_title;
   };
 
   return (
@@ -643,8 +663,8 @@ export default function RecipientSelector({
                     {/* Expanded List Items with Drill-down */}
                     {expandedItems.has(`list-${list.id}`) && (
                       <div className="mt-4 space-y-2 pl-6 border-l-2 border-gray-100">
-                        {list.entityIds.map(entityId => {
-                          const entity = entities.find((e: any) => e.id === entityId);
+                        {(list.entityIds || []).map(entityId => {
+                          const entity = (entities as any[] || []).find((e: any) => e.id === entityId);
                           if (!entity) return null;
                           
                           return (
