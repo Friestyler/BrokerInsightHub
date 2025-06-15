@@ -15,7 +15,9 @@ import {
   Briefcase,
   MapPin,
   Eye,
-  X
+  X,
+  Target,
+  ArrowRight
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -288,45 +290,6 @@ export default function RecipientSelector({
 
   return (
     <div className="space-y-6">
-      {/* Selection Actions Header */}
-      {selectedRecipients.length > 0 && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-              <Users className="h-4 w-4 text-white" />
-            </div>
-            <div>
-              <p className="font-semibold text-blue-900">
-                {selectionCounts.total} recipient{selectionCounts.total !== 1 ? 's' : ''} selected
-              </p>
-              <p className="text-sm text-blue-700">
-                {selectionCounts.contacts} contact{selectionCounts.contacts !== 1 ? 's' : ''} • {selectionCounts.entities} entit{selectionCounts.entities !== 1 ? 'ies' : 'y'}
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setSelectedTab('selected')}
-              className="border-blue-300 text-blue-700 hover:bg-blue-100"
-            >
-              <Eye className="h-4 w-4 mr-2" />
-              View Selected
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onRecipientsChange([])}
-              className="border-red-300 text-red-700 hover:bg-red-100"
-            >
-              <X className="h-4 w-4 mr-2" />
-              Clear All
-            </Button>
-          </div>
-        </div>
-      )}
-
       {/* Header with search and tabs */}
       <div className="space-y-4">
         <div className="flex gap-4 items-center">
@@ -905,7 +868,7 @@ export default function RecipientSelector({
           </div>
         )}
 
-        {/* Selected Tab - Structured view with dropdown organization */}
+        {/* Selected Tab - Contact-first hierarchy showing underlying entities */}
         {selectedTab === 'selected' && (
           <div className="space-y-4">
             {selectedRecipients.length === 0 ? (
@@ -926,74 +889,95 @@ export default function RecipientSelector({
                   </div>
                 </div>
 
-                {/* Grouped by Contact Type with Dropdown Organization */}
+                {/* Contact-first hierarchy */}
                 <div className="space-y-3">
-                  {/* Direct Contacts */}
-                  {selectedRecipients.filter(r => r.type === 'contact').length > 0 && (
-                    <div className="border border-gray-200 rounded-lg">
-                      <div className="p-4 bg-gray-50 border-b border-gray-200">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                              <Mail className="h-4 w-4 text-white" />
-                            </div>
-                            <div>
-                              <h4 className="font-medium text-gray-900">Direct Contacts</h4>
-                              <p className="text-sm text-gray-600">
-                                {selectedRecipients.filter(r => r.type === 'contact').length} individual contacts
-                              </p>
-                            </div>
-                          </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => toggleItemExpansion('selected-contacts')}
-                          >
-                            {expandedItems.has('selected-contacts') ? (
-                              <ChevronDown className="h-4 w-4" />
-                            ) : (
-                              <ChevronRight className="h-4 w-4" />
-                            )}
-                          </Button>
-                        </div>
-                      </div>
-                      
-                      {expandedItems.has('selected-contacts') && (
-                        <div className="p-4 space-y-3">
-                          {selectedRecipients
-                            .filter(r => r.type === 'contact')
-                            .map((recipient) => (
-                              <div key={`contact-${recipient.id}`} className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
-                                    <Mail className="h-4 w-4 text-blue-600" />
+                  {(() => {
+                    // Get all selected contacts (both direct and from entities)
+                    const directContacts = selectedRecipients.filter(r => r.type === 'contact');
+                    const selectedEntities = selectedRecipients.filter(r => r.type === 'entity' || r.type === 'customer');
+                    
+                    // Get contacts from selected entities
+                    const entityRelatedContacts = selectedEntities.reduce((acc: any[], entity) => {
+                      const contacts = entityContacts[entity.id] || [];
+                      return [...acc, ...contacts.map((contact: any) => ({ ...contact, parentEntity: entity }))];
+                    }, []);
+                    
+                    // Combine all contacts
+                    const allContacts = [...directContacts, ...entityRelatedContacts];
+                    
+                    // Group contacts by their source (direct or entity)
+                    const contactsBySource = allContacts.reduce((acc: any, contact) => {
+                      const key = contact.parentEntity ? `entity-${contact.parentEntity.id}` : 'direct';
+                      if (!acc[key]) {
+                        acc[key] = {
+                          type: contact.parentEntity ? 'entity' : 'direct',
+                          entity: contact.parentEntity,
+                          contacts: []
+                        };
+                      }
+                      acc[key].contacts.push(contact);
+                      return acc;
+                    }, {});
+
+                    return Object.values(contactsBySource).map((group: any) => (
+                      <div key={group.type === 'direct' ? 'direct-contacts' : `entity-${group.entity.id}`} className="border border-gray-200 rounded-lg">
+                        <div className="p-4 bg-gray-50 border-b border-gray-200">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-3">
+                              {group.type === 'direct' ? (
+                                <>
+                                  <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                                    <Mail className="h-4 w-4 text-white" />
                                   </div>
                                   <div>
-                                    <p className="font-medium text-gray-900">{getContactDisplayName(recipient)}</p>
-                                    <p className="text-sm text-gray-600 flex items-center gap-1">
-                                      <Mail className="h-3 w-3" />
-                                      {recipient.email}
+                                    <h4 className="font-medium text-gray-900">Direct Contacts</h4>
+                                    <p className="text-sm text-gray-600">
+                                      {group.contacts.length} individual contacts
                                     </p>
-                                    {getContactJobTitle(recipient) && (
-                                      <p className="text-sm text-gray-500 flex items-center gap-1">
-                                        <Briefcase className="h-3 w-3" />
-                                        {getContactJobTitle(recipient)}
-                                      </p>
-                                    )}
-                                    {recipient.company && (
-                                      <p className="text-sm text-gray-500 flex items-center gap-1">
-                                        <Building2 className="h-3 w-3" />
-                                        {recipient.company}
-                                      </p>
-                                    )}
                                   </div>
-                                </div>
+                                </>
+                              ) : (
+                                <>
+                                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                                    group.entity.type === 'customer' ? 'bg-blue-600' : 
+                                    group.entity.type === 'partner' ? 'bg-purple-600' : 
+                                    group.entity.type === 'opportunity' ? 'bg-green-600' : 'bg-orange-600'
+                                  }`}>
+                                    {(() => {
+                                      const Icon = group.entity.type === 'customer' ? Users :
+                                                  group.entity.type === 'partner' ? Handshake :
+                                                  group.entity.type === 'opportunity' ? Target : Building2;
+                                      return <Icon className="h-4 w-4 text-white" />;
+                                    })()}
+                                  </div>
+                                  <div>
+                                    <h4 className="font-medium text-gray-900">{getEntityDisplayName(group.entity)}</h4>
+                                    <p className="text-sm text-gray-600">
+                                      {group.contacts.length} contacts from {group.entity.type}
+                                    </p>
+                                  </div>
+                                </>
+                              )}
+                            </div>
+                            <div className="flex items-center gap-2">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => toggleItemExpansion(group.type === 'direct' ? 'direct-contacts' : `entity-${group.entity.id}`)}
+                              >
+                                {expandedItems.has(group.type === 'direct' ? 'direct-contacts' : `entity-${group.entity.id}`) ? (
+                                  <ChevronDown className="h-4 w-4" />
+                                ) : (
+                                  <ChevronRight className="h-4 w-4" />
+                                )}
+                              </Button>
+                              {group.type !== 'direct' && (
                                 <Button
                                   variant="ghost"
                                   size="sm"
                                   onClick={() => {
                                     const updatedRecipients = selectedRecipients.filter(r => 
-                                      !(r.type === 'contact' && r.id === recipient.id)
+                                      !(r.type === group.entity.type && r.id === group.entity.id)
                                     );
                                     onRecipientsChange(updatedRecipients);
                                   }}
@@ -1001,71 +985,52 @@ export default function RecipientSelector({
                                 >
                                   <X className="h-4 w-4" />
                                 </Button>
-                              </div>
-                            ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
-
-                  {/* Entity-based Contacts */}
-                  {selectedRecipients.filter(r => r.type === 'entity' || r.type === 'customer').length > 0 && (
-                    <div className="border border-gray-200 rounded-lg">
-                      <div className="p-4 bg-gray-50 border-b border-gray-200">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-3">
-                            <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
-                              <Building2 className="h-4 w-4 text-white" />
-                            </div>
-                            <div>
-                              <h4 className="font-medium text-gray-900">Entity Contacts</h4>
-                              <p className="text-sm text-gray-600">
-                                {selectedRecipients.filter(r => r.type === 'entity' || r.type === 'customer').length} organizations
-                              </p>
+                              )}
                             </div>
                           </div>
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => toggleItemExpansion('selected-entities')}
-                          >
-                            {expandedItems.has('selected-entities') ? (
-                              <ChevronDown className="h-4 w-4" />
-                            ) : (
-                              <ChevronRight className="h-4 w-4" />
-                            )}
-                          </Button>
                         </div>
-                      </div>
-                      
-                      {expandedItems.has('selected-entities') && (
-                        <div className="p-4 space-y-3">
-                          {selectedRecipients
-                            .filter(r => r.type === 'entity' || r.type === 'customer')
-                            .map((recipient) => (
-                              <div key={`entity-${recipient.id}`} className="border border-gray-200 rounded-lg">
-                                <div className="flex items-center justify-between p-3 bg-white">
-                                  <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                                      <Building2 className="h-4 w-4 text-green-600" />
+                        
+                        {expandedItems.has(group.type === 'direct' ? 'direct-contacts' : `entity-${group.entity.id}`) && (
+                          <div className="p-4 space-y-3">
+                            {group.contacts.map((contact: any) => (
+                              <div key={`contact-${contact.id}`} className="space-y-3">
+                                {/* Contact Information */}
+                                <div className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg">
+                                  <div className="flex items-center gap-4">
+                                    <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                      <Mail className="h-5 w-5 text-blue-600" />
                                     </div>
                                     <div>
-                                      <p className="font-medium text-gray-900">{getEntityDisplayName(recipient)}</p>
-                                      {recipient.email && (
-                                        <p className="text-sm text-gray-600 flex items-center gap-1">
-                                          <Mail className="h-3 w-3" />
-                                          {recipient.email}
-                                        </p>
-                                      )}
+                                      <p className="font-semibold text-gray-900 text-lg">{getContactDisplayName(contact)}</p>
+                                      <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
+                                        {contact.email && (
+                                          <span className="flex items-center gap-1 bg-blue-100 px-2 py-1 rounded text-blue-700">
+                                            <Mail className="h-3 w-3" />
+                                            {contact.email}
+                                          </span>
+                                        )}
+                                        {getContactJobTitle(contact) && (
+                                          <span className="flex items-center gap-1 text-gray-500">
+                                            <Briefcase className="h-3 w-3" />
+                                            {getContactJobTitle(contact)}
+                                          </span>
+                                        )}
+                                        {contact.phone && (
+                                          <span className="flex items-center gap-1 text-gray-500">
+                                            <Phone className="h-3 w-3" />
+                                            {contact.phone}
+                                          </span>
+                                        )}
+                                      </div>
                                     </div>
                                   </div>
                                   <div className="flex items-center gap-2">
                                     <Button
                                       variant="ghost"
                                       size="sm"
-                                      onClick={() => toggleItemExpansion(`selected-entity-${recipient.id}`)}
+                                      onClick={() => toggleItemExpansion(`contact-hierarchy-${contact.id}`)}
                                     >
-                                      {expandedItems.has(`selected-entity-${recipient.id}`) ? (
+                                      {expandedItems.has(`contact-hierarchy-${contact.id}`) ? (
                                         <ChevronDown className="h-4 w-4" />
                                       ) : (
                                         <ChevronRight className="h-4 w-4" />
@@ -1076,7 +1041,7 @@ export default function RecipientSelector({
                                       size="sm"
                                       onClick={() => {
                                         const updatedRecipients = selectedRecipients.filter(r => 
-                                          !(r.type === recipient.type && r.id === recipient.id)
+                                          !(r.type === 'contact' && r.id === contact.id)
                                         );
                                         onRecipientsChange(updatedRecipients);
                                       }}
@@ -1086,47 +1051,84 @@ export default function RecipientSelector({
                                     </Button>
                                   </div>
                                 </div>
-                                
-                                {/* Show related contacts for this entity */}
-                                {expandedItems.has(`selected-entity-${recipient.id}`) && entityContacts[recipient.id] && (
-                                  <div className="p-4 bg-gray-50 border-t border-gray-200">
-                                    <div className="flex items-center gap-2 mb-3">
-                                      <Mail className="h-4 w-4 text-gray-600" />
-                                      <span className="text-sm font-medium text-gray-700">
-                                        Related Contacts ({entityContacts[recipient.id].length})
-                                      </span>
+
+                                {/* Underlying Entity Hierarchy */}
+                                {expandedItems.has(`contact-hierarchy-${contact.id}`) && (
+                                  <div className="ml-8 space-y-2 border-l-2 border-gray-200 pl-4">
+                                    <div className="text-xs text-gray-500 font-medium uppercase tracking-wide mb-2">
+                                      🏢 Underlying Organizations
                                     </div>
-                                    <div className="space-y-2">
-                                      {entityContacts[recipient.id].map((contact: any) => (
-                                        <div key={contact.id} className="flex items-center justify-between p-2 bg-white rounded-lg border border-gray-200">
-                                          <div className="flex items-center gap-3">
-                                            <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
-                                              <Mail className="h-3 w-3 text-blue-600" />
-                                            </div>
-                                            <div>
-                                              <p className="text-sm font-medium text-gray-900">{getContactDisplayName(contact)}</p>
-                                              <p className="text-xs text-gray-600">{contact.email}</p>
-                                            </div>
+                                    
+                                    {/* Direct entity relationship */}
+                                    {contact.parentEntity && (
+                                      <div className="space-y-2">
+                                        <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border-2 border-blue-200">
+                                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
+                                            contact.parentEntity.type === 'customer' ? 'bg-blue-600' : 
+                                            contact.parentEntity.type === 'partner' ? 'bg-purple-600' : 
+                                            contact.parentEntity.type === 'opportunity' ? 'bg-green-600' : 'bg-orange-600'
+                                          }`}>
+                                            {(() => {
+                                              const Icon = contact.parentEntity.type === 'customer' ? Users :
+                                                          contact.parentEntity.type === 'partner' ? Handshake :
+                                                          contact.parentEntity.type === 'opportunity' ? Target : Building2;
+                                              return <Icon className="h-4 w-4 text-white" />;
+                                            })()}
                                           </div>
-                                          <input
-                                            type="checkbox"
-                                            className="rounded border-gray-300"
-                                            onChange={() => handleSelectRecipient(contact, 'contact')}
-                                            checked={selectedRecipients.some(r => 
-                                              r.type === 'contact' && r.id === contact.id
-                                            )}
-                                          />
+                                          <div>
+                                            <p className="font-bold text-blue-900">{getEntityDisplayName(contact.parentEntity)}</p>
+                                            <p className="text-sm text-blue-700 font-medium uppercase">
+                                              {contact.parentEntity.type === 'customer' ? '🏢 Customer Organization' :
+                                               contact.parentEntity.type === 'partner' ? '🤝 Partner Organization' :
+                                               contact.parentEntity.type === 'opportunity' ? '🎯 Opportunity' : '🏢 Organization'}
+                                            </p>
+                                          </div>
                                         </div>
-                                      ))}
-                                    </div>
+                                        
+                                        {/* For opportunities, show the customer hierarchy */}
+                                        {contact.parentEntity.type === 'opportunity' && (() => {
+                                          const customer = getCustomerForOpportunity(contact.parentEntity.id);
+                                          if (customer) {
+                                            return (
+                                              <div className="ml-4 space-y-2">
+                                                <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">
+                                                  <ArrowRight className="h-3 w-3" />
+                                                  <span>RELATED CUSTOMER</span>
+                                                </div>
+                                                <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg border-2 border-purple-200">
+                                                  <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center">
+                                                    <Users className="h-4 w-4 text-white" />
+                                                  </div>
+                                                  <div>
+                                                    <p className="font-bold text-purple-900">{customer.name}</p>
+                                                    <p className="text-sm text-purple-700 font-medium">🏢 CUSTOMER ORGANIZATION</p>
+                                                  </div>
+                                                </div>
+                                              </div>
+                                            );
+                                          }
+                                          return null;
+                                        })()}
+                                      </div>
+                                    )}
+                                    
+                                    {/* For direct contacts, show all their potential relationships */}
+                                    {!contact.parentEntity && (
+                                      <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                                        <p className="text-sm text-gray-600 italic">
+                                          Direct contact - no organizational hierarchy
+                                        </p>
+                                      </div>
+                                    )}
                                   </div>
                                 )}
                               </div>
                             ))}
-                        </div>
-                      )}
-                    </div>
-                  )}
+                          </div>
+                        )}
+                      </div>
+                    ));
+                  })()}
                 </div>
               </div>
             )}
