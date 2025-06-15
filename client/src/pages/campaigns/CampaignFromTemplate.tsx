@@ -174,7 +174,11 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   });
 
   const handleBack = () => {
-    setLocation('/campaigns/templates');
+    if (isNewCampaign) {
+      setLocation('/campaigns');
+    } else {
+      setLocation('/campaigns/templates');
+    }
   };
 
   const handleSave = () => {
@@ -182,7 +186,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
       name: campaignData.name,
       type: 'email',
       description: campaignData.description,
-      template_id: parseInt(templateId),
+      template_id: isNewCampaign ? null : parseInt(templateId!),
       target_entity_type: campaignData.entity,
       target_entity_id: null,
       status: 'draft',
@@ -657,15 +661,17 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
             <div className="flex items-center gap-3">
               <Button variant="ghost" size="sm" onClick={handleBack} className="gap-2">
                 <ArrowLeft className="h-4 w-4" />
-                Back to Templates
+                {isNewCampaign ? "Back to Campaigns" : "Back to Templates"}
               </Button>
               <div>
                 <h1 className="text-lg font-medium text-gray-900">
-                  Create Campaign from Template
+                  {isNewCampaign ? "Create New Campaign" : "Create Campaign from Template"}
                 </h1>
-                <p className="text-sm text-gray-600">
-                  Based on: {templateData?.name}
-                </p>
+                {!isNewCampaign && (
+                  <p className="text-sm text-gray-600">
+                    Based on: {templateData?.name}
+                  </p>
+                )}
               </div>
             </div>
             <div className="text-right">
