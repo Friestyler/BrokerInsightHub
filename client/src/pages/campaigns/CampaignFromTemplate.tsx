@@ -186,14 +186,16 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
         }
         return 'Choose target group (from template)';
       case 3:
-        return 'Select campaign recipients';
-      case 4:
         if (campaignData.emails[0].subject) {
           return `Subject: ${campaignData.emails[0].subject.substring(0, 30)}${campaignData.emails[0].subject.length > 30 ? '...' : ''}`;
         }
         return 'Review and edit email content';
+      case 4:
+        return 'Select campaign recipients';
       case 5:
         return 'Configure campaign settings';
+      case 6:
+        return 'Share or send your campaign';
       default:
         return '';
     }
@@ -214,21 +216,27 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     },
     {
       number: 3,
-      title: 'Select Recipients',
+      title: 'Flow Builder',
       description: getStepDescription(3),
-      component: 'recipients'
+      component: 'builder'
     },
     {
       number: 4,
-      title: 'Flow Builder',
+      title: 'Select Recipients',
       description: getStepDescription(4),
-      component: 'builder'
+      component: 'recipients'
     },
     {
       number: 5,
       title: 'Settings',
       description: getStepDescription(5),
       component: 'settings'
+    },
+    {
+      number: 6,
+      title: 'Share or Send',
+      description: getStepDescription(6),
+      component: 'share'
     }
   ];
 
@@ -238,21 +246,23 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   const isStepCompleted = (stepNum: number): boolean => {
     if (stepNum === 1) return Boolean(campaignData.name && campaignData.description && campaignData.objective && campaignData.icon);
     if (stepNum === 2) return Boolean(campaignData.entity);
-    if (stepNum === 3) return campaignData.recipients.length > 0;
-    if (stepNum === 4) {
+    if (stepNum === 3) {
       const firstEmail = campaignData.emails[0];
       return Boolean(firstEmail && firstEmail.subject && firstEmail.subject.trim());
     }
+    if (stepNum === 4) return campaignData.recipients.length > 0;
     if (stepNum === 5) return Boolean(campaignData.settings.sendTime);
+    if (stepNum === 6) return false; // Share or Send step - never auto-completed
     return stepNum < currentStep;
   };
 
   const isStepAccessible = (stepNum: number): boolean => {
     if (stepNum === 1) return true;
     if (stepNum === 2) return isStepCompleted(1);
-    if (stepNum === 3) return isStepCompleted(2);
-    if (stepNum === 4) return isStepCompleted(2); // Allow Flow Builder access after target group selection
-    if (stepNum === 5) return isStepCompleted(4);
+    if (stepNum === 3) return isStepCompleted(2); // Flow Builder after target group
+    if (stepNum === 4) return isStepCompleted(3); // Recipients after Flow Builder
+    if (stepNum === 5) return isStepCompleted(4); // Settings after Recipients
+    if (stepNum === 6) return isStepCompleted(5); // Share or Send after Settings
     return false;
   };
 
@@ -459,26 +469,6 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
 
       case 3:
         return (
-          <div className="space-y-8">
-            <div className="text-center">
-              <h2 className="text-xl font-medium text-gray-900 mb-2">Select Recipients</h2>
-              <p className="text-gray-600">Choose who will receive this campaign</p>
-            </div>
-
-            <div className="max-w-6xl mx-auto">
-              <RecipientSelector
-                entityType={campaignData.entity}
-                selectedRecipients={campaignData.recipients}
-                onRecipientsChange={(recipients) => 
-                  setCampaignData({ ...campaignData, recipients })
-                }
-              />
-            </div>
-          </div>
-        );
-
-      case 4:
-        return (
           <div className="space-y-6">
             <div className="text-center">
               <h2 className="text-xl font-medium text-gray-900 mb-2">Flow Builder</h2>
@@ -501,6 +491,26 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
               onEmailsChange={(emails) => setCampaignData({ ...campaignData, emails })}
               onActiveEmailChange={setActiveEmailIndex}
             />
+          </div>
+        );
+
+      case 4:
+        return (
+          <div className="space-y-8">
+            <div className="text-center">
+              <h2 className="text-xl font-medium text-gray-900 mb-2">Select Recipients</h2>
+              <p className="text-gray-600">Choose who will receive this campaign</p>
+            </div>
+
+            <div className="max-w-6xl mx-auto">
+              <RecipientSelector
+                entityType={campaignData.entity}
+                selectedRecipients={campaignData.recipients}
+                onRecipientsChange={(recipients) => 
+                  setCampaignData({ ...campaignData, recipients })
+                }
+              />
+            </div>
           </div>
         );
 
@@ -537,6 +547,46 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                 >
                   Apply Default Settings (Placeholder)
                 </Button>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 6:
+        return (
+          <div className="space-y-8">
+            <div className="text-center">
+              <h2 className="text-xl font-medium text-gray-900 mb-2">Share or Send</h2>
+              <p className="text-gray-600">Choose how to distribute your campaign</p>
+            </div>
+
+            <div className="max-w-2xl mx-auto space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="p-6 border-2 border-gray-200 rounded-lg hover:border-blue-300 hover:shadow-sm transition-all cursor-pointer">
+                  <div className="text-center">
+                    <div className="p-3 rounded-lg bg-blue-500 text-white w-12 h-12 mx-auto mb-4 flex items-center justify-center">
+                      <Send className="h-6 w-6" />
+                    </div>
+                    <h3 className="font-semibold text-gray-900 mb-2">Send Now</h3>
+                    <p className="text-sm text-gray-600">Send the campaign immediately to all selected recipients</p>
+                  </div>
+                </div>
+
+                <div className="p-6 border-2 border-gray-200 rounded-lg hover:border-green-300 hover:shadow-sm transition-all cursor-pointer">
+                  <div className="text-center">
+                    <div className="p-3 rounded-lg bg-green-500 text-white w-12 h-12 mx-auto mb-4 flex items-center justify-center">
+                      <Globe className="h-6 w-6" />
+                    </div>
+                    <h3 className="font-semibold text-gray-900 mb-2">Share Link</h3>
+                    <p className="text-sm text-gray-600">Generate a shareable link for others to view or collaborate</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
+                <p className="text-sm text-blue-700 text-center">
+                  Campaign ready with {campaignData.recipients.length} recipients selected
+                </p>
               </div>
             </div>
           </div>
