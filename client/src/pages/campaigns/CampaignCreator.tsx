@@ -227,8 +227,7 @@ export default function CampaignCreator() {
       blocks: [],
       followUpDays: 7,
       leftLogo: null,
-      rightLogo: null,
-      condition: { type: 'always' }
+      rightLogo: null
     });
     setCampaignData({ ...campaignData, emails: newEmails });
     setActiveEmailIndex(newEmails.length - 1);
@@ -393,7 +392,11 @@ export default function CampaignCreator() {
   const isStepCompleted = (stepNum: number): boolean => {
     if (stepNum === 1) return Boolean(campaignData.entity);
     if (stepNum === 2) return Boolean(campaignData.name && campaignData.description && campaignData.objective && campaignData.icon);
-    if (stepNum === 3) return Boolean(campaignData.emails[0].subject && campaignData.emails[0].blocks && campaignData.emails[0].blocks.length > 0);
+    if (stepNum === 3) {
+      // Check if we have a subject for the first email - blocks are optional for basic validation
+      const firstEmail = campaignData.emails[0];
+      return Boolean(firstEmail && firstEmail.subject && firstEmail.subject.trim());
+    }
     return stepNum < currentStep;
   };
 
