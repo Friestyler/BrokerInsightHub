@@ -41,13 +41,60 @@ const StepIndicator = ({ isActive, isCompleted, stepNumber, title, description }
 );
 
 export default function TemplateCreator() {
+  const { id } = useParams();
   const [, setLocation] = useLocation();
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [currentStep, setCurrentStep] = useState(1);
   const [templateData, setTemplateData] = useState({
     name: '',
     description: '',
     objective: '',
+    entity_type: '',
     emails: [{ subject: '', content: '' }]
+  });
+
+  const isEditMode = Boolean(id);
+
+  // Fetch template data in edit mode
+  const { data: existingTemplate, isLoading } = useQuery({
+    queryKey: ['/api/campaign-templates', id],
+    queryFn: () => fetch(`/api/campaign-templates/${id}`).then(res => res.json()),
+    enabled: isEditMode
+  });
+
+  // Load template data when in edit mode
+  useEffect(() => {
+    if (existingTemplate && isEditMode) {
+      setTemplateData({
+        name: existingTemplate.name || '',
+        description: existingTemplate.description || '',
+        objective: existingTemplate.objective || '',
+        entity_type: existingTemplate.entity_type || '',
+        emails: Array.isArray(existingTemplate.emails) ? existingTemplate.emails : [{ subject: '', content: '' }]
+      });
+    }
+  }, [existingTemplate, isEditMode]);
+
+  // Save mutation for both create and edit
+  const saveMutation = useMutation({
+    mutationFn: (data: any) => {
+      const url = isEditMode ? `/api/campaign-templates/${id}` : '/api/campaign-templates';
+      const method = isEditMode ? 'PUT' : 'POST';
+      return fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data)
+      }).then(res => res.json());
+    },
+    onSuccess: () => {
+      toast({ title: isEditMode ? "Template updated successfully" : "Template created successfully" });
+      queryClient.invalidateQueries({ queryKey: ['/api/campaign-templates'] });
+      setLocation('/campaigns');
+    },
+    onError: () => {
+      toast({ title: "Failed to save template", variant: "destructive" });
+    }
   });
 
   const steps = [
@@ -83,6 +130,17 @@ export default function TemplateCreator() {
   const handleNext = () => {
     if (currentStep < totalSteps) {
       setCurrentStep(currentStep + 1);
+    } else if (currentStep === totalSteps) {
+      // Save the template
+      saveMutation.mutate({
+        name: templateData.name,
+        description: templateData.description,
+        objective: templateData.objective,
+        entity_type: templateData.entity_type,
+        emails: templateData.emails,
+        status: 'draft',
+        category: 'campaign'
+      });
     }
   };
 
@@ -289,6 +347,18 @@ export default function TemplateCreator() {
     }
   };
 
+  // Show loading state while fetching template data in edit mode
+  if (isEditMode && isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin h-8 w-8 border-4 border-blue-600 border-t-transparent rounded-full mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading template...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -301,7 +371,9 @@ export default function TemplateCreator() {
                 Back
               </Button>
               <div>
-                <h1 className="text-xl font-semibold">Create Email Template</h1>
+                <h1 className="text-xl font-semibold">
+                  {isEditMode ? 'Edit Email Template' : 'Create Email Template'}
+                </h1>
                 <p className="text-sm text-muted-foreground">Step {currentStep} of {totalSteps}</p>
               </div>
             </div>
@@ -357,11 +429,17 @@ export default function TemplateCreator() {
               
               <Button
                 onClick={handleNext}
-                disabled={currentStep === totalSteps || !canProceed()}
+                disabled={!canProceed() || saveMutation.isPending}
                 className="gap-2"
               >
-                {currentStep === totalSteps ? 'Complete' : 'Next'}
-                <ArrowRight className="h-4 w-4" />
+                {saveMutation.isPending ? (
+                  isEditMode ? 'Saving...' : 'Creating...'
+                ) : currentStep === totalSteps ? (
+                  isEditMode ? 'Save Changes' : 'Create Template'
+                ) : (
+                  'Next'
+                )}
+                {!saveMutation.isPending && <ArrowRight className="h-4 w-4" />}
               </Button>
             </div>
           </div>
