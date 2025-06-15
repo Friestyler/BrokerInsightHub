@@ -98,7 +98,7 @@ export default function ImprovedEmailBuilder({
 
   const updateEmailField = (field: keyof Email, value: string | number | File | null) => {
     const newEmails = [...emails];
-    const emailIndex = expandedEmailIndex >= 0 ? expandedEmailIndex : 0;
+    const emailIndex = expandedEmailIndex >= 0 ? expandedEmailIndex : activeEmailIndex;
     (newEmails[emailIndex] as any)[field] = value;
     onEmailsChange(newEmails);
   };
