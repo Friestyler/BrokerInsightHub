@@ -295,22 +295,32 @@ export default function RecipientSelector({
 
   // Calculate summary statistics
   const summaryStats = (() => {
-    const totalSelectedEntities = selectedRecipients.filter(r => r.type === 'entity' || r.type === 'customer').length;
-    const totalSelectedContacts = selectedRecipients.filter(r => r.type === 'contact').length;
+    // Count selected entities (opportunities, customers, partners, etc.)
+    const selectedEntities = selectedRecipients.filter(r => r.type === 'entity' || r.type === 'customer');
+    const selectedContacts = selectedRecipients.filter(r => r.type === 'contact');
     
-    // Calculate entities without contacts
-    const entitiesWithoutContacts = selectedRecipients
-      .filter(r => r.type === 'entity' || r.type === 'customer')
-      .filter(entity => {
-        const entityContactsList = entityContacts[entity.id] || [];
-        return entityContactsList.length === 0;
-      }).length;
+    // Find entities that have no contacts assigned
+    const entitiesWithoutContacts = selectedEntities.filter(entity => {
+      const entityContactsList = entityContacts[entity.id] || [];
+      
+      // Check if this entity has any contacts assigned to it
+      const hasDirectContacts = entityContactsList.length > 0;
+      
+      // Also check if any individually selected contacts belong to this entity
+      const hasIndirectContacts = selectedContacts.some(contact => {
+        const contactEntityId = contact.linkedEntityId || contact.linked_entity_id;
+        return contactEntityId === entity.id;
+      });
+      
+      return !hasDirectContacts && !hasIndirectContacts;
+    });
 
     return {
-      totalSelectedEntities,
-      totalSelectedContacts,
-      entitiesWithoutContacts,
-      totalRecipients: totalSelectedEntities + totalSelectedContacts
+      totalSelectedEntities: selectedEntities.length,
+      totalSelectedContacts: selectedContacts.length,
+      entitiesWithoutContacts: entitiesWithoutContacts.length,
+      entitiesWithoutContactsList: entitiesWithoutContacts, // For detailed display
+      totalRecipients: selectedEntities.length + selectedContacts.length
     };
   })();
 
@@ -339,16 +349,30 @@ export default function RecipientSelector({
           {/* Missing Contacts Alert */}
           {summaryStats.entitiesWithoutContacts > 0 && (
             <div className="bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200 rounded-lg p-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-orange-600 rounded-full flex items-center justify-center">
+              <div className="flex items-start gap-3">
+                <div className="w-10 h-10 bg-orange-600 rounded-full flex items-center justify-center flex-shrink-0">
                   <UserPlus className="h-5 w-5 text-white" />
                 </div>
-                <div>
+                <div className="flex-1">
                   <h3 className="font-semibold text-orange-900">Missing Contacts</h3>
                   <div className="text-sm text-orange-700 mt-1">
-                    <span className="font-medium">{summaryStats.entitiesWithoutContacts} organization{summaryStats.entitiesWithoutContacts !== 1 ? 's' : ''}</span> without contact information
+                    <span className="font-medium">{summaryStats.entitiesWithoutContacts} {entityType.slice(0, -1)}{summaryStats.entitiesWithoutContacts !== 1 ? 's' : ''}</span> without contact information
                   </div>
-                  <p className="text-xs text-orange-600 mt-1">Add contacts to ensure delivery</p>
+                  <div className="text-xs text-orange-600 mt-2 space-y-1">
+                    <p className="font-medium">Missing contacts for:</p>
+                    {summaryStats.entitiesWithoutContactsList.slice(0, 3).map((entity: any) => (
+                      <div key={entity.id} className="flex items-center gap-1">
+                        <span>•</span>
+                        <span>{getEntityDisplayName(entity)}</span>
+                      </div>
+                    ))}
+                    {summaryStats.entitiesWithoutContactsList.length > 3 && (
+                      <div className="text-orange-500">
+                        ... and {summaryStats.entitiesWithoutContactsList.length - 3} more
+                      </div>
+                    )}
+                  </div>
+                  <p className="text-xs text-orange-600 mt-2 font-medium">Check the "Selected" tab to add missing contacts</p>
                 </div>
               </div>
             </div>
@@ -1166,22 +1190,55 @@ export default function RecipientSelector({
                         <div className="p-4 space-y-3">
                           {selectedRecipients
                             .filter(r => r.type === 'entity' || r.type === 'customer')
-                            .map((entity) => (
-                              <div key={`entity-${entity.id}`} className="border border-gray-200 rounded-lg">
-                                <div className="flex items-center justify-between p-3 bg-white">
-                                  <div className="flex items-center gap-3">
-                                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                                      <Building2 className="h-4 w-4 text-green-600" />
+                            .map((entity) => {
+                              // Check if this entity has contacts
+                              const entityContactsList = entityContacts[entity.id] || [];
+                              const hasContacts = entityContactsList.length > 0;
+                              const hasIndirectContacts = selectedRecipients.some(r => 
+                                r.type === 'contact' && (r.linkedEntityId === entity.id || r.linked_entity_id === entity.id)
+                              );
+                              const needsContacts = !hasContacts && !hasIndirectContacts;
+
+                              return (
+                                <div 
+                                  key={`entity-${entity.id}`} 
+                                  className={`border rounded-lg ${
+                                    needsContacts 
+                                      ? 'border-orange-300 bg-gradient-to-r from-orange-50 to-orange-100' 
+                                      : 'border-gray-200'
+                                  }`}
+                                >
+                                  <div className="flex items-center justify-between p-3 bg-white">
+                                    <div className="flex items-center gap-3">
+                                      <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
+                                        needsContacts 
+                                          ? 'bg-orange-100' 
+                                          : 'bg-green-100'
+                                      }`}>
+                                        <Building2 className={`h-4 w-4 ${
+                                          needsContacts 
+                                            ? 'text-orange-600' 
+                                            : 'text-green-600'
+                                        }`} />
+                                      </div>
+                                      <div className="flex-1">
+                                        <div className="flex items-center gap-2">
+                                          <p className="font-medium text-gray-900">{getEntityDisplayName(entity)}</p>
+                                          {needsContacts && (
+                                            <span className="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium text-orange-700 bg-orange-200 rounded-full">
+                                              <UserPlus className="h-3 w-3" />
+                                              Needs contacts
+                                            </span>
+                                          )}
+                                        </div>
+                                        <p className={`text-sm ${needsContacts ? 'text-orange-600' : 'text-gray-600'}`}>
+                                          {(entityContacts[entity.id] || []).length} related contacts
+                                          {needsContacts && ' • Click to add contacts'}
+                                        </p>
+                                      </div>
                                     </div>
-                                    <div>
-                                      <p className="font-medium text-gray-900">{getEntityDisplayName(entity)}</p>
-                                      <p className="text-sm text-gray-600">
-                                        {(entityContacts[entity.id] || []).length} related contacts
-                                      </p>
-                                    </div>
-                                  </div>
-                                  <div className="flex items-center gap-2">
-                                    <Button
+                                    <div className="flex items-center gap-2">
+                                      <Button
                                       variant="ghost"
                                       size="sm"
                                       onClick={() => toggleItemExpansion(`entity-contacts-${entity.id}`)}
@@ -1240,7 +1297,8 @@ export default function RecipientSelector({
                                   </div>
                                 )}
                               </div>
-                            ))}
+                            );
+                          })}
                         </div>
                       )}
                     </div>
