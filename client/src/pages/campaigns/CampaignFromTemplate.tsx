@@ -237,6 +237,40 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     },
   });
 
+  // Update campaign mutation
+  const updateCampaignMutation = useMutation({
+    mutationFn: async (data: any) => {
+      const response = await fetch(`/api/degoudse/campaigns/${campaignId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data)
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Failed to update campaign: ${response.statusText}`);
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Campaign updated successfully!",
+        description: "Your campaign changes have been saved."
+      });
+      setLocation('/campaigns');
+    },
+    onError: (error: any) => {
+      console.error('Campaign update error:', error);
+      toast({
+        title: "Failed to update campaign",
+        description: error.message || "Please try again.",
+        variant: "destructive"
+      });
+    },
+  });
+
   const handleBack = () => {
     if (isEditingCampaign || isNewCampaign) {
       setLocation('/campaigns');
@@ -250,7 +284,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
       name: campaignData.name,
       type: 'email',
       description: campaignData.description,
-      template_id: isNewCampaign ? null : parseInt(templateId!),
+      template_id: isFromTemplate ? parseInt(templateId!) : null,
       target_entity_type: campaignData.entity,
       target_entity_id: null,
       status: 'draft',
@@ -269,7 +303,15 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     };
     
     console.log('Campaign payload to be saved:', campaignPayload);
-    createCampaignMutation.mutate(campaignPayload);
+    
+    if (isEditingCampaign) {
+      // For editing, use the update mutation
+      console.log('Updating existing campaign with ID:', campaignId);
+      updateCampaignMutation.mutate(campaignPayload);
+    } else {
+      // For new campaigns and template-based campaigns
+      createCampaignMutation.mutate(campaignPayload);
+    }
   };
 
   const getStepDescription = (stepNum: number): string => {
@@ -705,12 +747,14 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     }
   };
 
-  if (templateLoading) {
+  if (templateLoading || campaignLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading template...</p>
+          <p className="text-gray-600">
+            {templateLoading ? "Loading template..." : "Loading campaign..."}
+          </p>
         </div>
       </div>
     );

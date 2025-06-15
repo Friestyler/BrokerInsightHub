@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { Link } from "wouter";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -478,9 +479,11 @@ export default function CampaignsTable({ campaigns, selectedCampaigns, onSelecti
                         <Eye className="w-4 h-4" />
                         View Details
                       </DropdownMenuItem>
-                      <DropdownMenuItem className="flex items-center gap-2">
-                        <Edit2 className="w-4 h-4" />
-                        Edit Campaign
+                      <DropdownMenuItem asChild>
+                        <Link href={`/campaigns/edit/${campaign.id}`} className="flex items-center gap-2">
+                          <Edit2 className="w-4 h-4" />
+                          Edit Campaign
+                        </Link>
                       </DropdownMenuItem>
                       <DropdownMenuItem className="flex items-center gap-2">
                         <Copy className="w-4 h-4" />

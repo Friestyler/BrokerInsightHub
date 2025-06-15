@@ -5204,6 +5204,71 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Update existing campaign
+  app.put('/api/:envId/campaigns/:id', async (req, res) => {
+    try {
+      const { envId, id } = req.params;
+      const campaignData = req.body;
+      
+      if (envId === 'degoudse') {
+        try {
+          const result = await pool.query(`
+            UPDATE ${envId}.campaigns SET
+              name = $1,
+              type = $2,
+              description = $3,
+              template_id = $4,
+              target_entity_type = $5,
+              target_entity_id = $6,
+              status = $7,
+              emails = $8,
+              recipients = $9,
+              settings = $10,
+              icon = $11,
+              objective = $12,
+              is_ai_generated = $13,
+              updated_at = CURRENT_TIMESTAMP
+            WHERE id = $14
+            RETURNING *
+          `, [
+            campaignData.name,
+            campaignData.type || 'email',
+            campaignData.description,
+            campaignData.template_id || null,
+            campaignData.target_entity_type,
+            campaignData.target_entity_id || null,
+            campaignData.status || 'draft',
+            JSON.stringify(campaignData.emails || []),
+            JSON.stringify(campaignData.recipients || []),
+            JSON.stringify(campaignData.settings || {}),
+            campaignData.icon || 'mail',
+            campaignData.objective,
+            campaignData.is_ai_generated || false,
+            parseInt(id)
+          ]);
+          
+          if (result.rows.length === 0) {
+            return res.status(404).json({ error: 'Campaign not found' });
+          }
+          
+          const campaign = result.rows[0];
+          console.log('Campaign updated successfully:', campaign);
+          res.json(campaign);
+          return;
+        } catch (dbError) {
+          console.error('Database error updating campaign:', dbError);
+          res.status(500).json({ error: 'Failed to update campaign' });
+          return;
+        }
+      }
+      
+      res.status(400).json({ error: 'Campaign update not supported for this environment' });
+    } catch (error) {
+      console.error('Error updating campaign:', error);
+      res.status(500).json({ error: 'Failed to update campaign' });
+    }
+  });
+
   // Get single campaign by ID
   app.get('/api/:envId/campaigns/:id', async (req, res) => {
     try {
