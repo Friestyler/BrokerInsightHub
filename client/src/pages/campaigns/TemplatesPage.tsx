@@ -43,11 +43,11 @@ export default function TemplatesPage() {
   const entityTypes = ['all', ...uniqueEntities];
 
   const handleCreateTemplate = () => {
-    setLocation('/campaigns/create');
+    setLocation('/campaigns/create-template');
   };
 
   const handleEditTemplate = (templateId: string) => {
-    setLocation(`/campaigns/create?edit=${templateId}`);
+    setLocation(`/campaigns/create-template?edit=${templateId}`);
   };
 
   const handleCreateCampaign = (templateId: string) => {
