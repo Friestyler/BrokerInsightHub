@@ -192,57 +192,57 @@ export default function TemplatesPage() {
             return (
               <div
                 key={template.id}
-                className="bg-white rounded-2xl border border-gray-200 p-6 transition-all duration-200 hover:shadow-md group"
+                className="bg-white rounded-2xl border border-gray-200 p-4 transition-all duration-200 hover:shadow-md group"
               >
                 {/* Entity Type Tag */}
-                <div className="flex justify-start items-start mb-4">
+                <div className="flex justify-start items-start mb-3">
                   <Badge className={`text-xs font-medium ${entityConfig.badgeColor}`}>
                     {entityConfig.label}
                   </Badge>
                 </div>
 
                 {/* Template Custom Icon */}
-                <div className="flex justify-center mb-4">
-                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-white transition-transform duration-200 group-hover:scale-105 ${getIconColor(template.icon)}`}>
+                <div className="flex justify-center mb-3">
+                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-white transition-transform duration-200 group-hover:scale-105 ${getIconColor(template.icon)}`}>
                     {getTemplateIcon(template.icon)}
                   </div>
                 </div>
                 
                 {/* Template Info */}
-                <div className="text-center space-y-3 flex-1 flex flex-col justify-between">
-                  <div className="space-y-2">
-                    <h3 className="font-semibold text-lg leading-tight text-gray-900 line-clamp-2">
+                <div className="text-center space-y-2 flex-1 flex flex-col justify-between">
+                  <div className="space-y-1">
+                    <h3 className="font-semibold text-base leading-tight text-gray-900 line-clamp-2">
                       {template.name}
                     </h3>
-                    <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
+                    <p className="text-sm text-gray-600 line-clamp-2 leading-snug">
                       {template.description}
                     </p>
                   </div>
                   
                   {/* Email count centered */}
-                  <div className="flex items-center justify-center gap-1 text-xs text-gray-500">
+                  <div className="flex items-center justify-center gap-1 text-xs text-gray-500 mt-2">
                     <Mail className="h-3 w-3" />
                     <span>{template.emailCount}</span>
                   </div>
                   
                   {/* Action Buttons - Only visible on hover */}
-                  <div className="flex gap-2 justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                  <div className="flex gap-2 justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 mt-2">
                     <Button
                       variant="ghost"
-                      size="default"
+                      size="sm"
                       onClick={() => handleUseTemplate(template.id)}
-                      className="text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-4 py-2"
+                      className="text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-3 py-1"
                     >
-                      <Rocket className="h-4 w-4 mr-1" />
+                      <Rocket className="h-3 w-3 mr-1" />
                       Use
                     </Button>
                     <Button
                       variant="ghost"
-                      size="default"
+                      size="sm"
                       onClick={() => handleEditTemplate(template.id)}
-                      className="text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-4 py-2"
+                      className="text-sm text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-3 py-1"
                     >
-                      <Settings className="h-4 w-4 mr-1" />
+                      <Settings className="h-3 w-3 mr-1" />
                       Edit
                     </Button>
                   </div>
