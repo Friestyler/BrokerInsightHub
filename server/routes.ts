@@ -19,10 +19,12 @@ import {
   campaignRecipients,
   campaignFollowUps,
   campaignShares,
+  campaignTemplates,
   insertCampaignSchema,
   insertCampaignRecipientSchema,
   insertCampaignFollowUpSchema,
-  insertCampaignShareSchema
+  insertCampaignShareSchema,
+  insertCampaignTemplateSchema
 } from '@shared/schema';
 import { eq, sql } from 'drizzle-orm';
 import { db, pool } from './db';
