@@ -19,17 +19,18 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  // Extract route parameters from URL path directly
-  const currentPath = location;
+  // Extract route parameters from URL path directly using window.location
+  const currentPath = window.location.pathname;
   const campaignId = currentPath.includes('/campaigns/edit/') 
-    ? currentPath.split('/campaigns/edit/')[1] 
+    ? currentPath.split('/campaigns/edit/')[1].split('/')[0] // Handle any trailing slashes
     : params?.campaignId;
   const templateId = currentPath.includes('/campaigns/create-from-template/') 
-    ? currentPath.split('/campaigns/create-from-template/')[1] 
+    ? currentPath.split('/campaigns/create-from-template/')[1].split('/')[0] // Handle any trailing slashes
     : params?.templateId;
   
   // Debug logging
   console.log('CampaignFromTemplate Debug:', {
+    windowPath: window.location.pathname,
     currentPath,
     campaignId,
     templateId,
