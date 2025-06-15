@@ -154,16 +154,16 @@ export default function RecipientSelector({
   });
 
   const filteredEntities = entities.filter((entity: Entity) => 
-    entity.name.toLowerCase().includes(searchQuery.toLowerCase())
+    entity.name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const filteredContacts = allContacts.filter((contact: Contact) => 
-    contact.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    contact.fullName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
     contact.email?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const filteredLists = savedLists.filter((list: SavedList) => 
-    list.name.toLowerCase().includes(searchQuery.toLowerCase())
+    list.name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   const isRecipientSelected = (type: 'entity' | 'contact' | 'list', id: number): boolean => {
