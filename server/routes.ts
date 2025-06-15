@@ -5624,6 +5624,13 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { envId } = req.params;
       const { name, description, objective, entity, icon, status, attachments, emails } = req.body;
       
+      console.log('Campaign template creation request:', { name, description, objective, entity, icon, status, emails: emails?.length });
+      
+      // Validate required fields
+      if (!name || !entity || !emails || !Array.isArray(emails)) {
+        return res.status(400).json({ error: 'Missing required fields: name, entity, and emails array' });
+      }
+      
       // For now, use user ID 1 as default creator
       const createdBy = 1;
       
@@ -5646,18 +5653,27 @@ export async function registerRoutes(app: Express): Promise<Server> {
           INSERT INTO campaign_emails (template_id, subject, follow_up_days, left_logo, right_logo, email_order)
           VALUES ($1, $2, $3, $4, $5, $6)
           RETURNING id
-        `, [templateId, email.subject, email.followUpDays || 0, email.leftLogo, email.rightLogo, emailIndex]);
+        `, [templateId, email.subject, email.followUpDays || 0, email.leftLogo || null, email.rightLogo || null, emailIndex]);
         
         const emailId = emailResult.rows[0].id;
         
+        // Parse blocks from content string
+        let blocks = [];
+        try {
+          blocks = JSON.parse(email.content || '[]');
+        } catch (e) {
+          console.log('Failed to parse email content as JSON, treating as empty blocks array');
+          blocks = [];
+        }
+        
         // Insert blocks
-        for (let blockIndex = 0; blockIndex < email.blocks.length; blockIndex++) {
-          const block = email.blocks[blockIndex];
+        for (let blockIndex = 0; blockIndex < blocks.length; blockIndex++) {
+          const block = blocks[blockIndex];
           
           await pool.query(`
             INSERT INTO email_blocks (email_id, type, content, properties, block_order)
             VALUES ($1, $2, $3, $4, $5)
-          `, [emailId, block.type, block.content, JSON.stringify(block.properties || {}), blockIndex]);
+          `, [emailId, block.type || 'text', block.content || '', JSON.stringify(block.properties || {}), blockIndex]);
         }
       }
       

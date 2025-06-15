@@ -366,10 +366,8 @@ export default function CampaignCreator() {
       name: campaignData.name,
       description: campaignData.description,
       objective: campaignData.objective,
-      type: campaignData.entity,
-      category: 'template',
+      entity: campaignData.entity,
       status: 'published',
-      isTemplate: true,
       emails: campaignData.emails.map(email => ({
         subject: email.subject,
         content: JSON.stringify(email.blocks),
