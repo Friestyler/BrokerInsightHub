@@ -30,17 +30,17 @@ export default function CampaignsOverview() {
       <div className="bg-white border-b">
         <div className="max-w-6xl mx-auto px-6 py-3">
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="h-auto p-0 bg-transparent">
+            <TabsList className="h-auto p-1 bg-gray-100 rounded-lg inline-flex">
               <TabsTrigger 
                 value="templates" 
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200 data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:border-indigo-600 data-[state=inactive]:hover:bg-indigo-100 transition-all mr-2"
+                className="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm data-[state=inactive]:text-gray-600 data-[state=inactive]:hover:text-gray-800"
               >
                 <FileText className="h-4 w-4" />
                 Templates
               </TabsTrigger>
               <TabsTrigger 
                 value="campaigns" 
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-50 text-gray-600 border border-gray-200 data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:border-indigo-600 data-[state=inactive]:hover:bg-gray-100 transition-all"
+                className="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm data-[state=inactive]:text-gray-600 data-[state=inactive]:hover:text-gray-800"
               >
                 <Send className="h-4 w-4" />
                 Campaigns
