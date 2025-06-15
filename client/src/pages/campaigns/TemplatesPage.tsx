@@ -3,26 +3,36 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, FileText, Mail, Settings, Eye } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Plus, FileText, Mail, Settings, Eye, Filter } from "lucide-react";
 import { useLocation } from 'wouter';
 
 interface EmailTemplate {
-  id: string;
+  id: number;
   name: string;
   description: string;
+  entity_type: string;
   objective: string;
-  emailCount: number;
+  emails: any[];
   status: 'draft' | 'published';
-  createdAt: string;
-  updatedAt: string;
+  category: string;
+  tags: string[];
+  created_at: string;
+  updated_at: string;
 }
 
 export default function TemplatesPage() {
   const [, setLocation] = useLocation();
+  const [selectedEntityFilter, setSelectedEntityFilter] = useState<string>('all');
   
   const { data: templates, isLoading } = useQuery<EmailTemplate[]>({
-    queryKey: ['/api/campaign-templates'],
-    enabled: false // Disable until backend is ready
+    queryKey: ['/api/campaign-templates', selectedEntityFilter],
+    queryFn: () => {
+      const url = selectedEntityFilter === 'all' 
+        ? '/api/campaign-templates' 
+        : `/api/campaign-templates?entity_type=${selectedEntityFilter}`;
+      return fetch(url).then(res => res.json());
+    }
   });
 
   const templateList = templates || [];
@@ -31,12 +41,32 @@ export default function TemplatesPage() {
     setLocation('/campaigns/create');
   };
 
-  const handleEditTemplate = (templateId: string) => {
+  const handleEditTemplate = (templateId: number) => {
     setLocation(`/campaigns/templates/${templateId}/edit`);
   };
 
-  const handlePreviewTemplate = (templateId: string) => {
+  const handlePreviewTemplate = (templateId: number) => {
     setLocation(`/campaigns/templates/${templateId}/preview`);
+  };
+
+  const getEntityTypeColor = (entityType: string) => {
+    switch (entityType) {
+      case 'opportunities': return 'bg-green-100 text-green-800';
+      case 'customers': return 'bg-blue-100 text-blue-800';
+      case 'partners': return 'bg-purple-100 text-purple-800';
+      case 'internal': return 'bg-gray-100 text-gray-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getEntityTypeLabel = (entityType: string) => {
+    switch (entityType) {
+      case 'opportunities': return 'Opportunities';
+      case 'customers': return 'Customers';
+      case 'partners': return 'Partners';
+      case 'internal': return 'Internal';
+      default: return entityType;
+    }
   };
 
   if (isLoading) {
