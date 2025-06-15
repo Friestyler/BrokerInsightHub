@@ -10,7 +10,7 @@ import { useLocation } from 'wouter';
 import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import ImprovedEmailBuilder from './ImprovedEmailBuilder';
+import ImprovedFlowBuilder from './ImprovedEmailBuilder';
 
 interface StepProps {
   isActive: boolean;

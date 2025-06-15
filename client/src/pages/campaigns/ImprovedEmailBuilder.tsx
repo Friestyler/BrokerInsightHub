@@ -558,9 +558,9 @@ Status: Ready for deployment`;
                 </div>
               </div>
 
-              {/* Content Builder */}
+              {/* Flow Builder */}
               <div>
-                <h4 className="text-lg font-medium text-gray-900 mb-4">Email Content</h4>
+                <h4 className="text-lg font-medium text-gray-900 mb-4">Flow Content</h4>
                 <div className="border rounded-lg min-h-[500px] p-6 bg-gray-50">
                   {editingEmail.blocks.map((block, blockIndex) => (
                     <div
@@ -764,8 +764,8 @@ Status: Ready for deployment`;
                   {editingEmail.blocks.length === 0 && (
                     <div className="text-center py-16 text-gray-500">
                       <FileText className="h-12 w-12 mx-auto mb-4 text-gray-300" />
-                      <p className="mb-4 text-lg">Start building your email</p>
-                      <p className="text-sm">Add content blocks from the sidebar to get started</p>
+                      <p className="mb-4 text-lg">Start building your flow</p>
+                      <p className="text-sm">Add flow elements from the sidebar to get started</p>
                     </div>
                   )}
                 </div>
@@ -787,9 +787,9 @@ Status: Ready for deployment`;
 
             {/* Sidebar - 1 column */}
             <div className="space-y-6">
-              {/* Content Blocks */}
+              {/* Flow Elements */}
               <div>
-                <h4 className="text-sm font-semibold text-gray-900 mb-3">Content Blocks</h4>
+                <h4 className="text-sm font-semibold text-gray-900 mb-3">Flow Elements</h4>
                 <div className="space-y-2">
                   {contentBlocks.map((block) => {
                     const IconComponent = block.icon;
@@ -858,7 +858,7 @@ Status: Ready for deployment`;
       {/* Preview Section */}
       {expandedEmailIndex >= 0 && editingEmail && (
         <div ref={previewRef} className="mt-8 bg-white rounded-lg border p-6">
-          <h4 className="text-lg font-medium text-gray-900 mb-4">Email Preview</h4>
+          <h4 className="text-lg font-medium text-gray-900 mb-4">Flow Preview</h4>
           <div className="bg-gray-50 rounded-lg p-6">
             <div className="bg-white rounded border p-6 max-w-2xl mx-auto">
               {/* Logo Header */}
@@ -929,7 +929,7 @@ Status: Ready for deployment`;
               ))}
               
               {editingEmail.blocks.length === 0 && (
-                <p className="text-gray-400 text-center py-8">Email preview will appear here...</p>
+                <p className="text-gray-400 text-center py-8">Flow preview will appear here...</p>
               )}
             </div>
           </div>
@@ -940,7 +940,7 @@ Status: Ready for deployment`;
       {emails.length === 0 && (
         <div className="text-center py-16">
           <Mail className="h-16 w-16 mx-auto mb-6 text-gray-300" />
-          <h3 className="text-xl font-medium text-gray-900 mb-2">Start Building Your Email Sequence</h3>
+          <h3 className="text-xl font-medium text-gray-900 mb-2">Start Building Your Flow Sequence</h3>
           <p className="text-gray-600 mb-6">Create your first email to get started</p>
           <Button onClick={addNewEmail} size="lg" className="gap-2">
             <PlusIcon className="h-5 w-5" />
