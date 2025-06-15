@@ -172,7 +172,7 @@ export default function TemplatesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">Email Templates</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Templates for Campaigns & Updates</h1>
           <p className="text-sm text-muted-foreground">
             Create reusable email sequences and campaign blueprints
           </p>
@@ -182,7 +182,6 @@ export default function TemplatesPage() {
           Create New Template
         </Button>
       </div>
-
       {/* Entity Filter */}
       <div className="flex flex-wrap gap-1">
         {entityTypes.map((entityType) => {
@@ -219,7 +218,6 @@ export default function TemplatesPage() {
           );
         })}
       </div>
-
       {/* Templates Grid */}
       {templateList.length === 0 ? (
         <div className="text-center py-12">
