@@ -619,80 +619,90 @@ export default function RecipientSelector({
           <div className="space-y-3">
             <div className="flex justify-between items-center">
               <h3 className="text-lg font-medium text-gray-900">All Contacts</h3>
-              <Dialog open={showAddContact} onOpenChange={setShowAddContact}>
-                <DialogTrigger asChild>
-                  <Button size="sm" className="gap-2">
-                    <UserPlus className="h-4 w-4" />
-                    Add Contact
-                  </Button>
-                </DialogTrigger>
-                <DialogContent>
-                  <DialogHeader>
-                    <DialogTitle>Add New Contact</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4 mt-4">
-                    <div className="grid grid-cols-2 gap-4">
+              <div className="flex gap-2">
+                <Button
+                  variant={bulkMode ? "default" : "outline"}
+                  size="sm"
+                  onClick={() => setBulkMode(!bulkMode)}
+                >
+                  <CheckCircle2 className="h-4 w-4 mr-1" />
+                  Bulk Select
+                </Button>
+                <Dialog open={showAddContact} onOpenChange={setShowAddContact}>
+                  <DialogTrigger asChild>
+                    <Button size="sm" className="gap-2">
+                      <UserPlus className="h-4 w-4" />
+                      Add Contact
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Add New Contact</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 mt-4">
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <Label htmlFor="firstName">First Name</Label>
+                          <Input
+                            id="firstName"
+                            value={newContact.firstName}
+                            onChange={(e) => setNewContact({ ...newContact, firstName: e.target.value })}
+                            placeholder="John"
+                          />
+                        </div>
+                        <div>
+                          <Label htmlFor="lastName">Last Name</Label>
+                          <Input
+                            id="lastName"
+                            value={newContact.lastName}
+                            onChange={(e) => setNewContact({ ...newContact, lastName: e.target.value })}
+                            placeholder="Doe"
+                          />
+                        </div>
+                      </div>
                       <div>
-                        <Label htmlFor="firstName">First Name</Label>
+                        <Label htmlFor="email">Email</Label>
                         <Input
-                          id="firstName"
-                          value={newContact.firstName}
-                          onChange={(e) => setNewContact({ ...newContact, firstName: e.target.value })}
-                          placeholder="John"
+                          id="email"
+                          type="email"
+                          value={newContact.email}
+                          onChange={(e) => setNewContact({ ...newContact, email: e.target.value })}
+                          placeholder="john.doe@example.com"
                         />
                       </div>
                       <div>
-                        <Label htmlFor="lastName">Last Name</Label>
+                        <Label htmlFor="phone">Phone</Label>
                         <Input
-                          id="lastName"
-                          value={newContact.lastName}
-                          onChange={(e) => setNewContact({ ...newContact, lastName: e.target.value })}
-                          placeholder="Doe"
+                          id="phone"
+                          value={newContact.phone}
+                          onChange={(e) => setNewContact({ ...newContact, phone: e.target.value })}
+                          placeholder="+1 (555) 123-4567"
                         />
                       </div>
+                      <div>
+                        <Label htmlFor="jobTitle">Job Title</Label>
+                        <Input
+                          id="jobTitle"
+                          value={newContact.jobTitle}
+                          onChange={(e) => setNewContact({ ...newContact, jobTitle: e.target.value })}
+                          placeholder="Marketing Manager"
+                        />
+                      </div>
+                      <div className="flex justify-end space-x-2">
+                        <Button variant="outline" onClick={() => setShowAddContact(false)}>
+                          Cancel
+                        </Button>
+                        <Button 
+                          onClick={handleAddContact}
+                          disabled={!newContact.firstName || !newContact.lastName || !newContact.email || addContactMutation.isPending}
+                        >
+                          {addContactMutation.isPending ? 'Adding...' : 'Add Contact'}
+                        </Button>
+                      </div>
                     </div>
-                    <div>
-                      <Label htmlFor="email">Email</Label>
-                      <Input
-                        id="email"
-                        type="email"
-                        value={newContact.email}
-                        onChange={(e) => setNewContact({ ...newContact, email: e.target.value })}
-                        placeholder="john.doe@example.com"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="phone">Phone</Label>
-                      <Input
-                        id="phone"
-                        value={newContact.phone}
-                        onChange={(e) => setNewContact({ ...newContact, phone: e.target.value })}
-                        placeholder="+1 (555) 123-4567"
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="jobTitle">Job Title</Label>
-                      <Input
-                        id="jobTitle"
-                        value={newContact.jobTitle}
-                        onChange={(e) => setNewContact({ ...newContact, jobTitle: e.target.value })}
-                        placeholder="Marketing Manager"
-                      />
-                    </div>
-                    <div className="flex justify-end space-x-2">
-                      <Button variant="outline" onClick={() => setShowAddContact(false)}>
-                        Cancel
-                      </Button>
-                      <Button 
-                        onClick={handleAddContact}
-                        disabled={!newContact.firstName || !newContact.lastName || !newContact.email || addContactMutation.isPending}
-                      >
-                        {addContactMutation.isPending ? 'Adding...' : 'Add Contact'}
-                      </Button>
-                    </div>
-                  </div>
-                </DialogContent>
-              </Dialog>
+                  </DialogContent>
+                </Dialog>
+              </div>
             </div>
 
             {contactsLoading ? (
