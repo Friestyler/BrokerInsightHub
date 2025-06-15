@@ -38,7 +38,7 @@ export default function TemplatesPage() {
   const templateList = templates || [];
 
   const handleCreateTemplate = () => {
-    setLocation('/campaigns/templates/create');
+    setLocation('/campaigns/create');
   };
 
   const handleEditTemplate = (templateId: number) => {
@@ -46,8 +46,8 @@ export default function TemplatesPage() {
   };
 
   const handleUseTemplate = (templateId: number) => {
-    // TODO: Implement template usage functionality later
-    console.log('Use template functionality will be implemented later');
+    // Navigate to campaign builder with template pre-selected
+    setLocation(`/campaigns/create?template=${templateId}`);
   };
 
   const getEntityTypeIcon = (entityType: string) => {
