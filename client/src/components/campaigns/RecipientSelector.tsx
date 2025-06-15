@@ -96,8 +96,7 @@ export default function RecipientSelector({
   const [selectedTab, setSelectedTab] = useState<'lists' | 'contacts' | 'selected'>('lists');
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [showAddContact, setShowAddContact] = useState(false);
-  const [bulkMode, setBulkMode] = useState(false);
-  const [selectedForBulk, setSelectedForBulk] = useState<Set<string>>(new Set());
+
   const [newContact, setNewContact] = useState({
     firstName: '',
     lastName: '',
@@ -559,14 +558,6 @@ export default function RecipientSelector({
           </div>
           
           <div className="flex gap-2">
-            <Button
-              variant={bulkMode ? "default" : "outline"}
-              size="sm"
-              onClick={() => setBulkMode(!bulkMode)}
-            >
-              <CheckCircle2 className="h-4 w-4 mr-1" />
-              Bulk Select
-            </Button>
             <Dialog open={showAddContact} onOpenChange={setShowAddContact}>
               <DialogContent>
                 <DialogHeader>
