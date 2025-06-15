@@ -5123,6 +5123,50 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Create new campaign
+  app.post('/api/:envId/campaigns', async (req, res) => {
+    try {
+      const { envId } = req.params;
+      const campaignData = req.body;
+      
+      if (envId === 'degoudse') {
+        try {
+          const result = await pool.query(`
+            INSERT INTO ${envId}.campaigns (
+              name, description, template_id, entity, target_group, 
+              recipients, status, settings, created_by, created_at, updated_at
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+            RETURNING *
+          `, [
+            campaignData.name,
+            campaignData.description,
+            campaignData.templateId,
+            campaignData.entity,
+            campaignData.targetGroup,
+            JSON.stringify(campaignData.recipients),
+            campaignData.status || 'draft',
+            JSON.stringify(campaignData.settings),
+            campaignData.createdBy
+          ]);
+          
+          const campaign = result.rows[0];
+          console.log('Campaign created successfully:', campaign);
+          res.status(201).json(campaign);
+          return;
+        } catch (dbError) {
+          console.error('Database error creating campaign:', dbError);
+          res.status(500).json({ error: 'Failed to create campaign' });
+          return;
+        }
+      }
+      
+      res.status(400).json({ error: 'Campaign creation not supported for this environment' });
+    } catch (error) {
+      console.error('Error creating campaign:', error);
+      res.status(500).json({ error: 'Failed to create campaign' });
+    }
+  });
+
   // Get single campaign by ID
   app.get('/api/:envId/campaigns/:id', async (req, res) => {
     try {
