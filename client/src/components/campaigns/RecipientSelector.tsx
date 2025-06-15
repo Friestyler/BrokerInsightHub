@@ -649,15 +649,7 @@ export default function RecipientSelector({
             <Users className="h-4 w-4" />
             Lists
           </Button>
-          <Button
-            variant={selectedTab === 'contacts' ? 'default' : 'outline'}
-            size="sm"
-            onClick={() => setSelectedTab('contacts')}
-            className="gap-2"
-          >
-            <Mail className="h-4 w-4" />
-            Contacts
-          </Button>
+
           <Button
             variant={selectedTab === 'selected' ? 'default' : 'outline'}
             size="sm"
@@ -679,16 +671,6 @@ export default function RecipientSelector({
               <h3 className="text-lg font-medium text-gray-900">
                 {entityType.charAt(0).toUpperCase() + entityType.slice(1)} Lists
               </h3>
-              {bulkMode && (
-                <div className="flex gap-2">
-                  <Button size="sm" variant="outline">
-                    Select All ({filteredLists.length})
-                  </Button>
-                  <Button size="sm" variant="outline">
-                    Clear Selection
-                  </Button>
-                </div>
-              )}
             </div>
 
             {listsLoading ? (
