@@ -167,10 +167,10 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   const getStepDescription = (stepNum: number): string => {
     switch (stepNum) {
       case 1:
-        if (campaignData.name) {
+        if (campaignData.name && campaignData.description && campaignData.objective) {
           return `Campaign: ${campaignData.name.substring(0, 30)}${campaignData.name.length > 30 ? '...' : ''}`;
         }
-        return 'Give your campaign a name';
+        return 'Configure campaign name and details';
       case 2:
         if (campaignData.entity) {
           const entityNames: Record<string, string> = {
@@ -183,18 +183,13 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
         }
         return 'Choose target group (from template)';
       case 3:
-        if (campaignData.name && campaignData.description && campaignData.objective) {
-          return `Template: ${campaignData.name.substring(0, 30)}${campaignData.name.length > 30 ? '...' : ''}`;
-        }
-        return 'Configure template settings';
-      case 4:
         return 'Select campaign recipients';
-      case 5:
+      case 4:
         if (campaignData.emails[0].subject) {
           return `Subject: ${campaignData.emails[0].subject.substring(0, 30)}${campaignData.emails[0].subject.length > 30 ? '...' : ''}`;
         }
         return 'Review and edit email content';
-      case 6:
+      case 5:
         return 'Configure campaign settings';
       default:
         return '';
@@ -204,9 +199,9 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   const steps = [
     {
       number: 1,
-      title: 'Give a Name',
+      title: 'Campaign Details',
       description: getStepDescription(1),
-      component: 'name'
+      component: 'details'
     },
     {
       number: 2,
@@ -216,26 +211,20 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     },
     {
       number: 3,
-      title: 'Template Details',
-      description: getStepDescription(3),
-      component: 'details'
-    },
-    {
-      number: 4,
       title: 'Select Recipients',
-      description: getStepDescription(4),
+      description: getStepDescription(3),
       component: 'recipients'
     },
     {
-      number: 5,
+      number: 4,
       title: 'Flow Builder',
-      description: getStepDescription(5),
+      description: getStepDescription(4),
       component: 'builder'
     },
     {
-      number: 6,
+      number: 5,
       title: 'Settings',
-      description: getStepDescription(6),
+      description: getStepDescription(5),
       component: 'settings'
     }
   ];
@@ -244,15 +233,14 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   const progress = (currentStep / totalSteps) * 100;
 
   const isStepCompleted = (stepNum: number): boolean => {
-    if (stepNum === 1) return Boolean(campaignData.name);
+    if (stepNum === 1) return Boolean(campaignData.name && campaignData.description && campaignData.objective && campaignData.icon);
     if (stepNum === 2) return Boolean(campaignData.entity);
-    if (stepNum === 3) return Boolean(campaignData.name && campaignData.description && campaignData.objective && campaignData.icon);
-    if (stepNum === 4) return campaignData.recipients.length > 0;
-    if (stepNum === 5) {
+    if (stepNum === 3) return campaignData.recipients.length > 0;
+    if (stepNum === 4) {
       const firstEmail = campaignData.emails[0];
       return Boolean(firstEmail && firstEmail.subject && firstEmail.subject.trim());
     }
-    if (stepNum === 6) return Boolean(campaignData.settings.sendTime);
+    if (stepNum === 5) return Boolean(campaignData.settings.sendTime);
     return stepNum < currentStep;
   };
 
@@ -262,12 +250,11 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     if (stepNum === 3) return isStepCompleted(2);
     if (stepNum === 4) return isStepCompleted(3);
     if (stepNum === 5) return isStepCompleted(4);
-    if (stepNum === 6) return isStepCompleted(5);
     return false;
   };
 
   const canSave = (): boolean => {
-    return isStepCompleted(1) && isStepCompleted(2) && isStepCompleted(3) && isStepCompleted(4) && isStepCompleted(5) && isStepCompleted(6);
+    return isStepCompleted(1) && isStepCompleted(2) && isStepCompleted(3) && isStepCompleted(4) && isStepCompleted(5);
   };
 
   const handleNext = () => {
@@ -288,8 +275,8 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
         return (
           <div className="space-y-8">
             <div className="text-center">
-              <h2 className="text-xl font-medium text-gray-900 mb-2">Give your campaign a name</h2>
-              <p className="text-gray-600">Choose a descriptive name to help identify this campaign</p>
+              <h2 className="text-xl font-medium text-gray-900 mb-2">Campaign Details</h2>
+              <p className="text-gray-600">Configure your campaign name and details</p>
             </div>
 
             <div className="max-w-2xl mx-auto space-y-6">
@@ -304,6 +291,61 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                 <p className="text-xs text-gray-500 mt-1">
                   This will help you identify this campaign from the template "{templateData?.name}"
                 </p>
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
+                <Textarea
+                  placeholder="Describe what this campaign is for and when to use it..."
+                  value={campaignData.description}
+                  onChange={(e) => setCampaignData({ ...campaignData, description: e.target.value })}
+                  className="min-h-[100px]"
+                />
+              </div>
+              
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Objective</label>
+                <Textarea
+                  placeholder="What is the main goal of this campaign? What outcome do you want to achieve?"
+                  value={campaignData.objective}
+                  onChange={(e) => setCampaignData({ ...campaignData, objective: e.target.value })}
+                  className="min-h-[80px]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Choose an Icon</label>
+                <div className="grid grid-cols-6 gap-3">
+                  {[
+                    { id: 'target', icon: <Target className="h-5 w-5" />, color: 'bg-blue-500' },
+                    { id: 'trending-up', icon: <TrendingUp className="h-5 w-5" />, color: 'bg-green-500' },
+                    { id: 'zap', icon: <Zap className="h-5 w-5" />, color: 'bg-yellow-500' },
+                    { id: 'star', icon: <Star className="h-5 w-5" />, color: 'bg-purple-500' },
+                    { id: 'heart', icon: <Heart className="h-5 w-5" />, color: 'bg-pink-500' },
+                    { id: 'gift', icon: <Gift className="h-5 w-5" />, color: 'bg-red-500' },
+                    { id: 'mail', icon: <Mail className="h-5 w-5" />, color: 'bg-gray-500' },
+                    { id: 'sparkles', icon: <Sparkles className="h-5 w-5" />, color: 'bg-indigo-500' },
+                    { id: 'rocket', icon: <Rocket className="h-5 w-5" />, color: 'bg-orange-500' },
+                    { id: 'shield', icon: <Shield className="h-5 w-5" />, color: 'bg-teal-500' },
+                    { id: 'diamond', icon: <Diamond className="h-5 w-5" />, color: 'bg-cyan-500' },
+                    { id: 'award', icon: <Award className="h-5 w-5" />, color: 'bg-emerald-500' }
+                  ].map((iconOption) => (
+                    <button
+                      key={iconOption.id}
+                      type="button"
+                      onClick={() => setCampaignData({ ...campaignData, icon: iconOption.id })}
+                      className={`p-3 rounded-lg border-2 transition-all ${
+                        campaignData.icon === iconOption.id
+                          ? 'border-blue-500 bg-blue-50'
+                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                      }`}
+                    >
+                      <div className={`${iconOption.color} text-white p-1 rounded`}>
+                        {iconOption.icon}
+                      </div>
+                    </button>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
@@ -416,83 +458,6 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
         return (
           <div className="space-y-8">
             <div className="text-center">
-              <h2 className="text-xl font-medium text-gray-900 mb-2">Template Details</h2>
-              <p className="text-gray-600">Configure your template settings</p>
-            </div>
-
-            <div className="max-w-2xl mx-auto space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Template Name</label>
-                <Input
-                  placeholder="Enter a descriptive name for your template..."
-                  value={campaignData.name}
-                  onChange={(e) => setCampaignData({ ...campaignData, name: e.target.value })}
-                  className="h-12"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Description</label>
-                <Textarea
-                  placeholder="Describe what this template is for and when to use it..."
-                  value={campaignData.description}
-                  onChange={(e) => setCampaignData({ ...campaignData, description: e.target.value })}
-                  className="min-h-[100px]"
-                />
-              </div>
-              
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Objective</label>
-                <Textarea
-                  placeholder="What is the main goal of this template? What outcome do you want to achieve?"
-                  value={campaignData.objective}
-                  onChange={(e) => setCampaignData({ ...campaignData, objective: e.target.value })}
-                  className="min-h-[80px]"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Choose an Icon</label>
-                <div className="grid grid-cols-6 gap-3">
-                  {[
-                    { id: 'target', icon: <Target className="h-5 w-5" />, color: 'bg-blue-500' },
-                    { id: 'trending-up', icon: <TrendingUp className="h-5 w-5" />, color: 'bg-green-500' },
-                    { id: 'zap', icon: <Zap className="h-5 w-5" />, color: 'bg-yellow-500' },
-                    { id: 'star', icon: <Star className="h-5 w-5" />, color: 'bg-purple-500' },
-                    { id: 'heart', icon: <Heart className="h-5 w-5" />, color: 'bg-pink-500' },
-                    { id: 'gift', icon: <Gift className="h-5 w-5" />, color: 'bg-red-500' },
-                    { id: 'mail', icon: <Mail className="h-5 w-5" />, color: 'bg-gray-500' },
-                    { id: 'sparkles', icon: <Sparkles className="h-5 w-5" />, color: 'bg-indigo-500' },
-                    { id: 'rocket', icon: <Rocket className="h-5 w-5" />, color: 'bg-orange-500' },
-                    { id: 'shield', icon: <Shield className="h-5 w-5" />, color: 'bg-teal-500' },
-                    { id: 'diamond', icon: <Diamond className="h-5 w-5" />, color: 'bg-cyan-500' },
-                    { id: 'award', icon: <Award className="h-5 w-5" />, color: 'bg-emerald-500' }
-                  ].map((iconOption) => (
-                    <button
-                      key={iconOption.id}
-                      type="button"
-                      onClick={() => setCampaignData({ ...campaignData, icon: iconOption.id })}
-                      className={`p-3 rounded-lg border-2 transition-all ${
-                        campaignData.icon === iconOption.id
-                          ? 'border-blue-500 bg-blue-50'
-                          : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
-                      }`}
-                    >
-                      <div className={`${iconOption.color} text-white p-1 rounded`}>
-                        {iconOption.icon}
-                      </div>
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          </div>
-        );
-
-      case 4:
-        return (
-          <div className="space-y-8">
-            <div className="text-center">
               <h2 className="text-xl font-medium text-gray-900 mb-2">Select Recipients</h2>
               <p className="text-gray-600">Choose who will receive this campaign</p>
             </div>
@@ -525,7 +490,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
           </div>
         );
 
-      case 5:
+      case 4:
         return (
           <div className="space-y-6">
             <div className="text-center">
@@ -549,7 +514,7 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
           </div>
         );
 
-      case 6:
+      case 5:
         return (
           <div className="space-y-8">
             <div className="text-center">
