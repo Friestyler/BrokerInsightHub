@@ -8,6 +8,7 @@ import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
 import ImprovedFlowBuilder from './ImprovedEmailBuilder';
+import RecipientSelector from '@/components/campaigns/RecipientSelector';
 
 interface CampaignFromTemplateProps {
   params: { templateId: string };
@@ -464,30 +465,14 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
               <p className="text-gray-600">Choose who will receive this campaign</p>
             </div>
 
-            <div className="max-w-2xl mx-auto">
-              <div className="p-8 text-center border-2 border-dashed border-gray-300 rounded-lg">
-                <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-700 mb-2">
-                  Select Recipients
-                </h3>
-                <p className="text-sm text-gray-500 max-w-md mx-auto mb-4">
-                  This step will allow you to choose specific contacts from your {campaignData.entity} list to receive this campaign.
-                </p>
-                <Button 
-                  variant="outline" 
-                  onClick={() => {
-                    setCampaignData({
-                      ...campaignData,
-                      recipients: [
-                        { id: 1, name: 'Sample Contact 1', email: 'contact1@example.com', type: campaignData.entity },
-                        { id: 2, name: 'Sample Contact 2', email: 'contact2@example.com', type: campaignData.entity }
-                      ]
-                    });
-                  }}
-                >
-                  Add Sample Recipients (Placeholder)
-                </Button>
-              </div>
+            <div className="max-w-6xl mx-auto">
+              <RecipientSelector
+                entityType={campaignData.entity}
+                selectedRecipients={campaignData.recipients}
+                onRecipientsChange={(recipients) => 
+                  setCampaignData({ ...campaignData, recipients })
+                }
+              />
             </div>
           </div>
         );
