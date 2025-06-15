@@ -205,19 +205,24 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
             'partners': 'Partners',
             'customers': 'Customers', 
             'opportunities': 'Opportunities',
-            'internal': 'Internal'
+            'internal': 'Internal Team'
           };
-          return `Target: ${entityNames[campaignData.entity] || campaignData.entity}`;
+          return `Selected: ${entityNames[campaignData.entity] || campaignData.entity}`;
         }
         return 'Choose target group (from template)';
       case 3:
-        return 'Select campaign recipients';
+        if (campaignData.name && campaignData.description && campaignData.objective) {
+          return `Template: ${campaignData.name.substring(0, 30)}${campaignData.name.length > 30 ? '...' : ''}`;
+        }
+        return 'Configure template settings';
       case 4:
+        return 'Select campaign recipients';
+      case 5:
         if (campaignData.emails[0].subject) {
           return `Subject: ${campaignData.emails[0].subject.substring(0, 30)}${campaignData.emails[0].subject.length > 30 ? '...' : ''}`;
         }
         return 'Review and edit email content';
-      case 5:
+      case 6:
         return 'Configure campaign settings';
       default:
         return '';
@@ -239,20 +244,26 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     },
     {
       number: 3,
-      title: 'Select Recipients',
+      title: 'Template Details',
       description: getStepDescription(3),
-      component: 'recipients'
+      component: 'details'
     },
     {
       number: 4,
-      title: 'Flow Builder',
+      title: 'Select Recipients',
       description: getStepDescription(4),
-      component: 'builder'
+      component: 'recipients'
     },
     {
       number: 5,
-      title: 'Settings',
+      title: 'Flow Builder',
       description: getStepDescription(5),
+      component: 'builder'
+    },
+    {
+      number: 6,
+      title: 'Settings',
+      description: getStepDescription(6),
       component: 'settings'
     }
   ];
@@ -309,12 +320,13 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   const isStepCompleted = (stepNum: number): boolean => {
     if (stepNum === 1) return Boolean(campaignData.name);
     if (stepNum === 2) return Boolean(campaignData.entity);
-    if (stepNum === 3) return campaignData.recipients.length > 0;
-    if (stepNum === 4) {
+    if (stepNum === 3) return Boolean(campaignData.name && campaignData.description && campaignData.objective && campaignData.icon);
+    if (stepNum === 4) return campaignData.recipients.length > 0;
+    if (stepNum === 5) {
       const firstEmail = campaignData.emails[0];
       return Boolean(firstEmail && firstEmail.subject && firstEmail.subject.trim());
     }
-    if (stepNum === 5) return Boolean(campaignData.settings.sendTime);
+    if (stepNum === 6) return Boolean(campaignData.settings.sendTime);
     return stepNum < currentStep;
   };
 
@@ -324,11 +336,12 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     if (stepNum === 3) return isStepCompleted(2);
     if (stepNum === 4) return isStepCompleted(3);
     if (stepNum === 5) return isStepCompleted(4);
+    if (stepNum === 6) return isStepCompleted(5);
     return false;
   };
 
   const canSave = (): boolean => {
-    return isStepCompleted(1) && isStepCompleted(2) && isStepCompleted(4) && isStepCompleted(5);
+    return isStepCompleted(1) && isStepCompleted(2) && isStepCompleted(3) && isStepCompleted(4) && isStepCompleted(5) && isStepCompleted(6);
   };
 
   if (templateLoading) {
@@ -437,22 +450,181 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                   </div>
                 )}
 
-                {/* Step 2: Choose Target Group (pre-filled from template) */}
+                {/* Step 2: Choose Target Group - EXACT COPY FROM TEMPLATE */}
                 {currentStep === 2 && (
                   <div className="space-y-6">
-                    <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-                      <p className="text-sm text-blue-700">
-                        <strong>Target group is pre-selected from the template:</strong> {campaignData.entity}
+                    <div className="mb-8">
+                      <p className="text-base text-muted-foreground mb-6">
+                        Select the type of audience you want to create a template for
                       </p>
-                      <p className="text-xs text-blue-600 mt-1">
-                        This matches the entity type configured in the original template.
-                      </p>
+                    </div>
+
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {[
+                        {
+                          id: 'opportunities',
+                          title: 'Opportunities',
+                          subtitle: 'Sales Campaign',
+                          description: 'Target specific sales opportunities with personalized outreach to close deals faster',
+                          icon: <Target className="h-6 w-6" />,
+                          color: 'from-green-500 to-emerald-600',
+                          hoverColor: 'green',
+                          category: 'campaign'
+                        },
+                        {
+                          id: 'customers',
+                          title: 'Customers',
+                          subtitle: 'Customer Campaign',
+                          description: 'Engage existing customers with upsell, cross-sell, or retention campaigns',
+                          icon: <Users className="h-6 w-6" />,
+                          color: 'from-blue-500 to-indigo-600',
+                          hoverColor: 'blue',
+                          category: 'campaign'
+                        },
+                        {
+                          id: 'partners',
+                          title: 'Partners',
+                          subtitle: 'Partner Updates',
+                          description: 'Send business updates, announcements, and collaboration invites to partners',
+                          icon: <Send className="h-6 w-6" />,
+                          color: 'from-purple-500 to-violet-600',
+                          hoverColor: 'purple',
+                          category: 'update'
+                        },
+                        {
+                          id: 'internal',
+                          title: 'Internal Team',
+                          subtitle: 'Internal Updates',
+                          description: 'Share company news, policy updates, and internal communications',
+                          icon: <Mail className="h-6 w-6" />,
+                          color: 'from-orange-500 to-red-600',
+                          hoverColor: 'orange',
+                          category: 'update'
+                        }
+                      ].map((option) => (
+                        <div
+                          key={option.id}
+                          className={`relative group cursor-pointer rounded-lg border-2 p-6 transition-all duration-200 ${
+                            campaignData.entity === option.id
+                              ? `border-${option.hoverColor}-200 bg-${option.hoverColor}-50 shadow-sm`
+                              : 'border-muted hover:border-border/80 hover:shadow-sm'
+                          }`}
+                          onClick={() => setCampaignData({ ...campaignData, entity: option.id })}
+                        >
+                          <div className="flex items-start gap-4">
+                            <div className={`p-3 rounded-lg bg-gradient-to-br ${option.color} text-white shadow-sm`}>
+                              {option.icon}
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <h3 className="font-semibold text-foreground text-base mb-1">
+                                {option.title}
+                              </h3>
+                              <p className="text-sm font-medium text-muted-foreground mb-2">
+                                {option.subtitle}
+                              </p>
+                              <p className="text-sm text-muted-foreground leading-relaxed">
+                                {option.description}
+                              </p>
+                            </div>
+                          </div>
+                          
+                          {campaignData.entity === option.id && (
+                            <div className="absolute top-4 right-4">
+                              <div className={`p-1 rounded-full bg-${option.hoverColor}-500 text-white`}>
+                                <Check className="h-3 w-3" />
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+
+                    {campaignData.entity && (
+                      <div className="mt-6 p-3 bg-green-50 rounded-lg border border-green-200">
+                        <p className="text-sm text-green-700 flex items-center gap-2">
+                          <Check className="h-4 w-4" />
+                          {['opportunities', 'customers', 'partners', 'internal'].find(id => id === campaignData.entity) === 'opportunities' ? 'Opportunities' :
+                           ['opportunities', 'customers', 'partners', 'internal'].find(id => id === campaignData.entity) === 'customers' ? 'Customers' :
+                           ['opportunities', 'customers', 'partners', 'internal'].find(id => id === campaignData.entity) === 'partners' ? 'Partners' : 'Internal Team'} selected
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Step 3: Template Details - EXACT COPY FROM TEMPLATE */}
+                {currentStep === 3 && (
+                  <div className="space-y-6">
+                    <div className="space-y-4">
+                      <div>
+                        <label className="text-sm font-medium block mb-2">Template Name</label>
+                        <Input
+                          placeholder="Enter a descriptive name for your template..."
+                          value={campaignData.name}
+                          onChange={(e) => setCampaignData({ ...campaignData, name: e.target.value })}
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="text-sm font-medium block mb-2">Description</label>
+                        <Textarea
+                          placeholder="Describe what this template is for and when to use it..."
+                          value={campaignData.description}
+                          onChange={(e) => setCampaignData({ ...campaignData, description: e.target.value })}
+                          rows={3}
+                        />
+                      </div>
+                      
+                      <div>
+                        <label className="text-sm font-medium block mb-2">Objective</label>
+                        <Textarea
+                          placeholder="What is the main goal of this template? What outcome do you want to achieve?"
+                          value={campaignData.objective}
+                          onChange={(e) => setCampaignData({ ...campaignData, objective: e.target.value })}
+                          rows={2}
+                        />
+                      </div>
+
+                      <div>
+                        <label className="text-sm font-medium block mb-2">Choose an Icon</label>
+                        <div className="grid grid-cols-6 gap-3">
+                          {[
+                            { id: 'target', icon: <Target className="h-5 w-5" />, color: 'bg-blue-500' },
+                            { id: 'trending-up', icon: <TrendingUp className="h-5 w-5" />, color: 'bg-green-500' },
+                            { id: 'zap', icon: <Zap className="h-5 w-5" />, color: 'bg-yellow-500' },
+                            { id: 'star', icon: <Star className="h-5 w-5" />, color: 'bg-purple-500' },
+                            { id: 'heart', icon: <Heart className="h-5 w-5" />, color: 'bg-pink-500' },
+                            { id: 'gift', icon: <Gift className="h-5 w-5" />, color: 'bg-red-500' },
+                            { id: 'mail', icon: <Mail className="h-5 w-5" />, color: 'bg-gray-500' },
+                            { id: 'sparkles', icon: <Sparkles className="h-5 w-5" />, color: 'bg-indigo-500' },
+                            { id: 'rocket', icon: <Rocket className="h-5 w-5" />, color: 'bg-orange-500' },
+                            { id: 'shield', icon: <Shield className="h-5 w-5" />, color: 'bg-teal-500' },
+                            { id: 'diamond', icon: <Diamond className="h-5 w-5" />, color: 'bg-cyan-500' },
+                            { id: 'award', icon: <Award className="h-5 w-5" />, color: 'bg-emerald-500' }
+                          ].map((iconOption) => (
+                            <button
+                              key={iconOption.id}
+                              type="button"
+                              onClick={() => setCampaignData({ ...campaignData, icon: iconOption.id })}
+                              className={`p-3 rounded-lg border-2 transition-all ${
+                                campaignData.icon === iconOption.id
+                                  ? 'border-blue-500 bg-blue-50'
+                                  : 'border-muted hover:border-border hover:bg-muted'
+                              }`}
+                            >
+                              <div className={`${iconOption.color} text-white p-1 rounded`}>
+                                {iconOption.icon}
+                              </div>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
                     </div>
                   </div>
                 )}
 
-                {/* Step 3: Select Recipients - Placeholder */}
-                {currentStep === 3 && (
+                {/* Step 4: Select Recipients - Placeholder */}
+                {currentStep === 4 && (
                   <div className="space-y-6">
                     <div className="p-8 text-center border-2 border-dashed border-muted rounded-lg">
                       <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -466,7 +638,6 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                         variant="outline" 
                         className="mt-4"
                         onClick={() => {
-                          // Placeholder: automatically add mock recipients for now
                           setCampaignData({
                             ...campaignData,
                             recipients: [
@@ -482,8 +653,8 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                   </div>
                 )}
 
-                {/* Step 4: Flow Builder - Duplicated from template */}
-                {currentStep === 4 && (
+                {/* Step 5: Flow Builder - EXACT COPY FROM TEMPLATE */}
+                {currentStep === 5 && (
                   <div className="space-y-6">
                     <div className="p-4 bg-green-50 rounded-lg border border-green-200 mb-6">
                       <p className="text-sm text-green-700">
@@ -501,8 +672,8 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                   </div>
                 )}
 
-                {/* Step 5: Settings - Placeholder */}
-                {currentStep === 5 && (
+                {/* Step 6: Settings - Placeholder */}
+                {currentStep === 6 && (
                   <div className="space-y-6">
                     <div className="p-8 text-center border-2 border-dashed border-muted rounded-lg">
                       <Settings className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
@@ -516,7 +687,6 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                         variant="outline" 
                         className="mt-4"
                         onClick={() => {
-                          // Placeholder: automatically set default settings
                           setCampaignData({
                             ...campaignData,
                             settings: {
