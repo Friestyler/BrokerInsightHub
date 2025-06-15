@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, FileText, Mail, Settings, Eye, Target, Users, Send, Briefcase, Check } from "lucide-react";
+import { Plus, FileText, Mail, Settings, Eye, Target, Users, Send, Briefcase, Check, Heart, Star, Zap, Globe, Shield, Trophy, Clock, Calendar, Building2, Phone, MessageSquare, Gift } from "lucide-react";
 import { useLocation } from 'wouter';
 
 interface EmailTemplate {
@@ -12,6 +12,7 @@ interface EmailTemplate {
   description: string;
   objective: string;
   entity: string;
+  icon: string;
   emailCount: number;
   status: 'draft' | 'published';
   createdAt: string;
@@ -39,56 +40,71 @@ export default function TemplatesPage() {
     setLocation(`/campaigns/create?preview=${templateId}`);
   };
 
-  // Get entity icon and colors
+  // Get template's custom icon
+  const getTemplateIcon = (iconName: string) => {
+    const iconProps = { className: "h-6 w-6" };
+    switch (iconName) {
+      case 'mail': return <Mail {...iconProps} />;
+      case 'target': return <Target {...iconProps} />;
+      case 'users': return <Users {...iconProps} />;
+      case 'send': return <Send {...iconProps} />;
+      case 'briefcase': return <Briefcase {...iconProps} />;
+      case 'heart': return <Heart {...iconProps} />;
+      case 'star': return <Star {...iconProps} />;
+      case 'zap': return <Zap {...iconProps} />;
+      case 'globe': return <Globe {...iconProps} />;
+      case 'shield': return <Shield {...iconProps} />;
+      case 'trophy': return <Trophy {...iconProps} />;
+      case 'clock': return <Clock {...iconProps} />;
+      case 'calendar': return <Calendar {...iconProps} />;
+      case 'building2': return <Building2 {...iconProps} />;
+      case 'phone': return <Phone {...iconProps} />;
+      case 'message-square': return <MessageSquare {...iconProps} />;
+      case 'gift': return <Gift {...iconProps} />;
+      default: return <FileText {...iconProps} />;
+    }
+  };
+
+  // Get entity colors and styling
   const getEntityConfig = (entity: string) => {
     switch (entity) {
       case 'opportunities':
         return {
-          icon: <Target className="h-6 w-6" />,
           bgColor: 'bg-gradient-to-br from-green-500 to-emerald-600',
           borderColor: 'border-green-200 hover:border-green-300',
           textColor: 'text-green-900',
-          subtitleColor: 'text-green-600',
           badgeColor: 'bg-green-100 text-green-800',
           label: 'Opportunities'
         };
       case 'customers':
         return {
-          icon: <Users className="h-6 w-6" />,
           bgColor: 'bg-gradient-to-br from-blue-500 to-indigo-600',
           borderColor: 'border-blue-200 hover:border-blue-300',
           textColor: 'text-blue-900',
-          subtitleColor: 'text-blue-600',
           badgeColor: 'bg-blue-100 text-blue-800',
           label: 'Customers'
         };
       case 'partners':
         return {
-          icon: <Send className="h-6 w-6" />,
           bgColor: 'bg-gradient-to-br from-purple-500 to-violet-600',
           borderColor: 'border-purple-200 hover:border-purple-300',
           textColor: 'text-purple-900',
-          subtitleColor: 'text-purple-600',
           badgeColor: 'bg-purple-100 text-purple-800',
           label: 'Partners'
         };
       case 'internal':
         return {
-          icon: <Briefcase className="h-6 w-6" />,
           bgColor: 'bg-gradient-to-br from-orange-500 to-red-600',
           borderColor: 'border-orange-200 hover:border-orange-300',
           textColor: 'text-orange-900',
-          subtitleColor: 'text-orange-600',
           badgeColor: 'bg-orange-100 text-orange-800',
           label: 'Internal'
         };
       default:
         return {
-          icon: <FileText className="h-6 w-6" />,
           bgColor: 'bg-gradient-to-br from-gray-500 to-gray-600',
           borderColor: 'border-gray-200 hover:border-gray-300',
           textColor: 'text-gray-900',
-          subtitleColor: 'text-gray-600',
           badgeColor: 'bg-gray-100 text-gray-800',
           label: 'Template'
         };
@@ -160,19 +176,16 @@ export default function TemplatesPage() {
                 className={`bg-white rounded-2xl border-2 p-6 transition-all duration-200 hover:shadow-md group ${entityConfig.borderColor}`}
               >
                 {/* Entity Type Tag */}
-                <div className="flex justify-between items-start mb-4">
+                <div className="flex justify-start items-start mb-4">
                   <Badge className={`text-xs font-medium ${entityConfig.badgeColor}`}>
                     {entityConfig.label}
                   </Badge>
-                  {template.status === 'published' && (
-                    <div className={`w-2 h-2 rounded-full ${entityConfig.bgColor}`} />
-                  )}
                 </div>
 
-                {/* Entity Icon */}
+                {/* Template Custom Icon */}
                 <div className="flex justify-center mb-4">
                   <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-white transition-transform duration-200 group-hover:scale-105 ${entityConfig.bgColor}`}>
-                    {entityConfig.icon}
+                    {getTemplateIcon(template.icon)}
                   </div>
                 </div>
                 
@@ -201,9 +214,10 @@ export default function TemplatesPage() {
                     Preview
                   </Button>
                   <Button
+                    variant="default"
                     size="sm"
                     onClick={() => handleEditTemplate(template.id)}
-                    className={`flex-1 text-xs text-white border-0 ${entityConfig.bgColor} hover:opacity-90`}
+                    className="flex-1 text-xs"
                   >
                     <Settings className="h-3 w-3 mr-1" />
                     Edit
