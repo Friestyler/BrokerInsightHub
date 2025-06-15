@@ -506,62 +506,79 @@ export default function CampaignCreator() {
               <p className="text-gray-600 text-lg">Select the type of audience you want to create a template for</p>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto">
               {entityOptions.map((option) => {
                 const isSelected = campaignData.entity === option.id;
                 
-                // Define specific color classes for each entity type - grey by default, colors on hover/select
+                // Define modern color schemes for each entity type
                 const getEntityStyles = (entityId: string, selected: boolean) => {
+                  const baseStyles = {
+                    card: selected 
+                      ? 'border-2 shadow-lg transform scale-105' 
+                      : 'border border-gray-200 hover:border-gray-300 hover:shadow-md',
+                    transition: 'transition-all duration-200 ease-in-out'
+                  };
+
                   switch (entityId) {
                     case 'opportunities':
                       return {
-                        border: selected ? 'border-green-500 ring-2 ring-green-200' : 'border-gray-200 hover:border-green-300',
-                        bg: selected ? 'bg-green-50' : 'bg-gray-50 hover:bg-green-50',
-                        text: selected ? 'text-green-900' : 'text-gray-600 hover:text-green-800',
-                        subtitle: selected ? 'text-green-600' : 'text-gray-500 hover:text-green-600',
-                        icon: selected ? 'bg-gradient-to-r from-green-500 to-emerald-600' : 'bg-gray-200 hover:bg-gradient-to-r hover:from-green-500 hover:to-emerald-600',
-                        iconText: selected ? 'text-white' : 'text-gray-400 hover:text-white',
-                        checkBg: 'bg-green-500'
+                        ...baseStyles,
+                        card: selected 
+                          ? 'border-2 border-green-400 shadow-green-100 shadow-lg transform scale-105 bg-white' 
+                          : 'border border-gray-200 hover:border-green-200 hover:shadow-md hover:shadow-green-50 bg-white',
+                        iconBg: selected ? 'bg-gradient-to-br from-green-500 to-emerald-600' : 'bg-gray-100',
+                        iconColor: selected ? 'text-white' : 'text-gray-400',
+                        title: selected ? 'text-green-900' : 'text-gray-800',
+                        subtitle: selected ? 'text-green-600' : 'text-gray-500',
+                        checkmark: 'bg-green-500'
                       };
                     case 'customers':
                       return {
-                        border: selected ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200 hover:border-blue-300',
-                        bg: selected ? 'bg-blue-50' : 'bg-gray-50 hover:bg-blue-50',
-                        text: selected ? 'text-blue-900' : 'text-gray-600 hover:text-blue-800',
-                        subtitle: selected ? 'text-blue-600' : 'text-gray-500 hover:text-blue-600',
-                        icon: selected ? 'bg-gradient-to-r from-blue-500 to-indigo-600' : 'bg-gray-200 hover:bg-gradient-to-r hover:from-blue-500 hover:to-indigo-600',
-                        iconText: selected ? 'text-white' : 'text-gray-400 hover:text-white',
-                        checkBg: 'bg-blue-500'
+                        ...baseStyles,
+                        card: selected 
+                          ? 'border-2 border-blue-400 shadow-blue-100 shadow-lg transform scale-105 bg-white' 
+                          : 'border border-gray-200 hover:border-blue-200 hover:shadow-md hover:shadow-blue-50 bg-white',
+                        iconBg: selected ? 'bg-gradient-to-br from-blue-500 to-indigo-600' : 'bg-gray-100',
+                        iconColor: selected ? 'text-white' : 'text-gray-400',
+                        title: selected ? 'text-blue-900' : 'text-gray-800',
+                        subtitle: selected ? 'text-blue-600' : 'text-gray-500',
+                        checkmark: 'bg-blue-500'
                       };
                     case 'partners':
                       return {
-                        border: selected ? 'border-purple-500 ring-2 ring-purple-200' : 'border-gray-200 hover:border-purple-300',
-                        bg: selected ? 'bg-purple-50' : 'bg-gray-50 hover:bg-purple-50',
-                        text: selected ? 'text-purple-900' : 'text-gray-600 hover:text-purple-800',
-                        subtitle: selected ? 'text-purple-600' : 'text-gray-500 hover:text-purple-600',
-                        icon: selected ? 'bg-gradient-to-r from-purple-500 to-violet-600' : 'bg-gray-200 hover:bg-gradient-to-r hover:from-purple-500 hover:to-violet-600',
-                        iconText: selected ? 'text-white' : 'text-gray-400 hover:text-white',
-                        checkBg: 'bg-purple-500'
+                        ...baseStyles,
+                        card: selected 
+                          ? 'border-2 border-purple-400 shadow-purple-100 shadow-lg transform scale-105 bg-white' 
+                          : 'border border-gray-200 hover:border-purple-200 hover:shadow-md hover:shadow-purple-50 bg-white',
+                        iconBg: selected ? 'bg-gradient-to-br from-purple-500 to-violet-600' : 'bg-gray-100',
+                        iconColor: selected ? 'text-white' : 'text-gray-400',
+                        title: selected ? 'text-purple-900' : 'text-gray-800',
+                        subtitle: selected ? 'text-purple-600' : 'text-gray-500',
+                        checkmark: 'bg-purple-500'
                       };
                     case 'internal':
                       return {
-                        border: selected ? 'border-orange-500 ring-2 ring-orange-200' : 'border-gray-200 hover:border-orange-300',
-                        bg: selected ? 'bg-orange-50' : 'bg-gray-50 hover:bg-orange-50',
-                        text: selected ? 'text-orange-900' : 'text-gray-600 hover:text-orange-800',
-                        subtitle: selected ? 'text-orange-600' : 'text-gray-500 hover:text-orange-600',
-                        icon: selected ? 'bg-gradient-to-r from-orange-500 to-red-600' : 'bg-gray-200 hover:bg-gradient-to-r hover:from-orange-500 hover:to-red-600',
-                        iconText: selected ? 'text-white' : 'text-gray-400 hover:text-white',
-                        checkBg: 'bg-orange-500'
+                        ...baseStyles,
+                        card: selected 
+                          ? 'border-2 border-orange-400 shadow-orange-100 shadow-lg transform scale-105 bg-white' 
+                          : 'border border-gray-200 hover:border-orange-200 hover:shadow-md hover:shadow-orange-50 bg-white',
+                        iconBg: selected ? 'bg-gradient-to-br from-orange-500 to-red-600' : 'bg-gray-100',
+                        iconColor: selected ? 'text-white' : 'text-gray-400',
+                        title: selected ? 'text-orange-900' : 'text-gray-800',
+                        subtitle: selected ? 'text-orange-600' : 'text-gray-500',
+                        checkmark: 'bg-orange-500'
                       };
                     default:
                       return {
-                        border: selected ? 'border-blue-500 ring-2 ring-blue-200' : 'border-gray-200 hover:border-blue-300',
-                        bg: selected ? 'bg-blue-50' : 'bg-gray-50 hover:bg-blue-50',
-                        text: selected ? 'text-blue-900' : 'text-gray-600 hover:text-blue-800',
-                        subtitle: selected ? 'text-blue-600' : 'text-gray-500 hover:text-blue-600',
-                        icon: selected ? 'bg-gradient-to-r from-blue-500 to-indigo-600' : 'bg-gray-200 hover:bg-gradient-to-r hover:from-blue-500 hover:to-indigo-600',
-                        iconText: selected ? 'text-white' : 'text-gray-400 hover:text-white',
-                        checkBg: 'bg-blue-500'
+                        ...baseStyles,
+                        card: selected 
+                          ? 'border-2 border-gray-400 shadow-gray-100 shadow-lg transform scale-105 bg-white' 
+                          : 'border border-gray-200 hover:border-gray-300 hover:shadow-md bg-white',
+                        iconBg: selected ? 'bg-gradient-to-br from-gray-500 to-gray-600' : 'bg-gray-100',
+                        iconColor: selected ? 'text-white' : 'text-gray-400',
+                        title: selected ? 'text-gray-900' : 'text-gray-800',
+                        subtitle: selected ? 'text-gray-600' : 'text-gray-500',
+                        checkmark: 'bg-gray-500'
                       };
                   }
                 };
@@ -571,34 +588,35 @@ export default function CampaignCreator() {
                 return (
                   <button
                     key={option.id}
-                    onClick={() => setCampaignData({ ...campaignData, entity: option.id })}
-                    className={`relative p-6 rounded-xl border-2 transition-all duration-300 text-center transform ${
-                      styles.border
-                    } ${styles.bg} ${
-                      isSelected ? 'shadow-lg scale-105' : 'hover:shadow-md hover:scale-102'
-                    }`}
+                    onClick={() => handleEntitySelect(option.id)}
+                    className={`relative p-6 rounded-2xl text-center cursor-pointer group ${styles.card} ${styles.transition}`}
                   >
-                    <div className={`w-12 h-12 mx-auto mb-4 rounded-lg flex items-center justify-center transition-all duration-300 ${
-                      styles.icon
-                    } ${
-                      isSelected ? 'shadow-md' : 'group-hover:shadow-sm'
-                    }`}>
-                      <div className={`transition-colors duration-300 ${styles.iconText}`}>
+                    {/* Selection Checkmark */}
+                    {isSelected && (
+                      <div className={`absolute -top-2 -right-2 w-6 h-6 rounded-full flex items-center justify-center ${styles.checkmark}`}>
+                        <Check className="h-3 w-3 text-white" />
+                      </div>
+                    )}
+                    
+                    {/* Icon */}
+                    <div className={`w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center transition-all duration-300 ${styles.iconBg} group-hover:scale-110`}>
+                      <div className={`transition-colors duration-300 ${styles.iconColor}`}>
                         {option.icon}
                       </div>
                     </div>
-                    <h3 className={`font-medium mb-1 transition-colors duration-200 ${styles.text}`}>
-                      {option.title}
-                    </h3>
-                    <p className={`text-sm transition-colors duration-200 ${styles.subtitle}`}>
-                      {option.subtitle}
-                    </p>
                     
-                    {isSelected && (
-                      <div className={`absolute -top-2 -right-2 w-6 h-6 ${styles.checkBg} rounded-full flex items-center justify-center shadow-lg animate-in zoom-in duration-200`}>
-                        <Check className="h-4 w-4 text-white" />
-                      </div>
-                    )}
+                    {/* Content */}
+                    <div className="space-y-2">
+                      <h3 className={`font-semibold text-lg transition-colors duration-300 ${styles.title}`}>
+                        {option.title}
+                      </h3>
+                      <p className={`text-sm font-medium transition-colors duration-300 ${styles.subtitle}`}>
+                        {option.subtitle}
+                      </p>
+                      <p className="text-xs text-gray-400 leading-relaxed px-2">
+                        {option.description}
+                      </p>
+                    </div>
                   </button>
                 );
               })}
