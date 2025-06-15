@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { 
   Search, 
   Users, 
@@ -21,7 +22,10 @@ import {
   User,
   ChevronRight,
   ChevronDown,
-  UserPlus
+  UserPlus,
+  CheckCircle2,
+  Circle,
+  MinusCircle
 } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
@@ -79,6 +83,8 @@ export default function RecipientSelector({
   const [selectedTab, setSelectedTab] = useState<'entities' | 'contacts' | 'lists'>('entities');
   const [expandedEntities, setExpandedEntities] = useState<Set<number>>(new Set());
   const [showAddContact, setShowAddContact] = useState(false);
+  const [bulkMode, setBulkMode] = useState(false);
+  const [selectedForBulk, setSelectedForBulk] = useState<Set<string>>(new Set());
   const [newContact, setNewContact] = useState({
     firstName: '',
     lastName: '',
@@ -166,28 +172,97 @@ export default function RecipientSelector({
     list.name?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Enhanced selection logic with bulk operations
   const isRecipientSelected = (type: 'entity' | 'contact' | 'list', id: number): boolean => {
     return selectedRecipients.some(recipient => recipient.type === type && recipient.id === id);
   };
 
+  const getEntitySelectionState = (entityId: number): 'none' | 'partial' | 'all' => {
+    const entityContactsList = entityContacts[entityId] || [];
+    const isEntitySelected = isRecipientSelected('entity', entityId);
+    const selectedContacts = entityContactsList.filter(contact => 
+      isRecipientSelected('contact', contact.id)
+    );
+
+    if (isEntitySelected) return 'all';
+    if (selectedContacts.length === 0) return 'none';
+    if (selectedContacts.length === entityContactsList.length) return 'all';
+    return 'partial';
+  };
+
   const toggleRecipient = (type: 'entity' | 'contact' | 'list', item: any) => {
     const isSelected = isRecipientSelected(type, item.id);
-    let newRecipients;
+    let newRecipients = [...selectedRecipients];
 
-    if (isSelected) {
-      newRecipients = selectedRecipients.filter(r => !(r.type === type && r.id === item.id));
+    if (type === 'entity') {
+      const entityContactsList = entityContacts[item.id] || [];
+      
+      if (isSelected) {
+        // Remove entity and all its contacts
+        newRecipients = newRecipients.filter(r => 
+          !(r.type === 'entity' && r.id === item.id) &&
+          !(r.type === 'contact' && entityContactsList.some(c => c.id === r.id))
+        );
+      } else {
+        // Add entity only (not contacts automatically)
+        const newRecipient = {
+          type: 'entity',
+          id: item.id,
+          name: item.name,
+          email: item.email,
+          entityType,
+          ...item
+        };
+        newRecipients.push(newRecipient);
+      }
     } else {
-      const newRecipient = {
-        type,
-        id: item.id,
-        name: item.name || item.fullName,
-        email: item.email,
-        entityType: type === 'entity' ? entityType : item.linkedEntityType || entityType,
-        ...item
-      };
-      newRecipients = [...selectedRecipients, newRecipient];
+      // Handle individual contact or list selection
+      if (isSelected) {
+        newRecipients = newRecipients.filter(r => !(r.type === type && r.id === item.id));
+      } else {
+        const newRecipient = {
+          type,
+          id: item.id,
+          name: item.name || item.fullName,
+          email: item.email,
+          entityType: type === 'contact' ? item.linkedEntityType || entityType : entityType,
+          ...item
+        };
+        newRecipients.push(newRecipient);
+      }
     }
 
+    onRecipientsChange(newRecipients);
+  };
+
+  const selectAllEntityContacts = (entityId: number, entityContacts: Contact[]) => {
+    let newRecipients = [...selectedRecipients];
+    
+    // Remove any existing contacts for this entity
+    const existingContactIds = entityContacts.map(c => c.id);
+    newRecipients = newRecipients.filter(r => 
+      !(r.type === 'contact' && existingContactIds.includes(r.id))
+    );
+    
+    // Add all contacts
+    const newContactRecipients = entityContacts.map(contact => ({
+      type: 'contact' as const,
+      id: contact.id,
+      name: contact.fullName,
+      email: contact.email,
+      entityType: contact.linkedEntityType || entityType,
+      ...contact
+    }));
+    
+    newRecipients.push(...newContactRecipients);
+    onRecipientsChange(newRecipients);
+  };
+
+  const deselectAllEntityContacts = (entityId: number, entityContacts: Contact[]) => {
+    const contactIds = entityContacts.map(c => c.id);
+    const newRecipients = selectedRecipients.filter(r => 
+      !(r.type === 'contact' && contactIds.includes(r.id))
+    );
     onRecipientsChange(newRecipients);
   };
 
@@ -199,6 +274,48 @@ export default function RecipientSelector({
       newExpanded.add(entityId);
     }
     setExpandedEntities(newExpanded);
+  };
+
+  const toggleBulkSelection = (itemKey: string) => {
+    const newSelected = new Set(selectedForBulk);
+    if (newSelected.has(itemKey)) {
+      newSelected.delete(itemKey);
+    } else {
+      newSelected.add(itemKey);
+    }
+    setSelectedForBulk(newSelected);
+  };
+
+  const handleBulkAction = (action: 'select' | 'deselect') => {
+    if (action === 'select') {
+      const bulkRecipients: any[] = [];
+      selectedForBulk.forEach(key => {
+        const [type, id] = key.split('-');
+        if (type === 'entity') {
+          const entity = filteredEntities.find((e: Entity) => e.id === parseInt(id));
+          if (entity && !isRecipientSelected('entity', entity.id)) {
+            bulkRecipients.push({
+              type: 'entity',
+              id: entity.id,
+              name: entity.name,
+              email: entity.email,
+              entityType,
+              ...entity
+            });
+          }
+        }
+      });
+      onRecipientsChange([...selectedRecipients, ...bulkRecipients]);
+    } else {
+      let newRecipients = [...selectedRecipients];
+      selectedForBulk.forEach(key => {
+        const [type, id] = key.split('-');
+        newRecipients = newRecipients.filter(r => !(r.type === type && r.id === parseInt(id)));
+      });
+      onRecipientsChange(newRecipients);
+    }
+    setSelectedForBulk(new Set());
+    setBulkMode(false);
   };
 
   const getEntityIcon = (type: string) => {
@@ -229,14 +346,53 @@ export default function RecipientSelector({
     <div className="space-y-6">
       {/* Header with search and tabs */}
       <div className="space-y-4">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-          <Input
-            placeholder="Search recipients..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10 h-12"
-          />
+        <div className="flex gap-4 items-center">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+            <Input
+              placeholder="Search recipients..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10 h-12"
+            />
+          </div>
+          
+          {selectedTab === 'entities' && (
+            <div className="flex gap-2">
+              <Button
+                variant={bulkMode ? "default" : "outline"}
+                size="sm"
+                onClick={() => setBulkMode(!bulkMode)}
+                className="gap-2"
+              >
+                <CheckCircle2 className="h-4 w-4" />
+                Bulk Select
+              </Button>
+              
+              {bulkMode && selectedForBulk.size > 0 && (
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleBulkAction('select')}
+                    className="gap-2"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Add Selected ({selectedForBulk.size})
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => handleBulkAction('deselect')}
+                    className="gap-2"
+                  >
+                    <X className="h-4 w-4" />
+                    Remove Selected
+                  </Button>
+                </div>
+              )}
+            </div>
+          )}
         </div>
 
         <div className="flex space-x-1 bg-gray-100 p-1 rounded-lg">
@@ -305,60 +461,109 @@ export default function RecipientSelector({
               filteredEntities.map((entity: Entity) => {
                 const entityContactsList = entityContacts[entity.id] || [];
                 const isExpanded = expandedEntities.has(entity.id);
-                const isSelected = isRecipientSelected('entity', entity.id);
+                const isEntitySelected = isRecipientSelected('entity', entity.id);
+                const selectionState = getEntitySelectionState(entity.id);
+                const selectedContacts = entityContactsList.filter(contact => 
+                  isRecipientSelected('contact', contact.id)
+                );
+                const itemKey = `entity-${entity.id}`;
 
                 return (
-                  <Card key={entity.id} className={`transition-all hover:shadow-md ${isSelected ? 'ring-2 ring-blue-500 bg-blue-50' : ''}`}>
+                  <Card key={entity.id} className={`transition-all hover:shadow-md ${
+                    isEntitySelected ? 'ring-2 ring-blue-500 bg-blue-50' : 
+                    selectionState === 'partial' ? 'ring-2 ring-orange-400 bg-orange-50' : ''
+                  }`}>
                     <CardContent className="p-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-3 flex-1">
+                          {bulkMode && (
+                            <Checkbox
+                              checked={selectedForBulk.has(itemKey)}
+                              onCheckedChange={() => toggleBulkSelection(itemKey)}
+                            />
+                          )}
+                          
                           <div className={`p-2 rounded-lg bg-gradient-to-br ${getEntityColor(entityType)} text-white`}>
                             {getEntityIcon(entityType)}
                           </div>
+                          
                           <div className="flex-1">
-                            <h3 className="font-medium text-gray-900">{entity.name}</h3>
+                            <div className="flex items-center gap-2">
+                              <h3 className="font-medium text-gray-900">{entity.name}</h3>
+                              {selectionState === 'all' && <CheckCircle2 className="h-4 w-4 text-green-500" />}
+                              {selectionState === 'partial' && <MinusCircle className="h-4 w-4 text-orange-500" />}
+                              {selectionState === 'none' && <Circle className="h-4 w-4 text-gray-400" />}
+                            </div>
                             <p className="text-sm text-gray-600">
                               {entity.email || 'No email'} • {entityContactsList.length} contacts
+                              {selectedContacts.length > 0 && ` • ${selectedContacts.length} selected`}
                             </p>
                           </div>
                         </div>
                         
                         <div className="flex items-center space-x-2">
-                          <Button
-                            variant={isSelected ? "default" : "outline"}
-                            size="sm"
-                            onClick={() => toggleRecipient('entity', entity)}
-                          >
-                            {isSelected ? (
-                              <>
-                                <Check className="h-4 w-4 mr-1" />
-                                Selected
-                              </>
-                            ) : (
-                              'Select'
-                            )}
-                          </Button>
-                          
-                          {entityContactsList.length > 0 && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => toggleEntityExpansion(entity.id)}
-                            >
-                              {isExpanded ? (
-                                <ChevronDown className="h-4 w-4" />
-                              ) : (
-                                <ChevronRight className="h-4 w-4" />
+                          {!bulkMode && (
+                            <>
+                              <Button
+                                variant={isEntitySelected ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => toggleRecipient('entity', entity)}
+                              >
+                                {isEntitySelected ? (
+                                  <>
+                                    <Check className="h-4 w-4 mr-1" />
+                                    Entity Selected
+                                  </>
+                                ) : (
+                                  'Select Entity'
+                                )}
+                              </Button>
+                              
+                              {entityContactsList.length > 0 && (
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => toggleEntityExpansion(entity.id)}
+                                >
+                                  {isExpanded ? (
+                                    <ChevronDown className="h-4 w-4" />
+                                  ) : (
+                                    <ChevronRight className="h-4 w-4" />
+                                  )}
+                                </Button>
                               )}
-                            </Button>
+                            </>
                           )}
                         </div>
                       </div>
 
-                      {/* Entity contacts */}
+                      {/* Entity contacts waterfall */}
                       {isExpanded && entityContactsList.length > 0 && (
-                        <div className="mt-4 pl-4 border-l-2 border-gray-200 space-y-2">
-                          <h4 className="text-sm font-medium text-gray-700 mb-2">Contacts</h4>
+                        <div className="mt-4 pl-4 border-l-2 border-gray-200 space-y-3">
+                          <div className="flex items-center justify-between">
+                            <h4 className="text-sm font-medium text-gray-700">
+                              Contacts ({selectedContacts.length}/{entityContactsList.length} selected)
+                            </h4>
+                            <div className="flex gap-2">
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => selectAllEntityContacts(entity.id, entityContactsList)}
+                                disabled={selectedContacts.length === entityContactsList.length}
+                              >
+                                Select All
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => deselectAllEntityContacts(entity.id, entityContactsList)}
+                                disabled={selectedContacts.length === 0}
+                              >
+                                Clear All
+                              </Button>
+                            </div>
+                          </div>
+                          
                           {entityContactsList.map((contact: Contact) => {
                             const isContactSelected = isRecipientSelected('contact', contact.id);
                             return (
@@ -369,32 +574,34 @@ export default function RecipientSelector({
                                 }`}
                               >
                                 <div className="flex items-center space-x-3">
+                                  <Checkbox
+                                    checked={isContactSelected}
+                                    onCheckedChange={() => toggleRecipient('contact', contact)}
+                                  />
                                   <div className="w-8 h-8 bg-gray-300 rounded-full flex items-center justify-center text-sm font-medium">
                                     {contact.firstName?.[0]}{contact.lastName?.[0]}
                                   </div>
                                   <div>
                                     <p className="font-medium text-gray-900">{contact.fullName}</p>
-                                    <p className="text-sm text-gray-600">
-                                      {contact.email || 'No email'} 
-                                      {contact.jobTitle && ` • ${contact.jobTitle}`}
-                                    </p>
+                                    <div className="flex items-center gap-4 text-sm text-gray-600">
+                                      {contact.email && (
+                                        <div className="flex items-center gap-1">
+                                          <Mail className="h-3 w-3" />
+                                          {contact.email}
+                                        </div>
+                                      )}
+                                      {contact.jobTitle && (
+                                        <span>• {contact.jobTitle}</span>
+                                      )}
+                                    </div>
                                   </div>
                                 </div>
                                 
-                                <Button
-                                  variant={isContactSelected ? "default" : "outline"}
-                                  size="sm"
-                                  onClick={() => toggleRecipient('contact', contact)}
-                                >
-                                  {isContactSelected ? (
-                                    <>
-                                      <Check className="h-4 w-4 mr-1" />
-                                      Selected
-                                    </>
-                                  ) : (
-                                    'Select'
-                                  )}
-                                </Button>
+                                {isContactSelected && (
+                                  <Badge variant="secondary" className="bg-blue-100 text-blue-800">
+                                    Selected
+                                  </Badge>
+                                )}
                               </div>
                             );
                           })}
@@ -506,57 +713,95 @@ export default function RecipientSelector({
                 </Button>
               </div>
             ) : (
-              filteredContacts.map((contact: Contact) => {
-                const isSelected = isRecipientSelected('contact', contact.id);
-                return (
-                  <Card key={contact.id} className={`transition-all hover:shadow-md ${isSelected ? 'ring-2 ring-blue-500 bg-blue-50' : ''}`}>
-                    <CardContent className="p-4">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center space-x-3">
-                          <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center text-sm font-medium">
-                            {contact.firstName?.[0]}{contact.lastName?.[0]}
-                          </div>
-                          <div>
-                            <h3 className="font-medium text-gray-900">{contact.fullName}</h3>
-                            <div className="flex items-center space-x-4 text-sm text-gray-600">
-                              {contact.email && (
-                                <div className="flex items-center space-x-1">
-                                  <Mail className="h-3 w-3" />
-                                  <span>{contact.email}</span>
-                                </div>
-                              )}
-                              {contact.phone && (
-                                <div className="flex items-center space-x-1">
-                                  <Phone className="h-3 w-3" />
-                                  <span>{contact.phone}</span>
-                                </div>
-                              )}
-                              {contact.jobTitle && (
-                                <span>• {contact.jobTitle}</span>
-                              )}
+              <div className="space-y-2">
+                {bulkMode && selectedForBulk.size > 0 && (
+                  <div className="flex gap-2 p-3 bg-blue-50 rounded-lg border border-blue-200">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleBulkAction('select')}
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add Selected ({selectedForBulk.size})
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleBulkAction('deselect')}
+                    >
+                      <X className="h-4 w-4 mr-1" />
+                      Remove Selected
+                    </Button>
+                  </div>
+                )}
+                
+                {filteredContacts.map((contact: Contact) => {
+                  const isSelected = isRecipientSelected('contact', contact.id);
+                  const itemKey = `contact-${contact.id}`;
+                  
+                  return (
+                    <Card key={contact.id} className={`transition-all hover:shadow-md ${isSelected ? 'ring-2 ring-blue-500 bg-blue-50' : ''}`}>
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-3">
+                            {bulkMode && (
+                              <Checkbox
+                                checked={selectedForBulk.has(itemKey)}
+                                onCheckedChange={() => toggleBulkSelection(itemKey)}
+                              />
+                            )}
+                            
+                            <div className="w-10 h-10 bg-gray-300 rounded-full flex items-center justify-center text-sm font-medium">
+                              {contact.firstName?.[0]}{contact.lastName?.[0]}
+                            </div>
+                            
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2">
+                                <h3 className="font-medium text-gray-900">{contact.fullName}</h3>
+                                {isSelected && <CheckCircle2 className="h-4 w-4 text-green-500" />}
+                              </div>
+                              <div className="flex items-center space-x-4 text-sm text-gray-600">
+                                {contact.email && (
+                                  <div className="flex items-center gap-1">
+                                    <Mail className="h-3 w-3" />
+                                    <span>{contact.email}</span>
+                                  </div>
+                                )}
+                                {contact.phone && (
+                                  <div className="flex items-center gap-1">
+                                    <Phone className="h-3 w-3" />
+                                    <span>{contact.phone}</span>
+                                  </div>
+                                )}
+                                {contact.jobTitle && (
+                                  <span>• {contact.jobTitle}</span>
+                                )}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                        
-                        <Button
-                          variant={isSelected ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => toggleRecipient('contact', contact)}
-                        >
-                          {isSelected ? (
-                            <>
-                              <Check className="h-4 w-4 mr-1" />
-                              Selected
-                            </>
-                          ) : (
-                            'Select'
+                          
+                          {!bulkMode && (
+                            <Button
+                              variant={isSelected ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => toggleRecipient('contact', contact)}
+                            >
+                              {isSelected ? (
+                                <>
+                                  <Check className="h-4 w-4 mr-1" />
+                                  Selected
+                                </>
+                              ) : (
+                                'Select'
+                              )}
+                            </Button>
                           )}
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                );
-              })
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
             )}
           </div>
         )}
