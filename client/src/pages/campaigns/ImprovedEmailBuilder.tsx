@@ -27,6 +27,8 @@ interface EmailBlock {
     imageAlt?: string;
     spacerHeight?: number;
     aiType?: string;
+    aiPrompt?: string;
+    dataQuery?: string;
   };
 }
 
