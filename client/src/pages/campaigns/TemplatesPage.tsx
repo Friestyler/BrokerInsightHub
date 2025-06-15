@@ -150,29 +150,40 @@ export default function TemplatesPage() {
           </Button>
         </div>
       ) : (
-        <div className="grid gap-4 grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
+        <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {templateList.map((template) => {
             const entityConfig = getEntityConfig(template.entity);
             
             return (
               <div
                 key={template.id}
-                className={`relative bg-white rounded-2xl border aspect-square p-4 transition-all duration-300 hover:shadow-xl hover:scale-105 cursor-pointer group ${entityConfig.borderColor}`}
+                className={`relative bg-white rounded-2xl border-2 aspect-square p-6 transition-all duration-300 hover:shadow-xl hover:scale-105 cursor-pointer group ${entityConfig.borderColor}`}
               >
-                {/* Status Indicator - Small dot */}
-                <div className={`absolute top-3 right-3 w-2 h-2 rounded-full ${template.status === 'published' ? entityConfig.bgColor : 'bg-gray-300'}`} />
+                {/* Entity Type Tag */}
+                <div className="absolute top-4 right-4">
+                  <Badge className={`text-xs font-medium ${entityConfig.badgeColor}`}>
+                    {entityConfig.label}
+                  </Badge>
+                </div>
 
-                {/* Entity Icon - Centered */}
-                <div className="flex flex-col items-center justify-center h-full space-y-3">
-                  <div className={`w-12 h-12 rounded-xl flex items-center justify-center text-white transition-all duration-300 group-hover:scale-110 ${entityConfig.bgColor}`}>
+                {/* Status Indicator - Small dot */}
+                <div className={`absolute top-4 left-4 w-3 h-3 rounded-full ${template.status === 'published' ? entityConfig.bgColor : 'bg-gray-300'}`} />
+
+                {/* Content - Centered */}
+                <div className="flex flex-col items-center justify-center h-full space-y-4">
+                  {/* Entity Icon */}
+                  <div className={`w-16 h-16 rounded-2xl flex items-center justify-center text-white transition-all duration-300 group-hover:scale-110 ${entityConfig.bgColor}`}>
                     {entityConfig.icon}
                   </div>
                   
-                  {/* Template Name */}
-                  <div className="text-center space-y-1">
-                    <h3 className={`font-semibold text-sm leading-tight transition-colors duration-300 ${entityConfig.textColor} line-clamp-2`}>
+                  {/* Template Info */}
+                  <div className="text-center space-y-2">
+                    <h3 className={`font-semibold text-lg leading-tight transition-colors duration-300 ${entityConfig.textColor} line-clamp-2`}>
                       {template.name}
                     </h3>
+                    <p className="text-sm text-gray-600 line-clamp-2 leading-relaxed">
+                      {template.description}
+                    </p>
                     <p className="text-xs text-gray-500">
                       {template.emailCount} email{template.emailCount !== 1 ? 's' : ''}
                     </p>
@@ -181,7 +192,7 @@ export default function TemplatesPage() {
 
                 {/* Hover Actions - Only visible on hover */}
                 <div className="absolute inset-0 bg-black/50 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center">
-                  <div className="flex gap-2">
+                  <div className="flex gap-3">
                     <Button
                       variant="secondary"
                       size="sm"
