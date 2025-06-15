@@ -234,6 +234,10 @@ export default function RecipientSelector({
 
   const getCustomerForOpportunity = (opportunityId: number) => {
     const opportunity = (entities as any[] || []).find((e: any) => e.id === opportunityId);
+    console.log(`Debug - Opportunity ${opportunityId}:`, opportunity);
+    console.log(`Debug - Available customers:`, customers);
+    console.log(`Debug - Customer with clientId ${opportunity?.clientId}:`, opportunity?.clientId ? (customers as any[] || []).find((c: Customer) => c.id === opportunity.clientId) : 'No clientId');
+    
     if (opportunity?.clientId) {
       return (customers as any[] || []).find((c: Customer) => c.id === opportunity.clientId);
     }
@@ -507,7 +511,11 @@ export default function RecipientSelector({
                               {/* For opportunities, show related customer */}
                               {entityType === 'opportunities' && (() => {
                                 const customer = getCustomerForOpportunity(entity.id);
-                                return customer ? (
+                                console.log(`Debug - Opportunity ${entity.id}: Customer found:`, customer);
+                                console.log(`Debug - EntityContacts for customer ${customer?.id}:`, customer ? entityContacts[customer.id] : 'No customer');
+                                
+                                if (customer) {
+                                  return (
                                   <div className="space-y-2">
                                     <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border-2 border-blue-200 shadow-sm">
                                       <div className="flex items-center gap-4">
@@ -591,7 +599,11 @@ export default function RecipientSelector({
                                       </div>
                                     )}
                                   </div>
-                                ) : null;
+                                ) : (
+                                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700">
+                                    <p className="text-sm">No customer found for this opportunity</p>
+                                  </div>
+                                );
                               })()}
 
                               {/* Direct entity contacts (only for partners, customers, and internal - NOT opportunities) */}
