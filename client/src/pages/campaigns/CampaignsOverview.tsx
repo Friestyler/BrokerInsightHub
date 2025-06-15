@@ -30,10 +30,7 @@ export default function CampaignsOverview() {
       <div className="border-b bg-white">
         <div className="max-w-6xl mx-auto px-6 py-4">
           <div className="space-y-4">
-            <div>
-              <h1 className="text-2xl font-semibold tracking-tight">Templates for Campaigns and Updates</h1>
-              <p className="text-sm text-muted-foreground">Create email templates and manage active campaigns</p>
-            </div>
+
             
             <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
               <TabsList className="grid w-full max-w-md grid-cols-2">
