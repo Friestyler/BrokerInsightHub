@@ -889,112 +889,44 @@ export default function RecipientSelector({
                   </div>
                 </div>
 
-                {/* Contact-first hierarchy */}
+                {/* Contact-first hierarchy with simplified structure */}
                 <div className="space-y-3">
-                  {(() => {
-                    // Get all selected contacts (both direct and from entities)
-                    const directContacts = selectedRecipients.filter(r => r.type === 'contact');
-                    const selectedEntities = selectedRecipients.filter(r => r.type === 'entity' || r.type === 'customer');
-                    
-                    // Get contacts from selected entities
-                    const entityRelatedContacts = selectedEntities.reduce((acc: any[], entity) => {
-                      const contacts = entityContacts[entity.id] || [];
-                      return [...acc, ...contacts.map((contact: any) => ({ ...contact, parentEntity: entity }))];
-                    }, []);
-                    
-                    // Combine all contacts
-                    const allContacts = [...directContacts, ...entityRelatedContacts];
-                    
-                    // Group contacts by their source (direct or entity)
-                    const contactsBySource = allContacts.reduce((acc: any, contact) => {
-                      const key = contact.parentEntity ? `entity-${contact.parentEntity.id}` : 'direct';
-                      if (!acc[key]) {
-                        acc[key] = {
-                          type: contact.parentEntity ? 'entity' : 'direct',
-                          entity: contact.parentEntity,
-                          contacts: []
-                        };
-                      }
-                      acc[key].contacts.push(contact);
-                      return acc;
-                    }, {});
-
-                    return Object.values(contactsBySource).map((group: any) => (
-                      <div key={group.type === 'direct' ? 'direct-contacts' : `entity-${group.entity.id}`} className="border border-gray-200 rounded-lg">
-                        <div className="p-4 bg-gray-50 border-b border-gray-200">
-                          <div className="flex items-center justify-between">
-                            <div className="flex items-center gap-3">
-                              {group.type === 'direct' ? (
-                                <>
-                                  <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
-                                    <Mail className="h-4 w-4 text-white" />
-                                  </div>
-                                  <div>
-                                    <h4 className="font-medium text-gray-900">Direct Contacts</h4>
-                                    <p className="text-sm text-gray-600">
-                                      {group.contacts.length} individual contacts
-                                    </p>
-                                  </div>
-                                </>
-                              ) : (
-                                <>
-                                  <div className={`w-8 h-8 rounded-full flex items-center justify-center ${
-                                    group.entity.type === 'customer' ? 'bg-blue-600' : 
-                                    group.entity.type === 'partner' ? 'bg-purple-600' : 
-                                    group.entity.type === 'opportunity' ? 'bg-green-600' : 'bg-orange-600'
-                                  }`}>
-                                    {(() => {
-                                      const Icon = group.entity.type === 'customer' ? Users :
-                                                  group.entity.type === 'partner' ? Handshake :
-                                                  group.entity.type === 'opportunity' ? Target : Building2;
-                                      return <Icon className="h-4 w-4 text-white" />;
-                                    })()}
-                                  </div>
-                                  <div>
-                                    <h4 className="font-medium text-gray-900">{getEntityDisplayName(group.entity)}</h4>
-                                    <p className="text-sm text-gray-600">
-                                      {group.contacts.length} contacts from {group.entity.type}
-                                    </p>
-                                  </div>
-                                </>
-                              )}
+                  {/* Direct Contacts Section */}
+                  {selectedRecipients.filter(r => r.type === 'contact').length > 0 && (
+                    <div className="border border-gray-200 rounded-lg">
+                      <div className="p-4 bg-gray-50 border-b border-gray-200">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                              <Mail className="h-4 w-4 text-white" />
                             </div>
-                            <div className="flex items-center gap-2">
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => toggleItemExpansion(group.type === 'direct' ? 'direct-contacts' : `entity-${group.entity.id}`)}
-                              >
-                                {expandedItems.has(group.type === 'direct' ? 'direct-contacts' : `entity-${group.entity.id}`) ? (
-                                  <ChevronDown className="h-4 w-4" />
-                                ) : (
-                                  <ChevronRight className="h-4 w-4" />
-                                )}
-                              </Button>
-                              {group.type !== 'direct' && (
-                                <Button
-                                  variant="ghost"
-                                  size="sm"
-                                  onClick={() => {
-                                    const updatedRecipients = selectedRecipients.filter(r => 
-                                      !(r.type === group.entity.type && r.id === group.entity.id)
-                                    );
-                                    onRecipientsChange(updatedRecipients);
-                                  }}
-                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                >
-                                  <X className="h-4 w-4" />
-                                </Button>
-                              )}
+                            <div>
+                              <h4 className="font-medium text-gray-900">Direct Contacts</h4>
+                              <p className="text-sm text-gray-600">
+                                {selectedRecipients.filter(r => r.type === 'contact').length} individual contacts
+                              </p>
                             </div>
                           </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => toggleItemExpansion('selected-direct-contacts')}
+                          >
+                            {expandedItems.has('selected-direct-contacts') ? (
+                              <ChevronDown className="h-4 w-4" />
+                            ) : (
+                              <ChevronRight className="h-4 w-4" />
+                            )}
+                          </Button>
                         </div>
-                        
-                        {expandedItems.has(group.type === 'direct' ? 'direct-contacts' : `entity-${group.entity.id}`) && (
-                          <div className="p-4 space-y-3">
-                            {group.contacts.map((contact: any) => (
+                      </div>
+                      
+                      {expandedItems.has('selected-direct-contacts') && (
+                        <div className="p-4 space-y-3">
+                          {selectedRecipients
+                            .filter(r => r.type === 'contact')
+                            .map((contact) => (
                               <div key={`contact-${contact.id}`} className="space-y-3">
-                                {/* Contact Information */}
                                 <div className="flex items-center justify-between p-4 bg-white border border-gray-200 rounded-lg">
                                   <div className="flex items-center gap-4">
                                     <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
@@ -1015,12 +947,6 @@ export default function RecipientSelector({
                                             {getContactJobTitle(contact)}
                                           </span>
                                         )}
-                                        {contact.phone && (
-                                          <span className="flex items-center gap-1 text-gray-500">
-                                            <Phone className="h-3 w-3" />
-                                            {contact.phone}
-                                          </span>
-                                        )}
                                       </div>
                                     </div>
                                   </div>
@@ -1028,9 +954,9 @@ export default function RecipientSelector({
                                     <Button
                                       variant="ghost"
                                       size="sm"
-                                      onClick={() => toggleItemExpansion(`contact-hierarchy-${contact.id}`)}
+                                      onClick={() => toggleItemExpansion(`contact-org-${contact.id}`)}
                                     >
-                                      {expandedItems.has(`contact-hierarchy-${contact.id}`) ? (
+                                      {expandedItems.has(`contact-org-${contact.id}`) ? (
                                         <ChevronDown className="h-4 w-4" />
                                       ) : (
                                         <ChevronRight className="h-4 w-4" />
@@ -1052,83 +978,189 @@ export default function RecipientSelector({
                                   </div>
                                 </div>
 
-                                {/* Underlying Entity Hierarchy */}
-                                {expandedItems.has(`contact-hierarchy-${contact.id}`) && (
+                                {/* Show underlying organizations for this contact */}
+                                {expandedItems.has(`contact-org-${contact.id}`) && (
                                   <div className="ml-8 space-y-2 border-l-2 border-gray-200 pl-4">
                                     <div className="text-xs text-gray-500 font-medium uppercase tracking-wide mb-2">
-                                      🏢 Underlying Organizations
+                                      🏢 Organizations this contact belongs to
                                     </div>
                                     
-                                    {/* Direct entity relationship */}
-                                    {contact.parentEntity && (
-                                      <div className="space-y-2">
-                                        <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border-2 border-blue-200">
+                                    {/* Find entities this contact belongs to */}
+                                    {(() => {
+                                      const relatedEntities = [];
+                                      
+                                      // Check customers
+                                      if (customers) {
+                                        customers.forEach((customer: any) => {
+                                          const customerContacts = entityContacts[customer.id] || [];
+                                          if (customerContacts.some((c: any) => c.id === contact.id)) {
+                                            relatedEntities.push({ ...customer, entityType: 'customer' });
+                                          }
+                                        });
+                                      }
+                                      
+                                      // Check partners
+                                      if (partners) {
+                                        partners.forEach((partner: any) => {
+                                          const partnerContacts = entityContacts[partner.id] || [];
+                                          if (partnerContacts.some((c: any) => c.id === contact.id)) {
+                                            relatedEntities.push({ ...partner, entityType: 'partner' });
+                                          }
+                                        });
+                                      }
+                                      
+                                      if (relatedEntities.length === 0) {
+                                        return (
+                                          <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
+                                            <p className="text-sm text-gray-600 italic">
+                                              Direct contact - no organizational affiliations found
+                                            </p>
+                                          </div>
+                                        );
+                                      }
+                                      
+                                      return relatedEntities.map((entity: any) => (
+                                        <div key={`${entity.entityType}-${entity.id}`} className="flex items-center gap-3 p-3 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border-2 border-blue-200">
                                           <div className={`w-8 h-8 rounded-lg flex items-center justify-center ${
-                                            contact.parentEntity.type === 'customer' ? 'bg-blue-600' : 
-                                            contact.parentEntity.type === 'partner' ? 'bg-purple-600' : 
-                                            contact.parentEntity.type === 'opportunity' ? 'bg-green-600' : 'bg-orange-600'
+                                            entity.entityType === 'customer' ? 'bg-blue-600' : 'bg-purple-600'
                                           }`}>
-                                            {(() => {
-                                              const Icon = contact.parentEntity.type === 'customer' ? Users :
-                                                          contact.parentEntity.type === 'partner' ? Handshake :
-                                                          contact.parentEntity.type === 'opportunity' ? Target : Building2;
-                                              return <Icon className="h-4 w-4 text-white" />;
-                                            })()}
+                                            {entity.entityType === 'customer' ? (
+                                              <Users className="h-4 w-4 text-white" />
+                                            ) : (
+                                              <Handshake className="h-4 w-4 text-white" />
+                                            )}
                                           </div>
                                           <div>
-                                            <p className="font-bold text-blue-900">{getEntityDisplayName(contact.parentEntity)}</p>
+                                            <p className="font-bold text-blue-900">{entity.name}</p>
                                             <p className="text-sm text-blue-700 font-medium uppercase">
-                                              {contact.parentEntity.type === 'customer' ? '🏢 Customer Organization' :
-                                               contact.parentEntity.type === 'partner' ? '🤝 Partner Organization' :
-                                               contact.parentEntity.type === 'opportunity' ? '🎯 Opportunity' : '🏢 Organization'}
+                                              {entity.entityType === 'customer' ? '🏢 Customer Organization' : '🤝 Partner Organization'}
                                             </p>
                                           </div>
                                         </div>
-                                        
-                                        {/* For opportunities, show the customer hierarchy */}
-                                        {contact.parentEntity.type === 'opportunity' && (() => {
-                                          const customer = getCustomerForOpportunity(contact.parentEntity.id);
-                                          if (customer) {
-                                            return (
-                                              <div className="ml-4 space-y-2">
-                                                <div className="flex items-center gap-2 text-xs text-gray-500 font-medium">
-                                                  <ArrowRight className="h-3 w-3" />
-                                                  <span>RELATED CUSTOMER</span>
-                                                </div>
-                                                <div className="flex items-center gap-3 p-3 bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg border-2 border-purple-200">
-                                                  <div className="w-8 h-8 bg-purple-600 rounded-lg flex items-center justify-center">
-                                                    <Users className="h-4 w-4 text-white" />
-                                                  </div>
-                                                  <div>
-                                                    <p className="font-bold text-purple-900">{customer.name}</p>
-                                                    <p className="text-sm text-purple-700 font-medium">🏢 CUSTOMER ORGANIZATION</p>
-                                                  </div>
-                                                </div>
-                                              </div>
-                                            );
-                                          }
-                                          return null;
-                                        })()}
-                                      </div>
-                                    )}
-                                    
-                                    {/* For direct contacts, show all their potential relationships */}
-                                    {!contact.parentEntity && (
-                                      <div className="p-3 bg-gray-50 rounded-lg border border-gray-200">
-                                        <p className="text-sm text-gray-600 italic">
-                                          Direct contact - no organizational hierarchy
-                                        </p>
-                                      </div>
-                                    )}
+                                      ));
+                                    })()}
                                   </div>
                                 )}
                               </div>
                             ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Entity-based Recipients */}
+                  {selectedRecipients.filter(r => r.type === 'entity' || r.type === 'customer').length > 0 && (
+                    <div className="border border-gray-200 rounded-lg">
+                      <div className="p-4 bg-gray-50 border-b border-gray-200">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
+                              <Building2 className="h-4 w-4 text-white" />
+                            </div>
+                            <div>
+                              <h4 className="font-medium text-gray-900">Organization Recipients</h4>
+                              <p className="text-sm text-gray-600">
+                                {selectedRecipients.filter(r => r.type === 'entity' || r.type === 'customer').length} organizations selected
+                              </p>
+                            </div>
                           </div>
-                        )}
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => toggleItemExpansion('selected-entities')}
+                          >
+                            {expandedItems.has('selected-entities') ? (
+                              <ChevronDown className="h-4 w-4" />
+                            ) : (
+                              <ChevronRight className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
                       </div>
-                    ));
-                  })()}
+                      
+                      {expandedItems.has('selected-entities') && (
+                        <div className="p-4 space-y-3">
+                          {selectedRecipients
+                            .filter(r => r.type === 'entity' || r.type === 'customer')
+                            .map((entity) => (
+                              <div key={`entity-${entity.id}`} className="border border-gray-200 rounded-lg">
+                                <div className="flex items-center justify-between p-3 bg-white">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                      <Building2 className="h-4 w-4 text-green-600" />
+                                    </div>
+                                    <div>
+                                      <p className="font-medium text-gray-900">{getEntityDisplayName(entity)}</p>
+                                      <p className="text-sm text-gray-600">
+                                        {(entityContacts[entity.id] || []).length} related contacts
+                                      </p>
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => toggleItemExpansion(`entity-contacts-${entity.id}`)}
+                                    >
+                                      {expandedItems.has(`entity-contacts-${entity.id}`) ? (
+                                        <ChevronDown className="h-4 w-4" />
+                                      ) : (
+                                        <ChevronRight className="h-4 w-4" />
+                                      )}
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => {
+                                        const updatedRecipients = selectedRecipients.filter(r => 
+                                          !(r.type === entity.type && r.id === entity.id)
+                                        );
+                                        onRecipientsChange(updatedRecipients);
+                                      }}
+                                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                    >
+                                      <X className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </div>
+                                
+                                {/* Show contacts for this entity */}
+                                {expandedItems.has(`entity-contacts-${entity.id}`) && entityContacts[entity.id] && (
+                                  <div className="p-4 bg-gray-50 border-t border-gray-200">
+                                    <div className="text-sm font-medium text-gray-700 mb-3">
+                                      Contacts from this organization:
+                                    </div>
+                                    <div className="space-y-2">
+                                      {entityContacts[entity.id].map((contact: any) => (
+                                        <div key={contact.id} className="flex items-center justify-between p-3 bg-white rounded-lg border border-gray-200">
+                                          <div className="flex items-center gap-3">
+                                            <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                              <Mail className="h-4 w-4 text-blue-600" />
+                                            </div>
+                                            <div>
+                                              <p className="font-medium text-gray-900">{getContactDisplayName(contact)}</p>
+                                              <p className="text-sm text-gray-600">{contact.email}</p>
+                                            </div>
+                                          </div>
+                                          <input
+                                            type="checkbox"
+                                            className="rounded border-gray-300"
+                                            onChange={() => handleSelectRecipient(contact, 'contact')}
+                                            checked={selectedRecipients.some(r => 
+                                              r.type === 'contact' && r.id === contact.id
+                                            )}
+                                          />
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               </div>
             )}
