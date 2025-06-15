@@ -13,7 +13,9 @@ import {
   Mail,
   Phone,
   Briefcase,
-  MapPin
+  MapPin,
+  Eye,
+  X
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -89,7 +91,7 @@ export default function RecipientSelector({
   onRecipientsChange 
 }: RecipientSelectorProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedTab, setSelectedTab] = useState<'lists' | 'contacts'>('lists');
+  const [selectedTab, setSelectedTab] = useState<'lists' | 'contacts' | 'selected'>('lists');
   const [expandedItems, setExpandedItems] = useState<Set<string>>(new Set());
   const [showAddContact, setShowAddContact] = useState(false);
   const [bulkMode, setBulkMode] = useState(false);
@@ -277,8 +279,54 @@ export default function RecipientSelector({
     return entity.name || entity.title || 'Unknown Entity';
   };
 
+  // Calculate selection counts
+  const selectionCounts = {
+    total: selectedRecipients.length,
+    contacts: selectedRecipients.filter(r => r.type === 'contact').length,
+    entities: selectedRecipients.filter(r => r.type === 'entity' || r.type === 'customer').length
+  };
+
   return (
     <div className="space-y-6">
+      {/* Selection Actions Header */}
+      {selectedRecipients.length > 0 && (
+        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+              <Users className="h-4 w-4 text-white" />
+            </div>
+            <div>
+              <p className="font-semibold text-blue-900">
+                {selectionCounts.total} recipient{selectionCounts.total !== 1 ? 's' : ''} selected
+              </p>
+              <p className="text-sm text-blue-700">
+                {selectionCounts.contacts} contact{selectionCounts.contacts !== 1 ? 's' : ''} • {selectionCounts.entities} entit{selectionCounts.entities !== 1 ? 'ies' : 'y'}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSelectedTab('selected')}
+              className="border-blue-300 text-blue-700 hover:bg-blue-100"
+            >
+              <Eye className="h-4 w-4 mr-2" />
+              View Selected
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => onRecipientsChange([])}
+              className="border-red-300 text-red-700 hover:bg-red-100"
+            >
+              <X className="h-4 w-4 mr-2" />
+              Clear All
+            </Button>
+          </div>
+        </div>
+      )}
+
       {/* Header with search and tabs */}
       <div className="space-y-4">
         <div className="flex gap-4 items-center">
@@ -397,6 +445,15 @@ export default function RecipientSelector({
           >
             <Mail className="h-4 w-4" />
             Contacts
+          </Button>
+          <Button
+            variant={selectedTab === 'selected' ? 'default' : 'outline'}
+            size="sm"
+            onClick={() => setSelectedTab('selected')}
+            className="gap-2"
+          >
+            <Eye className="h-4 w-4" />
+            Selected ({selectedRecipients.length})
           </Button>
         </div>
       </div>
@@ -843,6 +900,234 @@ export default function RecipientSelector({
                     <p className="text-sm">Try adjusting your search or add new contacts.</p>
                   </div>
                 )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Selected Tab - Structured view with dropdown organization */}
+        {selectedTab === 'selected' && (
+          <div className="space-y-4">
+            {selectedRecipients.length === 0 ? (
+              <div className="text-center py-12 text-gray-500">
+                <Eye className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+                <p className="font-medium mb-2">No recipients selected</p>
+                <p className="text-sm">Select contacts or entities from the Lists or Contacts tabs.</p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {/* Summary Stats */}
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-medium text-gray-900">Selected Recipients</h3>
+                  <div className="flex items-center gap-4 text-sm text-gray-600">
+                    <span>{selectionCounts.contacts} contacts</span>
+                    <span>{selectionCounts.entities} entities</span>
+                    <span className="font-medium">{selectionCounts.total} total</span>
+                  </div>
+                </div>
+
+                {/* Grouped by Contact Type with Dropdown Organization */}
+                <div className="space-y-3">
+                  {/* Direct Contacts */}
+                  {selectedRecipients.filter(r => r.type === 'contact').length > 0 && (
+                    <div className="border border-gray-200 rounded-lg">
+                      <div className="p-4 bg-gray-50 border-b border-gray-200">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+                              <Mail className="h-4 w-4 text-white" />
+                            </div>
+                            <div>
+                              <h4 className="font-medium text-gray-900">Direct Contacts</h4>
+                              <p className="text-sm text-gray-600">
+                                {selectedRecipients.filter(r => r.type === 'contact').length} individual contacts
+                              </p>
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => toggleItemExpansion('selected-contacts')}
+                          >
+                            {expandedItems.has('selected-contacts') ? (
+                              <ChevronDown className="h-4 w-4" />
+                            ) : (
+                              <ChevronRight className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      {expandedItems.has('selected-contacts') && (
+                        <div className="p-4 space-y-3">
+                          {selectedRecipients
+                            .filter(r => r.type === 'contact')
+                            .map((recipient) => (
+                              <div key={`contact-${recipient.id}`} className="flex items-center justify-between p-3 bg-white border border-gray-200 rounded-lg">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                    <Mail className="h-4 w-4 text-blue-600" />
+                                  </div>
+                                  <div>
+                                    <p className="font-medium text-gray-900">{getContactDisplayName(recipient)}</p>
+                                    <p className="text-sm text-gray-600 flex items-center gap-1">
+                                      <Mail className="h-3 w-3" />
+                                      {recipient.email}
+                                    </p>
+                                    {getContactJobTitle(recipient) && (
+                                      <p className="text-sm text-gray-500 flex items-center gap-1">
+                                        <Briefcase className="h-3 w-3" />
+                                        {getContactJobTitle(recipient)}
+                                      </p>
+                                    )}
+                                    {recipient.company && (
+                                      <p className="text-sm text-gray-500 flex items-center gap-1">
+                                        <Building2 className="h-3 w-3" />
+                                        {recipient.company}
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    const updatedRecipients = selectedRecipients.filter(r => 
+                                      !(r.type === 'contact' && r.id === recipient.id)
+                                    );
+                                    onRecipientsChange(updatedRecipients);
+                                  }}
+                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                >
+                                  <X className="h-4 w-4" />
+                                </Button>
+                              </div>
+                            ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+
+                  {/* Entity-based Contacts */}
+                  {selectedRecipients.filter(r => r.type === 'entity' || r.type === 'customer').length > 0 && (
+                    <div className="border border-gray-200 rounded-lg">
+                      <div className="p-4 bg-gray-50 border-b border-gray-200">
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 bg-green-600 rounded-full flex items-center justify-center">
+                              <Building2 className="h-4 w-4 text-white" />
+                            </div>
+                            <div>
+                              <h4 className="font-medium text-gray-900">Entity Contacts</h4>
+                              <p className="text-sm text-gray-600">
+                                {selectedRecipients.filter(r => r.type === 'entity' || r.type === 'customer').length} organizations
+                              </p>
+                            </div>
+                          </div>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => toggleItemExpansion('selected-entities')}
+                          >
+                            {expandedItems.has('selected-entities') ? (
+                              <ChevronDown className="h-4 w-4" />
+                            ) : (
+                              <ChevronRight className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      {expandedItems.has('selected-entities') && (
+                        <div className="p-4 space-y-3">
+                          {selectedRecipients
+                            .filter(r => r.type === 'entity' || r.type === 'customer')
+                            .map((recipient) => (
+                              <div key={`entity-${recipient.id}`} className="border border-gray-200 rounded-lg">
+                                <div className="flex items-center justify-between p-3 bg-white">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                      <Building2 className="h-4 w-4 text-green-600" />
+                                    </div>
+                                    <div>
+                                      <p className="font-medium text-gray-900">{getEntityDisplayName(recipient)}</p>
+                                      {recipient.email && (
+                                        <p className="text-sm text-gray-600 flex items-center gap-1">
+                                          <Mail className="h-3 w-3" />
+                                          {recipient.email}
+                                        </p>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-2">
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => toggleItemExpansion(`selected-entity-${recipient.id}`)}
+                                    >
+                                      {expandedItems.has(`selected-entity-${recipient.id}`) ? (
+                                        <ChevronDown className="h-4 w-4" />
+                                      ) : (
+                                        <ChevronRight className="h-4 w-4" />
+                                      )}
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="sm"
+                                      onClick={() => {
+                                        const updatedRecipients = selectedRecipients.filter(r => 
+                                          !(r.type === recipient.type && r.id === recipient.id)
+                                        );
+                                        onRecipientsChange(updatedRecipients);
+                                      }}
+                                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                    >
+                                      <X className="h-4 w-4" />
+                                    </Button>
+                                  </div>
+                                </div>
+                                
+                                {/* Show related contacts for this entity */}
+                                {expandedItems.has(`selected-entity-${recipient.id}`) && entityContacts[recipient.id] && (
+                                  <div className="p-4 bg-gray-50 border-t border-gray-200">
+                                    <div className="flex items-center gap-2 mb-3">
+                                      <Mail className="h-4 w-4 text-gray-600" />
+                                      <span className="text-sm font-medium text-gray-700">
+                                        Related Contacts ({entityContacts[recipient.id].length})
+                                      </span>
+                                    </div>
+                                    <div className="space-y-2">
+                                      {entityContacts[recipient.id].map((contact: any) => (
+                                        <div key={contact.id} className="flex items-center justify-between p-2 bg-white rounded-lg border border-gray-200">
+                                          <div className="flex items-center gap-3">
+                                            <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                                              <Mail className="h-3 w-3 text-blue-600" />
+                                            </div>
+                                            <div>
+                                              <p className="text-sm font-medium text-gray-900">{getContactDisplayName(contact)}</p>
+                                              <p className="text-xs text-gray-600">{contact.email}</p>
+                                            </div>
+                                          </div>
+                                          <input
+                                            type="checkbox"
+                                            className="rounded border-gray-300"
+                                            onChange={() => handleSelectRecipient(contact, 'contact')}
+                                            checked={selectedRecipients.some(r => 
+                                              r.type === 'contact' && r.id === contact.id
+                                            )}
+                                          />
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            ))}
+                        </div>
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             )}
           </div>
