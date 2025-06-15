@@ -234,10 +234,6 @@ export default function RecipientSelector({
 
   const getCustomerForOpportunity = (opportunityId: number) => {
     const opportunity = (entities as any[] || []).find((e: any) => e.id === opportunityId);
-    console.log(`Debug - Opportunity ${opportunityId}:`, opportunity);
-    console.log(`Debug - Available customers:`, customers);
-    console.log(`Debug - Customer with clientId ${opportunity?.clientId}:`, opportunity?.clientId ? (customers as any[] || []).find((c: Customer) => c.id === opportunity.clientId) : 'No clientId');
-    
     if (opportunity?.clientId) {
       return (customers as any[] || []).find((c: Customer) => c.id === opportunity.clientId);
     }
@@ -511,99 +507,95 @@ export default function RecipientSelector({
                               {/* For opportunities, show related customer */}
                               {entityType === 'opportunities' && (() => {
                                 const customer = getCustomerForOpportunity(entity.id);
-                                console.log(`Debug - Opportunity ${entity.id}: Customer found:`, customer);
-                                console.log(`Debug - EntityContacts for customer ${customer?.id}:`, customer ? entityContacts[customer.id] : 'No customer');
                                 
                                 if (customer) {
                                   return (
-                                  <div className="space-y-2">
-                                    <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border-2 border-blue-200 shadow-sm">
-                                      <div className="flex items-center gap-4">
-                                        <input
-                                          type="checkbox"
-                                          className="rounded border-gray-300 w-4 h-4"
-                                          onChange={() => handleSelectRecipient(customer, 'customer')}
-                                          checked={selectedRecipients.some(r => 
-                                            r.type === 'customer' && r.id === customer.id
-                                          )}
-                                        />
-                                        <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
-                                          <Users className="h-5 w-5 text-white" />
-                                        </div>
-                                        <div>
-                                          <p className="font-bold text-blue-900 text-lg">{customer.name}</p>
-                                          <p className="text-sm text-blue-700 font-medium">🏢 CUSTOMER ORGANIZATION</p>
-                                        </div>
-                                      </div>
-                                      {entityContacts[customer.id] && entityContacts[customer.id].length > 0 && (
-                                        <div className="flex items-center gap-2">
-                                          <span className="text-xs text-blue-600 font-medium">
-                                            {entityContacts[customer.id].length} contacts
-                                          </span>
-                                          <Button
-                                            variant="ghost"
-                                            size="sm"
-                                            onClick={() => toggleItemExpansion(`customer-${customer.id}`)}
-                                            className="bg-blue-200 hover:bg-blue-300"
-                                          >
-                                            {expandedItems.has(`customer-${customer.id}`) ? (
-                                              <ChevronDown className="h-4 w-4 text-blue-800" />
-                                            ) : (
-                                              <ChevronRight className="h-4 w-4 text-blue-800" />
+                                    <div className="space-y-2">
+                                      <div className="flex items-center justify-between p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border-2 border-blue-200 shadow-sm">
+                                        <div className="flex items-center gap-4">
+                                          <input
+                                            type="checkbox"
+                                            className="rounded border-gray-300 w-4 h-4"
+                                            onChange={() => handleSelectRecipient(customer, 'customer')}
+                                            checked={selectedRecipients.some(r => 
+                                              r.type === 'customer' && r.id === customer.id
                                             )}
-                                          </Button>
+                                          />
+                                          <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center">
+                                            <Users className="h-5 w-5 text-white" />
+                                          </div>
+                                          <div>
+                                            <p className="font-bold text-blue-900 text-lg">{customer.name}</p>
+                                            <p className="text-sm text-blue-700 font-medium">🏢 CUSTOMER ORGANIZATION</p>
+                                          </div>
+                                        </div>
+                                        {entityContacts[customer.id] && entityContacts[customer.id].length > 0 && (
+                                          <div className="flex items-center gap-2">
+                                            <span className="text-xs text-blue-600 font-medium">
+                                              {entityContacts[customer.id].length} contacts
+                                            </span>
+                                            <Button
+                                              variant="ghost"
+                                              size="sm"
+                                              onClick={() => toggleItemExpansion(`customer-${customer.id}`)}
+                                              className="bg-blue-200 hover:bg-blue-300"
+                                            >
+                                              {expandedItems.has(`customer-${customer.id}`) ? (
+                                                <ChevronDown className="h-4 w-4 text-blue-800" />
+                                              ) : (
+                                                <ChevronRight className="h-4 w-4 text-blue-800" />
+                                              )}
+                                            </Button>
+                                          </div>
+                                        )}
+                                      </div>
+                                      
+                                      {/* Customer contacts */}
+                                      {expandedItems.has(`customer-${customer.id}`) && entityContacts[customer.id] && (
+                                        <div className="ml-8 space-y-2 border-l-2 border-gray-200 pl-4">
+                                          <div className="text-xs text-gray-500 font-medium uppercase tracking-wide mb-2">
+                                            👤 Contact Persons
+                                          </div>
+                                          {entityContacts[customer.id].map((contact: Contact) => (
+                                            <div key={contact.id} className="flex items-center gap-3 p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors">
+                                              <input
+                                                type="checkbox"
+                                                className="rounded border-gray-300 w-4 h-4"
+                                                onChange={() => handleSelectRecipient(contact, 'contact')}
+                                                checked={selectedRecipients.some(r => 
+                                                  r.type === 'contact' && r.id === contact.id
+                                                )}
+                                              />
+                                              <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
+                                                <Users className="h-4 w-4 text-white" />
+                                              </div>
+                                              <div className="flex-1">
+                                                <p className="font-semibold text-gray-800">
+                                                  {getContactDisplayName(contact)}
+                                                </p>
+                                                <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
+                                                  {contact.email && (
+                                                    <span className="flex items-center gap-1 bg-blue-100 px-2 py-1 rounded text-blue-700">
+                                                      <Mail className="h-3 w-3" />
+                                                      {contact.email}
+                                                    </span>
+                                                  )}
+                                                  {getContactJobTitle(contact) && (
+                                                    <span className="flex items-center gap-1 text-gray-500">
+                                                      <Briefcase className="h-3 w-3" />
+                                                      {getContactJobTitle(contact)}
+                                                    </span>
+                                                  )}
+                                                </div>
+                                              </div>
+                                            </div>
+                                          ))}
                                         </div>
                                       )}
                                     </div>
-                                    
-                                    {/* Customer contacts */}
-                                    {expandedItems.has(`customer-${customer.id}`) && entityContacts[customer.id] && (
-                                      <div className="ml-8 space-y-2 border-l-2 border-gray-200 pl-4">
-                                        <div className="text-xs text-gray-500 font-medium uppercase tracking-wide mb-2">
-                                          👤 Contact Persons
-                                        </div>
-                                        {entityContacts[customer.id].map((contact: Contact) => (
-                                          <div key={contact.id} className="flex items-center gap-3 p-3 bg-gray-50 border border-gray-200 rounded-lg hover:bg-gray-100 transition-colors">
-                                            <input
-                                              type="checkbox"
-                                              className="rounded border-gray-300 w-4 h-4"
-                                              onChange={() => handleSelectRecipient(contact, 'contact')}
-                                              checked={selectedRecipients.some(r => 
-                                                r.type === 'contact' && r.id === contact.id
-                                              )}
-                                            />
-                                            <div className="w-8 h-8 bg-gray-400 rounded-full flex items-center justify-center">
-                                              <Users className="h-4 w-4 text-white" />
-                                            </div>
-                                            <div className="flex-1">
-                                              <p className="font-semibold text-gray-800">
-                                                {getContactDisplayName(contact)}
-                                              </p>
-                                              <div className="flex items-center gap-4 text-sm text-gray-600 mt-1">
-                                                {contact.email && (
-                                                  <span className="flex items-center gap-1 bg-blue-100 px-2 py-1 rounded text-blue-700">
-                                                    <Mail className="h-3 w-3" />
-                                                    {contact.email}
-                                                  </span>
-                                                )}
-                                                {getContactJobTitle(contact) && (
-                                                  <span className="flex items-center gap-1 text-gray-500">
-                                                    <Briefcase className="h-3 w-3" />
-                                                    {getContactJobTitle(contact)}
-                                                  </span>
-                                                )}
-                                              </div>
-                                            </div>
-                                          </div>
-                                        ))}
-                                      </div>
-                                    )}
-                                  </div>
-                                ) : (
-                                  <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-red-700">
-                                    <p className="text-sm">No customer found for this opportunity</p>
-                                  </div>
-                                );
+                                  );
+                                }
+                                return null;
                               })()}
 
                               {/* Direct entity contacts (only for partners, customers, and internal - NOT opportunities) */}
