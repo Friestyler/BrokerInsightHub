@@ -38,7 +38,7 @@ export default function TemplatesPage() {
   const templateList = templates || [];
 
   const handleCreateTemplate = () => {
-    setLocation('/campaigns/templates/create');
+    setLocation('/campaigns/create');
   };
 
   const handleEditTemplate = (templateId: number) => {
