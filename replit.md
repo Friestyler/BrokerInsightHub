@@ -140,6 +140,7 @@ Each environment maintains its own data isolation while sharing the same applica
 - June 15, 2025: Completed campaign template save functionality with full database integration, mutation handling, loading states, error handling, and automatic redirection to templates page after successful save
 - June 15, 2025: Fixed critical template save validation bug where email subject field was updating wrong email index, preventing save button activation. Corrected ImprovedEmailBuilder to use activeEmailIndex instead of expandedEmailIndex for updateEmailField function
 - June 15, 2025: Added custom AI blocks - AI Paragraph Generator and AI Data Fetching blocks with specialized editing interfaces, removed Fundraising content option, fixed redundancy issues where content appeared twice
+- June 15, 2025: Completed comprehensive rebranding from "Email Builder" to "Flow Builder" throughout the entire application - updated component names, UI text, step terminology, header titles, preview labels, empty state messages, and all user-facing references for consistent terminology
 
 ## User Preferences
 

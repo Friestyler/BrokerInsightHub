@@ -700,7 +700,7 @@ export default function CampaignCreator() {
       
       case 3:
         return (
-          <ImprovedEmailBuilder
+          <ImprovedFlowBuilder
             emails={campaignData.emails}
             activeEmailIndex={activeEmailIndex}
             entityType={campaignData.entity}
