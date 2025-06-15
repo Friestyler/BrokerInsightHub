@@ -129,14 +129,17 @@ export default function RecipientSelector({
     select: (data: Contact[]) => {
       const contactsByEntity: Record<number, Contact[]> = {};
       data.forEach(contact => {
-        if (contact.linkedEntityId && contact.linkedEntityType) {
+        const entityId = contact.linkedEntityId || contact.linked_entity_id;
+        const entityTypeFromDb = contact.linkedEntityType || contact.linked_entity_type;
+        
+        if (entityId && entityTypeFromDb) {
           // Filter by entity type (remove 's' from plural)
           const entityTypeSingular = entityType.slice(0, -1);
-          if (contact.linkedEntityType === entityTypeSingular) {
-            if (!contactsByEntity[contact.linkedEntityId]) {
-              contactsByEntity[contact.linkedEntityId] = [];
+          if (entityTypeFromDb === entityTypeSingular) {
+            if (!contactsByEntity[entityId]) {
+              contactsByEntity[entityId] = [];
             }
-            contactsByEntity[contact.linkedEntityId].push(contact);
+            contactsByEntity[entityId].push(contact);
           }
         }
       });
@@ -461,19 +464,17 @@ export default function RecipientSelector({
                             </div>
                             
                             {/* Drill-down button for hierarchical relationships */}
-                            {(entityType === 'opportunities' || entityContacts[entity.id]) && (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => toggleItemExpansion(`entity-${entity.id}`)}
-                              >
-                                {expandedItems.has(`entity-${entity.id}`) ? (
-                                  <ChevronDown className="h-4 w-4" />
-                                ) : (
-                                  <ChevronRight className="h-4 w-4" />
-                                )}
-                              </Button>
-                            )}
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => toggleItemExpansion(`entity-${entity.id}`)}
+                            >
+                              {expandedItems.has(`entity-${entity.id}`) ? (
+                                <ChevronDown className="h-4 w-4" />
+                              ) : (
+                                <ChevronRight className="h-4 w-4" />
+                              )}
+                            </Button>
                           </div>
 
                           {/* Drill-down content */}
@@ -626,7 +627,107 @@ export default function RecipientSelector({
                           </p>
                         </div>
                       </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => toggleItemExpansion(`list-${list.id}`)}
+                      >
+                        {expandedItems.has(`list-${list.id}`) ? (
+                          <ChevronDown className="h-4 w-4" />
+                        ) : (
+                          <ChevronRight className="h-4 w-4" />
+                        )}
+                      </Button>
                     </div>
+
+                    {/* Expanded List Items with Drill-down */}
+                    {expandedItems.has(`list-${list.id}`) && (
+                      <div className="mt-4 space-y-2 pl-6 border-l-2 border-gray-100">
+                        {list.entityIds.map(entityId => {
+                          const entity = entities.find((e: any) => e.id === entityId);
+                          if (!entity) return null;
+                          
+                          return (
+                            <div key={entity.id} className="space-y-2">
+                              <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                                <div className="flex items-center gap-3">
+                                  <input
+                                    type="checkbox"
+                                    className="rounded border-gray-300"
+                                    onChange={() => handleSelectRecipient(entity, 'entity')}
+                                    checked={selectedRecipients.some(r => 
+                                      r.type === 'entity' && r.id === entity.id
+                                    )}
+                                  />
+                                  <div>
+                                    <p className="font-medium text-gray-900">{entity.name}</p>
+                                    {entity.email && (
+                                      <p className="text-sm text-gray-500 flex items-center gap-1">
+                                        <Mail className="h-3 w-3" />
+                                        {entity.email}
+                                      </p>
+                                    )}
+                                  </div>
+                                </div>
+                                
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => toggleItemExpansion(`list-entity-${entity.id}`)}
+                                >
+                                  {expandedItems.has(`list-entity-${entity.id}`) ? (
+                                    <ChevronDown className="h-4 w-4" />
+                                  ) : (
+                                    <ChevronRight className="h-4 w-4" />
+                                  )}
+                                </Button>
+                              </div>
+
+                              {/* Entity contacts within list */}
+                              {expandedItems.has(`list-entity-${entity.id}`) && entityContacts[entity.id] && (
+                                <div className="ml-6 space-y-2">
+                                  {entityContacts[entity.id].map((contact: any) => {
+                                    const displayName = contact.fullName || `${contact.first_name || contact.firstName || ''} ${contact.last_name || contact.lastName || ''}`.trim();
+                                    return (
+                                      <div key={contact.id} className="flex items-center gap-3 p-3 bg-white border rounded-lg">
+                                        <input
+                                          type="checkbox"
+                                          className="rounded border-gray-300"
+                                          onChange={() => handleSelectRecipient(contact, 'contact')}
+                                          checked={selectedRecipients.some(r => 
+                                            r.type === 'contact' && r.id === contact.id
+                                          )}
+                                        />
+                                        <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+                                          <Users className="h-4 w-4 text-gray-600" />
+                                        </div>
+                                        <div className="flex-1">
+                                          <p className="font-medium text-gray-900">{displayName}</p>
+                                          <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
+                                            {contact.email && (
+                                              <span className="flex items-center gap-1">
+                                                <Mail className="h-3 w-3" />
+                                                {contact.email}
+                                              </span>
+                                            )}
+                                            {(contact.jobTitle || contact.job_title) && (
+                                              <span className="flex items-center gap-1">
+                                                <Briefcase className="h-3 w-3" />
+                                                {contact.jobTitle || contact.job_title}
+                                              </span>
+                                            )}
+                                          </div>
+                                        </div>
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
