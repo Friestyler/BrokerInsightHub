@@ -17,36 +17,34 @@ import {
   CheckCircle, 
   RefreshCw, 
   Pause, 
-  Archive 
+  Archive,
+  Plus 
 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+} from "@/components/ui/dropdown-menu";
 
 export default function CampaignsOverview() {
-  const { environment } = useEnvironment();
-  const [activeTab, setActiveTab] = useState('campaigns');
+  const [activeTab, setActiveTab] = useState<'campaigns' | 'templates'>('campaigns');
   const [selectedCampaigns, setSelectedCampaigns] = useState<number[]>([]);
-  const [selectedFilter, setSelectedFilter] = useState('all');
+  const [selectedFilter, setSelectedFilter] = useState<string>('all');
+  const { environment } = useEnvironment();
+  const { toast } = useToast();
 
   const { data: campaigns, isLoading, error } = useQuery({
     queryKey: [`/api/${environment.id}/campaigns`],
-    staleTime: 5 * 60 * 1000,
+    enabled: activeTab === 'campaigns'
   });
 
   const filteredCampaigns = useMemo(() => {
-    if (!Array.isArray(campaigns)) return [];
-    
-    return (campaigns as any[]).filter(campaign => {
-      if (selectedFilter === 'all') return true;
-      return campaign.target_entity_type === selectedFilter;
-    });
+    if (!campaigns || selectedFilter === 'all') return campaigns;
+    return campaigns.filter((campaign: any) => 
+      campaign.target_entity_type === selectedFilter
+    );
   }, [campaigns, selectedFilter]);
-
-  const { toast } = useToast();
 
   const handleBulkDelete = async () => {
     if (selectedCampaigns.length === 0) return;
@@ -59,7 +57,7 @@ export default function CampaignsOverview() {
       
       toast({
         title: "Success",
-        description: `${selectedCampaigns.length} campaign(s) deleted successfully`,
+        description: `Deleted ${selectedCampaigns.length} campaign(s)`,
       });
       
       setSelectedCampaigns([]);
@@ -84,19 +82,9 @@ export default function CampaignsOverview() {
       // Invalidate campaigns query to refresh the list
       queryClient.invalidateQueries({ queryKey: [`/api/${environment.id}/campaigns`] });
       
-      const statusLabels: Record<string, string> = {
-        'draft': 'Draft',
-        'scheduled': 'Scheduled',
-        'in_progress': 'In Progress',
-        'sent_once': 'Sent Once',
-        'sent_open': 'Sent & Open',
-        'stopped': 'Stopped',
-        'archived': 'Archived'
-      };
-      
       toast({
         title: "Success",
-        description: `${selectedCampaigns.length} campaign(s) marked as ${statusLabels[newStatus] || newStatus}`,
+        description: `Updated ${selectedCampaigns.length} campaign(s) to ${newStatus}`,
       });
       
       setSelectedCampaigns([]);
@@ -109,18 +97,33 @@ export default function CampaignsOverview() {
     }
   };
 
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case 'draft': return <Edit2 className="w-4 h-4" />;
+      case 'scheduled': return <Clock className="w-4 h-4" />;
+      case 'sent_once': return <Play className="w-4 h-4" />;
+      case 'sent_open': return <CheckCircle className="w-4 h-4" />;
+      case 'in_progress': return <RefreshCw className="w-4 h-4" />;
+      case 'stopped': return <Pause className="w-4 h-4" />;
+      case 'archived': return <Archive className="w-4 h-4" />;
+      default: return <Edit2 className="w-4 h-4" />;
+    }
+  };
+
+  const statusOptions = [
+    { value: 'draft', label: 'Draft', icon: <Edit2 className="w-4 h-4" /> },
+    { value: 'scheduled', label: 'Scheduled', icon: <Clock className="w-4 h-4" /> },
+    { value: 'sent_once', label: 'Sent Once', icon: <Play className="w-4 h-4" /> },
+    { value: 'sent_open', label: 'Sent & Open', icon: <CheckCircle className="w-4 h-4" /> },
+    { value: 'in_progress', label: 'In Progress', icon: <RefreshCw className="w-4 h-4" /> },
+    { value: 'stopped', label: 'Stopped', icon: <Pause className="w-4 h-4" /> },
+    { value: 'archived', label: 'Archived', icon: <Archive className="w-4 h-4" /> }
+  ];
+
   if (isLoading) {
     return (
-      <div className="p-6">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600 mx-auto"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="p-6">
-        <div className="text-red-600">Error loading campaigns: {(error as any)?.message}</div>
+      <div className="flex items-center justify-center h-64">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
       </div>
     );
   }
@@ -164,117 +167,101 @@ export default function CampaignsOverview() {
             {/* Summary Cards */}
             <CampaignsSummaryCards campaigns={campaigns} />
 
-            {/* Filters */}
-            <div className="flex items-center gap-2">
+            {/* Action Bar */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Button
+                  variant={selectedFilter === 'all' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setSelectedFilter('all')}
+                  className={selectedFilter === 'all' ? 'bg-indigo-600 hover:bg-indigo-700' : ''}
+                >
+                  All Campaigns
+                </Button>
+                <Button
+                  variant={selectedFilter === 'partners' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setSelectedFilter('partners')}
+                  className={selectedFilter === 'partners' ? 'bg-purple-600 hover:bg-purple-700' : ''}
+                >
+                  Partners
+                </Button>
+                <Button
+                  variant={selectedFilter === 'customers' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setSelectedFilter('customers')}
+                  className={selectedFilter === 'customers' ? 'bg-blue-600 hover:bg-blue-700' : ''}
+                >
+                  Customers
+                </Button>
+                <Button
+                  variant={selectedFilter === 'opportunities' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setSelectedFilter('opportunities')}
+                  className={selectedFilter === 'opportunities' ? 'bg-green-600 hover:bg-green-700' : ''}
+                >
+                  Opportunities
+                </Button>
+                <Button
+                  variant={selectedFilter === 'internal' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setSelectedFilter('internal')}
+                  className={selectedFilter === 'internal' ? 'bg-orange-600 hover:bg-orange-700' : ''}
+                >
+                  Internal
+                </Button>
+              </div>
+              
               <Button
-                variant={selectedFilter === 'all' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setSelectedFilter('all')}
-                className={selectedFilter === 'all' ? 'bg-indigo-600 hover:bg-indigo-700' : ''}
+                onClick={() => window.location.href = '/campaigns/new'}
+                className="bg-indigo-600 hover:bg-indigo-700 text-white font-medium px-4 py-2 rounded-lg flex items-center gap-2"
               >
-                All Campaigns
-              </Button>
-              <Button
-                variant={selectedFilter === 'partners' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setSelectedFilter('partners')}
-                className={selectedFilter === 'partners' ? 'bg-purple-600 hover:bg-purple-700' : ''}
-              >
-                Partners
-              </Button>
-              <Button
-                variant={selectedFilter === 'customers' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setSelectedFilter('customers')}
-                className={selectedFilter === 'customers' ? 'bg-blue-600 hover:bg-blue-700' : ''}
-              >
-                Customers
-              </Button>
-              <Button
-                variant={selectedFilter === 'opportunities' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setSelectedFilter('opportunities')}
-                className={selectedFilter === 'opportunities' ? 'bg-green-600 hover:bg-green-700' : ''}
-              >
-                Opportunities
-              </Button>
-              <Button
-                variant={selectedFilter === 'internal' ? 'default' : 'outline'}
-                size="sm"
-                onClick={() => setSelectedFilter('internal')}
-                className={selectedFilter === 'internal' ? 'bg-orange-600 hover:bg-orange-700' : ''}
-              >
-                Internal
+                <Plus className="h-4 w-4" />
+                Create New Campaign
               </Button>
             </div>
 
             {/* Bulk actions bar - show when campaigns are selected */}
             {selectedCampaigns.length > 0 && (
               <div className="bg-indigo-50 p-4 rounded-lg border border-indigo-100 flex flex-wrap items-center justify-between">
-                <div className="flex items-center">
-                  <span className="text-indigo-700 font-medium mr-2">
-                    {selectedCampaigns.length} {selectedCampaigns.length === 1 ? 'campaign' : 'campaigns'} selected
+                <div className="flex items-center gap-4">
+                  <span className="text-sm font-medium text-indigo-700">
+                    {selectedCampaigns.length} campaign(s) selected
                   </span>
-                  <Button 
-                    variant="ghost" 
-                    size="sm"
-                    className="text-gray-600"
-                    onClick={() => setSelectedCampaigns([])}
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
-                      <path d="M18 6 6 18"></path>
-                      <path d="m6 6 12 12"></path>
-                    </svg>
-                    Clear selection
-                  </Button>
-                </div>
-                
-                <div className="flex items-center gap-2 flex-wrap">
+                  
                   <DropdownMenu>
                     <DropdownMenuTrigger asChild>
-                      <Button variant="outline" size="sm">
+                      <Button variant="outline" size="sm" className="flex items-center gap-2">
+                        {getStatusIcon('draft')}
                         Change Status
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-1">
-                          <path d="M6 9l6 6 6-6"></path>
-                        </svg>
                       </Button>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent align="start" className="w-48">
-                      <DropdownMenuItem onClick={() => handleBulkStatusChange('draft')} className="flex items-center gap-2">
-                        <Edit2 className="w-4 h-4" />
-                        Mark as Draft
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleBulkStatusChange('scheduled')} className="flex items-center gap-2">
-                        <Clock className="w-4 h-4" />
-                        Schedule
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleBulkStatusChange('in_progress')} className="flex items-center gap-2">
-                        <Play className="w-4 h-4" />
-                        Start Campaign
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleBulkStatusChange('sent_once')} className="flex items-center gap-2">
-                        <CheckCircle className="w-4 h-4" />
-                        Mark Complete
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleBulkStatusChange('sent_open')} className="flex items-center gap-2">
-                        <RefreshCw className="w-4 h-4" />
-                        Keep Open
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleBulkStatusChange('stopped')} className="flex items-center gap-2">
-                        <Pause className="w-4 h-4" />
-                        Stop Campaign
-                      </DropdownMenuItem>
-                      <DropdownMenuItem onClick={() => handleBulkStatusChange('archived')} className="flex items-center gap-2">
-                        <Archive className="w-4 h-4" />
-                        Archive
-                      </DropdownMenuItem>
+                      {statusOptions.map((option) => (
+                        <DropdownMenuItem
+                          key={option.value}
+                          onClick={() => handleBulkStatusChange(option.value)}
+                          className="flex items-center gap-2"
+                        >
+                          {option.icon}
+                          {option.label}
+                        </DropdownMenuItem>
+                      ))}
                     </DropdownMenuContent>
                   </DropdownMenu>
-                  
-                  <Button 
-                    variant="outline" 
+                </div>
+                
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
                     size="sm"
-                    className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    onClick={() => setSelectedCampaigns([])}
+                  >
+                    Clear Selection
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
                     onClick={handleBulkDelete}
                   >
                     <Trash2 className="w-4 h-4 mr-1" />
