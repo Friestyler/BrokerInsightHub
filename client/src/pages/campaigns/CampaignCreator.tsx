@@ -106,9 +106,16 @@ export default function CampaignCreator() {
   const { toast } = useToast();
   
   // Extract URL parameters for editing
-  const urlParams = new URLSearchParams(location.split('?')[1] || '');
+  const urlParams = new URLSearchParams(window.location.search);
   const editTemplateId = urlParams.get('edit');
   const isEditMode = !!editTemplateId;
+  
+  console.log('CampaignCreator URL Debug:', {
+    location,
+    windowSearch: window.location.search,
+    editTemplateId,
+    isEditMode
+  });
   
   const [campaignData, setCampaignData] = useState({
     entity: '',
@@ -132,12 +139,7 @@ export default function CampaignCreator() {
   // Load existing template data for editing
   const { data: templateData, isLoading: templateLoading } = useQuery({
     queryKey: [`/api/campaign-templates/${editTemplateId}`],
-    enabled: isEditMode && !!editTemplateId,
-    queryFn: async () => {
-      const envId = window.localStorage.getItem('environment') || 'degoudse';
-      const url = `/api/${envId}/campaign-templates/${editTemplateId}`;
-      return fetch(url).then(res => res.json());
-    }
+    enabled: isEditMode && !!editTemplateId
   });
 
   // Load template data into form when available
