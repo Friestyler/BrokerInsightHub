@@ -235,10 +235,12 @@ export default function RecipientSelector({
     entity.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const filteredContacts = allContacts.filter((contact: Contact) => 
-    contact.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    contact.email.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  const filteredContacts = allContacts.filter((contact: Contact) => {
+    const fullName = contact.fullName || `${contact.firstName} ${contact.lastName}`.trim();
+    const email = contact.email || '';
+    return fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
+           email.toLowerCase().includes(searchQuery.toLowerCase());
+  });
 
   const filteredLists = savedLists.filter((list: SavedList) => 
     list.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -571,7 +573,9 @@ export default function RecipientSelector({
                                         <Users className="h-4 w-4 text-gray-600" />
                                       </div>
                                       <div className="flex-1">
-                                        <p className="font-medium text-gray-900">{contact.fullName}</p>
+                                        <p className="font-medium text-gray-900">
+                                          {contact.fullName || `${contact.first_name || contact.firstName || ''} ${contact.last_name || contact.lastName || ''}`.trim()}
+                                        </p>
                                         <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
                                           {contact.email && (
                                             <span className="flex items-center gap-1">
@@ -579,10 +583,10 @@ export default function RecipientSelector({
                                               {contact.email}
                                             </span>
                                           )}
-                                          {contact.jobTitle && (
+                                          {(contact.jobTitle || contact.job_title) && (
                                             <span className="flex items-center gap-1">
                                               <Briefcase className="h-3 w-3" />
-                                              {contact.jobTitle}
+                                              {contact.jobTitle || contact.job_title}
                                             </span>
                                           )}
                                         </div>
@@ -658,7 +662,9 @@ export default function RecipientSelector({
                       <Users className="h-6 w-6 text-gray-600" />
                     </div>
                     <div className="flex-1">
-                      <h4 className="font-medium text-gray-900">{contact.fullName}</h4>
+                      <h4 className="font-medium text-gray-900">
+                        {contact.fullName || `${contact.first_name || contact.firstName || ''} ${contact.last_name || contact.lastName || ''}`.trim()}
+                      </h4>
                       <div className="flex items-center gap-4 text-sm text-gray-500 mt-1">
                         {contact.email && (
                           <span className="flex items-center gap-1">
@@ -672,10 +678,10 @@ export default function RecipientSelector({
                             {contact.phone}
                           </span>
                         )}
-                        {contact.jobTitle && (
+                        {(contact.jobTitle || contact.job_title) && (
                           <span className="flex items-center gap-1">
                             <Briefcase className="h-3 w-3" />
-                            {contact.jobTitle}
+                            {contact.jobTitle || contact.job_title}
                           </span>
                         )}
                       </div>
