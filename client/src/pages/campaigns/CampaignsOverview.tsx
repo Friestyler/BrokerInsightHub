@@ -29,24 +29,30 @@ export default function CampaignsOverview() {
     <div className="h-full flex flex-col">
       <div className="bg-white border-b">
         <div className="max-w-6xl mx-auto px-6 py-3">
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="h-auto p-1 bg-gray-100 rounded-lg inline-flex">
-              <TabsTrigger 
-                value="templates" 
-                className="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm data-[state=inactive]:text-gray-600 data-[state=inactive]:hover:text-gray-800"
-              >
-                <FileText className="h-4 w-4" />
-                Templates
-              </TabsTrigger>
-              <TabsTrigger 
-                value="campaigns" 
-                className="flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-all data-[state=active]:bg-white data-[state=active]:text-indigo-600 data-[state=active]:shadow-sm data-[state=inactive]:text-gray-600 data-[state=inactive]:hover:text-gray-800"
-              >
-                <Send className="h-4 w-4" />
-                Campaigns
-              </TabsTrigger>
-            </TabsList>
-          </Tabs>
+          <div className="flex space-x-2">
+            <button
+              onClick={() => setActiveTab("templates")}
+              className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md flex items-center gap-2 ${
+                activeTab === "templates"
+                  ? "bg-[#E1E4FB] text-[#3E4DC4]"
+                  : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+              }`}
+            >
+              <FileText className="h-4 w-4" />
+              Templates
+            </button>
+            <button
+              onClick={() => setActiveTab("campaigns")}
+              className={`py-2 px-4 text-sm font-medium whitespace-nowrap rounded-md flex items-center gap-2 ${
+                activeTab === "campaigns"
+                  ? "bg-[#E1E4FB] text-[#3E4DC4]"
+                  : "text-[#696C8C] hover:bg-[#F5F6FE] hover:text-[#5567E5]"
+              }`}
+            >
+              <Send className="h-4 w-4" />
+              Campaigns
+            </button>
+          </div>
         </div>
       </div>
       <div className="flex-1 bg-gray-50">
