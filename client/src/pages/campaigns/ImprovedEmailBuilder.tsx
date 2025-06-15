@@ -623,22 +623,7 @@ Status: Ready for deployment`;
                           />
                         </div>
                       )}
-                      {block.type === 'ai' && (
-                        <div className="bg-gradient-to-r from-purple-50 to-blue-50 p-4 rounded-lg">
-                          <div className="flex items-center gap-2 mb-3">
-                            <Sparkles className="h-4 w-4 text-purple-600" />
-                            <span className="text-sm font-medium text-purple-700">
-                              AI Content: {block.properties?.aiType}
-                            </span>
-                          </div>
-                          <Textarea
-                            value={block.content}
-                            onChange={(e) => updateBlockContent(blockIndex, e.target.value)}
-                            placeholder="AI-generated content will appear here..."
-                            className="border-none p-0 resize-none min-h-[100px] focus:ring-0 bg-transparent"
-                          />
-                        </div>
-                      )}
+
                       {block.type === 'button' && (
                         <div className="space-y-3">
                           <Input
