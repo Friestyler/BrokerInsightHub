@@ -122,8 +122,11 @@ export default function CampaignCreator() {
 
   // Save template mutation
   const saveTemplateMutation = useMutation({
-    mutationFn: (templateData: any) => 
-      apiRequest('/api/campaign-templates', 'POST', templateData),
+    mutationFn: (templateData: any) => {
+      // Get current environment
+      const envId = window.localStorage.getItem('environment') || 'degoudse';
+      return apiRequest(`/api/${envId}/campaign-templates`, 'POST', templateData);
+    },
     onSuccess: () => {
       toast({
         title: "Template saved successfully",
