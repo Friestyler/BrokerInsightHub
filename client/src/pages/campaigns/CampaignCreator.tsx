@@ -412,7 +412,7 @@ export default function CampaignCreator() {
     },
     {
       number: 3,
-      title: 'Email Builder',
+      title: 'Flow Builder',
       description: getStepDescription(3),
       component: 'builder'
     }
