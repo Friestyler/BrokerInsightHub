@@ -448,6 +448,80 @@ export const savedViewsRelations = relations(savedViews, ({ one }) => ({
   }),
 }));
 
+// Campaign Templates table
+export const campaignTemplates = pgTable("campaign_templates", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 255 }).notNull(),
+  description: text("description"),
+  objective: text("objective"),
+  entity: text("entity").notNull(), // 'partners', 'customers', 'opportunities'
+  icon: text("icon"),
+  status: text("status").notNull().default("draft"), // 'draft', 'published'
+  attachments: json("attachments").$type<Array<{id: string, name: string, type: string, size: number}>>().default([]),
+  createdBy: integer("created_by").notNull().references(() => users.id),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Campaign Emails table (templates can have multiple emails)
+export const campaignEmails = pgTable("campaign_emails", {
+  id: serial("id").primaryKey(),
+  templateId: integer("template_id").notNull().references(() => campaignTemplates.id, { onDelete: 'cascade' }),
+  subject: text("subject").notNull(),
+  followUpDays: integer("follow_up_days").notNull().default(0),
+  leftLogo: text("left_logo"),
+  rightLogo: text("right_logo"),
+  emailOrder: integer("email_order").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Email Blocks table (each email can have multiple blocks)
+export const emailBlocks = pgTable("email_blocks", {
+  id: serial("id").primaryKey(),
+  emailId: integer("email_id").notNull().references(() => campaignEmails.id, { onDelete: 'cascade' }),
+  type: text("type").notNull(), // 'text', 'heading', 'quote', 'divider', 'image', 'button', 'spacer', 'ai'
+  content: text("content").notNull(),
+  properties: json("properties").$type<{
+    alignment?: 'left' | 'center' | 'right';
+    fontSize?: 'small' | 'medium' | 'large';
+    color?: string;
+    backgroundColor?: string;
+    url?: string;
+    buttonText?: string;
+    imageUrl?: string;
+    imageAlt?: string;
+    spacerHeight?: number;
+    aiType?: string;
+  }>(),
+  blockOrder: integer("block_order").notNull().default(0),
+  createdAt: timestamp("created_at").notNull().defaultNow(),
+});
+
+// Campaign template relations
+export const campaignTemplatesRelations = relations(campaignTemplates, ({ one, many }) => ({
+  createdBy: one(users, {
+    fields: [campaignTemplates.createdBy],
+    references: [users.id],
+  }),
+  emails: many(campaignEmails),
+}));
+
+export const campaignEmailsRelations = relations(campaignEmails, ({ one, many }) => ({
+  template: one(campaignTemplates, {
+    fields: [campaignEmails.templateId],
+    references: [campaignTemplates.id],
+  }),
+  blocks: many(emailBlocks),
+}));
+
+export const emailBlocksRelations = relations(emailBlocks, ({ one }) => ({
+  email: one(campaignEmails, {
+    fields: [emailBlocks.emailId],
+    references: [campaignEmails.id],
+  }),
+}));
+
 // Insert schemas for saved lists and views
 export const insertSavedListSchema = createInsertSchema(savedLists).pick({
   name: true,
@@ -470,6 +544,45 @@ export const insertSavedViewSchema = createInsertSchema(savedViews).pick({
   is_default: true,
   created_by: true,
 });
+
+// Campaign template insert schemas
+export const insertCampaignTemplateSchema = createInsertSchema(campaignTemplates).pick({
+  name: true,
+  description: true,
+  objective: true,
+  entity: true,
+  icon: true,
+  status: true,
+  attachments: true,
+  createdBy: true,
+});
+
+export const insertCampaignEmailSchema = createInsertSchema(campaignEmails).pick({
+  templateId: true,
+  subject: true,
+  followUpDays: true,
+  leftLogo: true,
+  rightLogo: true,
+  emailOrder: true,
+});
+
+export const insertEmailBlockSchema = createInsertSchema(emailBlocks).pick({
+  emailId: true,
+  type: true,
+  content: true,
+  properties: true,
+  blockOrder: true,
+});
+
+// Campaign template types
+export type InsertCampaignTemplate = z.infer<typeof insertCampaignTemplateSchema>;
+export type CampaignTemplate = typeof campaignTemplates.$inferSelect;
+
+export type InsertCampaignEmail = z.infer<typeof insertCampaignEmailSchema>;
+export type CampaignEmail = typeof campaignEmails.$inferSelect;
+
+export type InsertEmailBlock = z.infer<typeof insertEmailBlockSchema>;
+export type EmailBlock = typeof emailBlocks.$inferSelect;
 
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;

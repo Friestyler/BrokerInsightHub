@@ -5521,53 +5521,204 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const { envId } = req.params;
       
       const result = await pool.query(`
-        SELECT * FROM ${envId}.campaigns 
-        WHERE is_template = true 
-        ORDER BY created_at DESC
+        SELECT 
+          ct.*,
+          COUNT(ce.id) as email_count,
+          u.full_name as created_by_name
+        FROM campaign_templates ct
+        LEFT JOIN campaign_emails ce ON ct.id = ce.template_id
+        LEFT JOIN users u ON ct.created_by = u.id
+        GROUP BY ct.id, u.full_name
+        ORDER BY ct.created_at DESC
       `);
       
-      res.json(result.rows);
+      const templates = result.rows.map(template => ({
+        id: template.id.toString(),
+        name: template.name,
+        description: template.description || '',
+        objective: template.objective || '',
+        emailCount: parseInt(template.email_count) || 0,
+        status: template.status,
+        entity: template.entity,
+        icon: template.icon,
+        attachments: template.attachments || [],
+        createdAt: template.created_at,
+        updatedAt: template.updated_at,
+        createdBy: template.created_by_name
+      }));
+      
+      res.json(templates);
     } catch (error) {
       console.error('Error fetching campaign templates:', error);
       res.status(500).json({ error: 'Failed to fetch campaign templates' });
     }
   });
 
+  // Get single campaign template by ID
+  app.get('/api/:envId/campaign-templates/:id', async (req, res) => {
+    try {
+      const { envId, id } = req.params;
+      
+      // Get template
+      const templateResult = await pool.query(`
+        SELECT * FROM campaign_templates WHERE id = $1
+      `, [id]);
+      
+      if (templateResult.rows.length === 0) {
+        return res.status(404).json({ error: 'Template not found' });
+      }
+      
+      const template = templateResult.rows[0];
+      
+      // Get emails
+      const emailsResult = await pool.query(`
+        SELECT * FROM campaign_emails WHERE template_id = $1 ORDER BY email_order
+      `, [id]);
+      
+      // Get blocks for each email
+      const emails = [];
+      for (const email of emailsResult.rows) {
+        const blocksResult = await pool.query(`
+          SELECT * FROM email_blocks WHERE email_id = $1 ORDER BY block_order
+        `, [email.id]);
+        
+        emails.push({
+          id: email.id.toString(),
+          subject: email.subject,
+          followUpDays: email.follow_up_days,
+          leftLogo: email.left_logo,
+          rightLogo: email.right_logo,
+          blocks: blocksResult.rows.map(block => ({
+            id: block.id.toString(),
+            type: block.type,
+            content: block.content,
+            properties: block.properties || {}
+          }))
+        });
+      }
+      
+      const templateData = {
+        id: template.id.toString(),
+        name: template.name,
+        description: template.description || '',
+        objective: template.objective || '',
+        entity: template.entity,
+        icon: template.icon || '',
+        status: template.status,
+        attachments: template.attachments || [],
+        emails: emails,
+        createdAt: template.created_at,
+        updatedAt: template.updated_at
+      };
+      
+      res.json(templateData);
+    } catch (error) {
+      console.error('Error fetching campaign template:', error);
+      res.status(500).json({ error: 'Failed to fetch campaign template' });
+    }
+  });
+
+  // Create campaign template
   app.post('/api/:envId/campaign-templates', async (req, res) => {
     try {
       const { envId } = req.params;
-      const envDb = db;
+      const { name, description, objective, entity, icon, status, attachments, emails } = req.body;
       
-      const templateData = {
-        ...req.body,
-        isTemplate: true,
-        status: 'template',
-        createdById: 1 // Default user for now
-      };
+      // For now, use user ID 1 as default creator
+      const createdBy = 1;
       
-      // Execute raw SQL query
-      const result = await pool.query(`
-        INSERT INTO ${envId}.campaigns (
-          name, description, type, category, subject, heading, email_body, email_logo,
-          from_name, from_email, button_link, button_text, button_color, follow_up_emails,
-          frequency, is_shared, is_template, status, created_by_id, created_at, updated_at
-        ) VALUES (
-          $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, NOW(), NOW()
-        ) RETURNING *
-      `, [
-        templateData.name, templateData.description, templateData.type, templateData.category,
-        templateData.subject, templateData.heading, templateData.emailBody, templateData.emailLogo,
-        templateData.fromName, templateData.fromEmail, templateData.buttonLink, templateData.buttonText,
-        templateData.buttonColor, JSON.stringify(templateData.followUpEmails), templateData.frequency,
-        templateData.isShared || false, templateData.isTemplate, templateData.status, templateData.createdById
-      ]);
+      await pool.query('BEGIN');
       
-      const template = result.rows[0];
+      // Insert template
+      const templateResult = await pool.query(`
+        INSERT INTO campaign_templates (name, description, objective, entity, icon, status, attachments, created_by)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+        RETURNING id
+      `, [name, description, objective, entity, icon, status || 'draft', JSON.stringify(attachments || []), createdBy]);
       
-      res.status(201).json(template);
+      const templateId = templateResult.rows[0].id;
+      
+      // Insert emails and blocks
+      for (let emailIndex = 0; emailIndex < emails.length; emailIndex++) {
+        const email = emails[emailIndex];
+        
+        const emailResult = await pool.query(`
+          INSERT INTO campaign_emails (template_id, subject, follow_up_days, left_logo, right_logo, email_order)
+          VALUES ($1, $2, $3, $4, $5, $6)
+          RETURNING id
+        `, [templateId, email.subject, email.followUpDays || 0, email.leftLogo, email.rightLogo, emailIndex]);
+        
+        const emailId = emailResult.rows[0].id;
+        
+        // Insert blocks
+        for (let blockIndex = 0; blockIndex < email.blocks.length; blockIndex++) {
+          const block = email.blocks[blockIndex];
+          
+          await pool.query(`
+            INSERT INTO email_blocks (email_id, type, content, properties, block_order)
+            VALUES ($1, $2, $3, $4, $5)
+          `, [emailId, block.type, block.content, JSON.stringify(block.properties || {}), blockIndex]);
+        }
+      }
+      
+      await pool.query('COMMIT');
+      
+      res.json({ id: templateId, message: 'Template created successfully' });
     } catch (error) {
+      await pool.query('ROLLBACK');
       console.error('Error creating campaign template:', error);
       res.status(500).json({ error: 'Failed to create campaign template' });
+    }
+  });
+
+  // Update campaign template
+  app.put('/api/:envId/campaign-templates/:id', async (req, res) => {
+    try {
+      const { envId, id } = req.params;
+      const { name, description, objective, entity, icon, status, attachments, emails } = req.body;
+      
+      await pool.query('BEGIN');
+      
+      // Update template
+      await pool.query(`
+        UPDATE campaign_templates 
+        SET name = $1, description = $2, objective = $3, entity = $4, icon = $5, status = $6, attachments = $7, updated_at = NOW()
+        WHERE id = $8
+      `, [name, description, objective, entity, icon, status || 'draft', JSON.stringify(attachments || []), id]);
+      
+      // Delete existing emails and blocks (cascade will handle blocks)
+      await pool.query('DELETE FROM campaign_emails WHERE template_id = $1', [id]);
+      
+      // Insert new emails and blocks
+      for (let emailIndex = 0; emailIndex < emails.length; emailIndex++) {
+        const email = emails[emailIndex];
+        
+        const emailResult = await pool.query(`
+          INSERT INTO campaign_emails (template_id, subject, follow_up_days, left_logo, right_logo, email_order)
+          VALUES ($1, $2, $3, $4, $5, $6)
+          RETURNING id
+        `, [id, email.subject, email.followUpDays || 0, email.leftLogo, email.rightLogo, emailIndex]);
+        
+        const emailId = emailResult.rows[0].id;
+        
+        // Insert blocks
+        for (let blockIndex = 0; blockIndex < email.blocks.length; blockIndex++) {
+          const block = email.blocks[blockIndex];
+          
+          await pool.query(`
+            INSERT INTO email_blocks (email_id, type, content, properties, block_order)
+            VALUES ($1, $2, $3, $4, $5)
+          `, [emailId, block.type, block.content, JSON.stringify(block.properties || {}), blockIndex]);
+        }
+      }
+      
+      await pool.query('COMMIT');
+      
+      res.json({ message: 'Template updated successfully' });
+    } catch (error) {
+      await pool.query('ROLLBACK');
+      console.error('Error updating campaign template:', error);
+      res.status(500).json({ error: 'Failed to update campaign template' });
     }
   });
 
