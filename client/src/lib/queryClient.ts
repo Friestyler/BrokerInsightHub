@@ -104,44 +104,20 @@ export const getQueryFn: <T>(options: {
   on401: UnauthorizedBehavior;
 }) => QueryFunction<T> =
   ({ on401: unauthorizedBehavior }) =>
-  async ({ queryKey, signal }) => {
-    try {
-      // Get the base URL from the query key
-      const baseUrl = queryKey[0] as string;
-      
-      // Apply environment to URL
-      const envUrl = getEnvironmentUrl(baseUrl);
-      
-      const res = await fetch(envUrl, {
-        credentials: "include",
-        signal, // Add signal for proper cancellation
-        headers: {
-          'Content-Type': 'application/json',
-          'X-Environment': getCurrentEnvironmentId()
-        }
-      });
+  async ({ queryKey }) => {
+    const baseUrl = queryKey[0] as string;
+    const envUrl = getEnvironmentUrl(baseUrl);
+    
+    const res = await fetch(envUrl, {
+      credentials: "include",
+    });
 
-      if (unauthorizedBehavior === "returnNull" && res.status === 401) {
-        return null;
-      }
-
-      if (!res.ok) {
-        throw new Error(`HTTP error! status: ${res.status}`);
-      }
-
-      const data = await res.json();
-      return data;
-    } catch (error: any) {
-      // Handle AbortError and other network errors gracefully
-      if (error.name === 'AbortError') {
-        console.warn('Query aborted:', queryKey[0]);
-        throw new Error('Request cancelled');
-      }
-      
-      // Log the actual error for debugging
-      console.error('Fetch error for', queryKey[0], ':', error);
-      throw error;
+    if (unauthorizedBehavior === "returnNull" && res.status === 401) {
+      return null;
     }
+
+    await throwIfResNotOk(res);
+    return await res.json();
   };
 
 export const queryClient = new QueryClient({
