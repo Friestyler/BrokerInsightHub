@@ -105,7 +105,9 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
         entity: templateData.entity,
         templateName: templateData.name,
         emailCount: emails.length,
-        firstEmailBlocks: emails[0]?.blocks?.length
+        firstEmailBlocks: emails[0]?.blocks?.length,
+        firstEmailSubject: emails[0]?.subject,
+        emailStructure: emails.map(e => ({ id: e.id, subject: e.subject, blockCount: e.blocks?.length, blocks: e.blocks }))
       });
     }
   }, [templateData]);
