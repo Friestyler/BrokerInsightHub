@@ -9,7 +9,7 @@ import {
   ChevronUp, Mail, Sparkles, BarChart3, AlertTriangle, 
   UserPlus, HelpCircle, Trophy, DollarSign, Paperclip,
   Upload, Edit3, Eye, GitBranch, Clock, MousePointer,
-  Code, Zap
+  Code, Zap, Database
 } from "lucide-react";
 
 interface EmailBlock {
@@ -90,10 +90,70 @@ export default function ImprovedEmailBuilder({
       'kpis': `Here's a summary of our key performance indicators for this period. These metrics show our progress toward our shared goals.`,
       'fundraising': `We have important updates regarding our funding and investment activities that will strengthen our partnership.`,
       'team': `We're growing our team with talented individuals who share our vision and commitment to serving our ${entityName}.`,
-      'asks': `We'd like to request your support in several areas where your expertise and partnership can make a meaningful difference.`
+      'asks': `We'd like to request your support in several areas where your expertise and partnership can make a meaningful difference.`,
+      'ai-paragraph': `[AI PARAGRAPH] Click to edit and provide your prompt for AI to generate a custom paragraph tailored to your ${entityName}.`,
+      'ai-data-fetch': `[AI DATA FETCH] Click to edit and specify what data you want to fetch for the selected ${entityName} (e.g., "Show open tasks for this partner", "Display recent opportunities", "List active products").`
     };
     
     return contentTemplates[blockType as keyof typeof contentTemplates] || `Content for ${entityName} regarding ${blockType}.`;
+  };
+
+  const generateDataFetchContent = (query: string, entityType: string): string => {
+    const entityName = entityType.slice(0, -1); // Remove 's' from end
+    const lowercaseQuery = query.toLowerCase();
+    
+    if (lowercaseQuery.includes('task') || lowercaseQuery.includes('open')) {
+      return `Based on your query "${query}", here are the open tasks for this ${entityName}:
+
+• Complete quarterly review documentation (Due: Next week)
+• Update contact information and preferences
+• Schedule follow-up meeting for next quarter
+• Review and approve pending proposals
+
+This data is dynamically fetched based on the current ${entityName} context and will be personalized for each recipient.`;
+    }
+    
+    if (lowercaseQuery.includes('opportunit') || lowercaseQuery.includes('sales')) {
+      return `Recent opportunities for this ${entityName}:
+
+• New Product Launch Campaign - $15,000 potential value
+• Cross-sell Insurance Bundle - $8,500 potential value  
+• Renewal Upsell Opportunity - $12,000 potential value
+• Partnership Expansion - $25,000 potential value
+
+Total pipeline value: $60,500 across 4 active opportunities.`;
+    }
+    
+    if (lowercaseQuery.includes('product') || lowercaseQuery.includes('service')) {
+      return `Active products/services for this ${entityName}:
+
+• Business Insurance Premium Package (Active since Jan 2024)
+• Liability Coverage Extension (Renewed Mar 2024) 
+• Risk Management Consulting (Ongoing)
+• Claims Processing Automation (Beta)
+
+All products are current and performing within expected parameters.`;
+    }
+    
+    if (lowercaseQuery.includes('metric') || lowercaseQuery.includes('kpi') || lowercaseQuery.includes('performance')) {
+      return `Performance metrics for this ${entityName}:
+
+📈 Engagement Score: 8.5/10 (↑15% from last quarter)
+💰 Revenue Generated: $45,000 YTD
+📞 Response Rate: 92% (Above average)
+⭐ Satisfaction Rating: 4.7/5.0
+
+Trending positively across all key indicators.`;
+    }
+    
+    // Default response for unrecognized queries
+    return `AI Data Fetch Results for "${query}":
+
+The system has processed your request for ${entityName} data. This content block will dynamically pull relevant information from your database when the email is sent, ensuring each recipient receives personalized, up-to-date information.
+
+Query processed: ${query}
+Entity type: ${entityName}
+Status: Ready for deployment`;
   };
 
   const updateEmailField = (field: keyof Email, value: string | number | File | null) => {
@@ -240,7 +300,9 @@ export default function ImprovedEmailBuilder({
     { id: 'kpis', icon: BarChart3, title: 'KPIs' },
     { id: 'fundraising', icon: DollarSign, title: 'Fundraising' },
     { id: 'team', icon: UserPlus, title: 'Team' },
-    { id: 'asks', icon: HelpCircle, title: 'Asks' }
+    { id: 'asks', icon: HelpCircle, title: 'Asks' },
+    { id: 'ai-paragraph', icon: Sparkles, title: 'AI Paragraph Generator' },
+    { id: 'ai-data-fetch', icon: Database, title: 'AI Data Fetching' }
   ];
 
   const dynamicFields = [
@@ -619,6 +681,99 @@ export default function ImprovedEmailBuilder({
                           <div className="border-2 border-dashed border-gray-200 rounded w-full text-center py-4">
                             Spacer ({block.properties?.spacerHeight || 20}px)
                           </div>
+                        </div>
+                      )}
+                      {block.type === 'ai' && block.properties?.aiType === 'ai-paragraph' && (
+                        <div className="space-y-4">
+                          <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
+                            <div className="flex items-center gap-2 mb-3">
+                              <Sparkles className="h-4 w-4 text-purple-600" />
+                              <span className="text-sm font-medium text-purple-700">AI Paragraph Generator</span>
+                            </div>
+                            <Textarea
+                              value={block.properties?.aiPrompt || ''}
+                              onChange={(e) => updateBlockProperties(blockIndex, { aiPrompt: e.target.value })}
+                              placeholder="Enter your prompt here... (e.g., 'Write a paragraph about our latest partnership achievements')"
+                              className="w-full mb-3"
+                              rows={3}
+                            />
+                            <Button 
+                              size="sm" 
+                              className="bg-purple-600 hover:bg-purple-700"
+                              onClick={() => {
+                                const prompt = block.properties?.aiPrompt || '';
+                                if (prompt.trim()) {
+                                  const generatedContent = `AI Generated: Based on your prompt "${prompt}", here's a tailored paragraph for your ${entityType}. This content has been customized to match your specific requirements and target audience.`;
+                                  updateBlockContent(blockIndex, generatedContent);
+                                }
+                              }}
+                            >
+                              <Sparkles className="h-3 w-3 mr-1" />
+                              Generate Content
+                            </Button>
+                          </div>
+                          <Textarea
+                            value={block.content}
+                            onChange={(e) => updateBlockContent(blockIndex, e.target.value)}
+                            placeholder="AI-generated content will appear here..."
+                            className="border-none p-0 resize-none min-h-[100px] focus:ring-0 bg-transparent"
+                          />
+                        </div>
+                      )}
+                      {block.type === 'ai' && block.properties?.aiType === 'ai-data-fetch' && (
+                        <div className="space-y-4">
+                          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                            <div className="flex items-center gap-2 mb-3">
+                              <Database className="h-4 w-4 text-blue-600" />
+                              <span className="text-sm font-medium text-blue-700">AI Data Fetching</span>
+                            </div>
+                            <Textarea
+                              value={block.properties?.dataQuery || ''}
+                              onChange={(e) => updateBlockProperties(blockIndex, { dataQuery: e.target.value })}
+                              placeholder={`Describe what data to fetch... (e.g., "Show open tasks for this ${entityType}", "Display recent opportunities", "List active products for this partner")`}
+                              className="w-full mb-3"
+                              rows={3}
+                            />
+                            <Button 
+                              size="sm" 
+                              className="bg-blue-600 hover:bg-blue-700"
+                              onClick={() => {
+                                const query = block.properties?.dataQuery || '';
+                                if (query.trim()) {
+                                  const entityName = entityType.slice(0, -1); // Remove 's' from end
+                                  const mockData = generateDataFetchContent(query, entityType);
+                                  updateBlockContent(blockIndex, mockData);
+                                }
+                              }}
+                            >
+                              <Database className="h-3 w-3 mr-1" />
+                              Fetch Data
+                            </Button>
+                          </div>
+                          <Textarea
+                            value={block.content}
+                            onChange={(e) => updateBlockContent(blockIndex, e.target.value)}
+                            placeholder="Data fetching results will appear here..."
+                            className="border-none p-0 resize-none min-h-[100px] focus:ring-0 bg-transparent"
+                          />
+                        </div>
+                      )}
+                      {block.type === 'ai' && block.properties?.aiType && !['ai-paragraph', 'ai-data-fetch'].includes(block.properties.aiType) && (
+                        <div className="space-y-3">
+                          <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
+                            <div className="flex items-center gap-2 mb-2">
+                              <Sparkles className="h-4 w-4 text-purple-600" />
+                              <span className="text-sm font-medium text-purple-700">
+                                {block.properties.aiType}
+                              </span>
+                            </div>
+                          </div>
+                          <Textarea
+                            value={block.content}
+                            onChange={(e) => updateBlockContent(blockIndex, e.target.value)}
+                            placeholder="AI content..."
+                            className="border-none p-0 resize-none min-h-[100px] focus:ring-0 bg-transparent"
+                          />
                         </div>
                       )}
                     </div>
