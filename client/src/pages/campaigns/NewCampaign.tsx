@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ArrowLeft, ArrowRight, Mail, Users, Target, Settings, Send, Check } from 'lucide-react';
 import { toast } from '@/hooks/use-toast';
 import ImprovedEmailBuilder from './ImprovedEmailBuilder';
-import RecipientSelector from './RecipientSelector';
+import RecipientSelector from '@/components/campaigns/RecipientSelector';
 
 interface Email {
   id: string;
