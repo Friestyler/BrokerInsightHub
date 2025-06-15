@@ -19,12 +19,22 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  // Extract route parameters properly using wouter
-  const [match, routeParams] = useRoute('/campaigns/edit/:campaignId');
-  const [templateMatch, templateRouteParams] = useRoute('/campaigns/create-from-template/:templateId');
+  // Extract route parameters from URL path directly
+  const currentPath = location;
+  const campaignId = currentPath.includes('/campaigns/edit/') 
+    ? currentPath.split('/campaigns/edit/')[1] 
+    : params?.campaignId;
+  const templateId = currentPath.includes('/campaigns/create-from-template/') 
+    ? currentPath.split('/campaigns/create-from-template/')[1] 
+    : params?.templateId;
   
-  const campaignId = routeParams?.campaignId || params?.campaignId;
-  const templateId = templateRouteParams?.templateId || params?.templateId;
+  // Debug logging
+  console.log('CampaignFromTemplate Debug:', {
+    currentPath,
+    campaignId,
+    templateId,
+    params
+  });
   const [currentStep, setCurrentStep] = useState(1);
   const [activeEmailIndex, setActiveEmailIndex] = useState(0);
   
