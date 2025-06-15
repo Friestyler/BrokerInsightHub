@@ -33,14 +33,14 @@ export default function CampaignsOverview() {
             <TabsList className="h-auto p-0 bg-transparent">
               <TabsTrigger 
                 value="templates" 
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-blue-50 text-blue-700 border border-blue-200 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:border-blue-600 data-[state=inactive]:hover:bg-blue-100 transition-all mr-2"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-indigo-50 text-indigo-700 border border-indigo-200 data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:border-indigo-600 data-[state=inactive]:hover:bg-indigo-100 transition-all mr-2"
               >
                 <FileText className="h-4 w-4" />
                 Templates
               </TabsTrigger>
               <TabsTrigger 
                 value="campaigns" 
-                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-50 text-gray-600 border border-gray-200 data-[state=active]:bg-blue-600 data-[state=active]:text-white data-[state=active]:border-blue-600 data-[state=inactive]:hover:bg-gray-100 transition-all"
+                className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-50 text-gray-600 border border-gray-200 data-[state=active]:bg-indigo-600 data-[state=active]:text-white data-[state=active]:border-indigo-600 data-[state=inactive]:hover:bg-gray-100 transition-all"
               >
                 <Send className="h-4 w-4" />
                 Campaigns

@@ -125,9 +125,22 @@ export default function TemplatesPage() {
 
   return (
     <div className="p-6 space-y-6">
-      {/* Header Actions */}
+      {/* Header */}
       <div className="flex items-center justify-between">
-        {/* Horizontal Filter Buttons */}
+        <div className="space-y-1">
+          <h1 className="text-2xl font-semibold tracking-tight">Templates for Campaigns and Updates</h1>
+          <p className="text-sm text-muted-foreground">
+            Create reusable email sequences and campaign blueprints
+          </p>
+        </div>
+        <Button onClick={handleCreateTemplate} className="gap-2">
+          <Plus className="h-4 w-4" />
+          Create New Template
+        </Button>
+      </div>
+
+      {/* Horizontal Filter Buttons */}
+      <div className="flex items-center gap-2">
         <div className="flex items-center gap-1 p-1 bg-gray-100 rounded-lg">
           {[
             { value: 'all', label: 'All', icon: Filter, color: 'text-gray-600', bg: 'bg-white' },
@@ -154,11 +167,6 @@ export default function TemplatesPage() {
             );
           })}
         </div>
-        
-        <Button onClick={handleCreateTemplate} className="gap-2">
-          <Plus className="h-4 w-4" />
-          Create New Template
-        </Button>
       </div>
 
       {/* Templates Grid */}
