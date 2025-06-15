@@ -766,12 +766,11 @@ Status: Ready for deployment`;
                               </span>
                             </div>
                           </div>
-                          <Textarea
-                            value={block.content}
-                            onChange={(e) => updateBlockContent(blockIndex, e.target.value)}
-                            placeholder="AI content..."
-                            className="border-none p-0 resize-none min-h-[100px] focus:ring-0 bg-transparent"
-                          />
+                          {block.content && block.content.trim() && !block.content.includes('[AI PARAGRAPH]') && !block.content.includes('[AI DATA FETCH]') && (
+                            <div className="p-3 bg-gray-50 rounded border">
+                              <div className="text-sm text-gray-700 whitespace-pre-wrap">{block.content}</div>
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
