@@ -109,14 +109,22 @@ export const getQueryFn: <T>(options: {
     const envUrl = getEnvironmentUrl(baseUrl);
     
     const res = await fetch(envUrl, {
+      method: 'GET',
       credentials: "include",
+      headers: {
+        'Accept': 'application/json',
+      }
     });
 
     if (unauthorizedBehavior === "returnNull" && res.status === 401) {
       return null;
     }
 
-    await throwIfResNotOk(res);
+    if (!res.ok) {
+      const errorText = await res.text();
+      throw new Error(`HTTP ${res.status}: ${errorText}`);
+    }
+
     return await res.json();
   };
 
