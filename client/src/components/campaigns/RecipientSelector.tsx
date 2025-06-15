@@ -234,9 +234,16 @@ export default function RecipientSelector({
 
   const getCustomerForOpportunity = (opportunityId: number) => {
     const opportunity = (entities as any[] || []).find((e: any) => e.id === opportunityId);
+    console.log(`STEP 1 - Finding opportunity ${opportunityId}:`, opportunity);
+    console.log(`STEP 2 - Opportunity clientId:`, opportunity?.clientId);
+    console.log(`STEP 3 - Available customers:`, customers?.slice(0, 3)); // Show first 3 customers
+    
     if (opportunity?.clientId) {
-      return (customers as any[] || []).find((c: Customer) => c.id === opportunity.clientId);
+      const foundCustomer = (customers as any[] || []).find((c: Customer) => c.id === opportunity.clientId);
+      console.log(`STEP 4 - Found customer for clientId ${opportunity.clientId}:`, foundCustomer);
+      return foundCustomer;
     }
+    console.log(`STEP 4 - No clientId found, returning null`);
     return null;
   };
 
@@ -507,6 +514,9 @@ export default function RecipientSelector({
                               {/* For opportunities, show related customer */}
                               {entityType === 'opportunities' && (() => {
                                 const customer = getCustomerForOpportunity(entity.id);
+                                console.log(`STEP 8 - JSX: Opportunity ${entity.id} (${entity.title}) - Customer found:`, customer);
+                                console.log(`STEP 9 - JSX: EntityContacts for customer ${customer?.id}:`, customer ? entityContacts[customer.id] : 'No customer');
+                                console.log(`STEP 10 - JSX: EntityContacts keys:`, Object.keys(entityContacts));
                                 
                                 if (customer) {
                                   return (
