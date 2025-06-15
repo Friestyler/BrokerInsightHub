@@ -448,6 +448,22 @@ export const savedViewsRelations = relations(savedViews, ({ one }) => ({
   }),
 }));
 
+// Campaign Templates table
+export const campaignTemplates = pgTable("campaign_templates", {
+  id: serial("id").primaryKey(),
+  name: varchar("name", { length: 200 }).notNull(),
+  description: text("description").notNull(),
+  entity_type: text("entity_type").notNull(), // 'opportunities', 'customers', 'partners', 'internal'
+  objective: text("objective").notNull(),
+  emails: json("emails").notNull(), // Array of email objects with subject, blocks, followUpDays, etc.
+  status: text("status").notNull().default("draft"), // 'draft', 'published'
+  category: text("category").notNull(), // 'campaign', 'update'
+  tags: text("tags").array(),
+  created_by: integer("created_by").notNull().references(() => users.id),
+  created_at: timestamp("created_at").defaultNow().notNull(),
+  updated_at: timestamp("updated_at").defaultNow().notNull(),
+});
+
 // Insert schemas for saved lists and views
 export const insertSavedListSchema = createInsertSchema(savedLists).pick({
   name: true,
@@ -468,6 +484,18 @@ export const insertSavedViewSchema = createInsertSchema(savedViews).pick({
   filters: true,
   is_shared: true,
   is_default: true,
+  created_by: true,
+});
+
+export const insertCampaignTemplateSchema = createInsertSchema(campaignTemplates).pick({
+  name: true,
+  description: true,
+  entity_type: true,
+  objective: true,
+  emails: true,
+  status: true,
+  category: true,
+  tags: true,
   created_by: true,
 });
 
@@ -516,6 +544,9 @@ export type SavedList = typeof savedLists.$inferSelect;
 
 export type InsertSavedView = z.infer<typeof insertSavedViewSchema>;
 export type SavedView = typeof savedViews.$inferSelect;
+
+export type InsertCampaignTemplate = z.infer<typeof insertCampaignTemplateSchema>;
+export type CampaignTemplate = typeof campaignTemplates.$inferSelect;
 
 // Vendor model - aligned with customers schema
 export const vendors = pgTable("vendors", {
