@@ -204,13 +204,14 @@ export default function RecipientSelector({
   const createInlineContactMutation = useMutation({
     mutationFn: async ({ contactData, entityId }: { contactData: any, entityId: number }) => {
       const payload = {
-        first_name: contactData.first_name,
-        last_name: contactData.last_name,
+        firstName: contactData.first_name,
+        lastName: contactData.last_name,
         email: contactData.email,
-        job_title: contactData.job_title,
+        position: contactData.job_title,
         phone: contactData.phone,
-        linked_entity_type: entityType.slice(0, -1), // Remove 's' from plural
-        linked_entity_id: entityId
+        linkedEntityType: entityType.slice(0, -1), // Remove 's' from plural (e.g., 'opportunities' -> 'opportunity')
+        linkedEntityId: entityId,
+        isActive: true
       };
       return await apiRequest('/api/degoudse/contacts', 'POST', payload);
     },
