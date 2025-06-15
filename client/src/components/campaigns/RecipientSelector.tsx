@@ -125,15 +125,19 @@ export default function RecipientSelector({
 
   // Build entity-contact relationships for drill-down
   const { data: entityContacts = {}, isLoading: entityContactsLoading } = useQuery({
-    queryKey: [`/api/degoudse/contacts?entity_type=${entityType}`],
+    queryKey: [`/api/degoudse/contacts`],
     select: (data: Contact[]) => {
       const contactsByEntity: Record<number, Contact[]> = {};
       data.forEach(contact => {
-        if (contact.linkedEntityId) {
-          if (!contactsByEntity[contact.linkedEntityId]) {
-            contactsByEntity[contact.linkedEntityId] = [];
+        if (contact.linkedEntityId && contact.linkedEntityType) {
+          // Filter by entity type (remove 's' from plural)
+          const entityTypeSingular = entityType.slice(0, -1);
+          if (contact.linkedEntityType === entityTypeSingular) {
+            if (!contactsByEntity[contact.linkedEntityId]) {
+              contactsByEntity[contact.linkedEntityId] = [];
+            }
+            contactsByEntity[contact.linkedEntityId].push(contact);
           }
-          contactsByEntity[contact.linkedEntityId].push(contact);
         }
       });
       return contactsByEntity;
@@ -143,13 +147,7 @@ export default function RecipientSelector({
   // Add contact mutation
   const addContactMutation = useMutation({
     mutationFn: async (contactData: any) => {
-      return await apiRequest('/api/degoudse/contacts', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(contactData),
-      });
+      return await apiRequest('/api/degoudse/contacts', 'POST', contactData);
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/degoudse/contacts'] });
