@@ -67,7 +67,7 @@ export default function TemplatesPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="space-y-1">
-          <h1 className="text-2xl font-semibold tracking-tight">Email Templates</h1>
+          <h1 className="text-2xl font-semibold tracking-tight">Templates for Campaigns and Updates</h1>
           <p className="text-sm text-muted-foreground">
             Create reusable email sequences and campaign blueprints
           </p>
