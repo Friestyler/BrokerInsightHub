@@ -296,7 +296,19 @@ export default function TemplateEditor() {
               {templateData.emails.map((email, index) => (
                 <Card key={index} className="p-6">
                   <div className="space-y-4">
-                    <h3 className="font-medium">Email {index + 1}</h3>
+                    <div className="flex items-center justify-between">
+                      <h3 className="font-medium">Email {index + 1}</h3>
+                      {templateData.emails.length > 1 && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleRemoveEmail(index)}
+                          className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      )}
+                    </div>
                     
                     <div>
                       <label className="block text-sm font-medium mb-2">Subject Line</label>
@@ -343,6 +355,15 @@ export default function TemplateEditor() {
                   </div>
                 </Card>
               ))}
+              
+              <Button
+                variant="outline"
+                onClick={handleAddEmail}
+                className="w-full border-dashed border-2 border-gray-300 hover:border-gray-400 py-8"
+              >
+                <Plus className="h-5 w-5 mr-2" />
+                Add Another Email
+              </Button>
               
               <div className="flex gap-4 mt-8">
                 <Button
