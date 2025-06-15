@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Plus, FileText, Mail, Settings, Eye, Target, Users, Send, Briefcase, Check, Heart, Star, Zap, Globe, Shield, Trophy, Clock, Calendar, Building2, Phone, MessageSquare, Gift, TrendingUp, Lightbulb, Settings as SettingsIcon } from "lucide-react";
+import { Plus, FileText, Mail, Settings, Eye, Target, Users, Send, Briefcase, Check, Heart, Star, Zap, Globe, Shield, Trophy, Clock, Calendar, Building2, Phone, MessageSquare, Gift, TrendingUp, Lightbulb, Settings as SettingsIcon, Rocket } from "lucide-react";
 import { useLocation } from 'wouter';
 
 interface EmailTemplate {
@@ -36,8 +36,8 @@ export default function TemplatesPage() {
     setLocation(`/campaigns/create-template?edit=${templateId}`);
   };
 
-  const handlePreviewTemplate = (templateId: string) => {
-    setLocation(`/campaigns/create?preview=${templateId}`);
+  const handleUseTemplate = (templateId: string) => {
+    setLocation(`/campaigns/create?template=${templateId}`);
   };
 
   // Get template's custom icon
@@ -209,7 +209,7 @@ export default function TemplatesPage() {
                 </div>
                 
                 {/* Template Info */}
-                <div className="text-center space-y-2 flex-1 flex flex-col justify-between">
+                <div className="text-center space-y-3 flex-1 flex flex-col justify-between">
                   <div className="space-y-2">
                     <h3 className="font-semibold text-lg leading-tight text-gray-900 line-clamp-2">
                       {template.name}
@@ -219,32 +219,31 @@ export default function TemplatesPage() {
                     </p>
                   </div>
                   
-                  {/* Email count and buttons in same area */}
-                  <div className="flex items-center justify-between mt-auto pt-3">
-                    <div className="flex items-center gap-1 text-xs text-gray-500">
-                      <Mail className="h-3 w-3" />
-                      <span>{template.emailCount}</span>
-                    </div>
-                    
-                    {/* Action Buttons - Only visible on hover */}
-                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handlePreviewTemplate(template.id)}
-                        className="text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-2 py-1"
-                      >
-                        <Eye className="h-3 w-3" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handleEditTemplate(template.id)}
-                        className="text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-2 py-1"
-                      >
-                        <Settings className="h-3 w-3" />
-                      </Button>
-                    </div>
+                  {/* Email count centered */}
+                  <div className="flex items-center justify-center gap-1 text-xs text-gray-500">
+                    <Mail className="h-3 w-3" />
+                    <span>{template.emailCount}</span>
+                  </div>
+                  
+                  {/* Action Buttons - Only visible on hover */}
+                  <div className="flex gap-1 justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleUseTemplate(template.id)}
+                      className="text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-3 py-1"
+                    >
+                      <Rocket className="h-3 w-3 mr-1" />
+                      Use
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEditTemplate(template.id)}
+                      className="text-xs text-gray-600 hover:text-gray-900 hover:bg-gray-50 px-2 py-1"
+                    >
+                      <Settings className="h-3 w-3" />
+                    </Button>
                   </div>
                 </div>
               </div>
