@@ -21,12 +21,26 @@ interface EmailTemplate {
 
 export default function TemplatesPage() {
   const [, setLocation] = useLocation();
+  const [selectedEntityFilter, setSelectedEntityFilter] = useState<string>('all');
   
   const { data: templates, isLoading } = useQuery<EmailTemplate[]>({
     queryKey: ['/api/campaign-templates']
   });
 
-  const templateList = templates || [];
+  const allTemplates = templates || [];
+  
+  // Filter templates based on selected entity type
+  const templateList = selectedEntityFilter === 'all' 
+    ? allTemplates 
+    : allTemplates.filter(template => template.entity === selectedEntityFilter);
+
+  // Get unique entity types from templates for filter options
+  const entityMap: { [key: string]: boolean } = {};
+  allTemplates.forEach(template => {
+    entityMap[template.entity] = true;
+  });
+  const uniqueEntities = Object.keys(entityMap);
+  const entityTypes = ['all', ...uniqueEntities];
 
   const handleCreateTemplate = () => {
     setLocation('/campaigns/create');
@@ -167,6 +181,43 @@ export default function TemplatesPage() {
           <Plus className="h-4 w-4" />
           Create New Template
         </Button>
+      </div>
+
+      {/* Entity Filter */}
+      <div className="flex flex-wrap gap-1">
+        {entityTypes.map((entityType) => {
+          const isActive = selectedEntityFilter === entityType;
+          const entityConfig = getEntityConfig(entityType);
+          
+          return (
+            <Button
+              key={entityType}
+              variant="ghost"
+              size="sm"
+              className={`flex items-center gap-2 ${
+                isActive 
+                  ? 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100' 
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+              onClick={() => setSelectedEntityFilter(entityType)}
+            >
+              {entityType === 'all' ? (
+                <>
+                  <Globe className="h-3 w-3" />
+                  All Templates
+                </>
+              ) : (
+                <>
+                  {entityType === 'opportunities' && <Target className="h-3 w-3" />}
+                  {entityType === 'customers' && <Users className="h-3 w-3" />}
+                  {entityType === 'partners' && <Briefcase className="h-3 w-3" />}
+                  {entityType === 'internal' && <Building2 className="h-3 w-3" />}
+                  {entityConfig.label}
+                </>
+              )}
+            </Button>
+          );
+        })}
       </div>
 
       {/* Templates Grid */}
