@@ -5003,6 +5003,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const envId = environmentId as string;
       const envPool = pool;
       
+      // Check if entity_logos table exists first
+      const tableCheckResult = await envPool.query(`
+        SELECT EXISTS (
+          SELECT FROM information_schema.tables 
+          WHERE table_schema = $1 AND table_name = 'entity_logos'
+        )
+      `, [envId]);
+      
+      if (!tableCheckResult.rows[0].exists) {
+        // Return empty result instead of error for missing table
+        return res.json(null);
+      }
+      
       const result = await envPool.query(`
         SELECT * FROM ${envId}.entity_logos 
         WHERE entity_type = $1 AND entity_id = $2 AND environment_id = $3
@@ -5010,14 +5023,14 @@ export async function registerRoutes(app: Express): Promise<Server> {
       `, [entityType, parseInt(entityId as string), envId]);
 
       if (result.rows.length === 0) {
-        return res.status(404).json({ error: 'Logo not found' });
+        return res.json(null);
       }
 
       setCache(cacheKey, result.rows[0]);
       res.json(result.rows[0]);
     } catch (error) {
       console.error('Error fetching entity logo:', error);
-      res.status(500).json({ error: 'Failed to fetch entity logo' });
+      res.json(null); // Return null instead of 500 error
     }
   });
 
