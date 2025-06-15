@@ -118,15 +118,30 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     if (templateData) {
       console.log('Loading template data for campaign creation:', templateData);
       
-      const emails = templateData.emails?.map((email: any, index: number) => ({
-        id: email.id || (index + 1).toString(),
-        subject: email.subject || '',
-        blocks: email.blocks || [],
-        followUpDays: email.followUpDays || 0,
-        leftLogo: email.leftLogo || null,
-        rightLogo: email.rightLogo || null,
-        condition: email.condition || (index > 0 ? { type: 'always' } : undefined)
-      })) || [{
+      const emails = templateData.emails?.map((email: any, index: number) => {
+        let blocks = [];
+        try {
+          // Template emails store content as JSON string, parse it to get blocks
+          if (typeof email.content === 'string') {
+            blocks = JSON.parse(email.content);
+          } else if (email.blocks) {
+            blocks = email.blocks;
+          }
+        } catch (e) {
+          console.warn('Failed to parse email content:', e);
+          blocks = [];
+        }
+        
+        return {
+          id: email.id || (index + 1).toString(),
+          subject: email.subject || '',
+          blocks: blocks,
+          followUpDays: email.followUpDays || 0,
+          leftLogo: email.leftLogo || null,
+          rightLogo: email.rightLogo || null,
+          condition: email.condition || (index > 0 ? { type: 'always' } : undefined)
+        };
+      }) || [{
         id: '1',
         subject: '',
         blocks: [],
