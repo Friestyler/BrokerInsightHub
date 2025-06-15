@@ -785,30 +785,29 @@ export default function CampaignCreator() {
       {/* Steps Progress */}
       <div className="bg-white border-b">
         <div className="max-w-6xl mx-auto px-6 py-6">
-          <div className="flex justify-between items-center">
+          <div className="flex justify-between items-start relative">
+            {/* Connecting Line Background */}
+            <div className="absolute top-4 left-0 right-0 h-0.5 bg-gray-200 z-0" style={{ marginLeft: '4rem', marginRight: '4rem' }} />
+            
             {steps.map((step, index) => (
-              <div key={step.number} className="flex flex-col items-center flex-1">
-                <div className="flex items-center w-full">
-                  <div 
-                    className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition-all cursor-pointer ${
-                      isStepCompleted(step.number) 
-                        ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                        : currentStep === step.number 
-                          ? 'bg-blue-100 text-blue-600 ring-4 ring-blue-50' 
-                          : isStepAccessible(step.number)
-                            ? 'bg-gray-200 text-gray-500 hover:bg-gray-300'
-                            : 'bg-gray-200 text-gray-500 cursor-not-allowed opacity-60'
-                    }`}
-                    onClick={() => isStepAccessible(step.number) ? setCurrentStep(step.number) : undefined}
-                  >
-                    {isStepCompleted(step.number) ? <Check className="h-4 w-4" /> : step.number}
-                  </div>
-                  {index < steps.length - 1 && (
-                    <div className={`flex-1 h-0.5 mx-4 ${
-                      isStepCompleted(step.number) ? 'bg-blue-600' : 'bg-gray-200'
-                    }`} />
-                  )}
+              <div key={step.number} className="flex flex-col items-center flex-1 relative z-10">
+                {/* Step Circle */}
+                <div 
+                  className={`flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium transition-all cursor-pointer relative ${
+                    isStepCompleted(step.number) 
+                      ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                      : currentStep === step.number 
+                        ? 'bg-blue-100 text-blue-600 ring-4 ring-blue-50' 
+                        : isStepAccessible(step.number)
+                          ? 'bg-gray-200 text-gray-500 hover:bg-gray-300'
+                          : 'bg-gray-200 text-gray-500 cursor-not-allowed opacity-60'
+                  }`}
+                  onClick={() => isStepAccessible(step.number) ? setCurrentStep(step.number) : undefined}
+                >
+                  {isStepCompleted(step.number) ? <Check className="h-4 w-4" /> : step.number}
                 </div>
+                
+                {/* Step Text */}
                 <div className="mt-3 text-center">
                   <p className={`text-sm font-medium ${
                     currentStep === step.number ? 'text-blue-600' : 'text-gray-900'
@@ -817,6 +816,15 @@ export default function CampaignCreator() {
                 </div>
               </div>
             ))}
+            
+            {/* Progress Line */}
+            <div 
+              className="absolute top-4 left-0 h-0.5 bg-blue-600 z-5 transition-all duration-300"
+              style={{ 
+                marginLeft: '4rem',
+                width: `calc(${((currentStep - 1) / (steps.length - 1)) * 100}% - 8rem + ${((currentStep - 1) / (steps.length - 1)) * 8}rem)`
+              }}
+            />
           </div>
         </div>
       </div>
