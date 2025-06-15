@@ -5123,7 +5123,7 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
-  // Create new campaign
+  // Create new campaign using new campaigns table
   app.post('/api/:envId/campaigns', async (req, res) => {
     try {
       const { envId } = req.params;
@@ -5133,20 +5133,30 @@ export async function registerRoutes(app: Express): Promise<Server> {
         try {
           const result = await pool.query(`
             INSERT INTO ${envId}.campaigns (
-              name, description, template_id, entity, target_group, 
-              recipients, status, settings, created_by, created_at, updated_at
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, NOW(), NOW())
+              name, type, description, template_id, target_entity_type, target_entity_id,
+              status, created_by, emails, recipients, settings, icon, objective, 
+              is_ai_generated, engagement_summary
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15)
             RETURNING *
           `, [
             campaignData.name,
+            campaignData.type || 'email',
             campaignData.description,
-            campaignData.templateId,
-            campaignData.entity,
-            campaignData.targetGroup,
-            JSON.stringify(campaignData.recipients),
+            campaignData.template_id || null,
+            campaignData.target_entity_type,
+            campaignData.target_entity_id || null,
             campaignData.status || 'draft',
-            JSON.stringify(campaignData.settings),
-            campaignData.createdBy
+            campaignData.created_by || 1,
+            JSON.stringify(campaignData.emails || []),
+            JSON.stringify(campaignData.recipients || []),
+            JSON.stringify(campaignData.settings || {}),
+            campaignData.icon || 'mail',
+            campaignData.objective,
+            campaignData.is_ai_generated || false,
+            JSON.stringify({
+              email1: { sent: 0, opened: 0, clicked: 0, replied: 0, bounced: 0 },
+              email2: { sent: 0, opened: 0, clicked: 0, replied: 0, bounced: 0 }
+            })
           ]);
           
           const campaign = result.rows[0];

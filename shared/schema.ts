@@ -570,36 +570,7 @@ export const insertCampaignEmailSchema = createInsertSchema(campaignEmails).pick
   emailOrder: true,
 });
 
-export const insertCampaignSchema = createInsertSchema(campaigns).pick({
-  name: true,
-  description: true,
-  templateId: true,
-  entity: true,
-  targetGroup: true,
-  recipients: true,
-  status: true,
-  scheduledAt: true,
-  settings: true,
-  createdBy: true,
-});
-
-export const insertEmailBlockSchema = createInsertSchema(emailBlocks).pick({
-  emailId: true,
-  type: true,
-  content: true,
-  properties: true,
-  blockOrder: true,
-});
-
-// Campaign template types
-export type InsertCampaignTemplate = z.infer<typeof insertCampaignTemplateSchema>;
-export type CampaignTemplate = typeof campaignTemplates.$inferSelect;
-
-export type InsertCampaignEmail = z.infer<typeof insertCampaignEmailSchema>;
-export type CampaignEmail = typeof campaignEmails.$inferSelect;
-
-export type InsertEmailBlock = z.infer<typeof insertEmailBlockSchema>;
-export type EmailBlock = typeof emailBlocks.$inferSelect;
+// Template schemas defined later in file to avoid duplicates
 
 // Types
 export type InsertUser = z.infer<typeof insertUserSchema>;
