@@ -144,9 +144,8 @@ export const queryClient = new QueryClient({
       refetchOnWindowFocus: false,
       staleTime: STALE_TIME, // 5 minutes - data considered fresh
       gcTime: CACHE_TIME, // 10 minutes - keep in cache
-      retry: 1, // Reduce retry attempts to prevent cascade failures
-      retryDelay: 1000,
-      networkMode: 'online',
+      retry: 1,
+      retryDelay: 500,
     },
     mutations: {
       retry: false,
