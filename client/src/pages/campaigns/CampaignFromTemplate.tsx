@@ -11,16 +11,19 @@ import ImprovedFlowBuilder from './ImprovedEmailBuilder';
 import RecipientSelector from '@/components/campaigns/RecipientSelector';
 
 interface CampaignFromTemplateProps {
-  params: { templateId: string };
+  params?: { templateId?: string };
 }
 
 export default function CampaignFromTemplate({ params }: CampaignFromTemplateProps) {
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { templateId } = params;
+  const { templateId } = params || {};
   const [currentStep, setCurrentStep] = useState(1);
   const [activeEmailIndex, setActiveEmailIndex] = useState(0);
+  
+  // Check if this is "new campaign" mode (no templateId)
+  const isNewCampaign = !templateId;
   
   const [campaignData, setCampaignData] = useState({
     name: '',
@@ -48,15 +51,38 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
     }
   });
 
-  // Load template data to duplicate
+  // Load template data to duplicate (only for template-based campaigns)
   const { data: templateData, isLoading: templateLoading } = useQuery({
     queryKey: [`/api/campaign-templates/${templateId}`],
-    enabled: !!templateId
+    enabled: !!templateId && !isNewCampaign
   });
+
+  // Set default data for new campaigns
+  useEffect(() => {
+    if (isNewCampaign) {
+      setCampaignData(prev => ({
+        ...prev,
+        name: '',
+        entity: 'partners',
+        description: '',
+        objective: '',
+        icon: 'target',
+        attachments: [],
+        emails: [{
+          id: '1',
+          subject: '',
+          blocks: [],
+          followUpDays: 0,
+          leftLogo: null,
+          rightLogo: null
+        }]
+      }));
+    }
+  }, [isNewCampaign]);
 
   // Load template data into campaign when available
   useEffect(() => {
-    if (templateData) {
+    if (templateData && !isNewCampaign) {
       console.log('Loading template data for campaign creation:', templateData);
       
       const emails = templateData.emails?.map((email: any, index: number) => {
@@ -313,7 +339,10 @@ export default function CampaignFromTemplate({ params }: CampaignFromTemplatePro
                   className="h-12"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  This will help you identify this campaign from the template "{templateData?.name}"
+                  {isNewCampaign 
+                    ? "This will help you identify this campaign in your campaign list"
+                    : `This will help you identify this campaign from the template "${templateData?.name}"`
+                  }
                 </p>
               </div>
               
