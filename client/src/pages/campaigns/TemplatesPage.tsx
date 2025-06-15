@@ -21,8 +21,7 @@ export default function TemplatesPage() {
   const [, setLocation] = useLocation();
   
   const { data: templates, isLoading } = useQuery<EmailTemplate[]>({
-    queryKey: ['/api/campaign-templates'],
-    enabled: false // Disable until backend is ready
+    queryKey: ['/api/campaign-templates']
   });
 
   const templateList = templates || [];

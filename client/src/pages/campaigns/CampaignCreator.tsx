@@ -7,6 +7,9 @@ import { Badge } from "@/components/ui/badge";
 import { Progress } from "@/components/ui/progress";
 import { ArrowLeft, ArrowRight, Check, Users, Target, Mail, Send, Settings, Sparkles, TrendingUp, Zap, Star, Heart, Gift, Megaphone, Coffee, Briefcase, Globe, Award, Rocket, Shield, Diamond, Plus, Type, Image, Quote, Minus, AlignLeft, Bold, Italic, Link, Eye, FileText, X, Heading2 as Heading } from "lucide-react";
 import { useLocation } from 'wouter';
+import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { apiRequest } from '@/lib/queryClient';
+import { useToast } from '@/hooks/use-toast';
 import ImprovedEmailBuilder from './ImprovedEmailBuilder';
 
 interface StepProps {
@@ -95,6 +98,8 @@ export default function CampaignCreator() {
   const [previewMode, setPreviewMode] = useState<'desktop' | 'mobile'>('desktop');
   const [showAIPanel, setShowAIPanel] = useState(false);
   const [draggedBlock, setDraggedBlock] = useState<number | null>(null);
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
   
   const [campaignData, setCampaignData] = useState({
     entity: '',
@@ -114,6 +119,31 @@ export default function CampaignCreator() {
   });
   
   const [showPreview, setShowPreview] = useState(false);
+
+  // Save template mutation
+  const saveTemplateMutation = useMutation({
+    mutationFn: (templateData: any) => 
+      apiRequest('/api/campaign-templates', {
+        method: 'POST',
+        body: JSON.stringify(templateData),
+        headers: { 'Content-Type': 'application/json' }
+      }),
+    onSuccess: () => {
+      toast({
+        title: "Template saved successfully",
+        description: "Your campaign template has been saved and is now available in the templates library.",
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/campaign-templates'] });
+      setLocation('/campaigns/templates');
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error saving template",
+        description: error.message || "Failed to save template. Please try again.",
+        variant: "destructive",
+      });
+    }
+  });
 
   // AI content generation function
   const generateAIContent = (entityType: string, blockType: string): string => {
