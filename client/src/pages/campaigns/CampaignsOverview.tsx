@@ -15,18 +15,6 @@ export default function CampaignsOverview() {
             <Button 
               variant="ghost" 
               className={`flex items-center gap-2 ${
-                activeTab === 'templates' 
-                  ? 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100' 
-                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
-              }`}
-              onClick={() => setActiveTab('templates')}
-            >
-              <FileText className="h-4 w-4" />
-              Templates
-            </Button>
-            <Button 
-              variant="ghost" 
-              className={`flex items-center gap-2 ${
                 activeTab === 'campaigns' 
                   ? 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100' 
                   : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
@@ -36,19 +24,25 @@ export default function CampaignsOverview() {
               <Send className="h-4 w-4" />
               Campaigns
             </Button>
+            <Button 
+              variant="ghost" 
+              className={`flex items-center gap-2 ${
+                activeTab === 'templates' 
+                  ? 'bg-indigo-50 text-indigo-700 hover:bg-indigo-100' 
+                  : 'text-gray-600 hover:text-gray-900 hover:bg-gray-50'
+              }`}
+              onClick={() => setActiveTab('templates')}
+            >
+              <FileText className="h-4 w-4" />
+              Templates
+            </Button>
           </div>
         </div>
       </div>
 
       <div className="flex-1">
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="h-full">
-          <TabsContent value="templates" className="h-full m-0">
-            <TemplatesPage />
-          </TabsContent>
-          <TabsContent value="campaigns" className="h-full m-0">
-            <CampaignsPlaceholder />
-          </TabsContent>
-        </Tabs>
+        {activeTab === 'campaigns' && <CampaignsPage />}
+        {activeTab === 'templates' && <TemplatesPage />}
       </div>
     </div>
   );
